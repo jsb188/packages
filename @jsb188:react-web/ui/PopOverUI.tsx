@@ -13,7 +13,7 @@ import { ActivityDots, BigLoading } from './Loading';
  */
 
 export interface PONavItemBase {
-  onClickItem: (value: string | null) => void;
+  onClickItem: (name: string | null, value: string | null) => void;
   saving: boolean;
   selected: boolean;
   disabled?: boolean;
@@ -158,11 +158,12 @@ export const POText = memo((p: POTextProps) => {
  */
 
 interface POListItemProps extends PONavItemBase {
+  name: string | null;
   item: POListItemObj;
 }
 
 export const POListItem = memo((p: POListItemProps) => {
-  const { item, onClickItem, saving, selected } = p;
+  const { name, item, onClickItem, saving, selected } = p;
   const { colorIndicator, preset, className, disabled, allowDisabledOnClick, to, text, value, iconName, rightIconName, rightIconClassName, photoUri, avatarDisplayName } = item;
   const hasAvatar = !!photoUri || !!avatarDisplayName;
   const undefinedValue = value === undefined;
@@ -185,7 +186,7 @@ export const POListItem = memo((p: POListItemProps) => {
       to={to}
       disabled={disabled}
       className={cn('po_opt bg_link h_item gap_xs lh_1', presetClassName, disabled ? 'op_50' : '', className)}
-      onClick={undefinedValue || (disabled && !allowDisabledOnClick) ? undefined : () => onClickItem(value)}
+      onClick={undefinedValue || (disabled && !allowDisabledOnClick) ? undefined : () => onClickItem(name, value)}
     >
       {!hasAvatar ? null : (
         <AvatarImg
@@ -225,11 +226,12 @@ POListItem.displayName = 'POListItem';
  */
 
 interface PONavAvatarItemProps extends PONavItemBase {
+  name: string | null;
   item: PONavAvatarItemObj;
 }
 
 export const PONavAvatarItem = memo((p: PONavAvatarItemProps) => {
-  const { item, onClickItem, saving, selected } = p;
+  const { name, item, onClickItem, saving, selected } = p;
   const { className, disabled, allowDisabledOnClick, to, text, label, value, rightIconName, photoUri, avatarDisplayName } = item;
   const undefinedValue = value === undefined;
   const hasRightComponent = saving || selected || !!rightIconName;
@@ -240,7 +242,7 @@ export const PONavAvatarItem = memo((p: PONavAvatarItemProps) => {
       to={to}
       disabled={disabled}
       className={cn('po_opt bg_link h_item gap_sm av_item', disabled ? 'op_50' : '', className)}
-      onClick={undefinedValue || (disabled && !allowDisabledOnClick) ? undefined : () => onClickItem(value)}
+      onClick={undefinedValue || (disabled && !allowDisabledOnClick) ? undefined : () => onClickItem(name, value)}
     >
       <AvatarImg
         size='small'

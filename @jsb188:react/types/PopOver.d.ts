@@ -32,6 +32,7 @@ export interface POListBreakObj {
 
 export interface POListItemObj {
   __type: 'LIST_ITEM' | 'CHECK_LIST_ITEM';
+  name?: string; // Name for form, for formValues object; if not set, index will be used
   value?: string | null;
   text: string;
   className?: string;
@@ -58,11 +59,13 @@ export interface POListItemObj {
 
 export interface POCheckListItemObj extends POListItemObj {
   __type: 'CHECK_LIST_ITEM';
+  name?: string; // Name for form, for formValues object; if not set, index will be used
   hidden?: boolean;
 }
 
 export interface PONavAvatarItemObj {
   __type: 'AVATAR_ITEM';
+  name?: string; // Name for form, for formValues object; if not set, index will be used
   value?: string | null;
   text: string;
   label: string;
@@ -85,10 +88,12 @@ export interface PONavAvatarItemObj {
 export interface PODateRangeObj {
   __type: 'DATE_RANGE';
   hidden?: boolean;
+  name?: string; // Name for form, for formValues object; if not set, index will be used
 }
 
 export interface POTextObj {
   __type: 'TEXT';
+  hidden?: boolean;
   text: string;
   className?: string;
   designClassName?: string;
@@ -189,6 +194,7 @@ export interface UpdatePopOverParams {
 
 export interface PopOverGlobalStateParams {
   action: 'ITEM' | 'SUBMIT' | 'MOUNT' | 'UNMOUNT';
+  name?: string | null; // Name of form item
   value: any;
 }
 

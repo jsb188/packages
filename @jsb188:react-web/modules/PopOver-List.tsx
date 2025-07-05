@@ -6,6 +6,7 @@ import { memo, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
 import { POListBreak, POListItem, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
+import type { CalendarSelectedObj, OnChangeCalendarDayFn } from './Calendar';
 import CalendarMain from './Calendar';
 
 /**
@@ -13,25 +14,29 @@ import CalendarMain from './Calendar';
  */
 
 interface PODateRangeProps {
+  name: string;
   item: PODateRangeObj;
-  onClickItem: (value: any) => void;
+  value?: [CalendarSelectedObj | null, CalendarSelectedObj | null] | null;
+  onClickItem: (name: string, value: any) => void;
 }
 
 const PODateRange = memo((p: PODateRangeProps) => {
-  const { item, onClickItem } = p;
-  // const [startDate, setStartDate] =
+  const { name, value, item, onClickItem } = p;
+  const [startDate, endDate] = value || [];
 
-  console.log('date range', p);
-
+  const onChangeCalendarDay: OnChangeCalendarDayFn = (innerName, innerValue) => {
+    const nextValue = innerName === 'startDate' ? [innerValue, endDate] : [startDate, innerValue];
+    onClickItem(name, nextValue);
+  };
 
   const calendarProps = {
     className: 'f',
-    onChange: (name: string, value: number | null) => onClickItem({ name, value }),
+    onChange: onChangeCalendarDay
   };
 
   return <div className='h_spread gap_md pt_4 px_4'>
-    <CalendarMain {...calendarProps} name='startDate' />
-    <CalendarMain {...calendarProps} name='endDate' />
+    <CalendarMain {...calendarProps} name='startDate' value={startDate} />
+    <CalendarMain {...calendarProps} name='endDate' value={endDate} />
   </div>;
 });
 
@@ -42,6 +47,8 @@ PODateRange.displayName = 'PODateRange';
  */
 
 interface PONavItemIfaceProps extends PONavItemBase {
+  name: string;
+  value?: any;
   item: POListIfaceItem;
   checked?: boolean;
 }
@@ -94,18 +101,26 @@ export function PopOverList(p: PopOverListProps) {
     savingValue,
     addFooterButton,
     footerButtonText,
+    initialState
   } = variables;
 
   const divRef = useRef<HTMLDivElement>(null);
   const dismissFn = closePopOver ? () => closePopOver() : undefined;
+  const [formValues, setFormValues] = useState(initialState || {});
 
   useOnClickOutside(divRef, true, false, 'ignore_outside_click', dismissFn);
 
-  const onClickItem = (value: any) => {
+  const onClickItem = (name: string | null, value: any) => {
     setPopOverState({
       action: 'ITEM',
+      name,
       value
     });
+
+    setFormValues(prev => ({
+      ...prev,
+      [name!]: value
+    }));
   };
 
   const onSubmit = () => {
@@ -126,11 +141,17 @@ export function PopOverList(p: PopOverListProps) {
           <ActivityDots />
         </div>
         : options.filter((item: POListIfaceItem) => !item.hidden).map((item: POListIfaceItem, i: number) => {
-          // @ts-expect-error - Ignored because some components such as <PONavItemBreak /> don't have value
+          // @ts-expect-error - Not all interfaces have "name" property
+          const itemName = item.name || i.toString();
+          // @ts-expect-error - Not all interfaces have "value" property
           const itemValue = item.value;
+          const currentValue = formValues[itemName];
+
           return <PONavItemIface
             key={i}
+            name={itemName}
             item={item}
+            value={currentValue}
             onClickItem={onClickItem}
             saving={savingValue !== undefined && savingValue === itemValue}
             selected={selectedValue !== undefined && selectedValue === itemValue}
@@ -176,9 +197,10 @@ export function PopOverCheckList(p: PopOverCheckListProps) {
 
   useOnClickOutside(divRef, true, false, 'ignore_outside_click', dismissFn);
 
-  const onClickItem = (value: string | null) => {
+  const onClickItem = (name: string | null, value: string | null) => {
     setPopOverState({
       action: 'ITEM',
+      name,
       value
     });
     setChecked(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
@@ -204,8 +226,12 @@ export function PopOverCheckList(p: PopOverCheckListProps) {
         : options.filter((item: POCheckListIfaceItem) => !item.hidden).map((item: POCheckListIfaceItem, i: number) => {
           // @ts-expect-error - Ignored because some components such as <PONavItemBreak /> don't have value
           const itemValue = item.value;
+          // @ts-expect-error - Not all interfaces have "name" property
+          const itemName = item.name || i.toString();
+
           return <PONavItemIface
             key={i}
+            name={itemName}
             item={item}
             onClickItem={onClickItem}
             saving={savingValue !== undefined && savingValue === itemValue}

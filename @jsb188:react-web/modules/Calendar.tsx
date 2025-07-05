@@ -19,23 +19,51 @@ function getCalendarInt(day: number, month: number, year: number): number {
  * Helpers; get day/month/year from date
  *
  * @param date - The date to extract the calendar selector from.
- * @param timeZone - The time zone to use for the date.
  * @returns An object containing the day, month, and year.
  */
 
-function getCalendarSelector(date_?: Date, timeZone?: string | null): CalendarSelectedObj {
-  const date = date_ || new Date();
-  const localDate = timeZone ? new Date(date.toLocaleString('en-US', { timeZone })) : date;
-  const day = localDate.getDate();
-  const month = localDate.getMonth() + 1; // Months are zero-indexed
-  const year = localDate.getFullYear();
+function getCalendarSelector(date?: CalendarSelectedObj | Date | string | number | null): CalendarSelectedObj | null {
 
-  return {
-    int: getCalendarInt(day, month, year),
-    day,
-    month,
-    year
-  };
+  if (date instanceof Date) {
+
+    const calDateObj = {
+      day: date.getDate(),
+      month: date.getMonth() + 1, // Months are zero-indexed
+      year: date.getFullYear()
+    };
+
+    return {
+      int: getCalendarInt(calDateObj.day, calDateObj.month, calDateObj.year),
+      ...calDateObj,
+    };
+  }
+
+  if (
+    date &&
+    typeof date === 'object' &&
+    date.int && date.day && date.month && date.year
+  ) {
+    // This is already CalendarSelectedObj
+    return date;
+  }
+
+  // Convert string or number to Date
+  const value = String(date);
+  if (!isNaN(Number(value)) && value.length === 8) {
+    // This is 8 digit YYYYMMDD CalDate
+    const year = Number(value.slice(0, 4));
+    const month = Number(value.slice(4, 6));
+    const day = Number(value.slice(6, 8));
+
+    return {
+      int: getCalendarInt(day, month, year),
+      day,
+      month,
+      year
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -69,7 +97,7 @@ const MonthLabels = memo((p: MonthLabelsProps) => {
       </button>
     </div>
   );
-})
+});
 
 MonthLabels.displayName = 'MonthLabels';
 
@@ -137,7 +165,7 @@ CalendarDay.displayName = 'CalendarDay';
  */
 
 interface CalendarDaysProps {
-  selectedInt: number;
+  selectedInt?: number;
   month: number;
   year: number;
   displayNextMonthDays?: boolean;
@@ -227,16 +255,18 @@ CalendarDays.displayName = 'CalendarDays';
 
 type OnClickCalendaryDayFn = (value: CalendarSelectedObj | null) => void;
 
+export type OnChangeCalendarDayFn = (name: string, value: CalendarSelectedObj | null) => void;
+
 interface CalendarProps {
   name: string; // Form name; ie. for start/end date
+  value?: CalendarSelectedObj | string | number | null;
   className?: string;
   initialDate?: Date;
-  timeZone?: string | null;
   displayNextMonthDays?: boolean;
-  onClickItem?: (name: string, value: string | number | null) => void;
+  onChange?: OnChangeCalendarDayFn;
 }
 
-interface CalendarSelectedObj {
+export interface CalendarSelectedObj {
   int: number;
   day: number;
   month: number;
@@ -249,22 +279,24 @@ interface CalendarViewObj {
 }
 
 const CalendarMain = memo((p: CalendarProps) => {
-  const { name, initialDate, timeZone, className, displayNextMonthDays, onChange } = p;
-  const [selected, setSelected] = useState<CalendarSelectedObj | null>(() => getCalendarSelector(initialDate, timeZone));
+  const { name, initialDate, className, displayNextMonthDays, onChange } = p;
+  const value = getCalendarSelector(p.value);
+  // const [selected, setSelected] = useState<CalendarSelectedObj | null>(() => getCalendarSelector(initialDate));
   const [calendarView, setCalendarView] = useState<CalendarViewObj>(() => {
-    const obj = getCalendarSelector(initialDate, timeZone);
-    return { month: obj.month, year: obj.year };
+    const obj = value || getCalendarSelector(new Date());
+    return { month: obj!.month, year: obj!.year };
   });
 
   const onClickItem = useCallback((value: CalendarSelectedObj | null) => {
-    setSelected(value);
+    // setSelected(value);
+    onChange?.(name, value);
   }, []);
 
-  useEffect(() => {
-    if (onChange) {
-      onChange(name, selected);
-    }
-  }, [selected]);
+  // useEffect(() => {
+  //   if (onChange) {
+  //     onChange(name, selected);
+  //   }
+  // }, [selected]);
 
   return <section className={cn('calendar_cnt', className)}>
     <MonthLabels
@@ -275,7 +307,7 @@ const CalendarMain = memo((p: CalendarProps) => {
     <CalendarDays
       {...calendarView}
       displayNextMonthDays={displayNextMonthDays}
-      selectedInt={selected.int}
+      selectedInt={value?.int}
       onClickItem={onClickItem}
     />
   </section>;
