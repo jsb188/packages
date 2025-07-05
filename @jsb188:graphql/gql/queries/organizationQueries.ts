@@ -1,0 +1,52 @@
+import { gql } from 'graphql-tag';
+import { organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
+
+// Always use organizationRelationship() instead
+
+// export const organizationQry = gql`
+// query organization (
+//   $organizationId: GenericID!
+// ) {
+//   organization (
+//     organizationId: $organizationId
+//   ) {
+//     ...organizationFragment
+//   }
+// }
+
+// ${organizationFragment}
+// `;
+
+export const organizationRelationshipQry = gql`
+query organizationRelationship (
+  $organizationId: GenericID!
+) {
+  organizationRelationship (
+    organizationId: $organizationId
+  ) {
+    ...organizationRelationshipFragment
+
+    organization {
+      ...organizationFragment
+    }
+  }
+}
+
+${organizationFragment}
+${organizationRelationshipFragment}
+`;
+
+export const myOrganizationsQry = gql`
+query myOrganizations {
+  myOrganizations {
+    ...organizationRelationshipFragment
+
+    organization {
+      ...organizationFragment
+    }
+  }
+}
+
+${organizationFragment}
+${organizationRelationshipFragment}
+`;

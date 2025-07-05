@@ -1,0 +1,79 @@
+
+/* Themes container */
+
+.themes_cnt {
+  /* -10 for item padding; -5 for border */
+  margin: 2rem -15px;
+}
+
+/* Boxed item */
+
+.box_item {
+  position: relative;
+  width: 118px;
+  padding: 9px;
+  margin: 8px 8px 0;
+  border: solid 5px transparent;
+}
+
+.box_item:disabled {
+  cursor: not-allowed;
+}
+
+.box_item:hover {
+  background-color: rgb(var(--color-bg-alt));
+}
+
+.box_item.sel {
+  border-color: rgb(var(--color-bg-alt));
+}
+
+.box_item.sel:hover {
+  border-color: rgb(var(--color-bg-active));
+}
+
+/* Circle inside box item */
+
+.cl_circle {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-size: 125% auto;
+  background-position: 50% 25%;
+}
+
+/* Icon inside circle svg */
+
+.box_item .icon_cnt {
+  position: absolute;
+  top: 9px; left: 15px; right: 15px;
+  /* This size is hard-coded to the SVG circle size in [MiscElements.tsx] */
+  height: 70px;
+}
+
+/* Close icon */
+
+.box_item .close {
+  position: absolute;
+  top: -11px;
+  right: -11px;
+}
+
+/* Shorcut key button */
+
+.shortcut {
+  display: inline-block;
+  padding: 3px 4px 2px;
+  margin: 0 7px;
+  border-radius: 5px;
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px var(--color-solid-hover);
+}
+
+.shortcut:first-child {
+  margin-left: 0;
+}
+
+.shortcut:last-child {
+  margin-right: 0;
+}

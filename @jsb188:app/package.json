@@ -1,0 +1,44 @@
+{
+  "name": "@jsb188/app",
+  "version": "1.1.4",
+  "description": "Contains all the basic requirements for all @jsb188 apps.",
+  "license": "ISC",
+  "author": "jsb188",
+  "type": "module",
+  "main": "main.ts",
+  "types": "types.d.ts",
+  "exports": {
+    ".": "./main.ts",
+    "./platform": "./platform.ts",
+    "./i18n": "./i18n/index.ts",
+    "./constants/app": "./constants/app.ts",
+    "./constants/billing": "./constants/billing.ts",
+    "./constants/emoji": "./constants/emoji.ts",
+    "./constants/user": "./constants/user.ts",
+    "./constants/ws": "./constants/ws.ts",
+    "./utils/api": "./utils/api.ts",
+    "./utils/billing": "./utils/billing.ts",
+    "./utils/datetime": "./utils/datetime.ts",
+    "./utils/emoji": "./utils/emoji.ts",
+    "./utils/logic": "./utils/logic.ts",
+    "./utils/number": "./utils/number.ts",
+    "./utils/object": "./utils/object.ts",
+    "./utils/string": "./utils/string.ts",
+    "./utils/timeZone": "./utils/timeZone.ts",
+    "./utils/url_client": "./utils/url_client.ts",
+    "./utils/user": "./utils/user.ts",
+    "./types/ai.d": "./types/ai.d.ts",
+    "./types/app.d": "./types/app.d.ts",
+    "./types/auth.d": "./types/auth.d.ts",
+    "./types/form.d": "./types/form.d.ts",
+    "./types/organization.d": "./types/organization.d.ts",
+    "./types/user.d": "./types/user.d.ts"
+  },
+  "dependencies": {
+    "node-polyglot": "^2.6.0",
+    "luxon": "^3.6.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

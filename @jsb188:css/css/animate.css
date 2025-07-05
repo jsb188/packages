@@ -1,0 +1,194 @@
+
+/* Dropdown from top */
+
+.anim_dropdown_top .target:not(.anim_inner), .anim_dropdown_top.target {
+  transition-property: transform;
+  transition-timing-function: ease-out;
+  transition-duration: 125ms;
+  transform-origin: top right;
+  transform: translate(0, -10px) scale(.95);
+  opacity: 0;
+}
+
+.anim_dropdown_top.visible .target:not(.anim_inner), .anim_dropdown_top.visible.target {
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+}
+
+.anim_dropdown_top.on_mount, .anim_dropdown_top.reverse {
+  animation-name: keyframes_dropdown_top;
+  animation-duration: 125ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_dropdown_top {
+  from { transform: translate(0, -10px) scale(.95); opacity: 0; }
+  to { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+
+/* Dropdown from top left corner */
+
+.anim_dropdown_top_left .target:not(.anim_inner), .anim_dropdown_top_left.target {
+  transition-property: transform;
+  transition-timing-function: ease-out;
+  transition-duration: 125ms;
+  transform-origin: top left;
+  transform: translate(-2px, -10px) scale(.95);
+  opacity: 0;
+}
+
+.anim_dropdown_top_left.visible .target:not(.anim_inner), .anim_dropdown_top_left.visible.target {
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+}
+
+.anim_dropdown_top_left.on_mount, .anim_dropdown_top_left.reverse {
+  animation-name: keyframes_dropdown_top_left;
+  animation-duration: 125ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_dropdown_top_left {
+  from { transform: translate(-2px, -10px) scale(.95); opacity: 0; }
+  to { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+
+/* Dropdown from top right corner */
+
+.anim_dropdown_top_right .target:not(.anim_inner), .anim_dropdown_top_right.target {
+  transition-property: transform;
+  transition-timing-function: ease-out;
+  transition-duration: 100ms;
+  transform-origin: top right;
+  transform: translate(2px, -10px) scale(.95);
+  opacity: 0;
+}
+
+.anim_dropdown_top_right.visible .target:not(.anim_inner), .anim_dropdown_top_right.visible.target {
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+}
+
+.anim_dropdown_top_right.on_mount, .anim_dropdown_top_right.reverse {
+  animation-name: keyframes_dropdown_top_right;
+  animation-duration: 100ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_dropdown_top_right {
+  from { transform: translate(2px, -10px) scale(.95); opacity: 0; }
+  to { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+
+/* Shift-appear up */
+
+.anim_shift_appear_center .target:not(.anim_inner), .anim_shift_appear_center.target {
+  transition-property: transform;
+  transition-timing-function: ease-out;
+  transition-duration: 200ms;
+  transform: translateY(20%);
+  opacity: 0;
+}
+
+.anim_shift_appear_center.visible .target:not(.anim_inner), .anim_shift_appear_center.visible.target {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.anim_shift_appear_center.on_mount, .anim_shift_appear_center.reverse {
+  animation-name: keyframes_shift_appear_center;
+  animation-duration: 200ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_shift_appear_center {
+  from { transform: translateY(20%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Lift up & expand (scale transform) from sunken position */
+
+.anim_lift_scale_center .target:not(.anim_inner), .anim_lift_scale_center.target {
+  transition-property: transform;
+  transition-timing-function: ease-out;
+  transition-duration: 250ms;
+  transform: translateY(100%) scale(.85);
+  opacity: 0;
+}
+
+.anim_lift_scale_center.visible .target:not(.anim_inner), .anim_lift_scale_center.visible.target {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.anim_lift_scale_center.on_mount, .anim_lift_scale_center.reverse {
+  animation-name: keyframes_lift_scale_center;
+  animation-duration: 250ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_lift_scale_center {
+  from { transform: translateY(100%) scale(.9); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Drop down & expand (scale transform) from elevated position (no fade) */
+
+.anim_drop_center .target:not(.anim_inner), .anim_drop_center.target {
+  transition-property: transform;
+  transition-timing-function: ease-out;
+  transition-duration: 250ms;
+  transform: translateY(-100%) scale(.9);
+}
+
+.anim_drop_center.visible .target:not(.anim_inner), .anim_drop_center.visible.target {
+  transform: translateY(0) scale(1);
+}
+
+/* Zoom & fade in with a slight scale effect */
+
+.anim_zoom_in_fade .target:not(.anim_inner), .anim_zoom_in_fade.target,
+.anim_zoom_in .target:not(.anim_inner), .anim_zoom_in.target {
+  transition-property: transform, opacity;
+  transition-timing-function: ease-in-out;
+  transition-duration: 150ms;
+  transform: scale3d(0.9, 0.9, 0.9);
+}
+
+.anim_zoom_in_fade.visible .target:not(.anim_inner), .anim_zoom_in_fade.visible.target,
+.anim_zoom_in.visible .target:not(.anim_inner), .anim_zoom_in.visible.target {
+  transform: scale3d(1, 1, 1);
+}
+
+.anim_zoom_in_fade .target:not(.anim_inner), .anim_zoom_in_fade.target {
+  opacity: 0;
+}
+
+.anim_zoom_in_fade.visible .target:not(.anim_inner), .anim_zoom_in_fade.visible.target {
+  opacity: 1;
+}
+
+/* Drop & fade down from slightly elevated position */
+
+.anim_drop_down .target:not(.anim_inner), .anim_drop_down.target {
+  transition-property: transform, opacity;
+  transition-timing-function: ease-out;
+  transition-duration: 75ms;
+
+  transform: translateY(-15px);
+  opacity: 0;
+}
+
+.anim_drop_down.visible .target:not(.anim_inner), .anim_drop_down.visible.target {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Animation utility config classes */
+
+.reverse { animation-direction: reverse; }

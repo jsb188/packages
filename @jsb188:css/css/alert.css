@@ -1,0 +1,30 @@
+
+/* Modal cover for alerts & screens */
+
+.bg_modal {
+  /* background-color: rgba(var(--color-bg-modal), .5); */
+  background: linear-gradient(360deg, rgba(var(--color-bg-modal), .85) 0%, rgba(var(--color-bg-modal), .5) 50%);
+  /* background-color: rgba(255, 200, 69, .1); */
+
+}
+
+.modal_main_content {
+  cursor: auto;
+}
+
+/* Alert black-to-transparent background */
+
+.bg_alert {
+  background: linear-gradient(360deg, rgba(var(--color-darker-rgb), .075) 0%, transparent 50%);
+  /* background: linear-gradient(360deg, rgba(var(--color-bg-modal), 1) 0%, transparent 50%); */
+}
+
+/* Different outlines + shadows for each modal type */
+
+.alert_shadow_default {
+  box-shadow: 0 8px 15px rgba(0,0,0,.07), 0 0 20px rgba(var(--color-bg-modal), .5);
+}
+
+.alert_shadow_error {
+  box-shadow: 0 8px 15px rgba(0,0,0,.07), 0 0 0 4px rgba(var(--color-error), .5), 0 0 20px rgba(var(--color-error), .1);
+}

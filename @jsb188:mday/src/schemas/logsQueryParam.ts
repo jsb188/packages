@@ -1,0 +1,160 @@
+import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
+import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
+import { z } from 'zod';
+import { LOG_TYPE_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
+import type { LogTypeEnum, FilterLogEntriesArgs } from '../types/log.d';
+
+/**
+ * Zod schema for query params to filter
+ */
+
+export const FilterLogEntriesSchema = z.object({
+  types: z.array(z.enum(LOG_TYPE_ENUMS as [string]))
+    .nullable(),
+	startDate: z.string()
+		.refine((sd) => isValidCalDate(sd), { message: 'START_DATE_INVALID' })
+		.refine((sd) => !isFutureCalDate(sd, 1), { message: 'START_DATE_FUTURE_NOT_ALLOWED' })
+		.nullable(),
+	endDate: z.string()
+		.refine((ed) => isValidCalDate(ed), { message: 'END_DATE_INVALID' })
+		.nullable(),
+	timeZone: z.string()
+		.refine((tz) => isValidTimeZone(tz), { message: 'INVALID_TIMEZONE' })
+		.nullable(),
+	query: z.string()
+		.nullable(),
+}).refine((data) => {
+	if (!data.endDate) {
+		// No need to validate if endDate is not provided
+		return true;
+	} else if (!data.startDate) {
+		// If endDate is provided, startDate is required
+		return false;
+	}
+	// End date must be after or equal to start date
+	return data.endDate >= data.startDate;
+}, {
+	message: 'END_DATE_MUST_BE_AFTER_START_DATE',
+	path: ['endDate'], // where to attach the error
+});
+
+/**
+ * Convert list of digits to log type enums
+ * @param operationType - The type of operation for organization
+ * @param types - Comma-separated string of digits representing log types
+ * @returns Array of log type enums or null
+ */
+
+export function convertDigitsToLogTypes(
+  operationType: OrganizationOperationEnum | null,
+  typesStr?: string | null
+) {
+  if (!operationType || !typesStr) {
+    return null;
+  }
+
+  const logTypes = LOG_TYPES_BY_OPERATION[operationType];
+  if (!logTypes) {
+    console.warn(`No log types found for operation type: ${operationType}`);
+    return null;
+  }
+
+  return logTypes.map((type: LogTypeEnum, i: number) => {
+    const value = typesStr.charAt(i);
+    if (value === '1') {
+      return type;
+    }
+    return null;
+  }).filter(Boolean) as FilterLogEntriesArgs['types'];
+}
+
+/**
+ * Convert list of log type enums to digits
+ * @param operationType - The type of operation for organization
+ * @param types - Array of log type enums
+ * @returns String made of digits (indexes) representing log types
+ */
+
+export function convertLogTypesToDigits(
+  operationType: OrganizationOperationEnum | null,
+  types: FilterLogEntriesArgs['types']
+): string | null {
+  if (!operationType || !types) {
+    return null;
+  }
+
+  const logTypes = LOG_TYPES_BY_OPERATION[operationType];
+  if (!logTypes) {
+    console.warn(`No log types found for operation type: ${operationType}`);
+    return null;
+  }
+
+  return logTypes.map((type: LogTypeEnum) => {
+    return types.includes(type) ? '1' : '0';
+  }).join('');
+}
+
+/**
+ * Create a filter object for logEntries() query from the URL search query.
+ * @param operationType - The type of operation for organization
+ * @param searchQuery - The search query string from the URL
+ * @returns FilterLogEntriesArgs - The filter object to be used in the logEntries() query
+ */
+
+export function createFilterFromURL(
+  operationType: OrganizationOperationEnum | null,
+  searchQuery: string
+) {
+
+  const urlParams = new URLSearchParams(searchQuery);
+  const filter: FilterLogEntriesArgs = {
+    // @ts-expect-error - allow null operationType, let the query decide to skip or execute the query
+    operation: operationType,
+    types: convertDigitsToLogTypes(operationType, urlParams.get('t')), // (urlParams.get('t') || null) as FilterLogEntriesArgs['type'] | null,
+    startDate: urlParams.get('sd') || null,
+    endDate: urlParams.get('ed') || null,
+    timeZone: indexToTimeZone(urlParams.get('z')),
+    query: urlParams.get('q') || '',
+  };
+
+  const validation = FilterLogEntriesSchema.safeParse(filter);
+  if (!validation.success) {
+    // Return null and force the client to go to a valid page
+    return null;
+  }
+
+  return filter;
+}
+
+/**
+ * Create URL search params from a filter object
+ * @param filter - The filter object to convert to URL search params
+ * @returns URLSearchParams - The search params object
+ */
+
+export function createSearchParamsFromFilter(filter: FilterLogEntriesArgs): URLSearchParams {
+  const params = new URLSearchParams();
+  const { operation } = filter;
+
+  if (filter.types && operation) {
+    const typeDigits = convertLogTypesToDigits(operation, filter.types);
+    if (typeDigits) {
+      params.set('t', typeDigits);
+    }
+  }
+  if (filter.startDate) {
+    params.set('sd', filter.startDate);
+  }
+  if (filter.endDate) {
+    params.set('ed', filter.endDate);
+  }
+  if (filter.timeZone) {
+    params.set('z', filter.timeZone);
+  }
+  if (filter.query) {
+    params.set('q', filter.query);
+  }
+
+  return params;
+}

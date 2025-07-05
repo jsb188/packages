@@ -1,0 +1,118 @@
+
+/* Pop overs */
+
+.popover {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.popover .tooltip {
+  display: inline-block;
+  /* padding: .58rem .7rem; */
+  padding: .55rem .68rem;
+  /* box-shadow: var(--shadow-light); */
+  box-shadow: var(--shadow);
+}
+
+.popover.small .tooltip {
+  max-width: 150px;
+}
+
+.popover.default .tooltip {
+  max-width: 225px;
+}
+
+/* Pop over; list */
+
+.po_list {
+  border-radius: var(--radius-small-wrap);
+}
+
+.po_list .inside {
+  padding: 5px;
+  display: flex; flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.po_list.bg a:hover {
+  background-color: var(--color-darker-light);
+}
+
+.po_list .av_item .av.main {
+  box-shadow: 0 0 10px rgb(var(--color-bg));
+}
+
+/* Pop over; subtitle */
+
+.po_subtitle {
+  position: sticky;
+  top: -.3rem; left: 0; right: 0;
+  padding: .35rem .4rem .4rem;
+  margin-bottom: .3rem;
+}
+
+/* Pop over; list item */
+
+.po_opt .saving_area {
+  width: 24px;
+  transform: translateX(-4px);
+}
+
+.po_opt {
+  min-width: 150px;
+  padding: 5px 0 5px .5rem;
+  white-space: nowrap;
+  border-radius: var(--radius-small);
+}
+
+/* Pop over; text item */
+
+.po_opt.text_item {
+  padding: 5px .5rem;
+  margin-bottom: 0;
+}
+
+/* Pop over; different presets for list item */
+
+.po_opt.av_item {
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+}
+
+.po_opt.preset_small {
+  padding: .5rem 0 .5rem .5rem;
+}
+
+/* Pop over; list break */
+
+.po_list_break {
+  margin: 3px 0;
+  border-top: solid 1px var(--color-darker-light);
+}
+
+/* Pop over container */
+
+.po_container {
+  /* padding: 4px; */
+  box-shadow: var(--shadow-light);
+}
+
+.po_container .inside {
+  display: flex;
+  flex-direction: column;
+
+  width: 300px;
+  min-height: 200px;
+  /* max-height: calc(100vh - 20px); */
+  max-height: 70vh;
+}
+
+/* Pop over image */
+
+.pu_img {
+  max-width: 400px;
+  margin: 10px; /* 10px is also hard coded into the React Component */
+}

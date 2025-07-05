@@ -1,0 +1,23 @@
+{
+  "name": "@jsb188/css",
+  "version": "1.1.4",
+  "description": "Re-usable, base CSS styles for any app (NOTE: Bring your own variables).",
+  "license": "ISC",
+  "author": "jsb188",
+  "type": "module",
+  "exports": {
+    "./_global.css": "./css/_global.css",
+    "./alert.css": "./css/alert.css",
+    "./animate.css": "./css/animate.css",
+    "./form.css": "./css/form.css",
+    "./layout.css": "./css/layout.css",
+    "./list.css": "./css/list.css",
+    "./loading.css": "./css/loading.css",
+    "./misc.css": "./css/misc.css",
+    "./modal.css": "./css/modal.css",
+    "./popover.css": "./css/popover.css"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

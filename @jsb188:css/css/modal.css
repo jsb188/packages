@@ -1,0 +1,233 @@
+
+/* Modal content container */
+
+.mw_content {
+  flex: 1;
+  height: 100%;
+}
+
+.mw_content.w_pad {
+  padding-bottom: 3.5rem;
+}
+
+/* Themed container */
+
+.mw_themed {
+  position: relative;
+  padding: 4px;
+}
+
+.mw_themed .inside.small {
+  width: 220px;
+}
+
+.mw_themed .inside.big {
+  width: 75vw;
+  max-width: 1000px;
+}
+
+/* Call; different interfaces */
+
+.mw_themed.call_invite .inside {
+  padding: 1.75rem 1rem 1.75rem;
+}
+
+.call_active .inside {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.mw_themed.call_invite .inside,
+.mw_themed.call_active .inside {
+  /* Must be slightly less than small radius */
+  border-radius: 5px;
+  background-color: var(--color-solid);
+  color: var(--color-contrast);
+}
+
+.mw_themed.call_active .call_controls {
+  padding: 8px;
+  border-bottom: solid 1px var(--color-solid-hover);
+}
+
+/* Normal themed container inside modal */
+
+.mw_themed.normal {
+  /* Same radius as outer modal container */
+  border-radius: var(--radius-default);
+  align-self: stretch;
+}
+
+.mw_themed.normal .inside {
+  /* Same radius as outer modal container */
+  border-radius: 10px;
+  background-color: rgb(var(--color-bg));
+}
+
+/* Modal header */
+
+.mw_header {
+  position: relative;
+  height: 4.5rem;
+  margin-bottom: .3125rem; /* 5px */
+}
+
+.mw_desc {
+  max-width: 580px;
+}
+
+/* Modal side nav */
+
+.mw_snav {
+  align-self: stretch;
+  width: 240px;
+  padding: var(--rem-large) 0 var(--rem-large) 40px;
+}
+
+.mw_snav .msn_list {
+  list-style: none;
+  padding: var(--rem-default);
+  margin: 0;
+}
+
+/* Normal item */
+
+.mw_snav .msn_item {
+  position: relative;
+  padding: .3rem .5rem;
+  margin: 0 0 1px;
+}
+
+.mw_snav .msn_item.pointer:hover {
+  background-color: rgb(var(--color-bg-alt));
+}
+
+.mw_snav .msn_item.sel {
+  background-color: rgb(var(--color-bg-alt)) !important;
+  /* background-color: rgb(var(--color-bg-active)) !important; */
+  /* background-color: rgb(var(--color-main)) !important; */
+  color: var(--color-text) !important;
+}
+
+/* List title */
+
+.mw_snav .msn_item.title {
+  padding: .3rem .5rem .5rem;
+}
+
+.mw_snav .msn_item.title .ic_cnt {
+  position: absolute;
+  top: -3px;
+  left: -32px;
+  width: 32px;
+  height: 32px;
+}
+
+/* Modal top nav */
+
+.mw_tnav {
+  border-bottom: solid 9px var(--opaque-light);
+}
+
+.mw_tnav.sticky {
+  top: -1.25rem; left: 0; right: 0;
+}
+
+/* Modal save button */
+
+.mfs_cnt {
+  position: absolute;
+  bottom: 0;
+  left: 256px; /* 240px + 16px */
+  right: 16px;
+  transform: translateY(100%);
+  transition: transform ease .15s;
+  padding: .75rem;
+  background-color: var(--color-solid);
+}
+
+.mfs_cnt.active {
+  box-shadow: var(--shadow-float-full);
+  transform: translateY(0);
+}
+
+/* Small modal list item */
+
+.mli_small {
+  margin-bottom: var(--rem-xsmall);
+}
+
+.mli_small.bg, .mli_small.bg_alt {
+  width: 100%;
+  border-radius: var(--radius-small);
+}
+
+.mli_small.bg:hover {
+  background-color: rgb(var(--color-bg-alt));
+}
+
+.mli_small.bg_alt:hover {
+  background-color: rgb(var(--color-bg));
+}
+
+.mli_small:last-child {
+  margin-bottom: 0;
+}
+
+.mli_small .ic_cnt {
+  min-width: 22px;
+}
+
+.mli_small.text_link {
+  color: var(--color-text-medium);
+}
+
+.mli_small.text_link:hover {
+  color: var(--color-text);
+}
+
+.mli_small.continue_list {
+  width: 100%;
+  margin-bottom: 1px;
+  border-radius: 0;
+  background-color: var(--opaque-default);
+}
+
+.mli_small.continue_list:hover {
+  background-color: rgb(var(--color-bg-active));
+}
+
+.mli_small.continue_list:first-child {
+  border-top-left-radius: var(--radius-small);
+  border-top-right-radius: var(--radius-small);
+}
+
+.mli_small.continue_list:last-child {
+  border-bottom-left-radius: var(--radius-small);
+  border-bottom-right-radius: var(--radius-small);
+}
+
+/* Update notes */
+
+.mw_content_title {
+  padding: 3rem 1rem 2rem;
+}
+
+.mw_content_title:before {
+  content: ' ';
+  position: absolute; z-index: -1;
+  top: -45px; left: -25px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background-color: rgb(var(--color-primary));
+  opacity: .25;
+}
+
+.mw_content_title.secondary:before {
+  background-color: rgb(var(--color-secondary));
+}
+
+.mw_content_title.main:before {
+  background-color: rgb(var(--color-main));
+}

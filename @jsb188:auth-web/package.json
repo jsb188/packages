@@ -1,0 +1,20 @@
+{
+  "name": "@jsb188/auth-web",
+  "version": "1.1.4",
+  "description": "Authentication module for web.",
+  "license": "ISC",
+  "author": "jsb188",
+  "type": "module",
+  "main": "src/main.ts",
+  "peerDependencies": {
+    "@jsb188/app": "1.1.4",
+    "@jsb188/react-web": "1.1.4",
+    "react-router": "^7.6.2",
+    "jotai": "^2.12.5",
+    "react": "^19.1.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  }
+}

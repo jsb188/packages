@@ -1,0 +1,159 @@
+
+/* Activity dots */
+
+@keyframes anim-activity-dot {
+  0% { opacity: .25; }
+  50% { opacity: 1; }
+  100% { opacity: .25; }
+}
+
+.dot {
+  width: .3rem;
+  height: .3rem;
+  margin: 0 .35rem;
+}
+
+.dot.tiny {
+  width: 0.3rem;
+  height: 0.3rem;
+  margin: 0 .073rem;
+}
+
+.dot.small {
+  width: 0.375rem;
+  height: 0.375rem;
+  margin: 0 .12rem;
+}
+
+.dot.default {
+  width: .5rem;
+  height: .5rem;
+  margin: 0 .13rem;
+}
+
+.dot.medium {
+  width: .75rem;
+  height: .75rem;
+  margin: 0 .24rem;
+}
+
+.dot.large {
+  width: 1rem;
+  height: 1rem;
+  margin: 0 .24rem;
+}
+
+.activity .dot {
+  opacity: 1;
+  flex-shrink: 0;
+  background-color: var(--color-text);
+}
+
+.activity .d0, .activity .d1, .activity .d2 {
+  animation-duration: 1.5s;
+  animation-fill-mode: both;
+  animation-iteration-count: infinite;
+}
+
+.activity .d0 {
+  animation-name: anim-activity-dot;
+}
+
+.activity .d1 {
+  animation-name: anim-activity-dot;
+  animation-delay: .2s;
+}
+
+.activity .d2 {
+  animation-name: anim-activity-dot;
+  animation-delay: .4s;
+}
+
+.bg_main .activity .dot,
+.bg_primary .activity .dot,
+.bg_contrast .activity .dot {
+  background-color: var(--color-solid);
+}
+
+/* Big loader */
+
+.big_loader {
+  width: 45px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  animation: l5 2s infinite;
+}
+
+.big_loader.default {
+  background:
+    radial-gradient(farthest-side,rgb(var(--color-bg)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-secondary)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-primary)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-main)) 94%,#0000),
+    rgb(var(--color-bg));
+  background-size: 105% 105%;
+  background-repeat: no-repeat;
+}
+
+.big_loader.alt {
+  background:
+    radial-gradient(farthest-side,rgb(var(--color-bg-alt)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-secondary)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-primary)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-main)) 94%,#0000),
+    rgb(var(--color-bg-alt));
+  background-size: 105% 105%;
+  background-repeat: no-repeat;
+}
+
+.big_loader.active {
+  background:
+    radial-gradient(farthest-side,rgb(var(--color-bg-active)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-secondary)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-primary)) 94%,#0000),
+    radial-gradient(farthest-side,rgb(var(--color-main)) 94%,#0000),
+    rgb(var(--color-bg-active));
+  background-size: 105% 105%;
+  background-repeat: no-repeat;
+}
+
+@keyframes l5 {
+  0%  {background-position: 50% -55px,-48px 50%, 50% calc(100% + 55px),calc(100% + 55px) 50%}
+  20%,
+  25% {background-position: 50% -55px,-55px 50%, 50% calc(100% + 55px),50% 50%}
+  45%,
+  50% {background-position: 50% -55px,-55px 50%, 50% 50%, 50% 50%}
+  75%,
+  75% {background-position: 50% -55px, 50%  50%, 50% 50%, 50% 50%}
+  95%,
+  100%{background-position: 50%  50% , 50%  50%, 50% 50%, 50% 50%}
+}
+
+/* Circular progress */
+
+.circular_progress {
+  position: absolute;
+  top: -16px; left: -16px; right: -16px; bottom: -16px;
+}
+
+.circular_progress svg {
+  width: 100%;
+  height: 100%;
+}
+
+.circular_progress .pill {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translate(-50%, -25%);
+}
+
+circle.circle_outline {
+  stroke: rgb(var(--color-bg-alt));
+}
+
+circle.circle_line {
+  stroke: rgb(var(--color-main));
+  transition: all .25s ease-in-out;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}

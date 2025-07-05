@@ -1,0 +1,48 @@
+
+/* Horizontal scroll tabs */
+
+.horizontal_scroll.w_offset {
+  margin-left: -30px;
+  margin-right: -30px;
+}
+
+.horizontal_scroll .inside {
+  /* 1px padding is necessary for button:active translateY 1px effect */
+  padding-bottom: 1px;
+}
+
+.horizontal_scroll.w_offset .inside {
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.horizontal_scroll .fade_left,
+.horizontal_scroll .fade_right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+}
+
+.horizontal_scroll .fade_left {
+  left: 0;
+  background: linear-gradient(to right, rgb(var(--color-bg)), rgba(255, 255, 255, 0));
+}
+
+.horizontal_scroll .fade_right {
+  right: 0;
+  background: linear-gradient(to left, rgb(var(--color-bg)), rgba(255, 255, 255, 0));
+}
+
+/* Tab */
+
+.tab_ic {
+  position: absolute;
+  bottom: .2em;
+  right: .2em;
+  opacity: .5;
+}
+
+.link:hover .tab_ic {
+  opacity: 1;
+}

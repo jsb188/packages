@@ -1,0 +1,47 @@
+{
+  "name": "@jsb188/react-web",
+  "version": "1.1.4",
+  "description": "Contains react utils, components, and modules for Web.",
+  "license": "ISC",
+  "author": "jsb188",
+  "type": "module",
+  "exports": {
+    "./icons": "./icons/Icon.tsx",
+    "./hooks/use-contentEditable": "./hooks/use-contentEditable.tsx",
+    "./modules/AuthForm": "./modules/Auth/AuthForm.tsx",
+    "./modules/Calendar": "./modules/Calendar.tsx",
+    "./modules/Form": "./modules/Form.tsx",
+    "./modules/HorizontalScrollTabs": "./modules/HorizontalScrollTabs.tsx",
+    "./modules/PopOver": "./modules/PopOver.tsx",
+    "./modules/SchemaForm": "./modules/SchemaForm.tsx",
+    "./ui/Article": "./ui/Article.tsx",
+    "./ui/Avatar": "./ui/Avatar.tsx",
+    "./ui/Button": "./ui/Button.tsx",
+    "./ui/Layout": "./ui/Layout.tsx",
+    "./ui/ListUI": "./ui/ListUI.tsx",
+    "./ui/Loading": "./ui/Loading.tsx",
+    "./ui/Markdown": "./ui/Markdown.tsx",
+    "./ui/ModalUI": "./ui/ModalUI.tsx",
+    "./ui/OtherUI": "./ui/OtherUI.tsx",
+    "./ui/PopOverUI": "./ui/PopOverUI.tsx",
+    "./ui/SidebarUI": "./ui/SidebarUI.tsx",
+    "./ui/TopNavUI": "./ui/TopNavUI.tsx",
+    "./ui/Tab": "./ui/Tab.tsx",
+    "./utils/dom": "./utils/dom.ts",
+    "./utils/ipAddress": "./utils/ipAddress.ts",
+    "./utils/pto": "./utils/priorityTimeout.ts",
+    "./utils/remix": "./utils/remix.ts",
+    "./types/dom.d": "./types/dom.d.ts"
+  },
+  "peerDependencies": {
+    "@jsb188/app": "1.1.4",
+    "@jsb188/react": "1.1.4",
+    "react-router": "^7.6.2",
+    "is-ip": "^5.0.1",
+    "jotai": "^2.12.5",
+    "react": "^19.1.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

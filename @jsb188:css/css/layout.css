@@ -1,0 +1,83 @@
+
+/* Route based styles */
+
+body.p_auth {
+  background-color: rgb(var(--color-bg-alt));
+}
+
+/* Content & Modal wrapper */
+
+.cw, .mw {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mw {
+  max-height: calc(100vh - var(--rem-medium) - var(--rem-medium));
+}
+
+.cw.tn, .mw.tn {
+  /* was .tiny */
+  max-width: 380px;
+}
+
+.cw.xs, .mw.xs {
+  max-width: 420px;
+}
+
+.cw.sm, .mw.sm {
+  /* was .default_alt */
+  max-width: 640px;
+}
+
+.cw.df, .mw.df {
+  max-width: 780px;
+}
+
+.cw.md, .mw.md {
+  max-width: 1140px;
+}
+
+.cw.lg, .mw.lg {
+  max-width: 1440px;
+}
+
+.cw.full, .mw.full {
+  flex: 1;
+  max-height: 100%;
+}
+
+.cw.full .cw, .mw.full .cw {
+  max-height: 100%;
+}
+
+/* Sidebar */
+
+.w_lsidebar {
+  padding-right:  var(--sidebar-wt);
+}
+
+/* Content with right <aside /> sticky sidebar */
+
+.pg_aside {
+  width: var(--aside-wt);
+  top: var(--rem-medium);
+}
+
+/* Floating message */
+
+.floating_msg_cnt {
+  transition: transform .2s ease-in-out, opacity .2s ease-in-out;
+  transform: translateY(0);
+  opacity: 0;
+}
+
+.floating_msg_cnt.active {
+  transform: translateY(var(--toolbar-ht));
+  opacity: 1;
+}
+
+.floating_msg {
+  margin: 0 -1rem;
+}

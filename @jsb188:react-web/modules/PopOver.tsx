@@ -1,0 +1,642 @@
+import { DOM_IDS } from '@jsb188/app/constants/app';
+import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string';
+import { usePopOver, useSetPopOverIsHover, useTooltip } from '@jsb188/react/states';
+import type { ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps } from '@jsb188/react/types/PopOver.d';
+import React, { memo, useEffect, useRef, useState } from 'react';
+import { guessTooltipSize, TooltipText } from '../ui/PopOverUI';
+import { PopOverCheckList, PopOverList } from './PopOver-List';
+import PopOverImage from './PopOver-ViewImage';
+
+/**
+ * Types; Pop over
+ */
+
+interface PopOverButtonProps {
+  id?: string;
+  El?: React.ElementType;
+  iface: PopOverIface;
+  position?: POPosition;
+  disabled?: boolean;
+  className?: string;
+  animationClassName?: string;
+  popOverClassName?: string;
+  doNotTrackHover?: boolean;
+  doNotRemoveOnPageEvents?: boolean;
+  scrollAreaDOMId?: string | null;
+  offsetX?: number;
+  offsetY?: number;
+  onClick?: (e: React.MouseEvent) => void;
+  children: any;
+}
+
+/**
+ * Pop over button
+ */
+
+export function PopOverButton(p: PopOverButtonProps) {
+  const { id, disabled, iface, children, className, animationClassName, popOverClassName, position, offsetX, offsetY, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
+  const { name, variables } = iface;
+  const { popOver, openPopOver, closePopOver } = usePopOver();
+  const DomEl = p.El || 'div';
+
+  const unique = useRef(id || getTimeBasedUnique());
+  const el = useRef<HTMLElement>(null);
+  const active = popOver?.id === unique.current;
+
+  const onClick = (e: React.MouseEvent) => {
+    if (e.isTrusted) {
+      // This is used to stop href and default button events in [ChatSidebar_Chats.tsx]
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (active) {
+        closePopOver();
+      } else if (el.current) {
+        // Can't use this because e.target sometimes returns inner element, which causes incorrect positioning
+        // const rect = e.target.getBoundingClientRect();
+        const rect = el.current.getBoundingClientRect();
+
+        openPopOver({
+          name,
+          id: unique.current,
+          doNotTrackHover,
+          doNotRemoveOnPageEvents,
+          scrollAreaDOMId: scrollAreaDOMId || DOM_IDS.mainBodyScrollArea,
+          className: popOverClassName,
+          animationClassName,
+          variables,
+          position,
+          offsetX,
+          offsetY,
+          rect: {
+            width: rect.width,
+            height: rect.height,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            x: rect.x,
+            y: rect.y,
+          },
+        });
+      }
+
+      if (p.onClick) {
+        p.onClick(e);
+      }
+    }
+  };
+
+  return (
+    <DomEl
+      ref={el}
+      role='button'
+      tabIndex={0}
+      className={cn(className, 'ignore_outside_click', disabled ? '' : 'link', active ? 'active' : null)}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+    >
+      {children}
+    </DomEl>
+  );
+}
+
+/**
+ * Always render pop over using this wrapper
+ */
+
+interface PopOverWrapperProps extends PopOverProps {
+  children: React.ReactNode;
+  pathname: string;
+  closePopOver: ClosePopOverFn;
+}
+
+export function PopOverWrapper(p: PopOverWrapperProps) {
+  const {
+    id,
+    // name,
+    pathname,
+    children,
+    position,
+    // popOverWidth,
+    popOverHeight,
+    className,
+    animationClassName,
+    doNotTrackHover,
+    doNotRemoveOnPageEvents,
+    scrollAreaDOMId,
+    closing,
+    closePopOver
+  } = p;
+
+  // Use this instead of the context value,
+  // When the same pop over is clicked from a different place,
+  // it will cause brief blink.
+  // By using this state, the content height will be carried over,
+  // Thus removing the blink.
+
+  const setPopOverIsHover = useSetPopOverIsHover();
+  const [contentDimensions, setContentDimensions] = useState([0, popOverHeight || 0]);
+  const popOverRef = useRef<HTMLDivElement>(null);
+
+  const offsetX = p.offsetX ?? 7;
+  const offsetY = p.offsetY ?? -7;
+  const leftEdgeThreshold = p.leftEdgeThreshold ?? 10;
+  const rightEdgeThreshold = p.rightEdgeThreshold ?? 10;
+  const leftEdgePosition = p.leftEdgePosition ?? 10;
+  const rightEdgePosition = p.rightEdgePosition ?? 10;
+
+  const notReady = (contentDimensions[1] || -1) < 0;
+  const windowWidth = globalThis.window.innerWidth;
+
+  // let left: number | string = rect.x + rect.width + (offsetX ?? 0);
+  let left: number | string;
+  let right: number | string;
+  let top: number | string;
+  let bottom: number | string;
+
+  let rect = p.rect as ClientRectValues;
+  if (!rect) {
+    rect = { x: 0, y: 0, width: 0, height: 0, left: 0, right: 0, top: 0, bottom: 0 };
+  }
+
+  switch (position) {
+    case 'top':
+      left = rect.x - (rect.width / 2) + offsetX;
+      right = 'auto';
+      top = 'auto';
+      bottom = globalThis.window.innerHeight - rect.y + (offsetY || 0);
+      break;
+    case 'bottom':
+    case 'bottom_left':
+      left = rect.x - (position === 'bottom_left' ? 0 : rect.width / 2) + offsetX;
+      right = 'auto';
+      top = rect.y + (offsetY || 0) + rect.height;
+      bottom = 'auto';
+      break;
+    case 'left':
+      left = 'auto';
+      // right = rect.x + rect.width + offsetX;
+      right = globalThis?.window.innerWidth - rect.left + offsetX;
+      top = rect.y + (offsetY || 0);
+      bottom = 'auto';
+      break;
+    case 'right':
+    default:
+      left = rect.x + rect.width + offsetX;
+      right = 'auto';
+      top = rect.y + (offsetY || 0);
+      bottom = 'auto';
+  }
+
+  const leftOffset = (left as number + 50) - windowWidth;
+  const isRightEdge = leftOffset > -(rightEdgeThreshold || 0);
+  const isLeftEdge = (left as number - 50) < (leftEdgeThreshold || 0);
+
+  if (isRightEdge) {
+    left = 'auto';
+    right = rightEdgePosition || 0;
+  } else if (isLeftEdge) {
+    left = leftEdgePosition || 0;
+    right = 'auto';
+  }
+
+  // console.log(rect);
+  // console.log(windowWidth);
+  // console.log(leftOffset);
+  // console.log(left + leftOffset);
+
+  if (!notReady && contentDimensions[1]) {
+
+    if (bottom === 'auto') {
+      const domBottomPos = contentDimensions[1] + rect.top;
+      // console.log('domBottomPos', domBottomPos, contentHeight, '::', (globalThis?.window.innerHeight - domBottomPos));
+      if ((globalThis?.window.innerHeight - domBottomPos) < 10) {
+        bottom = 10;
+        top = 'auto';
+      }
+    }
+
+    if (position === 'bottom' && !isNaN(Number(left))) {
+      left = Number(left) - (contentDimensions[0] / 2);
+    }
+  }
+
+  const style = {
+    left,
+    right,
+    top,
+    bottom,
+  };
+
+  // Remove on route changes
+
+  const popOverIsVisible = contentDimensions[0] > 0;
+  useEffect(() => {
+    if (!doNotRemoveOnPageEvents && popOverIsVisible) {
+      closePopOver();
+    }
+  }, [pathname]);
+
+  // Remove on scroll
+
+  useEffect(() => {
+    if (!doNotRemoveOnPageEvents && popOverIsVisible) {
+      let domEl;
+      if (scrollAreaDOMId) {
+        domEl = globalThis.document.getElementById(scrollAreaDOMId);
+      } else {
+        domEl = globalThis;
+      }
+
+      if (domEl) {
+        const handleScroll = () => {
+          closePopOver();
+        };
+
+        domEl.addEventListener('scroll', handleScroll, { passive: true });
+        return () => {
+          domEl.removeEventListener('scroll', handleScroll);
+        };
+      } else {
+        console.dev('PopOverWrapper: scrollAreaDOMId not found, make sure it exists:', 'warning', scrollAreaDOMId);
+      }
+    }
+  }, [popOverIsVisible]);
+
+  // Wait for animation before closing
+
+  useEffect(() => {
+    if (closing) {
+      const timer = setTimeout(() => {
+        closePopOver();
+      }, /\breverse\b/.test(animationClassName || '') ? 175 : 50);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [closing, animationClassName]);
+
+  // Observe popover size changes for proper positioning
+
+  useEffect(() => {
+    if (popOverRef.current) {
+      const resizeObserver = new ResizeObserver((observed) => {
+        const contentRect = observed[0]?.contentRect;
+        setContentDimensions([contentRect?.width || 0, contentRect?.height || 0]);
+      });
+
+      resizeObserver.observe(popOverRef.current);
+      return () => resizeObserver.disconnect();
+    }
+  }, [id]);
+
+  // Hoever state event handlers, in case you need it
+
+  const onMouseEnter = () => {
+    setPopOverIsHover(true);
+  };
+
+  let onMouseLeave;
+  if (!doNotTrackHover) {
+    onMouseLeave = () => {
+      setPopOverIsHover(false);
+    };
+  }
+
+  return (
+    <div
+      ref={popOverRef}
+      key={id}
+      className={cn('popover z6', className, notReady ? 'invis' : animationClassName ? `${animationClassName} visible` : '')}
+      style={style}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {children}
+    </div>
+  );
+}
+
+// # # # # # # # # # # # # # # # # # //
+// # # # # # # # # # # # # # # # # # //
+// # # # # # # # # # # # # # # # # # //
+// # # # # # # # # # # # # # # # # # //
+// # # # # # # #       # # # # # # # //
+// # # # # # # #       # # # # # # # //
+// # # # # # # #       # # # # # # # //
+// # #                           # # //
+// #    Below is Tooltip Module    # //
+// # #                           # # //
+// # # #                       # # # //
+// # # # #                   # # # # //
+// # # # # #               # # # # # //
+// # # # # # #           # # # # # # //
+// # # # # # # #       # # # # # # # //
+// # # # # # # # #   # # # # # # # # //
+// # # # # # # # # # # # # # # # # # //
+
+/**
+ * Types; Tooltip
+ */
+
+interface TooltipWrapperProps extends TooltipHookProps {
+  children: React.ReactNode;
+}
+
+type TooltipButtonProps = {
+  El?: React.ElementType;
+  position?: POPosition;
+  title?: string;
+  message?: string;
+  disabled?: boolean;
+  className?: string;
+  children: any;
+  offsetX?: number;
+  offsetY?: number;
+  onClick?: (e: React.MouseEvent) => void;
+  onMouseEnter?: (e: React.MouseEvent) => void;
+};
+
+/**
+ * Tooltip component
+ */
+
+export const TooltipButton = memo((p: TooltipButtonProps) => {
+  const { disabled, children, title, message, position, offsetX, offsetY, onClick, El: El_, ...other } = p;
+  const El = El_ || 'button';
+  const tooltipDisabled = disabled || !message;
+  const { tooltip, openTooltip, closeTooltip } = useTooltip();
+
+  const unique = useRef<string>(getTimeBasedUnique());
+  const el = useRef<HTMLDivElement>(null);
+  const hasTooltip = !!tooltip && tooltip.id === unique.current;
+
+  const onOpenTooltip = (e: React.MouseEvent) => {
+    if (e.isTrusted && !tooltipDisabled && unique.current !== tooltip?.id) {
+      // Can't use this because e.target sometimes returns inner element, which causes incorrect positioning
+      // const rect = e.target.getBoundingClientRect();
+      const rect = el.current!.getBoundingClientRect();
+
+      openTooltip({
+        id: unique.current,
+        title,
+        message,
+        position,
+        offsetX,
+        offsetY,
+        rect: {
+          width: rect.width,
+          height: rect.height,
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+          x: rect.x,
+          y: rect.y,
+        },
+      });
+    }
+  };
+
+  const onCloseTooltip = (e: React.MouseEvent) => {
+    if (e.isTrusted && !tooltipDisabled) {
+      closeTooltip(unique.current);
+    }
+  };
+
+  const props = {
+    onClick: (e: React.MouseEvent) => {
+      if (hasTooltip) {
+        onCloseTooltip(e);
+      } else {
+        onOpenTooltip(e);
+      }
+
+      if (onClick) {
+        onClick(e);
+      }
+    },
+    onMouseEnter: (e: React.MouseEvent) => {
+      if (e.isTrusted && !tooltipDisabled && unique.current !== tooltip?.id) {
+        // Can't use this because e.target sometimes returns inner element, which causes incorrect positioning
+        // const rect = e.target.getBoundingClientRect();
+        const rect = el.current!.getBoundingClientRect();
+
+        openTooltip({
+          id: unique.current,
+          title,
+          message,
+          position,
+          offsetX,
+          offsetY,
+          rect: {
+            width: rect.width,
+            height: rect.height,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            x: rect.x,
+            y: rect.y,
+          },
+        });
+      }
+    },
+    onMouseLeave: (e: React.MouseEvent) => {
+      if (e.isTrusted && !tooltipDisabled) {
+        closeTooltip(unique.current);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (hasTooltip) {
+      return () => {
+        closeTooltip(unique.current);
+      };
+    }
+  }, [hasTooltip]);
+
+  useEffect(() => {
+    if (disabled && hasTooltip) {
+      closeTooltip(unique.current);
+    }
+  }, [disabled]);
+
+  return (
+    <El {...props} {...other} ref={el}>
+      {children}
+    </El>
+  );
+});
+
+TooltipButton.displayName = 'TooltipButton';
+
+/**
+ * Render tooltip
+ */
+
+function TooltipWrapper(p: TooltipWrapperProps) {
+  const { children, tooltip, updateTooltip } = p;
+  const tt = tooltip || {};
+
+  const {
+    id,
+    message,
+    position,
+    // popOverWidth,
+    popOverHeight,
+    className
+  } = tt;
+
+  const offsetX = !isNaN(Number(tt.offsetX)) ? tt.offsetX : 7;
+  const offsetY = !isNaN(Number(tt.offsetY)) ? tt.offsetY : -7;
+  const leftEdgeThreshold = 10;
+  const rightEdgeThreshold = 10;
+  const leftEdgePosition = 10;
+  const rightEdgePosition = 10;
+
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const notReady = (popOverHeight || -1) < 0 || tooltipRef.current?.offsetWidth === undefined;
+  const windowWidth = globalThis.window.innerWidth;
+  const size = guessTooltipSize(message || '');
+  const tooltipWidth = tooltipRef.current?.offsetWidth || size?.assumedWidth || 100;
+
+  // let left: number | string = rect.x + rect.width + offsetX;
+  let left: number | string;
+  let right: number | string;
+  let top: number | string;
+  let bottom: number | string;
+
+  let rect = tt.rect as ClientRectValues;
+  if (!rect) {
+    rect = { x: 0, y: 0, width: 0, height: 0, left: 0, right: 0, top: 0, bottom: 0 };
+  }
+
+  switch (position) {
+    case 'top':
+      left = rect.x + (rect.width / 2) + (offsetX || 0) - (tooltipWidth / 2);
+      // left = rect.x - (rect.width / 2) + (offsetX || 0);
+      right = 'auto';
+      top = rect.y - rect.height + (offsetY || 0);
+      bottom = 'auto';
+      break;
+    case 'bottom':
+      left = rect.x + (rect.width / 2) + (offsetX || 0) - (tooltipWidth / 2);
+      right = 'auto';
+      top = rect.y + (offsetY || 0) + rect.height;
+      bottom = 'auto';
+      break;
+    case 'left':
+      left = 'auto';
+      // right = rect.x + rect.width + (offsetX || 0);
+      right = globalThis?.window.innerWidth - rect.left + (offsetX || 0);
+      // left = rect.left + (size?.assumedWidth || 100);
+      top = rect.y + (offsetY || 0);
+      bottom = 'auto';
+      break;
+    case 'right':
+    default:
+      left = rect.x + rect.width + (offsetX || 0);
+      right = 'auto';
+      top = rect.y + (offsetY || 0);
+      bottom = 'auto';
+  }
+
+  // const leftOffset = (left + (tooltipWidth / 2)) - windowWidth;
+  const leftNum = typeof left === 'string' ? 0 : left;
+  const leftOffset = (leftNum + tooltipWidth) - windowWidth;
+  const isRightEdge = leftOffset > -(rightEdgeThreshold || 0);
+  const isLeftEdge = position !== 'right' && (leftNum - (tooltipWidth / 2)) < (leftEdgeThreshold || 0);
+
+  // console.log('leftOffset', leftOffset, size?.assumedWidth, tooltipRef.current?.offsetWidth);
+  // console.log('left', left, '->', rect.x, rect.width);
+  // console.log('l/r edge', isLeftEdge, isRightEdge);
+  // console.log('isRightEdge', isRightEdge, leftOffset, rightEdgeThreshold);
+
+  if (isRightEdge) {
+    left = 'auto';
+    right = rightEdgePosition || 0;
+  } else if (isLeftEdge) {
+    left = leftEdgePosition || 0;
+    right = 'auto';
+  }
+
+  if (bottom === 'auto' && tooltipRef.current?.offsetHeight) {
+    const domBottomPos = tooltipRef.current?.offsetHeight + rect.top;
+    if ((globalThis?.window.innerHeight - domBottomPos) < 10) {
+      bottom = 10;
+      top = 'auto';
+    }
+  }
+
+  const style = {
+    left,
+    right,
+    top,
+    bottom,
+  };
+
+  useEffect(() => {
+    if (id) {
+      const value = Math.round(tooltipRef.current?.offsetHeight || 0);
+      if (popOverHeight !== value) {
+        updateTooltip({
+          id,
+          popOverHeight: value,
+        });
+      }
+    }
+  }, [id]);
+
+  const onMouseEnter = () => {
+    updateTooltip({
+      id,
+      hover: true,
+    });
+  };
+
+  const onMouseLeave = () => {
+    updateTooltip({
+      id,
+      hover: false,
+    });
+  };
+
+  return (
+    <div
+      ref={tooltipRef}
+      className={cn('popover z9', className, notReady ? 'invis' : '', size?.name)}
+      style={style}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      // className={`emoji-p xtiny tt-text ft-tiny size-${size}${isRightEdge || isLeftEdge ? '' : ' centered'}${notReady ? ' invis' : ''}${className ? ' ' + className : ''}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Tooltip module
+ */
+
+export function TooltipModule() {
+  const tooltipHookProps = useTooltip();
+  const { tooltip } = tooltipHookProps;
+
+  if (!tooltip?.id) {
+    return null;
+  }
+
+  return (
+    <TooltipWrapper {...tooltipHookProps} >
+      <TooltipText {...tooltip} />
+    </TooltipWrapper>
+  );
+}
+
+export { PopOverCheckList, PopOverImage, PopOverList };
+

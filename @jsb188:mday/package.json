@@ -1,0 +1,23 @@
+{
+  "name": "@jsb188/mday",
+  "version": "1.1.4",
+  "description": "Mday specific functions and constants.",
+  "license": "ISC",
+  "author": "jsb188",
+  "type": "module",
+  "exports": {
+    "./constants/log": "./src/constants/log.ts",
+    "./schemas/logsQueryParam": "./src/schemas/logsQueryParam.ts",
+    "./types/log.d": "./src/types/log.d.ts",
+    "./utils/log": "./src/utils/log.ts"
+  },
+  "dependencies": {
+    "zod": "^3.25.67"
+  },
+  "peerDependencies": {
+    "@jsb188/app": "1.1.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

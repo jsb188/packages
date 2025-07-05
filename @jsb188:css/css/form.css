@@ -1,0 +1,503 @@
+
+/* Form elements */
+
+.form_el {
+  display: flex;
+  flex-direction: column;
+  /* margin-top: .35rem; */
+}
+
+/* Form containers - same padding for all form elements */
+
+.form_cnt,
+.form_el input, .form_el textarea, .form_el .tx_virtualizer {
+  padding: .58rem;
+}
+
+/* Input */
+
+.form_cnt.outline,
+.form_el input, .form_el textarea, .form_el .tx_virtualizer {
+  border: solid 1px var(--color-text-light);
+  background-color: transparent;
+  /* opacity: .2; */
+  /* box-shadow: 0 2px 4px rgb(var(--color-main)), 0 4px 10px rgb(var(--color-main)); */
+}
+
+/* Invisible input (use this to make inputs clickable with separate render component) */
+
+.invis_input {
+  border: none;
+  padding: 0; margin: 0;
+  color: rgba(0,0,0,0);
+  background-color: rgba(0,0,0,0);
+}
+
+.invis_input:focus {
+  outline: none;
+}
+
+.invis_input::selection {
+  background: rgba(0,0,0,0);
+  color: rgba(0,0,0,0);
+}
+
+input.invis_input[type="number"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+input.invis_input::-webkit-outer-spin-button,
+input.invis_input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Input */
+
+.form_el input::placeholder, .form_el textarea::placeholder {
+  color: var(--color-text-medium);
+}
+
+.form_el input:focus, .form_el textarea:focus, [contenteditable='true']:focus {
+  outline: none;
+}
+
+.form_el input:focus, .form_el textarea:focus {
+  /* Consider adding theme colors here */
+  box-shadow: var(--shadow-light);
+}
+
+[contenteditable='true']:empty:before {
+  content: attr(data-placeholder);
+  color: var(--color-text-light);
+}
+
+.form_el.error input {
+  border-color: rgb(var(--color-error));
+  background-color: rgba(var(--color-error-faded), .1);
+}
+
+.form_el.c input {
+  text-align: center;
+}
+
+/* Input: subtle */
+
+.form_el.subtle input {
+  width: 120px;
+  padding: .35rem;
+}
+
+/* Textarea */
+
+.form_el textarea {
+  position: relative;
+  z-index: 1;
+  min-height: 150px;
+}
+
+.form_el.in_modal textarea {
+  width: 300px;
+  max-width: 100%;
+  resize: none;
+}
+
+.form_el.in_modal_large textarea {
+  width: 375px;
+  max-width: 100%;
+  min-height: 400px;
+  resize: none;
+}
+
+.form_el.fs textarea {
+  width: 100% !important;
+}
+
+.form_el .tx_virtualizer {
+  position: absolute; z-index: -1;
+  top: 0; left: 0; right: 0;
+  visibility: hidden;
+}
+
+.form_el .tx_virtualizer:after {
+  /* This allows trailing empty line breaks to be calculated */
+  content: '.';
+}
+
+/* Label */
+
+.form_el label .label_r .icon {
+  transform: translateY(1px);
+}
+
+/* Fieldset, radio group */
+
+fieldset {
+  padding: 0;
+  margin: 0;
+  border: none;
+
+}
+
+fieldset input[type="radio"] {
+  display: none;
+}
+
+.form_opt {
+  padding: .3rem .3rem .4rem;
+}
+
+.form_opt:hover {
+  /* I have to figure out where this is used and change it to vars */
+  background-color: rgba(230, 230, 230, .5);
+}
+
+.form_opt .ic_cnt {
+  width: 25px;
+}
+
+/* Clickable button at right; use this for inputs */
+
+.form_el.has_r input {
+  padding-right: 3rem;
+}
+
+.form_el.has_r .form_el_r {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 3rem;
+  padding-left: .5rem;
+}
+
+.form_el.has_r .form_el_r.a_r {
+  width: 3rem;
+  text-decoration: underline;
+  padding-left: 0;
+  padding-right: .5875rem;
+}
+
+.form_el_r {
+  color: var(--color-text-medium);
+}
+
+.form_el_r:hover {
+  color: var(--color-text);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Preset; none */
+
+.form_el.none input, .form_el.none textarea {
+  border: none;
+  background-color: transparent;
+}
+
+.form_el.none input:focus, .form_el.none textarea:focus {
+  box-shadow: none;
+}
+
+/* Preset: fill */
+
+.form_el.fill input, .form_el.fill textarea {
+  border: none;
+  background-color: rgb(var(--color-bg-alt));
+  /* border-radius: var(--radius-default); */
+}
+
+/* Preset: fill large */
+
+.form_el.fill_large input {
+  border: none;
+  background-color: var(--color-reverse-opaque);
+  padding: var(--rem-default);
+  font-size: var(--text-xlarge);
+}
+
+.form_el.fill_large.has_r input {
+  padding-right: 3.25rem;
+}
+
+.form_el.fill_large.has_r .form_el_r {
+  right: .5rem;
+}
+
+/* Preset: inside outline container */
+
+.form_el.inside_outline {
+  /* This is the difference between common padding minus container padding: 1rem - .58 */
+  padding: 0 .42rem;
+}
+
+.stripe_form_line {
+  padding-bottom: .5rem;
+  border-bottom: solid 1px var(--color-text-light);
+}
+
+.form_el.inside_outline input {
+  border: none;
+  border-radius: 0;
+  border-bottom: solid 1px var(--color-text-light);
+  /* background-color: rgb(var(--color-bg-alt)); */
+  padding-top: 0; padding-left: 0; padding-right: 0;
+  margin-bottom: .05rem;
+  transform: translateY(-.1rem);
+}
+
+.form_el.inside_outline input:focus {
+  box-shadow: none;
+  border-bottom-color: var(--color-text-bold)
+}
+
+.form_el.inside_outline.error input {
+  border-bottom-color: rgb(var(--color-error-active));
+}
+
+.form_cnt.outline .form_el.inside_outline:last-child {
+  margin-bottom: .25rem;
+}
+
+/* Inline button at right of search input (for enter key prompt) */
+
+.form_el_inline_btn {
+  position: absolute;
+  top: 50%;
+  right: .55rem;
+  /* Can't use 1px transform depressed effect becuase of the absolute positioning */
+  transform: translateY(-50%) !important;
+}
+
+/* Full width button */
+
+.btn.fw {
+  min-width: 70px;
+  height: 2.64em;
+  padding: 0 var(--rem-small);
+  /* border-bottom-width: 4px; */
+  /* background-color: rgb(var(--color-bg)); */
+}
+
+.btn.full {
+  width: 100%;
+}
+
+.btn.fw .bl {
+  width: 24px;
+}
+
+.btn.fw:hover:not(:disabled), .btn.fw:active:not(:disabled) {
+  background-color: rgb(var(--color-bg-alt));
+}
+
+.btn.fw:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Emphasize preset */
+
+.btn.em {
+  background-color: var(--color-solid);
+  border: solid 2px var(--color-text-bold);
+  box-shadow: 0 2px var(--color-text-bold);
+  /* box-shadow: 0 2px var(--color-text), 0 2px 4px rgba(0,0,0,.1); */
+}
+
+.btn.em:hover {
+  background-color: var(--color-solid-hover) !important;
+}
+
+.btn.em:active, .btn.em:disabled {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.btn.em:active {
+  background-color: var(--color-solid-active) !important;
+}
+
+.btn.em:disabled {
+  background-color: var(--color-solid-hover) !important;
+}
+
+/* Opaque preset */
+
+.btn.subtle, .btn.cl_err {
+  background-color: rgba(0,0,0,.1);
+}
+
+.btn.subtle:disabled {
+  color: var(--color-text-medium);
+}
+
+.btn.subtle:not(:disabled):hover, .btn.cl_err:not(:disabled):hover {
+  background-color: rgba(0,0,0,.2);
+}
+
+.btn.subtle:not(:disabled):active, .btn.cl_err:not(:disabled):active {
+  background-color: rgba(0,0,0,.25);
+}
+
+/* Outline */
+
+.btn.outline {
+  border: solid 2px var(--color-text-light);
+  background-color: rgb(var(--color-bg-alt));
+}
+
+.btn.outline:not(:disabled):hover {
+  background-color: rgb(var(--color-bg-active));
+}
+
+.btn.outline:not(:disabled):active {
+  background-color: rgb(var(--color-bg-medium));
+}
+
+/* Inline button */
+
+.btn.il {
+  position: relative;
+  padding: .35rem .5rem;
+  border-radius: 4px;
+}
+
+/* Button sizes */
+
+.btn.sm {
+  padding: .3rem .45rem;
+  border-radius: var(--radius-small);
+}
+
+.btn.df {
+  padding: .58rem;
+  border-radius: var(--radius-small);
+}
+
+.btn.md {
+  padding: .7rem 1.05rem .7rem;
+  border-radius: var(--radius-small-wrap);
+}
+
+.btn.lg {
+  padding: .9rem 1.2rem .9rem;
+  border-radius: var(--radius-small-wrap);
+}
+
+/* Form break */
+
+.form_break {
+  position: relative;
+  color: var(--color-text-medium);
+}
+
+.form_break .line:before {
+  content: '.';
+  color: transparent;
+}
+
+.form_break .text:before, .form_break .text:after, .form_break .line:after {
+  content: ' ';
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  background-color: var(--color-text-light);
+}
+
+.form_break .line:after {
+  left: 0; right: 0;
+}
+
+.form_break .text:before {
+  left: 0; right: 57%;
+}
+
+.form_break .text:after {
+  left: 57%; right: 0;
+}
+
+/* Side input button */
+
+.form_input_btn {
+  align-self: stretch;
+  padding: 0 .25rem;
+  margin-left: .25rem;
+  margin-right: .25rem;
+}
+
+.form_input_btn.r {
+  margin-right: -.5rem;
+}
+
+/* Alert count */
+
+.alert_ct {
+  min-width: 18px; height: 18px;
+  padding: 0 4px;
+}
+
+.form_input_btn .alert_ct {
+  position: absolute;
+  top: -2px; right: -4px;
+}
+
+.form_el .alert_ct {
+  position: absolute;
+  top: -4px; right: -4px;
+}
+
+/* Inline-block label (NOTE: must _not_ use vertical padding because this will affect line height) */
+
+.ib_label {
+  position: relative;
+  padding: 0 5px;
+  margin: 0 2px 0 3px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ib_label .icon {
+  margin: -5px -4px -3px;
+  font-size: 1.6em;
+}
+
+.ib_label .indicator {
+  display: block;
+  margin-left: 2px;
+  margin-right: 5px;
+}
+
+.ib_label:first-child {
+  margin-left: 0;
+}
+
+.ib_label:last-child {
+  margin-right: 0;
+}
+
+.ib_label:before, .btn.il:before {
+  content: ' ';
+  position: absolute;
+  top: 50%; left: 0; right: 0;
+  height: 1.6rem;
+  transform: translateY(-.85rem);
+  border-radius: 5px;
+}
+
+.ib_label.outline:before {
+  border: solid 1px var(--color-darker-light);
+}
+
+/* Color indicators */
+
+.indicator {
+  width: 10px;
+  /*
+  height: 1em;
+  14px is 1em of .ft_xs. I wanted it to be pixels so .ft_sm and .ft_xs has the same indicator height.
+  */
+  height: 14px;
+  border-radius: 3px;
+}
