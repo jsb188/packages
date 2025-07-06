@@ -69,7 +69,11 @@ a.em:before {
   background-color: rgb(var(--color-bg-active)) !important;
 }
 
-.bg_alt_hv:hover, .bg_alt_before:before,
+.bg_hv:hover {
+  background-color: rgb(var(--color-bg)) !important;
+}
+
+.bg_alt_hv:hover,
 a.bg_link:not(:disabled):hover, button.bg_link:not(:disabled):hover, .link.bg_link:not(:disabled):hover,
 a.bg:not(:disabled):hover, button.bg:not(:disabled):hover, .link.bg:not(:disabled):hover {
   background-color: rgb(var(--color-bg-alt)) !important;

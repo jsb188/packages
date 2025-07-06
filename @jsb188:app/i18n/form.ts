@@ -60,6 +60,10 @@ export default {
     success: 'Success',
     success_: 'Success!',
     help: 'Help',
+    start: 'Start',
+    end: 'End',
+    start_date: 'Start date',
+    end_date: 'End date',
 
     // Day periods
     greet_MORNING: 'Good morning, %{name}.',

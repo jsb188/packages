@@ -15,7 +15,7 @@ import { ActivityDots, BigLoading } from './Loading';
 export interface PONavItemBase {
   onClickItem: (name: string | null, value: string | null) => void;
   saving: boolean;
-  selected: boolean;
+  selected?: boolean;
   disabled?: boolean;
 }
 
@@ -117,6 +117,7 @@ interface POListSubtitleProps {
 
 export const POListSubtitle = memo((p: POListSubtitleProps) => {
   const { item: { text } } = p;
+
   return (
     <div className='po_subtitle bd_b bd_lt ft_xs h_item bg z2 shadow_bg'>
       <strong className='ft_medium'>{text}</strong>

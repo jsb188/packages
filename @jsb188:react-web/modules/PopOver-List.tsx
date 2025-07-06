@@ -1,13 +1,49 @@
 import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
-import type { POCheckListIface, POCheckListIfaceItem, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
-import { memo, useRef, useState } from 'react';
+import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
+import { memo, useCallback, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
 import { POListBreak, POListItem, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
 import type { CalendarSelectedObj, OnChangeCalendarDayFn } from './Calendar';
-import CalendarMain from './Calendar';
+import { Calendar, CalendarDateRange } from './Calendar';
+
+/**
+ * Pop over date range picker
+ */
+
+interface PODatePickerProps {
+  name: string;
+  item: PODatePickerObj;
+  value?: CalendarSelectedObj | null;
+  onClickItem: (name: string, value: any) => void;
+}
+
+const PODatePicker = memo((p: PODatePickerProps) => {
+  const { name, value, item, onClickItem } = p;
+  const { minDate, maxDate } = item;
+
+  const onChangeCalendarDay: OnChangeCalendarDayFn = (nextValue) => {
+    onClickItem(name, nextValue);
+  };
+
+  const calendarProps = {
+    className: 'f',
+    onChange: onChangeCalendarDay
+  };
+
+  return <Calendar
+    {...calendarProps}
+    className='pt_4'
+    name='po_date_range_picker'
+    value={value}
+    maxDate={maxDate}
+    minDate={minDate}
+  />;
+});
+
+PODatePicker.displayName = 'PODatePicker';
 
 /**
  * Pop over date range picker
@@ -23,21 +59,37 @@ interface PODateRangeProps {
 const PODateRange = memo((p: PODateRangeProps) => {
   const { name, value, item, onClickItem } = p;
   const [startDate, endDate] = value || [];
+  const { minDate, maxDate } = item;
 
-  const onChangeCalendarDay: OnChangeCalendarDayFn = (innerName, innerValue) => {
-    const nextValue = innerName === 'startDate' ? [innerValue, endDate] : [startDate, innerValue];
+  const onChangeCalendarDay = useCallback((innerValue: any, isStart: boolean) => {
+    const nextValue = isStart ? [innerValue, endDate] : [startDate, innerValue];
+
+    if (!nextValue[0] && nextValue[1]) {
+      onClickItem(name, [nextValue[1], null]);
+      return;
+    }
+
     onClickItem(name, nextValue);
-  };
+  }, [name, startDate, endDate]);
 
   const calendarProps = {
     className: 'f',
     onChange: onChangeCalendarDay
   };
 
-  return <div className='h_spread gap_md pt_4 px_4'>
-    <CalendarMain {...calendarProps} name='startDate' value={startDate} />
-    <CalendarMain {...calendarProps} name='endDate' value={endDate} />
-  </div>;
+  return <CalendarDateRange
+    {...calendarProps}
+    className='pt_4'
+    name='po_date_range_picker'
+    startDate={startDate}
+    endDate={endDate}
+    maxDate={maxDate}
+    minDate={minDate}
+  />;
+  // return <div className='h_spread gap_md pt_4 px_4'>
+  //   <Calendar {...calendarProps} name='po_date_range_picker' value={startDate} maxDate={maxDate} />
+  //   {/* <Calendar {...calendarProps} name='endDate' value={endDate} maxDate={maxDate} /> */}
+  // </div>;
 });
 
 PODateRange.displayName = 'PODateRange';
@@ -72,6 +124,8 @@ export function PONavItemIface(p: PONavItemIfaceProps) {
       return <PONavAvatarItem {...other} item={item as PONavAvatarItemObj} />;
     case 'DATE_RANGE':
       return <PODateRange {...other} item={item as PODateRangeObj} />;
+    case 'DATE_PICKER':
+      return <PODatePicker {...other} item={item as PODatePickerObj} />;
     case 'TEXT':
       return <POText item={item as POTextObj} />;
     default:
@@ -97,7 +151,6 @@ export function PopOverList(p: PopOverListProps) {
     className,
     designClassName,
     options,
-    selectedValue,
     savingValue,
     addFooterButton,
     footerButtonText,
@@ -126,7 +179,7 @@ export function PopOverList(p: PopOverListProps) {
   const onSubmit = () => {
     setPopOverState({
       action: 'SUBMIT',
-      value: selectedValue,
+      value: formValues,
     });
   };
 
@@ -154,7 +207,7 @@ export function PopOverList(p: PopOverListProps) {
             value={currentValue}
             onClickItem={onClickItem}
             saving={savingValue !== undefined && savingValue === itemValue}
-            selected={selectedValue !== undefined && selectedValue === itemValue}
+            // selected={selectedValue !== undefined && selectedValue === itemValue}
           />;
         })}
       </div>

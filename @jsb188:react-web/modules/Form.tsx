@@ -751,4 +751,10 @@ export const ContentEditable = memo(forwardRef((
     onBlur={onBlur}
     dangerouslySetInnerHTML={{ __html: htmlText }}
   />;
+
+// IMPORTANT NOTE:
+// <ContentEditable /> works by making it only render when it absolutely has to.
+// If you re-render every time there's a text change, there will be issues.
+// If you *do* see issues, use checkPropsDiff() to figure out which prop is triggering re-render.
+// }), globalThis.checkPropsDiff);
 }));

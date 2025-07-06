@@ -1,0 +1,108 @@
+
+/* Date range visualization */
+
+.cal_week_range {
+  position: absolute; z-index: 0;
+  top: 0;
+  height: 50%;
+  transform: translateY(50%);
+  background-color: rgba(var(--color-primary), .15);
+}
+
+.cal_week_range.start_0 {
+  left: -7.12%;
+}
+
+.cal_week_range.start_1 {
+  left: 7.16%;
+}
+
+.cal_week_range.start_2 {
+  left: 21.44%;
+}
+
+.cal_week_range.start_3 {
+  left: 35.72%;
+}
+
+.cal_week_range.start_4 {
+  left: 50%;
+}
+
+.cal_week_range.start_5 {
+  left: 64.28%;
+}
+
+.cal_week_range.start_6 {
+  left: 78.56%;
+}
+
+.cal_week_range.start_7 {
+  left: 92.84%;
+}
+
+.cal_week_range.start_8 {
+  left: 107.12%;
+}
+
+.cal_week_range.end_0 {
+  right: 107.12%;
+}
+
+.cal_week_range.end_1 {
+  right: 92.84%;
+}
+
+.cal_week_range.end_2 {
+  right: 78.56%;
+}
+
+.cal_week_range.end_3 {
+  right: 64.28%;
+}
+
+.cal_week_range.end_4 {
+  right: 50%;
+}
+
+.cal_week_range.end_5 {
+  right: 35.72%;
+}
+
+.cal_week_range.end_6 {
+  right: 21.44%;
+}
+
+.cal_week_range.end_7 {
+  right: 7.16%;
+}
+
+.cal_week_range.end_8 {
+  right: -7.12%;
+}
+
+/* Calendary day */
+
+.cal_day:before {
+  content: attr(data-label);
+  position: absolute;
+
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  font-size: 10px;
+  font-family: var(--font-sans-medium);
+  line-height: .9;
+  white-space: nowrap;
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-text));
+
+  display: none;
+  padding: 0 1px;
+}
+
+.cal_day:hover:before {
+  display: block;
+  transition: opacity .2s ease-in-out;
+}

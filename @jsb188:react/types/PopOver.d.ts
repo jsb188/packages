@@ -85,10 +85,16 @@ export interface PONavAvatarItemObj {
   // ?
 }
 
-export interface PODateRangeObj {
-  __type: 'DATE_RANGE';
+export interface PODatePickerObj {
+  __type: 'DATE_PICKER';
   hidden?: boolean;
   name?: string; // Name for form, for formValues object; if not set, index will be used
+  minDate?: Date; // Optional minimum date
+  maxDate?: Date; // Optional maximum date
+}
+
+export interface PODateRangeObj extends PODatePickerObj {
+  __type: 'DATE_RANGE';
 }
 
 export interface POTextObj {
@@ -99,7 +105,7 @@ export interface POTextObj {
   designClassName?: string;
 }
 
-export type POListIfaceItem = PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | PONavAvatarItemObj | PODateRangeObj | POTextObj;
+export type POListIfaceItem = PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | PONavAvatarItemObj | PODatePickerObj | PODateRangeObj | POTextObj;
 export type POCheckListIfaceItem = PONListSubtitleObj | POListBreakObj | POCheckListItemObj;
 
 export interface POListIface {
@@ -114,7 +120,6 @@ export interface POListIface {
     description?: string;
     displayName?: string;
     photoUri?: string | null;
-    selectedValue?: string | null;
     initialState?: Record<string, any>;
     options: POListIfaceItem[];
     addFooterButton?: boolean;
