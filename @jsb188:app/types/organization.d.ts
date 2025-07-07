@@ -32,9 +32,22 @@ export interface OrganizationShortData {
 export interface OrganizationData {
   id: string;
   name: string;
+  emoji: string;
   primary: boolean;
   acl: OrganizationACL;
   stripeCustomerId: string | null;
   domains: string[] | null;
   // members: OrganizationMemberData[] | null;
+}
+
+/**
+ * Full organization object with relationship
+ */
+
+export interface OrganizationRelData {
+  id: string;
+  primary: boolean;
+  role: OrganizationRoleEnum;
+  acl: OrganizationACL;
+  organization: OrganizationData;
 }

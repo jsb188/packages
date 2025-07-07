@@ -327,7 +327,7 @@ export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
   const El = p.El || 'strong';
   const isLightBackground = ['bg', 'bg_alt'].includes(color);
 
-  return <El className={cn('ib_label f_shrink', outline && 'outline', !fillTextColor && (color && `${color}_before`), className)}>
+  return <El className={cn('ib_label f_shrink', outline && 'outline', !fillTextColor && (color && `${color}_bf`), className)}>
     <span
       className={cn(
         'rel z2 h_item ft_xs',

@@ -2,30 +2,13 @@ import { cn } from '@jsb188/app/utils/string';
 import { memo, useEffect, useState } from 'react';
 
 /**
- * Types
+ * Activity Dots
  */
 
 interface ActivityDotsProps {
   className?: string;
   size?: 'tiny' | 'small' | 'default' | 'medium' | 'large';
 }
-
-interface ProgressCircleProps {
-  saving?: boolean;
-  percent: number | null;
-}
-
-interface BigLoadingProps {
-  color?: 'default' | 'alt' | 'active';
-}
-
-interface BigLoadingDelayedProps extends BigLoadingProps {
-  delay: number;
-}
-
-/**
- * Activity Dots
- */
 
 export function ActivityDots(p: ActivityDotsProps) {
   const size = p.size || 'default';
@@ -51,6 +34,14 @@ export function BigLoading(p: BigLoadingProps) {
 /**
  * Big loading; but with delay
  */
+
+interface BigLoadingProps {
+  color?: 'default' | 'alt' | 'active';
+}
+
+interface BigLoadingDelayedProps extends BigLoadingProps {
+  delay: number;
+}
 
 export const BigLoadingDelayed = memo((p: BigLoadingDelayedProps) => {
   const { delay, ...other } = p;
@@ -78,6 +69,11 @@ BigLoadingDelayed.displayName = 'BigLoadingDelayed';
 /**
  * Circular progress
  */
+
+interface ProgressCircleProps {
+  saving?: boolean;
+  percent: number | null;
+}
 
 export const ProgressCircle = memo((p: ProgressCircleProps) => {
   const { saving, percent } = p;
@@ -127,3 +123,62 @@ export const ProgressCircle = memo((p: ProgressCircleProps) => {
 });
 
 ProgressCircle.displayName = 'ProgressCircle';
+
+/**
+ * Mock avatar
+ */
+
+interface MockAvatarProps {
+  className?: string;
+  roundedClassName?: string;
+  preset?: 'active' | null;
+  size?: 'xxxs' | 'xxs' | 'xs' | 'sm' | 'df' | 'md' | 'lg' | 'xl';
+}
+
+export const MockAvatar = memo((p: MockAvatarProps) => {
+  const { size, className, preset, roundedClassName } = p;
+  return <span
+    className={cn('mock_av', preset, `av_${size || 'df'}`, roundedClassName ?? 'r', className)}
+  />
+});
+
+MockAvatar.displayName = 'MockAvatar';
+
+/**
+ * Mock texts
+ */
+
+interface MockTextProps {
+  children: string;
+  preset?: 'active' | null;
+  includeSpace?: boolean;
+  fontSizeClassName?: string;
+  className?: string;
+}
+
+export const MockText = memo((p: MockTextProps) => {
+  const { children, includeSpace, className, ...rest } = p;
+  const { preset, fontSizeClassName } = rest;
+
+  if (includeSpace) {
+    const words = children.split(' ');
+    const lastIx = words.length - 1;
+    return words.map((word, i) => {
+      return (
+        <MockText
+          key={i}
+          {...rest}
+          className={cn(className, i === lastIx ? '' : 'mr_xs')}
+        >
+          {word}
+        </MockText>
+      );
+    });
+  }
+
+  return <span className={cn('active mock', fontSizeClassName ?? 'ft_xs', className, preset)}>
+    {children}
+  </span>;
+});
+
+MockText.displayName = 'MockText';

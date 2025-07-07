@@ -385,7 +385,7 @@ export const AppContext = createContext({
  */
 
 export function useCurrentAccount() {
-  const { appState: { activated, hasPassword, webVersion, account, settings, primaryOrganizationId } } = useContext(AppContext);
+  const { appState: { activated, hasPassword, webVersion, account, settings, primaryOrganizationId, ...other } } = useContext(AppContext);
   const hasName = !!account?.profile?.firstName || !!account?.profile?.lastName;
   const fullName = buildSingleText([account?.profile?.firstName, account?.profile?.lastName], ' ');
   const displayName = guessFirstName(fullName, 8);

@@ -13,7 +13,7 @@ import PopOverImage from './PopOver-ViewImage';
 
 interface PopOverButtonProps {
   id?: string;
-  El?: React.ElementType;
+  as?: React.ElementType;
   iface: PopOverIface;
   position?: POPosition;
   disabled?: boolean;
@@ -37,7 +37,7 @@ export function PopOverButton(p: PopOverButtonProps) {
   const { id, disabled, iface, children, className, animationClassName, popOverClassName, position, offsetX, offsetY, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
   const { name, variables } = iface;
   const { popOver, openPopOver, closePopOver } = usePopOver();
-  const DomEl = p.El || 'div';
+  const DomEl = p.as || 'div';
 
   const unique = useRef(id || getTimeBasedUnique());
   const el = useRef<HTMLElement>(null);

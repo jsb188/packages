@@ -80,11 +80,11 @@ a.bg:not(:disabled):hover, button.bg:not(:disabled):hover, .link.bg:not(:disable
 }
 
 a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_link:not(:disabled):active,
-.bg_active_hv:hover, .bg_active_before:before {
+.bg_active_hv:hover {
   background-color: rgb(var(--color-bg-active)) !important;
 }
 
-.bg_medium_hv:hover, .bg_medium_before:before {
+.bg_medium_hv:hover {
   background-color: rgb(var(--color-bg-medium)) !important;
 }
 
@@ -513,13 +513,13 @@ a.u, button.u {
 
 /* Mock (must be before colors so it can be overridden) */
 
-.mock, .mock_av {
+.mock {
   position: relative;
   color: transparent;
   user-select: none;
 }
 
-.bg_alt .mock_av, .bg_alt .mock:before,
+.bg_alt .mock:before,
 .mock.normal:before {
   background-color: rgb(var(--color-bg));
 }
@@ -532,11 +532,11 @@ a.u, button.u {
   border-radius: var(--radius-small);
 }
 
-.mock_av, .mock:before {
+.mock:before {
   background-color: rgb(var(--color-bg-alt));
 }
 
-.mock.active:before, .mock_av.active {
+.mock.active:before {
   background-color: rgb(var(--color-bg-active));
 }
 
@@ -1243,7 +1243,7 @@ rect.s_dot_away {
   background-color: rgb(var(--color-bg-active));
 }
 
-.alt_bf:before {
+.bg_alt_bf:before {
   background-color: rgb(var(--color-bg-alt));
 }
 

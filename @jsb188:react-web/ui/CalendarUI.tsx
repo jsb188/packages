@@ -170,14 +170,14 @@ export const CalendarMonthHeader = memo((p: CalendarMonthHeaderProps) => {
   return <div className='h_spread a_c ft_xs lh_1 r bg_alt'>
     {onClickPrev
     ? <button
-      className='f_stretch v_center av_w_xs ml_3 hv_left link'
+      className='f_stretch v_center av_w_xs ml_3 link'
       onClick={onClickPrev}
     >
       <span className='target trans_transform'>
         <Icon name='arrow-left' />
       </span>
     </button>
-    : <span className='f_stretch v_center av_w_xs ml_3 hv_left' />}
+    : <span className='f_stretch v_center av_w_xs ml_3' />}
 
     <span className='py_xs'>
       {text}
@@ -185,14 +185,14 @@ export const CalendarMonthHeader = memo((p: CalendarMonthHeaderProps) => {
 
     {onClickNext
     ? <button
-      className='f_stretch v_center av_w_xs mr_3 hv_right link'
+      className='f_stretch v_center av_w_xs mr_3 link'
       onClick={onClickNext}
     >
       <span className='target trans_transform'>
         <Icon name='arrow-right' />
       </span>
     </button>
-    : <span className='f_stretch v_center av_w_xs mr_3 hv_right' />}
+    : <span className='f_stretch v_center av_w_xs mr_3' />}
   </div>;
 });
 

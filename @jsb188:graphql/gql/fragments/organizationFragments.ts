@@ -4,6 +4,7 @@ export const organizationFragment = `fragment organizationFragment on Organizati
   stripeCustomerId
   operation
   name
+  emoji
   domains
 }`;
 
