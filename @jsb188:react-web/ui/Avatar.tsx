@@ -12,25 +12,6 @@ type OnlineStatusEnums = 'ONLINE' | 'AWAY' | 'BUSY' | 'APPEAR_OFFLINE' | 'OFFLIN
 
 export type AvatarSize = 'xtiny' | 'tiny' | 'small' | 'default' | 'medium' | 'large' | 'xlarge';
 
-type AvatarProps = {
-  status?: OnlineStatusEnums;
-  typing?: boolean;
-  draggable?: boolean;
-  displayName?: string;
-  size?: AvatarSize | null;
-  role?: 'button';
-  urlSize?: 'small' | 'medium' | 'large';
-  urlPath?: string | null;
-  url?: string | null;
-  animateGifs?: boolean;
-  radiusClassName?: string;
-  imageClassName?: string;
-  containerClassName?: string;
-  className?: string;
-  letterClassName?: string;
-  children?: any;
-};
-
 type AvatarButtonProps = {
   animateGifs?: boolean;
   disabled?: boolean;
@@ -110,6 +91,21 @@ function getSizeClassName(
 }
 
 /**
+ * Helper function; get 1 or 2 letters from text
+ */
+
+export function getAvatarLetters(text: string) {
+  if (!text) {
+    return '';
+  }
+  const nameArr = text.split(' ');
+  if (nameArr.length > 1) {
+    return nameArr[0].charAt(0) + nameArr[1].charAt(0);
+  }
+  return text.substring(0, 2);
+}
+
+/**
  * Avatar letter
  */
 
@@ -135,24 +131,21 @@ function AvatarLetter(p: AvatarLetterProps) {
   } else if (['xtiny','tiny'].includes(size)) {
     fontSize = 'ft_tn';
     domElement = 'span';
+  } else if (['small'].includes(size)) {
+    fontSize = 'ft_df';
+    domElement = 'span';
   } else {
     fontSize = 'ft_sm';
     domElement = 'span';
   }
 
-  let initialLetters;
-  const nameArr = displayName.split(' ');
-  if (nameArr.length > 1) {
-    initialLetters = nameArr[0].charAt(0) + nameArr[1].charAt(0);
-  } else {
-    initialLetters = displayName.substring(0, 2);
-  }
+  const letters = getAvatarLetters(displayName);
 
   return createElement(
     domElement,
     { className: cn('v_center f p_n r av', sizeClass, fontSize, className) },
     <span className='shift_down'>
-      {initialLetters}
+      {letters}
     </span>
   );
 }
@@ -255,6 +248,26 @@ function StatusDotMask(p: StatusDotProps) {
  * Avatar
  */
 
+interface AvatarProps {
+  status?: OnlineStatusEnums;
+  typing?: boolean;
+  draggable?: boolean;
+  displayName?: string;
+  size?: AvatarSize | null;
+  role?: 'button';
+  urlSize?: 'small' | 'medium' | 'large';
+  urlPath?: string | null;
+  url?: string | null;
+  square?: boolean;
+  animateGifs?: boolean;
+  radiusClassName?: string;
+  imageClassName?: string;
+  containerClassName?: string;
+  className?: string;
+  letterClassName?: string;
+  children?: any;
+}
+
 export function Avatar(p: AvatarProps) {
   const {
     status,
@@ -340,7 +353,11 @@ export function Avatar(p: AvatarProps) {
  * Avatar
  */
 
-export function AvatarImg(p: AvatarProps) {
+interface AvatarImgProps extends AvatarProps {
+  square?: boolean;
+}
+
+export function AvatarImg(p: AvatarImgProps) {
   const {
     children,
     draggable,
@@ -349,10 +366,10 @@ export function AvatarImg(p: AvatarProps) {
     url,
     urlPath,
     className,
-    radiusClassName,
     imageClassName,
     letterClassName,
     animateGifs,
+    square
   } = p;
 
   const size = p.size || 'default';
@@ -361,15 +378,24 @@ export function AvatarImg(p: AvatarProps) {
   const avatarUrl = url || makeUploadsUrl(urlPath, urlSize, animateGifs);
   const hasImg = !!avatarUrl;
 
+  let radiusClassName, letterBackgroundClassName;
+  if (square) {
+    radiusClassName = p.radiusClassName || 'r_sm';
+    letterBackgroundClassName = 'bg_lighter_3 bd_2 bd_lt cl_df ft_bold';
+  } else {
+    radiusClassName = p.radiusClassName || 'r';
+    letterBackgroundClassName = 'bg_active cl_bd';
+  }
+
   return (
     <figure
       role={role}
       className={cn(
         sizeClass,
         'av main',
-        radiusClassName || 'r',
+        radiusClassName,
+        !hasImg && displayName && letterBackgroundClassName,
         hasImg ? '' : 'v_center',
-        !hasImg && displayName ? 'bg_active cl_bd' : '',
         className,
       )}
     >

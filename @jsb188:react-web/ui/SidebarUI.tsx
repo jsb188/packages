@@ -1,5 +1,6 @@
 import { cn } from '@jsb188/app/utils/string';
 import { MockAvatar, MockText } from '@jsb188/react-web/ui/Loading';
+import { getAvatarLetters } from '@jsb188/react-web/ui/Avatar';
 import { EmojiWrapper } from '@jsb188/react-web/ui/Markdown';
 import { memo } from 'react';
 import { Icon } from '../icons/Icon';
@@ -32,14 +33,6 @@ interface SidebarHeaderNavProps {
 
 export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
   const { notReady, title, emoji } = p;
-  // 'mx_xs my_2 py_3 r_sm bl',
-  // return <button
-  //   disabled={notReady}
-  //   className={cn(
-  //     'ft_md ls_3 ft_bold cl_df px_sm fs r_sm',
-  //     notReady ? '' : 'link bg_active_hv',
-  //   )}
-  // >
   return <div className='shift_left h_item'>
     {notReady
     ? <>
@@ -58,9 +51,9 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
     : <>
       <div className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
         <span className='av_xs v_center r_sm bg_lighter_3 bd_2 bd_lt'>
-          <span className='shift_down'>
+          <span className='shift_down ft_df'>
             <EmojiWrapper>
-              {emoji || title?.charAt(0) || '🌟'}
+              {emoji || getAvatarLetters(title!) || '🌟'}
             </EmojiWrapper>
           </span>
         </span>

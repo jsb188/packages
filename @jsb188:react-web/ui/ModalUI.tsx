@@ -541,7 +541,7 @@ export function AlertToolbar(p: AlertToolbarProps) {
 
   return <div className='of w_f rt_smw bd_b bd_lt'>
     <nav className='h_45 h_spread shadow_bg shift_down'>
-      <div className='px_df ft_bold'>
+      <div className='px_df ft_medium'>
         {!breadcrumbs ? null : breadcrumbs.map((item, i) => (
           <span
             key={i}

@@ -8,12 +8,12 @@
 .sticky_bottom { position: sticky; bottom: 0; left: 0; right: 0; }
 
 .abs, .abs_l, .abs_r, .abs_t, .abs_b, .abs_full,
-.abs_corner, .abs_corner_xs, .abs_corner_sm, .abs_corner_df {
+.abs_corner, .abs_corner_xs, .abs_corner_sm, .abs_corner_df, .abs_corner_md {
   position: absolute;
 }
 
 .fixed, .fixed_l, .fixed_r, .fixed_t, .fixed_b, .fixed_full,
-.fixed_corner, .fixed_corner_xs, .fixed_corner_sm, .fixed_corner_df {
+.fixed_corner, .fixed_corner_xs, .fixed_corner_sm, .fixed_corner_df, .fixed_corner_md {
   position: fixed;
 }
 
@@ -54,6 +54,11 @@
 .abs_corner_df, .fixed_corner_df {
   top: var(--rem-default);
   right: var(--rem-default);
+}
+
+.abs_corner_md, .fixed_corner_md {
+  top: var(--rem-medium);
+  right: var(--rem-medium);
 }
 
 /* Typography */
@@ -123,7 +128,7 @@ div, p {
 .ls_1 { letter-spacing: -.08em; text-indent: -.08em; }
 .ls_2 { letter-spacing: -.04em; text-indent: -.04em; }
 .ls_3 { letter-spacing: -.025em; text-indent: -.025em; }
-.ls_4 { letter-spacing: -.015em; text-indent: -.015em; }
+.ls_4 { letter-spacing: -.0175em; text-indent: -.0175em; }
 
 h1.ft_tn, h2.ft_tn, h3.ft_tn, h4.ft_tn, h5.ft_tn, h6.ft_tn { font-size: var(--heading-xxsmall); }
 h1.ft_xs, h2.ft_xs, h3.ft_xs, h4.ft_xs, h5.ft_xs, h6.ft_xs { font-size: var(--heading-xsmall); }
@@ -653,6 +658,7 @@ svg.av_xl .s_dot {
 
 .av {
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .av_btn .click_hover {

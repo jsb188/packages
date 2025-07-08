@@ -31,9 +31,9 @@ export interface POListBreakObj {
 }
 
 export interface POListItemObj {
-  __type: 'LIST_ITEM' | 'CHECK_LIST_ITEM';
+  __type: 'LIST_ITEM' | 'CHECK_LIST_ITEM' | 'LIST_ITEM_POPUP';
   name?: string; // Name for form, for formValues object; if not set, index will be used
-  value?: string | null;
+  value?: string | boolean | null;
   text: string;
   className?: string;
   colorIndicator?: ColorEnum;
@@ -57,6 +57,11 @@ export interface POListItemObj {
   // ?
 }
 
+export interface POPopUpItemObj extends POListItemObj {
+  __type: 'LIST_ITEM_POPUP';
+  variables: any; // Variables for the pop up
+}
+
 export interface POCheckListItemObj extends POListItemObj {
   __type: 'CHECK_LIST_ITEM';
   name?: string; // Name for form, for formValues object; if not set, index will be used
@@ -76,6 +81,7 @@ export interface PONavAvatarItemObj {
   allowDisabledOnClick?: boolean;
   rightIconName?: string;
   hidden?: boolean;
+  square?: boolean;
   disabled?: boolean;
 
   // Web props
@@ -105,7 +111,7 @@ export interface POTextObj {
   designClassName?: string;
 }
 
-export type POListIfaceItem = PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | PONavAvatarItemObj | PODatePickerObj | PODateRangeObj | POTextObj;
+export type POListIfaceItem = PONavAvatarItemObj | PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | POPopUpItemObj | PODatePickerObj | PODateRangeObj | POTextObj;
 export type POCheckListIfaceItem = PONListSubtitleObj | POListBreakObj | POCheckListItemObj;
 
 export interface POListIface {

@@ -28,6 +28,7 @@ query organizationRelationship (
 
     organization {
       ...organizationFragment
+      membersCount
     }
   }
 }

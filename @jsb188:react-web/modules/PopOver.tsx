@@ -25,6 +25,10 @@ interface PopOverButtonProps {
   scrollAreaDOMId?: string | null;
   offsetX?: number;
   offsetY?: number;
+  leftEdgeThreshold?: number;
+  rightEdgeThreshold?: number;
+  leftEdgePosition?: number;
+  rightEdgePosition?: number;
   onClick?: (e: React.MouseEvent) => void;
   children: any;
 }
@@ -34,7 +38,7 @@ interface PopOverButtonProps {
  */
 
 export function PopOverButton(p: PopOverButtonProps) {
-  const { id, disabled, iface, children, className, animationClassName, popOverClassName, position, offsetX, offsetY, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
+  const { id, disabled, iface, children, className, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
   const { name, variables } = iface;
   const { popOver, openPopOver, closePopOver } = usePopOver();
   const DomEl = p.as || 'div';
@@ -68,6 +72,10 @@ export function PopOverButton(p: PopOverButtonProps) {
           position,
           offsetX,
           offsetY,
+          leftEdgeThreshold,
+          rightEdgeThreshold,
+          leftEdgePosition,
+          rightEdgePosition,
           rect: {
             width: rect.width,
             height: rect.height,

@@ -3,7 +3,6 @@ import {
   CloseTooltipFn,
   OpenPopOverFn,
   OpenTooltipFn,
-  PopOverGlobalStateObj,
   PopOverGlobalStateParams,
   PopOverHookProps,
   PopOverProps,

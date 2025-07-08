@@ -68,6 +68,10 @@
   border-radius: var(--radius-small);
 }
 
+.po_opt.default:last-child {
+  margin-bottom: 5px;
+}
+
 /* Pop over; text item */
 
 .po_opt.text_item {

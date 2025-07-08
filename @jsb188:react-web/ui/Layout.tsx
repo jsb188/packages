@@ -101,7 +101,7 @@ type ModalScreenCoverProps = {
   domId?: string;
   visible: 0 | .5 | 1 | 2;
   className?: string;
-  animationName: 'anim_drop_center' | 'anim_zoom_in' | 'anim_zoom_in_fade';
+  animationName?: 'anim_drop_center' | 'anim_zoom_in' | 'anim_zoom_in_fade';
   onCloseModal?: () => void;
   onMouseDown?: (e: React.MouseEvent) => void;
   onMouseUp?: (e: React.MouseEvent) => void;
@@ -122,6 +122,16 @@ export function ModalScreenCover(p: ModalScreenCoverProps) {
   if (visible === 0) {
     return null;
   }
+
+  let visibleCn, notVisibleCn;
+  if (animationName) {
+    visibleCn = 'visible';
+    notVisibleCn = '';
+  } else {
+    visibleCn = 'visible op_100';
+    notVisibleCn = 'op_0';
+  }
+
   return (
     <div
       id={domId}
@@ -129,8 +139,8 @@ export function ModalScreenCover(p: ModalScreenCoverProps) {
         // 'fixed_full',
         // visible === 2 ? 'visible' : '',
         'fixed_full bg_modal trans_opacity',
-        visible === 2 ? 'visible op_100' : 'op_0',
-        animationName,
+        visible === 2 ? visibleCn : notVisibleCn,
+        animationName ? `target ${animationName}` : '',
         onCloseModal ? 'cs_back' : '',
         className
       )}
@@ -158,7 +168,7 @@ export function ModalAlertCover(p: ModalAlertCoverProps) {
   return <ModalScreenCover {...other}>
     <div
       className={cn(
-        'w_f h_f anim_shift_appear_center target anim_inner bg_alert',
+        'w_f h_f anim_shift_appear_center spd_1 target anim_inner bg_alert',
         visible === 2 ? 'visible' : visible === .5 ? 'reverse' : '',
         contentClassName
       )}
@@ -215,11 +225,13 @@ type ModalWrapperProps = {
   onCloseModal?: () => void;
   ToolbarComponent?: React.ReactNode;
   children: React.ReactNode;
+  closeText?: string;
 };
 
 export function ModalWrapper(p: ModalWrapperProps) {
   const { ToolbarComponent, domId, className, containerClassName, outlineColor, children, onCloseModal, addScrollArea, ...other } = p;
   const size = p.size || 'df';
+  const closeText = p.closeText || i18n.t('form.esc');
 
   return (
     <div
@@ -230,10 +242,16 @@ export function ModalWrapper(p: ModalWrapperProps) {
     >
       {!onCloseModal ? null : (
         <button
-          className='r av_sm v_center bg_alt ic_sm abs_corner z1'
+          className='abs_corner_df z1 cl_lt mt_5 mr_xs v_center'
           onClick={onCloseModal}
         >
-          <Icon name='x' />
+          <span className='r av_sm v_center ic_df'>
+            <Icon name='x' />
+          </span>
+          {!closeText ? null
+          : <span className='ft_tn move_up'>
+            {closeText}
+          </span>}
         </button>
       )}
 

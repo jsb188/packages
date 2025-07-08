@@ -186,7 +186,7 @@ export const POListItem = memo((p: POListItemProps) => {
       Component={item.LinkComponent}
       to={to}
       disabled={disabled}
-      className={cn('po_opt bg_link h_item gap_xs lh_1', presetClassName, disabled ? 'op_50' : '', className)}
+      className={cn('po_opt bg_link h_item gap_xs lh_1', preset || 'default', presetClassName, disabled ? 'op_50' : '', className)}
       onClick={undefinedValue || (disabled && !allowDisabledOnClick) ? undefined : () => onClickItem(name, value)}
     >
       {!hasAvatar ? null : (
@@ -233,7 +233,7 @@ interface PONavAvatarItemProps extends PONavItemBase {
 
 export const PONavAvatarItem = memo((p: PONavAvatarItemProps) => {
   const { name, item, onClickItem, saving, selected } = p;
-  const { className, disabled, allowDisabledOnClick, to, text, label, value, rightIconName, photoUri, avatarDisplayName } = item;
+  const { className, disabled, square, allowDisabledOnClick, to, text, label, value, rightIconName, photoUri, avatarDisplayName } = item;
   const undefinedValue = value === undefined;
   const hasRightComponent = saving || selected || !!rightIconName;
 
@@ -246,12 +246,13 @@ export const PONavAvatarItem = memo((p: PONavAvatarItemProps) => {
       onClick={undefinedValue || (disabled && !allowDisabledOnClick) ? undefined : () => onClickItem(name, value)}
     >
       <AvatarImg
+        square={square}
         size='small'
         urlPath={photoUri}
         displayName={avatarDisplayName}
       />
 
-      <span className={cn('f lh_2', !hasRightComponent && 'pr_xs')}>
+      <span className={cn('f lh_2 pt_2', !hasRightComponent && 'pr_xs')}>
         <strong className='bl ellip'>{text}</strong>
         <span className='ft_xs cl_md bl ellip'>
           {label}

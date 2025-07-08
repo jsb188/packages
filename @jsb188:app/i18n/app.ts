@@ -22,6 +22,7 @@ export default {
     open_app: 'Open app',
     home: 'Home',
     timezone_set_to_: 'Timezone is set to: %{timeZone}',
+    latest_updates: 'Latest updates',
     update_notes: 'Update notes',
 
     // @home screen

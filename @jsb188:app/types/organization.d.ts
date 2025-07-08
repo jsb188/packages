@@ -37,7 +37,7 @@ export interface OrganizationData {
   acl: OrganizationACL;
   stripeCustomerId: string | null;
   domains: string[] | null;
-  // members: OrganizationMemberData[] | null;
+  membersCount: number;
 }
 
 /**

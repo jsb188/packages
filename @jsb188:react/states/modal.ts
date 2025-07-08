@@ -277,6 +277,17 @@ export function useModalScreen(): ModalScreenProps {
 }
 
 /**
+ * Use screen open function
+ */
+
+export function useOpenModalScreen(): OpenModalScreenFn {
+  const setScreen = useSetAtom(screenClass.state);
+  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen), []);
+
+  return openModalScreen;
+}
+
+/**
  * Use modal popup hook
  */
 

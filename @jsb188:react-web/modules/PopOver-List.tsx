@@ -1,7 +1,8 @@
 import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
-import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
+import { useOpenModalPopUp } from '@jsb188/react/states';
+import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POPopUpItemObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
 import { memo, useCallback, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
@@ -86,13 +87,35 @@ const PODateRange = memo((p: PODateRangeProps) => {
     maxDate={maxDate}
     minDate={minDate}
   />;
-  // return <div className='h_spread gap_md pt_4 px_4'>
-  //   <Calendar {...calendarProps} name='po_date_range_picker' value={startDate} maxDate={maxDate} />
-  //   {/* <Calendar {...calendarProps} name='endDate' value={endDate} maxDate={maxDate} /> */}
-  // </div>;
 });
 
 PODateRange.displayName = 'PODateRange';
+
+/**
+ * Pop over list item -> but it opens a modal pop up
+ */
+
+interface POPopUpListItemProps extends PONavItemBase {
+  name: string | null;
+  item: POPopUpItemObj;
+}
+
+const POPopUpListItem = memo((p: POPopUpListItemProps) => {
+  const { item } = p;
+  const openModalPopUp = useOpenModalPopUp();
+
+  const onClickItem = (_name: any, _value: any) => {
+    openModalPopUp(item.variables);
+  };
+
+  return <POListItem
+    {...p}
+    item={!item || item.value !== undefined ? item : { ...item, value: true }}
+    onClickItem={onClickItem}
+  />;
+});
+
+POPopUpListItem.displayName = 'POPopUpListItem';
 
 /**
  * Ifaces for pop over nav item
@@ -116,6 +139,9 @@ export function PONavItemIface(p: PONavItemIfaceProps) {
       return <POListBreak />;
     case 'LIST_ITEM':
       return <POListItem {...other} item={item as POListItemObj} />;
+    case 'LIST_ITEM_POPUP':
+      return <POPopUpListItem {...other} item={item as POPopUpItemObj} />;
+      break;
     case 'CHECK_LIST_ITEM':
       const rightIconName = checked ? 'circle-check' : 'circle';
       const rightIconClassName = checked ? 'cl_bd' : 'cl_lt';

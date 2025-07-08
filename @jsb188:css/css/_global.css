@@ -1091,7 +1091,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 }
 
 .spd_0 { transition-duration: 55ms !important; animation-duration: 55ms !important; }
-.spd_1 { transition-duration: 125ms !important; animation-duration: 125ms !important; }
+.spd_1 { transition-duration: 150ms !important; animation-duration: 150ms !important; }
 .spd_2 { transition-duration: 250ms !important; animation-duration: 250ms !important; }
 .spd_3 { transition-duration: 500ms !important; animation-duration: 500ms !important; }
 .spd_4 { transition-duration: 750ms !important; animation-duration: 750ms !important; }
