@@ -81,47 +81,8 @@
 
 .mw_snav {
   align-self: stretch;
-  width: 240px;
+  width: 270px;
   padding: var(--rem-large) 0 var(--rem-large) 40px;
-}
-
-.mw_snav .msn_list {
-  list-style: none;
-  padding: var(--rem-default);
-  margin: 0;
-}
-
-/* Normal item */
-
-.mw_snav .msn_item {
-  position: relative;
-  padding: .3rem .5rem;
-  margin: 0 0 1px;
-}
-
-.mw_snav .msn_item.pointer:hover {
-  background-color: rgb(var(--color-bg-alt));
-}
-
-.mw_snav .msn_item.sel {
-  background-color: rgb(var(--color-bg-alt)) !important;
-  /* background-color: rgb(var(--color-bg-active)) !important; */
-  /* background-color: rgb(var(--color-main)) !important; */
-  color: var(--color-text) !important;
-}
-
-/* List title */
-
-.mw_snav .msn_item.title {
-  padding: .3rem .5rem .5rem;
-}
-
-.mw_snav .msn_item.title .ic_cnt {
-  position: absolute;
-  top: -3px;
-  left: -32px;
-  width: 32px;
-  height: 32px;
 }
 
 /* Modal top nav */

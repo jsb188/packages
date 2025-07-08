@@ -20,7 +20,7 @@ export interface ClientRectValues {
  */
 
  export interface PONListSubtitleObj {
-  __type: 'SUBTITLE';
+  __type: 'LIST_SUBTITLE';
   hidden?: boolean;
   text: string;
 }
@@ -57,8 +57,8 @@ export interface POListItemObj {
   // ?
 }
 
-export interface POPopUpItemObj extends POListItemObj {
-  __type: 'LIST_ITEM_POPUP';
+export interface POModalItemObj extends POListItemObj {
+  __type: 'LIST_ITEM_POPUP' | 'LIST_ITEM_MODAL';
   variables: any; // Variables for the pop up
 }
 
@@ -111,7 +111,7 @@ export interface POTextObj {
   designClassName?: string;
 }
 
-export type POListIfaceItem = PONavAvatarItemObj | PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | POPopUpItemObj | PODatePickerObj | PODateRangeObj | POTextObj;
+export type POListIfaceItem = PONavAvatarItemObj | PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | POModalItemObj | PODatePickerObj | PODateRangeObj | POTextObj;
 export type POCheckListIfaceItem = PONListSubtitleObj | POListBreakObj | POCheckListItemObj;
 
 export interface POListIface {

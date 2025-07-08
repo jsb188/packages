@@ -65,6 +65,7 @@ export default {
     start_date: 'Start date',
     end_date: 'End date',
     esc: 'ESC',
+    settings: 'Settings',
 
     // Day periods
     greet_MORNING: 'Good morning, %{name}.',

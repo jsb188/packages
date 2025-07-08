@@ -39,7 +39,7 @@ interface ModalHeaderProps {
 }
 
 interface ModalSideNavItemProps {
-  __type: 'title' | 'item' | string;
+  __type: 'LIST_SUBTITLE' | 'LIST_ITEM' | string;
   value?: string;
   text?: string;
   children?: string;
@@ -235,24 +235,18 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
 
 export function ModalSideNavItem(p: ModalSideNavItemProps) {
   const { __type, iconName, rightIconName, text } = p;
+  const itemCn = 'px_xs py_3';
 
   switch (__type) {
-    case 'title':
+    case 'LIST_SUBTITLE':
       return (
-        <li className='msn_item title'>
-          {!iconName ? null : (
-            <div className='ic_cnt ic_md v_center'>
-              <Icon
-                name={iconName}
-              />
-            </div>
-          )}
-          <strong>
+        <li className={`${itemCn} ml_3 mb_3 title`}>
+          <strong className='cl_md'>
             {text}
           </strong>
         </li>
       );
-    case 'item':
+    case 'LIST_ITEM':
     default:
   }
 
@@ -263,10 +257,17 @@ export function ModalSideNavItem(p: ModalSideNavItemProps) {
     <li
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role
       role='button'
-      className={cn('msn_item r_sm cl_md h_item', hasLink ? 'pointer' : '', selected ? 'sel' : '')}
+      className={cn('r_sm h_item mb_2', itemCn, hasLink ? 'link' : '', selected ? 'bg_alt cl_df' : 'bg_alt_hv cl_bd')}
       onClick={onClick ? () => onClick(value!) : undefined}
     >
-      {text}
+      {!iconName ? null
+      : <span className='w_25 h_center ic_abs shift_left mr_4'>
+        <Icon name={iconName} />
+      </span>}
+
+      <span className='ellip pt_1'>
+        {text}
+      </span>
 
       {!rightIconName ? null
         : <span className='ic_sm ml_xs'>
@@ -286,7 +287,7 @@ export function ModalSideNav(p: ModalSideNavProps) {
   return (
     <nav className='mw_snav y_scr always'>
       {options?.map((list, i) => (
-        <ul className='msn_list' key={i}>
+        <ul className='p_df' key={i}>
           {list.map((item, i) => (
             <ModalSideNavItem
               key={i}

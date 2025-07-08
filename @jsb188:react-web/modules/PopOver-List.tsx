@@ -1,8 +1,8 @@
 import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
-import { useOpenModalPopUp } from '@jsb188/react/states';
-import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POPopUpItemObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
+import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
+import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POModalItemObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
 import { memo, useCallback, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
@@ -95,12 +95,12 @@ PODateRange.displayName = 'PODateRange';
  * Pop over list item -> but it opens a modal pop up
  */
 
-interface POPopUpListItemProps extends PONavItemBase {
+interface POOpenModalListItemProps extends PONavItemBase {
   name: string | null;
-  item: POPopUpItemObj;
+  item: POModalItemObj;
 }
 
-const POPopUpListItem = memo((p: POPopUpListItemProps) => {
+const POPopUpListItem = memo((p: POOpenModalListItemProps) => {
   const { item } = p;
   const openModalPopUp = useOpenModalPopUp();
 
@@ -118,6 +118,27 @@ const POPopUpListItem = memo((p: POPopUpListItemProps) => {
 POPopUpListItem.displayName = 'POPopUpListItem';
 
 /**
+ * Pop over list item -> but it opens a modal screen
+ */
+
+const POModalScreenListItem = memo((p: POOpenModalListItemProps) => {
+  const { item } = p;
+  const openModalScreen = useOpenModalScreen();
+
+  const onClickItem = (_name: any, _value: any) => {
+    openModalScreen(item.variables);
+  };
+
+  return <POListItem
+    {...p}
+    item={!item || item.value !== undefined ? item : { ...item, value: true }}
+    onClickItem={onClickItem}
+  />;
+});
+
+POModalScreenListItem.displayName = 'POModalScreenListItem';
+
+/**
  * Ifaces for pop over nav item
  */
 
@@ -133,15 +154,16 @@ export function PONavItemIface(p: PONavItemIfaceProps) {
   const { __type } = item;
 
   switch (__type) {
-    case 'SUBTITLE':
+    case 'LIST_SUBTITLE':
       return <POListSubtitle item={item as PONListSubtitleObj} />;
     case 'BREAK':
       return <POListBreak />;
     case 'LIST_ITEM':
       return <POListItem {...other} item={item as POListItemObj} />;
     case 'LIST_ITEM_POPUP':
-      return <POPopUpListItem {...other} item={item as POPopUpItemObj} />;
-      break;
+      return <POPopUpListItem {...other} item={item as POModalItemObj} />;
+    case 'LIST_ITEM_MODAL':
+      return <POModalScreenListItem {...other} item={item as POModalItemObj} />;
     case 'CHECK_LIST_ITEM':
       const rightIconName = checked ? 'circle-check' : 'circle';
       const rightIconClassName = checked ? 'cl_bd' : 'cl_lt';

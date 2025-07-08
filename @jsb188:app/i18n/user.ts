@@ -19,8 +19,6 @@ export default {
     passwordRepeat: 'Password (repeat)',
     search_ph: 'Search @ or ID',
     no_one_found_: 'No one found: "%{query}"',
-    from_friends_list: 'From your friends list',
-    not_friends_yet: 'Not friends yet',
     profile_no_desc: 'This user hasn\'t written anything about themselves.',
     no_one_found: 'No one found with this query.',
 

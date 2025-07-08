@@ -467,6 +467,14 @@ export const ClockHour5 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 <path d="M12 7v5" stroke="currentColor" />
 </svg>;
 
+export const ClockShare = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-clock-share">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M20.943 13.016a9 9 0 1 0 -8.915 7.984" />
+<path d="M16 22l5 -5" />
+<path d="M21 21.5v-4.5h-4.5" />
+<path d="M12 7v5l2 2" />
+</svg>;
+
 export const CoinFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-coin">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M17 3.34a10 10 0 1 1 -15 8.66l.005 -.324a10 10 0 0 1 14.995 -8.336zm-5 2.66a1 1 0 0 0 -1 1a3 3 0 1 0 0 6v2a1.024 1.024 0 0 1 -.866 -.398l-.068 -.101a1 1 0 0 0 -1.732 .998a3 3 0 0 0 2.505 1.5h.161a1 1 0 0 0 .883 .994l.117 .007a1 1 0 0 0 1 -1l.176 -.005a3 3 0 0 0 -.176 -5.995v-2c.358 -.012 .671 .14 .866 .398l.068 .101a1 1 0 0 0 1.732 -.998a3 3 0 0 0 -2.505 -1.501h-.161a1 1 0 0 0 -1 -1zm1 7a1 1 0 0 1 0 2v-2zm-2 -4v2a1 1 0 0 1 0 -2z" />
@@ -529,6 +537,19 @@ export const CPU = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-
 <path d="M21 14h-2" stroke="currentColor" />
 <path d="M14 21v-2" stroke="currentColor" />
 <path d="M10 21v-2" stroke="currentColor" />
+</svg>;
+
+export const CreditCard = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-credit-card">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M3 5m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" />
+<path d="M3 10l18 0" />
+<path d="M7 15l.01 0" />
+<path d="M11 15l2 0" />
+</svg>;
+
+export const CreditCardFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-credit-card">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M22 10v6a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-6h20zm-14.99 4h-.01a1 1 0 1 0 .01 2a1 1 0 0 0 0 -2zm5.99 0h-2a1 1 0 0 0 0 2h2a1 1 0 0 0 0 -2zm5 -10a4 4 0 0 1 4 4h-20a4 4 0 0 1 4 -4h12z" />
 </svg>;
 
 export const Crown = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-crown" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -877,6 +898,13 @@ export const MailCheck = <svg xmlns="http://www.w3.org/2000/svg" className="icon
 <path d="M11 19h-6a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v6" stroke="currentColor" />
 <path d="M3 7l9 6l9 -6" stroke="currentColor" />
 <path d="M15 19l2 2l4 -4" stroke="currentColor" />
+</svg>;
+
+export const Map = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-map">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13" />
+<path d="M9 4v13" />
+<path d="M15 7v13" />
 </svg>;
 
 export const MaskFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-mask-filled">
