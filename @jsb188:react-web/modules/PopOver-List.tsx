@@ -3,12 +3,12 @@ import { cn } from '@jsb188/app/utils/string';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POModalItemObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useEffect, useCallback, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
 import { POListBreak, POListItem, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
 import type { CalendarSelectedObj, OnChangeCalendarDayFn } from './Calendar';
-import { Calendar, CalendarDateRange } from './Calendar';
+import { Calendar, CalendarDateRange, getCalendarSelector } from './Calendar';
 
 /**
  * Pop over date range picker
@@ -24,6 +24,14 @@ interface PODatePickerProps {
 const PODatePicker = memo((p: PODatePickerProps) => {
   const { name, value, item, onClickItem } = p;
   const { minDate, maxDate } = item;
+
+  useEffect(() => {
+    // Fix non-Object value on mount
+    const valueType = typeof value;
+    if (valueType && ['number','string'].includes(valueType)) {
+      onClickItem(name, getCalendarSelector(value));
+    }
+  }, [value]);
 
   const onChangeCalendarDay: OnChangeCalendarDayFn = (nextValue) => {
     onClickItem(name, nextValue);
@@ -61,6 +69,21 @@ const PODateRange = memo((p: PODateRangeProps) => {
   const { name, value, item, onClickItem } = p;
   const [startDate, endDate] = value || [];
   const { minDate, maxDate } = item;
+
+  useEffect(() => {
+    // Fix non-Object value on mount
+    const sdType = typeof startDate;
+    const edType = typeof endDate;
+    if (
+      (sdType && ['number','string'].includes(sdType)) ||
+      (edType && ['number','string'].includes(edType))
+    ) {
+      onClickItem(name, [
+        sdType ? getCalendarSelector(startDate) : null,
+        edType ? getCalendarSelector(endDate) : null
+      ]);
+    }
+  }, [startDate, endDate]);
 
   const onChangeCalendarDay = useCallback((innerValue: any, isStart: boolean) => {
     const nextValue = isStart ? [innerValue, endDate] : [startDate, innerValue];

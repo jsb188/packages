@@ -2,10 +2,15 @@
 export const organizationFragment = `fragment organizationFragment on Organization {
   id
   stripeCustomerId
-  operation
   name
-  emoji
+  operation
+  dailyDigestTime
   domains
+
+  settings {
+    emoji
+    timeZone
+  }
 }`;
 
 export const organizationRelationshipFragment = `fragment organizationRelationshipFragment on OrganizationRelationship {

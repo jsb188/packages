@@ -24,7 +24,7 @@ function getCalendarInt(day: number, month: number, year: number): number {
  * @returns An object containing the day, month, and year.
  */
 
-function getCalendarSelector(date?: CalendarSelectedObj | Date | string | number | null): CalendarSelectedObj | null {
+export function getCalendarSelector(date?: CalendarSelectedObj | Date | string | number | null): CalendarSelectedObj | null {
 
   if (date instanceof Date) {
 

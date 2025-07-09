@@ -223,12 +223,12 @@ export function getCalDate(d: Date, timeZone_?: string | null) {
  */
 
 export function convertIntToCalDate(calDateInt: number | string, delimiter: string = '-'): string {
-  const value = String(calDateInt);
-  if (value.length === 8) {
-    return `${value.slice(0, 4)}${delimiter}${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}`;
-  }
-  // If not 8 digits, return as is
-  return value;
+	const value = String(calDateInt);
+	if (value.length === 8) {
+		return `${value.slice(0, 4)}${delimiter}${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}`;
+	}
+	// If not 8 digits, return as is
+	return value;
 }
 
 /**
@@ -579,4 +579,29 @@ export function isValidDate(d?: Date | string | number | null) {
 		return !isNaN(date.getTime());
 	}
 	return false;
+}
+
+/**
+ * Get HHMM in increments
+ */
+
+export function getHHMMIncrements(
+	d: Date,
+	minutesIncrement: number,
+	utc: boolean = false,
+) {
+
+  let hh, minutes;
+  if (utc) {
+    hh = d.getUTCHours().toString().padStart(2, '0');
+    minutes = d.getUTCMinutes();
+  } else {
+    hh = d.getHours().toString().padStart(2, '0');
+    minutes = d.getMinutes();
+  }
+
+	const interval = Math.floor(minutes / minutesIncrement) * minutesIncrement;
+	const hhmm = `${hh}${interval.toString().padStart(2, '0')}`;
+
+	return hhmm;
 }

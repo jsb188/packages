@@ -3,7 +3,7 @@ import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';
 import { LOG_TYPE_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
-import type { LogTypeEnum, FilterLogEntriesArgs } from '../types/log.d';
+import type { FilterLogEntriesArgs, LogTypeEnum } from '../types/log.d';
 
 /**
  * Zod schema for query params to filter
@@ -108,12 +108,21 @@ export function createFilterFromURL(
 ) {
 
   const urlParams = new URLSearchParams(searchQuery);
+
+  let startDate = urlParams.get('sd');
+  let endDate = urlParams.get('ed');
+  if (startDate && !endDate) {
+    endDate = startDate;
+  } else if (endDate && !startDate) {
+    startDate = endDate;
+  }
+
   const filter: FilterLogEntriesArgs = {
     // @ts-expect-error - allow null operationType, let the query decide to skip or execute the query
     operation: operationType,
     types: convertDigitsToLogTypes(operationType, urlParams.get('t')), // (urlParams.get('t') || null) as FilterLogEntriesArgs['type'] | null,
-    startDate: urlParams.get('sd') || null,
-    endDate: urlParams.get('ed') || null,
+    startDate,
+    endDate,
     timeZone: indexToTimeZone(urlParams.get('z')),
     query: urlParams.get('q') || '',
   };
