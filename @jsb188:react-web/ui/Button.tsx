@@ -310,7 +310,7 @@ export function InlineButtonLink(p: NormalButtonLinkProps) {
  */
 
 export interface InlineBlockLabelProps {
-  El?: React.ElementType;
+  as?: React.ElementType;
   color: 'bg' | 'bg_alt' | 'primary' | 'secondary';
   iconSizeClassName?: string;
   className?: string;
@@ -324,7 +324,7 @@ export interface InlineBlockLabelProps {
 
 export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
   const { color, iconSizeClassName, iconName, text, className, fillTextColor, textColorClassName, colorIndicator, outline } = p;
-  const El = p.El || 'strong';
+  const El = p.as || 'strong';
   const isLightBackground = ['bg', 'bg_alt'].includes(color);
 
   return <El className={cn('ib_label f_shrink', outline && 'outline', !fillTextColor && (color && `${color}_bf`), className)}>

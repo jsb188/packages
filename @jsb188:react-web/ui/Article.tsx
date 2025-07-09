@@ -47,7 +47,7 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
       {labels.map((label, i) => (
         <InlineBlockLabel
           key={i}
-          El='span'
+          as='span'
           outline
           color='bg_alt'
           // textColorClassName='cl_primary'
@@ -79,7 +79,7 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
       <div className='h_item pt_sm pb_xs shift_up'>
         {labels.map(label => (
           <InlineBlockLabel
-            El='span'
+            as='span'
             outline
             color='bg_alt'
             // textColorClassName='cl_primary'

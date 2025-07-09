@@ -521,7 +521,7 @@ const FormOptionItem = memo((p: OptionType) => {
 
       {!rightLabel ? null
         : <InlineBlockLabel
-          El='span'
+          as='span'
           // @ts-expect-error assume the color is one of the correct enums
           color={rightLabelColor}
           text={rightLabel}
