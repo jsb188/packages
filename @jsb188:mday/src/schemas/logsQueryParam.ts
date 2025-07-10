@@ -1,4 +1,5 @@
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import { OPERATION_ENUMS } from '@jsb188/app/constants/organization';
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';
@@ -10,8 +11,8 @@ import type { FilterLogEntriesArgs, LogTypeEnum } from '../types/log.d';
  */
 
 export const FilterLogEntriesSchema = z.object({
-  types: z.array(z.enum(LOG_TYPE_ENUMS as [string]))
-    .nullable(),
+	types: z.array(z.enum(LOG_TYPE_ENUMS as [string]))
+		.nullable(),
 	startDate: z.string()
 		.refine((sd) => isValidCalDate(sd), { message: 'START_DATE_INVALID' })
 		.refine((sd) => !isFutureCalDate(sd, 1), { message: 'START_DATE_FUTURE_NOT_ALLOWED' })
@@ -47,26 +48,26 @@ export const FilterLogEntriesSchema = z.object({
  */
 
 export function convertDigitsToLogTypes(
-  operationType: OrganizationOperationEnum | null,
-  typesStr?: string | null
+	operationType: OrganizationOperationEnum | null,
+	typesStr?: string | null,
 ) {
-  if (!operationType || !typesStr) {
-    return null;
-  }
+	if (!operationType || !typesStr) {
+		return null;
+	}
 
-  const logTypes = LOG_TYPES_BY_OPERATION[operationType];
-  if (!logTypes) {
-    console.warn(`No log types found for operation type: ${operationType}`);
-    return null;
-  }
+	const logTypes = LOG_TYPES_BY_OPERATION[operationType];
+	if (!logTypes) {
+		console.warn(`No log types found for operation type: ${operationType}`);
+		return null;
+	}
 
-  return logTypes.map((type: LogTypeEnum, i: number) => {
-    const value = typesStr.charAt(i);
-    if (value === '1') {
-      return type;
-    }
-    return null;
-  }).filter(Boolean) as FilterLogEntriesArgs['types'];
+	return logTypes.map((type: LogTypeEnum, i: number) => {
+		const value = typesStr.charAt(i);
+		if (value === '1') {
+			return type;
+		}
+		return null;
+	}).filter(Boolean) as FilterLogEntriesArgs['types'];
 }
 
 /**
@@ -77,22 +78,22 @@ export function convertDigitsToLogTypes(
  */
 
 export function convertLogTypesToDigits(
-  operationType: OrganizationOperationEnum | null,
-  types: FilterLogEntriesArgs['types']
+	operationType: OrganizationOperationEnum | null,
+	types: FilterLogEntriesArgs['types'],
 ): string | null {
-  if (!operationType || !types) {
-    return null;
-  }
+	if (!operationType || !types) {
+		return null;
+	}
 
-  const logTypes = LOG_TYPES_BY_OPERATION[operationType];
-  if (!logTypes) {
-    console.warn(`No log types found for operation type: ${operationType}`);
-    return null;
-  }
+	const logTypes = LOG_TYPES_BY_OPERATION[operationType];
+	if (!logTypes) {
+		console.warn(`No log types found for operation type: ${operationType}`);
+		return null;
+	}
 
-  return logTypes.map((type: LogTypeEnum) => {
-    return types.includes(type) ? '1' : '0';
-  }).join('');
+	return logTypes.map((type: LogTypeEnum) => {
+		return types.includes(type) ? '1' : '0';
+	}).join('');
 }
 
 /**
@@ -103,37 +104,42 @@ export function convertLogTypesToDigits(
  */
 
 export function createFilterFromURL(
-  operationType: OrganizationOperationEnum | null,
-  searchQuery: string
+	operationType: OrganizationOperationEnum | null,
+	searchQuery: string,
 ) {
+	const urlParams = new URLSearchParams(searchQuery);
 
-  const urlParams = new URLSearchParams(searchQuery);
+	let startDate = urlParams.get('sd');
+	let endDate = urlParams.get('ed');
+	if (startDate && !endDate) {
+		endDate = startDate;
+	} else if (endDate && !startDate) {
+		startDate = endDate;
+	}
 
-  let startDate = urlParams.get('sd');
-  let endDate = urlParams.get('ed');
-  if (startDate && !endDate) {
-    endDate = startDate;
-  } else if (endDate && !startDate) {
-    startDate = endDate;
+  let operation = urlParams.get('o');
+  if (operation) {
+    operation = OPERATION_ENUMS[Number(operation) - 1] || operationType;
+  } else {
+    operation = operationType;
   }
 
-  const filter: FilterLogEntriesArgs = {
-    // @ts-expect-error - allow null operationType, let the query decide to skip or execute the query
-    operation: operationType,
-    types: convertDigitsToLogTypes(operationType, urlParams.get('t')), // (urlParams.get('t') || null) as FilterLogEntriesArgs['type'] | null,
-    startDate,
-    endDate,
-    timeZone: indexToTimeZone(urlParams.get('z')),
-    query: urlParams.get('q') || '',
-  };
+	const filter: FilterLogEntriesArgs = {
+		operation: operation!,
+		types: convertDigitsToLogTypes(operation, urlParams.get('t')), // (urlParams.get('t') || null) as FilterLogEntriesArgs['type'] | null,
+		startDate,
+		endDate,
+		timeZone: indexToTimeZone(urlParams.get('z')),
+		query: urlParams.get('q') || '',
+	};
 
-  const validation = FilterLogEntriesSchema.safeParse(filter);
-  if (!validation.success) {
-    // Return null and force the client to go to a valid page
-    return null;
-  }
+	const validation = FilterLogEntriesSchema.safeParse(filter);
+	if (!validation.success) {
+		// Return null and force the client to go to a valid page
+		return null;
+	}
 
-  return filter;
+	return filter;
 }
 
 /**
@@ -143,27 +149,35 @@ export function createFilterFromURL(
  */
 
 export function createSearchParamsFromFilter(filter: FilterLogEntriesArgs): URLSearchParams {
-  const params = new URLSearchParams();
-  const { operation } = filter;
+	const params = new URLSearchParams();
+	const { operation } = filter;
 
-  if (filter.types && operation) {
-    const typeDigits = convertLogTypesToDigits(operation, filter.types);
-    if (typeDigits) {
-      params.set('t', typeDigits);
-    }
-  }
-  if (filter.startDate) {
-    params.set('sd', filter.startDate);
-  }
-  if (filter.endDate) {
-    params.set('ed', filter.endDate);
-  }
-  if (filter.timeZone) {
-    params.set('z', filter.timeZone);
-  }
-  if (filter.query) {
-    params.set('q', filter.query);
-  }
+	if (operation) {
+		params.set('o', String(OPERATION_ENUMS.indexOf(operation) + 1));
+	}
 
-  return params;
+	if (filter.types && operation) {
+		const typeDigits = convertLogTypesToDigits(operation, filter.types);
+		if (typeDigits) {
+			params.set('t', typeDigits);
+		}
+	}
+
+	if (filter.accountId) {
+		params.set('a', filter.accountId);
+	}
+	if (filter.startDate) {
+		params.set('sd', filter.startDate);
+	}
+	if (filter.endDate) {
+		params.set('ed', filter.endDate);
+	}
+	if (filter.timeZone) {
+		params.set('z', filter.timeZone);
+	}
+	if (filter.query) {
+		params.set('q', filter.query);
+	}
+
+	return params;
 }

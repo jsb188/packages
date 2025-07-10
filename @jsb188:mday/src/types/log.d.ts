@@ -38,6 +38,7 @@ export interface LogEntryGQLData {
 
 export interface FilterLogEntriesArgs {
   operation: OrganizationOperationEnum;
+  accountId?: string | null; // Account ID to filter logs by account
   types?: LogTypeEnum[] | null;
 	startDate?: string | null;
 	endDate?: string | null;
