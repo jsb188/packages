@@ -27,5 +27,6 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
     products
     settings
     integrations
+    digests
   }
 }`;

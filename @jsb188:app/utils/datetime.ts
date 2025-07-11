@@ -590,15 +590,14 @@ export function getHHMMIncrements(
 	minutesIncrement: number,
 	utc: boolean = false,
 ) {
-
-  let hh, minutes;
-  if (utc) {
-    hh = d.getUTCHours().toString().padStart(2, '0');
-    minutes = d.getUTCMinutes();
-  } else {
-    hh = d.getHours().toString().padStart(2, '0');
-    minutes = d.getMinutes();
-  }
+	let hh, minutes;
+	if (utc) {
+		hh = d.getUTCHours().toString().padStart(2, '0');
+		minutes = d.getUTCMinutes();
+	} else {
+		hh = d.getHours().toString().padStart(2, '0');
+		minutes = d.getMinutes();
+	}
 
 	const interval = Math.floor(minutes / minutesIncrement) * minutesIncrement;
 	const hhmm = `${hh}${interval.toString().padStart(2, '0')}`;
