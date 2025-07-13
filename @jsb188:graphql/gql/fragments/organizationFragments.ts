@@ -21,7 +21,7 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
   acl {
     id
     billing
-    journal
+    logs
     members
     finances
     products

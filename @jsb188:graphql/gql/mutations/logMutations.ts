@@ -1,2 +1,2 @@
 
-// Insert journal mutations here
+// Insert log mutations here

@@ -5,13 +5,13 @@ import { ARABLE_ACTIVITIES_GROUPED } from '../constants/log';
 import type { LogTypeEnum } from '../types/log';
 
 /**
- * Map journal type to a color
+ * Map log type to a color
  * @param type - The type of the log entry
  * @returns The color associated with the journal type
  */
 
 export function getJournalTypeColor(type: LogTypeEnum): ColorEnum {
-  const journalTypeToColor = {
+  const logTypeToColor = {
     SEED: 'brown',
     FIELD: 'yellow',
     HARVEST: 'green',
@@ -20,7 +20,7 @@ export function getJournalTypeColor(type: LogTypeEnum): ColorEnum {
   } as Record<LogTypeEnum, ColorEnum>;
 
   // Default to zinc if type is not found
-  const color = journalTypeToColor[type] || 'zinc';
+  const color = logTypeToColor[type] || 'zinc';
   return color;
 }
 
