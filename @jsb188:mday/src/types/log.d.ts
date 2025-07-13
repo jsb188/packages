@@ -13,14 +13,24 @@ export type LogActivityEnum = LogArableActivityEnum;
 
 // Log entry object
 
-export interface LogArableObj {
-  type: LogTypeEnum;
+interface LogArableObj {
 	activity: LogArableActivityEnum;
-	item?: string;
 	quantity?: number;
 	unit?: string;
 	price?: number;
-  notes: string | null;
+	notes: string | null;
+}
+
+interface LogArableInsertObj extends LogArableObj {
+	cropId: number | null;
+}
+
+interface LogArableDataObj extends LogArableObj {
+	id: number;
+	product: {
+		id: number;
+		name: string;
+	};
 }
 
 export interface LogEntryGQLData {
@@ -34,14 +44,34 @@ export interface LogEntryGQLData {
   updatedAt: string // ISO date string
 }
 
+export interface LogEntryInsertObj {
+	accountId: number;
+	organizationId: number;
+	organizationBranchId: number | null;
+	details: LogArableInsertObj;
+	createdAt: Date;
+}
+
+export interface LogEntryDataObj {
+	accountId: number;
+	organizationId: number;
+	organizationBranchId: number | null;
+	details: LogArableDataObj;
+	createdAt: Date;
+	updatedAt: Date;
+
+	// This is for outputs, but will never be set for inserts
+	account?: AccountObj;
+}
+
 // Filters for search
 
 export interface FilterLogEntriesArgs {
-  operation: OrganizationOperationEnum;
-  accountId?: string | null; // Account ID to filter logs by account
-  types?: LogTypeEnum[] | null;
-	startDate?: string | null;
-	endDate?: string | null;
-  timeZone?: string | null; // Timezone string, e.g., 'America/New_York'
-	query?: string;
+	operation: OrganizationOperationEnum;
+	accountId?: string | null; // Account ID to filter logs by account
+	types?: LogTypeEnum[] | null;
+	startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
+	endDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
+	timeZone?: string | null; // Timezone string, e.g., 'America/New_York'
+	query?: string | null;
 }
