@@ -19,6 +19,7 @@ export type AIEventErrorName =
   | 'MODERATION_MISSING'
   | 'MODERATION_SERVICE_ERR'
   | 'UNKNOWN_LLM_ERR'
+  | 'TWILIO_API_ERR'
   | 'UNFINISHED_LOGIC';
 
 // AI chat

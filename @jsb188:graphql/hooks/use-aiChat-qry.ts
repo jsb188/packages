@@ -2,7 +2,7 @@ import { getENVVariable } from '@jsb188/app';
 import { getAuthToken } from '@jsb188/app/utils/api';
 import SSE from '@jsb188/sse';
 import { useEffect, useState } from 'react';
-import { loadFragment } from '../cache/';
+import { loadFragment, loadQuery, makeVariablesKey, updateQuery } from '../cache/';
 import { useQuery } from '../client';
 import { aiChatMessagesQry, aiChatQry, aiChatsQry } from '../gql/queries/aiChatQueries';
 import handleSSEData, { type PublishPayload } from '../sse';
@@ -104,6 +104,39 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
       };
     }
   }, [dataAIChatId, sessionKey]);
+
+  useEffect(() => {
+    // Every time AIChat is fetched, check if it exists in lists cache
+    if (dataAIChatId) {
+      const variablesKey = makeVariablesKey({
+        filter: aiChat.calDate ? 'CAL_DATE' : 'CHATS',
+        cursor: null,
+        after: false,
+        limit: AI_CHATS_LIMIT
+      });
+
+      const queryKey = `#aiChats:${variablesKey}`;
+      const queryCache = loadQuery(queryKey);
+
+      if (queryCache) {
+        const notFound = queryCache.every((a: any) => a.id !== dataAIChatId);
+
+        if (notFound) {
+          // If not found, add to cache
+          updateQuery(queryKey, (prev: any) => {
+            return [{
+              cursor: aiChat.cursor,
+              __flat: {
+                __cache: true,
+                data: [`$aiChatFragment:${dataAIChatId}`],
+              }
+            }, ...prev];
+          }, false, updateObservers);
+        }
+      }
+
+    }
+  }, [dataAIChatId]);
 
   return {
     aiChat,

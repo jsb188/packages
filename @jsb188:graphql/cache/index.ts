@@ -1,4 +1,4 @@
-import { cloneArrayLike } from '@jsb188/app/utils/object';
+import { cloneArrayLike, mapArrayLikeObjects } from '@jsb188/app/utils/object';
 import type { UpdateObserversFn } from '../types.d';
 import { RULES, PARTIALS_MAP } from './config';
 
@@ -784,7 +784,7 @@ export function updateFragment(
   if (cache && update) {
     let updateObj;
     if (typeof update === 'function') {
-      updateObj = update(cache);
+      updateObj = update(mapArrayLikeObjects(cache));
     } else {
       updateObj = update;
     }
@@ -829,7 +829,7 @@ export function updateQuery(
   if (cache && update) {
     let updateObj;
     if (typeof update === 'function') {
-      updateObj = update(cache);
+      updateObj = update(mapArrayLikeObjects(cache));
     } else {
       updateObj = update;
     }

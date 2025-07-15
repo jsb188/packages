@@ -600,6 +600,7 @@ export type RenderMappedCodeFn = (p: CodeComponentProps) => React.ReactNode;
 
 type MarkdownProps = Partial<{
   children: string;
+  className: string;
   color: string;
   size: string;
   lightMode: boolean;

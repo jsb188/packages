@@ -395,6 +395,24 @@ export function cloneArrayLike(obj: any) {
 }
 
 /**
+ * There's a lot of cases where Array[] are automatically converted to Array-like Objects by Javasript itself.
+ * For example, when using JS Map() or Set() with a medium to larget amount of data.
+ * This function checks if the object is an array-like Object, and returns a plain Object.
+ * @param obj - The object to check
+ * @returns - Returns a plain Object if the input is an array-like Object, otherwise returns the original object.
+ */
+
+export function mapArrayLikeObjects(obj: any) {
+  if (
+    !Array.isArray(obj) && obj !== null && typeof obj === 'object' &&
+    Object.keys(obj).every((key, i) => key === i.toString())
+  ) {
+    return Object.values(obj);
+  }
+  return obj;
+}
+
+/**
  * Check if Object is iterable
  */
 

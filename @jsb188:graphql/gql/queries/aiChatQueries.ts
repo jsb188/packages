@@ -9,6 +9,7 @@ query aiChat (
   aiChat (
     aiChatId: $aiChatId
   ) {
+    cursor
     ...aiChatFragment
 
     messages (

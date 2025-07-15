@@ -1,4 +1,4 @@
-import { OPERATION_ENUMS, ROLE_ENUMS } from '../constants/organization.ts';
+import { OPERATION_ENUMS, ROLE_ENUMS, ROLE_CATEGORY_ENUMS } from '../constants/organization.ts';
 
 /*
  * ACL
@@ -6,6 +6,7 @@ import { OPERATION_ENUMS, ROLE_ENUMS } from '../constants/organization.ts';
 
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
+export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
 
 type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-write, 3: allow-manage
 

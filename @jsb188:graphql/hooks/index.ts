@@ -700,6 +700,7 @@ export function useQuery(
       )
     ) {
       const cachedResult = fetchCachedData(query, variablesKey, updateObservers);
+
       if (cachedResult) {
         setQryValues({
           ...qryValues,

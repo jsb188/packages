@@ -19,6 +19,7 @@ export const RULES = {
   // List of queries that should be cached
   // NOTE: Fragments are always cached
   aiChat: true,
+  aiChats: true,
   aiChatMessages: true,
   alerts: true,
   cardsForUser: true,
