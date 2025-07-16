@@ -4,7 +4,7 @@ export default {
     invalid: 'Invalid',
     network_error_title: 'Network error',
     unknown_error: 'An unknown error occured.',
-    network_error: 'Failed to connect to server. Please try again in a moment.',
+    network_error: 'Failed to connect to server.\nPlease try again in a moment.',
     network_or_outage_error: 'Failed to connect to server. If your internect connection is stable, our servers may be experiencing an outage.',
     app_error_title: 'App crashed',
     app_error: 'Uh-oh, please refresh the page and tell someone.',
