@@ -142,7 +142,7 @@ export const WeekdayLabels = memo(() => {
   });
 
   return (
-    <div className='grid size_7 gap_n a_c ft_xs bd_b bd_lt py_xs mt_xs cl_md'>
+    <div className='grid size_7 gap_n a_c ft_xs bd_b_1 bd_lt py_xs mt_xs cl_md'>
       {weekdays.map((day, index) => (
         <div key={index} className='weekday_label'>
           {day}

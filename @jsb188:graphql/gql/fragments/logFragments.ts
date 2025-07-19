@@ -4,6 +4,7 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   accountId
   organizationId
 
+  date
   createdAt
   updatedAt
 }`;

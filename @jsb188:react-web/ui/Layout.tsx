@@ -60,7 +60,7 @@ export function FullPageLayout(p: FullPageLayoutProps) {
   const { children, hideFooter, className } = p;
   return (
     <main>
-      <div className={cn('v_center page_ht', className)}>
+      <div className={cn('v_center min_h_100vh', className)}>
         {children}
       </div>
 
@@ -77,7 +77,7 @@ export function AbsoluteFullPageLayout(p: { children: React.ReactNode }) {
   const { children } = p;
   return (
     <main>
-      <div className='page_ht v_center bg z9 abs_full'>
+      <div className='min_h_100vh v_center bg z9 abs_full'>
         {children}
 
         {/* Do footer here */}
@@ -97,7 +97,7 @@ export function AbsoluteFullPageLayout(p: { children: React.ReactNode }) {
  * It's possible to do this with > :first-child but it's impossible to fool-proof target only the first child without subchilds
  */
 
-type ModalScreenCoverProps = {
+type ModalCoverProps = {
   domId?: string;
   visible: 0 | .5 | 1 | 2;
   className?: string;
@@ -109,7 +109,7 @@ type ModalScreenCoverProps = {
   children?: React.ReactNode;
 };
 
-export function ModalScreenCover(p: ModalScreenCoverProps) {
+export function ModalCover(p: ModalCoverProps) {
   const {
     domId,
     visible,
@@ -157,32 +157,34 @@ export function ModalScreenCover(p: ModalScreenCoverProps) {
  * Modal alert screen cover with extra animation and gradient background effect
  */
 
-interface ModalAlertCoverProps extends ModalScreenCoverProps {
-  contentClassName?: string;
+interface ModalCoverAnimationProps extends ModalCoverProps {
+  containerClassName?: string;
+  containerAnimationName?: string;
 }
 
-export function ModalAlertCover(p: ModalAlertCoverProps) {
-  const { children, contentClassName, ...other } = p;
+export function ModalCoverAnimation(p: ModalCoverAnimationProps) {
+  const { children, containerAnimationName, containerClassName, ...other } = p;
   const { visible } = p;
 
-  return <ModalScreenCover {...other}>
+  return <ModalCover {...other}>
     <div
       className={cn(
-        'w_f h_f anim_shift_appear_center spd_1 target anim_inner bg_alert',
+        'w_f h_f v_center spd_1 target anim_inner',
+        containerAnimationName || 'anim_move_up_center',
         visible === 2 ? 'visible' : visible === .5 ? 'reverse' : '',
-        contentClassName
+        containerClassName
       )}
     >
       {children}
     </div>
-  </ModalScreenCover>;
+  </ModalCover>;
 }
 
 /**
  * Fixed layout with animation
  */
 
-export function FixedAnimationLayout(p: ModalScreenCoverProps) {
+export function FixedAnimationLayout(p: ModalCoverProps) {
   const {
     domId,
     visible,
@@ -322,7 +324,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
 
   switch (preset) {
     case 'inside_content':
-      containerClassName = 'ic_xxl cl_md page_ht';
+      containerClassName = 'ic_xxl cl_md min_h_100vh';
       titleClassName = 'ft_df';
       messageClassName = 'ft_md';
       buttonClassName = 'bg';

@@ -27,21 +27,22 @@ interface LogArableInsertObj extends LogArableObj {
 
 interface LogArableDataObj extends LogArableObj {
 	id: number;
-	product: {
+	crop: {
 		id: number;
 		name: string;
 	};
 }
 
 export interface LogEntryGQLData {
-  id: string
-  accountId: string
-  organizationId: string
-  details: LogArableObj;
+	id: string;
+	accountId: string;
+	organizationId: string;
+	details: LogArableDataObj & { __typename: string, type: any };
 
-  account: any;
-  createdAt: string // ISO date string
-  updatedAt: string // ISO date string
+	account: any;
+  date: string; // ISO date string
+	createdAt: string; // ISO date string
+	updatedAt: string; // ISO date string
 }
 
 export interface LogEntryInsertObj {
@@ -49,7 +50,7 @@ export interface LogEntryInsertObj {
 	organizationId: number;
 	organizationBranchId: number | null;
 	details: LogArableInsertObj;
-	createdAt: Date;
+	date: Date;
 }
 
 export interface LogEntryDataObj {
@@ -57,6 +58,7 @@ export interface LogEntryDataObj {
 	organizationId: number;
 	organizationBranchId: number | null;
 	details: LogArableDataObj;
+	date: Date;
 	createdAt: Date;
 	updatedAt: Date;
 

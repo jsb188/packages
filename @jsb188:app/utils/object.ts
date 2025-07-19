@@ -403,17 +403,19 @@ export function cloneArrayLike(obj: any) {
  */
 
 export function mapArrayLikeObjects(obj: any) {
-  if (
-    !Array.isArray(obj) && obj !== null && typeof obj === 'object' &&
-    Object.keys(obj).every((key, i) => key === i.toString())
-  ) {
-    return Object.values(obj);
-  }
-  return obj;
+	if (
+		!Array.isArray(obj) && obj !== null && typeof obj === 'object' &&
+		Object.keys(obj).every((key, i) => key === i.toString())
+	) {
+		return Object.values(obj);
+	}
+	return obj;
 }
 
 /**
  * Check if Object is iterable
+ * @param obj - The object to check
+ * @returns - Returns true if the object is iterable, otherwise false
  */
 
 export function isIterable(obj: any) {
@@ -422,6 +424,8 @@ export function isIterable(obj: any) {
 
 /**
  * Get the last key from a JS Map
+ * @param map - The Map to get the last key from
+ * @returns - Returns the last key from the Map, or undefined if the Map is empty
  */
 
 export function getLastMapKey(map: Map<any, any>) {
@@ -433,6 +437,8 @@ export function getLastMapKey(map: Map<any, any>) {
 
 /**
  * Get the first key from a JS Map
+ * @param map - The Map to get the first key from
+ * @returns - Returns the first key from the Map, or undefined if the Map is empty
  */
 
 export function getFirstMapKey(map: Map<any, any>) {
@@ -440,4 +446,51 @@ export function getFirstMapKey(map: Map<any, any>) {
 		return undefined;
 	}
 	return Array.from(map.keys()).shift();
+}
+
+/**
+ * Get value at path in an object
+ * @param obj - The object to get the value from
+ * @param path - The path to the value, e.g. 'a.b.c'
+ * @returns - Returns the value at the path, or undefined if the path does not exist
+ */
+
+export function getObject(obj: any, path: string): any {
+  if (!obj || !path) {
+    return undefined;
+  }
+  return path.split('.').reduce((o, key) => {
+    if (o && typeof o === 'object' && key in o) {
+      return o[key];
+    }
+    return undefined;
+  }, obj);
+}
+
+/**
+ * Set value at path in an object
+ * @param obj - The object to set the value in
+ * @param path - The path to the value, e.g. 'a.b.c'
+ * @param value - The value to set
+ * @returns - Returns the modified object
+ */
+
+export function setObject(obj: any, path: string, value: any): any {
+  if (!obj || !path) {
+    return obj;
+  }
+  const keys = path.split('.');
+  const lastKey = keys.pop();
+  const nestedObj = keys.reduce((o, key) => {
+    if (!o[key]) {
+      o[key] = {};
+    }
+    return o[key];
+  }, obj);
+
+  if (lastKey) {
+    nestedObj[lastKey] = value;
+  }
+
+  return obj;
 }

@@ -45,7 +45,7 @@ export default {
     20007: 'Could not find the account with that ID. (%{value})',
     20008: 'Your password is incorrect. You have %{value} try(s) remaining.',
     20009: 'Please wait 10 minutes before trying to log in again.',
-    20010: 'Could not find user.',
+    20010: 'This account could not be found.',
     20011: 'Your token expired, please request a new link.',
     20012: 'Your token is invalid, please request a new link.',
     20013: 'Account already exists with that e-mail address. (%{value})',

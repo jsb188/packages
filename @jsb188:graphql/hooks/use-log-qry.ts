@@ -1,13 +1,13 @@
-import type { PaginationArgs, UseQueryParams } from '../types';
+import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d';
 import { useQuery } from '../client';
 import { logEntriesQry } from '../gql/queries/logQueries';
-import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d';
+import type { PaginationArgs, UseQueryParams } from '../types';
 
 /**
  * Constants
  */
 
-const LOG_ENTRIES_LIMIT = 50;
+const LOG_ENTRIES_LIMIT = 100;
 
 /**
  * Helper; use this to get/use same filter for logEntries() query everywhere
@@ -36,7 +36,7 @@ interface LogEntriesArgs extends PaginationArgs {
 
 export function useLogEntries(variables: LogEntriesArgs, params: UseQueryParams = {}) {
 
-  const { data, ...other } = useQuery(logEntriesQry, {
+  const { data, ...rest } = useQuery(logEntriesQry, {
     variables: {
       ...variables,
       cursor: null,
@@ -50,6 +50,6 @@ export function useLogEntries(variables: LogEntriesArgs, params: UseQueryParams 
 
   return {
     logEntries: data?.logEntries,
-    ...other
+    ...rest
   };
 }

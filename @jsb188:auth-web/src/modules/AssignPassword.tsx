@@ -60,7 +60,7 @@ export function AssignPasswordPage() {
         </FullWidthButton>
       </ModalSimpleContent>
       : <>
-        <p className='a_c mx_df mb_df -mt_1 pb_xs'>
+        <p className='a_c mx_df mb_df -mt_5 pb_xs'>
           {i18n.t('auth.add_password_log_in_msg', { identifier })}
         </p>
 

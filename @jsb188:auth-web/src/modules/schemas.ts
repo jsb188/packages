@@ -191,7 +191,6 @@ export const makeEditProfileSchema = () => ({
       setter: (data: any) => data?.profile?.description,
       label: i18n.t('user.about'),
       placeholder: i18n.t('user.about_ph'),
-      preset: 'in_modal',
       autoComplete: 'off',
     },
   }],

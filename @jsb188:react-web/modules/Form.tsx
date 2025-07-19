@@ -7,12 +7,16 @@ import { Icon } from '@jsb188/react-web/icons';
 import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
 import { Button, InlineBlockLabel } from '@jsb188/react-web/ui/Button';
 import { memo, forwardRef, useEffect, useRef, useState } from 'react';
+import { getObject, setObject } from '@jsb188/app/utils/object';
 
 // const cssPath = '/css/form.css';
 
 /**
  * Types
  */
+
+type InputPresetName = 'none' | 'fill' | 'fill_large' | 'inside_outline' | 'subtle' | 'lighter';
+type InputFocusStyle = 'outline' | 'shadow';
 
 interface InputType {
   id?: string;
@@ -23,6 +27,9 @@ interface InputType {
   spellCheck?: boolean;
   name: string;
   formValues?: any;
+  step?: number;
+  min?: number;
+  max?: number;
   setFormValues?: (values: any) => void;
   allowClearIfLocked?: boolean;
   locked?: boolean;
@@ -32,7 +39,8 @@ interface InputType {
   className?: string;
   inputClassName?: string;
   borderRadiusClassName?: string;
-  preset?: 'none' | 'fill' | 'fill_large' | 'inside_outline' | 'subtle' | string;
+  preset?: InputPresetName;
+  focusStyle?: InputFocusStyle;
   maxLength?: number;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
@@ -93,10 +101,11 @@ type OptionsType = {
 
 type TextareaType = {
   id?: string;
-  type: 'text';
   autoFocus?: boolean;
   autoComplete?: 'on' | 'off' | string;
   spellCheck?: boolean;
+  minHeight?: number;
+  focusStyle?: InputFocusStyle;
   name: string;
   formValues?: any;
   setFormValues?: (values: any) => void;
@@ -106,7 +115,8 @@ type TextareaType = {
   error?: boolean;
   fullWidth?: boolean;
   className?: string;
-  preset?: 'in_modal' | 'in_modal_large' | string;
+  textareaClassName?: string;
+  preset?: InputPresetName;
   onFocus?: React.FocusEventHandler<HTMLTextAreaElement>;
   onBlur?: React.FocusEventHandler<HTMLTextAreaElement>;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>, name: string) => void;
@@ -220,6 +230,7 @@ export function Input(p: Partial<InputType> & LabelType) {
     className,
     alertCount,
     preset,
+    focusStyle,
     autoFocus,
     name,
     type,
@@ -229,6 +240,9 @@ export function Input(p: Partial<InputType> & LabelType) {
     label,
     placeholder,
     info,
+    step,
+    min,
+    max,
     onChange,
     onInput,
     onKeyDown,
@@ -262,7 +276,7 @@ export function Input(p: Partial<InputType> & LabelType) {
   let labelIconName;
 
   if (locked && allowClearIfLocked && setFormValues) {
-    onClickRight = () => setFormValues({ ...formValues, [name!]: '' });
+    onClickRight = () => setFormValues({ ...setObject(formValues, String(name), '') });
     rightIconName = 'circle-x';
     labelIconName = 'lock';
   } else if (p.rightIconName) {
@@ -298,6 +312,7 @@ export function Input(p: Partial<InputType> & LabelType) {
         <input
           className={cn(
             'w_f',
+            'focus_' + (focusStyle || 'shadow'),
             borderRadiusClassName || 'r_sm',
             inputClassName,
             disabled ? 'disabled' : ''
@@ -305,6 +320,9 @@ export function Input(p: Partial<InputType> & LabelType) {
           id={htmlFor}
           name={name}
           type={type || 'text'}
+          step={step}
+          min={min}
+          max={max}
           placeholder={placeholder}
           value={value || ''}
           disabled={disabled || locked}
@@ -386,6 +404,7 @@ export function Textarea(p: TextareaType & LabelType) {
     className,
     preset,
     autoFocus,
+    focusStyle,
     name,
     autoComplete,
     spellCheck,
@@ -405,10 +424,12 @@ export function Textarea(p: TextareaType & LabelType) {
     disabled,
     error,
     labelClassName,
+    textareaClassName,
   } = p;
 
+  const minHeight = p.minHeight ?? 150; // Default minimum height
   const virtualizerRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState(150);
+  const [height, setHeight] = useState(minHeight);
   const htmlFor = getHtmlFor(id, name);
 
   // If any entire fromValues is passed to Input,
@@ -462,8 +483,13 @@ export function Textarea(p: TextareaType & LabelType) {
           dangerouslySetInnerHTML={{ __html: (value || '').replace(/(?:\r\n|\r|\n)/g, '<br>') }}
         />
         <textarea
-          style={{ height }}
-          className={cn('r_sm of', disabled ? 'disabled' : '')}
+          style={{ height, minHeight }}
+          className={cn(
+            'r_sm of rel',
+            'focus_' + (focusStyle || 'shadow'),
+            disabled ? 'disabled' : '',
+            textareaClassName
+          )}
           id={htmlFor}
           name={name}
           placeholder={placeholder}
@@ -673,7 +699,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
             onInput(e, name_);
           }
           const value = platform === 'WEB' ? (e.target as HTMLInputElement)?.value : e;
-          setFormValues({ ...formValues, [name_]: value });
+          setFormValues({ ...setObject(formValues, String(name_), value) });
         },
       };
     } else if (platform === 'MOBILE') {
@@ -682,7 +708,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
           if (onChangeText) {
             onChangeText(value, name_);
           }
-          setFormValues({ ...formValues, [name_]: value });
+          setFormValues({ ...setObject(formValues, String(name_), value) });
         },
       };
     } else {
@@ -692,7 +718,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
           if (onChange) {
             onChange(e, name_);
           }
-          setFormValues({ ...formValues, [name_]: e.target?.value });
+          setFormValues({ ...setObject(formValues, String(name_), e.target?.value) });
         },
       };
     }
@@ -701,7 +727,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
       <Component
         {...p}
         {...platformAgnosticProps}
-        value={formValues[name]}
+        value={getObject(formValues, name)}
         error={formValues.__errorFields?.includes(name)}
       />
     );

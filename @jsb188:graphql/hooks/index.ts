@@ -161,7 +161,7 @@ export function useWatchQuery(
  */
 
 export function useReactiveFragment(
-  data_: any,
+  data: any,
   observe: Array<string | string[]>,
   qryObsCount?: number,
   otherCheck?: (latestData: any, updatedKeys: any[]) => boolean,
@@ -169,13 +169,41 @@ export function useReactiveFragment(
   // doTest?: boolean
 ) {
 
-  const data = data_ || {};
   const fragmentObserver = useFragmentObserverValue();
   const frgObsCount = fragmentObserver.count;
-  const [changedData, setChangedData] = useState<any>({
-    fragmentUpdatedCount: frgObsCount,
-    queryUpdatedCount: qryObsCount,
-    data
+  const dataId = data?.id;
+
+  const [changedData, setChangedData] = useState<any>(() => {
+    // This allows initial data to *not* be null even when data param is null
+    let initialData;
+    if (data) {
+      initialData = data;
+    } else {
+      initialData = {}; // loadFragment(Array.isArray(firstKey) ? firstKey[0] : firstKey);
+      observe.forEach((key) => {
+        const isMapped = Array.isArray(key);
+        const fragmentData = loadFragment(isMapped ? key[0] : key);
+        if (fragmentData) {
+          if (isMapped) {
+            initialData = {
+              ...initialData!,
+              [key[1]]: fragmentData,
+            };
+          } else {
+            initialData = {
+              ...initialData!,
+              ...fragmentData,
+            };
+          }
+        }
+      });
+    }
+
+    return {
+      fragmentUpdatedCount: frgObsCount,
+      queryUpdatedCount: qryObsCount,
+      data: initialData
+    };
   });
 
   if (getENVVariable('NODE_ENV') === 'development' && !ignoreIDWarning) {
@@ -184,10 +212,10 @@ export function useReactiveFragment(
     useEffect(() => {
       if (
         // getENVVariable('NODE_ENV') === 'development' &&
-        data.id && changedData.data?.id &&
-        data.id !== changedData.data?.id
+        dataId && changedData.data?.id &&
+        dataId !== changedData.data?.id
       ) {
-        console.warn(`WARNING: useReactiveFragment() data.id changed from ${data.id} to ${changedData.data?.id}`);
+        console.warn(`WARNING: useReactiveFragment() data.id changed from ${dataId} to ${changedData.data?.id}`);
         console.warn('This can result in invalid merged data. Use key={id} to avoid this error.');
       }
     }, [changedData.data?.id]);
@@ -198,7 +226,8 @@ export function useReactiveFragment(
     // But that caused the render to happen 3 times more, I don't know why.
     // I only solved it by using useEffect()
     const idsChanged = (
-      changedData.data.id !== data.id ||
+      !dataId ||
+      changedData.data.id !== dataId ||
       (
         // This is absolutely needed for the chat clientId system to work properly;
         // Otherwise messages will be stuck in "not sent" state.
@@ -229,6 +258,7 @@ export function useReactiveFragment(
       let newData;
       for (const key of observe) {
         const isMapped = Array.isArray(key);
+
         if (
           key && (
             idsChanged ||
@@ -251,6 +281,9 @@ export function useReactiveFragment(
           }
 
           const fragmentData = loadFragment(isMapped ? key[0] : key);
+          // console.log('fragmentKey', key);
+          // console.log('fragmentData', fragmentData);
+
           if (fragmentData) {
             if (isMapped) {
               newData = {
@@ -275,7 +308,7 @@ export function useReactiveFragment(
         });
       }
     }
-  }, [data.id, qryObsCount, frgObsCount]);
+  }, [dataId, qryObsCount, frgObsCount]);
 
   // This is not needed now, I think
   // useEffect(() => {

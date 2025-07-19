@@ -15,7 +15,7 @@ export function SidebarHeaderArea(p: any) {
   return <div className='shadow_float ft_sm' {...rest}>
     {children}
 
-    <div className='p_2 rel mt_sm bd_t bd_b bd_lt bg_alt'>
+    <div className='p_2 rel mt_sm bd_t_1 bd_b_1 bd_lt bg_alt'>
 
     </div>
   </div>;

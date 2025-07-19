@@ -31,14 +31,14 @@ interface AuthFormProps {
   initialError?: any;
   initialFormData?: any;
   authRoutesMap?: Record<AuthPageName, string>;
-  setSignInIface: (iface: SignInIface | null) => void;
+  setAuthIface: (iface: SignInIface | null) => void;
 
   // Check if needed still
   onError?: (error: any) => void;
 }
 
 function SignInMain(p: AuthFormProps) {
-  const { authRoutesMap, initialError, initialFormData, setSignInIface } = p;
+  const { authRoutesMap, initialError, initialFormData, setAuthIface } = p;
   const navigate = useNavigate();
   const [waitingForPostRequest, setWaitingForPostRequest] = useState(false);
   const signInSchema = useMemo(makeSignInSchema, []);
@@ -91,7 +91,7 @@ function SignInMain(p: AuthFormProps) {
             });
             return false;
           } else if (result?.hasPassword === false) {
-            setSignInIface('VERIFY_PHONE');
+            setAuthIface('VERIFY_PHONE');
             return false;
           }
           // Do this if you want to redirect to sign up
@@ -154,7 +154,7 @@ function SignInMain(p: AuthFormProps) {
     <>
       {/* <ContinueWithGoogle onFinishSignIn={onFinishSignIn} /> */}
       {/* <ContinueWithApple onFinishSignIn={onFinishSignIn} /> */}
-      <ContinueWithPhone onClickButton={() => setSignInIface('VERIFY_PHONE')} />
+      <ContinueWithPhone onClickButton={() => setAuthIface('VERIFY_PHONE')} />
 
       <FormBreak className='mt_md'>
         {i18n.t('form.or')}
@@ -203,10 +203,10 @@ interface RequestTokenizedEmailProps extends AuthFormProps {
 }
 
 function RequestTokenizedEmail(p: RequestTokenizedEmailProps) {
-  const { requestType, initialFormData, setSignInIface } = p;
+  const { requestType, initialFormData, setAuthIface } = p;
   const [error, setError] = useState<any>(null);
   const initialEmailAddress = initialFormData?.identifier || '';
-  const onSuccess = (_emailAddress: string) => setSignInIface('EMAIL_SENT');
+  const onSuccess = (_emailAddress: string) => setAuthIface('EMAIL_SENT');
 
   const tokenizedEmailSchema = useMemo(() => {
     const schema = makeRequestTokenizedEmailSchema();
@@ -282,7 +282,7 @@ function RequestTokenizedEmail(p: RequestTokenizedEmailProps) {
         />
       )}
 
-      <p className={error ? 'py_xs a_c' : '-mt_1 pb_xs a_c'}>
+      <p className={error ? 'py_xs a_c' : '-mt_5 pb_xs a_c'}>
         {instructionText}
       </p>
     </SchemaForm>
@@ -316,7 +316,7 @@ function ResetPasswordCompleted(p: AuthFormProps) {
  */
 
 function SendPhoneVerification(p: AuthFormProps) {
-  const { setSignInIface } = p;
+  const { setAuthIface } = p;
   const sendPhoneVerificationSchema = useMemo(() => makeSendPhoneVerificationSchema(), []);
 
   // Data hook
@@ -325,7 +325,7 @@ function SendPhoneVerification(p: AuthFormProps) {
     onCompleted: (data: any, _: any, variables: any) => {
       const success = data?.sendPhoneVerificationCode;
       if (success) {
-        setSignInIface(['VERIFY_PHONE_SENT', variables.phone]);
+        setAuthIface(['VERIFY_PHONE_SENT', variables.phone]);
       } else {
         setError({
           message: i18n.t('error.unknown_error'),
@@ -361,7 +361,7 @@ function SendPhoneVerification(p: AuthFormProps) {
         />
       )}
 
-      <p className={error ? 'py_xs a_c' : '-mt_1 pb_xs a_c'}>
+      <p className={error ? 'py_xs a_c' : '-mt_5 pb_xs a_c'}>
         {i18n.t('auth.send_verification_code_msg')}
       </p>
     </SchemaForm>
@@ -369,7 +369,7 @@ function SendPhoneVerification(p: AuthFormProps) {
     <div className='a_c h_center'>
       <button
         disabled={saving}
-        onClick={() => setSignInIface(null)}
+        onClick={() => setAuthIface(null)}
         className='text ft_sm cl_md link'
       >
         {i18n.t('auth.log_in_other_methods')}
@@ -387,7 +387,7 @@ interface ConfirmPhoneVerificationCodeProps extends AuthFormProps {
 }
 
 function ConfirmPhoneVerificationCode(p: ConfirmPhoneVerificationCodeProps) {
-  const { setSignInIface, phoneNumber, authRoutesMap } = p;
+  const { setAuthIface, phoneNumber, authRoutesMap } = p;
   const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
 
@@ -435,7 +435,7 @@ function ConfirmPhoneVerificationCode(p: ConfirmPhoneVerificationCodeProps) {
     <div className='a_c h_center'>
       <button
         disabled={saving}
-        onClick={() => setSignInIface('VERIFY_PHONE')}
+        onClick={() => setAuthIface('VERIFY_PHONE')}
         className='text ft_sm cl_md link'
       >
         {i18n.t('auth.resend_verification_code')}
@@ -450,11 +450,11 @@ function ConfirmPhoneVerificationCode(p: ConfirmPhoneVerificationCodeProps) {
 
 type SignInIface = 'VERIFY_PHONE' | 'VERIFY_EMAIL' | 'EMAIL_SENT' | 'VERIFY_PHONE_SENT' | ['VERIFY_PHONE_SENT', string];
 
-export function SignInForm(p: Omit<AuthFormProps, 'setSignInIface'>) {
+export function SignInForm(p: Omit<AuthFormProps, 'setAuthIface'>) {
   const { initialError } = p;
   const errCode = initialError?.errorCode;
   const initialIface = errCode === '20053' ? 'VERIFY_PHONE' : errCode === '20049' ? 'VERIFY_EMAIL' : null;
-  const [signInIface_, setSignInIface] = useState<SignInIface | null>(initialIface);
+  const [signInIface_, setAuthIface] = useState<SignInIface | null>(initialIface);
   const ifaceIsArray = Array.isArray(signInIface_);
 
   switch (ifaceIsArray ? signInIface_[0] : signInIface_) {
@@ -462,33 +462,33 @@ export function SignInForm(p: Omit<AuthFormProps, 'setSignInIface'>) {
       // Attempted phone login but it was not verified
       return <SendPhoneVerification
         {...p}
-        setSignInIface={setSignInIface}
+        setAuthIface={setAuthIface}
       />;
     case 'VERIFY_PHONE_SENT':
       // User requested phone verification code, and it was sent
       return <ConfirmPhoneVerificationCode
         {...p}
         phoneNumber={ifaceIsArray ? signInIface_[1] : ''}
-        setSignInIface={setSignInIface}
+        setAuthIface={setAuthIface}
       />;
     case 'VERIFY_EMAIL':
       // Attempted email login but it was not verified
       return <RequestTokenizedEmail
         {...p}
         requestType='EMAIL_VERIFICATION'
-        setSignInIface={setSignInIface}
+        setAuthIface={setAuthIface}
       />;
     case 'EMAIL_SENT':
       return <ResetPasswordCompleted
         {...p}
-        setSignInIface={setSignInIface}
+        setAuthIface={setAuthIface}
       />;
     default:
   }
 
   return <SignInMain
     {...p}
-    setSignInIface={setSignInIface}
+    setAuthIface={setAuthIface}
   />;
 }
 
@@ -496,13 +496,13 @@ export function SignInForm(p: Omit<AuthFormProps, 'setSignInIface'>) {
  * Sign up main form
  */
 
-interface SignUpMainProps extends AuthFormProps {
-  setSignUpIface: (iface: SignUpIface) => void;
+interface SignUpMainProps extends Omit<AuthFormProps, 'setAuthIface'> {
+  setAuthIface: (iface: SignUpIface) => void;
   setSignUpToken: (token: string | null) => void;
 }
 
 function SignUpMain(p: SignUpMainProps) {
-  const { authRoutesMap, initialError, setSignUpIface, setSignUpToken } = p;
+  const { authRoutesMap, initialError, setAuthIface, setSignUpToken } = p;
   const signUpSchema = useMemo(makeSignUpSchema, []);
 
   const { saving, signUpWithEmail, error, setError, resetErrors } = useSignUpWithEmail({
@@ -516,7 +516,7 @@ function SignUpMain(p: SignUpMainProps) {
     },
     onError: (err: any) => {
       if (err?.errorCode === '20054') {
-        setSignUpIface('INVITATION_REQUIRED');
+        setAuthIface('INVITATION_REQUIRED');
       }
     }
   });
@@ -576,7 +576,7 @@ function SignUpMain(p: SignUpMainProps) {
  * Sign up; invitation required
  */
 
-function SignUpInviteRequired(p: AuthFormProps) {
+function SignUpInviteRequired(p: Omit<AuthFormProps, 'setAuthIface'>) {
   const { appNamespace } = p;
   const supportEmail = SUPPORT_EMAILS[appNamespace];
 
@@ -594,12 +594,12 @@ function SignUpInviteRequired(p: AuthFormProps) {
  * Sign up; success
  */
 
-interface SignUpSuccessProps extends AuthFormProps {
+interface SignUpSuccessProps extends Omit<AuthFormProps, 'setAuthIface'> {
   signUpToken: string;
 }
 
 function SignUpSuccess(p: SignUpSuccessProps) {
-  const { authRoutesMap, signUpToken } = p;
+  const { authRoutesMap } = p;
 
   return <ModalSimpleContent
     title={i18n.t('auth.account_created')}
@@ -627,9 +627,9 @@ function SignUpSuccess(p: SignUpSuccessProps) {
 
 type SignUpIface = 'INVITATION_REQUIRED' | null;
 
-export function SignUpForm(p: AuthFormProps) {
+export function SignUpForm(p: Omit<AuthFormProps, 'setAuthIface'>) {
   const [signUpToken, setSignUpToken] = useState<string | null>(null);
-  const [signUpIface, setSignUpIface] = useState<SignUpIface>(null);
+  const [signUpIface, setAuthIface] = useState<SignUpIface>(null);
 
   if (signUpToken) {
     return <SignUpSuccess
@@ -646,7 +646,7 @@ export function SignUpForm(p: AuthFormProps) {
 
   return <SignUpMain
     {...p}
-    setSignUpIface={setSignUpIface}
+    setAuthIface={setAuthIface}
     setSignUpToken={setSignUpToken}
   />;
 }

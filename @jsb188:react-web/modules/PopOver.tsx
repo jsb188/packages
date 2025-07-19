@@ -18,6 +18,8 @@ interface PopOverButtonProps {
   position?: POPosition;
   disabled?: boolean;
   className?: string;
+  activeClassName?: string;
+  notActiveClassName?: string;
   animationClassName?: string;
   popOverClassName?: string;
   doNotTrackHover?: boolean;
@@ -38,7 +40,7 @@ interface PopOverButtonProps {
  */
 
 export function PopOverButton(p: PopOverButtonProps) {
-  const { id, disabled, iface, children, className, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
+  const { id, disabled, iface, children, className, activeClassName, notActiveClassName, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
   const { name, variables } = iface;
   const { popOver, openPopOver, closePopOver } = usePopOver();
   const DomEl = p.as || 'div';
@@ -100,7 +102,12 @@ export function PopOverButton(p: PopOverButtonProps) {
       ref={el}
       role='button'
       tabIndex={0}
-      className={cn(className, 'ignore_outside_click', disabled ? '' : 'link', active ? 'active' : null)}
+      className={cn(
+        className,
+        'ignore_outside_click',
+        disabled || active ? '' : 'link',
+        active ? (activeClassName || 'active') : notActiveClassName,
+      )}
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
     >
@@ -176,8 +183,19 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
       bottom = globalThis.window.innerHeight - rect.y + (offsetY || 0);
       break;
     case 'bottom':
+      left = rect.x - rect.width / 2 + offsetX;
+      right = 'auto';
+      top = rect.y + (offsetY || 0) + rect.height;
+      bottom = 'auto';
+      break;
     case 'bottom_left':
-      left = rect.x - (position === 'bottom_left' ? 0 : rect.width / 2) + offsetX;
+      left = rect.x + offsetX;
+      right = 'auto';
+      top = rect.y + (offsetY || 0) + rect.height;
+      bottom = 'auto';
+      break;
+    case 'bottom_right':
+      left = rect.x - contentDimensions[0] + rect.width +  offsetX;
       right = 'auto';
       top = rect.y + (offsetY || 0) + rect.height;
       bottom = 'auto';

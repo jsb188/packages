@@ -119,7 +119,7 @@ export const POListSubtitle = memo((p: POListSubtitleProps) => {
   const { item: { text } } = p;
 
   return (
-    <div className='po_subtitle bd_b bd_lt ft_xs h_item bg z2 shadow_bg'>
+    <div className='po_subtitle bd_b_1 bd_lt ft_xs h_item bg z2 shadow_bg'>
       <strong className='ft_medium'>{text}</strong>
     </div>
   );
@@ -302,7 +302,7 @@ interface PopOverListFooterButtonProps {
 
 export const PopOverListFooterButton = memo((p: PopOverListFooterButtonProps) => {
   const { text, onClick } = p;
-  return <div className='sticky_bottom p_xs bg bd_t bd_lt'>
+  return <div className='sticky_bottom p_xs bg bd_t_1 bd_lt'>
     <button
       type='button'
       className='btn bl w_f a_c r_sm p_5 bg_contrast'

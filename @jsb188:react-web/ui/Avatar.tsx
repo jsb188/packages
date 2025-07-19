@@ -46,12 +46,6 @@ type StatusDotProps = {
   typing?: boolean;
 };
 
-type AvatarLetterProps = {
-  displayName: string;
-  size?: AvatarSize | null;
-  className?: string;
-};
-
 /**
  * Helper function; get avatar size class name
  */
@@ -109,8 +103,15 @@ export function getAvatarLetters(text: string) {
  * Avatar letter
  */
 
+interface AvatarLetterProps {
+  displayName: string;
+  size?: AvatarSize | null;
+  className?: string;
+  as?: React.ElementType;
+};
+
 function AvatarLetter(p: AvatarLetterProps) {
-  const { displayName, className } = p;
+  const { displayName, className, as } = p;
   const size = p.size!;
   const isLarge = ['large', 'xlarge'].includes(size);
   const sizeClass = getSizeClassName('av', size);
@@ -121,28 +122,36 @@ function AvatarLetter(p: AvatarLetterProps) {
     // This is ft_lg with <h4 />
     fontSize = 'ft_lg';
     domElement = 'h4';
-  } else if (size === 'medium') {
-    // This is ft_lg with <strong />
-    fontSize = 'ft_lg';
-    domElement = 'strong';
-  } else if (['medium', 'default'].includes(size)) {
-    fontSize = 'ft_md';
-    domElement = 'strong';
-  } else if (['xtiny','tiny'].includes(size)) {
-    fontSize = 'ft_tn';
-    domElement = 'span';
-  } else if (['small'].includes(size)) {
-    fontSize = 'ft_df';
-    domElement = 'span';
   } else {
-    fontSize = 'ft_sm';
-    domElement = 'span';
+
+    switch (size) {
+      case 'medium':
+        fontSize = 'ft_lg';
+        domElement = 'strong';
+        break;
+      case 'default':
+        fontSize = 'ft_md';
+        domElement = 'strong';
+        break;
+      case 'small':
+        fontSize = 'ft_df';
+        domElement = 'span';
+        break;
+      case 'tiny':
+      case 'xtiny':
+        fontSize = 'ft_tn';
+        domElement = 'span';
+        break;
+      default:
+        fontSize = 'ft_sm';
+        domElement = 'span';
+    }
   }
 
   const letters = getAvatarLetters(displayName);
 
   return createElement(
-    domElement,
+    as || domElement,
     { className: cn('v_center f p_n r av', sizeClass, fontSize, className) },
     <span className='shift_down'>
       {letters}
@@ -266,6 +275,7 @@ interface AvatarProps {
   className?: string;
   letterClassName?: string;
   children?: any;
+  letterAs?: React.ElementType;
 }
 
 export function Avatar(p: AvatarProps) {
@@ -279,6 +289,7 @@ export function Avatar(p: AvatarProps) {
     containerClassName,
     className,
     animateGifs,
+    letterAs
   } = p;
 
   // IMPORTANT NOTE:
@@ -330,6 +341,7 @@ export function Avatar(p: AvatarProps) {
             )}
             {hasImg || !displayName ? null : (
               <AvatarLetter
+                as={letterAs}
                 displayName={displayName}
                 size={size}
               />
@@ -369,7 +381,8 @@ export function AvatarImg(p: AvatarImgProps) {
     imageClassName,
     letterClassName,
     animateGifs,
-    square
+    square,
+    letterAs
   } = p;
 
   const size = p.size || 'default';
@@ -384,7 +397,7 @@ export function AvatarImg(p: AvatarImgProps) {
     letterBackgroundClassName = 'bg_lighter_3 bd_2 bd_lt cl_df ft_bold';
   } else {
     radiusClassName = p.radiusClassName || 'r';
-    letterBackgroundClassName = 'bg_active cl_bd';
+    letterBackgroundClassName = 'bg_alt cl_bd';
   }
 
   return (
@@ -409,6 +422,7 @@ export function AvatarImg(p: AvatarImgProps) {
       )}
       {hasImg || typeof displayName !== 'string' ? null : (
         <AvatarLetter
+          as={letterAs}
           displayName={displayName}
           size={size}
           className={letterClassName}

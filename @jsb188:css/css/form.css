@@ -4,7 +4,10 @@
 .form_el {
   display: flex;
   flex-direction: column;
-  /* margin-top: .35rem; */
+}
+
+.no_resize {
+  resize: none;
 }
 
 /* Form containers - same padding for all form elements */
@@ -64,9 +67,17 @@ input.invis_input::-webkit-inner-spin-button {
   outline: none;
 }
 
-.form_el input:focus, .form_el textarea:focus {
-  /* Consider adding theme colors here */
+.focus_shadow:focus {
   box-shadow: var(--shadow-light);
+}
+
+.focus_outline:hover {
+  background-color: rgba(var(--color-main), .05) !important;
+}
+
+.focus_outline:focus {
+  border-color: var(--color-text-bold) !important;
+  background-color: rgba(var(--color-main), .075) !important;
 }
 
 [contenteditable='true']:empty:before {
@@ -83,7 +94,12 @@ input.invis_input::-webkit-inner-spin-button {
   text-align: center;
 }
 
-/* Input: subtle */
+/* Input preset: lighter */
+.form_el.lighter input, .form_el.lighter textarea, .form_el.lighter .tx_virtualizer {
+  border: solid 1px var(--color-darker-light);
+}
+
+/* Input preset: subtle */
 
 .form_el.subtle input {
   width: 120px;
@@ -91,25 +107,6 @@ input.invis_input::-webkit-inner-spin-button {
 }
 
 /* Textarea */
-
-.form_el textarea {
-  position: relative;
-  z-index: 1;
-  min-height: 150px;
-}
-
-.form_el.in_modal textarea {
-  width: 300px;
-  max-width: 100%;
-  resize: none;
-}
-
-.form_el.in_modal_large textarea {
-  width: 375px;
-  max-width: 100%;
-  min-height: 400px;
-  resize: none;
-}
 
 .form_el.fs textarea {
   width: 100% !important;
@@ -367,12 +364,14 @@ fieldset input[type="radio"] {
 /* Button sizes */
 
 .btn.sm {
-  padding: .3rem .45rem;
+  min-width: 52px;
+  padding: .35rem .45rem;
   border-radius: var(--radius-small);
 }
 
 .btn.df {
-  padding: .58rem;
+  min-width: 58px;
+  padding: .5rem .64rem;
   border-radius: var(--radius-small);
 }
 

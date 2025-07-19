@@ -17,6 +17,7 @@
     "./ui/Article": "./ui/Article.tsx",
     "./ui/Avatar": "./ui/Avatar.tsx",
     "./ui/Button": "./ui/Button.tsx",
+    "./ui/Form": "./ui/FormUI.tsx",
     "./ui/Layout": "./ui/Layout.tsx",
     "./ui/ListUI": "./ui/ListUI.tsx",
     "./ui/Loading": "./ui/Loading.tsx",

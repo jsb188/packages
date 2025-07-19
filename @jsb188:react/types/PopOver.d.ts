@@ -168,7 +168,7 @@ export type PopOverIface = POListIface | POCheckListIface | POImageIface;
  * Pop overs
  */
 
-export type POPosition = 'top' | 'left' | 'right' | 'bottom' | 'bottom_left';
+export type POPosition = 'top' | 'left' | 'right' | 'bottom' | 'bottom_left' | 'bottom_right';
 
 interface FixedElementProps {
   id: string; // This ensures that the popover doesn't reset from within the same mouse pointer element

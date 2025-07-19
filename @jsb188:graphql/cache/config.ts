@@ -31,6 +31,7 @@ export const RULES = {
   friendRequests: true,
   logEntries: true,
   myChats: true,
+  organizationRelationship: true,
   platformProducts: true,
   searchUsers: true,
   updateNote: true,

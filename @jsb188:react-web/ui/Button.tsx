@@ -1,6 +1,6 @@
 import type { ColorEnum } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
-import { Link } from 'react-router';
+import { Link, type To } from 'react-router';
 import React, { memo } from 'react';
 import { Icon } from '../icons/Icon';
 import { AvatarImg } from './Avatar';
@@ -222,7 +222,13 @@ export function Button(p: NormalButtonProps) {
   const { to, size, preset, text, disabled, className, onClick, leftIconName, rightIconName, leftIconClassName, rightIconClassName } = p;
   return (
     <SmartLink
-      className={cn('btn h_center', className, preset, size || 'df')}
+      className={cn(
+        'btn h_center',
+        className,
+        preset,
+        !disabled && 'link',
+        size || 'df'
+      )}
       to={to}
       onClick={onClick}
       disabled={disabled}
@@ -311,7 +317,7 @@ export function InlineButtonLink(p: NormalButtonLinkProps) {
 
 export interface InlineBlockLabelProps {
   as?: React.ElementType;
-  color: 'bg' | 'bg_alt' | 'primary' | 'secondary';
+  color?: 'bg' | 'alt' | 'active' | 'primary' | 'secondary';
   iconSizeClassName?: string;
   className?: string;
   textColorClassName?: string;
@@ -325,7 +331,7 @@ export interface InlineBlockLabelProps {
 export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
   const { color, iconSizeClassName, iconName, text, className, fillTextColor, textColorClassName, colorIndicator, outline } = p;
   const El = p.as || 'strong';
-  const isLightBackground = ['bg', 'bg_alt'].includes(color);
+  const isLightBackground = ['bg', 'alt', 'active'].includes(String(color));
 
   return <El className={cn('ib_label f_shrink', outline && 'outline', !fillTextColor && (color && `${color}_bf`), className)}>
     <span
@@ -352,7 +358,7 @@ interface SmartLinkProps {
   Component?: React.ElementType;
   buttonElement?: React.ElementType;
   fallbackElement?: React.ElementType;
-  to?: string | null;
+  to?: To;
   replace?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   [key: string]: any;

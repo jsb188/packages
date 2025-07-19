@@ -111,20 +111,18 @@
 
 /* Shift-appear up */
 
-.anim_shift_appear_center .target:not(.anim_inner), .anim_shift_appear_center.target {
+.anim_move_up_center .target:not(.anim_inner), .anim_move_up_center.target {
   transition-property: transform;
   transition-timing-function: ease-out;
   transition-duration: 200ms;
   transform: translateY(20%);
-  opacity: 0;
 }
 
-.anim_shift_appear_center.visible .target:not(.anim_inner), .anim_shift_appear_center.visible.target {
+.anim_move_up_center.visible .target:not(.anim_inner), .anim_move_up_center.visible.target {
   transform: translateY(0);
-  opacity: 1;
 }
 
-.anim_shift_appear_center.on_mount, .anim_shift_appear_center.reverse {
+.anim_move_up_center.on_mount, .anim_move_up_center.reverse {
   animation-name: keyframes_shift_appear_center;
   animation-duration: 200ms;
   animation-timing-function: ease-out;
@@ -132,8 +130,8 @@
 }
 
 @keyframes keyframes_shift_appear_center {
-  from { transform: translateY(20%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from { transform: translateY(20%); }
+  to { transform: translateY(0); }
 }
 
 /* Lift up & expand (scale transform) from sunken position */
@@ -183,7 +181,7 @@
   transition-property: transform, opacity;
   transition-timing-function: ease-in-out;
   transition-duration: 150ms;
-  transform: scale3d(0.98, 0.98, 0.98);
+  transform: scale3d(0.95, 0.95, 0.95);
 }
 
 .anim_zoom_in_fade.visible .target:not(.anim_inner), .anim_zoom_in_fade.visible.target,
@@ -197,6 +195,30 @@
 
 .anim_zoom_in_fade.visible .target:not(.anim_inner), .anim_zoom_in_fade.visible.target {
   opacity: 1;
+}
+
+.anim_zoom_in_fade.on_mount, .anim_zoom_in_fade.reverse {
+  animation-name: keyframes_zoom_in_fade;
+  animation-duration: 125ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_zoom_in_fade {
+  from { transform: scale3d(0.95, 0.95, 0.95); opacity: 0; }
+  to { transform: scale3d(1, 1, 1); opacity: 1; }
+}
+
+.anim_zoom_in.on_mount, .anim_zoom_in.reverse {
+  animation-name: keyframes_zoom_in;
+  animation-duration: 125ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_zoom_in {
+  from { transform: scale3d(0.9, 0.9, 0.9); }
+  to { transform: scale3d(1, 1, 1); }
 }
 
 /* Drop & fade down from slightly elevated position */

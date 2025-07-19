@@ -62,10 +62,18 @@ export default {
     help: 'Help',
     start: 'Start',
     end: 'End',
+    date: 'Date',
     start_date: 'Start date',
     end_date: 'End date',
     esc: 'ESC',
     settings: 'Settings',
+    note: 'Note',
+    details: 'Details',
+    quantity: 'Quantity',
+    quantity_ph: '7.5',
+    unit: 'Unit',
+    price: 'Price',
+    cropId: 'Crop',
 
     // Day periods
     greet_MORNING: 'Good morning, %{name}.',

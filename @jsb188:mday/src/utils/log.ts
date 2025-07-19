@@ -35,7 +35,7 @@ export function getLogEntryTitle(details: any): string {
 	switch (__typename || __table) {
 		case 'logs_arable':
 		case 'LogEntryArable': {
-			return textWithBrackets(ucFirst(details.crop?.name || details.product?.name), [details.quantity, details.unit]);
+			return textWithBrackets(ucFirst(details.crop?.name), [details.quantity, details.unit]);
 		}
 		case 'logs_livestock':
 		case 'LogEntryLivestock': {

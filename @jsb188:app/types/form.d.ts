@@ -45,6 +45,10 @@ interface FormGroupType {
 
 export interface FormItemIfaceObj extends FormItemSchemaObj {
   name: string;
+  preset?: string;
+  className?: string;
+  inputClassName?: string;
+  focusStyle?: string;
   hidden?: boolean | ((dataForSchema: any) => boolean);
   locked?: boolean | ((dataForSchema: any) => boolean);
   formValues: any;

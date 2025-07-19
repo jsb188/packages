@@ -59,5 +59,6 @@ export interface AuthenticationData {
   primaryOrganizationId: string | null;
   activated: boolean;
   hasPassword: boolean;
-  version: string;
+  webVersion: string;
+  mobileVersion: string;
 }

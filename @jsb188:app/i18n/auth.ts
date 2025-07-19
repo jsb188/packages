@@ -18,7 +18,7 @@ export default {
     log_in_other_methods: 'Log in using other methods',
     change_password: 'Change password',
     you_are_verified_: 'You are verified!',
-    account_is_verified: 'Thank you for verifying your account with e-mail address: %{emailAddress}',
+    account_is_verified: 'Thank you for verifying your account with e-mail address: **%{emailAddress}**. Please log in again using your password.',
     continue_to_login: 'Continue to log in',
     continue_to_app: 'Continue to app',
 

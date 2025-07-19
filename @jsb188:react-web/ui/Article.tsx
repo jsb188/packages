@@ -19,7 +19,7 @@ export const CondensedGroupTitle = memo((p: CondensedGroupTitleProps) => {
   const { text } = p;
 
   return <div className='mt_md'>
-    <h4 className='ft_condensed_bold ls_4 ft_xs p_n m_n cl_darker_2'>
+    <h4 className='ft_condensed_heading ft_xs p_n m_n cl_darker_2'>
       {text}
     </h4>
   </div>
@@ -32,6 +32,9 @@ CondensedGroupTitle.displayName = 'CondensedGroupTitle';
  */
 
 interface CondensedArticleItemProps {
+  id?: string;
+  preset?: 'modal' | 'default';
+  onClick?: (itemId?: string) => void;
   RightComponent?: React.ReactNode;
   title: string;
   description: string | null;
@@ -40,54 +43,86 @@ interface CondensedArticleItemProps {
 }
 
 export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
-  const { RightComponent, title, description, descriptionPlaceholder, labels } = p;
+  const { preset, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels } = p;
+  const hasLink = !!onClick;
 
-  return <article className='article_item h_item gap_xs bd_t bd_lt rel'>
-    <div className='h_item f_shrink mr_3 py_sm'>
-      {labels.map((label, i) => (
-        <InlineBlockLabel
-          key={i}
-          as='span'
-          outline
-          color='bg_alt'
-          // textColorClassName='cl_primary'
-          {...label}
-        />
-      ))}
-    </div>
+  // paddingClassName='px_df -mx_5'
 
-    {title && <span className='f_shrink py_sm'>{title}</span>}
+  let linkHoverClassName, paddingClassName, addSeparator;
+  switch (preset) {
+    case 'modal':
+      addSeparator = true;
+      linkHoverClassName = 'bg_lighter_hv';
+      paddingClassName = 'px_df -mx_5';
+      break;
+    default:
+      addSeparator = false;
+      linkHoverClassName = 'bg_primary_hv';
+      paddingClassName = 'px_xs -mx_xs';
+  }
 
-    {(description || descriptionPlaceholder) && (
-      <span className={cn('ellip py_sm f', description ? 'cl_md' : 'cl_lt')}>
-        {description || descriptionPlaceholder}
-      </span>
+  return <article
+    className={cn(
+      'article_item rel',
+      !addSeparator ? 'bd_lt bd_t_1' : undefined,
+      paddingClassName,
+      hasLink ? 'link ' + linkHoverClassName : undefined
+    )}
+    role={hasLink ? 'button' : undefined}
+    onClick={hasLink ? () => onClick(id) : undefined}
+  >
+    {addSeparator && (
+      <div className='bd_t_1 bd_lt' />
     )}
 
-    {RightComponent && <div className='v_center'>
-      {RightComponent}
-    </div>}
-
-    {/* <div className='f h_right'>
-      <AvatarImg
-        size='xtiny'
-        displayName='BE'
-      />
-    </div> */}
-
-    {/* {labels && (
-      <div className='h_item pt_sm pb_xs shift_up'>
-        {labels.map(label => (
+    <div className='h_item gap_xs'>
+      <div className='h_item f_shrink mr_3 py_sm'>
+        {labels.map((label, i) => (
           <InlineBlockLabel
+            key={i}
             as='span'
             outline
-            color='bg_alt'
+            color='alt'
             // textColorClassName='cl_primary'
             {...label}
           />
         ))}
       </div>
-    )} */}
+
+      {title && <span className='f_shrink py_sm'>{title}</span>}
+
+      {description || descriptionPlaceholder ? (
+        <span className={cn('ellip py_sm f', description ? 'cl_md' : 'cl_lt')}>
+          {description || descriptionPlaceholder}
+        </span>
+      ) : <span className='f' />}
+
+      {!RightComponent ? null
+      : <div className='h_right gap_xs'>
+        {RightComponent}
+      </div>}
+
+      {/* <div className='f h_right'>
+        <AvatarImg
+          size='xtiny'
+          displayName='BE'
+        />
+      </div> */}
+
+      {/* {labels && (
+        <div className='h_item pt_sm pb_xs shift_up'>
+          {labels.map(label => (
+            <InlineBlockLabel
+              as='span'
+              outline
+              color='alt'
+              // textColorClassName='cl_primary'
+              {...label}
+            />
+          ))}
+        </div>
+      )} */}
+    </div>
   </article>;
 
   // return <article className='h_item mb_md gap_md'>

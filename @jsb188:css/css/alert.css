@@ -2,10 +2,7 @@
 /* Modal cover for alerts & screens */
 
 .bg_modal {
-  /* background-color: rgba(var(--color-bg-modal), .5); */
   background: linear-gradient(360deg, rgba(var(--color-bg-modal), .85) 0%, rgba(var(--color-bg-modal), .5) 50%);
-  /* background-color: rgba(255, 200, 69, .1); */
-
 }
 
 .modal_main_content {
@@ -14,9 +11,8 @@
 
 /* Alert black-to-transparent background */
 
-.bg_alert {
-  background: linear-gradient(360deg, rgba(var(--color-darker-rgb), .075) 0%, transparent 50%);
-  /* background: linear-gradient(360deg, rgba(var(--color-bg-modal), 1) 0%, transparent 50%); */
+.bg_modal_alert_w_screen {
+  background-color: rgba(var(--color-darker-rgb), .075);
 }
 
 /* Different outlines + shadows for each modal type */

@@ -13,18 +13,6 @@ import { ShortcutKey } from './OtherUI';
  * Types
  */
 
-interface SmallModalOptionProps {
-  preset?: 'continue_list' | 'text_link' | 'bg_alt' | 'bg';
-  value?: string;
-  className?: string;
-  IconComponent?: any;
-  iconName?: string;
-  text: string;
-  rightIconName?: string;
-  disabled?: boolean;
-  onClick?: (value?: string) => void;
-}
-
 interface ModalErrorProps {
   children?: React.ReactNode;
   error: ServerErrorObj;
@@ -385,37 +373,6 @@ export function ModalFloatingSaveButton(p: ModalFloatingSaveButtonProps) {
 }
 
 /**
- * Small list item
- */
-
-export function SmallModalOption(p: SmallModalOptionProps) {
-  const { preset, className, value, IconComponent, iconName, text, rightIconName, onClick, disabled } = p;
-
-  return (
-    <button
-      disabled={disabled}
-      onClick={onClick ? () => onClick(value) : undefined}
-      className={cn('p_xs h_item ft_sm link mli_small', preset || 'bg_alt', className)}
-    >
-      <div className='ic_cnt v_center mr_xs'>
-        {IconComponent}
-        {!IconComponent && iconName ? <Icon name={iconName} /> : null}
-      </div>
-
-      <span className='f'>
-        {text}
-      </span>
-
-      {!rightIconName ? null : (
-        <div className='ic_cnt v_center ml_xs'>
-          <Icon name={rightIconName} />
-        </div>
-      )}
-    </button>
-  );
-}
-
-/**
  * Alert content
  */
 
@@ -524,23 +481,23 @@ export function AlertPopUp(p: AlertDataProps) {
  * Alert toolbar with breadcrumbs
  */
 
-export interface AlertBreadcrumbProps {
+export interface ModalToolbarBreadcrumb {
   text: string;
   onClick?: () => void;
   variables?: any;
 }
 
-interface AlertToolbarProps {
-  breadcrumbs?: AlertBreadcrumbProps[];
+interface ModalToolbarProps {
+  breadcrumbs?: ModalToolbarBreadcrumb[];
   onCloseModal?: () => void;
 }
 
-export function AlertToolbar(p: AlertToolbarProps) {
+export function ModalToolbar(p: ModalToolbarProps) {
   const { breadcrumbs, onCloseModal } = p;
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
-  return <div className='of w_f rt_smw bd_b bd_lt'>
+  return <div className='of w_f rt_smw bd_b_1 bd_lt'>
     <nav className='h_45 h_spread shadow_bg shift_down'>
       <div className='px_df ft_medium'>
         {!breadcrumbs ? null : breadcrumbs.map((item, i) => (

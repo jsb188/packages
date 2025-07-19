@@ -9,6 +9,7 @@ export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
 
 type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-write, 3: allow-manage
+type ACLPermissionEnum = 'NONE' | 'READ' | 'WRITE' | 'MANAGE';
 
 export interface OrganizationACL {
 	id: string;
@@ -20,6 +21,18 @@ export interface OrganizationACL {
 	settings: ACLPermission;
 	integrations: ACLPermission;
 	digests: ACLPermission;
+}
+
+export interface OrganizationACLGQLData {
+	id: string;
+	billing: ACLPermissionEnum;
+	logs: ACLPermissionEnum;
+	members: ACLPermissionEnum;
+	finances: ACLPermissionEnum;
+	products: ACLPermissionEnum;
+	settings: ACLPermissionEnum;
+	integrations: ACLPermissionEnum;
+	digests: ACLPermissionEnum;
 }
 
 /**
@@ -53,5 +66,17 @@ export interface OrganizationRelData {
 	primary: boolean;
 	role: OrganizationRoleEnum;
 	acl: OrganizationACL;
+	organization: OrganizationData;
+}
+
+/**
+ * GraphQL data for organization relationship
+ */
+
+export interface OrganizationRelGQLData {
+	id: string;
+	primary: boolean;
+	role: OrganizationRoleEnum;
+	acl: OrganizationACLGQLData;
 	organization: OrganizationData;
 }

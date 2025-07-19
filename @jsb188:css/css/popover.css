@@ -68,6 +68,10 @@
   border-radius: var(--radius-small);
 }
 
+.po_opt.default:first-child {
+  margin-top: 5px;
+}
+
 .po_opt.default:last-child {
   margin-bottom: 5px;
 }

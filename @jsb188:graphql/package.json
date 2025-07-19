@@ -23,6 +23,7 @@
     "./hooks/use-log-qry": "./hooks/use-log-qry.ts",
     "./hooks/use-organization-qry": "./hooks/use-organization-qry.ts",
     "./hooks/use-auth-mtn": "./hooks/use-auth-mtn.ts",
+    "./hooks/use-log-mtn": "./hooks/use-log-mtn.ts",
     "./mutations/aiChat": "./gql/mutations/aiChatMutations.ts",
     "./mutations/auth": "./gql/mutations/authMutations.ts",
     "./mutations/billing": "./gql/mutations/billingMutations.ts",

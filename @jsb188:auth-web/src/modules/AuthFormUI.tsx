@@ -16,7 +16,7 @@ export function AuthFormContainer(p: AuthFormContainerProps) {
 
   return (
     <div className='cw xs'>
-      <div className='a_c -mb_1 anim_lift_scale_center on_mount spd_4'>
+      <div className='a_c -mb_5 anim_lift_scale_center on_mount spd_4'>
         <h1 className='ft_md ft_bold ls_1 lh_1 p_n cl_secondary op_50 visible'>
           {title}
         </h1>
