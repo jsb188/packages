@@ -105,6 +105,7 @@ type ModalCoverProps = {
   onCloseModal?: () => void;
   onMouseDown?: (e: React.MouseEvent) => void;
   onMouseUp?: (e: React.MouseEvent) => void;
+  closePopOver?: () => void;
   style?: React.CSSProperties;
   children?: React.ReactNode;
 };
@@ -116,9 +117,11 @@ export function ModalCover(p: ModalCoverProps) {
     className,
     animationName,
     onCloseModal,
+    closePopOver,
     children,
     ...other
   } = p;
+
   if (visible === 0) {
     return null;
   }
@@ -144,7 +147,10 @@ export function ModalCover(p: ModalCoverProps) {
         onCloseModal ? 'cs_back' : '',
         className
       )}
-      onClick={onCloseModal}
+      onClick={() => {
+        onCloseModal?.();
+        closePopOver?.();
+      }}
       {...other}
     >
       {/* <div className={cn('bg_modal abs_full trans_opacity spd_2', visible === 2 ? 'op_100' : 'op_0')} /> */}
@@ -160,6 +166,7 @@ export function ModalCover(p: ModalCoverProps) {
 interface ModalCoverAnimationProps extends ModalCoverProps {
   containerClassName?: string;
   containerAnimationName?: string;
+  closePopOver?: () => void;
 }
 
 export function ModalCoverAnimation(p: ModalCoverAnimationProps) {
@@ -228,17 +235,21 @@ type ModalWrapperProps = {
   ToolbarComponent?: React.ReactNode;
   children: React.ReactNode;
   closeText?: string;
+  closePopOver?: () => void;
 };
 
 export function ModalWrapper(p: ModalWrapperProps) {
-  const { ToolbarComponent, domId, className, containerClassName, outlineColor, children, onCloseModal, addScrollArea, ...other } = p;
+  const { ToolbarComponent, domId, className, containerClassName, outlineColor, children, closePopOver, onCloseModal, addScrollArea, ...other } = p;
   const size = p.size || 'df';
   const closeText = p.closeText || i18n.t('form.esc');
 
   return (
     <div
       id={domId}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        closePopOver?.();
+      }}
       className={cn('mw modal_main_content alert_shadow_' + (outlineColor || 'default'), size, className)}
       {...other}
     >

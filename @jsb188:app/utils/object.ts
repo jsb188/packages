@@ -494,3 +494,23 @@ export function setObject(obj: any, path: string, value: any): any {
 
   return obj;
 }
+
+/**
+ * Check if namespace exists in an object
+ * @param obj - The object to check
+ * @param namespace - The namespace to check, e.g. 'a.b.c'
+ * @returns - Returns true if the namespace exists, otherwise false
+ */
+
+export function hasObject(obj: any, namespace: string): boolean {
+  if (!obj || !namespace) {
+    return false;
+  }
+  return namespace.split('.').every((key) => {
+    if (obj && typeof obj === 'object' && key in obj) {
+      obj = obj[key];
+      return true;
+    }
+    return false;
+  });
+}

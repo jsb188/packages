@@ -18,6 +18,7 @@ interface PopOverButtonProps {
   position?: POPosition;
   disabled?: boolean;
   className?: string;
+  zClassName?: string;
   activeClassName?: string;
   notActiveClassName?: string;
   animationClassName?: string;
@@ -40,7 +41,7 @@ interface PopOverButtonProps {
  */
 
 export function PopOverButton(p: PopOverButtonProps) {
-  const { id, disabled, iface, children, className, activeClassName, notActiveClassName, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
+  const { id, disabled, iface, children, className, zClassName, activeClassName, notActiveClassName, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
   const { name, variables } = iface;
   const { popOver, openPopOver, closePopOver } = usePopOver();
   const DomEl = p.as || 'div';
@@ -69,6 +70,7 @@ export function PopOverButton(p: PopOverButtonProps) {
           doNotRemoveOnPageEvents,
           scrollAreaDOMId: scrollAreaDOMId || DOM_IDS.mainBodyScrollArea,
           className: popOverClassName,
+          zClassName,
           animationClassName,
           variables,
           position,
@@ -105,7 +107,7 @@ export function PopOverButton(p: PopOverButtonProps) {
       className={cn(
         className,
         'ignore_outside_click',
-        disabled || active ? '' : 'link',
+        disabled ? '' : active ? 'pointer' : 'link',
         active ? (activeClassName || 'active') : notActiveClassName,
       )}
       onClick={disabled ? undefined : onClick}
@@ -122,6 +124,7 @@ export function PopOverButton(p: PopOverButtonProps) {
 
 interface PopOverWrapperProps extends PopOverProps {
   children: React.ReactNode;
+  zClassName?: string;
   pathname: string;
   closePopOver: ClosePopOverFn;
 }
@@ -136,6 +139,7 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
     // popOverWidth,
     popOverHeight,
     className,
+    zClassName,
     animationClassName,
     doNotTrackHover,
     doNotRemoveOnPageEvents,
@@ -335,7 +339,12 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
     <div
       ref={popOverRef}
       key={id}
-      className={cn('popover z6', className, notReady ? 'invis' : animationClassName ? `${animationClassName} visible` : '')}
+      className={cn(
+        'popover',
+        zClassName || 'z6',
+        className,
+        notReady ? 'invis' : animationClassName ? `${animationClassName} visible` : ''
+      )}
       style={style}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -372,7 +381,7 @@ interface TooltipWrapperProps extends TooltipHookProps {
 }
 
 type TooltipButtonProps = {
-  El?: React.ElementType;
+  as?: React.ElementType;
   position?: POPosition;
   title?: string;
   message?: string;
@@ -390,8 +399,8 @@ type TooltipButtonProps = {
  */
 
 export const TooltipButton = memo((p: TooltipButtonProps) => {
-  const { disabled, children, title, message, position, offsetX, offsetY, onClick, El: El_, ...other } = p;
-  const El = El_ || 'button';
+  const { disabled, children, title, message, position, offsetX, offsetY, onClick, as, ...other } = p;
+  const Element = as || 'button';
   const tooltipDisabled = disabled || !message;
   const { tooltip, openTooltip, closeTooltip } = useTooltip();
 
@@ -492,9 +501,9 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
   }, [disabled]);
 
   return (
-    <El {...props} {...other} ref={el}>
+    <Element {...props} {...other} ref={el}>
       {children}
-    </El>
+    </Element>
   );
 });
 
@@ -517,8 +526,8 @@ function TooltipWrapper(p: TooltipWrapperProps) {
     className
   } = tt;
 
-  const offsetX = !isNaN(Number(tt.offsetX)) ? tt.offsetX : 7;
-  const offsetY = !isNaN(Number(tt.offsetY)) ? tt.offsetY : -7;
+  const offsetX = tt.offsetX !== undefined && !isNaN(Number(tt.offsetX)) ? tt.offsetX : 7;
+  const offsetY = tt.offsetY !== undefined && !isNaN(Number(tt.offsetY)) ? tt.offsetY : -7;
   const leftEdgeThreshold = 10;
   const rightEdgeThreshold = 10;
   const leftEdgePosition = 10;
@@ -543,11 +552,10 @@ function TooltipWrapper(p: TooltipWrapperProps) {
 
   switch (position) {
     case 'top':
-      left = rect.x + (rect.width / 2) + (offsetX || 0) - (tooltipWidth / 2);
-      // left = rect.x - (rect.width / 2) + (offsetX || 0);
+      left = rect.x + (rect.width / 2) - (tooltipWidth / 2);
       right = 'auto';
-      top = rect.y - rect.height + (offsetY || 0);
-      bottom = 'auto';
+      top = 'auto';
+      bottom = globalThis.window.innerHeight - rect.y - offsetY;
       break;
     case 'bottom':
       left = rect.x + (rect.width / 2) + (offsetX || 0) - (tooltipWidth / 2);

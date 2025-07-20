@@ -4,7 +4,6 @@ import {
   OpenPopOverFn,
   OpenTooltipFn,
   PopOverGlobalStateParams,
-  PopOverHookProps,
   PopOverProps,
   SetPopOverStateFn,
   TooltipHookProps,
@@ -186,7 +185,7 @@ function composeSetPopOverState( setPopOver: (value: PopOverProps | null) => voi
  * Use pop over
  */
 
-export function usePopOver(): PopOverHookProps {
+export function usePopOver() {
   const [popOver, setPopOver] = useAtom<PopOverProps | null>(popOverClass.state);
   const setPopOverIsHover = useSetAtom(popOverIsHoverState);
 

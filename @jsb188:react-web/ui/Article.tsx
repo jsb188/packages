@@ -53,7 +53,7 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
     case 'modal':
       addSeparator = true;
       linkHoverClassName = 'bg_lighter_hv';
-      paddingClassName = 'px_df -mx_5';
+      paddingClassName = 'px_md -mx_5';
       break;
     default:
       addSeparator = false;

@@ -3,12 +3,14 @@
  * Types; form schema
  */
 
-interface SchemaItemSetter {
+interface SchemaItemAny {
+  [key: string]: any;
+  __typename?: string;
   setter?: (currentData?: any, dataForSchema?: any) => any;
 }
 
 export interface FormItemSchemaObj {
-  __type: 'group' | 'input' | 'password' | 'textarea' | 'select' | string;
+  __type: 'group' | 'input' | 'input_click' | 'password' | 'textarea' | 'select' | string;
   autoFocus?: boolean;
   disabled?: boolean;
   hidden?: boolean | ((dataForSchema: any) => boolean);
@@ -16,7 +18,7 @@ export interface FormItemSchemaObj {
   labelClassName?: string;
   listenToInput?: boolean;
   value?: any;
-  item: Record<string, any> & SchemaItemSetter;
+  item: SchemaItemAny;
 }
 
 interface SchemaRule {

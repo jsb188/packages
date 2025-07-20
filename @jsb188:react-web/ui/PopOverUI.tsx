@@ -13,7 +13,7 @@ import { ActivityDots, BigLoading } from './Loading';
  */
 
 export interface PONavItemBase {
-  onClickItem: (name: string | null, value: string | null) => void;
+  onClickItem: (name: string | null, value: string | boolean | null) => void;
   saving: boolean;
   selected?: boolean;
   disabled?: boolean;
@@ -53,15 +53,15 @@ export const TooltipText = memo((p: TooltipTextProps) => {
   const { title, message } = p;
 
   return (
-    <div className='tooltip ft_sm bg_contrast r_sm'>
+    <div className='tooltip ft_xs lh_3 bg_contrast r_sm'>
       {!title ? null : (
-        <p>
+        <p className='shift_up'>
           <strong>
             {title}
           </strong>
         </p>
       )}
-      <p>
+      <p className='shift_up'>
         {message}
       </p>
     </div>
@@ -164,12 +164,12 @@ interface POListItemProps extends PONavItemBase {
 }
 
 export const POListItem = memo((p: POListItemProps) => {
-  const { name, item, onClickItem, saving, selected } = p;
-  const { colorIndicator, preset, className, disabled, allowDisabledOnClick, to, text, value, iconName, rightIconName, rightIconClassName, photoUri, avatarDisplayName } = item;
+  const { name, item, onClickItem, saving } = p;
+  const { colorIndicator, preset, className, textClassName, disabled, allowDisabledOnClick, to, text, value, iconName, rightIconName, rightIconClassName, photoUri, avatarDisplayName, selected } = item;
   const hasAvatar = !!photoUri || !!avatarDisplayName;
   const undefinedValue = value === undefined;
   // const hasLink = !!(to || !undefinedValue);
-  const hasRightComponent = saving || selected || !!rightIconName;
+  const hasRightComponent = saving || !!rightIconName || !!selected;
 
   let presetClassName = '';
   switch (preset) {
@@ -205,15 +205,18 @@ export const POListItem = memo((p: POListItemProps) => {
 
       {colorIndicator && <span className={`indicator f_shrink bg_${colorIndicator}_df`} />}
 
-      <span className={cn('f shift_down', !hasRightComponent && 'pr_xs')}>
+      <span className={cn('f', textClassName || 'shift_down', !hasRightComponent && 'pr_xs')}>
         {text}
       </span>
 
       {hasRightComponent && (
         <span className='saving_area ml_sm'>
           {saving ? <ActivityDots size='tiny' /> : null}
-          {!saving && selected ? <Icon name='check' /> : null}
-          {!saving && !selected && rightIconName ? <span className={cn('bl shift_right', rightIconClassName ?? 'cl_lt')}><Icon name={rightIconName} /></span> : null}
+          {saving || (!selected && !rightIconName) ? null : (
+            <span className={cn('bl shift_right', rightIconClassName ?? 'cl_lt')}>
+              <Icon name={rightIconName || 'check'} />
+            </span>
+          )}
         </span>
       )}
     </SmartLink>

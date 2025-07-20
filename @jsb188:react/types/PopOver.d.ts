@@ -36,6 +36,7 @@ export interface POListItemObj {
   value?: string | boolean | null;
   text: string;
   className?: string;
+  textClassName?: string;
   colorIndicator?: ColorEnum;
   avatarDisplayName?: string;
   photoUri?: string | null;
@@ -191,6 +192,7 @@ export interface PopOverProps extends Partial<FixedElementProps> {
   id?: string;
   name: string; // Used to be "__type"
   closing?: boolean; // If true, multiple close() functions are triggered to animate & close popover
+  zClassName?: string; // Class name for z-index, e.g. 'z6', 'z7', etc.
   animationClassName?: string;
   doNotTrackHover?: boolean;
   doNotRemoveOnPageEvents?: boolean; // If true, popover will be removed when the user scrolls or navigation events
@@ -226,7 +228,7 @@ export interface PopOverHandlerProps {
 }
 
 export interface PopOverHookProps extends PopOverHandlerProps {
-  pathname: string;
+  pathname?: string;
   popOver: PopOverProps | null;
 }
 

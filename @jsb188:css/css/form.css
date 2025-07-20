@@ -71,13 +71,23 @@ input.invis_input::-webkit-inner-spin-button {
   box-shadow: var(--shadow-light);
 }
 
-.focus_outline:hover {
-  background-color: rgba(var(--color-main), .05) !important;
+.focus_outline:hover input:not(.disabled),
+.focus_outline input:focus, .focus_outline:hover input:focus,
+.focus_outline.focused input,
+.focus_outline:hover textarea:not(.disabled),
+.focus_outline textarea:focus, .focus_outline:hover textarea:focus,
+.focus_outline.focused textarea {
+  background-color: rgba(var(--color-main), .075) !important;
 }
 
-.focus_outline:focus {
+.focus_outline:hover .form_el_r,
+.focus_outline.focused .form_el_r {
+  background: linear-gradient(to left, var(--color-main-bg) 50%, rgba(var(--color-main), 0)) !important;
+}
+
+.focus_outline input:focus, .focus_outline.focused input,
+.focus_outline textarea:focus, .focus_outline.focused textarea {
   border-color: var(--color-text-bold) !important;
-  background-color: rgba(var(--color-main), .075) !important;
 }
 
 [contenteditable='true']:empty:before {
@@ -157,34 +167,16 @@ fieldset input[type="radio"] {
 
 /* Clickable button at right; use this for inputs */
 
-.form_el.has_r input {
-  padding-right: 3rem;
-}
-
 .form_el.has_r .form_el_r {
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 3rem;
-  padding-left: .5rem;
+  position:absolute;
+  top: 1px; right: 1px; bottom: 1px;
+  width: 3.5rem;
+  padding-left: 1.5rem;
+  background: linear-gradient(to left, rgba(var(--color-bg), 1) 50%, rgba(var(--color-bg), 0));
 }
 
-.form_el.has_r .form_el_r.a_r {
-  width: 3rem;
-  text-decoration: underline;
-  padding-left: 0;
-  padding-right: .5875rem;
-}
-
-.form_el_r {
-  color: var(--color-text-medium);
-}
-
-.form_el_r:hover {
+.focused .form_el_r, .form_el_r.btn:hover {
   color: var(--color-text);
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(1px);
 }
 
 /* Preset; none */
@@ -204,23 +196,6 @@ fieldset input[type="radio"] {
   border: none;
   background-color: rgb(var(--color-bg-alt));
   /* border-radius: var(--radius-default); */
-}
-
-/* Preset: fill large */
-
-.form_el.fill_large input {
-  border: none;
-  background-color: var(--color-reverse-opaque);
-  padding: var(--rem-default);
-  font-size: var(--text-xlarge);
-}
-
-.form_el.fill_large.has_r input {
-  padding-right: 3.25rem;
-}
-
-.form_el.fill_large.has_r .form_el_r {
-  right: .5rem;
 }
 
 /* Preset: inside outline container */

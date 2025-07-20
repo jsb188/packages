@@ -358,7 +358,7 @@ interface SmartLinkProps {
   Component?: React.ElementType;
   buttonElement?: React.ElementType;
   fallbackElement?: React.ElementType;
-  to?: To;
+  to?: To | string | null;
   replace?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   [key: string]: any;

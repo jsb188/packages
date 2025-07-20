@@ -4,9 +4,9 @@ import { getPlatform } from '@jsb188/app/platform';
 import type { FormItemIfaceObj } from '@jsb188/app/types/form.d';
 import { cn } from '@jsb188/app/utils/string';
 import { Icon } from '@jsb188/react-web/icons';
-import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
+import { PopOverButton, TooltipButton } from './PopOver';
 import { Button, InlineBlockLabel } from '@jsb188/react-web/ui/Button';
-import { memo, forwardRef, useEffect, useRef, useState } from 'react';
+import { createElement, memo, forwardRef, useEffect, useRef, useState } from 'react';
 import { getObject, setObject } from '@jsb188/app/utils/object';
 
 // const cssPath = '/css/form.css';
@@ -30,10 +30,12 @@ interface InputType {
   step?: number;
   min?: number;
   max?: number;
+  getter?: (value?: any) => string;
   setFormValues?: (values: any) => void;
   allowClearIfLocked?: boolean;
   locked?: boolean;
   disabled?: boolean;
+  focused?: boolean;
   error?: boolean;
   fullWidth?: boolean;
   className?: string;
@@ -47,6 +49,7 @@ interface InputType {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>, name: string) => void;
   onInput?: (e: React.FormEvent, name: string) => void;
   onKeyDown?: (e: React.KeyboardEvent, name: string) => void;
+  onClick?: (e: React.MouseEvent, name: string) => void;
   onSubmit?: (e: React.MouseEvent, name: string) => void;
   value?: string;
   label?: string;
@@ -55,6 +58,7 @@ interface InputType {
   rightIconName?: string;
   rightIconClassName?: string;
   onClickRight?: (e: React.MouseEvent) => void;
+  children?: React.ReactNode;
 }
 
 type LabelType = Partial<{
@@ -224,7 +228,7 @@ export function InputRightButton(p: any) {
  * Form; input
  */
 
-export function Input(p: Partial<InputType> & LabelType) {
+export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
   const {
     id,
     className,
@@ -248,12 +252,14 @@ export function Input(p: Partial<InputType> & LabelType) {
     onKeyDown,
     onFocus,
     onBlur,
+    onClick,
     value,
     formValues,
     setFormValues,
     fullWidth,
     locked,
     disabled,
+    focused,
     error,
     RightIconComponent,
     labelClassName,
@@ -261,6 +267,7 @@ export function Input(p: Partial<InputType> & LabelType) {
     rightIconClassName,
     borderRadiusClassName,
     maxLength,
+    getter,
     children
   } = p;
   const htmlFor = getHtmlFor(id, name);
@@ -286,16 +293,19 @@ export function Input(p: Partial<InputType> & LabelType) {
 
   const hasRight = !!(rightIconName || RightIconComponent);
   const isLarge = preset === 'fill_large';
+  const onClickItem = onClick ? (e: React.MouseEvent) => onClick(e, name!) : undefined;
 
   return (
     <div
       className={cn(
-        'form_el',
+        'form_el rel',
         preset,
+        'focus_' + (focusStyle || 'shadow'),
         fullWidth ? 'fs' : '',
         hasRight ? 'has_r' : '',
         className,
         error ? 'error' : '',
+        focused ? 'focused' : '',
       )}
     >
       {!label ? null : (
@@ -308,14 +318,13 @@ export function Input(p: Partial<InputType> & LabelType) {
           {label}
         </Label>
       )}
-      <div className='rel'>
+      <div className={cn('rel', onClick ? 'link' : '')} onClick={onClickItem}>
         <input
           className={cn(
             'w_f',
-            'focus_' + (focusStyle || 'shadow'),
             borderRadiusClassName || 'r_sm',
             inputClassName,
-            disabled ? 'disabled' : ''
+            disabled ? 'disabled' : '',
           )}
           id={htmlFor}
           name={name}
@@ -324,7 +333,7 @@ export function Input(p: Partial<InputType> & LabelType) {
           min={min}
           max={max}
           placeholder={placeholder}
-          value={value || ''}
+          value={(getter ? getter(value) : value) || ''}
           disabled={disabled || locked}
           autoFocus={autoFocus}
           autoComplete={autoComplete || 'off'}
@@ -341,18 +350,32 @@ export function Input(p: Partial<InputType> & LabelType) {
           onKeyDown={onKeyDown && ((e) => onKeyDown(e, name!))}
         />
 
-        {!rightIconName ? RightIconComponent : (
-          <button className={cn('btn form_el_r v_center', isLarge ? 'ic_df' : '', rightIconClassName)} onClick={onClickRight}>
-            <Icon
-              name={rightIconName}
-            />
-          </button>
-        )}
+        {!rightIconName ? RightIconComponent :
+        createElement(onClickRight ? 'button' : 'span', {
+          className: cn(
+            'form_el_r cl_md v_center',
+            borderRadiusClassName || 'r_sm',
+            onClickRight ? 'btn' : '',
+            isLarge ? 'ic_df' : onClick ? 'pointer' : '',
+            rightIconClassName
+          ),
+          onClick: onClickRight,
+        }, (
+          <Icon
+            name={rightIconName}
+          />
+        ))}
 
         {!alertCount ? null : (
           <span className='alert_ct bg_err ft_tn v_center unsel r lh_1'>
             {alertCount < 100 ? alertCount : '99+'}
           </span>
+        )}
+
+        {onClickItem && (
+          // This prevents <input> from disabling click handlers;
+          // thus allowing entire input + right icon to be a clickable area as one.
+          <div className='abs_full pointer' />
         )}
       </div>
 
@@ -362,6 +385,33 @@ export function Input(p: Partial<InputType> & LabelType) {
 }
 
 const FVInput = composeFormInput(Input);
+
+/**
+ * Form; input but only allow clicks
+ */
+
+function InputClick(p: InputType & LabelType & { popOverProps: any }) {
+  const { formValues, name, className, inputClassName, disabled } = p;
+  const { popOverProps, ...rest } = p;
+
+  return <Input
+    {...rest}
+    // as={popOverProps ? PopOverButton : undefined}
+    locked
+    value={getObject(formValues, name)}
+    inputClassName={disabled ? inputClassName : cn('pointer', inputClassName)}
+    rightIconName='caret-down'
+    className={cn(className, popOverProps ? 'link' : '')}
+  >
+    {popOverProps ? (
+      <PopOverButton
+        className='abs_full'
+        disabled={disabled}
+        {...popOverProps}
+      />
+    ) : undefined}
+  </Input>;
+}
 
 /**
  * Password input
@@ -463,6 +513,7 @@ export function Textarea(p: TextareaType & LabelType) {
         preset,
         className,
         error ? 'error' : '',
+        'focus_' + (focusStyle || 'shadow'),
       )}
     >
       {!label ? null : (
@@ -486,7 +537,6 @@ export function Textarea(p: TextareaType & LabelType) {
           style={{ height, minHeight }}
           className={cn(
             'r_sm of rel',
-            'focus_' + (focusStyle || 'shadow'),
             disabled ? 'disabled' : '',
             textareaClassName
           )}
@@ -605,9 +655,16 @@ export function FormOptions(p: OptionsType) {
 
 /**
  * Form; item
+ * Correct type for FormItem is {FormItemIfaceObj}, however, this Component is usually
+ * mapped by <SchemaForm /> which mutates incorrect types to correct values.
+ * Example: {FormItemIfaceObj} allows locked: () => boolean, but <SchemaForm /> will
+ * mutate it to locked: boolean.
+ *
+ * When this Component is used without <SchemaForm />, you can't rely on the function
+ * mutators, so you have to make sure the correct non-function types are passed.
  */
 
-export function FormItem(p: FormItemIfaceObj) {
+export function FormItem(p: any) {
   const { __type, item, disabled, ...other } = p;
 
   switch (__type) {
@@ -629,6 +686,8 @@ export function FormItem(p: FormItemIfaceObj) {
     }
     case 'input':
       return <FVInput disabled={disabled} {...item} {...other} />;
+    case 'input_click':
+      return <InputClick disabled={disabled} {...item} {...other} />;
     case 'password':
       return <FVPasswordInput disabled={disabled} {...item} {...other} />;
     case 'textarea':

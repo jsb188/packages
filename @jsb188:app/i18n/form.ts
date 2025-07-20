@@ -74,6 +74,11 @@ export default {
     unit: 'Unit',
     price: 'Price',
     cropId: 'Crop',
+    logged_edited_at: 'Logged %{logDate}. Updated %{editDate}.',
+    logged_at: 'Logged %{logDate}.',
+    category: 'Category',
+    activity: 'Activity',
+    activity_ph: 'Type of activity',
 
     // Day periods
     greet_MORNING: 'Good morning, %{name}.',

@@ -10,8 +10,12 @@ import type { LogTypeEnum } from '../types/log';
  * @returns The color associated with the journal type
  */
 
-export function getJournalTypeColor(type: LogTypeEnum): ColorEnum {
-  const logTypeToColor = {
+export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
+  let logTypeToColor;
+
+  // Do switch operation here
+
+  logTypeToColor = {
     SEED: 'brown',
     FIELD: 'yellow',
     HARVEST: 'green',
@@ -53,11 +57,13 @@ export function getLogEntryTitle(details: any): string {
  * @returns The log type or null if not found
  */
 
-export function getLogTypeFromActivity(operation: OrganizationOperationEnum, activity: any) {
+export function getLogCategoryFromActivity(operation: OrganizationOperationEnum | string, activity: any) {
 	switch (operation) {
 		case 'ARABLE':
+		case 'LogEntryArable':
 			return ARABLE_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] || null;
 		case 'LIVESTOCK':
+    case 'LogEntryLivestock':
 			return null; // Livestock activities are not defined in this context
 		default:
 			console.warn('(!1) Cannot get log type from unknown operation type:', operation);
