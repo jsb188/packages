@@ -23,7 +23,7 @@ export function useEditLogEntry(
   const { organizationRelationship } = useOrganizationRelationship(organizationId);
   const notReady = !organizationRelationship;
 
-  const [editLogEntry, mtnValues] = useMutation(
+  const [editLogEntry, mtnValues, mtnHandlers] = useMutation(
     editLogEntryMtn,
     {
       // checkMountedBeforeCallback: true,
@@ -35,7 +35,7 @@ export function useEditLogEntry(
   const logEntry = useReactiveFragment(
     null,
     [`$logEntryFragment:${logEntryId}`, [`$logEntryArableFragment:${logEntryId}`, 'details']],
-    // qryUpdatedCount,
+    mtnValues.mutationCount,
     // Using the otherCheck() function is the only way I could keep sticker updates reactive
     // (_, updatedKeys) => updatedKeys.find((k) => typeof k === 'string' && k.startsWith('$chatStickerFragment:')),
   );
@@ -51,5 +51,6 @@ export function useEditLogEntry(
     notReady,
     allowEdit,
     ...mtnValues,
+    ...mtnHandlers,
   };
 }

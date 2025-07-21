@@ -195,6 +195,9 @@ export function getTodayStartOfDay(timeZone?: string | null) {
 
 /**
  * Get timezone enforced date
+ * @param d - Date to convert
+ * @param timeZone - Timezone to enforce
+ * @returns Date - Enforced date in the specified timezone
  */
 
 export function getCalDate(d: Date, timeZone_?: string | null) {
@@ -216,6 +219,70 @@ export function getCalDate(d: Date, timeZone_?: string | null) {
 		calDateInt,
 		time,
 	};
+}
+
+/**
+ * Update JS date with year/month/day and hour/minutes
+ */
+
+export function updateDate(
+	d_: Date | string,
+	update: Partial<{
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+  }>,
+  timeZone?: string | null
+): Date | null {
+
+  if (timeZone) {
+    // Use luxon to handle timezone-aware date manipulation
+    let dt = DateTime.fromJSDate(d_ instanceof Date ? d_ : new Date(d_), { zone: timeZone });
+
+    if (update.year !== undefined) {
+      dt = dt.set({ year: update.year });
+    }
+    if (update.month !== undefined) {
+      dt = dt.set({ month: update.month });
+    }
+    if (update.day !== undefined) {
+      dt = dt.set({ day: update.day });
+    }
+    if (update.hour !== undefined) {
+      dt = dt.set({ hour: update.hour });
+    }
+    if (update.minute !== undefined) {
+      dt = dt.set({ minute: update.minute });
+    }
+
+    return dt.isValid ? dt.toJSDate() : null;
+  }
+
+  const d = d_ instanceof Date ? d_ : new Date(d_);
+
+  if (update.year) {
+    d.setFullYear(update.year);
+  }
+
+  if (update.month !== undefined) {
+    d.setMonth(update.month - 1); // JS months are 0-indexed
+  }
+
+  if (update.day) {
+    d.setDate(update.day);
+  }
+
+  if (update.hour !== undefined) {
+    d.setHours(update.hour);
+  }
+
+  if (update.minute !== undefined) {
+    d.setMinutes(update.minute);
+  }
+
+  return d;
 }
 
 /**

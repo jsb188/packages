@@ -18,7 +18,7 @@ interface PODatePickerProps {
   name: string;
   item: PODatePickerObj;
   value?: CalendarSelectedObj | null;
-  onClickItem: (name: string, value: any) => void;
+  onClickItem: (name: string, value: any, notEventBased?: boolean) => void;
 }
 
 const PODatePicker = memo((p: PODatePickerProps) => {
@@ -29,7 +29,9 @@ const PODatePicker = memo((p: PODatePickerProps) => {
     // Fix non-Object value on mount
     const valueType = typeof value;
     if (valueType && ['number','string'].includes(valueType)) {
-      onClickItem(name, getCalendarSelector(value));
+      console.log('getCalendarSelector(value)', value, getCalendarSelector(value));
+
+      onClickItem(name, getCalendarSelector(value), true);
     }
   }, [value]);
 
@@ -62,7 +64,7 @@ interface PODateRangeProps {
   name: string;
   item: PODateRangeObj;
   value?: [CalendarSelectedObj | null, CalendarSelectedObj | null] | null;
-  onClickItem: (name: string, value: any) => void;
+  onClickItem: (name: string, value: any, notEventBased?: boolean) => void;
 }
 
 const PODateRange = memo((p: PODateRangeProps) => {
@@ -81,7 +83,7 @@ const PODateRange = memo((p: PODateRangeProps) => {
       onClickItem(name, [
         sdType ? getCalendarSelector(startDate) : null,
         edType ? getCalendarSelector(endDate) : null
-      ]);
+      ], true);
     }
   }, [startDate, endDate]);
 
@@ -133,6 +135,7 @@ const POPopUpListItem = memo((p: POOpenModalListItemProps) => {
 
   return <POListItem
     {...p}
+    // @ts-expect-error - Not all interfaces have "value" property
     item={!item || item.value !== undefined ? item : { ...item, value: true }}
     onClickItem={onClickItem}
   />;
@@ -154,6 +157,7 @@ const POModalScreenListItem = memo((p: POOpenModalListItemProps) => {
 
   return <POListItem
     {...p}
+    // @ts-expect-error - Not all interfaces have "value" property
     item={!item || item.value !== undefined ? item : { ...item, value: true }}
     onClickItem={onClickItem}
   />;
@@ -234,9 +238,9 @@ export function PopOverList(p: PopOverListProps) {
 
   useOnClickOutside(divRef, true, false, 'ignore_outside_click', dismissFn);
 
-  const onClickItem = (name: string | null, value: any) => {
+  const onClickItem = (name: string | null, value: any, notEventBased?: boolean) => {
     setPopOverState({
-      action: 'ITEM',
+      action: notEventBased ? 'ITEM_AUTO' : 'ITEM',
       name,
       value
     });

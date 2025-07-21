@@ -45,6 +45,7 @@ export interface POListItemObj {
   iconName?: string;
   rightIconName?: string;
   rightIconClassName?: string;
+  selected?: boolean;
   hidden?: boolean;
   disabled?: boolean;
 
@@ -206,7 +207,7 @@ export interface UpdatePopOverParams {
 }
 
 export interface PopOverGlobalStateParams {
-  action: 'ITEM' | 'SUBMIT' | 'MOUNT' | 'UNMOUNT';
+  action: 'ITEM' | 'ITEM_AUTO' | 'SUBMIT' | 'MOUNT' | 'UNMOUNT';
   name?: string | null; // Name of form item
   value: any;
 }

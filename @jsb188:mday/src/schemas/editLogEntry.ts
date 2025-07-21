@@ -1,9 +1,10 @@
 // import { z } from 'zod';
+import i18n from '@jsb188/app/i18n';
+import { getCalDate } from '@jsb188/app/utils/datetime';
+import { getObject } from '@jsb188/app/utils/object';
 import { ARABLE_ACTIVITIES_GROUPED } from '../constants/log';
 import type { LogEntryGQLData } from '../types/log.d';
-import i18n from '@jsb188/app/i18n';
 import { getLogCategoryColor } from '../utils/log';
-import { getObject } from '@jsb188/app/utils/object';
 
 /**
  * Convert GQL data to GQL mutation input format
@@ -20,7 +21,6 @@ export function makeFormValuesFromData(logEntry: LogEntryGQLData) {
   switch (details?.__typename) {
     case 'LogEntryArable':
       formValues.arableDetails = {
-        type: details.type,
         activity: details.activity,
         quantity: details.quantity,
         unit: details.unit,
@@ -35,6 +35,24 @@ export function makeFormValuesFromData(logEntry: LogEntryGQLData) {
       console.log(`${details?.__typename} is not done yet.`);
   }
 
+  return formValues;
+}
+
+/**
+ * Convert HTML input values to GQL mutation input types
+ */
+
+export function formatFormValuesForMutation(formValues: Record<string, any>) {
+  for (const key in formValues) {
+    if (formValues[key] && typeof formValues[key] === 'object') {
+
+      for (const subKey in formValues[key]) {
+        if (['quantity','price'].includes(subKey)) {
+          formValues[key][subKey] = parseFloat(formValues[key][subKey]);
+        }
+      }
+    }
+  }
   return formValues;
 }
 
@@ -57,6 +75,8 @@ export function getLogDetailsInputName(__typename: string) {
  */
 
 export function makeLogEntryDetailsSchema(
+  formId: string,
+  timeZone: string | null | undefined,
   __typename: string,
   focusedName: string,
   formValues: Record<string, any> = {}
@@ -65,16 +85,30 @@ export function makeLogEntryDetailsSchema(
   let activitiesList: any[] = [];
   let schemaItems: any[] = [];
 
+  const poProps = {
+    zClassName: 'z9',
+    position: 'bottom_left',
+    offsetX: 0,
+    offsetY: 7,
+  };
+
+  const minDate = new Date();
+  minDate.setFullYear(minDate.getFullYear() - 10);
+
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 1);
+
   switch (__typename) {
     case 'LogEntryArable':
       // Some of the types omit some fields, but for now, we're including all
       activitiesList = ARABLE_ACTIVITIES_GROUPED;
       schemaItems = [{
         __type: 'input_click',
+        forceClickId: 'input_click_arableDetails.activity',
         label: i18n.t('form.activity'),
         item: {
           locked: () => true,
-          focused: focusedName === 'arableDetails.activity',
+          focused: focusedName === (formId + '_activity'),
           name: 'arableDetails.activity',
           placeholder: i18n.t(`form.activity_ph`),
           getter: (value: string) => value ? i18n.t(`log.activity.${value}`) : '',
@@ -88,7 +122,6 @@ export function makeLogEntryDetailsSchema(
           step: 0.1,
           min: 0.1,
           max: 99999999.99, // database max is numeric(10, 2)
-          setter: (data: any) => data?.arableDetails?.quantity,
           placeholder: i18n.t('form.quantity_ph'),
         },
       }, {
@@ -97,7 +130,6 @@ export function makeLogEntryDetailsSchema(
         item: {
           name: 'arableDetails.unit',
           maxLength: 40,
-          setter: (data: any) => data?.arableDetails?.unit,
           placeholder: i18n.t('log.unit_arable_ph'),
         },
       }, {
@@ -109,9 +141,37 @@ export function makeLogEntryDetailsSchema(
           step: 0.1,
           min: 0.1,
           max: 99999999.99, // database max is numeric(10, 2)
-          setter: (data: any) => data?.arableDetails?.price,
           placeholder: i18n.t('log.price_arable_ph'),
         },
+      }, {
+        __type: 'input_click',
+        forceClickId: 'input_click_date',
+        label: i18n.t('form.date'),
+        item: {
+          name: 'date',
+          focused: focusedName === (formId + '_date'),
+          getter: (value: string) => getCalDate(new Date(value), timeZone).calDate,
+        },
+        popOverProps: {
+          id: formId + '_date',
+          ...poProps,
+          iface: {
+            name: 'PO_LIST',
+            variables: {
+              designClassName: 'w_300',
+              className: 'max_h_40vh',
+              initialState: {
+                date: formValues.date ? new Date(formValues.date) : new Date(),
+              },
+              options: [{
+                __type: 'DATE_PICKER',
+                name: 'date',
+                minDate,
+                maxDate,
+              }]
+            }
+          }
+        }
       }];
     default:
   }
@@ -120,11 +180,8 @@ export function makeLogEntryDetailsSchema(
     // First item is always activity
     const activityValue = getObject(formValues, schemaItems[0].item.name);
     schemaItems[0].item.popOverProps = {
-      id: schemaItems[0].item.name,
-      zClassName: 'z9',
-      position: 'bottom_left',
-      offsetX: 0,
-      offsetY: 7,
+      id: formId + '_activity',
+      ...poProps,
       iface: {
         name: 'PO_LIST',
         variables: {
@@ -146,13 +203,9 @@ export function makeLogEntryDetailsSchema(
               text: i18n.t(`log.activity.${activity}`),
               textClassName: 'ft_xs',
               rightIconClassName: 'ft_xs mb_2',
+              name: schemaItems[0].item.name,
               value: activity,
               selected: activityValue === activity,
-              variables: {
-                name: 'arableDetails.activity',
-                preset: 'arableDetails.activity',
-                value: activity,
-              },
             })));
 
             if (!isEnd) {
@@ -160,7 +213,6 @@ export function makeLogEntryDetailsSchema(
                 __type: 'BREAK' as const,
               });
             }
-
 
             return updatedList;
           }, [])

@@ -13,6 +13,7 @@ export interface APIRequestOutput {
 export interface GraphQLHandlers {
   resetErrors: () => void;
   setError: (error: SimpleErrorType) => void;
+  setSaving: (nextSaving: boolean, resetInMS?: number) => void;
   refetch: () => void;
 }
 

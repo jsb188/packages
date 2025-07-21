@@ -12,6 +12,7 @@ import PopOverImage from './PopOver-ViewImage';
  */
 
 interface PopOverButtonProps {
+  domId?: string;
   id?: string;
   as?: React.ElementType;
   iface: PopOverIface;
@@ -41,7 +42,7 @@ interface PopOverButtonProps {
  */
 
 export function PopOverButton(p: PopOverButtonProps) {
-  const { id, disabled, iface, children, className, zClassName, activeClassName, notActiveClassName, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
+  const { domId, id, disabled, iface, children, className, zClassName, activeClassName, notActiveClassName, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
   const { name, variables } = iface;
   const { popOver, openPopOver, closePopOver } = usePopOver();
   const DomEl = p.as || 'div';
@@ -51,57 +52,59 @@ export function PopOverButton(p: PopOverButtonProps) {
   const active = popOver?.id === unique.current;
 
   const onClick = (e: React.MouseEvent) => {
-    if (e.isTrusted) {
-      // This is used to stop href and default button events in [ChatSidebar_Chats.tsx]
-      e.preventDefault();
-      e.stopPropagation();
+    // Allow non-trusted clicks to work,
+    // This is necessary to allow clicks to be controlled by JS from outside of this Component
+    // if (e.isTrusted) {
 
-      if (active) {
-        closePopOver();
-      } else if (el.current) {
-        // Can't use this because e.target sometimes returns inner element, which causes incorrect positioning
-        // const rect = e.target.getBoundingClientRect();
-        const rect = el.current.getBoundingClientRect();
+    e.preventDefault(); // This is used to stop href and default button events
+    e.stopPropagation();
 
-        openPopOver({
-          name,
-          id: unique.current,
-          doNotTrackHover,
-          doNotRemoveOnPageEvents,
-          scrollAreaDOMId: scrollAreaDOMId || DOM_IDS.mainBodyScrollArea,
-          className: popOverClassName,
-          zClassName,
-          animationClassName,
-          variables,
-          position,
-          offsetX,
-          offsetY,
-          leftEdgeThreshold,
-          rightEdgeThreshold,
-          leftEdgePosition,
-          rightEdgePosition,
-          rect: {
-            width: rect.width,
-            height: rect.height,
-            left: rect.left,
-            right: rect.right,
-            top: rect.top,
-            bottom: rect.bottom,
-            x: rect.x,
-            y: rect.y,
-          },
-        });
-      }
+    if (active) {
+      closePopOver();
+    } else if (el.current) {
+      // Can't use this because e.target sometimes returns inner element, which causes incorrect positioning
+      // const rect = e.target.getBoundingClientRect();
+      const rect = el.current.getBoundingClientRect();
 
-      if (p.onClick) {
-        p.onClick(e);
-      }
+      openPopOver({
+        name,
+        id: unique.current,
+        doNotTrackHover,
+        doNotRemoveOnPageEvents,
+        scrollAreaDOMId: scrollAreaDOMId || DOM_IDS.mainBodyScrollArea,
+        className: popOverClassName,
+        zClassName,
+        animationClassName,
+        variables,
+        position,
+        offsetX,
+        offsetY,
+        leftEdgeThreshold,
+        rightEdgeThreshold,
+        leftEdgePosition,
+        rightEdgePosition,
+        rect: {
+          width: rect.width,
+          height: rect.height,
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+          x: rect.x,
+          y: rect.y,
+        },
+      });
+    }
+
+    if (p.onClick) {
+      p.onClick(e);
     }
   };
 
   return (
     <DomEl
       ref={el}
+      id={domId}
       role='button'
       tabIndex={0}
       className={cn(

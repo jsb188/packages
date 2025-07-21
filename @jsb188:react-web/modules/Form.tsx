@@ -405,6 +405,7 @@ function InputClick(p: InputType & LabelType & { popOverProps: any }) {
   >
     {popOverProps ? (
       <PopOverButton
+        domId={'input_click_' + name}
         className='abs_full'
         disabled={disabled}
         {...popOverProps}

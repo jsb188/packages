@@ -94,6 +94,8 @@ export default {
     20055: 'You are sending too many verification codes. Please try again in a moment.',
     20056: 'Account associated with "%{value}" has been banned. If this is an error, please send us an e-mail.',
     20057: 'Your verification code expired. Please request a new code.',
+    20058: 'You do not have permissions to edit this log. Please contact your administrator.',
+    20059: 'This log was not found.\nIt may have been deleted.',
 
     '29999_title': 'Not ready',
     29999: 'AI chat is not ready right now.',

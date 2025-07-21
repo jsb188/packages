@@ -1,10 +1,10 @@
-import { OrganizationRelGQLData } from "../types/organization.d";
+import { OrganizationRelGQLData, OrganizationRelData } from "../types/organization.d";
 
 /**
  * Get deefault permissions by role
  */
 
-export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData) {
+export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | OrganizationRelData) {
 
   const role = orgRel?.role || 'MEMBER';
   const acl = orgRel?.acl || {};
@@ -63,7 +63,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData) {
 type ACLPermissionCheck = 'READ' | 'WRITE' | 'MANAGE';
 
 export function checkACLPermission(
-  orgRel: OrganizationRelGQLData,
+  orgRel: OrganizationRelGQLData | OrganizationRelData,
   check: keyof ReturnType<typeof getDefaultPermissionsByRole>,
   requiredPermission: ACLPermissionCheck
 ): boolean | null {

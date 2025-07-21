@@ -87,7 +87,7 @@ input.invis_input::-webkit-inner-spin-button {
 
 .focus_outline input:focus, .focus_outline.focused input,
 .focus_outline textarea:focus, .focus_outline.focused textarea {
-  border-color: var(--color-text-bold) !important;
+  border-color: var(--color-text-default) !important;
 }
 
 [contenteditable='true']:empty:before {

@@ -34,6 +34,7 @@ type GraphQLMutationResult = {
   variables: Record<string, any> | null;
   saving: boolean;
   error: ServerErrorObj | null;
+  mutationCount: number;
 };
 
 type GraphQLMutation = [
@@ -41,7 +42,7 @@ type GraphQLMutation = [
   GraphQLMutationResult,
   GraphQLHandlers,
   UpdateObserversFn,
-  React.MutableRefObject<boolean>
+  React.MutableRefObject<Record<string, any>>
 ];
 
 /**
@@ -163,7 +164,7 @@ export function useWatchQuery(
 export function useReactiveFragment(
   data: any,
   observe: Array<string | string[]>,
-  qryObsCount?: number,
+  qryObsCount?: number | boolean,
   otherCheck?: (latestData: any, updatedKeys: any[]) => boolean,
   ignoreIDWarning?: boolean,
   // doTest?: boolean
@@ -248,7 +249,6 @@ export function useReactiveFragment(
         )
       )
     ) {
-
       // if (doTest) {
       //   console.log('DO TEST:');
       //   console.log(observe);
@@ -417,19 +417,27 @@ export function useMutation(
   // But bring it back if you want ability to "cancel"
   // const controller = useRef();
 
-  const mounted = useRef(true);
+  const tracker = useRef({
+    mounted: true,
+    timer: null as NodeJS.Timeout | null,
+  });
+
   const [mtnValues, setMtnValues] = useState({
     variables: null as Record<string, any> | null,
     saving: false,
     data: null,
-    error: initialError || null as ServerErrorObj | null
+    error: initialError || null as ServerErrorObj | null,
+    mutationCount: 0,
   });
 
   // Mounted hook
 
   useEffect(() => {
     return () => {
-      mounted.current = false;
+      tracker.current.mounted = false;
+      if (tracker.current.timer) {
+        clearTimeout(tracker.current.timer);
+      }
     };
   }, []);
 
@@ -462,9 +470,10 @@ export function useMutation(
       {
         openModalPopUp: retryCount >= triedCount ? openModalPopUp : null,
         onCompleted: (data: any | null, error: ServerErrorObj | null) => {
-          if (mounted.current) {
+          if (tracker.current.mounted) {
             setMtnValues({
               ...mtnValues,
+              mutationCount: mtnValues.mutationCount + 1,
               saving: false,
               data: data.data || null,
               error,
@@ -472,14 +481,14 @@ export function useMutation(
           }
 
           if (data.data) {
-            if (onCompleted && (mounted.current || !checkMountedBeforeCallback)) {
+            if (onCompleted && (tracker.current.mounted || !checkMountedBeforeCallback)) {
               // Do separate {mounted.current} check from outside
               onCompleted(data.data, error, graphqlOptions?.variables);
             }
           }
         },
         onError: (error: ServerErrorObj | null) => {
-          if (mounted.current) {
+          if (tracker.current.mounted) {
             setMtnValues({
               ...mtnValues,
               saving: retryCount > triedCount,
@@ -487,7 +496,7 @@ export function useMutation(
             });
           }
 
-          if (onError && retryCount <= triedCount && (mounted.current || !checkMountedBeforeCallback)) {
+          if (onError && retryCount <= triedCount && (tracker.current.mounted || !checkMountedBeforeCallback)) {
             onError(error, graphqlOptions?.variables);
           }
         },
@@ -519,13 +528,13 @@ export function useMutation(
   };
 
   const mtnHandlers: GraphQLHandlers = {
-    resetErrors: function () {
+    resetErrors: () => {
       setMtnValues({
         ...mtnValues,
         error: null,
       });
     },
-    setError: function (errorObj: SimpleErrorType) {
+    setError: (errorObj: SimpleErrorType) => {
       setMtnValues({
         ...mtnValues,
         error: {
@@ -535,21 +544,32 @@ export function useMutation(
         },
       });
     },
-    refetch: function () {
+    refetch: () => {
       const lastVariables = mtnValues.variables;
       return doMutate(lastVariables ? { variables: lastVariables } : undefined);
     },
+    setSaving: (nextSaving: boolean, resetInMS?: number) => {
+      setMtnValues({
+        ...mtnValues,
+        saving: nextSaving,
+      });
+
+      if (nextSaving && resetInMS) {
+        if (tracker.current.timer) {
+          clearTimeout(tracker.current.timer);
+        }
+
+        tracker.current.timer = setTimeout(() => {
+          setMtnValues({
+            ...mtnValues,
+            saving: false,
+          });
+        }, resetInMS);
+      }
+    }
   };
 
-  // useEffect(() => {
-  //   return () => {
-  //     if (controller.current) {
-  //       controller.current.abort();
-  //     }
-  //   };
-  // }, []);
-
-  return [doMutate, mtnValues, mtnHandlers, updateObservers, mounted];
+  return [doMutate, mtnValues, mtnHandlers, updateObservers, tracker];
 }
 
 /**
