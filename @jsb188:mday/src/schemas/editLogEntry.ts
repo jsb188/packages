@@ -143,8 +143,15 @@ export function makeLogEntryDetailsSchema(
           max: 99999999.99, // database max is numeric(10, 2)
           placeholder: i18n.t('log.price_arable_ph'),
         },
-      }, {
-        __type: 'input_click',
+      }];
+    default:
+  }
+
+  // Date, time, createdBy is common across all log types
+
+  if (schemaItems.length) {
+    schemaItems = schemaItems.concat([{
+      __type: 'input_click',
         forceClickId: 'input_click_date',
         label: i18n.t('form.date'),
         item: {
@@ -172,8 +179,15 @@ export function makeLogEntryDetailsSchema(
             }
           }
         }
-      }];
-    default:
+      }, {
+        __type: 'input_time_from_date',
+        label: i18n.t('form.time'),
+        item: {
+          name: 'date', // date value will be used to extract time
+          type: 'time',
+        },
+      }]
+    );
   }
 
   if (schemaItems[0] && activitiesList.length) {
@@ -220,61 +234,6 @@ export function makeLogEntryDetailsSchema(
       }
     };
   }
-
-  // if (item.item.name.endsWith('.activity')) {
-  //   // @ts-expect-error - Lazy typing
-  //   // item.item.onClick = (_e: any, inputName: string) => onClickPopOverItems(inputName);
-  //   item.item.popOverProps = {
-  //     zClassName: 'z9',
-  //     iface: {
-  //       name: 'PO_LIST',
-  //       variables: {
-  //         options: [{
-  //           __type: 'LIST_ITEM_POPUP' as const,
-  //           iconName: 'user',
-  //           variables: {
-  //             name: 'NOT_READY',
-  //             preset: 'NOT_READY',
-  //           },
-  //           text: i18n.t('user.your_profile'),
-  //         }, {
-  //           __type: 'LIST_ITEM_POPUP' as const,
-  //           iconName: 'phone',
-  //           variables: {
-  //             name: 'NOT_READY',
-  //             preset: 'NOT_READY',
-  //           },
-  //           text: i18n.t('user.phone_numbers'),
-  //         }, {
-  //           __type: 'BREAK' as const,
-  //         }, {
-  //           __type: 'LIST_ITEM_POPUP' as const,
-  //           iconName: 'news',
-  //           variables: {
-  //             name: 'new_version_update_notes',
-  //             preset: 'UPDATE_NOTE',
-  //           },
-  //           text: i18n.t('app.latest_updates'),
-  //         }, {
-  //           __type: 'LIST_ITEM_POPUP' as const,
-  //           iconName: 'help',
-  //           variables: {
-  //             name: 'NOT_READY',
-  //             preset: 'NOT_READY',
-  //           },
-  //           text: i18n.t('form.help'),
-  //         }, {
-  //           __type: 'BREAK' as const,
-  //         }, {
-  //           __type: 'LIST_ITEM' as const,
-  //           preset: 'small' as const,
-  //           to: '/signout',
-  //           text: i18n.t('auth.sign_out'),
-  //         }]
-  //       }
-  //     }
-  //   };
-  // }
 
   return schemaItems;
 }

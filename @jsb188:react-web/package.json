@@ -6,7 +6,8 @@
   "author": "jsb188",
   "type": "module",
   "exports": {
-    "./icons": "./icons/Icon.tsx",
+    "./icons": "./svgs/Icon.tsx",
+    "./elements": "./svgs/Element.tsx",
     "./hooks/use-contentEditable": "./hooks/use-contentEditable.tsx",
     "./modules/AuthForm": "./modules/Auth/AuthForm.tsx",
     "./modules/Calendar": "./modules/Calendar.tsx",

@@ -2,7 +2,7 @@ import i18n from '@jsb188/app/i18n';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
 import type { ReactDivElement } from '../types/dom.d';
-import { Icon } from '../icons/Icon';
+import { Icon } from '../svgs/Icon';
 import { Pill } from './Avatar';
 import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';

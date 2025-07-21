@@ -1,5 +1,5 @@
 import i18n from '@jsb188/app/i18n';
-import { SpecialIcon } from '@jsb188/react-web/icons';
+import { SpecialIcon } from '../../../@jsb188:react-web/svgs/Icon';
 import { FullWidthButton } from '@jsb188/react-web/ui/Button';
 import { useContinueWithGoogle, useContinueWithApple } from '../hooks/use-oauth';
 

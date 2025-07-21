@@ -34,16 +34,24 @@ export function getDatabaseAction(
 		if (Object.prototype.hasOwnProperty.call(data, key) && data[key] !== undefined) {
 			// trim() on all string databse fields should be OK;
 			// But if not, add an extra param.
-			const value = typeof data[key] === 'string' ? data[key].trim() : data[key];
+			let value = typeof data[key] === 'string' ? data[key].trim() : data[key];
+			if (value instanceof Date) {
+				value = value.toISOString();
+			}
 
 			const isNullValue = value !== null || allowNull;
 			if (isNullValue) {
 				documentData[key] = value;
 			}
 
+			let currentValue = currentData[key];
+			if (currentValue instanceof Date) {
+				currentValue = currentValue.toISOString();
+			}
+
 			if (
 				// Doing loose != check instead of !== type check
-				currentData[key] != value &&
+				currentValue != value &&
 				isNullValue
 			) {
 				hasChanges = true;
@@ -100,19 +108,19 @@ export function timeoutPromise<T>(
 ): Promise<T> {
 	return new Promise<T>((resolve, reject) => {
 		const timeout = setTimeout(() => {
-      resolve(onTimeout());
+			resolve(onTimeout());
 		}, timeoutMs);
 
 		const p = mainPromise();
-    if (typeof p?.then === 'function') {
+		if (typeof p?.then === 'function') {
 			p.then((result: any) => {
 				clearTimeout(timeout);
 				resolve(result);
 			})
-			.catch((err: any) => {
-				clearTimeout(timeout);
-				reject(err);
-			});
-    }
+				.catch((err: any) => {
+					clearTimeout(timeout);
+					reject(err);
+				});
+		}
 	});
 }

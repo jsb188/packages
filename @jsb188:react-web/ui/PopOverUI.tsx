@@ -1,7 +1,7 @@
 import { cn } from '@jsb188/app/utils/string';
 import type { ClosePopOverFn, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POTextObj } from '@jsb188/react/types/PopOver.d';
 import { forwardRef, memo, useRef } from 'react';
-import { Icon } from '../icons/Icon';
+import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { useOnClickOutside } from '../utils/dom';
 import { AvatarImg } from './Avatar';

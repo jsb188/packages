@@ -54,6 +54,7 @@ export interface LogEntryInsertObj {
 }
 
 export interface LogEntryDataObj {
+  id: number;
 	accountId: number;
 	organizationId: number;
 	organizationBranchId: number | null;

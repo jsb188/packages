@@ -3,7 +3,7 @@ import { MockAvatar, MockText } from '@jsb188/react-web/ui/Loading';
 import { getAvatarLetters } from '@jsb188/react-web/ui/Avatar';
 import { EmojiWrapper } from '@jsb188/react-web/ui/Markdown';
 import { memo } from 'react';
-import { Icon } from '../icons/Icon';
+import { Icon } from '../svgs/Icon';
 import { SmartLink } from './Button';
 
 /**

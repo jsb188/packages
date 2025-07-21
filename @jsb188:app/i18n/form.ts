@@ -62,6 +62,7 @@ export default {
     help: 'Help',
     start: 'Start',
     end: 'End',
+    time: 'Time',
     date: 'Date',
     start_date: 'Start date',
     end_date: 'End date',
@@ -89,8 +90,5 @@ export default {
     // Communication types
     comm_type_EMAIL: 'E-mail',
     comm_type_SMS: 'SMS',
-
-    // Sidebar
-    activity: 'Activity',
   },
 };

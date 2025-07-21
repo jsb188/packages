@@ -2,21 +2,21 @@ import i18n from '@jsb188/app/i18n';
 
 import { getPlatform } from '@jsb188/app/platform';
 import type { FormItemIfaceObj } from '@jsb188/app/types/form.d';
-import { cn } from '@jsb188/app/utils/string';
-import { Icon } from '@jsb188/react-web/icons';
-import { PopOverButton, TooltipButton } from './PopOver';
-import { Button, InlineBlockLabel } from '@jsb188/react-web/ui/Button';
-import { createElement, memo, forwardRef, useEffect, useRef, useState } from 'react';
 import { getObject, setObject } from '@jsb188/app/utils/object';
+import { cn } from '@jsb188/app/utils/string';
+import { Button, InlineBlockLabel } from '@jsb188/react-web/ui/Button';
+import { createElement, forwardRef, memo, useEffect, useRef, useState } from 'react';
+import { Icon } from '../svgs/Icon';
+import type { LabelType, InputPresetName, InputFocusStyle } from '../ui/FormUI';
+import { Label, getHtmlFor } from '../ui/FormUI';
+import { InputTime } from './Form-InputTime';
+import { PopOverButton } from './PopOver';
 
 // const cssPath = '/css/form.css';
 
 /**
  * Types
  */
-
-type InputPresetName = 'none' | 'fill' | 'fill_large' | 'inside_outline' | 'subtle' | 'lighter';
-type InputFocusStyle = 'outline' | 'shadow';
 
 interface InputType {
   id?: string;
@@ -60,14 +60,6 @@ interface InputType {
   onClickRight?: (e: React.MouseEvent) => void;
   children?: React.ReactNode;
 }
-
-type LabelType = Partial<{
-  htmlFor?: string;
-  labelClassName?: string;
-  iconName?: string;
-  info?: string;
-  children: string;
-}>;
 
 type FormBreakType = {
   children?: string;
@@ -143,35 +135,6 @@ type SideInputButtonProps = {
   selected?: boolean;
   onClick?: (e: any) => void;
 };
-
-/**
- * Helper; get htlmFor={..}
- */
-
-function getHtmlFor(id?: string, name?: string) {
-  return name ? `${name}-${id || 'form'}` : id;
-}
-
-/**
- * Form; label
- */
-
-function Label(p: LabelType) {
-  const { htmlFor, labelClassName, iconName, info, children } = p;
-  return (
-    <label
-      className={cn('ft_sm ic_sm pt_sm pb_3 h_spread', labelClassName)}
-      htmlFor={htmlFor}
-    >
-      {children}
-      {!iconName && !info ? null : (
-        <TooltipButton message={info} className='pl_df label_r' position='right'>
-          <Icon name={iconName || 'info-circle'} />
-        </TooltipButton>
-      )}
-    </label>
-  );
-}
 
 /**
  * Form; break
@@ -390,7 +353,7 @@ const FVInput = composeFormInput(Input);
  * Form; input but only allow clicks
  */
 
-function InputClick(p: InputType & LabelType & { popOverProps: any }) {
+function InputClick(p: InputType & Omit<LabelType, 'children'> & { popOverProps: any }) {
   const { formValues, name, className, inputClassName, disabled } = p;
   const { popOverProps, ...rest } = p;
 
@@ -418,10 +381,11 @@ function InputClick(p: InputType & LabelType & { popOverProps: any }) {
  * Password input
  */
 
-function FVPasswordInput(p: InputType & LabelType) {
+function FVPasswordInput(p: InputType & Omit<LabelType, 'children'>) {
   const [inputType, setInputType] = useState('password');
 
   return (
+    // @ts-expect-error - complicated typing
     <FVInput
       {...p}
       type={inputType}
@@ -689,6 +653,9 @@ export function FormItem(p: any) {
       return <FVInput disabled={disabled} {...item} {...other} />;
     case 'input_click':
       return <InputClick disabled={disabled} {...item} {...other} />;
+    case 'input_time':
+    case 'input_time_from_date':
+      return <InputTime disabled={disabled} {...item} {...other} />;
     case 'password':
       return <FVPasswordInput disabled={disabled} {...item} {...other} />;
     case 'textarea':
@@ -844,3 +811,7 @@ export const ContentEditable = memo(forwardRef((
 // If you *do* see issues, use checkPropsDiff() to figure out which prop is triggering re-render.
 // }), globalThis.checkPropsDiff);
 }));
+
+// Exports from other files
+
+export { InputTime };

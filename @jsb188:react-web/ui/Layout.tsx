@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
-import { Icon } from '@jsb188/react-web/icons';
+import { Icon } from '../svgs/Icon';
 import { Pill } from '@jsb188/react-web/ui/Avatar';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
 import { memo } from 'react';

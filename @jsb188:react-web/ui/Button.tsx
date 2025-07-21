@@ -2,7 +2,7 @@ import type { ColorEnum } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
 import { Link, type To } from 'react-router';
 import React, { memo } from 'react';
-import { Icon } from '../icons/Icon';
+import { Icon } from '../svgs/Icon';
 import { AvatarImg } from './Avatar';
 import { ActivityDots } from './Loading';
 

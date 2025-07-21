@@ -1,6 +1,6 @@
 import React, { createElement, useState } from 'react';
 import { ActivityDots } from './Loading';
-import { Icon } from '../icons/Icon';
+import { Icon } from '../svgs/Icon';
 import { cn } from '@jsb188/app/utils/string';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
 
@@ -153,7 +153,7 @@ function AvatarLetter(p: AvatarLetterProps) {
   return createElement(
     as || domElement,
     { className: cn('v_center f p_n r av', sizeClass, fontSize, className) },
-    <span className='shift_down'>
+    <span className='shift_down unsel'>
       {letters}
     </span>
   );

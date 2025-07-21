@@ -1,6 +1,6 @@
 import { cn } from '@jsb188/app/utils/string';
 import { memo } from 'react';
-import { Icon } from '../icons/Icon';
+import { Icon } from '../svgs/Icon';
 import './CalendarUI.css';
 
 /**
