@@ -9,7 +9,7 @@ import { createElement, forwardRef, memo, useEffect, useRef, useState } from 're
 import { Icon } from '../svgs/Icon';
 import type { LabelType, InputPresetName, InputFocusStyle } from '../ui/FormUI';
 import { Label, getHtmlFor } from '../ui/FormUI';
-import { InputTime } from './Form-InputTime';
+import { InputTimeFromDate } from './Form-InputTime';
 import { PopOverButton } from './PopOver';
 
 // const cssPath = '/css/form.css';
@@ -111,6 +111,7 @@ type TextareaType = {
   error?: boolean;
   fullWidth?: boolean;
   className?: string;
+  borderRadiusClassName?: string;
   textareaClassName?: string;
   preset?: InputPresetName;
   onFocus?: React.FocusEventHandler<HTMLTextAreaElement>;
@@ -284,8 +285,8 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
       <div className={cn('rel', onClick ? 'link' : '')} onClick={onClickItem}>
         <input
           className={cn(
-            'w_f',
-            borderRadiusClassName || 'r_sm',
+            'w_f form_input',
+            borderRadiusClassName ?? 'r_sm',
             inputClassName,
             disabled ? 'disabled' : '',
           )}
@@ -317,7 +318,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
         createElement(onClickRight ? 'button' : 'span', {
           className: cn(
             'form_el_r cl_md v_center',
-            borderRadiusClassName || 'r_sm',
+            borderRadiusClassName ?? 'r_sm',
             onClickRight ? 'btn' : '',
             isLarge ? 'ic_df' : onClick ? 'pointer' : '',
             rightIconClassName
@@ -417,6 +418,7 @@ export function Textarea(p: TextareaType & LabelType) {
   const {
     id,
     className,
+    borderRadiusClassName,
     preset,
     autoFocus,
     focusStyle,
@@ -501,7 +503,8 @@ export function Textarea(p: TextareaType & LabelType) {
         <textarea
           style={{ height, minHeight }}
           className={cn(
-            'r_sm of rel',
+            'form_input of rel',
+            borderRadiusClassName ?? 'r_sm',
             disabled ? 'disabled' : '',
             textareaClassName
           )}
@@ -653,9 +656,8 @@ export function FormItem(p: any) {
       return <FVInput disabled={disabled} {...item} {...other} />;
     case 'input_click':
       return <InputClick disabled={disabled} {...item} {...other} />;
-    case 'input_time':
     case 'input_time_from_date':
-      return <InputTime disabled={disabled} {...item} {...other} />;
+      return <InputTimeFromDate disabled={disabled} {...item} {...other} />;
     case 'password':
       return <FVPasswordInput disabled={disabled} {...item} {...other} />;
     case 'textarea':

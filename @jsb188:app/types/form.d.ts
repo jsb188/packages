@@ -10,7 +10,7 @@ interface SchemaItemAny {
 }
 
 export interface FormItemSchemaObj {
-  __type: 'group' | 'input' | 'input_click' | 'input_time' | 'input_time_from_date' | 'password' | 'textarea' | 'select' | string;
+  __type: 'group' | 'input' | 'input_click' | 'input_time_from_date' | 'password' | 'textarea' | 'select' | string;
   autoFocus?: boolean;
   disabled?: boolean;
   hidden?: boolean | ((dataForSchema: any) => boolean);

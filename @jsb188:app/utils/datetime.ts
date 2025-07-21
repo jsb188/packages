@@ -630,7 +630,7 @@ export function labelSortByDatePeriod<T>(
 		output.push(dateObj);
 	}
 
-	return output;
+	return output as DatePeriodObj[];
 }
 
 /**

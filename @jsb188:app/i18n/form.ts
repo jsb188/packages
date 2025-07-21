@@ -63,6 +63,7 @@ export default {
     start: 'Start',
     end: 'End',
     time: 'Time',
+    time_with_zone: 'Time (%{timeZone})',
     date: 'Date',
     start_date: 'Start date',
     end_date: 'End date',

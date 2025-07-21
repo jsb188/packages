@@ -5,6 +5,8 @@ import { getObject } from '@jsb188/app/utils/object';
 import { ARABLE_ACTIVITIES_GROUPED } from '../constants/log';
 import type { LogEntryGQLData } from '../types/log.d';
 import { getLogCategoryColor } from '../utils/log';
+import { DateTime } from 'luxon';
+import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 
 /**
  * Convert GQL data to GQL mutation input format
@@ -150,6 +152,8 @@ export function makeLogEntryDetailsSchema(
   // Date, time, createdBy is common across all log types
 
   if (schemaItems.length) {
+    const timeZoneCode = getTimeZoneCode(timeZone);
+
     schemaItems = schemaItems.concat([{
       __type: 'input_click',
         forceClickId: 'input_click_date',
@@ -181,10 +185,11 @@ export function makeLogEntryDetailsSchema(
         }
       }, {
         __type: 'input_time_from_date',
-        label: i18n.t('form.time'),
+        label: i18n.t(timeZoneCode ? 'form.time_with_zone' : 'form.time', { timeZone: timeZoneCode }),
         item: {
           name: 'date', // date value will be used to extract time
           type: 'time',
+          timeZone,
         },
       }]
     );

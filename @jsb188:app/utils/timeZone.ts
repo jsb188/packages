@@ -2409,3 +2409,13 @@ export function indexToTimeZone(index?: number | string | null): string | null {
 
 	return null;
 }
+
+/**
+ * Get timezone abbrevation code from timezone string
+ * @param tz - Timezone string (IANA format)
+ * @returns {string} - Timezone abbreviation code (e.g., "EST", "
+ */
+
+export function getTimeZoneCode(tz?: string | null): string | null {
+  return tz ? DateTime.now().setZone(tz).toFormat('ZZZZ') : null;
+}

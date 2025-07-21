@@ -37,9 +37,7 @@ export const FormElement = memo((p: FormElementProps) => {
     }}
   >
     {/* <span className={cn('ft_bold cl_lt', labelClassName)}> */}
-    <span
-      className={labelClassName}
-    >
+    <span className={cn(labelClassName, 'ellip')}>
       {label}
     </span>
     {children}

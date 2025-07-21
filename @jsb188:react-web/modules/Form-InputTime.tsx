@@ -1,23 +1,53 @@
-
 import { setObject } from '@jsb188/app/utils/object';
 import { cn } from '@jsb188/app/utils/string';
-import { createElement, useState } from 'react';
+import { usePopOverState } from '@jsb188/react/states';
+import { DateTime } from 'luxon';
+import { useEffect, useState } from 'react';
 import { Icon } from '../svgs/Icon';
-import type { InputPresetName, InputFocusStyle, LabelType } from '../ui/FormUI';
+import type { InputFocusStyle, InputPresetName, LabelType } from '../ui/FormUI';
 import { Label, getHtmlFor } from '../ui/FormUI';
+import { PopOverButton } from './PopOver';
+
+/**
+ * Helper; get date using time zone
+ */
+
+function getDateWithTimeZone(value: string | Date, timeZone?: string | null): Date {
+  if (timeZone) {
+    return DateTime.fromJSDate(value instanceof Date ? value : new Date(value), { zone: timeZone }).toJSDate();
+  }
+  return new Date(value);
+}
+
+/**
+ * Check if time value is error
+ */
+
+function checkTimeError(value: string, field: TimeFormField): boolean {
+  switch (field) {
+    case 'hours':
+      return value.length > 2 || Number(value) < 0 || Number(value) > 12;
+    case 'minutes':
+      return value.length > 2 || Number(value) < 0 || Number(value) > 59;
+    default:
+  }
+  return false;
+}
 
 /**
  * Input; time (hh:mm)
  */
 
+type TimeFormField = 'hours' | 'minutes' | 'AMPM';
+
 interface InputTimeType {
   id?: string;
+  timeZone?: string | null;
   alertCount?: number;
   autoFocus?: boolean;
   spellCheck?: boolean;
   name: string;
   formValues?: any;
-  getter?: (value?: any) => string;
   setFormValues?: (values: any) => void;
   allowClearIfLocked?: boolean;
   locked?: boolean;
@@ -30,24 +60,18 @@ interface InputTimeType {
   borderRadiusClassName?: string;
   preset?: InputPresetName;
   focusStyle?: InputFocusStyle;
-  maxLength?: number;
-  onFocus?: React.FocusEventHandler<HTMLInputElement>;
-  onBlur?: React.FocusEventHandler<HTMLInputElement>;
-  onKeyDown?: (e: React.KeyboardEvent, name: string) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>, name: string, value: any) => void;
+  onKeyDown?: (e: React.KeyboardEvent, name: string, field: TimeFormField) => void;
   onSubmit?: (e: React.MouseEvent, name: string) => void;
-  value?: string;
   label?: string;
-  RightIconComponent?: React.ReactNode;
-  rightIconName?: string;
-  rightIconClassName?: string;
-  onClickRight?: (e: React.MouseEvent) => void;
   children?: React.ReactNode;
 }
 
-export function InputTime(p: InputTimeType & Omit<LabelType, 'children'>) {
+export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>) {
 
   const {
     id,
+    timeZone,
     className,
     alertCount,
     preset,
@@ -59,11 +83,7 @@ export function InputTime(p: InputTimeType & Omit<LabelType, 'children'>) {
     label,
     info,
     onChange,
-    onInput,
     onKeyDown,
-    onFocus,
-    onBlur,
-    value,
     formValues,
     setFormValues,
     fullWidth,
@@ -71,46 +91,118 @@ export function InputTime(p: InputTimeType & Omit<LabelType, 'children'>) {
     disabled,
     focused,
     error,
-    RightIconComponent,
     labelClassName,
     inputClassName,
-    rightIconClassName,
     borderRadiusClassName,
-    maxLength,
-    getter,
     children
   } = p;
 
-  const [timeFormValues, setTimeFormValues] = useState({ hours: '12', minutes: '00', AMPM: 'AM' });
+  const currentDate = formValues?.[name] || '';
   const htmlFor = getHtmlFor(id, name);
 
-  // If any entire fromValues is passed to Input,
-  // I would not need to create a new onSubmit/onInput/onChange every time.
-  // This is potentially powerful.
-  // Because, then, I would never need to rewrite the same logic twice.
-  // This could also be shared in mobile_iap.
+  const { popOverState, closePopOver } = usePopOverState();
+  const [timeFormValues, setTimeFormValues] = useState<Record<TimeFormField, string>>(() => {
+		const d = getDateWithTimeZone(currentDate, timeZone);
+    if (isNaN(d.getTime())) {
+      return { hours: '', minutes: '', AMPM: '' };
+    }
 
-  let onClickRight;
-  let rightIconName;
-  let labelIconName;
+    let hours = d.getHours();
+    const minutes = d.getMinutes();
+    const AMPM = hours >= 12 ? 'PM' : 'AM';
 
-  if (locked && allowClearIfLocked && setFormValues) {
-    onClickRight = () => setFormValues({ ...setObject(formValues, String(name), '') });
-    rightIconName = 'circle-x';
-    labelIconName = 'lock';
-  } else if (p.rightIconName) {
-    rightIconName = p.rightIconName;
-    onClickRight = p.onClickRight;
-  }
+    if (hours > 12) {
+      hours -= 12;
+    }
 
-  const hasRight = !!(rightIconName || RightIconComponent);
-  const isLarge = preset === 'fill_large';
+    return { hours: String(hours), minutes: String(minutes), AMPM };
+  });
 
-  const onChangeTime = (e: React.ChangeEvent<HTMLInputElement>, field: 'hours' | 'minutes') => {
-    const changeValue = e.target.value;
-    setTimeFormValues({...timeFormValues, [field]: changeValue });
-    console.log('InputTime.onChange', name, changeValue);
+  const [timeErrors, setTimeErrors] = useState<Record<TimeFormField, boolean>>({
+    hours: false,
+    minutes: false,
+    AMPM: false,
+  });
+
+  const onChangeTime = (e: React.ChangeEvent<HTMLInputElement>, field: TimeFormField) => {
+    const value = e.target.value;
+
+    console.log('change time:', field, '->', value);
+
+
+    setTimeFormValues({...timeFormValues, [field]: value });
+
+		let d = getDateWithTimeZone(currentDate, timeZone);
+    if (isNaN(d.getTime())) {
+      d = new Date();
+    }
+
+    switch (field) {
+      case 'hours':
+        d.setHours(Number(value));
+        break;
+      case 'minutes':
+        d.setMinutes(Number(value));
+        break;
+      case 'AMPM':
+        const currentHours = d.getHours();
+        if (value === 'PM' && currentHours < 12) {
+          d.setHours(currentHours + 12);
+        } else if (value === 'AM' && currentHours >= 12) {
+          d.setHours(currentHours - 12);
+        }
+        break;
+    }
+
+    if (checkTimeError(value, field) || isNaN(d.getTime())) {
+      setTimeErrors({...timeErrors, [field]: true });
+    } else if (setFormValues) {
+      setFormValues({...setObject(formValues, name, d)});
+    }
+
+    if (onChange) {
+      onChange(e, name, d);
+    }
   };
+
+  const onBlur = () => {
+    if (setFormValues) {
+      const isHourError = checkTimeError(timeFormValues.hours, 'hours');
+      const isMinuteError = checkTimeError(timeFormValues.minutes, 'minutes');
+
+      if (isHourError || isMinuteError) {
+        const d = getDateWithTimeZone(currentDate, timeZone);
+
+        let nextFormValues = {...timeFormValues};
+        if (isHourError) {
+          nextFormValues.hours = d.getHours().toString();
+        }
+        if (isMinuteError) {
+          nextFormValues.minutes = d.getMinutes().toString();
+        }
+
+        setTimeFormValues(nextFormValues);
+
+        setTimeErrors({
+          ...timeErrors,
+          hours: false,
+          minutes: false,
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (popOverState?.id === `${name}_ampm` && popOverState?.action === 'ITEM') {
+      onChangeTime({ target: { value: popOverState.value } } as React.ChangeEvent<HTMLInputElement>, 'AMPM');
+      closePopOver();
+    }
+  }, [popOverState]);
+
+  let labelIconName;
+  if (locked && allowClearIfLocked && setFormValues) {
+    labelIconName = 'lock';
+  }
 
   return (
     <div
@@ -119,7 +211,6 @@ export function InputTime(p: InputTimeType & Omit<LabelType, 'children'>) {
         preset,
         'focus_' + (focusStyle || 'shadow'),
         fullWidth ? 'fs' : '',
-        hasRight ? 'has_r' : '',
         className,
         error ? 'error' : '',
         focused ? 'focused' : '',
@@ -137,54 +228,84 @@ export function InputTime(p: InputTimeType & Omit<LabelType, 'children'>) {
       )}
 
       <div className='rel h_item'>
-        {['hours', 'minutes'].map((field, index) => {
+        {(['hours', null, 'minutes'] as (TimeFormField | null)[]).map((field, index) => {
+          if (field === null) {
+            return <span
+              key={index}
+              className='mx_5'
+            >
+              :
+            </span>;
+          }
+
           const isHours = field === 'hours';
           return <input
+            key={field}
             className={cn(
-              borderRadiusClassName || 'r_sm',
+              'form_input',
+              timeErrors[field] ? 'error' : '',
+              borderRadiusClassName ?? 'r_sm',
               inputClassName,
-              'w_40',
+              'w_55',
               disabled ? 'disabled' : '',
             )}
             id={htmlFor}
-            name={`${name}_hh`}
+            name={`${name}_${field}`}
             type='number'
             min={0}
-            max={12}
-            placeholder='-'
-            value={(getter ? getter(value) : value) || ''}
+            max={isHours ? 12 : 59}
+            step={1}
+            placeholder='--'
+            value={timeFormValues[field] || ''}
             disabled={disabled || locked}
             autoFocus={autoFocus}
             autoComplete='off'
             spellCheck={spellCheck}
             maxLength={2}
-            onFocus={onFocus}
             onBlur={onBlur}
             // NOTE: In Preact, onInput() is triggered per key press
             // But onChange() is not (in [SchemaForm.tsx], not for direct use).
             // This means, any events that happen inside onChange()
             // will *ONLY* update onBlur()
-            onChange={(e) => onChangeTime(e, 'hours')}
-            // onInput={onInput && ((e) => onInput(e, name))}
-            // onKeyDown={onKeyDown && ((e) => onKeyDown(e, name))}
+            onChange={(e) => onChangeTime(e, field as 'hours' | 'minutes')}
+            onKeyDown={onKeyDown && ((e) => onKeyDown(e, name, field))}
           />;
         })}
 
-        {!rightIconName ? RightIconComponent :
-        createElement(onClickRight ? 'button' : 'span', {
-          className: cn(
-            'form_el_r cl_md v_center',
-            borderRadiusClassName || 'r_sm',
-            onClickRight ? 'btn' : '',
-            isLarge ? 'ic_df' : '',
-            rightIconClassName
-          ),
-          onClick: onClickRight,
-        }, (
-          <Icon
-            name={rightIconName}
-          />
-        ))}
+        <PopOverButton
+          id={`${name}_ampm`}
+          className={cn(
+            'form_input h_spread pl_xs fs ml_xs',
+            borderRadiusClassName ?? 'r_sm',
+          )}
+          zClassName='z9'
+          position='bottom_left'
+          offsetX={0}
+          offsetY={7}
+          disabled={disabled}
+          iface={{
+            name: 'PO_LIST',
+            variables: {
+              designClassName: 'w_60',
+              options: [{
+                __type: 'LIST_ITEM' as const,
+                text: 'AM',
+                value: 'AM',
+              }, {
+                __type: 'LIST_ITEM' as const,
+                text: 'PM',
+                value: 'PM',
+              }]
+            }
+          }}
+        >
+          <span>
+            {timeFormValues.AMPM || 'AM'}
+          </span>
+          <span className='cl_md form_el_r pr_6'>
+            <Icon name='caret-down' />
+          </span>
+        </PopOverButton>
 
         {!alertCount ? null : (
           <span className='alert_ct bg_err ft_tn v_center unsel r lh_1'>

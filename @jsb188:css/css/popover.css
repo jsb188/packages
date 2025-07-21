@@ -62,7 +62,6 @@
 }
 
 .po_opt {
-  min-width: 150px;
   padding: 5px 0 5px .5rem;
   border-radius: var(--radius-small);
 }

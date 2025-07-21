@@ -71,12 +71,9 @@ input.invis_input::-webkit-inner-spin-button {
   box-shadow: var(--shadow-light);
 }
 
-.focus_outline:hover input:not(.disabled),
-.focus_outline input:focus, .focus_outline:hover input:focus,
-.focus_outline.focused input,
-.focus_outline:hover textarea:not(.disabled),
-.focus_outline textarea:focus, .focus_outline:hover textarea:focus,
-.focus_outline.focused textarea {
+.focus_outline:hover .form_input:not(.disabled),
+.focus_outline .form_input:focus, .focus_outline:hover .form_input:focus,
+.focus_outline.focused .form_input {
   background-color: rgba(var(--color-main), .075) !important;
 }
 
@@ -85,8 +82,7 @@ input.invis_input::-webkit-inner-spin-button {
   background: linear-gradient(to left, var(--color-main-bg) 50%, rgba(var(--color-main), 0)) !important;
 }
 
-.focus_outline input:focus, .focus_outline.focused input,
-.focus_outline textarea:focus, .focus_outline.focused textarea {
+.focus_outline .form_input:focus, .focus_outline.focused .form_input {
   border-color: var(--color-text-default) !important;
 }
 
@@ -95,9 +91,9 @@ input.invis_input::-webkit-inner-spin-button {
   color: var(--color-text-light);
 }
 
-.form_el.error input {
-  border-color: rgb(var(--color-error));
-  background-color: rgba(var(--color-error-faded), .1);
+.form_el.error .form_input, .form_el .form_input.error {
+  border-color: rgb(var(--color-error)) !important;
+  background-color: rgba(var(--color-error-faded), .1) !important;
 }
 
 .form_el.c input {
@@ -105,7 +101,7 @@ input.invis_input::-webkit-inner-spin-button {
 }
 
 /* Input preset: lighter */
-.form_el.lighter input, .form_el.lighter textarea, .form_el.lighter .tx_virtualizer {
+.form_el.lighter .form_input, .form_el.lighter .tx_virtualizer {
   border: solid 1px var(--color-darker-light);
 }
 
@@ -175,6 +171,8 @@ fieldset input[type="radio"] {
   background: linear-gradient(to left, rgba(var(--color-bg), 1) 50%, rgba(var(--color-bg), 0));
 }
 
+/* .active is for <PopOverButton /> active state, not ::active */
+.active .form_el_r,
 .focused .form_el_r, .form_el_r.btn:hover {
   color: var(--color-text);
 }
