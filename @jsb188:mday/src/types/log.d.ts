@@ -1,4 +1,5 @@
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import type { AccountObj } from '@jsb188/app/types/account.d';
 import { LOG_ARABLE_ACTIVITY_ENUMS } from '../constants/log';
 
 // All logs types
@@ -26,6 +27,7 @@ interface LogArableInsertObj extends LogArableObj {
 }
 
 interface LogArableDataObj extends LogArableObj {
+  __table: 'logs_arable';
 	id: number;
 	crop: {
 		id: number;
@@ -54,6 +56,7 @@ export interface LogEntryInsertObj {
 }
 
 export interface LogEntryDataObj {
+  __table: 'logs';
   id: number;
 	accountId: number;
 	organizationId: number;

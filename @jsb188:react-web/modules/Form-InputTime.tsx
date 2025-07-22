@@ -42,6 +42,7 @@ type TimeFormField = 'hours' | 'minutes' | 'AMPM';
 
 interface InputTimeType {
   id?: string;
+  scrollAreaDOMId?: string;
   timeZone?: string | null;
   alertCount?: number;
   autoFocus?: boolean;
@@ -71,6 +72,7 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
 
   const {
     id,
+    scrollAreaDOMId,
     timeZone,
     className,
     alertCount,
@@ -126,9 +128,6 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
 
   const onChangeTime = (e: React.ChangeEvent<HTMLInputElement>, field: TimeFormField) => {
     const value = e.target.value;
-
-    console.log('change time:', field, '->', value);
-
 
     setTimeFormValues({...timeFormValues, [field]: value });
 
@@ -274,6 +273,7 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
 
         <PopOverButton
           id={`${name}_ampm`}
+          scrollAreaDOMId={scrollAreaDOMId}
           className={cn(
             'form_input h_spread pl_xs fs ml_xs',
             borderRadiusClassName ?? 'r_sm',

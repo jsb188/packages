@@ -81,6 +81,8 @@ export default {
     category: 'Category',
     activity: 'Activity',
     activity_ph: 'Type of activity',
+    crop: 'Crop',
+    crop_ph: 'Select crop',
 
     // Day periods
     greet_MORNING: 'Good morning, %{name}.',

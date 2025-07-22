@@ -1,12 +1,10 @@
-// import { z } from 'zod';
 import i18n from '@jsb188/app/i18n';
 import { getCalDate } from '@jsb188/app/utils/datetime';
 import { getObject } from '@jsb188/app/utils/object';
+import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 import { ARABLE_ACTIVITIES_GROUPED } from '../constants/log';
 import type { LogEntryGQLData } from '../types/log.d';
 import { getLogCategoryColor } from '../utils/log';
-import { DateTime } from 'luxon';
-import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 
 /**
  * Convert GQL data to GQL mutation input format
@@ -77,6 +75,7 @@ export function getLogDetailsInputName(__typename: string) {
  */
 
 export function makeLogEntryDetailsSchema(
+  scrollAreaDOMId: string,
   formId: string,
   timeZone: string | null | undefined,
   __typename: string,
@@ -88,6 +87,7 @@ export function makeLogEntryDetailsSchema(
   let schemaItems: any[] = [];
 
   const poProps = {
+    scrollAreaDOMId,
     zClassName: 'z9',
     position: 'bottom_left',
     offsetX: 0,
@@ -145,6 +145,14 @@ export function makeLogEntryDetailsSchema(
           max: 99999999.99, // database max is numeric(10, 2)
           placeholder: i18n.t('log.price_arable_ph'),
         },
+      }, {
+        __type: 'none',
+        forceClickId: 'input_click_arableDetails.cropId',
+        label: i18n.t('form.crop'),
+        item: {
+          name: 'arableDetails.cropId',
+          placeholder: i18n.t('form.crop_ph'),
+        }
       }];
     default:
   }
@@ -156,43 +164,43 @@ export function makeLogEntryDetailsSchema(
 
     schemaItems = schemaItems.concat([{
       __type: 'input_click',
-        forceClickId: 'input_click_date',
-        label: i18n.t('form.date'),
-        item: {
-          name: 'date',
-          focused: focusedName === (formId + '_date'),
-          getter: (value: string) => getCalDate(new Date(value), timeZone).calDate,
-        },
-        popOverProps: {
-          id: formId + '_date',
-          ...poProps,
-          iface: {
-            name: 'PO_LIST',
-            variables: {
-              designClassName: 'w_300',
-              className: 'max_h_40vh',
-              initialState: {
-                date: formValues.date ? new Date(formValues.date) : new Date(),
-              },
-              options: [{
-                __type: 'DATE_PICKER',
-                name: 'date',
-                minDate,
-                maxDate,
-              }]
-            }
+      forceClickId: 'input_click_date',
+      label: i18n.t('form.date'),
+      item: {
+        name: 'date',
+        focused: focusedName === (formId + '_date'),
+        getter: (value: string) => getCalDate(new Date(value), timeZone).calDate,
+      },
+      popOverProps: {
+        id: formId + '_date',
+        ...poProps,
+        iface: {
+          name: 'PO_LIST',
+          variables: {
+            designClassName: 'w_300',
+            className: 'max_h_40vh',
+            initialState: {
+              date: formValues.date ? new Date(formValues.date) : new Date(),
+            },
+            options: [{
+              __type: 'DATE_PICKER',
+              name: 'date',
+              minDate,
+              maxDate,
+            }]
           }
         }
-      }, {
-        __type: 'input_time_from_date',
-        label: i18n.t(timeZoneCode ? 'form.time_with_zone' : 'form.time', { timeZone: timeZoneCode }),
-        item: {
-          name: 'date', // date value will be used to extract time
-          type: 'time',
-          timeZone,
-        },
-      }]
-    );
+      }
+    }, {
+      __type: 'input_time_from_date',
+      label: i18n.t(timeZoneCode ? 'form.time_with_zone' : 'form.time', { timeZone: timeZoneCode }),
+      scrollAreaDOMId,
+      item: {
+        name: 'date', // date value will be used to extract time
+        type: 'time',
+        timeZone,
+      },
+    }]);
   }
 
   if (schemaItems[0] && activitiesList.length) {
@@ -204,7 +212,7 @@ export function makeLogEntryDetailsSchema(
       iface: {
         name: 'PO_LIST',
         variables: {
-          designClassName: 'w_200',
+          designClassName: 'w_225',
           className: 'max_h_40vh',
           options: activitiesList.reduce((acc, [type, activities], i) => {
             const colorIndicator = getLogCategoryColor(type);

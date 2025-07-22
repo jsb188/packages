@@ -662,7 +662,9 @@ export function FormItem(p: any) {
       return <FVPasswordInput disabled={disabled} {...item} {...other} />;
     case 'textarea':
       return <FVTextarea disabled={disabled} {...item} {...other} />;
-    case 'select':
+    case 'none':
+      // I'm using this iface as a custom element switch
+      return null;
     default:
       console.warn('Unknown schema form __type:', __type);
   }

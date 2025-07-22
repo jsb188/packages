@@ -9,6 +9,7 @@ export const DOM_IDS = {
   sidebarInput: 'sidebar_input',
   mainFocusTextarea: 'main_tx',
   mainBodyScrollArea: 'main_scr',
+  popOverScrollArea: 'pop_over_scr',
 };
 
 // Local storage
