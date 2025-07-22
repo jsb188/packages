@@ -14,13 +14,26 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
   let logTypeToColor;
 
   // Do switch operation here
+  // switch (operation) {
+  //   case 'ARABLE':
+  //   case 'LogEntryArable':
+  //     // ..
+  //     break;
+  //   case 'LIVESTOCK':
+  //   case 'LogEntryLivestock':
+  //     // ..
+  //     break;
+  //   default:
+  // }
 
   logTypeToColor = {
     SEED: 'brown',
-    FIELD: 'yellow',
-    HARVEST: 'green',
+    PLANTING: 'amber',
+    FIELD: 'lime',
+    HARVEST: 'emerald',
     POST_HARVEST: 'cyan',
     SALES: 'blue',
+    WATER: 'violet'
   } as Record<LogTypeEnum, ColorEnum>;
 
   // Default to zinc if type is not found

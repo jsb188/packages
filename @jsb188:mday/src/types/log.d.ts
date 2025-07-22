@@ -4,7 +4,7 @@ import { LOG_ARABLE_ACTIVITY_ENUMS } from '../constants/log';
 
 // All logs types
 
-export type LogArableTypeEnum = 'SEED' | 'FIELD' | 'HARVEST' | 'POST_HARVEST' | 'SALES';
+export type LogArableTypeEnum = 'SEED' | 'PLANTING' | 'FIELD' | 'HARVEST' | 'POST_HARVEST' | 'SALES' | 'WATER';
 export type LogTypeEnum = LogArableTypeEnum;
 
 // All logs activities
@@ -27,7 +27,7 @@ interface LogArableInsertObj extends LogArableObj {
 }
 
 interface LogArableDataObj extends LogArableObj {
-  __table: 'logs_arable';
+	__table: 'logs_arable';
 	id: number;
 	crop: {
 		id: number;
@@ -39,10 +39,10 @@ export interface LogEntryGQLData {
 	id: string;
 	accountId: string;
 	organizationId: string;
-	details: LogArableDataObj & { __typename: string, type: any };
+	details: LogArableDataObj & { __typename: string; type: any };
 
 	account: any;
-  date: string; // ISO date string
+	date: string; // ISO date string
 	createdAt: string; // ISO date string
 	updatedAt: string; // ISO date string
 }
@@ -56,8 +56,8 @@ export interface LogEntryInsertObj {
 }
 
 export interface LogEntryDataObj {
-  __table: 'logs';
-  id: number;
+	__table: 'logs';
+	id: number;
 	accountId: number;
 	organizationId: number;
 	organizationBranchId: number | null;

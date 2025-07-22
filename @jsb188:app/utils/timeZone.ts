@@ -2417,5 +2417,12 @@ export function indexToTimeZone(index?: number | string | null): string | null {
  */
 
 export function getTimeZoneCode(tz?: string | null): string | null {
-  return tz ? DateTime.now().setZone(tz).toFormat('ZZZZ') : null;
+	if (tz) {
+    try {
+      return DateTime.now().setZone(tz).toFormat('ZZZZ');
+    } catch (e) {
+      console.warn('Invalid timezone:', tz, e);
+    }
+  }
+  return null;
 }

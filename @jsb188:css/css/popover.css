@@ -49,9 +49,15 @@
 
 .po_subtitle {
   position: sticky;
-  top: -.3rem; left: 0; right: 0;
-  padding: .35rem .4rem .4rem;
+  top: 0; left: 0; right: 0;
+  padding: 5px .4rem 8px;
   margin-bottom: .3rem;
+}
+
+.po_subtitle_cover {
+  position: absolute;
+  top: -5px; left: 0; right: 0;
+  height: 5px;
 }
 
 /* Pop over; list item */

@@ -116,10 +116,12 @@
   transition-timing-function: ease-out;
   transition-duration: 200ms;
   transform: translateY(20%);
+  opacity: 0;
 }
 
 .anim_move_up_center.visible .target:not(.anim_inner), .anim_move_up_center.visible.target {
   transform: translateY(0);
+  opacity: 1;
 }
 
 .anim_move_up_center.on_mount, .anim_move_up_center.reverse {
@@ -130,8 +132,10 @@
 }
 
 @keyframes keyframes_shift_appear_center {
-  from { transform: translateY(20%); }
-  to { transform: translateY(0); }
+  /* NOTE: This is double opacity animation because of modal container + content animation; */
+  /* but having 2 opacity transitions made it smoother */
+  from { transform: translateY(20%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* Lift up & expand (scale transform) from sunken position */

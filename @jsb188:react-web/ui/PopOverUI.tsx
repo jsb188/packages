@@ -119,7 +119,9 @@ export const POListSubtitle = memo((p: POListSubtitleProps) => {
   const { item: { text } } = p;
 
   return (
-    <div className='po_subtitle bd_b_1 bd_lt ft_xs h_item bg z2 shadow_bg'>
+    <div className='po_subtitle bd_b_1 bd_lt ft_xs h_item bg z2 shadow_bg rel'>
+      {/* This <div> makes sticky position work with proper padding */}
+      <div className='po_subtitle_cover bg' />
       <strong className='ft_medium'>{text}</strong>
     </div>
   );
