@@ -15,6 +15,8 @@ export const logEntryArableFragment = `fragment logEntryArableFragment on LogEnt
   id
   type
   activity
+  concentration
+  concentrationUnit
   quantity
   unit
   price

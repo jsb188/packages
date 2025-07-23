@@ -125,15 +125,69 @@ export function calculateDiscount(normalPrice: number, discountedPrice: number) 
  *
  * @param value - The number to format
  * @param trimDecimals - If true, trims the decimal places to the first non-zero digit
+ * @param doNotAllowNaN - If true, returns empty string "" if the value is NaN
  * @returns Formatted string representation of the number
  */
 
-export function formatDecimal(value_: string | number, trimDecimals: boolean = false): string {
-  const value = String(value_);
-  if (Number(value) % 1 === 0) {
-    return Number(value).toString(); // Whole number
-  } else if (trimDecimals) {
-    return parseFloat(value.toString()).toString(); // Trims to first non-zero decimal
+export function formatDecimal(
+  value_: string | number,
+  trimDecimals: boolean = false,
+  doNotAllowNaN: boolean = false
+): string {
+	const value = String(value_);
+
+  let formattedStr;
+	if (Number(value) % 1 === 0) {
+		formattedStr = Number(value).toString(); // Whole number
+	} else if (trimDecimals) {
+		formattedStr = parseFloat(value.toString()).toString(); // Trims to first non-zero decimal
+	} else {
+    formattedStr = String(value); // Keep existing decimal places
   }
-  return String(value); // Keep existing decimal places
+  return doNotAllowNaN && isNaN(Number(formattedStr)) ? '' : formattedStr;
+}
+
+/**
+ * Get currency symbol from settings
+ * Example 1: getCurrencySymbol('en-US', 'USD'); // "$"
+ * Example 2: getCurrencySymbol('fr-FR', 'EUR'); // "€"
+ * Example 3: getCurrencySymbol('ja-JP', 'JPY'); // "￥"
+ * Example 4: getCurrencySymbol('en-GB', 'GBP'); // "£"
+ *
+ * @param locale - The locale to use for formatting
+ * @param currency - The currency code (e.g., 'USD', 'EUR')
+ * @returns currency symbol as a string
+ */
+
+export function getCurrencySymbol(locale: string, currency: string): string {
+  const parts = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).formatToParts(1);
+
+  const symbolPart = parts.find(part => part.type === 'currency');
+  return symbolPart?.value || '';
+}
+
+/**
+ * Format number to currency format
+ */
+
+export function formatCurrency(
+  amount: string | number,
+  locale: string = 'en-US',
+  currency: string = 'USD'
+): string {
+	const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(num)) return "$0";
+
+  const hasDecimals = num % 1 !== 0;
+  const symbol = getCurrencySymbol(locale, currency);
+
+  return symbol + num.toLocaleString(locale, {
+    minimumFractionDigits: hasDecimals ? 2 : 0,
+    maximumFractionDigits: hasDecimals ? 2 : 0,
+  });
 }

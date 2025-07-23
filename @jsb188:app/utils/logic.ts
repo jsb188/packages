@@ -1,3 +1,5 @@
+import { sortObjectByKeys } from './object.ts';
+
 /**
  * Types
  */
@@ -37,7 +39,9 @@ export function getDatabaseAction(
 			let value = typeof data[key] === 'string' ? data[key].trim() : data[key];
 			if (value instanceof Date) {
 				value = value.toISOString();
-			}
+			} else if (value && typeof value === 'object') {
+        value = JSON.stringify(sortObjectByKeys(value));
+      }
 
 			const isNullValue = value !== null || allowNull;
 			if (isNullValue) {
@@ -47,7 +51,9 @@ export function getDatabaseAction(
 			let currentValue = currentData[key];
 			if (currentValue instanceof Date) {
 				currentValue = currentValue.toISOString();
-			}
+			} else if (currentValue && typeof currentValue === 'object') {
+        currentValue = JSON.stringify(sortObjectByKeys(currentValue));
+      }
 
 			if (
 				// Doing loose != check instead of !== type check

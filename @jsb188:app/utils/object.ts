@@ -37,7 +37,7 @@ export function removeUndefined<T>(obj: T, removeNull?: boolean) {
 				(removeNull && obj[key] === null)
 			) {
 				delete obj[key];
-			} else if (typeof obj[key] === 'object') {
+			} else if (obj[key] && typeof obj[key] === 'object') {
 				removeUndefined(obj[key], removeNull);
 			}
 		}
@@ -149,9 +149,9 @@ export function orderBy(
  * Group array by something
  */
 
-export function groupBy(arr: Array<any>, key: string) {
+export function groupBy(arr: Array<any>, key: string | ((obj: any) => string)) {
 	return arr.reduce((acc, obj) => {
-		const group = obj[key];
+		const group = typeof key === 'function' ? key(obj) : obj[key];
 		acc[group] = acc[group] || [];
 		acc[group].push(obj);
 		return acc;
@@ -456,15 +456,15 @@ export function getFirstMapKey(map: Map<any, any>) {
  */
 
 export function getObject(obj: any, path: string): any {
-  if (!obj || !path) {
-    return undefined;
-  }
-  return path.split('.').reduce((o, key) => {
-    if (o && typeof o === 'object' && key in o) {
-      return o[key];
-    }
-    return undefined;
-  }, obj);
+	if (!obj || !path) {
+		return undefined;
+	}
+	return path.split('.').reduce((o, key) => {
+		if (o && typeof o === 'object' && key in o) {
+			return o[key];
+		}
+		return undefined;
+	}, obj);
 }
 
 /**
@@ -476,23 +476,23 @@ export function getObject(obj: any, path: string): any {
  */
 
 export function setObject(obj: any, path: string, value: any): any {
-  if (!obj || !path) {
-    return obj;
-  }
-  const keys = path.split('.');
-  const lastKey = keys.pop();
-  const nestedObj = keys.reduce((o, key) => {
-    if (!o[key]) {
-      o[key] = {};
-    }
-    return o[key];
-  }, obj);
+	if (!obj || !path) {
+		return obj;
+	}
+	const keys = path.split('.');
+	const lastKey = keys.pop();
+	const nestedObj = keys.reduce((o, key) => {
+		if (!o[key]) {
+			o[key] = {};
+		}
+		return o[key];
+	}, obj);
 
-  if (lastKey) {
-    nestedObj[lastKey] = value;
-  }
+	if (lastKey) {
+		nestedObj[lastKey] = value;
+	}
 
-  return obj;
+	return obj;
 }
 
 /**
@@ -503,14 +503,33 @@ export function setObject(obj: any, path: string, value: any): any {
  */
 
 export function hasObject(obj: any, namespace: string): boolean {
-  if (!obj || !namespace) {
-    return false;
-  }
-  return namespace.split('.').every((key) => {
-    if (obj && typeof obj === 'object' && key in obj) {
-      obj = obj[key];
-      return true;
-    }
-    return false;
-  });
+	if (!obj || !namespace) {
+		return false;
+	}
+	return namespace.split('.').every((key) => {
+		if (obj && typeof obj === 'object' && key in obj) {
+			obj = obj[key];
+			return true;
+		}
+		return false;
+	});
+}
+
+/**
+ * Sort an Object by keys alphabetically
+ * @param obj - The object to sort
+ * @returns - Returns a new object with keys sorted alphabetically
+ */
+
+export function sortObjectByKeys(obj: Record<string, any>): Record<string, any> {
+	if (!obj || typeof obj !== 'object') {
+		return obj;
+	}
+
+	const sortedKeys = Object.keys(obj).sort();
+	const sortedObj: Record<string, any> = {};
+	for (const key of sortedKeys) {
+		sortedObj[key] = obj[key];
+	}
+	return sortedObj;
 }

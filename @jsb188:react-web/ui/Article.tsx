@@ -89,10 +89,10 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
         ))}
       </div>
 
-      {title && <span className='f_shrink py_sm'>{title}</span>}
+      {title && <span className='f_shrink py_sm shift_down'>{title}</span>}
 
       {description || descriptionPlaceholder ? (
-        <span className={cn('ellip py_sm f', description ? 'cl_md' : 'cl_lt')}>
+        <span className={cn('ellip py_sm f shift_down', description ? 'cl_md' : 'cl_lt')}>
           {description || descriptionPlaceholder}
         </span>
       ) : <span className='f' />}
