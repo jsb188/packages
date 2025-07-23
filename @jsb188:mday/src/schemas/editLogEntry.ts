@@ -219,11 +219,11 @@ export function makeLogEntryDetailsSchema(
             const isEnd = i === activitiesList.length - 1;
 
             const updatedList = acc.concat({
-              __type: 'LIST_ITEM' as const,
+              __type: 'LIST_SUBTITLE' as const,
               colorIndicator,
               text: i18n.t(`log.type_short.${type}`),
               className: 'mt_sm',
-              textClassName: 'cl_md shift_down',
+              textClassName: `cl_${colorIndicator}`,
             }).concat(activities.map((activity: string) => ({
               __type: 'LIST_ITEM' as const,
               // colorIndicator,

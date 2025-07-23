@@ -341,7 +341,7 @@ export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
         iconSizeClassName
       )}
     >
-      {colorIndicator && <span className={`indicator f_shrink bg_${colorIndicator}_df`} />}
+      {colorIndicator && <span className={`indicator f_shrink bg_${colorIndicator}`} />}
       {iconName ? <Icon name={iconName} /> : null}
       {text}
     </span>

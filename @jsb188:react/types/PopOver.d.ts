@@ -23,6 +23,8 @@ export interface ClientRectValues {
   __type: 'LIST_SUBTITLE';
   hidden?: boolean;
   text: string;
+  textClassName?: string;
+  colorIndicator?: ColorEnum;
 }
 
 export interface POListBreakObj {
