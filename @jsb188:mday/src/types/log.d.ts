@@ -12,20 +12,30 @@ export type LogTypeEnum = LogArableTypeEnum;
 export type LogArableActivityEnum = typeof LOG_ARABLE_ACTIVITY_ENUMS[number];
 export type LogActivityEnum = LogArableActivityEnum;
 
+interface LogDetailsGQLBase {
+  __typename: string;
+  id: string;
+  type: any;
+  activity: any;
+  notes: string;
+}
+
 // Log entry object
+
+interface LogArableMetadata {
+	quantity: number;
+	unit: string;
+	concentration: number;
+	concentrationUnit: string;
+	price: number;
+}
 
 interface LogArableObj {
   type?: LogArableTypeEnum; // Only set in server if manually extended
 	activity: LogArableActivityEnum;
 	notes: string | null;
 
-	metadata?: Partial<{
-		quantity: number;
-		unit: string;
-		concentration: number;
-		concentrationUnit: string;
-		price: number;
-	}> | null;
+	metadata?: Partial<LogArableMetadata> | null;
 }
 
 interface LogArableInsertObj extends LogArableObj {
@@ -45,7 +55,7 @@ export interface LogEntryGQLData {
 	id: string;
 	accountId: string;
 	organizationId: string;
-	details: LogArableDetailsObj & { __typename: string; type: any };
+	details: LogArableMetadata & LogDetailsGQLBase & { crop: any };
 
 	account: any;
 	date: string; // ISO date string

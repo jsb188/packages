@@ -83,6 +83,13 @@ export default {
     activity_ph: 'Type of activity',
     crop: 'Crop',
     crop_ph: 'Select crop',
+    concentration: 'Concentration',
+    concentration_ph: '0.5',
+    concentration_unit: 'Concentration unit',
+    concentration_unit_ph: 'mg/L',
+    water_quantity: 'Quantity (water)',
+    water_unit: 'Unit (water)',
+    water_unit_ph: 'gallons, litres',
 
     // Day periods
     greet_MORNING: 'Good morning, %{name}.',

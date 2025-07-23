@@ -50,7 +50,7 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
  * @returns The log type or null if not found
  */
 
-export function getLogCategoryFromActivity(operation: OrganizationOperationEnum | string, activity: any) {
+export function getLogTypeFromActivity(operation: OrganizationOperationEnum | string, activity: any) {
 	switch (operation) {
 		case 'ARABLE':
 		case 'LogEntryArable':

@@ -23,8 +23,6 @@
 .form_el input, .form_el textarea, .form_el .tx_virtualizer {
   border: solid 1px var(--color-text-light);
   background-color: transparent;
-  /* opacity: .2; */
-  /* box-shadow: 0 2px 4px rgb(var(--color-main)), 0 4px 10px rgb(var(--color-main)); */
 }
 
 /* Invisible input (use this to make inputs clickable with separate render component) */
@@ -71,9 +69,9 @@ input.invis_input::-webkit-inner-spin-button {
   box-shadow: var(--shadow-light);
 }
 
-.focus_outline:hover .form_input:not(.disabled),
-.focus_outline .form_input:focus, .focus_outline:hover .form_input:focus,
-.focus_outline.focused .form_input {
+.focus_outline:hover .form_input:not(.disabled):not(.error),
+.focus_outline .form_input:not(.error):focus, .focus_outline:not(.error):hover .form_input:not(.error):focus,
+.focus_outline.focused .form_input:not(.error) {
   background-color: rgba(var(--color-main), .075) !important;
 }
 

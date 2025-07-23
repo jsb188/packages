@@ -19,6 +19,8 @@ export interface ModalProps {
   [key: string]: any;
 }
 
+type ModalPropsFn = (prev: ModalProps | null) => ModalProps | null;
+
 export type OpenModalScreenFn = (data: ModalRequestParams) => void;
 
 export type OpenModalPopUpFn = (data: ModalRequestParams | null, err?: ServerErrorObj) => void;
@@ -226,9 +228,12 @@ const popUpClass = new ModalPopUp('popup', POPUP_DEFAULT_VALUES);
  * Create handler functions
  */
 
-function composeOpenModalScreenFn(setScreen: (value: ModalProps | null) => void) {
-  return (data: ModalRequestParams) => {
-    const nextScreenState = screenClass.open(data);
+function composeOpenModalScreenFn(
+  setScreen: (value: ModalProps | null) => void,
+  prevScreen: ModalProps | null
+) {
+  return (data: ModalRequestParams | ModalPropsFn) => {
+    const nextScreenState = typeof data === 'function' ? data(prevScreen) : screenClass.open(data);
     if (nextScreenState) {
       setScreen(nextScreenState);
     } else {
@@ -266,7 +271,7 @@ function composeCloseModalPopUpFn(setPopUp: (value: ModalProps | null) => void) 
 
 export function useModalScreen(): ModalScreenProps {
   const [screen, setScreen] = useAtom(screenClass.state);
-  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen), []);
+  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen, screen), [screen]);
   const closeModalScreen = useCallback( composeCloseModalScreenFn(setScreen), []);
 
   return {
@@ -281,8 +286,8 @@ export function useModalScreen(): ModalScreenProps {
  */
 
 export function useOpenModalScreen(): OpenModalScreenFn {
-  const setScreen = useSetAtom(screenClass.state);
-  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen), []);
+  const [screen, setScreen] = useAtom(screenClass.state);
+  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen, screen), [screen]);
 
   return openModalScreen;
 }
@@ -308,10 +313,10 @@ export function useModalPopUp(): ModalPopUpProps {
  */
 
 export function useModalHandlers(): ModalHandlerProps {
-  const setScreen = useSetAtom(screenClass.state);
+  const [screen, setScreen] = useAtom(screenClass.state);
   const setPopUp = useSetAtom(popUpClass.state);
 
-  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen), []);
+  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen, screen), [screen]);
   const closeModalScreen = useCallback( composeCloseModalScreenFn(setScreen), []);
   const openModalPopUp = useCallback( composeOpenModalPopUpFn(setPopUp), []);
   const closeModalPopUp = useCallback( composeCloseModalPopUpFn(setPopUp), []);

@@ -4,7 +4,7 @@ import { getObject } from '@jsb188/app/utils/object';
 import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 import { ARABLE_ACTIVITIES_GROUPED } from '../constants/log';
 import type { LogEntryGQLData } from '../types/log.d';
-import { getLogCategoryColor } from '../utils/log';
+import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log';
 
 /**
  * Convert GQL data to GQL mutation input format
@@ -24,6 +24,8 @@ export function makeFormValuesFromData(logEntry: LogEntryGQLData) {
         activity: details.activity,
         quantity: details.quantity,
         unit: details.unit,
+        concentration: details.concentration,
+        concentrationUnit: details.concentrationUnit,
         price: details.price,
         notes: details.notes,
         cropId: details.crop?.id,
@@ -47,7 +49,7 @@ export function formatFormValuesForMutation(formValues: Record<string, any>) {
     if (formValues[key] && typeof formValues[key] === 'object') {
 
       for (const subKey in formValues[key]) {
-        if (['quantity','price'].includes(subKey)) {
+        if (['quantity','price','concentration'].includes(subKey)) {
           formValues[key][subKey] = parseFloat(formValues[key][subKey]);
         }
       }
@@ -102,7 +104,10 @@ export function makeLogEntryDetailsSchema(
 
   switch (__typename) {
     case 'LogEntryArable':
-      // Some of the types omit some fields, but for now, we're including all
+      const logType = getLogTypeFromActivity('ARABLE', formValues.arableDetails?.activity);
+      const isWaterTesting = logType === 'WATER';
+      const isPriceRelated = ['SALES', 'SEED'].includes(logType!);
+
       activitiesList = ARABLE_ACTIVITIES_GROUPED;
       schemaItems = [{
         __type: 'input_click',
@@ -116,8 +121,29 @@ export function makeLogEntryDetailsSchema(
           getter: (value: string) => value ? i18n.t(`log.activity.${value}`) : '',
         },
       }, {
+        // Water testing inputs
+        __type: isWaterTesting ? 'input' : 'none',
+        label: i18n.t('form.concentration'),
+        item: {
+          name: 'arableDetails.concentration',
+          type: 'number',
+          step: 0.1,
+          min: 0.1,
+          max: 99999999.99, // database max is numeric(10, 2)
+          placeholder: i18n.t('form.concentration_ph'),
+        },
+      }, {
+        __type: isWaterTesting ? 'input' : 'none',
+        label: i18n.t('form.concentration_unit'),
+        item: {
+          name: 'arableDetails.concentrationUnit',
+          maxLength: 40,
+          placeholder: i18n.t('form.concentration_unit_ph'),
+        },
+      }, {
+        // Regular inputs
         __type: 'input',
-        label: i18n.t('form.quantity'),
+        label: i18n.t(isWaterTesting ? 'form.water_quantity' : 'form.quantity'),
         item: {
           name: 'arableDetails.quantity',
           type: 'number',
@@ -128,14 +154,14 @@ export function makeLogEntryDetailsSchema(
         },
       }, {
         __type: 'input',
-        label: i18n.t('form.unit'),
+        label: i18n.t(isWaterTesting ? 'form.water_unit' : 'form.unit'),
         item: {
           name: 'arableDetails.unit',
           maxLength: 40,
-          placeholder: i18n.t('log.unit_arable_ph'),
+          placeholder: i18n.t(isWaterTesting ? 'form.water_unit_ph' : 'log.unit_arable_ph'),
         },
       }, {
-        __type: 'input',
+        __type: isPriceRelated ? 'input' : 'none',
         label: i18n.t('form.price'),
         item: {
           name: 'arableDetails.price',
@@ -146,7 +172,7 @@ export function makeLogEntryDetailsSchema(
           placeholder: i18n.t('log.price_arable_ph'),
         },
       }, {
-        __type: 'none',
+        __type: 'custom',
         forceClickId: 'input_click_arableDetails.cropId',
         label: i18n.t('form.crop'),
         item: {

@@ -11,6 +11,7 @@
     "./hooks/use-contentEditable": "./hooks/use-contentEditable.tsx",
     "./modules/AuthForm": "./modules/Auth/AuthForm.tsx",
     "./modules/Calendar": "./modules/Calendar.tsx",
+    "./modules/Scroll": "./modules/Scroll.tsx",
     "./modules/Form": "./modules/Form.tsx",
     "./modules/HorizontalScrollTabs": "./modules/HorizontalScrollTabs.tsx",
     "./modules/PopOver": "./modules/PopOver.tsx",
