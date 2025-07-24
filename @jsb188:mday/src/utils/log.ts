@@ -67,17 +67,19 @@ export function getLogTypeFromActivity(operation: OrganizationOperationEnum | st
 /**
  * Get the title for log entry for each Union interface
  * @param details - The details Union interface for log entry
- * @param logType - Use this param if this function is used in server; {d.type} will be undefined unless manually set
  * @param isServer - True if used in server
+ * @param logType - Use this param if this function is used in server; {d.type} will be undefined unless manually set
+ * @param iface - In unique cases (such as client-side form), you can use this for interface name
  * @return The title for the log entry
  */
 
-export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string): string {
+export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, iface?: string): string {
 	const { __typename, __table, type } = d;
   const logType = logType_ || type;
   const md = isServer ? (d.metadata || {}) : d;
 
-	switch (__typename || __table) {
+	switch (iface || __typename || __table) {
+    case 'ARABLE':
 		case 'logs_arable':
 		case 'LogEntryArable': {
       const quantityText = [formatDecimal(md.quantity, true, true), md.unit].filter(Boolean).join(' ');

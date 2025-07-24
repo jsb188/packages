@@ -525,6 +525,11 @@ export const CornerDownLeft = <svg xmlns="http://www.w3.org/2000/svg" className=
 <path d="M18 6v6a3 3 0 0 1 -3 3h-10l4 -4m0 8l-4 -4" stroke="currentColor" />
 </svg>;
 
+export const CornerDownRight = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-corner-down-right">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M6 6v6a3 3 0 0 0 3 3h10l-4 -4m0 8l4 -4" />
+</svg>;
+
 export const CPU = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-cpu" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M5 5m0 1a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1z" stroke="currentColor" />

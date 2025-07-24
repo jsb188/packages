@@ -1,4 +1,6 @@
-import { useRef, memo, useEffect } from 'react';
+import { cn } from '@jsb188/app/utils/string';
+import { useAnimationVisibility } from '@jsb188/react/hooks';
+import { memo, useEffect, useRef, useState } from 'react';
 
 /**
  * Add class when element is at top of scroll area
@@ -8,12 +10,20 @@ export interface ScrollAwareProps {
   as?: React.ElementType;
   children: React.ReactNode;
   className?: string;
+  atTopClassName?: string;
+  notAtTopClassName?: string;
   scrollAreaDOMId?: string;
+  hideIfNotTop?: boolean;
+  offset?: number; // NOTE: This will make this Component *not* work if the element is {position: sticky}
 }
 
 export const ScrollAware = memo((p: ScrollAwareProps) => {
-  const { as, scrollAreaDOMId, className, ...rest } = p;
+  const { children, as, scrollAreaDOMId, className, hideIfNotTop, offset, atTopClassName: atTopClassName_, notAtTopClassName: notAtTopClassName_, ...rest } = p;
+  const atTopClassName = atTopClassName_ ?? 'at_top';
+  const notAtTopClassName = notAtTopClassName_ ?? 'not_at_top';
   const elementRef = useRef<HTMLDivElement>(null);
+  const [atTop, setAtTop] = useState(false);
+  const [ , visible] = useAnimationVisibility(atTop);
   const Element = as || 'div';
 
   useEffect(() => {
@@ -22,15 +32,14 @@ export const ScrollAware = memo((p: ScrollAwareProps) => {
 
     if (scrollAreaDOM && elementRef.current) {
       const handleScroll = () => {
-        const rect = elementRef.current?.getBoundingClientRect();
-        if (rect) {
-          const isAtTop = rect.top >= scrollAreaDOM.getBoundingClientRect().top;
-          if (isAtTop) {
-            // console.log('AT TOP:', rect.top, scrollAreaDOM.getBoundingClientRect().top);
-            // elementRef.current?.classList.add('at-top');
-          } else {
-            // console.log('NOT AT TOP:', rect.top, scrollAreaDOM.getBoundingClientRect().top);
-            // elementRef.current?.classList.remove('at-top');
+        const elemRect = elementRef.current?.getBoundingClientRect();
+        if (elemRect) {
+
+          const scrollAreaRect = scrollAreaDOM.getBoundingClientRect();
+          const isAtTop = elemRect.top <= (scrollAreaRect.top - (offset || 0));
+
+          if (isAtTop !== atTop) {
+            setAtTop(isAtTop);
           }
         }
       };
@@ -44,13 +53,15 @@ export const ScrollAware = memo((p: ScrollAwareProps) => {
         scrollAreaDOM.removeEventListener('scroll', handleScroll);
       };
     }
-  }, [scrollAreaDOMId]);
+  }, [scrollAreaDOMId, atTop]);
 
   return <Element
     ref={elementRef}
-    className={className}
+    className={cn(className, atTop ? atTopClassName : notAtTopClassName)}
     {...rest}
-  />;
+  >
+    {!visible && hideIfNotTop ? null : children}
+  </Element>;
 });
 
 ScrollAware.displayName = 'ScrollAware';

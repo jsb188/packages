@@ -7,6 +7,7 @@ export default {
     or: 'or',
     cancel: 'Cancel',
     continue: 'Continue',
+    continue_editing: 'Continue editing',
     apply: 'Apply',
     apply_filters: 'Apply filters',
     hide: 'Hide',

@@ -875,7 +875,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 /* Transitions */
 
 .trans { transition: all .25s ease-in-out; }
-.trans_link, button:not(:disabled), .link[role="button"]:not(.disabled), a:not(.disabled) { transition: color .125s ease-in-out, background-color .125s ease-in-out, opacity .125s ease-in-out; }
+.trans_link, button:not(:disabled), .link[role="button"]:not(.disabled), a:not(.disabled) { transition: color .125s ease-in-out, background-color .125s ease-in-out, border-color .125s ease-in-out, opacity .125s ease-in-out; }
 .trans_transform { transition: transform .1s ease-in-out; }
 .trans_none, .trans_none *, .trans_none_inner * { transition: none !important; }
 
