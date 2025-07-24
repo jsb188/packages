@@ -1,10 +1,13 @@
 import { OrganizationRelData, OrganizationRelGQLData } from '../types/organization.d';
 
+// Placeholder to match Server import
+type ViewerOrganization = any;
+
 const PERMISSION_TO_INT = {
-  NONE: 0,
-  READ: 1,
-  WRITE: 2,
-  MANAGE: 3,
+	NONE: 0,
+	READ: 1,
+	WRITE: 2,
+	MANAGE: 3,
 };
 
 const INT_TO_PERMISSION = Object.keys(PERMISSION_TO_INT);
@@ -13,15 +16,15 @@ const INT_TO_PERMISSION = Object.keys(PERMISSION_TO_INT);
  * Get deefault permissions by role
  */
 
-export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | OrganizationRelData) {
+export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | OrganizationRelData | ViewerOrganization) {
 	const role = orgRel?.role || 'MEMBER';
-  const acl: Record<string, any> = { ...orgRel?.acl };
+	const acl: Record<string, any> = { ...orgRel?.acl };
 
-  for (const key in acl) {
-    if (typeof acl[key] === 'number') {
-      acl[key] = INT_TO_PERMISSION[acl[key]] || 'NONE';
-    }
-  }
+	for (const key in acl) {
+		if (typeof acl[key] === 'number') {
+			acl[key] = INT_TO_PERMISSION[acl[key]] || 'NONE';
+		}
+	}
 
 	// Also keep this synced with [resolvers/organizationTypeResolvers.ts]
 
@@ -77,7 +80,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 type ACLPermissionCheck = 'READ' | 'WRITE' | 'MANAGE';
 
 export function checkACLPermission(
-	orgRel: OrganizationRelGQLData | OrganizationRelData,
+	orgRel: OrganizationRelGQLData | OrganizationRelData | ViewerOrganization,
 	check: keyof ReturnType<typeof getDefaultPermissionsByRole>,
 	requiredPermission: ACLPermissionCheck,
 ): boolean | null {

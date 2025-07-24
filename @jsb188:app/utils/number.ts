@@ -130,21 +130,21 @@ export function calculateDiscount(normalPrice: number, discountedPrice: number) 
  */
 
 export function formatDecimal(
-  value_: string | number,
-  trimDecimals: boolean = false,
-  doNotAllowNaN: boolean = false
+	value_: string | number,
+	trimDecimals: boolean = false,
+	doNotAllowNaN: boolean = false,
 ): string {
 	const value = String(value_);
 
-  let formattedStr;
+	let formattedStr;
 	if (Number(value) % 1 === 0) {
 		formattedStr = Number(value).toString(); // Whole number
 	} else if (trimDecimals) {
 		formattedStr = parseFloat(value.toString()).toString(); // Trims to first non-zero decimal
 	} else {
-    formattedStr = String(value); // Keep existing decimal places
-  }
-  return doNotAllowNaN && isNaN(Number(formattedStr)) ? '' : formattedStr;
+		formattedStr = String(value); // Keep existing decimal places
+	}
+	return doNotAllowNaN && isNaN(Number(formattedStr)) ? '' : formattedStr;
 }
 
 /**
@@ -160,15 +160,15 @@ export function formatDecimal(
  */
 
 export function getCurrencySymbol(locale: string, currency: string): string {
-  const parts = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).formatToParts(1);
+	const parts = new Intl.NumberFormat(locale, {
+		style: 'currency',
+		currency,
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0,
+	}).formatToParts(1);
 
-  const symbolPart = parts.find(part => part.type === 'currency');
-  return symbolPart?.value || '';
+	const symbolPart = parts.find((part) => part.type === 'currency');
+	return symbolPart?.value || '';
 }
 
 /**
@@ -176,20 +176,24 @@ export function getCurrencySymbol(locale: string, currency: string): string {
  */
 
 export function formatCurrency(
-  amount: string | number,
-  locale: string = 'en-US',
-  currency: string = 'USD'
+	amount: string | number,
+	locale: string = 'en-US',
+	currency: string = 'USD',
 ): string {
-	const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  if (isNaN(num) || (!num && num !== 0)) {
-    return "$0";
+	const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (!num && num !== 0) {
+    return '';
   }
 
-  const hasDecimals = num % 1 !== 0;
-  const symbol = getCurrencySymbol(locale, currency);
+	if (isNaN(num)) {
+		return '$0';
+	}
 
-  return symbol + num.toLocaleString(locale, {
-    minimumFractionDigits: hasDecimals ? 2 : 0,
-    maximumFractionDigits: hasDecimals ? 2 : 0,
-  });
+	const hasDecimals = num % 1 !== 0;
+	const symbol = getCurrencySymbol(locale, currency);
+
+	return symbol + num.toLocaleString(locale, {
+		minimumFractionDigits: hasDecimals ? 2 : 0,
+		maximumFractionDigits: hasDecimals ? 2 : 0,
+	});
 }

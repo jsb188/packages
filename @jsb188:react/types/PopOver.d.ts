@@ -50,6 +50,7 @@ export interface POListItemObj {
   selected?: boolean;
   hidden?: boolean;
   disabled?: boolean;
+  onClick?: (name: string | null, value?: any) => void; // optional, if you want to bypass globalState handlers
 
   // Presets
   preset?: 'small' | 'default';

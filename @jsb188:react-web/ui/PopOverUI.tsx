@@ -167,12 +167,15 @@ interface POListItemProps extends PONavItemBase {
 }
 
 export const POListItem = memo((p: POListItemProps) => {
-  const { name, item, onClickItem, saving } = p;
+  const { name, item, saving } = p;
   const { colorIndicator, preset, className, textClassName, disabled, allowDisabledOnClick, to, text, value, iconName, rightIconName, rightIconClassName, photoUri, avatarDisplayName, selected } = item;
   const hasAvatar = !!photoUri || !!avatarDisplayName;
-  const undefinedValue = value === undefined;
   // const hasLink = !!(to || !undefinedValue);
   const hasRightComponent = saving || !!rightIconName || !!selected;
+  const undefinedValue = value === undefined;
+
+  // Allow override from item props
+  const onClickItem = item.onClick || p.onClickItem;
 
   let presetClassName = '';
   switch (preset) {

@@ -1,10 +1,11 @@
+import { checkACLPermission } from '@jsb188/app/utils/organization';
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn } from '@jsb188/react/states';
-import { editLogEntryMtn } from '../gql/mutations/logMutations';
+import { useMemo } from 'react';
+import { updateFragment } from '../cache/index';
+import { deleteLogEntryMtn, editLogEntryMtn } from '../gql/mutations/logMutations';
 import { useMutation, useReactiveFragment } from './index';
 import { useOrganizationRelationship } from './use-organization-qry';
-import { checkACLPermission } from '@jsb188/app/utils/organization';
-import { useMemo } from 'react';
 
 /**
  * Fetch a single log entry,
@@ -18,7 +19,6 @@ export function useEditLogEntry(
   params: UseMutationParams = {},
   openModalPopUp?: OpenModalPopUpFn
 ) {
-
 
   const { organizationRelationship } = useOrganizationRelationship(organizationId);
   const notReady = !organizationRelationship;
@@ -50,6 +50,35 @@ export function useEditLogEntry(
     editLogEntry,
     notReady,
     allowEdit,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Delete a single log entry
+ * NOTE: Don't check ACL and allow server to handle it.
+ */
+
+export function useDeleteLogEntry(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+
+  const { onCompleted, ...rest } = params;
+  const [deleteLogEntry, mtnValues, mtnHandlers, updateObservers] = useMutation(
+    deleteLogEntryMtn,
+    {
+      openModalPopUp,
+      onCompleted: (data, dataMtnValues, variables) => {
+        if (data?.deleteLogEntry) {
+          updateFragment(`$logEntryFragment:${variables.logEntryId}`, { __deleted: true }, null, false, updateObservers);
+        }
+         onCompleted?.(data, dataMtnValues, variables);
+      },
+      ...rest,
+    },
+  );
+
+  return {
+    deleteLogEntry,
     ...mtnValues,
     ...mtnHandlers,
   };

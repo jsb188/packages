@@ -31,3 +31,13 @@ mutation editLogEntry (
 ${logEntryFragment}
 ${logEntryArableFragment}
 `;
+
+export const deleteLogEntryMtn = gql`
+mutation deleteLogEntry (
+  $logEntryId: GenericID!
+) {
+  deleteLogEntry (
+    logEntryId: $logEntryId
+  )
+}
+`;

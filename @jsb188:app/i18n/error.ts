@@ -5,7 +5,7 @@ export default {
     network_error_title: 'Network error',
     unknown_error: 'An unknown error occured.',
     network_error: 'Failed to connect to server.\nPlease try again in a moment.',
-    network_or_outage_error: 'Failed to connect to server. If your internect connection is stable, our servers may be experiencing an outage.',
+    network_or_outage_error: 'Failed to connect to server. If your internet connection is stable, our servers may be experiencing an outage.',
     app_error_title: 'App crashed',
     app_error: 'Uh-oh, please refresh the page and tell someone.',
     not_allowed: 'Not allowed',
@@ -96,6 +96,7 @@ export default {
     20057: 'Your verification code expired. Please request a new code.',
     20058: 'You do not have permissions to edit this log. Please contact your administrator.',
     20059: 'This log was not found.\nIt may have been deleted.',
+    20060: 'You do not have permissions to delete this log. Please contact your administrator.',
 
     '29999_title': 'Not ready',
     29999: 'AI chat is not ready right now.',

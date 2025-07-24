@@ -59,29 +59,6 @@ interface ModalFloatingSaveButtonProps {
   onReset: () => void;
 }
 
-interface AlertDataProps {
-  preset?: string;
-  __type?: string;
-  iconName?: string;
-  title?: string;
-  message?: string;
-  url?: string;
-  requireInput?: boolean;
-  isWarning?: boolean;
-  inputLabel?: string;
-  inputPlaceholder?: string;
-  inputType?: 'text' | 'password';
-  confirmText?: string;
-  confirmPreset?: 'main' | 'cancel';
-  cancelText?: string;
-  cancelPreset?: 'main' | 'cancel';
-  onConfirm?: (inputValue?: string) => void;
-  onCancel?: () => void;
-  onCloseModal?: () => void;
-  doNotExitOnConfirm?: boolean;
-  loading?: boolean;
-}
-
 interface ModalContentContainerProps extends ReactDivElement {
   notReady?: boolean;
   addFooterPadding?: boolean;
@@ -126,7 +103,7 @@ export function ModalErrorMessage(p: ModalErrorProps) {
             name={iconName || 'alert-icon-filled'}
           />
         </span>
-        <strong>
+        <strong className='shift_down'>
           {title || i18n.t('error.error')}
         </strong>
       </div>
@@ -376,9 +353,35 @@ export function ModalFloatingSaveButton(p: ModalFloatingSaveButtonProps) {
  * Alert content
  */
 
+interface AlertDataProps {
+  preset?: string;
+  __type?: string;
+  iconName?: string | null;
+  iconClassName?: string;
+  title?: string;
+  message?: string;
+  url?: string;
+  requireInput?: boolean;
+  isWarning?: boolean;
+  inputLabel?: string;
+  inputPlaceholder?: string;
+  inputType?: 'text' | 'password';
+  confirmText?: string;
+  confirmPreset?: 'main' | 'cancel';
+  cancelText?: string;
+  cancelPreset?: 'main' | 'cancel';
+  onConfirm?: (inputValue?: string) => void;
+  onCancel?: () => void;
+  onCloseModal?: () => void;
+  doNotExitOnConfirm?: boolean;
+  loading?: boolean;
+  children?: React.ReactNode;
+}
+
 export function AlertPopUp(p: AlertDataProps) {
   const {
     iconName,
+    iconClassName,
     title,
     message,
     isWarning,
@@ -390,6 +393,7 @@ export function AlertPopUp(p: AlertDataProps) {
     doNotExitOnConfirm,
     url,
     loading,
+    children,
   } = p;
 
   const onClickCancel = () => {
@@ -415,32 +419,36 @@ export function AlertPopUp(p: AlertDataProps) {
 
   let confirmPreset;
   if (isWarning) {
-    confirmPreset = 'cl_err';
+    confirmPreset = 'bg_err';
   } else if (cancelText) {
-    confirmPreset = 'bg_primary';
+    confirmPreset = 'bg_secondary';
   } else {
     confirmPreset = 'subtle';
   }
 
   return (
     <>
-      <div className='pt_md ic_xxl cl_primary'>
+      {iconName !== null
+      ? <div className={cn('pt_lg pb_df ic_xxl', iconClassName ?? isWarning ? 'cl_darker_2' : 'cl_primary' )}>
         <Icon
           name={iconName || 'alert-icon-filled'}
         />
       </div>
+      : <div className='h_40' />}
 
       <div className='w_f'>
         <h3 className='ft_sm a_c'>
           {title}
         </h3>
-        <div className='pb_df px_lg'>
+        <div className='px_lg'>
           <Markdown as='p' className='a_c'>
             {message}
           </Markdown>
         </div>
 
-        <div className='mx_md mb_sm pb_sm'>
+        {children}
+
+        <div className='mx_md pb_md'>
           {!url ? null : (
             <FullWidthButton
               className='mt_md mb_sm op_75'
@@ -465,7 +473,7 @@ export function AlertPopUp(p: AlertDataProps) {
           {!cancelText ? null : (
             <FullWidthButton
               preset='subtle'
-              className={cn('mt_xs', isWarning ? 'cl_md' : '')}
+              className='mt_xs'
               onClick={onClickCancel}
             >
               {cancelText || i18n.t('form.cancel')}
@@ -473,6 +481,8 @@ export function AlertPopUp(p: AlertDataProps) {
           )}
         </div>
       </div>
+
+      {iconName === null && <div className='h_20' />}
     </>
   );
 }

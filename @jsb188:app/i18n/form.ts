@@ -2,9 +2,10 @@ export default {
   en: {
     yes: 'Yes',
     no: 'No',
-    no_nm: 'No, nevermind',
+    no_nevermind: 'No, nevermind',
     ok: 'OK',
     or: 'or',
+    warning: 'Warning',
     cancel: 'Cancel',
     continue: 'Continue',
     continue_editing: 'Continue editing',
