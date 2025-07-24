@@ -12,15 +12,15 @@ export const ARABLE_ACTIVITIES_GROUPED = [
 			'OTHER_SEED_ACTIVITY',
 		],
 	],
-  [
-    'PLANTING',
-    [
-      'SEEDING',
-      'DIRECT_SEEDING',
-      'TRANSPLANTING',
-      'OTHER_TRANSPLANT_ACTIVITY'
-    ]
-  ],
+	[
+		'PLANTING',
+		[
+			'SEEDING',
+			'DIRECT_SEEDING',
+			'TRANSPLANTING',
+			'OTHER_TRANSPLANT_ACTIVITY',
+		],
+	],
 	[
 		'FIELD',
 		[
@@ -51,7 +51,7 @@ export const ARABLE_ACTIVITIES_GROUPED = [
 		[
 			'POST_HARVEST_HANDLING',
 			'POST_HARVEST_PACKAGING',
-      'COLD_STORAGE_TEMPERATURE',
+			'COLD_STORAGE_TEMPERATURE',
 			'OTHER_POST_HARVEST_ACTIVITY',
 		],
 	],
@@ -64,21 +64,23 @@ export const ARABLE_ACTIVITIES_GROUPED = [
 			'OTHER_SALES_ACTIVITY',
 		],
 	],
-  [
-    'WATER',
-    [
-      'WATER_TESTING',
-      'OTHER_WATER_TESTING_ACTIVITY',
-    ]
-  ]
+	[
+		'WATER',
+		[
+			'WATER_TESTING',
+			'OTHER_WATER_TESTING_ACTIVITY',
+		],
+	],
 ] as [LogArableTypeEnum, string[]][];
 
 export const ARABLE_TYPES_TO_TEXT = {
 	SEED: 'seed purchases',
+	PLANTING: 'seeding, transplanting activities',
 	FIELD: 'field activities',
 	HARVEST: 'harvest activities',
 	POST_HARVEST: 'handling, washing, sorting, grading, packaging after harvest',
 	SALES: 'sales related activities',
+	WATER: 'water testing activities',
 } as Record<LogArableTypeEnum, string>;
 
 export const TEXT_TO_ARABLE_TYPES = Object.fromEntries(
@@ -91,18 +93,18 @@ export const ARABLE_ACTIVITIES_TO_TEXT = {
 	SEED_COMPLIANCE_NOTE: 'seed compliance notes',
 	OTHER_SEED_ACTIVITY: 'other seed purchase related activities',
 
-  // # Seeding & transplanting activities
+	// # Seeding & transplanting activities
 	SEEDING: 'seeding crops',
 	DIRECT_SEEDING: 'direct seeding crops',
 	TRANSPLANTING: 'transplanting crops',
-  OTHER_TRANSPLANT_ACTIVITY: 'other seeding or transplanting activities',
+	OTHER_TRANSPLANT_ACTIVITY: 'other seeding or transplanting activities',
 
 	// # Field activities
 	PREPARE_SOIL: 'soil, beds preparation',
 	// PLANTING: 'seeding, transplanting', // Deprecated & moved to "PLANTING" category
 	IRRIGATION: 'irrigation management',
 	FERTILIZATION_COMPOST: 'fertilization, compost application',
-	PROTECT_CROP: 'weed, pest, disease management',
+	PROTECT_CROP: 'hand pulling weed, hoeing, and cultivation work',
 	MONITOR_CROP: 'crop monitoring',
 	PRUNING: 'pruning',
 	STRUCTURE_MAINTENANCE: 'trellising, structure maintenance',
@@ -128,16 +130,24 @@ export const ARABLE_ACTIVITIES_TO_TEXT = {
 	SALE_FEEDBACK: 'sale feedback or issues',
 	OTHER_SALES_ACTIVITY: 'other sales related activities',
 
-  // # Water testing activities
-  WATER_TESTING: 'checking chlorine levels in water',
-  OTHER_WATER_TESTING_ACTIVITY: 'other water testing related activities',
+	// # Water testing activities
+	WATER_TESTING: 'checking chlorine levels in water',
+	OTHER_WATER_TESTING_ACTIVITY: 'other water testing related activities',
 };
 
 export const TEXT_TO_ARABLE_ACTIVITIES = Object.fromEntries(
 	Object.entries(ARABLE_ACTIVITIES_TO_TEXT).map(([key, value]) => [value, key]),
 ) as Record<string, string>;
 
-export const LOG_ARABLE_TYPE_ENUMS = ['SEED', 'PLANTING', 'FIELD', 'HARVEST', 'POST_HARVEST', 'SALES', 'WATER'] as LogArableTypeEnum[];
+export const LOG_ARABLE_TYPE_ENUMS = [
+	'SEED',
+	'PLANTING',
+	'FIELD',
+	'HARVEST',
+	'POST_HARVEST',
+	'SALES',
+	'WATER',
+] as LogArableTypeEnum[];
 export const LOG_ARABLE_ACTIVITY_ENUMS = ARABLE_ACTIVITIES_GROUPED.reduce(
 	(acc, a) => acc.concat(a[1]),
 	[] as string[],

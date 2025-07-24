@@ -181,7 +181,9 @@ export function formatCurrency(
   currency: string = 'USD'
 ): string {
 	const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  if (isNaN(num)) return "$0";
+  if (isNaN(num) || (!num && num !== 0)) {
+    return "$0";
+  }
 
   const hasDecimals = num % 1 !== 0;
   const symbol = getCurrencySymbol(locale, currency);
