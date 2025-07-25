@@ -1,5 +1,5 @@
 import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d';
-import { useQuery } from '../client';
+import { useQuery, useReactiveFragment } from '../client';
 import { logEntriesQry } from '../gql/queries/logQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';
 
@@ -52,4 +52,18 @@ export function useLogEntries(variables: LogEntriesArgs, params: UseQueryParams 
     logEntries: data?.logEntries,
     ...rest
   };
+}
+
+/**
+ * Get reactive log fragment
+ */
+
+export function useReactiveLogFragment(logEntryId: string, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    [`$logEntryFragment:${logEntryId}`, [`$logEntryArableFragment:${logEntryId}`, 'details']],
+    queryCount,
+    // Using the otherCheck() function is the only way I could keep sticker updates reactive
+    // (_, updatedKeys) => updatedKeys.find((k) => typeof k === 'string' && k.startsWith('$chatStickerFragment:')),
+  );
 }

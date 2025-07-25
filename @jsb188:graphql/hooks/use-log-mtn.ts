@@ -6,6 +6,7 @@ import { updateFragment } from '../cache/index';
 import { deleteLogEntryMtn, editLogEntryMtn } from '../gql/mutations/logMutations';
 import { useMutation, useReactiveFragment } from './index';
 import { useOrganizationRelationship } from './use-organization-qry';
+import { useReactiveLogFragment } from './use-log-qry';
 
 /**
  * Fetch a single log entry,
@@ -32,13 +33,12 @@ export function useEditLogEntry(
     },
   );
 
-  const logEntry = useReactiveFragment(
-    null,
-    [`$logEntryFragment:${logEntryId}`, [`$logEntryArableFragment:${logEntryId}`, 'details']],
-    mtnValues.mutationCount,
-    // Using the otherCheck() function is the only way I could keep sticker updates reactive
-    // (_, updatedKeys) => updatedKeys.find((k) => typeof k === 'string' && k.startsWith('$chatStickerFragment:')),
-  );
+  const logEntry = useReactiveLogFragment(logEntryId, null, mtnValues.mutationCount);
+  // const logEntry = useReactiveFragment(
+  //   null,
+  //   [`$logEntryFragment:${logEntryId}`, [`$logEntryArableFragment:${logEntryId}`, 'details']],
+  //   mtnValues.mutationCount,
+  // );
 
   const isMyDocument = !!viewerAccountId && logEntry?.accountId === viewerAccountId;
   const allowEdit = useMemo(() => {

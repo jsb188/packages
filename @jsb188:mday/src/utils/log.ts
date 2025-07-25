@@ -36,6 +36,7 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
 		POST_HARVEST: 'cyan',
 		SALES: 'blue',
 		WATER: 'violet',
+    DELETED: 'medium'
 	} as Record<LogTypeEnum, ColorEnum>;
 
 	// Default to zinc if type is not found

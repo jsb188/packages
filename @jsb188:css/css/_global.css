@@ -287,6 +287,7 @@ p:last-child {
 .op_100 { opacity: 1; }
 .op_75 { opacity: .75; }
 .op_50 { opacity: .5; }
+.op_40 { opacity: .4; }
 .op_30 { opacity: .3; }
 .op_20 { opacity: .2; }
 .op_10 { opacity: .1; }
@@ -925,6 +926,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
   /* scrollbar-width: thin; */
 }
 .scr_area {
+  overflow-x: hidden;
   overflow-y: auto;
 }
 .y_scr.always {

@@ -13,6 +13,8 @@ export default {
     apply_filters: 'Apply filters',
     hide: 'Hide',
     show: 'Show',
+    deleted: 'Deleted',
+    delete: 'Delete',
     try_again: 'Try again',
     refresh_page: 'Refresh page',
     search: 'Search',

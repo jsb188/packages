@@ -32,19 +32,22 @@ CondensedGroupTitle.displayName = 'CondensedGroupTitle';
  */
 
 interface CondensedArticleItemProps {
+  __deleted?: boolean;
   id?: string;
   preset?: 'modal' | 'default';
   onClick?: (itemId?: string) => void;
+  disabled?: boolean;
   RightComponent?: React.ReactNode;
   title: string;
   description: string | null;
   descriptionPlaceholder?: string;
-  labels: Partial<InlineBlockLabelProps>[]
+  labels?: Partial<InlineBlockLabelProps>[]
 }
 
 export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
-  const { preset, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels } = p;
-  const hasLink = !!onClick;
+  const { __deleted, preset, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels } = p;
+  const disabled = p.disabled || __deleted;
+  const hasLink = !!onClick && !disabled;
 
   // paddingClassName='px_df -mx_5'
 
@@ -64,6 +67,7 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
   return <article
     className={cn(
       'article_item rel',
+      __deleted ? 'op_40' : '',
       !addSeparator ? 'bd_lt bd_t_1' : undefined,
       paddingClassName,
       hasLink ? 'link ' + linkHoverClassName : undefined
@@ -76,18 +80,20 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
     )}
 
     <div className='h_item gap_xs'>
-      <div className='h_item f_shrink mr_3 py_sm'>
-        {labels.map((label, i) => (
-          <InlineBlockLabel
-            key={i}
-            as='span'
-            outline
-            color='alt'
-            // textColorClassName='cl_primary'
-            {...label}
-          />
-        ))}
-      </div>
+      {labels?.length && (
+        <div className='h_item f_shrink mr_3 py_sm'>
+          {labels.map((label, i) => (
+            <InlineBlockLabel
+              key={i}
+              as='span'
+              outline
+              color='alt'
+              // textColorClassName='cl_primary'
+              {...label}
+            />
+          ))}
+        </div>
+      )}
 
       {title && <span className='f_shrink py_sm shift_down'>{title}</span>}
 
