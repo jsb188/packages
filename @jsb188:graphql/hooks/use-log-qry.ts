@@ -7,7 +7,7 @@ import type { PaginationArgs, UseQueryParams } from '../types';
  * Constants
  */
 
-const LOG_ENTRIES_LIMIT = 100;
+const LOG_ENTRIES_LIMIT = 200;
 
 /**
  * Helper; use this to get/use same filter for logEntries() query everywhere
