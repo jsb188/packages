@@ -40,6 +40,10 @@ body.p_auth {
 }
 
 .cw.lg, .mw.lg {
+  max-width: 1280px;
+}
+
+.cw.xl, .mw.xl {
   max-width: 1440px;
 }
 

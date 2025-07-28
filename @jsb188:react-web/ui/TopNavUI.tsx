@@ -24,7 +24,7 @@ export const TopNavItem = memo((p: TopNavItemProps) => {
   return <SmartLink
     to={to}
     target={target}
-    className={cn('px_sm py_xs cl_bd r_smw lh_1 nowrap', designClassName || 'bg_alt_hv')}
+    className={cn('px_sm py_xs r_smw lh_1 nowrap', designClassName || 'bg_alt_hv cl_contrast')}
   >
     {text}
   </SmartLink>;

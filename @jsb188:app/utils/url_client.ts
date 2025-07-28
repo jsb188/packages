@@ -24,30 +24,25 @@ export function makeUploadsUrl(
     return '';
   }
 
-  let uriPrefix;
-  if (
-    urlPath.substring(urlPath.lastIndexOf('.')).toLowerCase() === '.gif' &&
-    animateGifs
-  ) {
-    uriPrefix = 'original/';
+  const isGif = urlPath.substring(urlPath.lastIndexOf('.')).toLowerCase() === '.gif';
+
+  let prefix = '';
+  if (isGif && animateGifs) {
+    // Do gif path here
+    prefix = '';
   } else {
-    switch (size) {
-      case 'original':
-        uriPrefix = 'original/';
-        break;
-      case 'large':
-      case 'medium':
-        uriPrefix = 'medium/';
-        break;
-      case 'small':
-      case 'tiny':
-        uriPrefix = 'small/';
-        break;
-      default:
-        uriPrefix = 'small/';
-    }
+    // Do size paths here
   }
-  return 'https://static.chiefhappiness.co/' + uriPrefix + urlPath;
+
+  return 'https://assets.chiefhappiness.co/' + prefix + urlPath;
+}
+
+/**
+ * Make url for static assets
+ */
+
+export function makeStaticAssetUrl(urlPath?: string | null): string {
+  return 'https://assets.chiefhappiness.co/marketday/static/' + urlPath;
 }
 
 /**

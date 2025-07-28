@@ -241,3 +241,66 @@ export function useAnimationVisibility<T>(
 
   return [persistedProps, visibility, setVisibility];
 }
+
+/**
+ * Check if image are loaded
+ * NOTE: This only checks on mount
+ */
+
+export function useImagesLoadStatus(
+  imageUrls: string[],
+  timeoutMS = 10000 // default timeout miliseconds
+): boolean {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!imageUrls || imageUrls.length === 0) {
+      setLoaded(true);
+      return;
+    }
+
+    let isCancelled = false;
+    let loadedCount = 0;
+    const timeout = setTimeout(() => {
+      if (!isCancelled) {
+        setLoaded(true);
+      }
+    }, timeoutMS);
+
+    const handleLoad = () => {
+      loadedCount += 1;
+      if (loadedCount === imageUrls.length && !isCancelled) {
+        clearTimeout(timeout);
+        setLoaded(true);
+      }
+    };
+
+    const handleError = () => {
+      loadedCount += 1; // count errors too, so they don’t block loading
+      if (loadedCount === imageUrls.length && !isCancelled) {
+        clearTimeout(timeout);
+        setLoaded(true);
+      }
+    };
+
+    const imageElements = imageUrls.map((url) => {
+      const img = new Image();
+      img.onload = handleLoad;
+      img.onerror = handleError;
+      img.src = url;
+      return img;
+    });
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timeout);
+      // Optional: clear handlers to prevent leaks
+      imageElements.forEach((img) => {
+        img.onload = null;
+        img.onerror = null;
+      });
+    };
+  }, []);
+
+  return loaded;
+}

@@ -90,7 +90,7 @@ export function VerificationCodeInput(p: VerificationCodeInputProps) {
   }, [focused, saving]);
 
   return <div className={cn('p_5 r_df trans_color spd_1', focused ? 'bg_main' : 'bg_alt')}>
-    <div className={cn('bg px_df py_df r_sm rel h_spread ft_xl a_c', saving ? 'cl_lt' : 'cl_df')}>
+    <div className={cn('bg px_df py_df r_sm rel h_spread ft_xxl a_c', saving ? 'cl_lt' : 'cl_df')}>
       {[...Array(codeLength)].map((_, i) => {
         const letter = code.charAt(i);
         return <span

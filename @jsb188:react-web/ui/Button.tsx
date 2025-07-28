@@ -10,7 +10,7 @@ import { ActivityDots } from './Loading';
  * Types
  */
 
-export type ButtonPresetEnum = 'em' | 'subtle' | 'cl_err' | 'bg' | 'bg_main' | 'bg_primary_op' | 'bg_primary' | 'bg_secondary' | 'bg_contrast' | 'bg_medium' | 'outline';
+export type ButtonPresetEnum = 'em' | 'subtle' | 'cl_err' | 'bg' | 'bg_main' | 'bg_primary' | 'bg_secondary' | 'bg_contrast' | 'bg_medium' | 'outline';
 export type ButtonSizeEnum = 'sm' | 'md' | 'df' | 'lg';
 
 /**
@@ -440,3 +440,60 @@ export const PillButton = memo((p: PillButtonProps) => {
 });
 
 PillButton.displayName = 'PillButton';
+
+/**
+ * Pill
+ */
+
+interface PillProps {
+  as: React.ElementType;
+  loading: boolean;
+  addLoadingIndicator: boolean;
+  to: string;
+  href: string;
+  title: string;
+  children: any;
+  size: 'sm' | 'df' | 'md' | 'lg' | null;
+  className: string;
+  onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+}
+
+export function Pill(p: Partial<PillProps>) {
+  const { loading, addLoadingIndicator, to, href, onClick, title, children } = p;
+  const size = p.size || 'default';
+  const className = p.className || 'bg_active';
+  const LinkComponent = p.as || (to ? Link : 'a');
+  const sizeClassName = `pill pill_${size || 'df'} `;
+
+  let onClick_;
+  if (loading) {
+    onClick_ = (e: React.MouseEvent) => e.preventDefault();
+  } else {
+    onClick_ = onClick;
+  }
+
+  return (
+    <SmartLink
+      Component={LinkComponent}
+      to={to}
+      href={href}
+      // @ts-ignore
+      onClick={onClick_}
+      title={title}
+      className={cn(
+        'r h_center',
+        loading && !addLoadingIndicator ? 'is_loading' : '',
+        loading && addLoadingIndicator ? 'with_loading_indicator' : '',
+        sizeClassName,
+        className,
+      )}
+    >
+      {!loading || !addLoadingIndicator ? null : (
+        <span className='abs_full v_center'>
+          <ActivityDots size={['large', 'xlarge'].includes(size || '') ? 'large' : 'medium'} />
+        </span>
+      )}
+      {children}
+    </SmartLink>
+  );
+}

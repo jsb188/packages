@@ -83,6 +83,11 @@ h5, h6, strong, .ft_bold {
   font-weight: normal;
 }
 
+strong, .ft_bold {
+  letter-spacing: -.0075em;
+  text-indent: -.0075em;
+}
+
 .ft_condensed_bold, .ft_condensed_heading {
   font-family: var(--font-condensed-bold);
 }
@@ -116,6 +121,7 @@ div, p {
 .ft_md { font-size: var(--text-medium); }
 .ft_lg { font-size: var(--text-large); }
 .ft_xl { font-size: var(--text-xlarge); }
+.ft_xxl { font-size: var(--text-xxlarge); }
 
 .ft_1 { font-size: 1.1em;}
 .ft_2 { font-size: 1.35em;}
@@ -1204,12 +1210,21 @@ svg.av_xl .s_dot {
 }
 
 .pill_lg {
-  min-width: 4.7rem;
-  height: 4.7rem;
+  position: relative;
+  min-width: 4rem;
+  height: 4rem;
   padding-left: 1.15em;
   padding-right: 1.15em;
   padding-bottom: 2px;
-  font-size: 1.5rem;
+  font-size: var(--text-large);
+}
+
+.pill_lg:before {
+  content: ' ';
+  position: absolute; z-index: -1;
+  inset: -5px;
+  border-radius: 100vmax;
+  background-color: rgba(var(--color-darker-rgb), .075);
 }
 
 /* Grid */

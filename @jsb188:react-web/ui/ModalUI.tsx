@@ -3,8 +3,7 @@ import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
 import type { ReactDivElement } from '../types/dom.d';
 import { Icon } from '../svgs/Icon';
-import { Pill } from './Avatar';
-import { FullWidthButton } from './Button';
+import { Pill, FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
 import Markdown, { EmojiWrapper } from './Markdown';
 import { ShortcutKey } from './OtherUI';
@@ -40,15 +39,6 @@ interface ModalSideNavItemProps {
 interface ModalSideNavProps {
   selectedValue: string;
   options: ModalSideNavItemProps[][];
-  onClickItem: (value: string) => void;
-}
-
-interface ModalTitleNavProps {
-  className?: string;
-  title: string;
-  iconName?: string;
-  selectedValue: string;
-  options?: ModalSideNavItemProps[];
   onClickItem: (value: string) => void;
 }
 
@@ -263,42 +253,6 @@ export function ModalSideNav(p: ModalSideNavProps) {
           ))}
         </ul>
       ))}
-    </nav>
-  );
-}
-
-/**
- * Modal; title nav
- */
-
-export function ModalTitleNav(p: ModalTitleNavProps) {
-  const { className, iconName, title, selectedValue, options, onClickItem } = p;
-
-  return (
-    <nav className={cn('mw_tnav pt_md pb_df px_md', className)}>
-      <h1 className={iconName ? 'h_item' : undefined}>
-        {!iconName ? null : (
-          <span className='ic_sm mr_xs av_w_df h_center tfd'>
-            <Icon
-              name={iconName}
-            />
-          </span>
-        )}
-        {title}
-      </h1>
-      {!options ? null : (
-        <ul className='mtn_list h_item x_scr always mt_xs'>
-          {options?.map((item, i) => (
-            <Pill
-              key={i}
-              {...item}
-              size='small'
-              className={cn('mr_xs', selectedValue === item.value ? 'bg_secondary' : 'bg_alt')}
-              onClick={() => onClickItem(item.value!)}
-            />
-          ))}
-        </ul>
-      )}
     </nav>
   );
 }

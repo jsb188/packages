@@ -1,10 +1,10 @@
 import i18n from '@jsb188/app/i18n';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
-import { Icon } from '../svgs/Icon';
-import { Pill } from '@jsb188/react-web/ui/Avatar';
+import { Pill } from '@jsb188/react-web/ui/Button';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
 import { memo } from 'react';
+import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 
 // const cssPaths = ['/css/layout.css', '/css/alert.css'];
@@ -339,7 +339,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
       titleClassName = 'ft_df';
       messageClassName = 'ft_md';
       buttonClassName = 'bg';
-      buttonSize = 'medium';
+      buttonSize = 'md';
       break;
     case 'full_page':
     default:
@@ -347,7 +347,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
       titleClassName = 'ft_df';
       messageClassName = 'ft_md';
       buttonClassName = 'bg_secondary';
-      buttonSize = 'medium';
+      buttonSize = 'md';
   }
 
   let buttonHandler;

@@ -29,18 +29,6 @@ type AvatarButtonProps = {
   onMouseLeave?: (e: React.MouseEvent<HTMLDivElement>) => void;
 };
 
-type PillProps = Partial<{
-  LinkComponent: any;
-  loading: boolean;
-  addLoadingIndicator: boolean;
-  href: string;
-  title: string;
-  children: any;
-  size: 'small' | 'default' | 'medium' | 'large' | null;
-  className: string;
-  onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
-}>;
-
 type StatusDotProps = {
   status: OnlineStatusEnums;
   typing?: boolean;
@@ -51,7 +39,7 @@ type StatusDotProps = {
  */
 
 function getSizeClassName(
-  prefix: 'av' | 'dots' | 'pill',
+  prefix: 'av' | 'dots',
   size?: AvatarSize,
   doNotAllowExtraSizes?: boolean
 ) {
@@ -515,46 +503,5 @@ export function AvatarButtonGif(p: AvatarButtonProps) {
       onMouseEnter={() => setAnimateGifs(true)}
       onMouseLeave={() => setAnimateGifs(false)}
     />
-  );
-}
-
-/**
- * Pill
- */
-
-export function Pill(p: PillProps) {
-  const { loading, addLoadingIndicator, href, onClick, title, children } = p;
-  const size = p.size || 'default';
-  const className = p.className || 'bg_active';
-  const sizeClass = `pill ${getSizeClassName('pill', size, true)}`;
-  const LinkComponent = p.LinkComponent || 'a';
-
-  let onClick_;
-  if (loading) {
-    onClick_ = (e: React.MouseEvent<HTMLDivElement>) => e.preventDefault();
-  } else {
-    onClick_ = onClick;
-  }
-
-  return (
-    <LinkComponent
-      href={href}
-      onClick={onClick_}
-      title={title}
-      className={cn(
-        'r h_center',
-        loading && !addLoadingIndicator ? 'is_loading' : '',
-        loading && addLoadingIndicator ? 'with_loading_indicator' : '',
-        sizeClass,
-        className,
-      )}
-    >
-      {!loading || !addLoadingIndicator ? null : (
-        <span className='abs_full v_center'>
-          <ActivityDots size={['large', 'xlarge'].includes(size || '') ? 'large' : 'medium'} />
-        </span>
-      )}
-      {children}
-    </LinkComponent>
   );
 }

@@ -80,6 +80,20 @@ export const ArrowUpFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 <path d="M6 11l6 -6" />
 </svg>;
 
+export const ArrowNarrowLeft = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-arrow-narrow-left">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M5 12l14 0" />
+<path d="M5 12l4 4" />
+<path d="M5 12l4 -4" />
+</svg>;
+
+export const ArrowNarrowRight = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-arrow-narrow-right">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M5 12l14 0" />
+<path d="M15 16l4 -4" />
+<path d="M15 8l4 4" />
+</svg>;
+
 export const AsteriskSimple = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-asterisk-simple">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12v-9" stroke="currentColor" />

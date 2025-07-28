@@ -2,7 +2,7 @@
 /* Dropdown from top */
 
 .anim_dropdown_top .target:not(.anim_inner), .anim_dropdown_top.target {
-  transition-property: transform;
+  transition-property: transform, opacity;
   transition-timing-function: ease-out;
   transition-duration: 125ms;
   transform-origin: top right;
@@ -31,7 +31,7 @@
 /* Dropdown from top left corner */
 
 .anim_dropdown_top_left .target:not(.anim_inner), .anim_dropdown_top_left.target {
-  transition-property: transform;
+  transition-property: transform, opacity;
   transition-timing-function: ease-out;
   transition-duration: 125ms;
   transform-origin: top left;
@@ -59,7 +59,7 @@
 /* Dropdown from top right corner */
 
 .anim_dropdown_top_right .target:not(.anim_inner), .anim_dropdown_top_right.target {
-  transition-property: transform;
+  transition-property: transform, opacity;
   transition-timing-function: ease-out;
   transition-duration: 100ms;
   transform-origin: top right;
@@ -87,7 +87,7 @@
 /* Very simple opacity-appear */
 
 .anim_appear .target:not(.anim_inner), .anim_appear.target {
-  transition-property: transform;
+  transition-property: transform, opacity;
   transition-timing-function: ease-out;
   transition-duration: 200ms;
   opacity: 0;
@@ -112,7 +112,7 @@
 /* Shift-appear up */
 
 .anim_move_up_center .target:not(.anim_inner), .anim_move_up_center.target {
-  transition-property: transform;
+  transition-property: transform, opacity;
   transition-timing-function: ease-out;
   transition-duration: 200ms;
   transform: translateY(20%);
@@ -141,7 +141,7 @@
 /* Lift up & expand (scale transform) from sunken position */
 
 .anim_lift_scale_center .target:not(.anim_inner), .anim_lift_scale_center.target {
-  transition-property: transform;
+  transition-property: transform, opacity;
   transition-timing-function: ease-out;
   transition-duration: 250ms;
   transform: translateY(100%) scale(.85);

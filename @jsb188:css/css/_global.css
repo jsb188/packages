@@ -203,6 +203,10 @@ p:last-child {
   background-position: center;
 }
 
+.bg_blur {
+  backdrop-filter: saturate(180%) blur(20px)
+}
+
 /* Miscelaneous */
 
 .scroll_lock { overscroll-behavior-x: none; } /* Use this on <body> when Modal is used */
@@ -262,6 +266,7 @@ p:last-child {
 .h_spread { display: flex; justify-content: space-between; align-items: center; }
 .h_top { display: flex; justify-content: space-between; align-items: flex-start; }
 .h_center { display: flex; justify-content: center; align-items: center; }
+.h_bottom_center { display: flex; justify-content: center; align-items: flex-end; }
 .h_bottom { display: flex; justify-content: flex-start; align-items: flex-end; }
 .h_bottom_spread { display: flex; justify-content: space-between; align-items: flex-end; }
 .h_left { display: flex; justify-content: flex-start; align-items: flex-start; }
@@ -433,19 +438,6 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
   background-color: var(--color-primary-active) !important;
 }
 
-/* Primary opaque background */
-
-.bg_primary_op {
-  background-color: var(--color-primary-opaque) !important;
-  color: rgb(var(--color-primary));
-}
-
-.bg_primary_op_hv,
-.bg_primary_op.link:hover, button.bg_primary_op.pill:hover, a.bg_primary_op.pill:hover, .bg_primary_op.pill[role="button"]:hover {
-  background-color: var(--color-primary-opaque-hover) !important;
-  color: var(--color-primary-hover);
-}
-
 /* Secondary background */
 
 .bg_secondary {
@@ -489,11 +481,13 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
 .bg_darker_2 { background-color: rgba(var(--color-darker-rgb),.25); }
 .bg_darker_3 { background-color: rgba(var(--color-darker-rgb),.5); }
 .bg_darker_4 { background-color: rgba(var(--color-darker-rgb),.75); }
+.bg_darker_5 { background-color: rgba(var(--color-darker-rgb),.9); }
 
 .bg_lighter_1 { background-color: rgba(var(--color-lighter-rgb),.1); }
 .bg_lighter_2 { background-color: rgba(var(--color-lighter-rgb),.25); }
 .bg_lighter_3 { background-color: rgba(var(--color-lighter-rgb),.5); }
 .bg_lighter_4 { background-color: rgba(var(--color-lighter-rgb),.75); }
+.bg_lighter_5 { background-color: rgba(var(--color-lighter-rgb),.9); }
 
 .bg_active.link:not(:disabled):not(.disabled):hover {
   background-color: rgb(var(--color-bg-medium)) !important;
@@ -729,10 +723,18 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 /* Colors - App (keep it below so !important can be overridden */
 
 .cl_invis { color: rgba(0,0,0,0); }
-.cl_darker_1 { color: rgba(0,0,0,.1); }
-.cl_darker_2 { color: rgba(0,0,0,.15); }
-.cl_darker_3 { color: rgba(0,0,0,.2); }
-.cl_darker_4 { color: rgba(0,0,0,.25); }
+
+.cl_darker_1 { color: rgba(var(--color-darker-rgb),.1); }
+.cl_darker_2 { color: rgba(var(--color-darker-rgb),.15); }
+.cl_darker_3 { color: rgba(var(--color-darker-rgb),.25); }
+.cl_darker_4 { color: rgba(var(--color-darker-rgb),.5); }
+.cl_darker_5 { color: rgba(var(--color-darker-rgb),.64); }
+
+.cl_lighter_1 { color: rgba(var(--color-lighter-rgb),.1); }
+.cl_lighter_2 { color: rgba(var(--color-lighter-rgb),.15); }
+.cl_lighter_3 { color: rgba(var(--color-lighter-rgb),.25); }
+.cl_lighter_4 { color: rgba(var(--color-lighter-rgb),.5); }
+.cl_lighter_5 { color: rgba(var(--color-lighter-rgb),.64); }
 
 .cl_lt { color: var(--color-text-light); }
 .cl_md { color: var(--color-text-medium); }
@@ -751,6 +753,7 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .cl_primary, .cl_primary_hv:hover { color: rgb(var(--color-primary)) !important; }
 .cl_secondary, .cl_secondary_hv:hover { color: rgb(var(--color-secondary)) !important; }
 .cl_solid { color: var(--color-solid) !important; }
+.cl_contrast { color: rgb(var(--color-darker-rgb), 1) !important; }
 .cl_err, .cl_err_hv:hover { color: rgb(var(--color-error)) !important; border-color: rgb(var(--color-error)) !important; }
 .cl_err_fd { color: rgb(var(--color-error-faded), .1) !important; border-color: rgb(var(--color-error)) !important; }
 .cl_warn, .cl_warn_hv:hover { color: rgb(var(--color-warn)) !important; border-color: rgb(var(--color-warn)) !important; }
@@ -789,6 +792,16 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .bd_md, .bd_md_hv:hover { border-color: var(--color-darker-medium); }
 .bd_bd, .bd_bd_hv:hover { border-color: var(--color-darker-bold); }
 .bd_ih, .bd_ih_hv:hover { border-color: inherit; }
+
+.bd_darker_1 { border-color: rgba(var(--color-darker-rgb), .078); }
+.bd_darker_2 { border-color: rgba(var(--color-darker-rgb), .15); }
+.bd_darker_3 { border-color: rgba(var(--color-darker-rgb), .3); }
+.bd_darker_4 { border-color: rgba(var(--color-darker-rgb), .5); }
+
+.bd_lighter_1 { border-color: rgba(var(--color-lighter-rgb), .078); }
+.bd_lighter_2 { border-color: rgba(var(--color-lighter-rgb), .15); }
+.bd_lighter_3 { border-color: rgba(var(--color-lighter-rgb), .3); }
+.bd_lighter_4 { border-color: rgba(var(--color-lighter-rgb), .5); }
 
 .bd_secondary, .bd_secondary_hv:hover { border-color: rgb(var(--color-secondary)); }
 .bd_primary, .bd_primary_hv:hover { border-color: rgb(var(--color-primary)); }
@@ -887,7 +900,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 }
 
 .trans_shadow {
-  transition-property: box-shadow;
+  transition-property: background-color, border-color, box-shadow;
   transition-duration: 0.25s;
   transition-timing-function: ease-in-out;
 }
