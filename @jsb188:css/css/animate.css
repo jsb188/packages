@@ -171,11 +171,44 @@
   transition-property: transform;
   transition-timing-function: ease-out;
   transition-duration: 250ms;
-  transform: translateY(-100%) scale(.9);
+  transform: translateY(-125%) scale(.9);
 }
 
 .anim_drop_center.visible .target:not(.anim_inner), .anim_drop_center.visible.target {
   transform: translateY(0) scale(1);
+}
+
+/* Simple slide down effect without any opacity */
+
+.anim_slide_down .target:not(.anim_inner), .anim_slide_down.target {
+  transition-property: transform, opacity;
+  transition-timing-function: ease-in-out;
+  transition-duration: 150ms;
+  transform: translateY(-125%);
+}
+
+.anim_slide_down.visible .target:not(.anim_inner), .anim_slide_down.visible.target {
+  transform: translateY(0);
+}
+
+.anim_slide_down .target:not(.anim_inner), .anim_slide_down.target {
+  transform: translateY(125%);
+}
+
+.anim_slide_down.visible .target:not(.anim_inner), .anim_slide_down.visible.target {
+  transform: translateY(0);
+}
+
+.anim_slide_down.on_mount, .anim_slide_down.reverse {
+  animation-name: keyframes_slide_down;
+  animation-duration: 125ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_slide_down {
+  from { transform: translateY(-125%); }
+  to { transform: translateY(0); }
 }
 
 /* Zoom & fade in with a slight scale effect */

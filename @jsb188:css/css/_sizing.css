@@ -1160,10 +1160,6 @@ svg.av_xl .s_dot {
   user-select: none;
 }
 
-.pill.bg_active, .pill.bg_alt, .pill.bg {
-  color: var(--color-text);
-}
-
 .pill.loading {
   color: transparent !important;
 }

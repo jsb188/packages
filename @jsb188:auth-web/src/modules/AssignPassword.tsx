@@ -36,7 +36,7 @@ export function AssignPasswordPage() {
     });
   };
 
-  return <FullPageLayout className='pattern active_bf bg_alt allow_z'>
+  return <FullPageLayout className='pattern_dots active_bf bg_alt allow_z'>
     <AuthFormContainer
       title={i18n.t('auth.one_last_step_')}
       className='bd_5 bd_main'

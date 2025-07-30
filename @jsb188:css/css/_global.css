@@ -258,6 +258,7 @@ p:last-child {
 
 .f { flex: 1; }
 .fs { flex: 1; align-self: stretch; }
+.fc { flex: 1; align-self: center; }
 
 .f_stretch { align-self: stretch; }
 .f_wrap { flex-wrap: wrap; }
@@ -271,6 +272,7 @@ p:last-child {
 .h_bottom_spread { display: flex; justify-content: space-between; align-items: flex-end; }
 .h_left { display: flex; justify-content: flex-start; align-items: flex-start; }
 .h_right { display: flex; justify-content: flex-end; align-items: center; }
+.h_right_top { display: flex; justify-content: flex-end; align-items: flex-start; }
 .h_item { display: flex; justify-content: flex-start; align-items: center; }
 
 .v_spread { display: flex; flex-direction: column; justify-content: space-between; }
@@ -280,6 +282,7 @@ p:last-child {
 .v_top { display: flex; flex-direction: column; justify-content: flex-start; align-items: center; }
 .v_left { display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; }
 .v_bottom { display: flex; flex-direction: column; justify-content: flex-end; }
+.v_item { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 
 .h_wrap { display: flex; justify-content: flex-start; align-items: flex-start; flex-wrap: wrap; }
 
@@ -498,10 +501,6 @@ a.pill.bg_active:hover, a.pill.bg_alt:hover, a.pill.bg:hover,
 button.pill.bg_active:hover, button.pill.bg_alt:hover, button.pill.bg:hover {
   color: var(--color-solid) !important;
   background-color: rgb(var(--color-secondary)) !important;
-}
-
-.pill.bg_subtle {
-  color: var(--color-text);
 }
 
 .pill.bg_subtle[role="button"]:hover,
@@ -1028,9 +1027,9 @@ rect.s_dot_away {
   fill: #f0b232;
 }
 
-/* Theme specific */
+/* Patterns */
 
-.pattern:before {
+.pattern_dots:before {
   content: ' ';
   position: absolute; z-index: -1;
   inset: 0;
@@ -1040,7 +1039,17 @@ rect.s_dot_away {
   mask-position: center;
 }
 
-.pattern.allow_z:before {
+.pattern_stripes:before {
+  content: ' ';
+  position: absolute; z-index: -1;
+  inset: 0;
+  mask-image: url('/stripes.svg');
+  mask-repeat: repeat;
+  mask-size: auto;
+  mask-position: center;
+}
+
+.allow_z:before {
   z-index: 0;
 }
 

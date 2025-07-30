@@ -1380,6 +1380,14 @@ export const Photo = <svg xmlns="http://www.w3.org/2000/svg" className="icon ico
 <path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" stroke="currentColor" />
 </svg>;
 
+export const PhotoThick = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-photo" viewBox="0 0 24 24" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M15 8h.01" stroke="currentColor" />
+<path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12z" stroke="currentColor" />
+<path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" stroke="currentColor" />
+<path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" stroke="currentColor" />
+</svg>;
+
 export const PhotoHexagon = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-photo-hexagon">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M15 8h.01" stroke="currentColor" />
@@ -1492,6 +1500,12 @@ export const Search = <svg xmlns="http://www.w3.org/2000/svg" className="icon ic
 <path d="M21 21l-6 -6" stroke="currentColor" />
 </svg>;
 
+export const SearchThick = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-search" viewBox="0 0 24 24" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" stroke="currentColor" />
+<path d="M21 21l-6 -6" stroke="currentColor" />
+</svg>;
+
 export const Share3 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-share-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
 <path d="M13 4v4c-6.575 1.028 -9.02 6.788 -10 12c-.037 .206 5.384 -5.962 10 -6v4l8 -7l-8 -7z" stroke="currentColor" />
 </svg>;
@@ -1511,6 +1525,13 @@ export const Sun = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" stroke="currentColor" />
 <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" stroke="currentColor" />
+</svg>;
+
+export const Target = <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-target">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+<path d="M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0 -10 0" />
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
 </svg>;
 
 export const ThumbUp = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-thumb-up" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -1536,6 +1557,13 @@ export const TrashXFilled = <svg xmlns="http://www.w3.org/2000/svg" className="i
 <path d="M0,0h24v24H0V0Z" fill="none" />
 <path d="M15.5,7h-1.2v-2.8c0-.3-.2-.5-.5-.5h-3.6c-.3,0-.5.2-.5.5v2.8h-1.2v-3c0-.8.7-1.5,1.5-1.5h4c.8,0,1.5.7,1.5,1.5v3Z" fill="currentColor" />
 <path d="M4,6.5v1.1h.5l1,11.4c0,1.4,1.1,2.5,2.5,2.5h8c1.4,0,2.5-1.1,2.5-2.5l1-11.4h.5v-1.1H4ZM14.9,15.9l-.9.9-1.9-1.9-1.9,1.9-.9-.9,1.9-1.9-1.9-1.9.9-.9,1.9,1.9,1.9-1.9.9.9-1.9,1.9s1.9,1.9,1.9,1.9Z" fill="currentColor" />
+</svg>;
+
+export const TriangleSquareCircle = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-triangle-square-circle">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 3l-4 7h8z" />
+<path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+<path d="M4 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" />
 </svg>;
 
 export const Video = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-video" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -1685,6 +1713,16 @@ export const UsersPlus = <svg xmlns="http://www.w3.org/2000/svg" className="icon
 </svg>;
 
 export const UsersGroup = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-users-group" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M10 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" stroke="currentColor" />
+<path d="M8 21v-1a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v1" stroke="currentColor" />
+<path d="M15 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" stroke="currentColor" />
+<path d="M17 10h2a2 2 0 0 1 2 2v1" stroke="currentColor" />
+<path d="M5 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" stroke="currentColor" />
+<path d="M3 13v-1a2 2 0 0 1 2 -2h2" stroke="currentColor" />
+</svg>;
+
+export const UsersGroupThick = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-users-group" viewBox="0 0 24 24" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M10 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" stroke="currentColor" />
 <path d="M8 21v-1a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v1" stroke="currentColor" />
