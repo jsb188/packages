@@ -379,7 +379,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
       <h1 className={cn('ft_bold ls_2 cl_secondary', titleClassName)}>
         {title}
       </h1>
-      <p className={cn('op_75 a_c mb_md cl_bd', messageClassName)}>
+      <p className={cn('op_70 a_c mb_md cl_bd', messageClassName)}>
         {message}
       </p>
 

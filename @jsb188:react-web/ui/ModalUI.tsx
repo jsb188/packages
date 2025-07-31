@@ -405,7 +405,7 @@ export function AlertPopUp(p: AlertDataProps) {
         <div className='mx_md pb_md'>
           {!url ? null : (
             <FullWidthButton
-              className='mt_md mb_sm op_75'
+              className='mt_md mb_sm op_70'
               textClassName='ellip'
               disabled
               preset='outline'

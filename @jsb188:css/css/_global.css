@@ -100,13 +100,15 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
   background-color: rgba(var(--color-main), .064) !important;
 }
 
-.bg_lighter_hv:hover {
-  background-color: rgba(var(--color-lighter-rgb),.64) !important;
-}
+.bg_lighter_hv_1:hover { background-color: rgba(var(--color-lighter-rgb),.125) !important; }
+.bg_lighter_hv_2:hover { background-color: rgba(var(--color-lighter-rgb),.25) !important; }
+.bg_lighter_hv_3:hover { background-color: rgba(var(--color-lighter-rgb),.4) !important; }
+.bg_lighter_hv_4:hover { background-color: rgba(var(--color-lighter-rgb),.64) !important; }
 
-.bg_darker_hv:hover {
-  background-color: rgba(var(--color-darker-rgb),.64) !important;
-}
+.bg_darker_hv_1:hover { background-color: rgba(var(--color-darker-rgb),.125) !important; }
+.bg_darker_hv_2:hover { background-color: rgba(var(--color-darker-rgb),.25) !important; }
+.bg_darker_hv_3:hover { background-color: rgba(var(--color-darker-rgb),.4) !important; }
+.bg_darker_hv_4:hover { background-color: rgba(var(--color-darker-rgb),.64) !important; }
 
 button:not(:disabled):not(.disabled):active,
 .link:not(:disabled):not(.disabled):active {
@@ -293,7 +295,10 @@ p:last-child {
 /* Opacity */
 
 .op_100 { opacity: 1; }
-.op_75 { opacity: .75; }
+.op_90 { opacity: .9; }
+.op_80 { opacity: .8; }
+.op_70 { opacity: .7; }
+.op_60 { opacity: .6; }
 .op_50 { opacity: .5; }
 .op_40 { opacity: .4; }
 .op_30 { opacity: .3; }
@@ -1043,7 +1048,7 @@ rect.s_dot_away {
   content: ' ';
   position: absolute; z-index: -1;
   inset: 0;
-  mask-image: url('/stripes.svg');
+  mask-image: url('https://assets.chiefhappiness.co/marketday/static/stripes.svg');
   mask-repeat: repeat;
   mask-size: auto;
   mask-position: center;
@@ -1097,16 +1102,3 @@ rect.s_dot_away {
 .secondary_bf:before {
   background-color: rgb(var(--color-secondary));
 }
-
-/* Unused CSS for reference - Pinstriped error container */
-
-/* .err_mask {
-  position: absolute;
-  inset: 0;
-  background-color: rgb(var(--color-warn));
-  mask-image: url('/svg/stripes.svg');
-  mask-repeat: repeat;
-  mask-size: auto;
-  mask-position: center;
-} */
-

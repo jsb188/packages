@@ -206,6 +206,14 @@ export const BugFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 <path d="M12,3.4c2.3,0,4.2,1.8,4.3,4.1v.2c.2,0,.3,0,.5.1l3.2-2.1c.5-.3,1.2-.2,1.5.3.3.5.2,1.2-.3,1.5,0,0,0,0,0,0l-3.2,2.1c.3.8.5,1.6.5,2.4h3.2c.6,0,1.1.5,1.1,1.1s-.5,1.1-1.1,1.1h-3.2v1.1c0,.6,0,1.1-.2,1.6l2.9,1.7c.5.3.7,1,.4,1.5s-1,.7-1.5.4h0l-2.7-1.6c-1,1.5-2.5,2.4-4.3,2.7v-6.3c0-.6-.5-1.1-1.1-1.1s-1.1.5-1.1,1.1v6.3c-1.7-.3-3.3-1.3-4.3-2.7l-2.7,1.6c-.5.3-1.2.1-1.5-.4s-.1-1.2.4-1.5h0l2.9-1.7c-.1-.5-.2-1.1-.2-1.6v-1.1h-3.2c-.6,0-1.1-.5-1.1-1.1s.5-1.1,1.1-1.1h3.2c0-.9.2-1.6.5-2.4l-3.2-2.1c-.5-.3-.7-1-.4-1.5.3-.5,1-.7,1.5-.4,0,0,0,0,0,0l3.2,2.1h0s0,0,0,0h0s0,0,0,0h0s0,0,0,0h0s0,0,0,0h0s0,0,0,0h0s0,0,0,0c0-2.4,1.9-4.3,4.3-4.3ZM12,5.5c-1.2,0-2.1,1-2.1,2.1h4.3c0-1.2-1-2.1-2.1-2.1Z"/>
 </svg>;
 
+// This icon was lifted up by 1 pt from the default SVG code
+export const Bulb = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-bulb">
+<path d="M0,0h24v24H0V0Z" stroke="none" fill="none" />
+<path d="M3,11h1M12,2v1M20,11h1M5.6,4.6l.7.7M18.4,4.6l-.7.7"/>
+<path d="M9,15c-2.2-1.7-2.7-4.8-1-7s4.8-2.7,7-1c2.2,1.7,2.7,4.8,1,7-.3.4-.6.7-1,1-.8.8-1.2,1.9-1,3,0,1.1-.9,2-2,2s-2-.9-2-2c.2-1.1-.2-2.2-1-3"/>
+<path d="M9.7,16h4.6"/>
+</svg>;
+
 export const CalendarClock = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-clock">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M10.5 21h-4.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v3" stroke="currentColor" />

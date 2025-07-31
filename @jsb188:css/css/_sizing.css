@@ -139,13 +139,13 @@ div, p {
 .ls_3 { letter-spacing: -.025em; text-indent: -.025em; }
 .ls_4 { letter-spacing: -.0175em; text-indent: -.0175em; }
 
-h1.ft_tn, h2.ft_tn, h3.ft_tn, h4.ft_tn, h5.ft_tn, h6.ft_tn { font-size: var(--heading-xxsmall); }
-h1.ft_xs, h2.ft_xs, h3.ft_xs, h4.ft_xs, h5.ft_xs, h6.ft_xs { font-size: var(--heading-xsmall); }
-h1.ft_sm, h2.ft_sm, h3.ft_sm, h4.ft_sm, h5.ft_sm, h6.ft_sm { font-size: var(--heading-small); }
-h1.ft_df, h2.ft_df, h3.ft_df, h4.ft_df, h5.ft_df, h6.ft_df { font-size: var(--heading-default); }
-h1.ft_md, h2.ft_md, h3.ft_md, h4.ft_md, h5.ft_md, h6.ft_md { font-size: var(--heading-medium); }
-h1.ft_lg, h2.ft_lg, h3.ft_lg, h4.ft_lg, h5.ft_lg, h6.ft_lg { font-size: var(--heading-large); }
-h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl { font-size: var(--heading-xlarge); }
+h1.ft_tn, h2.ft_tn, h3.ft_tn, h4.ft_tn, h5.ft_tn, h6.ft_tn, .ft_heading_tn { font-size: var(--heading-xxsmall); }
+h1.ft_xs, h2.ft_xs, h3.ft_xs, h4.ft_xs, h5.ft_xs, h6.ft_xs, .ft_heading_xs { font-size: var(--heading-xsmall); }
+h1.ft_sm, h2.ft_sm, h3.ft_sm, h4.ft_sm, h5.ft_sm, h6.ft_sm, .ft_heading_sm { font-size: var(--heading-small); }
+h1.ft_df, h2.ft_df, h3.ft_df, h4.ft_df, h5.ft_df, h6.ft_df, .ft_heading_df { font-size: var(--heading-default); }
+h1.ft_md, h2.ft_md, h3.ft_md, h4.ft_md, h5.ft_md, h6.ft_md, .ft_heading_md { font-size: var(--heading-medium); }
+h1.ft_lg, h2.ft_lg, h3.ft_lg, h4.ft_lg, h5.ft_lg, h6.ft_lg, .ft_heading_lg { font-size: var(--heading-large); }
+h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { font-size: var(--heading-xlarge); }
 
 /* Icon */
 
@@ -929,32 +929,6 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl { font-size: var(--he
 .max_w_950 { max-width: 950px; }
 .max_w_1000 { max-width: 1000px; }
 
-/* Mobile responsive design */
-
-@media (max-width: 1024px) { /* Tablet landscape */
-  .hide_tablet_landscape { display: none !important; }
-  .responsive.p_lg { padding: var(--rem-medium); }
-}
-
-@media (max-width: 768px) { /* Tablet portrait */
-  .hide_tablet_portrait { display: none !important; }
-  .responsive.p_lg { padding: var(--rem-medium) var(--rem-default); }
-}
-
-@media (max-width: 600px) { /* Mobile landscape */
-  .hide_mobile_landscape { display: none !important; }
-}
-
-@media (max-width: 480px) { /* Mobile portrait */
-  .hide_mobile_portrait { display: none !important; }
-  .responsive.p_lg { padding: var(--rem-medium) var(--rem-small); }
-}
-
-@media (max-width: 360px) { /* Small device */
-  .hide_small_landscape { display: none !important; }
-  .responsive.p_lg { padding: var(--rem-default) var(--rem-xsmall); }
-}
-
 /* Radius */
 
 .r, .r .img_auto { border-radius: 100vmax; }
@@ -1292,4 +1266,35 @@ svg.av_xl .s_dot {
 
 .grid.size_9 {
   grid-template-columns: repeat(9, 1fr);
+}
+
+/*
+Mobile responsive design
+NOTE: Do not change any of these media query widths because these values are used in other places.
+NOTE: var() doesn't work inside media queries, so we use fixed values.
+*/
+
+@media (max-width: 1024px) { /* Tablet landscape */
+  .hide_tablet_landscape { display: none !important; }
+  .responsive.p_lg { padding: var(--rem-medium); }
+}
+
+@media (max-width: 768px) { /* Tablet portrait */
+  .hide_tablet_portrait { display: none !important; }
+  .responsive.p_lg { padding: var(--rem-medium) var(--rem-default); }
+  .responsive.grid.size_2 { grid-template-columns: repeat(1, 1fr); }
+}
+
+@media (max-width: 600px) { /* Mobile landscape */
+  .hide_mobile_landscape { display: none !important; }
+}
+
+@media (max-width: 480px) { /* Mobile portrait */
+  .hide_mobile_portrait { display: none !important; }
+  .responsive.p_lg { padding: var(--rem-medium) var(--rem-small); }
+}
+
+@media (max-width: 360px) { /* Small device */
+  .hide_small_landscape { display: none !important; }
+  .responsive.p_lg { padding: var(--rem-default) var(--rem-xsmall); }
 }

@@ -55,7 +55,7 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
   switch (preset) {
     case 'modal':
       addSeparator = true;
-      linkHoverClassName = 'bg_lighter_hv';
+      linkHoverClassName = 'bg_lighter_hv_4';
       paddingClassName = 'px_md -mx_5';
       break;
     default:
