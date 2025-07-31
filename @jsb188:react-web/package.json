@@ -15,7 +15,9 @@
     "./modules/Form": "./modules/Form.tsx",
     "./modules/HorizontalScrollTabs": "./modules/HorizontalScrollTabs.tsx",
     "./modules/PopOver": "./modules/PopOver.tsx",
+    "./modules/ReverseVirtualizedList": "./modules/ReverseVirtualizedList.tsx",
     "./modules/SchemaForm": "./modules/SchemaForm.tsx",
+    "./modules/VirtualizedList": "./modules/VirtualizedList.tsx",
     "./ui/Article": "./ui/Article.tsx",
     "./ui/Avatar": "./ui/Avatar.tsx",
     "./ui/Button": "./ui/Button.tsx",
@@ -39,6 +41,7 @@
   "peerDependencies": {
     "@jsb188/app": "1.1.4",
     "@jsb188/react": "1.1.4",
+    "@jsb188/graphql": "1.1.4",
     "react-router": "^7.6.2",
     "is-ip": "^5.0.1",
     "jotai": "^2.12.5",
