@@ -451,6 +451,7 @@ interface PillProps {
   addLoadingIndicator: boolean;
   to: string;
   href: string;
+  target?: string;
   title: string;
   children: any;
   size: 'sm' | 'df' | 'md' | 'lg' | null;
@@ -459,7 +460,7 @@ interface PillProps {
 }
 
 export function Pill(p: Partial<PillProps>) {
-  const { loading, addLoadingIndicator, to, href, onClick, title, children } = p;
+  const { loading, addLoadingIndicator, to, href, target, onClick, title, children } = p;
   const size = p.size || 'default';
   const className = p.className || 'bg_active';
   const LinkComponent = p.as || (to ? Link : 'a');
@@ -477,6 +478,7 @@ export function Pill(p: Partial<PillProps>) {
       Component={LinkComponent}
       to={to}
       href={href}
+      target={target}
       // @ts-ignore
       onClick={onClick_}
       title={title}
