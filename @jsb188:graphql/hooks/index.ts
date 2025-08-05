@@ -176,29 +176,26 @@ export function useReactiveFragment(
 
   const [changedData, setChangedData] = useState<any>(() => {
     // This allows initial data to *not* be null even when data param is null
-    let initialData;
-    if (data) {
-      initialData = data;
-    } else {
-      initialData = {}; // loadFragment(Array.isArray(firstKey) ? firstKey[0] : firstKey);
-      observe.forEach((key) => {
-        const isMapped = Array.isArray(key);
-        const fragmentData = loadFragment(isMapped ? key[0] : key);
-        if (fragmentData) {
-          if (isMapped) {
-            initialData = {
-              ...initialData!,
-              [key[1]]: fragmentData,
-            };
-          } else {
-            initialData = {
-              ...initialData!,
-              ...fragmentData,
-            };
-          }
+    let initialData = data;
+
+    observe.forEach((key) => {
+      const isMapped = Array.isArray(key);
+      const fragmentData = loadFragment(isMapped ? key[0] : key);
+
+      if (fragmentData) {
+        if (isMapped) {
+          initialData = {
+            ...initialData!,
+            [key[1]]: fragmentData,
+          };
+        } else {
+          initialData = {
+            ...initialData!,
+            ...fragmentData,
+          };
         }
-      });
-    }
+      }
+    });
 
     return {
       fragmentUpdatedCount: frgObsCount,

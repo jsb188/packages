@@ -247,18 +247,6 @@
   margin-right: .2rem;
 }
 
-/* Virtualized list */
-
-.vl_list {
-  padding-bottom: var(--rem-default);
-}
-
-.vl_list .li_body.top {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
 /* Preset: small & tiny */
 
 .li_item.small, .li_item.tiny, .li_item.xtiny {

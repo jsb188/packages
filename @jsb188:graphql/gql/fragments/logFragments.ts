@@ -3,7 +3,7 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   id
   accountId
   organizationId
-
+  cursor
   date
   createdAt
   updatedAt

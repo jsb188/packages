@@ -1,461 +1,565 @@
-import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string';
-import { setTimeoutPriority } from '@jsb188/react-web/utils/pto';
-import { memo, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
+import type { ServerErrorObj } from '@jsb188/app/types/app.d';
+import { uniq } from '@jsb188/app/utils/object';
+import { cn } from '@jsb188/app/utils/string';
+import { loadFragment } from '@jsb188/graphql/cache';
+import type { OpenModalPopUpFn } from '@jsb188/react/states';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { ReactDivElement } from '../types/dom.d';
+
+/**
+ * Logic
+ *
+ * 1. startOfListItems[]
+ * This is where the newest items get pushed into array.
+ * For example, "newest data" will get prepended/replaced here.
+ */
 
 /**
  * Types
  */
 
-interface Item {
-  id: string;
-}
+type CursorPositionObj = [
+  string | null, // ID of node; gotten from getItemId() // null means scroll to bottom
+  string | null, // DOM ID; of top most visible item, used for repositioning
+  number, // Top Y position; offset from top of window to top most visible item
+  boolean, // Whether the list is fetching before or after the cursor
+  number, // Refresh count
+];
 
-type VirtualizedListProps = {
-  children: any;
-  virtualized: any;
-  forceUpdate: () => void;
-  refreshKey?: [string, boolean, boolean, number | undefined]; // timestamp, isLive, forceRefetch, random float
-  fetchSize: number;
-  refreshCount: number;
-  hasAfter: boolean;
+type FetchMoreFn = (after: boolean, cursor: string | null, limit: number) => Promise<{
+  data?: any[];
+  error?: ServerErrorObj;
+}>;
+
+interface VZReferenceObj {
+  mounted: boolean;
   loading?: boolean;
-  ready: boolean;
-  data: Item[];
-  refetch: () => Promise<void>;
-  fetchMore: (options: object) => Promise<void>;
-  fetchDataFromCache: (itemWithCursor: object | null, after: boolean, limit: number) => object | null;
-  renderItem: (tem: Item, index: number, isLast: boolean) => React.ReactNode;
-  className?: string;
-  bodyClassName?: string;
-  MockComponent: React.ComponentType;
-};
+  itemIds: string[] | null;
+  startOfListItemId: string | null;
+  lastItemIdOnMount: string | null;
+  topCursor: [string, string] | null; // [id, cursor]
+  bottomCursor: [string, string] | null; // [id, cursor]
+}
 
-type VirtualizedPlaceholderProps = {
-  domId: string;
-  top?: boolean;
-  hasMore: boolean;
-  fetchSize: number;
-  itemHeight: number;
-  MockComponent: React.ComponentType;
-  bodyClassName?: string;
-};
+interface VZListItemObj {
+  item: any;
+  otherProps?: any;
+}
 
-/**
- * Virtualized placeholder area
- */
+interface VirtualizedState {
+  cursorPosition: CursorPositionObj | null;
+  setCursorPosition: (id: CursorPositionObj | null) => void;
+  listData: VZListItemObj[] | null;
+  hasMoreTop: boolean;
+  hasMoreBottom: boolean;
+  referenceObj: React.MutableRefObject<VZReferenceObj>;
+  // forceUpdate: () => void;
+}
 
-const VirtualizedPlaceholder = memo((p: VirtualizedPlaceholderProps) => {
-  const { domId, bodyClassName, top, hasMore, itemHeight } = p;
-  const MockComponent = p.MockComponent || 'div';
-  const windowHeight = globalThis?.innerHeight;
-  // console.log(top ? '   top' : 'bottom', fetchSize, hasMore, fetchSize, hasMore ? 0 : (fetchSize * itemHeight));
+interface VirtualizedListProps extends ReactDivElement {
+  // Render props
+  MockComponent?: React.ReactNode;
+  HeaderComponent?: React.ReactNode;
+  FooterComponent?: React.ReactNode;
+  renderItem: (item: VZListItemObj | VZListItemObj[], i: number, list: VZListItemObj[]) => React.ReactNode;
+  otherProps?: Record<string, any>;
 
-  return (
-    <div
-      id={domId}
-      hidden={!hasMore}
-      className={cn('vl_ph of li_body', bodyClassName, top ? 'top' : 'bottom')}
-      // style={{height: hasMore ? (fetchSize * itemHeight) : 0}}
-      style={hasMore ? { height: windowHeight } : undefined}
-    >
-      {hasMore
-        ? (
-          <MockComponent
-            size={Math.max(1, Math.floor(windowHeight / (itemHeight || 40)))}
-          />
-        )
-        : null}
-      {/* {!hasMore ? null : [...Array(fetchSize)].map((_, i) => <MockComponent key={i} />)} */}
-    </div>
-  );
-});
+  // Data props
+  loading?: boolean;
+  fetchMore?: FetchMoreFn;
+  startOfListItems: any[];
+  getItemId?: (item: any) => string;
+  groupItems?: (items: any[]) => any[]; // Function to group items by date period
+  fragmentName: string;
 
-VirtualizedPlaceholder.displayName = 'VirtualizedPlaceholder';
+  // Fetch props
+  limit: number;
+  maxFetchLimit?: number; // Max number of items user can load by scrolling
 
-/**
- * Helper; intersection observer for virtualized placeholder
- */
+  // Callbacks & handler props
+  openModalPopUp: OpenModalPopUpFn;
 
-function useVirtualizedInteractionObserver(
-  p: VirtualizedListProps,
-  virtualized: any,
-  forceUpdate: () => void,
-  after: boolean,
-  rootId: string,
-  domId: string,
-) {
-  const { fetchMore, fetchSize, fetchDataFromCache } = p;
-  const { hasAfter, hasBefore } = virtualized.current;
-  const hasMore = after ? hasAfter : hasBefore;
-
-  useEffect(() => {
-    if (hasMore) {
-      const root = document.querySelector(`#${rootId}`);
-      const domEl = document.querySelector(`#${domId}`);
-      const windowSize = Math.max(globalThis?.innerHeight, 1400);
-      const rootMargin = `${windowSize / 2}px`;
-
-      let intrObserver: IntersectionObserver;
-      if (root && domEl) {
-        const onIntersectChange = async (
-          entries: IntersectionObserverEntry[],
-        ) => {
-          const entry = entries[0];
-          const data = virtualized.current.data;
-
-          if (entry?.isIntersecting && !virtualized.current.skipInfiniteScroll && data.length) {
-            const item = after ? data[data.length - 1] : data[0];
-
-            let cacheData;
-            if (item) {
-              // console.log('FETCH 0', after, item.cursor, hasMore, virtualized.current);
-              cacheData = fetchDataFromCache(item, after, fetchSize, true);
-
-              if (!cacheData) {
-                await fetchMore({
-                  variables: {
-                    cursor: item.cursor,
-                    after,
-                    limit: fetchSize,
-                  },
-                });
-
-                cacheData = fetchDataFromCache(item, after, fetchSize);
-              }
-            }
-
-            const items = root.getElementsByClassName('li_item');
-
-            let inViewEl;
-            let inViewPos;
-            if (items.length) {
-              for (let i = 0; i < items.length; i++) {
-                const msgEl = items.item(i);
-                const rect = msgEl?.getBoundingClientRect();
-
-                if (rect && rect.top >= 0) {
-                  inViewEl = msgEl;
-                  inViewPos = rect.top;
-                  break;
-                }
-              }
-
-              // if (inViewEl) {
-              //   console.log(inViewEl.id);
-              //   console.log(inViewEl.innerText);
-              //   console.log(inViewPos);
-              // }
-            }
-
-            if (cacheData) {
-              // console.log("SET::::", cacheData.data.length, cacheData.data[cacheData.data.length - 1]?.userStatus?.id);
-              // console.log(inViewEl ? [inViewEl.id, inViewPos] : 'NO VIEW');
-
-              virtualized.current = {
-                ...virtualized.current,
-                ...cacheData,
-                nextPosition: inViewEl ? [inViewEl.id, inViewPos] : null,
-              };
-              forceUpdate();
-            }
-          }
-        };
-
-        intrObserver = new IntersectionObserver(onIntersectChange, {
-          rootMargin,
-          root,
-        });
-        intrObserver.observe(domEl);
-
-        return () => {
-          intrObserver.disconnect();
-        };
-      }
-    }
-  }, [hasMore]);
+  // DOM props
+  rootElementQuery: string; // Scrollable DOM element where the list is contained
+  scrollBottomThreshold?: number; // Positon from bottom to be considered "scrolled to bottom" // If decimals (.25), then it's % of clientHeight of scrollable DOM
 }
 
 /**
- * Render item; memoized so it's efficient
+ * Static list container with same class name
  */
 
-const RenderItemMemo = memo((p: any) => {
-  const { item, index, lastIndex, renderItem } = p;
-  return renderItem(item, index, index === lastIndex);
-});
-
-RenderItemMemo.displayName = 'RenderItemMemo';
+export function StaticListContainer(p: ReactDivElement) {
+  const { className, ...other } = p;
+  return <section
+    className={cn('px_lg pt_df pb_xl fs', className)}
+    {...other}
+  />;
+}
 
 /**
- * Virtualized list for fixed height items
+ * Helper; merge item ids
  */
 
-const VirtualizedListMemo = memo((p: VirtualizedListProps) => {
-  const {
-    loading,
-    fetchSize,
-    renderItem,
-    className,
-    bodyClassName,
-    MockComponent,
-    virtualized,
-    forceUpdate,
-    children,
-  } = p;
+function mergeItemIds(
+  currentObj: VZReferenceObj,
+  data: any[],
+  mergeFromLastItem: boolean,
+  after: boolean,
+  p: VirtualizedListProps
+): string[] {
+  const getItemId_ = p.getItemId || ((item: any) => item.id);
+  const currentList = currentObj.itemIds || [];
 
-  const { id, data, hasBefore, hasAfter } = virtualized.current;
-  // console.log(data);
+  let newList;
+  if (mergeFromLastItem) {
+    const lastItemId = currentList[currentList.length - 1];
+    const ix = data.findIndex((item) => getItemId_(item) === lastItemId);
 
-  // const firstCursor = data[1][0]?.id;
-  // const lastCursor = data[1][data[1].length - 1]?.id;
-  // const firstCursor = p.data[0]?.id;
-  // const lastCursor = p.data[p.data?.length - 1]?.id;
-
-  const rootId = id;
-  const headId = `${id}-head`;
-  const bodyId = `${id}-body`;
-  const footId = `${id}-foot`;
-
-  const layout = useMemo(() => {
-    const height = virtualized.current.nextHeight;
-    const size = virtualized.current.data.reduce((acc, d) => acc + d.length, 0,);
-    return { height, size };
-  }, [virtualized.current.nextHeight, virtualized.current.data]);
-
-  // Keep track of loading status to prevent "double" fetch
-
-  useEffect(() => {
-    if (loading) {
-      virtualized.current = {
-        ...virtualized.current,
-        skipInfiniteScroll: true,
-      };
-      forceUpdate();
+    if (after) {
+      newList = data.slice(ix + 1).map(getItemId_);
     } else {
-      const timer = setTimeoutPriority(() => {
-        virtualized.current = {
-          ...virtualized.current,
-          skipInfiniteScroll: false,
-        };
-        forceUpdate();
-      }, 78);
-      return () => clearTimeout(timer);
+      newList = data.slice(0, ix).map(getItemId_);
     }
-  }, [loading]);
+  } else {
+    newList = data.map(getItemId_);
+  }
 
-  // Observe body
+  if (after) {
+    return uniq([...newList, ...currentList]);
+  }
+
+  return uniq([...currentList, ...newList]);
+}
+
+/**
+ * Helper; get cursor position
+ */
+
+function getCursorPosition(
+  id: string | null,
+  after: boolean,
+  listElement: HTMLDivElement | null,
+  p: VirtualizedListProps
+): CursorPositionObj | null {
+
+  if (id === null) {
+    // null means scroll to bottom
+    return [null, null, 0, true, Date.now()];
+  }
+
+  const { rootElementQuery } = p;
+  const rootElement = globalThis?.document.querySelector(rootElementQuery);
+  if (!rootElement || !listElement) {
+    return null; // Impossible logic
+  }
+
+  // This is extra offset to accomodate root element's top offset position
+  const rootTop = rootElement.getBoundingClientRect().top;
+
+  // Loop through each element in listElement and get the first visible element
+  for (let i = 0; i < listElement.children.length; i++) {
+    const msgEl = listElement.children.item(i);
+    const rect = msgEl?.getBoundingClientRect();
+
+    // ID of the item
+    const itemDomId = msgEl?.id;
+
+    if (rect && rect.top >= 0) {
+      return [id, itemDomId!, rect.top + rootTop, after, 0];
+    }
+  }
+
+  return [id, null, 0, after, 0];
+}
+
+/**
+ * Scroll to bottom
+ */
+
+function scrollToTop(rootElementQuery: string, instant = false) {
+
+  // requestAnimationFrame() is necessary to prevent a slight difference in scroll position calculation
+  if (instant) {
+    globalThis?.requestAnimationFrame(() => {
+      const rootElement = globalThis?.document.querySelector(rootElementQuery);
+      if (rootElement) {
+        rootElement.scrollTop = 0;
+      }
+    });
+    return;
+  }
+
+  const doScroll = () => {
+    globalThis?.requestAnimationFrame(() => {
+      const rootElement = globalThis?.document.querySelector(rootElementQuery);
+      if (rootElement) {
+        // Scroll to bottom of root element
+        rootElement.scrollTo({ top: 0, behavior: 'smooth' });
+        // listElement.lastElementChild?.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'smooth' });
+      }
+    });
+  };
+
+  doScroll();
+
+  // When scrolling from a large list, it's possible that the scroll position is not at the bottom
+  // So we need to check and scroll twice if necessary.
+
+  // NOTE: There's an issue if you scroll all the way to top of list and send a message,
+  // It scrolls half way, delays and scrolls again (using this timeout).
+  // It's possible to fix this UI issue, but its not worth the investment.
+
+  setTimeout(() => {
+    const rootElement = globalThis?.document.querySelector(rootElementQuery);
+    const currentViewHeight = rootElement?.clientHeight || 0;
+    const currentScrollPos = (rootElement?.scrollHeight || 0) - (rootElement?.scrollTop || 0) - currentViewHeight;
+    const retryThreshold = Math.min(currentViewHeight * .78, 780);
+    // console.log('currentViewHeight', currentViewHeight);
+    // console.log('currentScrollPos', currentScrollPos);
+    // console.log('retryThreshold', retryThreshold);
+    // console.log('scroll again?', currentScrollPos > retryThreshold ? 'yes' : 'no');
+
+    if (currentScrollPos > retryThreshold) {
+      doScroll();
+    }
+  }, 550);
+}
+
+/**
+ * Reposition list to location of DOM element
+ */
+
+function repositionList(
+  cursorPosition: CursorPositionObj,
+  listElement: HTMLDivElement | null,
+  p: VirtualizedListProps
+) {
+  console.dev('REPOSITIONING LIST');
+
+  const { rootElementQuery } = p;
+  const [id, itemDomId, topOffset] = cursorPosition;
+  const rootElement = globalThis?.document.querySelector(rootElementQuery);
+  if (!id || !rootElement || !listElement) {
+    return; // Impossible logic
+  }
+
+  const itemElement = itemDomId ? globalThis?.document.getElementById(itemDomId) : listElement;
+  if (!itemElement) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Item not found in DOM during Virtualized list repositioning:', cursorPosition[0]);
+    }
+    return;
+  }
+
+  globalThis?.requestAnimationFrame(() => {
+    itemElement.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
+    itemElement.scrollTop = topOffset;
+  });
+
+  // const rootTop = rootElement.getBoundingClientRect().top;
+  // const scrollY = itemTop - rootTop;
+
+  // console.log('itemTop', itemTop);
+  // console.log('rootTop', rootTop);
+  // console.log('scrollY', scrollY);
+
+  // // itemElement.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
+  // // rootElement.scrollTo({ top: scrollY, behavior: 'instant' });
+  // // rootElement.scrollTop = cursorPosition[1];
+
+  // const scrollTop = itemTop - cursorPosition[1] - rootTop;
+  // rootElement.scrollTo({top: scrollTop, behavior: 'instant'});
+}
+
+/**
+ * Virtualized list state
+ */
+
+function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
+  const { otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
+  const [cursorPosition, setCursorPosition] = useState<CursorPositionObj | null>(null);
+  // const [, forceUpdate] = useReducer(x => x + 1, 0);
+  const referenceObj = useRef<VZReferenceObj>({ loading, startOfListItemId: null, lastItemIdOnMount: null, mounted: true, itemIds: null, topCursor: null, bottomCursor: null });
+
+  // List data
+
+  const itemIds = referenceObj.current.itemIds;
+  const listData = useMemo(() => {
+
+    if (itemIds && limit > 0) {
+      let viewing: string[];
+      if (cursorPosition === null || cursorPosition[0] === null) {
+        viewing = itemIds.slice(0, limit);
+      } else {
+        let cursorIndex = itemIds.indexOf(cursorPosition[0]);
+        if (cursorIndex === -1) {
+          // This cannot happen (impossible logic)
+          console.error('Cursor ID not found in itemIds[]:', cursorPosition[0]);
+          return null;
+        } else if (!cursorPosition[3]) {
+          cursorIndex++;
+        }
+
+        const start = Math.max(0, cursorIndex - limit);
+        const end = Math.min(itemIds.length, cursorIndex + limit);
+        viewing = itemIds.slice(start, end);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.dev('start to end:', cursorPosition[3], start, end, '->', viewing.length);
+        }
+      }
+
+      return viewing.map((id) => {
+        const item = loadFragment(`${fragmentName}:${id}`);
+        if (!item) {
+          console.dev('Error in [VirtualizedList.tsx]; item not found in cache:', 'warning', id);
+          return null;
+        }
+
+        return {
+          item,
+          otherProps,
+          lastItemIdOnMount: referenceObj.current.lastItemIdOnMount
+        };
+      }).filter(Boolean) as VZListItemObj[];
+    }
+
+    return null;
+  }, [itemIds, cursorPosition?.[0], limit]);
+
+  // Keep track of certain props so it can referenced inside memoized functions
 
   useEffect(() => {
-    const bodyEl = document.querySelector(`#${bodyId}`);
+    const top = listData?.[0]?.item;
+    const bottom = listData?.[listData.length - 1]?.item;
 
-    let bodyObserver: ResizeObserver;
-    if (bodyEl) {
-      const onBodyChange = (entries: ResizeObserverEntry[]) => {
-        const entry = entries[0];
-        if (entry) {
-          // console.log(entry.target?.offsetHeight);
-          virtualized.current = {
-            ...virtualized.current,
-            nextHeight: entry.contentRect.height,
-          };
-          forceUpdate();
-        }
-      };
+    referenceObj.current = {
+      ...referenceObj.current,
+      loading,
+      topCursor: top ? [top.id, top.cursor] : null,
+      bottomCursor: bottom ? [bottom.id, bottom.cursor] : null
+    };
+  }, [loading, listData]);
 
-      bodyObserver = new ResizeObserver(onBodyChange);
-      bodyObserver.observe(bodyEl);
-
-      return () => {
-        bodyObserver.disconnect();
-      };
-    }
+  useEffect(() => {
+    // Need this for development purposes
+    referenceObj.current.mounted = true;
+    return () => {
+      referenceObj.current.mounted = false;
+    };
   }, []);
 
-  // Intersection observers
+  const { startOfListItemId } = referenceObj.current;
+  const isTopOfList = startOfListItemId ? startOfListItemId === listData?.[0]?.item?.id : false;
+  const hasMoreTop = !!cursorPosition?.[0] && !!itemIds && !!listData && limit <= itemIds.length && itemIds[0] !== listData[0]?.item?.id;
+  const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? limit <= listData.length : false;
 
-  useVirtualizedInteractionObserver(p, virtualized, forceUpdate, false, rootId, headId);
-  useVirtualizedInteractionObserver(p, virtualized, forceUpdate, true, rootId, footId);
-
-  // Reposition whenever data changes
-
-  useLayoutEffect(() => {
-    if (virtualized.current.nextPosition) {
-      const [id, pos] = virtualized.current.nextPosition;
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
-        el.scrollTop = pos;
-      }
-      virtualized.current.nextPosition = null;
-    }
-  }, [virtualized.current.data]);
-
-  const itemHeight = layout.height / layout.size;
-  const lastPos = data.length - 1;
-
-  return (
-    <div className={cn('vl_list', className)} id={rootId}>
-      <div className={cn('li_body', bodyClassName)} id={bodyId}>
-        <VirtualizedPlaceholder
-          domId={headId}
-          bodyClassName={bodyClassName}
-          top
-          hasMore={hasBefore}
-          fetchSize={fetchSize}
-          itemHeight={itemHeight}
-          MockComponent={MockComponent}
-        />
-
-        {hasBefore ? null : children}
-
-        {data.map((item: any, i: number) => <RenderItemMemo
-          key={item.id}
-          item={item}
-          index={i}
-          lastIndex={lastPos}
-          renderItem={renderItem}
-        />)}
-
-        <VirtualizedPlaceholder
-          domId={footId}
-          hasMore={hasAfter}
-          fetchSize={fetchSize}
-          itemHeight={itemHeight}
-          MockComponent={MockComponent}
-        />
-      </div>
-    </div>
-  );
-});
-
-VirtualizedListMemo.displayName = 'VirtualizedListMemo';
+  return {
+    cursorPosition,
+    setCursorPosition,
+    listData,
+    hasMoreTop,
+    hasMoreBottom,
+    referenceObj,
+  };
+}
 
 /**
- * Virtualized list; initial render with data
+ * Re-position list as needed
+ */
+
+function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState) {
+  const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
+  const { startOfListItems, scrollBottomThreshold, rootElementQuery, limit, fetchMore, openModalPopUp } = p;
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const topRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const eolLen = startOfListItems.length;
+
+  // fetchMore() logic for infinite scroll
+
+  const fetchMoreList = useCallback(async(after: boolean) => {
+    if (fetchMore && !referenceObj.current.loading) {
+      const position = after ? referenceObj.current.topCursor : referenceObj.current.bottomCursor;
+
+      if (
+        position &&
+        ((after && hasMoreBottom) || (!after || hasMoreTop))
+      ) {
+
+        // Check if there's enough (limit) data from memory in itemIds array
+
+        const ix = referenceObj.current.itemIds?.indexOf(position[0]);
+        if (typeof ix === 'number' && ix >= 0) {
+          const listLen = referenceObj.current.itemIds!.length;
+          if (after && (ix - limit) >= limit) {
+            console.dev('REPOSITIONING AFTER', ix, limit, listLen);
+            setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
+            return;
+          // } else if (!after && ((ix + limit) < listLen || listLen === (ix + 1))) {
+          } else if (!after && (ix + limit) < listLen) {
+            console.dev('REPOSITIONING BEFORE', ix, limit, listLen);
+            setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
+            return;
+          } else {
+            // console.dev('NOT REPOSITIONING ' + (after ? 'AFTER' : 'BEFORE'), ix, limit, listLen);
+          }
+        }
+
+        const { data, error } = await fetchMore(after, position[1], limit);
+
+        if (referenceObj.current.mounted) {
+
+          if (process.env.NODE_ENV === 'development') {
+            console.dev(`FETCHED: ${limit} ${after ? 'ABOVE' : 'BELOW'} ${position[1] || "no cursor"}`, 'em', data);
+          }
+
+          if (Array.isArray(data) && data.length) {
+
+            referenceObj.current.itemIds = mergeItemIds(referenceObj.current, data, false, after, p);
+            if (!after && data.length < limit) {
+              referenceObj.current.startOfListItemId = referenceObj.current.itemIds[0];
+            }
+
+            setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
+          }
+
+          if (error) {
+            openModalPopUp(null, error);
+          }
+        } else if (process.env.NODE_ENV === 'development') {
+          console.dev('FETCHED: ' + (after ? 'BELOW' : 'ABOVE'), 'BUT COMPONENT IS *NOT* MOUNTED');
+        }
+      }
+    }
+    // "fetchMore" is not a dependency-- on purpose
+  }, [hasMoreTop, hasMoreBottom, limit, openModalPopUp]);
+
+  // On mount with data
+
+  useLayoutEffect(() => {
+    if (listData) {
+      console.dev('SCROLLING TO TOP (1)', 'em');
+      scrollToTop(rootElementQuery, true);
+    }
+  }, [!!listData, rootElementQuery]);
+
+  // On new list item appended
+
+  useLayoutEffect(() => {
+    if (eolLen) {
+      if (listData) {
+        referenceObj.current.itemIds = mergeItemIds(referenceObj.current, startOfListItems, true, true, p);
+      } else {
+        // This is for the first time the list is loaded
+        const getItemId = p.getItemId || ((item: any) => item.id);
+        referenceObj.current.itemIds = mergeItemIds(referenceObj.current, startOfListItems, false, true, p);
+        referenceObj.current.lastItemIdOnMount = getItemId(startOfListItems[startOfListItems.length - 1]);
+      }
+      setCursorPosition( getCursorPosition(null, true, listRef.current, p) );
+    }
+  }, [eolLen, rootElementQuery]);
+
+  // Reposition list when the current cursorPosition updates
+
+  useLayoutEffect(() => {
+      if (cursorPosition?.[0] && listData) {
+        repositionList(cursorPosition, listRef.current, p);
+      }
+    }, [cursorPosition?.[0], cursorPosition?.[4]]);
+
+
+  // Use IntersectionObserver to detect when the topRef and bottomRef are in view
+
+  useEffect(() => {
+    const rootElement = globalThis?.document.querySelector(rootElementQuery);
+
+    if (rootElement && (hasMoreTop || hasMoreBottom)) {
+      const intersectionMargin = Math.max(rootElement.clientHeight * .7, 780);
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const before = !!bottomRef.current && !!cursorPosition && entry.target === bottomRef.current;
+            const after = !!topRef.current && !before;
+
+            // console.log('cursorPosition', cursorPosition);
+            // console.log('before', before, hasMoreBottom);
+            // console.log('after', after, hasMoreTop);
+
+            if (before && hasMoreBottom) {
+              fetchMoreList(false);
+            } else if (after && hasMoreTop) {
+              fetchMoreList(true);
+            }
+          }
+        });
+      }, {
+        root: rootElement,
+        rootMargin: `${intersectionMargin}px`,
+        threshold: 0
+      });
+
+      observer.observe(topRef.current!);
+      observer.observe(bottomRef.current!);
+
+      // div mutation observer
+      // const div = document.getElementById("yourDivId");
+      // const observer = new MutationObserver(() => {
+      //   div.scrollTo({ top: div.scrollHeight, behavior: "smooth" });
+      // });
+      // observer.observe(div, { childList: true });
+
+      return () => {
+        observer.disconnect();
+      };
+    }
+
+    // fetchMoreList contains more dependencies such as [hasMoreTop, hasMoreBottom]
+  }, [fetchMoreList, !!cursorPosition, referenceObj.current.startOfListItemId]);
+
+  return [listRef, topRef, bottomRef];
+}
+
+/**
+ * Virtualized list
  */
 
 function VirtualizedList(p: VirtualizedListProps) {
-  const { refreshKey, loading, ready, fetchDataFromCache, refetch, fetchSize } = p;
+  const { renderItem, MockComponent, HeaderComponent, FooterComponent, groupItems } = p;
+  const vzState = useVirtualizedState(p);
+  const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
+  const { listData, hasMoreTop, hasMoreBottom } = vzState;
 
-  const [refreshCount, forceUpdate] = useReducer((x) => x + 1, 0);
-  const virtualized = useRef({
-    id: getTimeBasedUnique(),
-    data: null,
-    after: false,
-    cursor: null,
-    hasBefore: false,
-    hasAfter: false,
-    lastUpdatedCount: 0,
-    nextPosition: null,
-    skipInfiniteScroll: false,
-    // beginningOfListCursor: p.data[0]?.id,
-    // firstCursor: p.data[0]?.id,
-    // nextHeight: 0,
-    // after: null,
-  });
+  // For performance tests
+  // const [counter, setCounter] = useState(0);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setCounter(prev => prev + 1);
+  //   }, 1000);
+  //   return () => clearTimeout(timer);
+  // }, [counter]);
 
-  // Keep track of loading status to prevent "double" fetch
-
-  useEffect(() => {
-    if (loading) {
-      virtualized.current = {
-        ...virtualized.current,
-        skipInfiniteScroll: true,
-      };
-      forceUpdate();
-    } else {
-      const timer = setTimeoutPriority(() => {
-        virtualized.current = {
-          ...virtualized.current,
-          skipInfiniteScroll: false,
-        };
-        forceUpdate();
-      }, 125);
-      return () => clearTimeout(timer);
+  const renderListData = useMemo(() => {
+    if (groupItems && listData) {
+      return groupItems(listData);
     }
-  }, [loading]);
+    return listData;
+  }, [groupItems, listData]);
 
-  // Refresh, if a change is triggered and "only" if the list is at top
+  return <>
+    <div ref={topRef}>
+      {hasMoreTop ? MockComponent : HeaderComponent}
+    </div>
 
-  useEffect(() => {
-    const updateVirtualizedListData = async () => {
-      if (refreshKey && virtualized.current.data && !virtualized.current.hasBefore) {
-        if (refreshKey[1]) {
-          // Force refetch
-          await refetch();
-        }
+    <div ref={listRef}>
+      {renderListData?.map(renderItem)}
+    </div>
 
-        // Update data from cache
-        const fetchedFromCache = fetchDataFromCache(null, false, fetchSize);
-        if (fetchedFromCache?.data) {
-          virtualized.current = {
-            ...virtualized.current,
-            ...fetchedFromCache,
-          };
-          forceUpdate();
-        }
-      }
-    };
-
-    updateVirtualizedListData();
-  }, [
-    refreshKey?.[0] +
-    String(refreshKey?.[3] || '')
-  ]);
-
-  // Fetch initial data on mount
-
-  useLayoutEffect(() => {
-    if (
-      ready &&
-      !virtualized.current.skipInfiniteScroll &&
-      !virtualized.current.data
-    ) {
-      const onFinish = (cacheData: any) => {
-        if (cacheData?.data) {
-          virtualized.current = {
-            ...virtualized.current,
-            ...cacheData,
-          };
-          forceUpdate();
-        } else {
-          refetch();
-        }
-      };
-
-      const fetchedFromCache = fetchDataFromCache(null, false, fetchSize);
-      if (fetchedFromCache?.retry) {
-        const timer = setTimeoutPriority(() => onFinish(fetchedFromCache), 10);
-        return () => clearTimeout(timer);
-      } else {
-        onFinish(fetchedFromCache);
-      }
-    }
-  }, [ready, virtualized.current.skipInfiniteScroll]);
-
-  if (ready && virtualized.current.data) {
-    return (
-      <VirtualizedListMemo
-        {...p}
-        refreshCount={refreshCount}
-        virtualized={virtualized}
-        forceUpdate={forceUpdate}
-      />
-    );
-  }
-
-  const { MockComponent } = p;
-  if (MockComponent) {
-    return (
-      <div className={cn('vl_list', p.className)}>
-        <div className={cn('li_body', p.bodyClassName)}>
-          <MockComponent size={20} />;
-        </div>
-      </div>
-    );
-  }
-
-  return <div />;
+    <div ref={bottomRef}>
+      {hasMoreBottom && MockComponent}
+    </div>
+    {FooterComponent}
+  </>;
 }
 
 export default VirtualizedList;

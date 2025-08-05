@@ -8,6 +8,7 @@ import { InlineBlockLabel } from './Button';
  */
 
 interface CondensedGroupTitleProps {
+  domId?: string;
   text: string;
 }
 
@@ -16,9 +17,9 @@ interface CondensedGroupTitleProps {
  */
 
 export const CondensedGroupTitle = memo((p: CondensedGroupTitleProps) => {
-  const { text } = p;
+  const { text, domId } = p;
 
-  return <div className='mt_md'>
+  return <div className='mt_md mb_sm' id={domId}>
     <h4 className='ft_condensed_heading ft_xs p_n m_n cl_darker_2'>
       {text}
     </h4>
@@ -33,6 +34,7 @@ CondensedGroupTitle.displayName = 'CondensedGroupTitle';
 
 interface CondensedArticleItemProps {
   __deleted?: boolean;
+  domIdPrefix?: string;
   id?: string;
   preset?: 'modal' | 'default';
   onClick?: (itemId?: string) => void;
@@ -45,7 +47,7 @@ interface CondensedArticleItemProps {
 }
 
 export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
-  const { __deleted, preset, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels } = p;
+  const { __deleted, preset, domIdPrefix, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
 
@@ -65,6 +67,8 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
   }
 
   return <article
+    // style={{height: 750}}
+    id={`${domIdPrefix ? domIdPrefix + '_' : ''}${id}`}
     className={cn(
       'article_item rel',
       __deleted ? 'op_40' : '',

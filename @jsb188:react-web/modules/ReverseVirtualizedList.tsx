@@ -274,7 +274,7 @@ function repositionList(
 }
 
 /**
- * Save items by ID
+ * Virtualized list state
  */
 
 function useVirtualizedState(p: ReverseVZListProps): VirtualizedState {
@@ -440,8 +440,7 @@ function useVirtualizedDOM(p: ReverseVZListProps, vzState: VirtualizedState) {
         }
       }
     }
-    // "fetchMore" is not a dependency-- on purpose,
-    // because it's probably just a wrapper function anyways.
+    // "fetchMore" is not a dependency-- on purpose
   }, [hasMoreTop, hasMoreBottom, limit, openModalPopUp]);
 
   // On mount with data
@@ -486,6 +485,8 @@ function useVirtualizedDOM(p: ReverseVZListProps, vzState: VirtualizedState) {
         console.dev('SCROLLING TO BOTTOM (2)', 'em');
         scrollToBottom(rootElementQuery, false);
       } else {
+        console.dev('REPOSITION LIST');
+
         repositionList(cursorPosition, listRef.current, p);
       }
     }

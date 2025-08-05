@@ -87,7 +87,7 @@ export default {
     20048: 'This action is forbidden because you deleted your account.',
     20049: 'You haven\'t verified your account yet.',
     20050: 'This page does not exist.',
-    20051: 'Could not find the account with that phone number. (%{value})',
+    20051: 'We couldn\'t find an account associated with that phone number. (%{value})',
     20052: 'You do not have access to this organization\'s data.',
     20053: 'You haven\'t verified your account yet.',
     20054: 'You need an invitation to create an account.',

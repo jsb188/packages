@@ -326,10 +326,6 @@ function SendPhoneVerification(p: AuthFormProps) {
       const success = data?.sendPhoneVerificationCode;
       if (success) {
         setAuthIface(['VERIFY_PHONE_SENT', variables.phone]);
-      } else {
-        setError({
-          message: i18n.t('error.unknown_error'),
-        });
       }
     },
     onError: (err: any) => {

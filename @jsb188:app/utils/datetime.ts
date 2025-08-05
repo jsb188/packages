@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import i18n from '../i18n';
+import { getObject } from './object';
 import { isValidTimeZone, parseDateInTimezone } from './timeZone';
 
 /**
@@ -517,14 +518,14 @@ export function getDateFromCalDate(calDate: string) {
 
 export function groupByDatePeriod<T>(
 	items: T[],
-	dateKey: string,
+	dateKey: string, // "." delimited getter is allowed here
 	groupByDate?: boolean,
 	timeZone?: string | null,
 	mapFn?: (item: any) => any,
 ): DatePeriodObj[][] {
 	const ordered = items.sort((a: any, b: any) => {
-		const valueA = a[dateKey];
-		const valueB = b[dateKey];
+		const valueA = getObject(a, dateKey);
+		const valueB = getObject(b, dateKey);
 
 		if (valueA < valueB) {
 			return 1;
@@ -547,7 +548,7 @@ export function groupByDatePeriod<T>(
 
 		const lastItem = group[group.length - 1];
 		const lastDatePeriod: any = lastItem?.datePeriod;
-		const date = new Date(item[dateKey]);
+		const date = new Date(getObject(item, dateKey));
 		const datePeriod = groupByDate ? getCalDate(date, timeZone).calDate : getDatePeriod(date, d);
 
 		const dateObj = {
