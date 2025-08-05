@@ -356,7 +356,7 @@ a.u, button.u {
   border-radius: var(--radius-small);
 }
 
-.mock:before {
+.mock:before, .mock.alt:before {
   background-color: rgb(var(--color-bg-alt));
 }
 

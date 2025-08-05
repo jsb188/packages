@@ -450,7 +450,7 @@ export function PageContent(p: PageContentProps) {
 
 interface ContentGateProps {
   children: React.ReactNode;
-  NotReadyComponent?: React.ReactNode;
+  NotReadyComponent?: React.ElementType;
   notReady?: boolean;
   loading?: boolean;
   notReadyClassName?: string;
@@ -476,7 +476,9 @@ export function ContentGate(p: ContentGateProps) {
         hideButtonIfNotRetriable={typeof hideButtonIfNotRetriable === 'boolean' ? hideButtonIfNotRetriable : true}
         onClickButton={onRefetch}
       />
-      : NotReadyComponent}
+      : NotReadyComponent
+      ? <NotReadyComponent />
+      : null}
     </div>;
   }
 

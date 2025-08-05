@@ -31,6 +31,14 @@ type FetchMoreFn = (after: boolean, cursor: string | null, limit: number) => Pro
   error?: ServerErrorObj;
 }>;
 
+type RenderItemFn = (
+  // This is when you use the groupItems() fn
+  (item: any[], i: number, list: any[][]) => React.ReactNode
+) |
+(
+  (item: VZListItemObj, i: number, list: VZListItemObj[]) => React.ReactNode
+);
+
 interface VZReferenceObj {
   mounted: boolean;
   loading?: boolean;
@@ -44,6 +52,9 @@ interface VZReferenceObj {
 interface VZListItemObj {
   item: any;
   otherProps?: any;
+
+  // If you use the groupItems() fn, you can add DatePeriodObj and any other props here
+  [key: string]: any;
 }
 
 interface VirtualizedState {
@@ -60,8 +71,8 @@ interface VirtualizedListProps extends ReactDivElement {
   // Render props
   MockComponent?: React.ReactNode;
   HeaderComponent?: React.ReactNode;
-  FooterComponent?: React.ReactNode;
-  renderItem: (item: VZListItemObj | VZListItemObj[], i: number, list: VZListItemObj[]) => React.ReactNode;
+  FooterComponent?: React.ElementType;
+  renderItem: RenderItemFn;
   otherProps?: Record<string, any>;
 
   // Data props
@@ -81,7 +92,6 @@ interface VirtualizedListProps extends ReactDivElement {
 
   // DOM props
   rootElementQuery: string; // Scrollable DOM element where the list is contained
-  scrollBottomThreshold?: number; // Positon from bottom to be considered "scrolled to bottom" // If decimals (.25), then it's % of clientHeight of scrollable DOM
 }
 
 /**
@@ -370,7 +380,7 @@ function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
 
 function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
-  const { startOfListItems, scrollBottomThreshold, rootElementQuery, limit, fetchMore, openModalPopUp } = p;
+  const { startOfListItems, rootElementQuery, limit, fetchMore, openModalPopUp } = p;
   const listRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -525,19 +535,10 @@ function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState) {
  */
 
 function VirtualizedList(p: VirtualizedListProps) {
-  const { renderItem, MockComponent, HeaderComponent, FooterComponent, groupItems } = p;
+  const { renderItem, MockComponent, HeaderComponent, FooterComponent, groupItems, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
-  const { listData, hasMoreTop, hasMoreBottom } = vzState;
-
-  // For performance tests
-  // const [counter, setCounter] = useState(0);
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setCounter(prev => prev + 1);
-  //   }, 1000);
-  //   return () => clearTimeout(timer);
-  // }, [counter]);
+  const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
 
   const renderListData = useMemo(() => {
     if (groupItems && listData) {
@@ -560,7 +561,12 @@ function VirtualizedList(p: VirtualizedListProps) {
     <div ref={bottomRef}>
       {hasMoreBottom && MockComponent}
     </div>
-    {FooterComponent}
+    {!hasMoreBottom && FooterComponent &&
+      <FooterComponent
+        maxFetchLimit={maxFetchLimit}
+        loadedDataSize={referenceObj.current.itemIds!?.length}
+      />
+    }
   </>;
 }
 

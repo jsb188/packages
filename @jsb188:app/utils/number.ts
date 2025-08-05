@@ -197,3 +197,22 @@ export function formatCurrency(
 		maximumFractionDigits: hasDecimals ? 2 : 0,
 	});
 }
+
+/**
+ * Format number to have "," between every thousands
+ */
+
+export function kFormat(
+  num: string | number,
+  locale: string = 'en-US',
+): string {
+  const number = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(number)) {
+    return String(num);
+  }
+
+  return number.toLocaleString(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}

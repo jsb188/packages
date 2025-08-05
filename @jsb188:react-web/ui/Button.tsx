@@ -322,7 +322,7 @@ export interface InlineBlockLabelProps {
   className?: string;
   textColorClassName?: string;
   iconName?: string;
-  text?: string;
+  text?: React.ReactNode;
   fillTextColor?: boolean;
   outline?: boolean;
   colorIndicator?: ColorEnum;

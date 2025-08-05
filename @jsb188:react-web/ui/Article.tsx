@@ -29,6 +29,18 @@ export const CondensedGroupTitle = memo((p: CondensedGroupTitleProps) => {
 CondensedGroupTitle.displayName = 'CondensedGroupTitle';
 
 /**
+ * Condensed group title mock
+ */
+
+export function CondensedGroupTitleMock() {
+  return <div className='mt_md mb_sm'>
+    <h4 className='ft_condensed_heading ft_xs p_n m_n cl_invis'>
+      ....
+    </h4>
+  </div>;
+}
+
+/**
  * Condensed article list item
  */
 
@@ -111,58 +123,69 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
       : <div className='h_right gap_xs'>
         {RightComponent}
       </div>}
-
-      {/* <div className='f h_right'>
-        <AvatarImg
-          size='xtiny'
-          displayName='BE'
-        />
-      </div> */}
-
-      {/* {labels && (
-        <div className='h_item pt_sm pb_xs shift_up'>
-          {labels.map(label => (
-            <InlineBlockLabel
-              as='span'
-              outline
-              color='alt'
-              // textColorClassName='cl_primary'
-              {...label}
-            />
-          ))}
-        </div>
-      )} */}
     </div>
   </article>;
-
-  // return <article className='h_item mb_md gap_md'>
-  //   <div className='bg_alt av_md r v_center a_c'>
-  //     Dec 4<br />
-  //     <span className='ft_tn'>
-  //     10:00 AM
-  //     </span>
-
-  //   </div>
-
-  //   <div>
-  //     {/* <div className='h_item'>
-  //       <strong className='bg_active py_xs px_xs r'>
-  //         Corn
-  //       </strong>
-  //     </div> */}
-  //     <p className='h_item gap_xs'>
-  //       <strong className='bg_active py_xs px_xs r'>
-  //         Harvested
-  //       </strong>
-  //       <span className='bg_active py_xs px_xs r'>
-  //         Corn (10 bags)
-  //       </span>
-  //       </p>
-  //     <p>
-  //       {description}
-  //     </p>
-  //   </div>
-  // </article>;
 });
 
 CondensedArticleItem.displayName = 'CondensedArticleItem';
+
+/**
+ * Condensed article item mock
+ */
+
+interface CondensedArticleItemMockProps {
+  addSeparator?: boolean;
+  index?: number;
+}
+
+export function CondensedArticleItemMock(p: CondensedArticleItemMockProps) {
+  const { addSeparator, index } = p;
+  const modulus = index !== undefined ? index % 3 : 0;
+
+  const description = (
+    '.... .... .... .... .... .... .... .... .... .... .... .... .... ....' +
+    [...Array(3 - modulus)].map(_ => ' ..').join('')
+  )
+
+  return <article
+    className={cn(
+      'article_item rel',
+      !addSeparator ? 'bd_lt bd_t_1' : undefined,
+    )}
+  >
+    {addSeparator && (
+      <div className='bd_t_1 bd_lt' />
+    )}
+
+    <div className='h_item gap_xs'>
+      <div className='h_item f_shrink mr_3 py_sm'>
+          <InlineBlockLabel
+            as='span'
+            outline
+            color='alt'
+            textColorClassName='cl_primary'
+
+            // @ts-ignore - adding class name to color indicator
+            colorIndicator='active'
+            text={
+              <span className='mock active strong mr_2'>
+                ....... .......
+              </span>
+            }
+          />
+      </div>
+
+      <span className='f_shrink py_sm shift_down'>
+        <span className='mock alt'>
+          ...... ...... ......
+        </span>
+      </span>
+
+      <span className='ellip py_sm f shift_down'>
+        <span className='mock alt'>
+          {description}
+        </span>
+      </span>
+    </div>
+  </article>;
+}
