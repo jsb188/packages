@@ -1,6 +1,6 @@
 import { cloneArrayLike, mapArrayLikeObjects } from '@jsb188/app/utils/object';
 import type { UpdateObserversFn } from '../types.d';
-import { RULES, PARTIALS_MAP } from './config';
+import { PARTIALS_MAP, RULES } from './config';
 
 const DO_LOG = [
   false, // [0] Log name
@@ -158,7 +158,31 @@ export function loadQuery(queryKey: string, referencesOnly?: boolean) {
  */
 
 export function loadFragment(id: string) {
-  return enforceArrayType(FRAGMENTS.get(id));
+  // console.log('load fragment:', id, FRAGMENTS.get(id));
+
+  const fragment = enforceArrayType(FRAGMENTS.get(id));
+  if (!fragment) {
+    return null;
+
+  }
+
+  const spreads = FRAGMENTS.get(`${id}.spreads`);
+  if (!spreads) {
+    return fragment;
+  }
+
+  let fragmentWithSpreads = { ...fragment };
+  for (const key in spreads) {
+    if (Object.prototype.hasOwnProperty.call(spreads, key)) {
+      const spreadId = spreads[key];
+      const spreadData = enforceArrayType(FRAGMENTS.get(spreadId));
+      if (spreadData) {
+        fragmentWithSpreads[key] = spreadData;
+      }
+    }
+  }
+
+  return fragmentWithSpreads;
 }
 
 /**
@@ -192,7 +216,6 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       // Because partials might have data that's not in the main fragment
       const currentData = loadFragment(fragmentKey);
 
-      // FRAGMENTS.delete(fragmentKey);
       FRAGMENTS.set(fragmentKey, mergeNestedObjects(currentData, extractFragment(data, innerSelections)));
       updatedKeys.push(fragmentKey);
 
@@ -277,7 +300,6 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
             // Because partials might have data that's not in the main fragment
             const currentData = loadFragment(fragmentKey);
 
-            // FRAGMENTS.delete(fragmentKey);
             FRAGMENTS.set(fragmentKey, mergeNestedObjects(currentData, extractFragment(data, selections)));
             updatedKeys.push(fragmentKey);
           }
@@ -300,6 +322,28 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
       const customCacheData = cacheMap[key](data[key], cacheObj[key], sel, variables);
       cacheObj[key] = typeof customCacheData === 'undefined' ? null : customCacheData;
       continue;
+    }
+  }
+
+  if (cacheObj.__flat?.data?.[0]) {
+    const spreadsFragmentKey = `${cacheObj.__flat.data[0]}.spreads`;
+
+    let spreads: Record<string, string> | undefined;
+    for (const cKey in cacheObj) {
+      if (
+        cKey !== '__flat' &&
+        Object.prototype.hasOwnProperty.call(cacheObj, cKey) &&
+        typeof cacheObj[cKey]?.data?.[0] === 'string'
+      ) {
+        if (!spreads) {
+          spreads = {};
+        }
+        spreads[cKey] = cacheObj[cKey].data[0];
+      }
+    }
+
+    if (spreads) {
+      FRAGMENTS.set(spreadsFragmentKey, spreads);
     }
   }
 
@@ -701,6 +745,7 @@ export function removeStaleCache() {
 
       for (const key of keysToEvict) {
         FRAGMENTS.delete(key);
+        FRAGMENTS.delete(`${key}.spreads`);
       }
     }
   }
@@ -795,9 +840,6 @@ export function updateFragment(
 
     if (replaceId && replaceId !== updateFragmentKey) {
       FRAGMENTS.set(replaceId, updatedObj);
-
-      // Must be deleted later, for the observer to work properly
-      // setTimeout(() => FRAGMENTS.delete(id), 1000);
     }
 
     if (!doNotTriggerObserver && updateObservers) {
@@ -871,6 +913,5 @@ export function triggerObserver(ids: (string | null)[], updateObservers?: Update
  */
 
 export function addFragmentToCache(id: string, obj: any) {
-  // FRAGMENTS.delete(id);
   FRAGMENTS.set(id, obj);
 }

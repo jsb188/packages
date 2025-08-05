@@ -61,7 +61,15 @@ export function useLogEntries(variables: LogEntriesArgs, params: UseQueryParams 
 export function useReactiveLogFragment(logEntryId: string, currentData?: any, queryCount?: number) {
   return useReactiveFragment(
     currentData,
-    [`$logEntryFragment:${logEntryId}`, [`$logEntryArableFragment:${logEntryId}`, 'details']],
+    [
+      `$logEntryFragment:${logEntryId}`,
+
+      // By having the second paramter as null, we only observe the reactive changes without setting the data
+      [`$logEntryArableFragment:${logEntryId}`, null],
+
+      // This is not needed because $logEntryFragment has spread data
+      // [`$accountFragment:${logEntryId}`, 'account']
+    ],
     queryCount,
     // Using the otherCheck() function is the only way I could keep sticker updates reactive
     // (_, updatedKeys) => updatedKeys.find((k) => typeof k === 'string' && k.startsWith('$chatStickerFragment:')),

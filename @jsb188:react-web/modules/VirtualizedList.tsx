@@ -547,6 +547,8 @@ function VirtualizedList(p: VirtualizedListProps) {
   }, [groupItems, listData]);
 
   return <>
+    {/* {MockComponent} */}
+
     <div ref={topRef}>
       {hasMoreTop ? MockComponent : HeaderComponent}
     </div>

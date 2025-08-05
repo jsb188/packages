@@ -163,7 +163,7 @@ export function useWatchQuery(
 
 export function useReactiveFragment(
   data: any,
-  observe: Array<string | string[]>,
+  observe: Array<string | [string, string | null]>,
   qryObsCount?: number | boolean,
   otherCheck?: (latestData: any, updatedKeys: any[]) => boolean,
   ignoreIDWarning?: boolean,
@@ -184,10 +184,12 @@ export function useReactiveFragment(
 
       if (fragmentData) {
         if (isMapped) {
-          initialData = {
-            ...initialData!,
-            [key[1]]: fragmentData,
-          };
+          if (key[1]) {
+            initialData = {
+              ...initialData!,
+              [key[1]]: fragmentData,
+            };
+          }
         } else {
           initialData = {
             ...initialData!,
@@ -220,7 +222,7 @@ export function useReactiveFragment(
   }
 
   useEffect(() => {
-    // NOTE: I tried this with effect()
+    // NOTE: I tried this with Preact's effect()
     // But that caused the render to happen 3 times more, I don't know why.
     // I only solved it by using useEffect()
     const idsChanged = (
@@ -246,52 +248,53 @@ export function useReactiveFragment(
         )
       )
     ) {
-      // if (doTest) {
-      //   console.log('DO TEST:');
-      //   console.log(observe);
-      //   console.log(fragmentObserver);
-      // }
+
+      const dataUpdated = (
+        idsChanged ||
+        forceReactive ||
+        observe.some((key) => {
+          const isMapped = Array.isArray(key);
+          return isMapped ? fragmentObserver.list.includes(key[0]) : fragmentObserver.list.includes(key);
+        })
+      )
 
       let newData;
-      for (const key of observe) {
-        const isMapped = Array.isArray(key);
+      if (dataUpdated) {
+        for (const key of observe) {
+          const isMapped = Array.isArray(key);
 
-        if (
-          key && (
-            idsChanged ||
-            forceReactive ||
-            (isMapped && fragmentObserver.list.includes(key[0])) ||
-            (!isMapped && fragmentObserver.list.includes(key))
-          )
-        ) {
-          if (!newData) {
-            if (idsChanged) {
-              newData = data;
-            } else if (data) {
-              newData = {
-                ...data,
-                ...changedData.data,
-              };
-            } else {
-              newData = changedData.data;
+          if (key) {
+            if (!newData) {
+              if (idsChanged) {
+                newData = data;
+              } else if (data) {
+                newData = {
+                  ...data,
+                  ...changedData.data,
+                };
+              } else {
+                newData = changedData.data;
+              }
             }
-          }
 
-          const fragmentData = loadFragment(isMapped ? key[0] : key);
-          // console.log('fragmentKey', key);
-          // console.log('fragmentData', fragmentData);
+            const fragmentData = loadFragment(isMapped ? key[0] : key);
+            // console.log('fragmentKey', key);
+            // console.log('fragmentData', fragmentData);
 
-          if (fragmentData) {
-            if (isMapped) {
-              newData = {
-                ...newData,
-                [key[1]]: fragmentData,
-              };
-            } else {
-              newData = {
-                ...newData,
-                ...fragmentData,
-              };
+            if (fragmentData) {
+              if (isMapped) {
+                if (key[1]) {
+                  newData = {
+                    ...newData,
+                    [key[1]]: fragmentData,
+                  };
+                }
+              } else {
+                newData = {
+                  ...newData,
+                  ...fragmentData,
+                };
+              }
             }
           }
         }
