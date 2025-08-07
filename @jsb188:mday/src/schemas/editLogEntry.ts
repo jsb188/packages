@@ -23,17 +23,12 @@ export function makeFormValuesFromData(logEntry: LogEntryGQLData) {
       formValues.arableDetails = {
         activity: details.activity,
         quantity: details.quantity,
+        crop: details.crop,
         unit: details.unit,
         concentration: details.concentration,
         concentrationUnit: details.concentrationUnit,
         price: details.price,
         notes: details.notes,
-
-        // Use this when finished
-        // cropId: details.crop?.id,
-
-        // Temporary hack
-        cropName: details.crop?.name,
       };
       break;
     case 'LogEntryLivestock':
@@ -177,20 +172,10 @@ export function makeLogEntryDetailsSchema(
           placeholder: i18n.t('log.price_arable_ph'),
         },
       }, {
-        // Use this when finished
-        // __type: 'custom',
-        // forceClickId: 'input_click_arableDetails.cropId',
-        // label: i18n.t('form.crop'),
-        // item: {
-        //   name: 'arableDetails.cropId',
-        //   placeholder: i18n.t('form.crop_ph'),
-        // }
-
-        // Temporary hack
         __type: isWaterTesting ? 'none' : 'input',
         label: i18n.t('form.crop'),
         item: {
-          name: 'arableDetails.cropName',
+          name: 'arableDetails.crop',
           placeholder: 'Tomato, broccoli, etc.',
         }
       }];

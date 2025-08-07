@@ -85,7 +85,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'LogEntryArable': {
       const quantityText = [formatDecimal(md.quantity, true, true), md.unit].filter(Boolean).join(' ');
 
-      let cropName = ucFirst(d.crop?.name);
+      let cropName = ucFirst(d.crop);
       let logSpecificText = '';
 
       if (logType === 'WATER') {

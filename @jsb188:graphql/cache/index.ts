@@ -117,6 +117,10 @@ function extractFragment(dataObj: any, innerSelection: any[]) {
 export function loadQuery(queryKey: string, referencesOnly?: boolean) {
   const references = QUERIES.get(queryKey);
 
+  // if (testMode) {
+  //   console.log('references>>>>:', references);
+  // }
+
   if (referencesOnly) {
     return references;
   } else if (!references) {
@@ -483,19 +487,74 @@ export function setDataToCache(
 export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
   let newObj = cloneArrayLike(cacheData);
 
+  // if (testMode) {
+  //   console.log('appendFragmentToCache:', newObj);
+  // }
+
   for (const key in newObj) {
-    if (newObj[key] && typeof newObj[key] === 'object' && newObj[key].__cache && newObj[key].data) {
+    if (newObj[key] && typeof newObj[key] === 'object') {
       const isFlat = key === '__flat';
+      const isCache = newObj[key].__cache && newObj[key].data;
 
-      let cachedObj = {};
-      let cacheIsValid = true;
+      if (isCache) {
 
-      if (newObj[key].__list) {
-        cachedObj = newObj[key].data.map((di: any[]) => {
-          let item = {};
-          di.forEach((d) => {
+        let cachedObj = {};
+        let cacheIsValid = true;
+
+        if (newObj[key].__list) {
+
+          cachedObj = newObj[key].data.map((di: any[]) => {
+
+            let item = {};
+            di.forEach((d) => {
+              if (Array.isArray(d)) {
+                item[d[0]] = d[1];
+              } else if (typeof d === 'string') {
+                const frgIndex = d.indexOf(':');
+                const frgName = d.substring(1, frgIndex);
+                const frgMap = PARTIALS_MAP[frgName];
+
+                let fragmentKey;
+                if (frgMap) {
+                  fragmentKey = `$${frgMap}:${d.substring(frgIndex + 1)}`;
+                } else {
+                  fragmentKey = d;
+                }
+
+                const cachedFragment = loadFragment(fragmentKey);
+                if (DO_LOG[0]) {
+                  console.log('LOAD (1): ', d);
+                }
+                if (DO_LOG[1]) {
+                  console.log('LOAD (1): ', cachedFragment);
+                }
+
+                if (cachedFragment) {
+                  item = {
+                    ...item,
+                    ...cachedFragment,
+                  };
+                } else {
+                  // Cache was invalidated
+                  cacheIsValid = false;
+                }
+              }
+            });
+
+            return item;
+          });
+        } else {
+          newObj[key].data.forEach((d: any) => {
+
+            // if (testMode) {
+            //   console.log('cachedObj', cachedObj);
+            //   console.log('key', key);
+            //   console.log('d', d);
+            //   console.log('d', typeof d);
+            // }
+
             if (Array.isArray(d)) {
-              item[d[0]] = d[1];
+              cachedObj[d[0]] = d[1];
             } else if (typeof d === 'string') {
               const frgIndex = d.indexOf(':');
               const frgName = d.substring(1, frgIndex);
@@ -510,85 +569,57 @@ export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
 
               const cachedFragment = loadFragment(fragmentKey);
               if (DO_LOG[0]) {
-                console.log('LOAD (1): ', d);
+                console.log('LOAD (2): ', d);
               }
               if (DO_LOG[1]) {
-                console.log('LOAD (1): ', cachedFragment);
+                console.log('LOAD (2): ', cachedFragment);
               }
 
               if (cachedFragment) {
-                item = {
-                  ...item,
-                  ...cachedFragment,
-                };
+                if (isFlat) {
+                  newObj = {
+                    ...newObj,
+                    ...cachedFragment,
+                  };
+                  delete newObj.__flat;
+                } else {
+                  cachedObj = {
+                    ...cachedObj,
+                    ...cachedFragment,
+                  };
+                }
               } else {
                 // Cache was invalidated
                 cacheIsValid = false;
               }
             }
           });
+        }
 
-          return item;
-        });
+        if (!cacheIsValid) {
+          return null;
+        }
+
+        if (!isFlat) {
+          newObj[key] = cachedObj;
+        }
       } else {
-        newObj[key].data.forEach((d: any) => {
 
+        // Fragment spreads recursively loads the fragment data
+        // So we have to get the non-spread fields from query cache
 
-            // if (testMode) {
-            //   console.log('cachedObj', cachedObj);
-            //   console.log('d', d);
-            //   console.log('d', typeof d);
-            // }
-
-          if (Array.isArray(d)) {
-            cachedObj[d[0]] = d[1];
-          } else if (typeof d === 'string') {
-            const frgIndex = d.indexOf(':');
-            const frgName = d.substring(1, frgIndex);
-            const frgMap = PARTIALS_MAP[frgName];
-
-            let fragmentKey;
-            if (frgMap) {
-              fragmentKey = `$${frgMap}:${d.substring(frgIndex + 1)}`;
-            } else {
-              fragmentKey = d;
+        const cacheInfo = cacheData[key];
+        if (newObj[key] && typeof newObj[key] === 'object' && cacheInfo?.__cache && cacheInfo.data) {
+          cacheInfo.data.forEach((di: any) => {
+            if (
+              Array.isArray(di) &&
+              di.length === 2 &&
+              !di?.[0]?.startsWith('$')
+            ) {
+              newObj[key][di[0]] = di[1];
             }
-
-            const cachedFragment = loadFragment(fragmentKey);
-            if (DO_LOG[0]) {
-              console.log('LOAD (2): ', d);
-            }
-            if (DO_LOG[1]) {
-              console.log('LOAD (2): ', cachedFragment);
-            }
-
-            if (cachedFragment) {
-              if (isFlat) {
-                newObj = {
-                  ...newObj,
-                  ...cachedFragment,
-                };
-                delete newObj.__flat;
-              } else {
-                cachedObj = {
-                  ...cachedObj,
-                  ...cachedFragment,
-                };
-              }
-            } else {
-              // Cache was invalidated
-              cacheIsValid = false;
-            }
-          }
-        });
-      }
-
-      if (!cacheIsValid) {
-        return null;
-      }
-
-      if (!isFlat) {
-        newObj[key] = cachedObj;
+          });
+        }
       }
     }
   }
@@ -606,18 +637,11 @@ export function loadDataFromCache(
   variablesKey: string,
   cacheMap?: any,
   eagerFragmentKeyMap?: any,
+  testMode?: boolean,
 ) {
   // return query[variablesKey];
   const data = { ...requestData };
   const definitions = gqlQuery.definitions;
-
-
-  // console.log('loadDataFromCache()');
-  // console.log(data);
-  // console.log(definitions);
-
-
-
 
   for (const def of definitions) {
     if (def.kind === 'OperationDefinition') {

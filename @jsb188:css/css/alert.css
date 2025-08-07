@@ -2,7 +2,7 @@
 /* Modal cover for alerts & screens */
 
 .bg_modal {
-  background: linear-gradient(360deg, rgba(var(--color-bg-modal), .85) 0%, rgba(var(--color-bg-modal), .5) 50%);
+  background: linear-gradient(360deg, rgba(var(--color-bg-modal), 1) 0%, rgba(var(--color-bg-modal), .5) 50%);
 }
 
 .modal_main_content {
@@ -18,7 +18,7 @@
 /* Different outlines + shadows for each modal type */
 
 .alert_shadow_default {
-  box-shadow: 0 8px 15px rgba(0,0,0,.07), 0 0 20px rgba(var(--color-bg-modal), .5);
+  box-shadow: 0 0 20px rgb(var(--color-bg-modal));
 }
 
 .alert_shadow_error {

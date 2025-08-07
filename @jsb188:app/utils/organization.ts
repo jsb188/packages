@@ -37,14 +37,15 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 		case 'ADMIN':
 		case 'OWNER':
 			return {
-				billing: 'MANAGE',
+				billing: acl.billing || 'MANAGE',
 				digests: acl.digests || 'MANAGE', // 2/3 = receive digests, 1 = only see from web app
-				logs: 'MANAGE',
-				members: 'MANAGE',
-				finances: 'MANAGE',
-				products: 'MANAGE',
-				settings: 'MANAGE',
-				integrations: 'MANAGE',
+				logs: acl.logs || 'MANAGE',
+				members: acl.members || 'MANAGE',
+				finances: acl.finances || 'MANAGE',
+				products: acl.products || 'MANAGE',
+				settings: acl.settings || 'MANAGE',
+				integrations: acl.integrations || 'MANAGE',
+        workflow: acl.workflow || 'MANAGE',
 			};
 		case 'MANAGER':
 			return {
@@ -56,6 +57,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				products: acl.products || 'MANAGE',
 				settings: acl.settings || 'READ',
 				integrations: acl.integrations || 'NONE',
+        workflow: acl.workflow || 'READ',
 			};
 		case 'MEMBER':
 		default:
@@ -70,6 +72,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 		products: acl.products || 'READ',
 		settings: acl.settings || 'READ',
 		integrations: acl.integrations || 'NONE',
+    workflow: acl.workflow || 'READ',
 	};
 }
 

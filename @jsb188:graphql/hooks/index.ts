@@ -7,8 +7,8 @@ import { useConnectedToServerValue, useFragmentObserverValue, useQueryObserverVa
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { checkDataCompleteness, fetchCachedData, loadDataFromCache, loadFragment, makeVariablesKey, removeStaleCache } from '../cache';
 import { QUERY_EXPIRE_TIMES } from '../cache/config';
-import type { AnyModalPopUpFn, GraphQLHandlers, GraphQLQueryOptions, OnCompletedGQLFn, OnErrorGQLFn, UpdateDataObserverArgs, UpdateObserversFn } from '../types';
 import { graphqlRequest } from '../client/request';
+import type { AnyModalPopUpFn, GraphQLHandlers, GraphQLQueryOptions, OnCompletedGQLFn, OnErrorGQLFn, UpdateDataObserverArgs, UpdateObserversFn } from '../types';
 
 
 /**

@@ -17,13 +17,9 @@ export const logEntryArableFragment = `fragment logEntryArableFragment on LogEnt
   activity
   concentration
   concentrationUnit
+  crop
   quantity
   unit
   price
   notes
-
-  crop {
-    id
-    name
-  }
 }`;
