@@ -60,7 +60,7 @@ interface VirtualizedState {
   hasMoreTop: boolean;
   hasMoreBottom: boolean;
   referenceObj: React.MutableRefObject<VZReferenceObj>;
-  // forceUpdate: () => void;
+  forceUpdate: () => void;
 }
 
 interface ReverseVZListProps extends ReactDivElement {
