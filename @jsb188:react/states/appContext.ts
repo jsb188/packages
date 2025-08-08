@@ -29,6 +29,8 @@ type AppContextAction = {
 
 export type AppContextDispatch = (action: AppContextAction) => void;
 
+export type CurrentAccountObj = ReturnType<typeof useCurrentAccount>;
+
 /**
  * Types
  */

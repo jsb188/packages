@@ -85,6 +85,7 @@ interface VirtualizedListProps extends ReactDivElement {
 
   // Fetch props
   limit: number;
+  refreshKey?: string | number; // Use {updatedCount} and/or loading state and/or variables key from useQuery() hook to keep startOfListItems[] up to date
   maxFetchLimit?: number; // Max number of items user can load by scrolling
 
   // Callbacks & handler props
@@ -286,7 +287,7 @@ function repositionList(
  */
 
 function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
-  const { otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
+  const { otherProps, fragmentName, refreshKey, limit, loading, maxFetchLimit } = p;
   const [cursorPosition, setCursorPosition] = useState<CursorPositionObj | null>(null);
   // const [, forceUpdate] = useReducer(x => x + 1, 0);
   const referenceObj = useRef<VZReferenceObj>({ loading, startOfListItemId: null, lastItemIdOnMount: null, mounted: true, itemIds: null, topCursor: null, bottomCursor: null });
@@ -295,7 +296,6 @@ function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
 
   const itemIds = referenceObj.current.itemIds;
   const listData = useMemo(() => {
-
     if (itemIds && limit > 0) {
       let viewing: string[];
       if (cursorPosition === null || cursorPosition[0] === null) {
@@ -335,7 +335,7 @@ function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
     }
 
     return null;
-  }, [itemIds, cursorPosition?.[0], limit]);
+  }, [itemIds, cursorPosition?.[0], limit, refreshKey]);
 
   // Keep track of certain props so it can referenced inside memoized functions
 
@@ -468,6 +468,9 @@ function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState) {
       }
       setCursorPosition( getCursorPosition(null, true, listRef.current, p) );
     }
+
+    // Don't change this or add startOfListItems as a dependency here
+    // If you do, infinite scroll will not work.
   }, [eolLen, rootElementQuery]);
 
   // Reposition list when the current cursorPosition updates
