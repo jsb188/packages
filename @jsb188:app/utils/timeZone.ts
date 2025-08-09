@@ -2,7 +2,7 @@ import { DateTime } from 'luxon';
 
 // Source: https://raw.githubusercontent.com/moment/moment-timezone/refs/heads/develop/data/meta/latest.json
 
-const DEFAULT_TIMEZONE = 'America/Los_Angeles';
+export const DEFAULT_TIMEZONE = 'America/Los_Angeles';
 
 const TIMEZONE_DATA = {
 	AD: {
@@ -2418,11 +2418,11 @@ export function indexToTimeZone(index?: number | string | null): string | null {
 
 export function getTimeZoneCode(tz?: string | null): string | null {
 	if (tz) {
-    try {
-      return DateTime.now().setZone(tz).toFormat('ZZZZ');
-    } catch (e) {
-      console.warn('Invalid timezone:', tz, e);
-    }
-  }
-  return null;
+		try {
+			return DateTime.now().setZone(tz).toFormat('ZZZZ');
+		} catch (e) {
+			console.warn('Invalid timezone:', tz, e);
+		}
+	}
+	return null;
 }

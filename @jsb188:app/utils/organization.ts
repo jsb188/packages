@@ -45,7 +45,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				products: acl.products || 'MANAGE',
 				settings: acl.settings || 'MANAGE',
 				integrations: acl.integrations || 'MANAGE',
-        workflow: acl.workflow || 'MANAGE',
+				recurringTasks: acl.recurringTasks || 'MANAGE',
 			};
 		case 'MANAGER':
 			return {
@@ -57,7 +57,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				products: acl.products || 'MANAGE',
 				settings: acl.settings || 'READ',
 				integrations: acl.integrations || 'NONE',
-        workflow: acl.workflow || 'READ',
+				recurringTasks: acl.recurringTasks || 'READ',
 			};
 		case 'MEMBER':
 		default:
@@ -72,7 +72,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 		products: acl.products || 'READ',
 		settings: acl.settings || 'READ',
 		integrations: acl.integrations || 'NONE',
-    workflow: acl.workflow || 'READ',
+		recurringTasks: acl.recurringTasks || 'READ',
 	};
 }
 
