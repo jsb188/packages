@@ -21,6 +21,7 @@ export interface OrganizationACL {
 	settings: ACLPermission;
 	integrations: ACLPermission;
 	digests: ACLPermission;
+	recurringTasks: ACLPermission;
 }
 
 export interface OrganizationACLGQLData {
@@ -33,6 +34,7 @@ export interface OrganizationACLGQLData {
 	settings: ACLPermissionEnum;
 	integrations: ACLPermissionEnum;
 	digests: ACLPermissionEnum;
+	recurringTasks: ACLPermissionEnum;
 }
 
 /**
@@ -47,14 +49,18 @@ export interface OrganizationShortData {
 }
 
 export interface OrganizationData {
-	id: string;
-	name: string;
-	emoji: string;
-	primary: boolean;
-	acl: OrganizationACL;
+	id: number;
 	stripeCustomerId: string | null;
+	name: string;
+  operation: OrganizationOperationEnum;
+  dailyDigestTime: string | null;
+  createScheduleTime: string | null;
+  recurringTasks: string | null;
 	domains: string[] | null;
-	membersCount: number;
+  settings?: {
+    emoji: string | null;
+    timeZone: string | null;
+  }
 }
 
 /**
@@ -73,10 +79,19 @@ export interface OrganizationRelData {
  * GraphQL data for organization relationship
  */
 
+export interface OrganizationGQLData {
+	id: string;
+	name: string;
+	stripeCustomerId: string | null;
+  recurringTasks: string | null;
+	domains: string[] | null;
+	membersCount: number;
+}
+
 export interface OrganizationRelGQLData {
 	id: string;
 	primary: boolean;
 	role: OrganizationRoleEnum;
 	acl: OrganizationACLGQLData;
-	organization: OrganizationData;
+	organization: OrganizationGQLData;
 }
