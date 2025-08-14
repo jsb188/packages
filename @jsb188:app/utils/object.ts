@@ -269,78 +269,35 @@ export function intersection(arr1: Array<any>, arr2: Array<any>) {
 }
 
 /**
- * Get a nested value of an object at a property path
- *
- * @param obj - The object to get the value from
- * @param path - The property path as a string, e.g. 'a.b.c'
- */
-
-export function getNestedValue(obj: any, path: string): any {
-	if (!obj || !path) {
-		return undefined;
-	}
-	return path.split('.').reduce((o, key) => {
-		if (o && typeof o === 'object' && key in o) {
-			return o[key];
-		}
-		return undefined;
-	}, obj);
-}
-
-/**
- * Append value to a nested object
- *
- * @param obj - The object to append to
- * @param path - The property path as a string, e.g. 'a.b.c'
- * @param value - The value to append
- */
-
-export function assignToNestedObject(obj: any, path: string, value: any) {
-	if (!obj || !path) {
-		return;
-	}
-	const keys = path.split('.');
-	const lastKey = keys.pop();
-	const nestedObj = keys.reduce((o, key) => {
-		if (!o[key]) {
-			o[key] = {};
-		}
-		return o[key];
-	}, obj);
-
-	if (lastKey) {
-		if (typeof nestedObj === 'object' && nestedObj !== null) {
-			nestedObj[lastKey] = value;
-		} else {
-			console.warn(`(!1) Cannot assign value to ${lastKey} because its reference is not an object.`);
-		}
-	}
-
-	return obj;
-}
-
-/**
  * Group a collection and merge array fields
  * NOTE: Use this after a findAll() query with inner collections
  *
  * @param collections
  * @param innerCollectionNames
+ * @param innerCollectionDefaultValues - Use this to define Array or Object
  * @param primaryKeyName
  * @returns
  */
 
-export function groupCollections(collections: Array<any>, innerCollectionNames: string[], primaryKeyName = 'id'): any[] {
+export function groupCollections(
+	collections: Array<any>,
+	innerCollectionNames: string[],
+	innerCollectionDefaultValues: Record<string, any> = {},
+	primaryKeyName = 'id',
+): any[] {
 	return collections.reduce((acc, obj) => {
 		const primaryKey = obj[primaryKeyName];
 		const i = acc.findIndex((o: any) => o[primaryKeyName] === primaryKey);
 
 		if (i === -1) {
 			innerCollectionNames.forEach((name: string) => {
-				const ref = getNestedValue(obj, name);
-				if (!ref) {
-					assignToNestedObject(obj, name, []);
+        const defaultValue = innerCollectionDefaultValues[name] || [];
+				const ref = getObject(obj, name);
+
+        if (ref) {
+					setObject(obj, name, Array.isArray(defaultValue) ? [ref] : ref);
 				} else {
-					assignToNestedObject(obj, name, [ref]);
+					setObject(obj, name, defaultValue);
 				}
 
 				// Old version, but this doesn't support merged array collections
@@ -354,13 +311,14 @@ export function groupCollections(collections: Array<any>, innerCollectionNames: 
 			acc.push(obj);
 		} else {
 			innerCollectionNames.forEach((name: string) => {
-				const innerObj = getNestedValue(obj, name);
-				const ref = getNestedValue(acc[i], name);
+        const defaultValue = innerCollectionDefaultValues[name] || [];
+				const innerObj = getObject(obj, name);
+				const ref = getObject(acc[i], name);
 
 				if (!ref) {
-					assignToNestedObject(acc[i], name, innerObj ? [innerObj] : []);
+					setObject(acc[i], name, innerObj && Array.isArray(innerObj) ? [innerObj] : (innerObj || defaultValue));
 				} else if (innerObj && !ref.find((o: any) => o.id === innerObj.id)) {
-					assignToNestedObject(acc[i], name, ref.concat(innerObj));
+					setObject(acc[i], name, Array.isArray(ref) ? ref.concat(innerObj) : innerObj);
 				}
 
 				// Old version, but this doesn't support merged array collections
@@ -489,7 +447,11 @@ export function setObject(obj: any, path: string, value: any): any {
 	}, obj);
 
 	if (lastKey) {
-		nestedObj[lastKey] = value;
+		if (typeof nestedObj === 'object' && nestedObj !== null) {
+			nestedObj[lastKey] = value;
+		} else {
+			console.warn(`(!1) Cannot assign value to ${lastKey} because its reference is not an object.`);
+		}
 	}
 
 	return obj;
