@@ -36,7 +36,7 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
 		POST_HARVEST: 'cyan',
 		SALES: 'blue',
 		WATER: 'violet',
-    DELETED: 'medium'
+		DELETED: 'medium',
 	} as Record<LogTypeEnum, ColorEnum>;
 
 	// Default to zinc if type is not found
@@ -76,34 +76,34 @@ export function getLogTypeFromActivity(operation: OrganizationOperationEnum | st
 
 export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, iface?: string): string {
 	const { __typename, __table, type } = d;
-  const logType = logType_ || type;
-  const md = isServer ? (d.metadata || {}) : d;
+	const logType = logType_ || type;
+	const md = isServer ? (d.metadata || {}) : d;
 
 	switch (iface || __typename || __table) {
-    case 'ARABLE':
+		case 'ARABLE':
 		case 'logs_arable':
 		case 'LogEntryArable': {
-      const quantityText = [formatDecimal(md.quantity, true, true), md.unit].filter(Boolean).join(' ');
+			const quantityText = [formatDecimal(md.quantity, true, true), md.unit].filter(Boolean).join(' ');
 
-      let cropName = ucFirst(d.crop);
-      let logSpecificText = '';
+			let cropName = ucFirst(md.crop);
+			let logSpecificText = '';
 
-      if (logType === 'WATER') {
-        logSpecificText = [md.concentration, md.concentration && md.concentrationUnit].filter(Boolean).join(' ');
+			if (logType === 'WATER') {
+				logSpecificText = [md.concentration, md.concentration && md.concentrationUnit].filter(Boolean).join(' ');
 			} else if (logType === 'SALES') {
-        if (!cropName) {
-          cropName = i18n.t('log.unknown_crop');
-        }
-        logSpecificText = formatCurrency(md.price, 'en-US', 'USD');
-      }
+				if (!cropName) {
+					cropName = i18n.t('log.unknown_crop');
+				}
+				logSpecificText = formatCurrency(md.price, 'en-US', 'USD');
+			}
 
-      return textWithBrackets(
-        cropName,
-        [
-          logSpecificText + (logSpecificText && quantityText ? ',' : ''),
-          quantityText
-        ]
-      );
+			return textWithBrackets(
+				cropName,
+				[
+					logSpecificText + (logSpecificText && quantityText ? ',' : ''),
+					quantityText,
+				],
+			);
 		}
 		case 'logs_livestock':
 		case 'LogEntryLivestock': {

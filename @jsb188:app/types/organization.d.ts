@@ -17,7 +17,6 @@ export interface OrganizationACL {
 	logs: ACLPermission;
 	members: ACLPermission;
 	finances: ACLPermission;
-	products: ACLPermission;
 	settings: ACLPermission;
 	integrations: ACLPermission;
 	digests: ACLPermission;
@@ -30,7 +29,6 @@ export interface OrganizationACLGQLData {
 	logs: ACLPermissionEnum;
 	members: ACLPermissionEnum;
 	finances: ACLPermissionEnum;
-	products: ACLPermissionEnum;
 	settings: ACLPermissionEnum;
 	integrations: ACLPermissionEnum;
 	digests: ACLPermissionEnum;

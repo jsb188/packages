@@ -33,17 +33,6 @@ interface TimeAgoParams {
 	skipTodayCheck: boolean;
 }
 
-interface FullTimeParams {
-	timeZone: string | null;
-	locales: string;
-	hideYear: boolean;
-	hideDate: boolean;
-	hideTime: boolean;
-	textDateStyle: 'long' | 'short' | null;
-	alwaysShowYear: boolean;
-	includeWeekday: boolean;
-}
-
 /**
  * Get start of day
  */
@@ -107,7 +96,16 @@ export function getDatePeriod(d1: Date, d2: Date): DatePeriodEnum {
 
 export function getFullDateTime(
 	_d: Date | string | number | null,
-	params?: Partial<FullTimeParams>,
+	params?: Partial<{
+    timeZone: string | null;
+    locales: string;
+    hideYear: boolean;
+    hideDate: boolean;
+    hideTime: boolean;
+    textDateStyle: 'long' | 'short' | null;
+    alwaysShowYear: boolean;
+    includeWeekday: boolean | 'long' | 'short' | 'narrow';
+  }>,
 ) {
 	const {
 		locales = 'en-US',
@@ -151,10 +149,17 @@ export function getFullDateTime(
 		hideYear_ = true;
 	}
 
+  let weekday;
+  if (['long', 'short', 'narrow'].includes(includeWeekday as string)) {
+    weekday = includeWeekday;
+  } else if (includeWeekday) {
+    weekday = textDateStyle === 'long' ? 'long' : 'short';
+  }
+
 	return d.toLocaleDateString(locales, {
 		timeZone,
 		day: 'numeric',
-		weekday: includeWeekday && textDateStyle === 'long' ? 'long' : includeWeekday ? 'short' : undefined,
+		weekday: weekday as 'long' | 'short' | 'narrow',
 		month: textDateStyle || 'numeric',
 		year: hideYear_ ? undefined : 'numeric',
 		hour: hideTime ? undefined : 'numeric',
@@ -229,61 +234,60 @@ export function getCalDate(d: Date, timeZone_?: string | null) {
 export function updateDate(
 	d_: Date | string,
 	update: Partial<{
-    year: number;
-    month: number;
-    day: number;
-    hour: number;
-    minute: number;
-  }>,
-  timeZone?: string | null
+		year: number;
+		month: number;
+		day: number;
+		hour: number;
+		minute: number;
+	}>,
+	timeZone?: string | null,
 ): Date | null {
+	if (timeZone) {
+		// Use luxon to handle timezone-aware date manipulation
+		let dt = DateTime.fromJSDate(d_ instanceof Date ? d_ : new Date(d_), { zone: timeZone });
 
-  if (timeZone) {
-    // Use luxon to handle timezone-aware date manipulation
-    let dt = DateTime.fromJSDate(d_ instanceof Date ? d_ : new Date(d_), { zone: timeZone });
+		if (update.year !== undefined) {
+			dt = dt.set({ year: update.year });
+		}
+		if (update.month !== undefined) {
+			dt = dt.set({ month: update.month });
+		}
+		if (update.day !== undefined) {
+			dt = dt.set({ day: update.day });
+		}
+		if (update.hour !== undefined) {
+			dt = dt.set({ hour: update.hour });
+		}
+		if (update.minute !== undefined) {
+			dt = dt.set({ minute: update.minute });
+		}
 
-    if (update.year !== undefined) {
-      dt = dt.set({ year: update.year });
-    }
-    if (update.month !== undefined) {
-      dt = dt.set({ month: update.month });
-    }
-    if (update.day !== undefined) {
-      dt = dt.set({ day: update.day });
-    }
-    if (update.hour !== undefined) {
-      dt = dt.set({ hour: update.hour });
-    }
-    if (update.minute !== undefined) {
-      dt = dt.set({ minute: update.minute });
-    }
+		return dt.isValid ? dt.toJSDate() : null;
+	}
 
-    return dt.isValid ? dt.toJSDate() : null;
-  }
+	const d = d_ instanceof Date ? d_ : new Date(d_);
 
-  const d = d_ instanceof Date ? d_ : new Date(d_);
+	if (update.year) {
+		d.setFullYear(update.year);
+	}
 
-  if (update.year) {
-    d.setFullYear(update.year);
-  }
+	if (update.month !== undefined) {
+		d.setMonth(update.month - 1); // JS months are 0-indexed
+	}
 
-  if (update.month !== undefined) {
-    d.setMonth(update.month - 1); // JS months are 0-indexed
-  }
+	if (update.day) {
+		d.setDate(update.day);
+	}
 
-  if (update.day) {
-    d.setDate(update.day);
-  }
+	if (update.hour !== undefined) {
+		d.setHours(update.hour);
+	}
 
-  if (update.hour !== undefined) {
-    d.setHours(update.hour);
-  }
+	if (update.minute !== undefined) {
+		d.setMinutes(update.minute);
+	}
 
-  if (update.minute !== undefined) {
-    d.setMinutes(update.minute);
-  }
-
-  return d;
+	return d;
 }
 
 /**

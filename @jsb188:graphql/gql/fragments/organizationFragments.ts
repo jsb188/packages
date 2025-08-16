@@ -21,12 +21,12 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
   acl {
     id
     billing
+    digests
     logs
     members
     finances
-    products
     settings
     integrations
-    digests
+    recurringTasks
   }
 }`;

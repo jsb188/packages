@@ -291,10 +291,10 @@ export function groupCollections(
 
 		if (i === -1) {
 			innerCollectionNames.forEach((name: string) => {
-        const defaultValue = innerCollectionDefaultValues[name] || [];
+				const defaultValue = innerCollectionDefaultValues[name] || [];
 				const ref = getObject(obj, name);
 
-        if (ref) {
+				if (ref) {
 					setObject(obj, name, Array.isArray(defaultValue) ? [ref] : ref);
 				} else {
 					setObject(obj, name, defaultValue);
@@ -311,7 +311,7 @@ export function groupCollections(
 			acc.push(obj);
 		} else {
 			innerCollectionNames.forEach((name: string) => {
-        const defaultValue = innerCollectionDefaultValues[name] || [];
+				const defaultValue = innerCollectionDefaultValues[name] || [];
 				const innerObj = getObject(obj, name);
 				const ref = getObject(acc[i], name);
 
