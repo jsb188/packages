@@ -21,7 +21,7 @@ export default {
     // General
     open_app: 'Open app',
     home: 'Home',
-    timezone_set_to_: 'Timezone is set to: %{timeZone}',
+    timezone_set_to_: 'Time zone is set to: %{timeZone}',
     latest_updates: 'Latest updates',
     update_notes: 'Update notes',
 

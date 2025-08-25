@@ -27,6 +27,6 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
     finances
     settings
     integrations
-    recurringTasks
+    reminders
   }
 }`;

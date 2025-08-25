@@ -13,7 +13,7 @@ const PERMISSION_TO_INT = {
 const INT_TO_PERMISSION = Object.keys(PERMISSION_TO_INT);
 
 /**
- * Get deefault permissions by role
+ * Get default permissions by role
  */
 
 export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | OrganizationRelData | ViewerOrganization) {
@@ -42,10 +42,9 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				logs: acl.logs || 'MANAGE',
 				members: acl.members || 'MANAGE',
 				finances: acl.finances || 'MANAGE',
-				products: acl.products || 'MANAGE',
 				settings: acl.settings || 'MANAGE',
 				integrations: acl.integrations || 'MANAGE',
-				recurringTasks: acl.recurringTasks || 'MANAGE',
+				reminders: acl.reminders || 'MANAGE',
 			};
 		case 'MANAGER':
 			return {
@@ -54,10 +53,9 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				logs: acl.logs || 'MANAGE',
 				members: acl.members || 'WRITE',
 				finances: acl.finances || 'READ',
-				products: acl.products || 'MANAGE',
 				settings: acl.settings || 'READ',
 				integrations: acl.integrations || 'NONE',
-				recurringTasks: acl.recurringTasks || 'READ',
+				reminders: acl.reminders || 'MANAGE',
 			};
 		case 'MEMBER':
 		default:
@@ -69,10 +67,9 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 		logs: acl.logs || 'WRITE',
 		members: acl.members || 'READ',
 		finances: acl.finances || 'NONE',
-		products: acl.products || 'READ',
 		settings: acl.settings || 'READ',
 		integrations: acl.integrations || 'NONE',
-		recurringTasks: acl.recurringTasks || 'READ',
+		reminders: acl.reminders || 'WRITE',
 	};
 }
 

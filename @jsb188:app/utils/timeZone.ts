@@ -2417,13 +2417,16 @@ export function indexToTimeZone(index?: number | string | null): string | null {
  * @returns {string} - Timezone abbreviation code (e.g., "EST", "
  */
 
-export function getTimeZoneCode(tz?: string | null): string | null {
-	if (tz) {
-		try {
-			return DateTime.now().setZone(tz).toFormat('ZZZZ');
-		} catch (e) {
-			console.warn('Invalid timezone:', tz, e);
-		}
-	}
-	return null;
+export function getTimeZoneCode(tz?: string | null, useSystem?: boolean): string | null {
+  try {
+    if (tz) {
+      return DateTime.now().setZone(tz).toFormat('ZZZZ');
+    } else if (useSystem) {
+      // IMPORTANT: If you do this in server, this will always return UTC
+      return DateTime.now().toFormat('ZZZZ');
+    }
+  } catch (e) {
+    console.warn('Invalid timezone:', tz, e);
+  }
+  return null;
 }

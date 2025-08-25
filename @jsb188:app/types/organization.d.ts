@@ -20,7 +20,7 @@ export interface OrganizationACL {
 	settings: ACLPermission;
 	integrations: ACLPermission;
 	digests: ACLPermission;
-	recurringTasks: ACLPermission;
+	reminders: ACLPermission;
 }
 
 export interface OrganizationACLGQLData {
@@ -32,7 +32,7 @@ export interface OrganizationACLGQLData {
 	settings: ACLPermissionEnum;
 	integrations: ACLPermissionEnum;
 	digests: ACLPermissionEnum;
-	recurringTasks: ACLPermissionEnum;
+	reminders: ACLPermissionEnum;
 }
 
 /**
@@ -52,8 +52,7 @@ export interface OrganizationData {
 	name: string;
   operation: OrganizationOperationEnum;
   dailyDigestTime: string | null;
-  createScheduleTime: string | null;
-  recurringTasks: string | null;
+  reminders: string | null;
 	domains: string[] | null;
   settings?: {
     emoji: string | null;
@@ -81,7 +80,7 @@ export interface OrganizationGQLData {
 	id: string;
 	name: string;
 	stripeCustomerId: string | null;
-  recurringTasks: string | null;
+  reminders: string | null;
 	domains: string[] | null;
 	membersCount: number;
 }

@@ -432,8 +432,10 @@ export function getTimeAgo(
 export function getFullDate(
 	_d: Date | string | number | null,
 	outputStyle: 'DATE_ONLY' | 'DATE_TEXT' | 'MINIMAL' | 'DETAILED' = 'DATE_ONLY',
+  timeZone: string | null,
 	locales: string = 'en-US',
 ) {
+
 	let d;
 	if (_d instanceof Date) {
 		d = _d;
@@ -445,19 +447,21 @@ export function getFullDate(
 	switch (outputStyle) {
 		case 'DATE_ONLY':
 			// Expected output: "9/1/2024"
-			return new Intl.DateTimeFormat(locales).format(d);
+			return new Intl.DateTimeFormat(locales, {
+        timeZone: timeZone || undefined // null is not allowed, it will throw error
+      }).format(d);
 		case 'MINIMAL':
 			// Expected output: "Sep 1, 2024, 6:54 PM"
 			return new Intl.DateTimeFormat(locales, {
 				dateStyle: 'medium', // 'full', 'long', 'medium', 'short'
 				timeStyle: 'short', // 'full', 'long', 'medium', 'short'
-				// timeZone: 'Australia/Sydney',
+				timeZone: timeZone || undefined // null is not allowed, it will throw error
 			}).format(d);
 		case 'DATE_TEXT':
 			// Expected output: "September 1, 2024"
 			return new Intl.DateTimeFormat(locales, {
 				dateStyle: 'long',
-				// timeZone: 'Australia/Sydney',
+				timeZone: timeZone || undefined // null is not allowed, it will throw error
 			}).format(d);
 		case 'DETAILED':
 		default:
@@ -467,7 +471,7 @@ export function getFullDate(
 	const date = new Intl.DateTimeFormat(locales, {
 		dateStyle: 'long', // 'full', 'long', 'medium', 'short'
 		timeStyle: 'short', // 'full', 'long', 'medium', 'short'
-		// timeZone: 'Australia/Sydney',
+		timeZone: timeZone || undefined // null is not allowed, it will throw error
 	}).format(d);
 
 	const parts = new Intl.DateTimeFormat(locales, {
