@@ -117,11 +117,15 @@ export function createFilterFromURL(
 		startDate = endDate;
 	}
 
-  let operation = urlParams.get('o');
-  if (operation) {
-    operation = OPERATION_ENUMS[Number(operation) - 1] || operationType;
-  } else {
-    operation = operationType;
+	let operation = urlParams.get('o');
+	if (operation) {
+		operation = OPERATION_ENUMS[Number(operation) - 1] || operationType;
+	} else {
+		operation = operationType;
+	}
+
+  if (!operation) {
+    operation = OPERATION_ENUMS[0]; // Default to first operation if none provided
   }
 
 	const filter: FilterLogEntriesArgs = {
@@ -140,6 +144,90 @@ export function createFilterFromURL(
 	}
 
 	return filter;
+}
+
+/**
+ * Create URL from search query params.
+ * This function assumes the query parameters are valid and well-formed.
+ * @param operationType - Type of operation for organization
+ * @param orgGenericId - Generic ID of the organization
+ * @param searchQuery - Search query string from the URL
+ * @param fileType - Type of file ('pdf' or 'csv')
+ * @returns FilterLogEntriesArgs - The filter object to be used in the logEntries() query
+ */
+
+export function createLogsFileNameFromURL(
+	operationType: OrganizationOperationEnum | null,
+  orgGenericId: string,
+	searchQuery: string,
+  fileType: string
+) {
+	const urlParams = new URLSearchParams(searchQuery);
+  const o = urlParams.get('o');
+  const t = urlParams.get('t');
+  const a = urlParams.get('a');
+  const sd = urlParams.get('sd');
+  const ed = urlParams.get('ed');
+  const z = urlParams.get('z');
+  const q = urlParams.get('q');
+
+  let checkStr = '';
+  let paramStr = '';
+
+  if (o) {
+    checkStr += o;
+  } else {
+    const ix = OPERATION_ENUMS.indexOf(operationType || '');
+		checkStr += String(ix + 1);
+  }
+
+  if (t?.split('')?.some(letter => letter !== '0')) {
+    checkStr += '1';
+    paramStr += `_${t}`;
+  } else {
+    checkStr += '0';
+  }
+
+  if (a) {
+    checkStr += '1';
+    paramStr += `_${a}`;
+  } else {
+    checkStr += '0';
+  }
+
+  if (sd) {
+    checkStr += '1';
+    paramStr += `_${sd}`;
+  } else {
+    checkStr += '0';
+  }
+
+  if (ed) {
+    checkStr += '1';
+    paramStr += `_${ed}`;
+  } else {
+    checkStr += '0';
+  }
+
+  if (z) {
+    checkStr += '1';
+    paramStr += `_${z}`;
+  } else {
+    checkStr += '0';
+  }
+
+  if (q) {
+    checkStr += '1';
+    paramStr += `_${q}`;
+  } else {
+    checkStr += '0';
+  }
+
+  if (checkStr.split('').every(digit => digit === '0')) {
+    return `logs_${orgGenericId}_x${paramStr}.${fileType}`;
+  }
+
+	return `logs_${orgGenericId}_${checkStr}${paramStr}.${fileType}`;
 }
 
 /**

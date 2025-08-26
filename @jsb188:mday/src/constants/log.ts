@@ -13,8 +13,8 @@ import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d
 // export const SHOW_ARGS_FUNCTION_CALL_NAMES = [
 // 	'search_logs_arable_farming',
 // 	'search_logs_livestock_farming',
-// 	'get_arable_farming_logs_pdf',
-// 	'get_livestock_farming_logs_pdf',
+// 	'get_arable_farming_logs_file',
+// 	'get_livestock_farming_logs_file',
 // 	'find_persons',
 // ];
 

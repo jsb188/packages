@@ -97,15 +97,15 @@ export function getDatePeriod(d1: Date, d2: Date): DatePeriodEnum {
 export function getFullDateTime(
 	_d: Date | string | number | null,
 	params?: Partial<{
-    timeZone: string | null;
-    locales: string;
-    hideYear: boolean;
-    hideDate: boolean;
-    hideTime: boolean;
-    textDateStyle: 'long' | 'short' | null;
-    alwaysShowYear: boolean;
-    includeWeekday: boolean | 'long' | 'short' | 'narrow';
-  }>,
+		timeZone: string | null;
+		locales: string;
+		hideYear: boolean;
+		hideDate: boolean;
+		hideTime: boolean;
+		textDateStyle: 'long' | 'short' | 'numeric' | null;
+		alwaysShowYear: boolean;
+		includeWeekday: boolean | 'long' | 'short' | 'narrow';
+	}>,
 ) {
 	const {
 		locales = 'en-US',
@@ -149,12 +149,12 @@ export function getFullDateTime(
 		hideYear_ = true;
 	}
 
-  let weekday;
-  if (['long', 'short', 'narrow'].includes(includeWeekday as string)) {
-    weekday = includeWeekday;
-  } else if (includeWeekday) {
-    weekday = textDateStyle === 'long' ? 'long' : 'short';
-  }
+	let weekday;
+	if (['long', 'short', 'narrow'].includes(includeWeekday as string)) {
+		weekday = includeWeekday;
+	} else if (includeWeekday) {
+		weekday = textDateStyle === 'long' ? 'long' : 'short';
+	}
 
 	return d.toLocaleDateString(locales, {
 		timeZone,
@@ -432,10 +432,9 @@ export function getTimeAgo(
 export function getFullDate(
 	_d: Date | string | number | null,
 	outputStyle: 'DATE_ONLY' | 'DATE_TEXT' | 'MINIMAL' | 'DETAILED' = 'DATE_ONLY',
-  timeZone: string | null,
+	timeZone: string | null,
 	locales: string = 'en-US',
 ) {
-
 	let d;
 	if (_d instanceof Date) {
 		d = _d;
@@ -448,20 +447,20 @@ export function getFullDate(
 		case 'DATE_ONLY':
 			// Expected output: "9/1/2024"
 			return new Intl.DateTimeFormat(locales, {
-        timeZone: timeZone || undefined // null is not allowed, it will throw error
-      }).format(d);
+				timeZone: timeZone || undefined, // null is not allowed, it will throw error
+			}).format(d);
 		case 'MINIMAL':
 			// Expected output: "Sep 1, 2024, 6:54 PM"
 			return new Intl.DateTimeFormat(locales, {
 				dateStyle: 'medium', // 'full', 'long', 'medium', 'short'
 				timeStyle: 'short', // 'full', 'long', 'medium', 'short'
-				timeZone: timeZone || undefined // null is not allowed, it will throw error
+				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
 		case 'DATE_TEXT':
 			// Expected output: "September 1, 2024"
 			return new Intl.DateTimeFormat(locales, {
 				dateStyle: 'long',
-				timeZone: timeZone || undefined // null is not allowed, it will throw error
+				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
 		case 'DETAILED':
 		default:
@@ -471,7 +470,7 @@ export function getFullDate(
 	const date = new Intl.DateTimeFormat(locales, {
 		dateStyle: 'long', // 'full', 'long', 'medium', 'short'
 		timeStyle: 'short', // 'full', 'long', 'medium', 'short'
-		timeZone: timeZone || undefined // null is not allowed, it will throw error
+		timeZone: timeZone || undefined, // null is not allowed, it will throw error
 	}).format(d);
 
 	const parts = new Intl.DateTimeFormat(locales, {

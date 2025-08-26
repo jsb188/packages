@@ -343,3 +343,16 @@ export function removeGeneratedTextGarbage(str: string) {
 	// Remove all line breaks and spaces
 	return str.replace(/[\n\r\s]+/g, ' ').trim();
 }
+
+/**
+ * Escape values not allowed in CSV column
+ * @param value String value to escape
+ * @returns Escaped string value
+ */
+
+export function escapeCSVValue(value: string): string {
+  if (/[",\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
