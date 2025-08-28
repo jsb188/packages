@@ -23,7 +23,7 @@ interface LogDetailsGQLBase {
 // Log entry object
 
 interface LogArableMetadata {
-  crop: string;
+	crop: string;
 	quantity: number;
 	unit: string;
 	concentration: number;
@@ -43,6 +43,8 @@ interface LogArableDetailsObj extends LogArableObj {
 	id: number;
 }
 
+export type LogDetailsObj = LogArableObj;
+
 export interface LogEntryGQLData {
 	id: string;
 	accountId: string;
@@ -56,10 +58,10 @@ export interface LogEntryGQLData {
 }
 
 export interface LogEntryInsertObj {
+	id?: number; // Only for edits
 	accountId: number;
 	organizationId: number;
-	organizationBranchId: number | null;
-	details: LogArableObj;
+	details: LogDetailsObj;
 	date: Date;
 }
 
@@ -68,7 +70,6 @@ export interface LogEntryDataObj {
 	id: number;
 	accountId: number;
 	organizationId: number;
-	organizationBranchId: number | null;
 	details: LogArableDetailsObj;
 	date: Date;
 	createdAt: Date;

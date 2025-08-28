@@ -1,7 +1,7 @@
 import { getENVVariable } from '@jsb188/app';
 import { getTimeBasedUnique } from '@jsb188/app/utils/string';
 import { useMutation } from '@jsb188/graphql/client';
-import { signInWithGoogleMtn } from '@jsb188/graphql/mutations/auth';
+import { continueWithGoogleMtn } from '@jsb188/graphql/mutations/auth';
 import type { OnErrorGQLFn } from '@jsb188/graphql/types.d';
 import { AppContext, onAccountLogin, useOpenModalPopUp } from '@jsb188/react/states';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
@@ -43,14 +43,16 @@ function useGoogleLogin(p: GoogleLoginHookParams) {
 
   const { dispatchApp } = useContext(AppContext);
   const openModalPopUp = useOpenModalPopUp();
-  const [signInWithGoogle, { saving }] = useMutation(
-    signInWithGoogleMtn,
+  const [continueWithGoogle, { saving }] = useMutation(
+    continueWithGoogleMtn,
     {
       openModalPopUp: doNotAlertErrors ? null : openModalPopUp,
+      // NOTE: If you replace onError function, it will disable the popup when there's an error
       onError,
       onCompleted: (data) => {
-        const result = data?.signInWithGoogle;
-        if (result?.token && result.user?.id) {
+        const result = data?.continueWithGoogle;
+
+        if (result?.token && result.account?.id) {
           onAccountLogin(result, dispatchApp);
           onFinishSignIn(result?.token);
         }
@@ -68,7 +70,7 @@ function useGoogleLogin(p: GoogleLoginHookParams) {
 
   useEffect(() => {
     if (scriptLoaded) {
-      // @ts-expect-error - If using this package, it is expected that you install your own Google OAuth script
+      // If using this package, it is expected that you install your own Google OAuth script
       const client = globalThis.google?.accounts?.oauth2.initTokenClient({
         client_id: getENVVariable('GOOGLE_OAUTH'),
         scope: overrideScope ? scope : `openid profile email ${scope}`,
@@ -78,7 +80,7 @@ function useGoogleLogin(p: GoogleLoginHookParams) {
           }
 
           const { access_token: oauthToken } = response;
-          signInWithGoogle({
+          continueWithGoogle({
             variables: {
               oauthToken,
             },
@@ -137,9 +139,6 @@ export function useContinueWithGoogle(params: ContinueWithGoogleParams) {
     doNotAlertErrors,
     onFinishSignIn,
     scriptLoaded,
-    onError: (err: any) => {
-      console.log('ERROR', err);
-    },
   });
 
   return {

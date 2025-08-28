@@ -152,7 +152,7 @@ function SignInMain(p: AuthFormProps) {
 
   return (
     <>
-      {/* <ContinueWithGoogle onFinishSignIn={onFinishSignIn} /> */}
+      <ContinueWithGoogle onFinishSignIn={onFinishSignIn} />
       {/* <ContinueWithApple onFinishSignIn={onFinishSignIn} /> */}
       <ContinueWithPhone onClickButton={() => setAuthIface('VERIFY_PHONE')} />
 

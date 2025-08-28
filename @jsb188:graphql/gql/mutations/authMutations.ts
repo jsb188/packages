@@ -52,6 +52,19 @@ mutation authenticateWithToken (
 ${authenticateFragments}
 `;
 
+export const continueWithGoogleMtn = gql`
+mutation continueWithGoogle (
+  $oauthToken: String!
+) {
+  continueWithGoogle (
+    oauthToken: $oauthToken
+  ) {
+    ${authenticateResultText}
+  }
+}
+${authenticateFragments}
+`;
+
 export const checkUsernameOrEmailMtn = gql`
 mutation checkUsernameOrEmail (
   $usernameOrEmail: String!
@@ -141,19 +154,6 @@ mutation signUpWithEmail (
     password: $password
   )
 }`;
-
-export const signInWithGoogleMtn = gql`
-mutation signInWithGoogle (
-  $oauthToken: String!
-) {
-  signInWithGoogle (
-    oauthToken: $oauthToken
-  ) {
-    ${authenticateResultText}
-  }
-}
-${authenticateFragments}
-`;
 
 export const signInWithAppleMtn = gql`
 mutation signInWithApple (

@@ -39,7 +39,8 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 			return {
 				billing: acl.billing || 'MANAGE',
 				digests: acl.digests || 'MANAGE', // 2/3 = receive digests, 1 = only see from web app
-				logs: acl.logs || 'MANAGE',
+				logs: acl.logs || 'MANAGE', // "READ" for logs does nothing
+				viewData: acl.viewData || 'MANAGE', // This blocks access from users being able to read other people's logs
 				members: acl.members || 'MANAGE',
 				finances: acl.finances || 'MANAGE',
 				settings: acl.settings || 'MANAGE',
@@ -50,7 +51,8 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 			return {
 				billing: acl.billing || 'READ',
 				digests: acl.digests || 'WRITE', // 2/3 = receive digests, 1 = only see from web app
-				logs: acl.logs || 'MANAGE',
+				logs: acl.logs || 'MANAGE', // "READ" for logs does nothing
+				viewData: acl.viewData || 'MANAGE', // This blocks access from users being able to read other people's logs
 				members: acl.members || 'WRITE',
 				finances: acl.finances || 'READ',
 				settings: acl.settings || 'READ',
@@ -64,7 +66,8 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 	return {
 		billing: acl.billing || 'NONE',
 		digests: acl.digests || 'NONE', // 2/3 = receive digests, 1 = only see from web app
-		logs: acl.logs || 'WRITE',
+		logs: acl.logs || 'WRITE', // "READ" for logs does nothing
+		viewData: acl.viewData || 'NONE', // This blocks access from users being able to read other people's logs
 		members: acl.members || 'READ',
 		finances: acl.finances || 'NONE',
 		settings: acl.settings || 'READ',
@@ -77,11 +80,12 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
  * Check if this account's ACL has required permissions for an action
  */
 
-type ACLPermissionCheck = 'READ' | 'WRITE' | 'MANAGE';
+export type ACLPermissionCheck = 'READ' | 'WRITE' | 'MANAGE';
+export type PermissionCheckFor = keyof ReturnType<typeof getDefaultPermissionsByRole>;
 
 export function checkACLPermission(
 	orgRel: OrganizationRelGQLData | OrganizationRelData | ViewerOrganization,
-	check: keyof ReturnType<typeof getDefaultPermissionsByRole>,
+	check: PermissionCheckFor,
 	requiredPermission: ACLPermissionCheck,
 ): boolean | null {
 	if (!orgRel) {
