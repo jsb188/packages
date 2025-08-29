@@ -22,6 +22,7 @@
     "./hooks/use-app-qry": "./hooks/use-app-qry.ts",
     "./hooks/use-log-qry": "./hooks/use-log-qry.ts",
     "./hooks/use-organization-qry": "./hooks/use-organization-qry.ts",
+    "./hooks/use-aiChat-mtn": "./hooks/use-aiChat-mtn.ts",
     "./hooks/use-auth-mtn": "./hooks/use-auth-mtn.ts",
     "./hooks/use-log-mtn": "./hooks/use-log-mtn.ts",
     "./mutations/aiChat": "./gql/mutations/aiChatMutations.ts",

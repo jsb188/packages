@@ -172,6 +172,20 @@ export function useAIChatMessages(aiChatId?: string, params: UseQueryParams = {}
 }
 
 /**
+ * Update sidebar AI chats query
+ */
+
+export function updateAIChats(aiChat: any) {
+
+  console.log('UPDATE AI CHAT')
+  console.log('UPDATE AI CHAT')
+  console.log('UPDATE AI CHAT')
+  console.log('UPDATE AI CHAT')
+  console.log(aiChat)
+
+}
+
+/**
  * Fetch AI chats list
  */
 
@@ -185,6 +199,9 @@ export function useAIChatMessages(aiChatId?: string, params: UseQueryParams = {}
     },
     skip: false,
   });
+
+  console.log(other.variablesKey);
+  console.log(data?.aiChats);
 
   return {
     aiChats: data?.aiChats,
