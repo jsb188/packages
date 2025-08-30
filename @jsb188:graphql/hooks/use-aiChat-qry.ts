@@ -6,7 +6,7 @@ import { loadFragment, loadQuery, makeVariablesKey, updateQuery } from '../cache
 import { useQuery } from '../client';
 import { aiChatMessagesQry, aiChatQry, aiChatsQry } from '../gql/queries/aiChatQueries';
 import handleSSEData, { type PublishPayload } from '../sse';
-import type { UseQueryParams } from '../types.d';
+import type { UpdateObserversFn, UseQueryParams } from '../types.d';
 
 /**
  * Constants
@@ -175,14 +175,29 @@ export function useAIChatMessages(aiChatId?: string, params: UseQueryParams = {}
  * Update sidebar AI chats query
  */
 
-export function updateAIChats(aiChat: any) {
+export function updateAIChats(aiChat: any, updateObservers: UpdateObserversFn) {
+  if (aiChat) {
+    const isCalDate = !!aiChat.calDate;
+    const queryKey = `#aiChats:$after:false$filter:${isCalDate ? 'cal_date' : 'chats'}$limit:${AI_CHATS_LIMIT}`;
 
-  console.log('UPDATE AI CHAT')
-  console.log('UPDATE AI CHAT')
-  console.log('UPDATE AI CHAT')
-  console.log('UPDATE AI CHAT')
-  console.log(aiChat)
-
+    updateQuery(
+      queryKey,
+      (res) => {
+        return [
+          {
+            cursor: aiChat.cursor,
+            __flat: {
+              __cache: true,
+              data: [`$aiChatFragment:${aiChat.id}`]
+            }
+          },
+          ...res
+        ];
+      },
+      false,
+      updateObservers
+    );
+  }
 }
 
 /**
@@ -199,9 +214,6 @@ export function updateAIChats(aiChat: any) {
     },
     skip: false,
   });
-
-  console.log(other.variablesKey);
-  console.log(data?.aiChats);
 
   return {
     aiChats: data?.aiChats,

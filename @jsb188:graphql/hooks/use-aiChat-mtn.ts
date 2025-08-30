@@ -14,7 +14,7 @@ export function useStartAIChat(params: UseMutationParams = {}) {
   const { onCompleted, onError } = params;
   const openModalPopUp = useOpenModalPopUp();
 
-  const [startAIChat, mtnValues] = useMutation(
+  const [startAIChat, mtnValues,, updateObservers] = useMutation(
     startAIChatMtn,
     {
       openModalPopUp,
@@ -22,11 +22,7 @@ export function useStartAIChat(params: UseMutationParams = {}) {
         onCompleted?.(data, err, variables);
 
         const aiChat = data.startAIChat?.node;
-        console.log('aiChat');
-        console.log(aiChat);
-
-        updateAIChats(aiChat);
-
+        updateAIChats(aiChat, updateObservers);
       },
       onError,
     },

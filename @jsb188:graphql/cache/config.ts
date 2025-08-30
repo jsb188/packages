@@ -27,8 +27,6 @@ export const RULES = {
   chatsList: true,
   editChat: true,
   friend: true,
-  friendsList: true,
-  friendRequests: true,
   logEntries: true,
   myChats: true,
   organizationRelationship: true,

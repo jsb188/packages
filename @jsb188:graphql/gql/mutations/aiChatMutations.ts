@@ -12,6 +12,7 @@ mutation startAIChat (
   ) {
     sessionKey
     node {
+      cursor
       ...aiChatFragment
     }
   }
