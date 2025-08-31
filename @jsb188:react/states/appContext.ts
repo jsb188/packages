@@ -57,6 +57,7 @@ export type AppContextData = {
   activated: boolean;
   hasPassword: boolean;
   webVersion: string | null;
+  alertUpdatesOnMount: boolean;
 
   // Preview theme overrides active theme
   systemLightMode: 'LIGHT' | 'DARK';
@@ -95,6 +96,7 @@ export const DEFAULT_APP_CONTEXT = {
   activated: false,
   hasPassword: false,
   webVersion: null,
+  alertUpdatesOnMount: false,
 
   systemLightMode: 'LIGHT',
   previewLightMode: null,
@@ -230,6 +232,8 @@ export function mergeAuthToDefaultValues(
       account: auth.account,
       primaryOrganizationId: auth.primaryOrganizationId || null,
       settings: authSettings,
+
+      alertUpdatesOnMount: auth.alertUpdatesOnMount,
       hasPassword: auth.hasPassword,
       webVersion: auth.webVersion,
 
@@ -387,7 +391,7 @@ export const AppContext = createContext({
  */
 
 export function useCurrentAccount() {
-  const { appState: { activated, hasPassword, webVersion, account, settings, primaryOrganizationId } } = useContext(AppContext);
+  const { appState: { activated, hasPassword, webVersion, alertUpdatesOnMount, account, settings, primaryOrganizationId } } = useContext(AppContext);
   const hasName = !!account?.profile?.firstName || !!account?.profile?.lastName;
   const fullName = buildSingleText([account?.profile?.firstName, account?.profile?.lastName], ' ');
   const displayName = guessFirstName(fullName, 8);
@@ -399,6 +403,7 @@ export function useCurrentAccount() {
     activated,
     hasPassword,
     webVersion,
+    alertUpdatesOnMount,
 
     // Computed
     isLoggedIn: !!account?.id,

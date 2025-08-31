@@ -229,7 +229,7 @@ type ModalWrapperProps = {
   className?: string;
   containerClassName?: string;
   outlineColor?: 'error' | 'default';
-  size: ContainerSizeEnum;
+  size: ContainerSizeEnum | string; // allow custom sizes like max_w_#### etc
   addScrollArea?: boolean;
   onCloseModal?: () => void;
   ToolbarComponent?: React.ReactNode;

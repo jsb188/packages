@@ -3,6 +3,8 @@ export const accountAuthFragment = `fragment accountAuthFragment on AccountAuth 
   primaryOrganizationId
   activated
   hasPassword
+
+  alertUpdatesOnMount
   webVersion
   mobileVersion
 

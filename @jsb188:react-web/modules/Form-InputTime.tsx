@@ -245,7 +245,7 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
               timeErrors[field] ? 'error' : '',
               borderRadiusClassName ?? 'r_sm',
               inputClassName,
-              'w_55',
+              'w_70',
               disabled ? 'disabled' : '',
             )}
             id={htmlFor}

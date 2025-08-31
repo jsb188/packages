@@ -61,4 +61,5 @@ export interface AuthenticationData {
   hasPassword: boolean;
   webVersion: string;
   mobileVersion: string;
+  alertUpdatesOnMount: boolean;
 }

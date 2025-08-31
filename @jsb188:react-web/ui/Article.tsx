@@ -62,6 +62,7 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
   const { __deleted, preset, domIdPrefix, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
+  const isModalPreset = preset === 'modal';
 
   // paddingClassName='px_df -mx_5'
 
@@ -103,7 +104,7 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
               key={i}
               as='span'
               outline
-              color='alt'
+              color={isModalPreset ? 'bg' : 'alt'}
               // textColorClassName='cl_primary'
               {...label}
             />

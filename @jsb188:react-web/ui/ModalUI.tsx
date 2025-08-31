@@ -1,9 +1,9 @@
 import i18n from '@jsb188/app/i18n';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
-import type { ReactDivElement } from '../types/dom.d';
 import { Icon } from '../svgs/Icon';
-import { Pill, FullWidthButton } from './Button';
+import type { ReactDivElement } from '../types/dom.d';
+import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
 import Markdown, { EmojiWrapper } from './Markdown';
 import { ShortcutKey } from './OtherUI';
@@ -461,6 +461,7 @@ export function ModalToolbar(p: ModalToolbarProps) {
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
+  // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
   return <div className='of w_f rt_smw bd_b_1 bd_lt'>
     <nav className='h_45 h_spread shadow_bg shift_down'>
       <div className='px_df ft_medium'>

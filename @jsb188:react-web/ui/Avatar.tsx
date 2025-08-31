@@ -355,6 +355,7 @@ export function Avatar(p: AvatarProps) {
 
 interface AvatarImgProps extends AvatarProps {
   square?: boolean;
+  letterBackgroundClassName?: string;
 }
 
 export function AvatarImg(p: AvatarImgProps) {
@@ -367,7 +368,6 @@ export function AvatarImg(p: AvatarImgProps) {
     urlPath,
     className,
     imageClassName,
-    letterClassName,
     animateGifs,
     square,
     letterAs
@@ -379,13 +379,15 @@ export function AvatarImg(p: AvatarImgProps) {
   const avatarUrl = url || makeUploadsUrl(urlPath, urlSize, animateGifs);
   const hasImg = !!avatarUrl;
 
-  let radiusClassName, letterBackgroundClassName;
+  let radiusClassName, letterClassName, letterBackgroundClassName;
   if (square) {
     radiusClassName = p.radiusClassName || 'r_sm';
-    letterBackgroundClassName = 'bg_lighter_3 bd_2 bd_lt cl_df ft_bold';
+    letterClassName = p.letterClassName ?? 'cl_df ft_bold';
+    letterBackgroundClassName = p.letterBackgroundClassName ?? 'bg_lighter_3 bd_2 bd_lt';
   } else {
     radiusClassName = p.radiusClassName || 'r';
-    letterBackgroundClassName = 'bg_alt cl_bd';
+    letterClassName = p.letterClassName ?? 'cl_bd';
+    letterBackgroundClassName = p.letterBackgroundClassName ?? 'bg_alt';
   }
 
   return (

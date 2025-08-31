@@ -1036,7 +1036,7 @@ rect.s_dot_away {
 
 .pattern_dots:before {
   content: ' ';
-  position: absolute; z-index: -1;
+  position: absolute; z-index: 0;
   inset: 0;
   mask-image: url('https://assets.chiefhappiness.co/marketday/static/dots.svg');
   mask-repeat: repeat;
@@ -1046,7 +1046,7 @@ rect.s_dot_away {
 
 .pattern_stripes:before {
   content: ' ';
-  position: absolute; z-index: -1;
+  position: absolute; z-index: 0;
   inset: 0;
   mask-image: url('https://assets.chiefhappiness.co/marketday/static/stripes.svg');
   mask-repeat: repeat;
@@ -1054,8 +1054,14 @@ rect.s_dot_away {
   mask-position: center;
 }
 
-.allow_z:before {
-  z-index: 0;
+.pattern_texture:before {
+  content: ' ';
+  position: absolute; z-index: 0;
+  inset: 0;
+  mask-image: url('https://assets.chiefhappiness.co/marketday/static/texture.svg');
+  mask-repeat: repeat;
+  mask-size: auto;
+  mask-position: center;
 }
 
 /* :before element colors */
