@@ -391,12 +391,15 @@ export const AppContext = createContext({
  */
 
 export function useCurrentAccount() {
-  const { appState: { activated, hasPassword, webVersion, alertUpdatesOnMount, account, settings, primaryOrganizationId } } = useContext(AppContext);
+  const { appState: { activated, hasPassword, webVersion, alertUpdatesOnMount, account, settings, primaryOrganizationId }, dispatchApp } = useContext(AppContext);
   const hasName = !!account?.profile?.firstName || !!account?.profile?.lastName;
   const fullName = buildSingleText([account?.profile?.firstName, account?.profile?.lastName], ' ');
   const displayName = guessFirstName(fullName, 8);
 
   return {
+    // Dispatch
+    dispatchApp,
+
     // App state
     account,
     settings,

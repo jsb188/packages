@@ -5,7 +5,10 @@
   "license": "ISC",
   "author": "jsb188",
   "type": "module",
-  "main": "src/main.ts",
+  "exports": {
+    ".": "./src/main.ts",
+    "./schemas": "./src/schemas/index.ts"
+  },
   "peerDependencies": {
     "@jsb188/app": "1.1.4",
     "@jsb188/react-web": "1.1.4",

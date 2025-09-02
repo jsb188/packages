@@ -1,7 +1,8 @@
+import { COLORS } from '@jsb188/app/constants/app';
 import { cn } from '@jsb188/app/utils/string';
 import { memo } from 'react';
-import { Icon } from '../svgs/Icon';
 import { TooltipButton } from '../modules/PopOver';
+import { Icon } from '../svgs/Icon';
 
 /**
  * Types
@@ -60,6 +61,7 @@ export function getHtmlFor(id?: string, name?: string) {
 
 export type LabelType = Partial<{
   htmlFor?: string;
+  paddingClassName?: string;
   labelClassName?: string;
   iconName?: string;
   info?: string;
@@ -67,10 +69,10 @@ export type LabelType = Partial<{
 }>;
 
 export function Label(p: LabelType) {
-  const { htmlFor, labelClassName, iconName, info, children } = p;
+  const { htmlFor, paddingClassName, labelClassName, iconName, info, children } = p;
   return (
     <label
-      className={cn('ft_sm ic_sm pt_sm pb_3 h_spread', labelClassName)}
+      className={cn('ft_sm ic_sm h_spread', paddingClassName ?? 'pt_sm pb_3', labelClassName)}
       htmlFor={htmlFor}
     >
       {children}
@@ -80,5 +82,26 @@ export function Label(p: LabelType) {
         </TooltipButton>
       )}
     </label>
+  );
+}
+
+/**
+ * List of colors
+ */
+
+export function ColorItems(p: {
+  selectedValue: string;
+  onClickItem: (value: string) => void
+}) {
+  const { selectedValue, onClickItem } = p;
+
+  return (
+    <div className='h_left f_wrap gap_5'>
+      {COLORS.map(color => (
+        <div key={color} className={`ic_xs v_center av av_xxxs r bg_${color}`} onClick={() => onClickItem(color)}>
+          {color === selectedValue && <Icon name='check-filled' />}
+        </div>
+      ))}
+    </div>
   );
 }

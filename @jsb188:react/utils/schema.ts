@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import i18n from '@jsb188/app/i18n';
 import type { FormItemSchemaObj, FormSchemaObj } from '@jsb188/app/types/form.d';
+import { getObject, setObject } from '@jsb188/app/utils/object';
 
 /**
  * Types
@@ -31,22 +32,20 @@ export function makeFormValues(
 
     if (currentData || dataForSchema) {
       if (Array.isArray(items)) {
-        items.forEach((subItem: any) => {
+        items.forEach(({ item: subItem }: any) => {
           if (typeof subItem.setter === 'function') {
-            newFormValues[subItem.name] = subItem.setter(
+            setObject(newFormValues, subItem.name, subItem.setter(
               currentData,
               dataForSchema,
-            );
+            ));
           } else if (currentData) {
-            newFormValues[subItem.name] = currentData[subItem.name];
+            setObject(newFormValues, subItem.name, getObject(currentData, subItem.name));
           }
         });
-      } else {
-        if (typeof setter === 'function') {
-          newFormValues[name] = setter(currentData, dataForSchema);
-        } else if (currentData) {
-          newFormValues[name] = currentData[name];
-        }
+      } else if (typeof setter === 'function') {
+        setObject(newFormValues, name, setter(currentData, dataForSchema));
+      } else if (currentData) {
+        setObject(newFormValues, name, getObject(currentData, name));
       }
     }
   }
@@ -87,7 +86,7 @@ export function useSchema(
     const computedItem: Record<string, any> = { ...item };
     if (computedItem) {
       for (const key in computedItem) {
-        if (typeof computedItem[key] === 'function') {
+        if (typeof computedItem[key] === 'function' && !key.startsWith('onClick')) {
           computedItem[key] = computedItem[key](dataForSchema);
         }
       }

@@ -598,67 +598,67 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 
 .bg_red_lt { background-color: var(--color-red-light); }
 .bg_red_md { background-color: var(--color-red-medium); }
-.bg_red { background-color: var(--color-red-default); }
+.bg_red { background-color: var(--color-red-default); color: var(--color-solid); }
 .bg_orange_lt { background-color: var(--color-orange-light); }
 .bg_orange_md { background-color: var(--color-orange-medium); }
-.bg_orange { background-color: var(--color-orange-default); }
+.bg_orange { background-color: var(--color-orange-default); color: var(--color-solid); }
 .bg_brown_lt { background-color: var(--color-brown-light); }
 .bg_brown_md { background-color: var(--color-brown-medium); }
-.bg_brown { background-color: var(--color-brown-default); }
+.bg_brown { background-color: var(--color-brown-default); color: var(--color-solid); }
 .bg_amber_lt { background-color: var(--color-amber-light); }
 .bg_amber_md { background-color: var(--color-amber-medium); }
-.bg_amber { background-color: var(--color-amber-default); }
+.bg_amber { background-color: var(--color-amber-default); color: var(--color-solid); }
 .bg_yellow_lt { background-color: var(--color-yellow-light); }
 .bg_yellow_md { background-color: var(--color-yellow-medium); }
-.bg_yellow { background-color: var(--color-yellow-default); }
+.bg_yellow { background-color: var(--color-yellow-default); color: var(--color-solid); }
 .bg_lime_lt { background-color: var(--color-lime-light); }
 .bg_lime_md { background-color: var(--color-lime-medium); }
-.bg_lime { background-color: var(--color-lime-default); }
+.bg_lime { background-color: var(--color-lime-default); color: var(--color-solid); }
 .bg_green_lt { background-color: var(--color-green-light); }
 .bg_green_md { background-color: var(--color-green-medium); }
-.bg_green { background-color: var(--color-green-default); }
+.bg_green { background-color: var(--color-green-default); color: var(--color-solid); }
 .bg_emerald_lt { background-color: var(--color-emerald-light); }
 .bg_emerald_md { background-color: var(--color-emerald-medium); }
-.bg_emerald { background-color: var(--color-emerald-default); }
+.bg_emerald { background-color: var(--color-emerald-default); color: var(--color-solid); }
 .bg_teal_lt { background-color: var(--color-teal-light); }
 .bg_teal_md { background-color: var(--color-teal-medium); }
-.bg_teal { background-color: var(--color-teal-default); }
+.bg_teal { background-color: var(--color-teal-default); color: var(--color-solid); }
 .bg_cyan_lt { background-color: var(--color-cyan-light); }
 .bg_cyan_md { background-color: var(--color-cyan-medium); }
-.bg_cyan { background-color: var(--color-cyan-default); }
+.bg_cyan { background-color: var(--color-cyan-default); color: var(--color-solid); }
 .bg_sky_lt { background-color: var(--color-sky-light); }
 .bg_sky_md { background-color: var(--color-sky-medium); }
-.bg_sky { background-color: var(--color-sky-default); }
+.bg_sky { background-color: var(--color-sky-default); color: var(--color-solid); }
 .bg_blue_lt { background-color: var(--color-blue-light); }
 .bg_blue_md { background-color: var(--color-blue-medium); }
-.bg_blue { background-color: var(--color-blue-default); }
+.bg_blue { background-color: var(--color-blue-default); color: var(--color-solid); }
 .bg_indigo_lt { background-color: var(--color-indigo-light); }
 .bg_indigo_md { background-color: var(--color-indigo-medium); }
-.bg_indigo { background-color: var(--color-indigo-default); }
+.bg_indigo { background-color: var(--color-indigo-default); color: var(--color-solid); }
 .bg_violet_lt { background-color: var(--color-violet-light); }
 .bg_violet_md { background-color: var(--color-violet-medium); }
-.bg_violet { background-color: var(--color-violet-default); }
+.bg_violet { background-color: var(--color-violet-default); color: var(--color-solid); }
 .bg_purple_lt { background-color: var(--color-purple-light); }
 .bg_purple_md { background-color: var(--color-purple-medium); }
-.bg_purple { background-color: var(--color-purple-default); }
+.bg_purple { background-color: var(--color-purple-default); color: var(--color-solid); }
 .bg_fuchsia_lt { background-color: var(--color-fuchsia-light); }
 .bg_fuchsia_md { background-color: var(--color-fuchsia-medium); }
-.bg_fuchsia { background-color: var(--color-fuchsia-default); }
+.bg_fuchsia { background-color: var(--color-fuchsia-default); color: var(--color-solid); }
 .bg_pink_lt { background-color: var(--color-pink-light); }
 .bg_pink_md { background-color: var(--color-pink-medium); }
-.bg_pink { background-color: var(--color-pink-default); }
+.bg_pink { background-color: var(--color-pink-default); color: var(--color-solid); }
 .bg_rose_lt { background-color: var(--color-rose-light); }
 .bg_rose_md { background-color: var(--color-rose-medium); }
-.bg_rose { background-color: var(--color-rose-default); }
+.bg_rose { background-color: var(--color-rose-default); color: var(--color-solid); }
 .bg_slate_lt { background-color: var(--color-slate-light); }
 .bg_slate_md { background-color: var(--color-slate-medium); }
-.bg_slate { background-color: var(--color-slate-default); }
+.bg_slate { background-color: var(--color-slate-default); color: var(--color-solid); }
 .bg_zinc_lt { background-color: var(--color-zinc-light); }
 .bg_zinc_md { background-color: var(--color-zinc-medium); }
-.bg_zinc { background-color: var(--color-zinc-default); }
+.bg_zinc { background-color: var(--color-zinc-default); color: var(--color-solid); }
 .bg_stone_lt { background-color: var(--color-stone-light); }
 .bg_stone_md { background-color: var(--color-stone-medium); }
-.bg_stone { background-color: var(--color-stone-default); }
+.bg_stone { background-color: var(--color-stone-default); color: var(--color-solid); }
 
 .bd_red_lt { border-color: var(--color-red-light); }
 .bd_red_md { border-color: var(--color-red-medium); }
@@ -1091,6 +1091,10 @@ rect.s_dot_away {
 
 .bg_bf:before {
   background-color: rgb(var(--color-bg));
+}
+
+.texture_bf:before {
+  background-color: rgb(var(--color-texture));
 }
 
 .main_bf:before {

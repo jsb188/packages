@@ -45,3 +45,29 @@ export const SOCIAL_URLS = {
   x: string;
   x_username: string;
 }>;
+
+// Colors
+
+export const COLORS = [
+  'red',
+  'orange',
+  'brown',
+  'amber',
+  'yellow',
+  'lime',
+  'green',
+  'emerald',
+  'teal',
+  'cyan',
+  'sky',
+  'blue',
+  'indigo',
+  'violet',
+  'purple',
+  'fuchsia',
+  'pink',
+  'rose',
+  'slate',
+  'zinc',
+  'stone'
+];

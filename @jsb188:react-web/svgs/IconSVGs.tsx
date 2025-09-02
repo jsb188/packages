@@ -311,6 +311,11 @@ export const Check = <svg xmlns="http://www.w3.org/2000/svg" className="icon ico
 <path d="M5 12l5 5l10 -10" stroke="currentColor" />
 </svg>;
 
+export const CheckFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-check-filled" viewBox="0 0 24 24" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M5 12l5 5l10 -10" stroke="currentColor" />
+</svg>;
+
 export const Checklist = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-checklist" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M9.615 20h-2.615a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8" stroke="currentColor" />
@@ -821,6 +826,15 @@ export const JewishStarFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox=
 <path d="M8.433 6h-5.433l-.114 .006a1 1 0 0 0 -.743 1.508l2.69 4.486l-2.69 4.486l-.054 .1a1 1 0 0 0 .911 1.414h5.434l2.709 4.514l.074 .108a1 1 0 0 0 1.64 -.108l2.708 -4.514h5.435l.114 -.006a1 1 0 0 0 .743 -1.508l-2.691 -4.486l2.691 -4.486l.054 -.1a1 1 0 0 0 -.911 -1.414h-5.434l-2.709 -4.514a1 1 0 0 0 -1.714 0l-2.71 4.514z" />
 </svg>;
 
+export const Language = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-language">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M4 5h7" />
+<path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+<path d="M5 9c0 2.144 2.952 3.908 6.7 4" />
+<path d="M12 20l4 -9l4 9" />
+<path d="M19.1 18h-6.2" />
+</svg>;
+
 export const LayoutColumns = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-layout-columns" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" stroke="currentColor" />
@@ -895,8 +909,8 @@ export const LockPassword = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0
 </svg>;
 
 export const LockPasswordFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-lock-password-filled">
-  <path className="st0" d="M0,0h24v24H0V0Z" fill="none" />
-  <path d="M12,2c2.8,0,5,2.2,5,5v3c1.7,0,3,1.3,3,3v6c0,1.7-1.3,3-3,3H7c-1.7,0-3-1.3-3-3v-6c0-1.7,1.3-3,3-3v-3c0-2.8,2.2-5,5-5M8,14.8c-.6,0-1.1.5-1.2,1.1h0c0,.7.5,1.3,1.2,1.3s1.2-.5,1.2-1.2-.5-1.2-1.2-1.2M12,14.8c-.6,0-1.1.5-1.2,1.1h0c0,.7.5,1.3,1.2,1.3s1.2-.5,1.2-1.2-.5-1.2-1.2-1.2M16,14.8c-.6,0-1.1.5-1.2,1.1h0c0,.7.5,1.3,1.2,1.3s1.2-.5,1.2-1.2-.5-1.2-1.2-1.2M12,4c-1.7,0-3,1.3-3,3v3h6v-3c0-1.7-1.3-3-3-3"/>
+<path className="st0" d="M0,0h24v24H0V0Z" fill="none" />
+<path d="M12,2c2.8,0,5,2.2,5,5v3c1.7,0,3,1.3,3,3v6c0,1.7-1.3,3-3,3H7c-1.7,0-3-1.3-3-3v-6c0-1.7,1.3-3,3-3v-3c0-2.8,2.2-5,5-5M8,14.8c-.6,0-1.1.5-1.2,1.1h0c0,.7.5,1.3,1.2,1.3s1.2-.5,1.2-1.2-.5-1.2-1.2-1.2M12,14.8c-.6,0-1.1.5-1.2,1.1h0c0,.7.5,1.3,1.2,1.3s1.2-.5,1.2-1.2-.5-1.2-1.2-1.2M16,14.8c-.6,0-1.1.5-1.2,1.1h0c0,.7.5,1.3,1.2,1.3s1.2-.5,1.2-1.2-.5-1.2-1.2-1.2M12,4c-1.7,0-3,1.3-3,3v3h6v-3c0-1.7-1.3-3-3-3"/>
 </svg>;
 
 export const LockSquareRoundedFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-lock-square-rounded-filled" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

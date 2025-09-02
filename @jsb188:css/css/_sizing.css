@@ -6,6 +6,7 @@
 .sticky_top { position: sticky; top: 0; left: 0; right: 0; }
 .sticky_bottom { position: sticky; bottom: 0; left: 0; right: 0; }
 
+.abs_l_center, .abs_r_center,
 .abs, .abs_l, .abs_r, .abs_t, .abs_b, .abs_full,
 .abs_corner, .abs_corner_xs, .abs_corner_sm, .abs_corner_df, .abs_corner_md {
   position: absolute;
@@ -58,6 +59,16 @@
 .abs_corner_md, .fixed_corner_md {
   top: var(--rem-medium);
   right: var(--rem-medium);
+}
+
+.abs_l_center {
+  top: 50%; left: 0;
+  transform: translateY(-50%);
+}
+
+.abs_r_center {
+  top: 50%; right: 0;
+  transform: translateY(-50%);
 }
 
 /* Typography */
@@ -1211,6 +1222,18 @@ svg.av_xl .s_dot {
 .grid.gap_df { row-gap: var(--rem-default); column-gap: var(--rem-default); }
 .grid.gap_md { row-gap: var(--rem-medium); column-gap: var(--rem-medium); }
 .grid.gap_lg { row-gap: var(--rem-large); column-gap: var(--rem-large); }
+
+.grid.gapx_xs { row-gap: 0; column-gap: var(--rem-xsmall); }
+.grid.gapx_sm { row-gap: 0; column-gap: var(--rem-small); }
+.grid.gapx_df { row-gap: 0; column-gap: var(--rem-default); }
+.grid.gapx_md { row-gap: 0; column-gap: var(--rem-medium); }
+.grid.gapx_lg { row-gap: 0; column-gap: var(--rem-large); }
+
+.grid.gapy_xs { row-gap: var(--rem-xsmall); column-gap: 0; }
+.grid.gapy_sm { row-gap: var(--rem-small); column-gap: 0; }
+.grid.gapy_df { row-gap: var(--rem-default); column-gap: 0; }
+.grid.gapy_md { row-gap: var(--rem-medium); column-gap: 0; }
+.grid.gapy_lg { row-gap: var(--rem-large); column-gap: 0; }
 
 .grid.gap_n { row-gap: 0; column-gap: 0; }
 

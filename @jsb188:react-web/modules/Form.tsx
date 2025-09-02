@@ -144,8 +144,8 @@ type SideInputButtonProps = {
 export function FormBreak(p: FormBreakType) {
   const { children, className } = p;
   return (
-    <div className={cn('form_break h_center', className)}>
-      {children ? <span className='text ft_sm'>{children}</span> : <span className='line' />}
+    <div className={cn('pattern_texture medium_bf rel h_10 h_center', className)}>
+      {children ? <span className='text ft_sm bg rel z2 px_xs lh_1 cl_bd'>{children}</span> : null}
     </div>
   );
 }
@@ -270,6 +270,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
         className,
         error ? 'error' : '',
         focused ? 'focused' : '',
+        disabled ? 'disabled' : '',
       )}
     >
       {!label ? null : (
@@ -288,7 +289,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
             'w_f form_input',
             borderRadiusClassName ?? 'r_sm',
             inputClassName,
-            disabled ? 'disabled' : '',
+            disabled ? 'disabled cl_md' : '',
           )}
           id={htmlFor}
           name={name}
@@ -351,7 +352,36 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
 const FVInput = composeFormInput(Input);
 
 /**
- * Form; input but only allow clicks
+ * Input with button at right
+ */
+
+export function InputWithButton(p: FormInputProps & {
+  buttonText?: string;
+  onClickButton: (e: React.MouseEvent) => void;
+}) {
+  const { buttonText, onClickButton, ...rest } = p;
+
+  console.log('onClickButton', p);
+
+
+  return <FVInput
+    {...rest}
+    RightIconComponent={
+      <div className='abs_r_center mr_5'>
+        <button
+          className='btn link bg_active lh_1 ft_xs ft_medium p_xs r_sm'
+          onClick={onClickButton}
+        >
+          {buttonText}
+        </button>
+      </div>
+    }
+  >
+  </FVInput>;
+}
+
+/**
+ * Input but only allow clicks
  */
 
 function InputClick(p: InputType & Omit<LabelType, 'children'> & { popOverProps: any }) {
@@ -403,7 +433,7 @@ function FVPasswordInput(p: InputType & Omit<LabelType, 'children'>) {
           <span className='shift_up mr_3'>
             <Icon name={inputType === 'password' ? 'square' : 'square-check-filled'} />
           </span>
-          {i18n.t('user.show_password')}
+          {i18n.t('account.show_password')}
         </button>
       </p>
     </FVInput>
@@ -503,7 +533,7 @@ export function Textarea(p: TextareaType & LabelType) {
         <textarea
           style={{ height, minHeight }}
           className={cn(
-            'form_input of rel',
+            'form_input of rel w_f',
             borderRadiusClassName ?? 'r_sm',
             disabled ? 'disabled' : '',
             textareaClassName
@@ -636,11 +666,18 @@ export function FormItem(p: any) {
   const { __type, item, disabled, ...other } = p;
 
   switch (__type) {
+    case 'subtitle': {
+      return (
+        <strong className='bl ft_md mt_df pt_xs cl_lt'>
+          {item.text}
+        </strong>
+      );
+    }
     case 'group': {
       const { label, items } = item;
 
       return (
-        <div className={`form_el group size-${items.length}`}>
+        <div className={`grid gapx_xs size_${items.length}`}>
           {label
             ? (
               <Label htmlFor={getHtmlFor(items?.[0]?.id, items?.[0]?.name)} labelClassName={other.labelClassName}>
@@ -654,6 +691,8 @@ export function FormItem(p: any) {
     }
     case 'input':
       return <FVInput disabled={disabled} {...item} {...other} />;
+    case 'input_w_button':
+      return <InputWithButton disabled={disabled} {...item} {...other} />;
     case 'input_click':
       return <InputClick disabled={disabled} {...item} {...other} />;
     case 'input_time_from_date':

@@ -9,7 +9,7 @@ export default {
     continue_with_discord: 'Continue with Discord',
     continue_with_apple: 'Continue with Apple',
     continue_with_phone: 'Continue with Phone',
-    login_opts_main: 'Continue with phone number or e-mail',
+    login_opts_main: 'Phone number or e-mail',
     verify_your_acc: 'Verify your account',
     reset_password: 'Reset password',
     forgot_password_: 'Forgot password or username?',

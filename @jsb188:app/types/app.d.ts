@@ -1,3 +1,4 @@
+import { COLORS } from '../constants/app';
 
 // Modal; App settings
 
@@ -24,7 +25,7 @@ export interface EditUserPlusModalProps extends EditIfaceModalProps {
 
 export type DarkOrLightEnum = 'light' | 'dark';
 
-export type ColorEnum = 'red' | 'orange' | 'brown' | 'amber' | 'yellow' | 'lime' | 'green' | 'emerald' | 'teal' | 'cyan' | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'fuchsia' | 'pink' | 'rose' | 'slate' | 'zinc' | 'stone';
+export type ColorEnum = typeof COLORS[number];
 
 // Stripe types
 

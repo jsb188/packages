@@ -1,7 +1,7 @@
 import { getENVVariable } from '@jsb188/app';
 import { getTimeBasedUnique } from '@jsb188/app/utils/string';
 import { useMutation } from '@jsb188/graphql/client';
-import { continueWithGoogleMtn } from '@jsb188/graphql/mutations/auth';
+import { continueWithGoogleMtn } from '@jsb188/graphql/mutations';
 import type { OnErrorGQLFn } from '@jsb188/graphql/types.d';
 import { AppContext, onAccountLogin, useOpenModalPopUp } from '@jsb188/react/states';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';

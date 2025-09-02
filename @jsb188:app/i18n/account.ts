@@ -1,8 +1,6 @@
 export default {
   en: {
-    displayName: 'Display name',
-    displayName_ph: 'e.g. "Jane Doe"',
-    displayName_info: 'Display name is how others will see you.',
+    name_ph: 'e.g. "Jane Doe"',
     pronouns: 'Pronouns',
     pronouns_ph: 'Enter your pronouns',
     about: 'About me',
@@ -24,6 +22,10 @@ export default {
 
     // App settings
     account: 'Account',
+    fName: 'First name',
+    lName: 'Last name',
+    your_account: 'Your account',
+    your_preferences: 'Your preferences',
     profile: 'Profile',
     profile_desc: 'Change how your profile looks to others.',
     personas: 'Personas',
@@ -61,36 +63,12 @@ export default {
     copy_id: 'Copy ID',
 
     // Profile
-    your_profile: 'Your profile',
+    avatar_color: 'Avatar color',
     open_profile: 'Open profile',
     cards_ct: '%{smart_count} Card||||%{smart_count} Cards',
     report_user: 'Report user',
     profile_deactivated_desc: 'This account has been deactivated.',
     phone_numbers: 'Phone numbers',
-
-    // Friend status
-    blocked: 'Blocked',
-    blocked_by_me: 'You blocked this user.',
-    blocked_by_other: 'You are blocked.',
-    friends: 'Friends',
-    friends_msg: 'You are friends.',
-    friend_status: 'Friend status',
-    friend_request: 'Friend',
-    friend_requests_ct: '%{smart_count} Friend request||||%{smart_count} Friend requests',
-    friend_requested: 'Requested',
-    friend_requested_msg: 'You received a friend request.',
-    recent_friends: 'Recent friends',
-    sent_friend_msg: 'You sent a friend request.',
-    accept_friend: 'Accept request',
-    add_friend: 'Add friend',
-    add_friend_msg: 'You must be friends to send direct messages.',
-    send_friend: 'Send friend request',
-    sent_friend: 'Friend requested',
-    unblock: 'Unblock',
-    block: 'Block',
-    remove_friend: 'Remove friend',
-    ignore_friend: 'Ignore request',
-    cancel_friend: 'Cancel request',
 
     // Search instructions
     search_instr_1: 'Search by user ID',

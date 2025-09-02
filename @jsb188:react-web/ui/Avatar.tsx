@@ -108,7 +108,7 @@ function AvatarLetter(p: AvatarLetterProps) {
   let domElement;
   if (isLarge) {
     // This is ft_lg with <h4 />
-    fontSize = 'ft_lg';
+    fontSize = 'ft_sm';
     domElement = 'h4';
   } else {
 
@@ -382,12 +382,20 @@ export function AvatarImg(p: AvatarImgProps) {
   let radiusClassName, letterClassName, letterBackgroundClassName;
   if (square) {
     radiusClassName = p.radiusClassName || 'r_sm';
-    letterClassName = p.letterClassName ?? 'cl_df ft_bold';
     letterBackgroundClassName = p.letterBackgroundClassName ?? 'bg_lighter_3 bd_2 bd_lt';
+
+    if (p.letterBackgroundClassName && !['bg','bg_alt','bg_active'].includes(p.letterBackgroundClassName)) {
+      letterClassName = p.letterClassName ?? 'ft_bold';
+    } else {
+      letterClassName = p.letterClassName ?? 'cl_df ft_bold';
+    }
   } else {
     radiusClassName = p.radiusClassName || 'r';
-    letterClassName = p.letterClassName ?? 'cl_bd';
     letterBackgroundClassName = p.letterBackgroundClassName ?? 'bg_alt';
+
+    if (!p.letterBackgroundClassName || ['bg','bg_alt','bg_active'].includes(p.letterBackgroundClassName)) {
+      letterClassName = p.letterClassName ?? 'cl_bd';
+    }
   }
 
   return (

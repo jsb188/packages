@@ -35,61 +35,61 @@ const MIN_LEN_VALUES = {
  * Rules for each field
  */
 
-const makeRules = () => ({
-  email: {
-    for: 'email',
-    rule: isEmail,
-    error: (value: string) => ({
-      message: i18n.t('error.msg_email_invalid', { value }),
-    }),
-  },
-  password: {
-    for: 'password',
-    rule: (value: string) => passwordStrength(value, MIN_LEN_VALUES.password).valid,
-    error: (value: string) => {
-      const { isLongEnough, hasLowercase, hasUppercase, hasDigit, hasSpecial } = passwordStrength(value, MIN_LEN_VALUES.password);
-      const errorMessages = [];
-
-      if (!isLongEnough) {
-        errorMessages.push(
-          i18n.t('error.msg_password_too_short', { length: MIN_LEN_VALUES.password }),
-        );
-      }
-      if (!hasLowercase) {
-        errorMessages.push(i18n.t('error.msg_password_lowercase'));
-      }
-      if (!hasUppercase) {
-        errorMessages.push(i18n.t('error.msg_password_uppercase'));
-      }
-      if (!hasDigit) {
-        errorMessages.push(i18n.t('error.msg_password_digit'));
-      }
-      if (!hasSpecial) {
-        errorMessages.push(i18n.t('error.msg_password_special'));
-      }
-
-      return {
-        message: errorMessages.length > 1 ? i18n.t('error.msg_password_insecure') : errorMessages[0],
-      };
+const RULES = function() {
+  return {
+    email: {
+      for: 'email',
+      rule: isEmail,
+      error: (value: string) => ({
+        message: i18n.t('error.msg_email_invalid', { value }),
+      }),
     },
-  },
-  passwordRepeat: {
-    for: 'passwordRepeat',
-    rule: (value: string, formValues: Partial<SignUpFormType>) => value === formValues.password,
-    error: {
-      message: i18n.t('error.msg_password_mismatch'),
-    },
-  },
-  phone: {
-    for: 'phone',
-    rule: (value: string) => isPhone(value),
-    error: (value: string) => ({
-      message: i18n.t('error.msg_phone_invalid', { value }),
-    }),
-  }
-});
+    password: {
+      for: 'password',
+      rule: (value: string) => passwordStrength(value, MIN_LEN_VALUES.password).valid,
+      error: (value: string) => {
+        const { isLongEnough, hasLowercase, hasUppercase, hasDigit, hasSpecial } = passwordStrength(value, MIN_LEN_VALUES.password);
+        const errorMessages = [];
 
-const RULES = makeRules();
+        if (!isLongEnough) {
+          errorMessages.push(
+            i18n.t('error.msg_password_too_short', { length: MIN_LEN_VALUES.password }),
+          );
+        }
+        if (!hasLowercase) {
+          errorMessages.push(i18n.t('error.msg_password_lowercase'));
+        }
+        if (!hasUppercase) {
+          errorMessages.push(i18n.t('error.msg_password_uppercase'));
+        }
+        if (!hasDigit) {
+          errorMessages.push(i18n.t('error.msg_password_digit'));
+        }
+        if (!hasSpecial) {
+          errorMessages.push(i18n.t('error.msg_password_special'));
+        }
+
+        return {
+          message: errorMessages.length > 1 ? i18n.t('error.msg_password_insecure') : errorMessages[0],
+        };
+      },
+    },
+    passwordRepeat: {
+      for: 'passwordRepeat',
+      rule: (value: string, formValues: Partial<SignUpFormType>) => value === formValues.password,
+      error: {
+        message: i18n.t('error.msg_password_mismatch'),
+      },
+    },
+    phone: {
+      for: 'phone',
+      rule: (value: string) => isPhone(value),
+      error: (value: string) => ({
+        message: i18n.t('error.msg_phone_invalid', { value }),
+      }),
+    }
+  };
+}();
 
 /**
  * Schema; Change password
@@ -103,8 +103,8 @@ export const makeChangeAccountPasswordSchema = () => ({
       autoFocus: true,
       name: 'currentPassword',
       type: 'password',
-      label: i18n.t('user.currentPassword'),
-      placeholder: i18n.t('user.password_ph'),
+      label: i18n.t('account.currentPassword'),
+      placeholder: i18n.t('account.password_ph'),
       // info: 'whatever you want',
     },
   }, {
@@ -112,7 +112,7 @@ export const makeChangeAccountPasswordSchema = () => ({
     item: {
       name: 'password',
       type: 'password',
-      label: i18n.t('user.newPassword'),
+      label: i18n.t('account.newPassword'),
       // placeholder: ''
       // info: 'whatever you want',
     },
@@ -121,7 +121,7 @@ export const makeChangeAccountPasswordSchema = () => ({
     item: {
       name: 'passwordRepeat',
       type: 'password',
-      label: i18n.t('user.newPasswordRepeat'),
+      label: i18n.t('account.newPasswordRepeat'),
     },
   }],
   rules: [
@@ -139,14 +139,14 @@ export const makeAssignPasswordSchema = () => ({
     item: {
       name: 'password',
       type: 'password',
-      label: i18n.t('user.password'),
+      label: i18n.t('account.password'),
     },
   }, {
     __type: 'password',
     item: {
       name: 'passwordRepeat',
       type: 'password',
-      label: i18n.t('user.passwordRepeat'),
+      label: i18n.t('account.passwordRepeat'),
     },
   }],
   rules: [
@@ -155,48 +155,6 @@ export const makeAssignPasswordSchema = () => ({
   isButtonDisabled: (formValues: any) => {
     return !formValues?.password?.trim() || !formValues?.passwordRepeat?.trim();
   },
-});
-
-/**
- * Schema; Edit profile
- */
-
-export const makeEditProfileSchema = () => ({
-  listData: [{
-  //   __type: 'input',
-  //   item: {
-  //     autoFocus: true,
-  //     maxLength: MIN_LEN_VALUES.displayName,
-  //     name: 'displayName',
-  //     label: i18n.t('user.displayName'),
-  //     placeholder: i18n.t('user.displayName_ph'),
-  //     info: i18n.t('user.displayName_info'),
-  //     autoComplete: 'off',
-  //   },
-  // }, {
-    __type: 'input',
-    item: {
-      name: 'pronouns',
-      maxLength: MIN_LEN_VALUES.pronouns,
-      setter: (data: any) => data?.profile?.pronouns,
-      label: i18n.t('user.pronouns'),
-      placeholder: i18n.t('user.pronouns_ph'),
-      autoComplete: 'off',
-    },
-  }, {
-    __type: 'textarea',
-    item: {
-      name: 'description',
-      maxLength: MIN_LEN_VALUES.description,
-      setter: (data: any) => data?.profile?.description,
-      label: i18n.t('user.about'),
-      placeholder: i18n.t('user.about_ph'),
-      autoComplete: 'off',
-    },
-  }],
-  rules: [
-    // RULES.displayName,
-  ],
 });
 
 /**
@@ -212,7 +170,7 @@ export const makeSignInSchema = () => ({
       name: 'identifier',
       allowClearIfLocked: true,
       label: i18n.t('auth.login_opts_main'),
-      placeholder: i18n.t('user.email_ph'),
+      placeholder: i18n.t('account.email_ph'),
     },
   }, {
     __type: 'password',
@@ -221,8 +179,8 @@ export const makeSignInSchema = () => ({
     item: {
       name: 'password',
       type: 'password',
-      label: i18n.t('user.password'),
-      placeholder: i18n.t('user.password_ph'),
+      label: i18n.t('account.password'),
+      placeholder: i18n.t('account.password_ph'),
     },
   }],
   isButtonDisabled: (formValues: SignInFormType) => {
@@ -239,24 +197,24 @@ export const makeSignUpSchema = () => ({
     __type: 'input',
     item: {
       name: 'email',
-      label: i18n.t('user.email'),
-      placeholder: i18n.t('user.email_ph'),
+      label: i18n.t('account.email'),
+      placeholder: i18n.t('account.email_ph'),
     },
   }, {
     __type: 'password',
     item: {
       name: 'password',
       type: 'password',
-      label: i18n.t('user.password'),
-      placeholder: i18n.t('user.password_ph'),
+      label: i18n.t('account.password'),
+      placeholder: i18n.t('account.password_ph'),
     },
   }, {
     __type: 'password',
     item: {
       name: 'passwordRepeat',
       type: 'password',
-      label: i18n.t('user.passwordRepeat'),
-      placeholder: i18n.t('user.password_ph'),
+      label: i18n.t('account.passwordRepeat'),
+      placeholder: i18n.t('account.password_ph'),
     },
   }],
   isButtonDisabled: (formValues: Partial<SignUpFormType>) => {
@@ -283,8 +241,8 @@ export const makeRequestTokenizedEmailSchema = () => ({
     __type: 'input',
     item: {
       name: 'email',
-      label: i18n.t('user.email'),
-      placeholder: i18n.t('user.email_ph'),
+      label: i18n.t('account.email'),
+      placeholder: i18n.t('account.email_ph'),
     },
   }],
   isButtonDisabled: (formValues: Partial<RequestTokenizedEmailObj>) => {
@@ -308,8 +266,8 @@ export const makeSendPhoneVerificationSchema = () => ({
     __type: 'input',
     item: {
       name: 'phone',
-      label: i18n.t('user.phone'),
-      placeholder: i18n.t('user.phone_ph'),
+      label: i18n.t('account.phone'),
+      placeholder: i18n.t('account.phone_ph'),
     },
   }],
   isButtonDisabled: (formValues: Partial<SendPhoneVerificationObj>) => {

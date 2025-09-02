@@ -5,7 +5,7 @@ import billing from './i18n/billing';
 import datetime from './i18n/datetime';
 import error from './i18n/error';
 import form from './i18n/form';
-import user from './i18n/user';
+import account from './i18n/account';
 
 // Get the correct type for ENV
 let ENV: Map<string, string | boolean | number> = new Map();
@@ -26,7 +26,7 @@ export function configI18n(texts: Record<string, any>) {
     datetime: datetime[locale],
     error: error[locale],
     form: form[locale],
-    user: user[locale],
+    account: account[locale],
   } as Record<string, any>;
 
   for (const key in texts) {

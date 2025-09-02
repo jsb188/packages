@@ -14,6 +14,7 @@ export type LightModeEnum = 'LIGHT' | 'DARK' | 'SYSTEM';
 export interface AccountData {
   id: string;
   deleted: boolean;
+  color: string;
 
   plus: any; // placeholder for later
 
