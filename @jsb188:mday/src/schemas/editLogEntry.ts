@@ -237,7 +237,7 @@ export function makeLogEntryDetailsSchema(
       iface: {
         name: 'PO_LIST',
         variables: {
-          designClassName: 'w_225',
+          designClassName: 'w_250',
           className: 'max_h_40vh',
           options: activitiesList.reduce((acc, [type, activities], i) => {
             const colorIndicator = getLogCategoryColor(type);

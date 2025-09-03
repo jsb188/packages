@@ -94,7 +94,8 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
 
   useImperativeHandle(ref, () => ({
     reset: () => setFormValues(makeFormValues(schema, dataForSchema, currentData)),
-  }), []);
+    updateFormValues: (fn: (prev: any) => any) => setFormValues((fv: any) => fn(fv)),
+  }), [setFormValues]);
 
   // Error handler
 

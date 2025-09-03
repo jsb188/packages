@@ -11,4 +11,14 @@ export const accountFragment = `fragment accountFragment on Account {
     photoId
     photoUri
   }
+
+  settings {
+    theme
+    lightMode
+    timeZone
+    language
+    showSelfAvatar
+    isBubbleOther
+    showOtherAvatar
+  }
 }`;

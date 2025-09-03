@@ -19,6 +19,7 @@ export default {
     refresh_page: 'Refresh page',
     search: 'Search',
     no_results: 'No results',
+    change: 'Change',
     save: 'Save',
     saving_: 'Saving...',
     undo_changes: 'Undo changes',
@@ -104,5 +105,11 @@ export default {
     // Communication types
     comm_type_EMAIL: 'E-mail',
     comm_type_SMS: 'SMS',
+
+    // Languages
+		lang: {
+			ENGLISH: 'English',
+      SPANISH: 'Spanish',
+		},
   },
 };

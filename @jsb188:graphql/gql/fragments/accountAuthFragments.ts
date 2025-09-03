@@ -7,13 +7,4 @@ export const accountAuthFragment = `fragment accountAuthFragment on AccountAuth 
   alertUpdatesOnMount
   webVersion
   mobileVersion
-
-  settings {
-    theme
-    lightMode
-    timeZone
-    showSelfAvatar
-    isBubbleOther
-    showOtherAvatar
-  }
 }`;

@@ -22,7 +22,7 @@ export interface AccountObj {
 		firstName: string;
 		lastName: string;
 		storageId: number | null;
-		phone: AccountPhoneObj | null;
+		// phone: AccountPhoneObj | null; // ?? This is a coding mistake, I think
 	};
 }
 

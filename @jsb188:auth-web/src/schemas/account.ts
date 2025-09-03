@@ -1,5 +1,6 @@
+import { SUPPORTED_LANGUAGES } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
-import { AccountData } from '@jsb188/app/types/auth.d';
+import { AccountData, AccountSettings } from '@jsb188/app/types/auth.d';
 import { formatPhoneNumber } from '@jsb188/app/utils/string';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 
@@ -19,95 +20,142 @@ const MIN_LEN_VALUES = {
  * Schema; Edit account
  */
 
-export const makeEditAccountSchema = (
+export function makeEditAccountSchema(
+  formId: string,
+  focusedName: string,
   account: AccountData | null,
+  settings: AccountSettings | null,
   openModalPopUp: OpenModalPopUpFn
-) => ({
-  listData: [{
-  //   __type: 'subtitle',
-  //   item: {
-  //     text: i18n.t('account.profile'),
-  //   },
-  // }, {
-    __type: 'group',
-    item: {
-      items: [{
-        __type: 'input',
-        item: {
-          name: 'profile.firstName',
-          maxLength: MIN_LEN_VALUES.firstName,
-          label: i18n.t('account.fName'),
-          placeholder: account?.profile?.firstName,
-          autoComplete: 'off',
-        },
-      }, {
-        __type: 'input',
-        item: {
-          name: 'profile.lastName',
-          maxLength: MIN_LEN_VALUES.lastName,
-          label: i18n.t('account.lName'),
-          placeholder: account?.profile?.lastName,
-          autoComplete: 'off',
-        },
-      }],
-    }
-  }, {
-    __type: 'input_w_button',
-    item: {
-      name: 'change_phoneNumber',
-      maxLength: MIN_LEN_VALUES.email,
-      setter: (data: any) => formatPhoneNumber(data?.phone?.number || ''),
-      label: i18n.t('account.phone'),
-      autoComplete: 'off',
-      disabled: true,
-      buttonText: 'Change',
-      onClickButton: () => openModalPopUp({
-        preset: 'CHANGE_PHONE',
-        name: 'edit_account_phone'
-      }),
-    },
-  }, {
-    __type: 'input_w_button',
-    item: {
-      name: 'change_emailAddress',
-      maxLength: MIN_LEN_VALUES.email,
-      setter: (data: any) => data?.email?.address,
-      label: i18n.t('account.email'),
-      autoComplete: 'off',
-      disabled: true,
-      buttonText: 'Change',
-      onClickButton: () => openModalPopUp({
-        preset: 'CHANGE_EMAIL',
-        name: 'edit_account_email'
-      })
-    },
-  }, {
-    __type: 'input_w_button',
-    item: {
-      name: 'change_password',
-      minLength: MIN_LEN_VALUES.password,
-      label: i18n.t('account.password'),
-      setter: () => '.....',
-      autoComplete: 'off',
-      type: 'password',
-      disabled: true,
-      buttonText: 'Change',
-      onClickButton: () => openModalPopUp({
-        preset: 'CHANGE_PASSWORD',
-        name: 'edit_account_password'
-      }),
-    },
-  //   __type: 'textarea',
-  //   item: {
-  //     name: 'description',
-  //     maxLength: MIN_LEN_VALUES.description,
-  //     setter: (data: any) => data?.profile?.description,
-  //     label: i18n.t('account.about'),
-  //     placeholder: i18n.t('account.about_ph'),
-  //     autoComplete: 'off',
-  //   },
-  }],
-  rules: [
-    // RULES.password,
-  ],
-});
+) {
+
+  const poProps = {
+    // scrollAreaDOMId,
+    zClassName: 'z9',
+    position: 'bottom_left',
+    offsetX: 0,
+    offsetY: 7,
+  };
+
+  return {
+    listData: [{
+    //   __type: 'subtitle',
+    //   item: {
+    //     text: i18n.t('account.profile'),
+    //   },
+    // }, {
+      __type: 'group',
+      item: {
+        items: [{
+          __type: 'input',
+          item: {
+            name: 'profile.firstName',
+            maxLength: MIN_LEN_VALUES.firstName,
+            label: i18n.t('account.fName'),
+            placeholder: account?.profile?.firstName,
+            autoComplete: 'off',
+          },
+        }, {
+          __type: 'input',
+          item: {
+            name: 'profile.lastName',
+            maxLength: MIN_LEN_VALUES.lastName,
+            label: i18n.t('account.lName'),
+            placeholder: account?.profile?.lastName,
+            autoComplete: 'off',
+          },
+        }],
+      }
+    }, {
+      __type: 'input_click',
+      forceClickId: 'input_click_settings.language',
+      label: i18n.t('form.activity'),
+      item: {
+        label: i18n.t('account.ai_language'),
+        locked: true,
+        focused: focusedName === (formId + '_settings.language'),
+        name: 'settings.language',
+        placeholder: i18n.t(`form.activity_ph`),
+        getter: (value: string) => i18n.t(`form.lang.${value || 'ENGLISH'}`),
+
+        popOverProps: {
+          id: formId + '_settings.language',
+          ...poProps,
+          iface: {
+            name: 'PO_LIST',
+            variables: {
+              designClassName: 'w_400',
+              className: 'max_h_40vh',
+              options: SUPPORTED_LANGUAGES.map(lang => ({
+                __type: 'LIST_ITEM' as const,
+                text: i18n.t(`form.lang.${lang}`),
+                // textClassName: 'ft_xs',
+                // rightIconClassName: 'ft_xs mb_2',
+                name: 'settings.language',
+                value: lang,
+                selected: (settings?.language || 'ENGLISH') === lang,
+              }))
+            }
+          }
+        }
+      },
+    }, {
+      __type: 'input_w_button',
+      item: {
+        name: 'change_phoneNumber',
+        maxLength: MIN_LEN_VALUES.email,
+        setter: (data: any) => formatPhoneNumber(data?.phone?.number || ''),
+        label: i18n.t('account.phone'),
+        autoComplete: 'off',
+        disabled: true,
+        buttonText: i18n.t('form.change'),
+        onClickButton: () => openModalPopUp({
+          preset: 'CHANGE_PHONE',
+          name: 'edit_account_phone'
+        }),
+      },
+    }, {
+      __type: 'input_w_button',
+      item: {
+        name: 'change_emailAddress',
+        maxLength: MIN_LEN_VALUES.email,
+        setter: (data: any) => data?.email?.address,
+        label: i18n.t('account.email'),
+        autoComplete: 'off',
+        disabled: true,
+        buttonText: i18n.t('form.change'),
+        onClickButton: () => openModalPopUp({
+          preset: 'CHANGE_EMAIL',
+          name: 'edit_account_email'
+        })
+      },
+    }, {
+      __type: 'input_w_button',
+      item: {
+        name: 'change_password',
+        minLength: MIN_LEN_VALUES.password,
+        label: i18n.t('account.password'),
+        setter: () => '.....',
+        autoComplete: 'off',
+        type: 'password',
+        disabled: true,
+        buttonText: i18n.t('form.change'),
+        onClickButton: () => openModalPopUp({
+          preset: 'CHANGE_PASSWORD',
+          name: 'edit_account_password'
+        }),
+      },
+    //   __type: 'textarea',
+    //   item: {
+    //     name: 'description',
+    //     maxLength: MIN_LEN_VALUES.description,
+    //     setter: (data: any) => data?.profile?.description,
+    //     label: i18n.t('account.about'),
+    //     placeholder: i18n.t('account.about_ph'),
+    //     autoComplete: 'off',
+    //   },
+    }],
+    rules: [
+      // RULES.password,
+    ],
+  };
+}

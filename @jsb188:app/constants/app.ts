@@ -46,6 +46,13 @@ export const SOCIAL_URLS = {
   x_username: string;
 }>;
 
+// Languages
+
+export const SUPPORTED_LANGUAGES = [
+  'ENGLISH',
+  'SPANISH',
+];
+
 // Colors
 
 export const COLORS = [

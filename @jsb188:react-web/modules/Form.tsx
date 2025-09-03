@@ -7,7 +7,7 @@ import { cn } from '@jsb188/app/utils/string';
 import { Button, InlineBlockLabel } from '@jsb188/react-web/ui/Button';
 import { createElement, forwardRef, memo, useEffect, useRef, useState } from 'react';
 import { Icon } from '../svgs/Icon';
-import type { LabelType, InputPresetName, InputFocusStyle } from '../ui/FormUI';
+import type { InputFocusStyle, InputPresetName, LabelType } from '../ui/FormUI';
 import { Label, getHtmlFor } from '../ui/FormUI';
 import { InputTimeFromDate } from './Form-InputTime';
 import { PopOverButton } from './PopOver';

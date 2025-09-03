@@ -86,7 +86,11 @@ export function useSchema(
     const computedItem: Record<string, any> = { ...item };
     if (computedItem) {
       for (const key in computedItem) {
-        if (typeof computedItem[key] === 'function' && !key.startsWith('onClick')) {
+        if (
+          typeof computedItem[key] === 'function' &&
+          !key.startsWith('onClick') &&
+          !['getter', 'setter'].includes(key)
+        ) {
           computedItem[key] = computedItem[key](dataForSchema);
         }
       }

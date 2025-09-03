@@ -18,6 +18,8 @@ export interface AccountData {
 
   plus: any; // placeholder for later
 
+  settings: AccountSettings;
+
   profile: {
     id: string;
     firstName: string;
@@ -41,6 +43,7 @@ export interface AccountData {
 
 export interface AccountSettings {
   theme: string | null;
+  language: string;
   lightMode: LightModeEnum;
   timeZone: string | null;
   showSelfAvatar: boolean;

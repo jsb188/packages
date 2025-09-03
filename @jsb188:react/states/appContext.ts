@@ -1,7 +1,7 @@
 import { clearAppCache, fetchLightModeSetting, isSystemDarkMode, saveAuthTokenToPlatform } from '@jsb188/app/platform';
 import type { AccountData, AccountSettings, AuthenticationData, LightModeEnum } from '@jsb188/app/types/auth.d';
 import { setAuthToken } from '@jsb188/app/utils/api';
-import { guessFirstName, buildSingleText } from '@jsb188/app/utils/string';
+import { buildSingleText, guessFirstName } from '@jsb188/app/utils/string';
 import { createContext, useContext } from 'react';
 
 /**
@@ -203,7 +203,7 @@ export function mergeAuthToDefaultValues(
 
     const authSettings = {
       ...DEFAULT_APP_CONTEXT.settings,
-      ...auth.settings
+      ...auth.account.settings
     };
 
     authSettings.lightMode = ensureLightModeSetting(authSettings.lightMode);
