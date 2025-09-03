@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/graphql",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "GraphQL client for react, using recoil",
   "license": "ISC",
   "author": "jsb188",
@@ -45,7 +45,7 @@
     "graphql-tag": "^2.12.6"
   },
   "peerDependencies": {
-    "@jsb188/app": "1.1.4",
-    "@jsb188/react": "1.1.4"
+    "@jsb188/app": "1.1.5",
+    "@jsb188/react": "1.1.5"
   }
 }

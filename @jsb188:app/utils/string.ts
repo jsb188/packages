@@ -356,3 +356,20 @@ export function escapeCSVValue(value: string): string {
   }
   return value;
 }
+
+/**
+ * Convert Intl phone format to a readable format.
+ * Example: "+1 (555) 123-4567"
+ */
+
+export function formatPhoneNumber(phone: string): string {
+  const match = phone.match(/(\d{3})(\d{3})(\d{4})$/);
+  if (match) {
+    const [, area, first, second] = match;
+    const countryCode = phone.substring(0, phone.length - area.length - first.length - second.length);
+    // NOTE: This does not account for non North American (+1) phone numbers
+    return `${countryCode} (${area}) ${first}-${second}`;
+  }
+
+  return phone;
+}

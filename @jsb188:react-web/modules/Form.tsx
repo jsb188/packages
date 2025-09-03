@@ -361,9 +361,6 @@ export function InputWithButton(p: FormInputProps & {
 }) {
   const { buttonText, onClickButton, ...rest } = p;
 
-  console.log('onClickButton', p);
-
-
   return <FVInput
     {...rest}
     RightIconComponent={

@@ -1,13 +1,12 @@
 {
-  "name": "@jsb188/auth-web",
+  "name": "@jsb188/app-settings-web",
   "version": "1.1.5",
-  "description": "Authentication module for web.",
+  "description": "App settings module for web.",
   "license": "ISC",
   "author": "jsb188",
   "type": "module",
   "exports": {
-    ".": "./src/main.ts",
-    "./schemas": "./src/schemas/index.ts"
+    ".": "./src/main.ts"
   },
   "peerDependencies": {
     "@jsb188/app": "1.1.5",

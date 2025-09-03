@@ -21,8 +21,6 @@ type AppContextAction = {
     | 'APP_THEME'
     | 'APP_SYSTEM_LIGHT_MODE'
     | 'APP_LIGHT_MODE'
-    // App events
-    | 'APP_KEY_DOWN'
   );
   data?: any;
 };
@@ -63,14 +61,6 @@ export type AppContextData = {
   systemLightMode: 'LIGHT' | 'DARK';
   previewLightMode: LightModeEnum | null;
   previewTheme: string | null;
-
-  // This needs to get migrated to Jotai
-  keyDown: {
-    metaKey: boolean;
-    pressed: string | null;
-    alert: boolean;
-    modal: boolean;
-  };
 };
 
 /**
@@ -101,13 +91,6 @@ export const DEFAULT_APP_CONTEXT = {
   systemLightMode: 'LIGHT',
   previewLightMode: null,
   previewTheme: null,
-
-  keyDown: {
-    metaKey: false,
-    pressed: null,
-    alert: false,
-    modal: false,
-  }
 } as AppContextData;
 
 /**
@@ -359,19 +342,6 @@ export const appReducer = (state: AppContextData, action: AppContextAction) => {
       return {
         ...state,
         systemLightMode: data.lightMode,
-      };
-    }
-    case 'APP_KEY_DOWN': {
-      if (typeof data.pressed !=='string' && data.pressed !== null) {
-        return state;
-      }
-
-      return {
-        ...state,
-        keyDown: {
-          ...state.keyDown,
-          ...data,
-        }
       };
     }
     default:

@@ -145,7 +145,13 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     if (!saving && Number(saveCounter) > 0) {
       const errored = handleError();
       if (!errored) {
-        onSubmit(formValues, currentData, setFormValues);
+
+        const currentDataObj = makeFormValues(schema, dataForSchema, currentData);
+        const hasDiff = formValuesAreDiff(formValues, currentDataObj);
+
+        if (hasDiff) {
+          onSubmit(formValues, currentData, setFormValues);
+        }
       }
     }
   }, [saveCounter]);
@@ -203,7 +209,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
       method={httpMethod || (actionUrl ? 'post' : 'get')}
       action={actionUrl}
       className={cn('schema_form', className)}
-      name={name || 'schema-form'}
+      name={name || 'schema_form'}
       autoComplete={autoComplete ? 'on' : 'off'}
       onSubmit={onSubmitForm}
     >

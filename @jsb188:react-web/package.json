@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/react-web",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Contains react utils, components, and modules for Web.",
   "license": "ISC",
   "author": "jsb188",
@@ -39,13 +39,13 @@
     "./types/dom.d": "./types/dom.d.ts"
   },
   "peerDependencies": {
-    "@jsb188/app": "1.1.4",
-    "@jsb188/react": "1.1.4",
-    "@jsb188/graphql": "1.1.4",
-    "react-router": "^7.6.2",
+    "@jsb188/app": "1.1.5",
+    "@jsb188/react": "1.1.5",
+    "@jsb188/graphql": "1.1.5",
+    "react-router": "^7.8.2",
     "is-ip": "^5.0.1",
-    "jotai": "^2.12.5",
-    "react": "^19.1.0"
+    "jotai": "^2.13.1",
+    "react": "^19.1.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

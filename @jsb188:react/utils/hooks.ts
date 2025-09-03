@@ -1,3 +1,4 @@
+import { areObjectsEqual } from '@jsb188/app/utils/object';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 /**
@@ -28,17 +29,21 @@ function getDatabaseAction(
       // But if not, add an extra param.
       const value = typeof data[key] === 'string' ? data[key].trim() : data[key];
 
-      const isNullValue = value !== null || allowNull;
-      if (isNullValue) {
+      const isNotNull = value !== null || allowNull;
+      if (isNotNull) {
         documentData[key] = value;
       }
 
       if (
         // Doing loose != check instead of !== type check
         currentData[key] != value &&
-        isNullValue
+        isNotNull
       ) {
-        hasChanges = true;
+        if (value && typeof value === 'object') {
+          hasChanges = !areObjectsEqual(currentData[key], value);
+        } else {
+          hasChanges = true;
+        }
       }
     }
   }

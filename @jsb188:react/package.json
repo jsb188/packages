@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/react",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Contains react (and DOM) related utils and hooks.",
   "license": "ISC",
   "author": "jsb188",
@@ -12,9 +12,9 @@
     "./types/PopOver.d": "./types/PopOver.d.ts"
   },
   "peerDependencies": {
-    "@jsb188/app": "1.1.4",
-    "jotai": "^2.12.5",
-    "react": "^19.1.0"
+    "@jsb188/app": "1.1.5",
+    "jotai": "^2.13.1",
+    "react": "^19.1.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

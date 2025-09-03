@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n';
 import { AccountData } from '@jsb188/app/types/auth.d';
-import { isPhone, isEmail, passwordStrength } from '@jsb188/app/utils/string';
-import { OpenModalScreenFn } from '@jsb188/react/states';
+import { formatPhoneNumber } from '@jsb188/app/utils/string';
+import type { OpenModalPopUpFn } from '@jsb188/react/states';
 
 /**
  * Length values for validation
@@ -20,26 +20,15 @@ const MIN_LEN_VALUES = {
  */
 
 export const makeEditAccountSchema = (
-  account?: AccountData | null,
-  openModalScreen: OpenModalScreenFn
+  account: AccountData | null,
+  openModalPopUp: OpenModalPopUpFn
 ) => ({
   listData: [{
-  //   __type: 'input',
+  //   __type: 'subtitle',
   //   item: {
-  //     autoFocus: true,
-  //     maxLength: MIN_LEN_VALUES.displayName,
-  //     name: 'displayName',
-  //     label: i18n.t('account.displayName'),
-  //     placeholder: i18n.t('account.displayName_ph'),
-  //     info: 'info',
-  //     autoComplete: 'off',
+  //     text: i18n.t('account.profile'),
   //   },
   // }, {
-    __type: 'subtitle',
-    item: {
-      text: i18n.t('account.profile'),
-    },
-  }, {
     __type: 'group',
     item: {
       items: [{
@@ -65,6 +54,21 @@ export const makeEditAccountSchema = (
   }, {
     __type: 'input_w_button',
     item: {
+      name: 'change_phoneNumber',
+      maxLength: MIN_LEN_VALUES.email,
+      setter: (data: any) => formatPhoneNumber(data?.phone?.number || ''),
+      label: i18n.t('account.phone'),
+      autoComplete: 'off',
+      disabled: true,
+      buttonText: 'Change',
+      onClickButton: () => openModalPopUp({
+        preset: 'CHANGE_PHONE',
+        name: 'edit_account_phone'
+      }),
+    },
+  }, {
+    __type: 'input_w_button',
+    item: {
       name: 'change_emailAddress',
       maxLength: MIN_LEN_VALUES.email,
       setter: (data: any) => data?.email?.address,
@@ -72,9 +76,10 @@ export const makeEditAccountSchema = (
       autoComplete: 'off',
       disabled: true,
       buttonText: 'Change',
-      onClickButton: () => {
-        console.log('button click wtf');
-      },
+      onClickButton: () => openModalPopUp({
+        preset: 'CHANGE_EMAIL',
+        name: 'edit_account_email'
+      })
     },
   }, {
     __type: 'input_w_button',
@@ -87,14 +92,10 @@ export const makeEditAccountSchema = (
       type: 'password',
       disabled: true,
       buttonText: 'Change',
-      onClickButton: () => openModalScreen({
-        name: 'ACCOUNT_PASSWORD'
+      onClickButton: () => openModalPopUp({
+        preset: 'CHANGE_PASSWORD',
+        name: 'edit_account_password'
       }),
-    },
-  }, {
-    __type: 'subtitle',
-    item: {
-      text: i18n.t('account.preferences'),
     },
   //   __type: 'textarea',
   //   item: {

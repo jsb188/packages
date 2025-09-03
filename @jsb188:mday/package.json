@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/mday",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Mday specific functions and constants.",
   "license": "ISC",
   "author": "jsb188",
@@ -16,7 +16,7 @@
     "zod": "^3.25.67"
   },
   "peerDependencies": {
-    "@jsb188/app": "1.1.4"
+    "@jsb188/app": "1.1.5"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

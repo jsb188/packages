@@ -25,20 +25,40 @@ interface ModalHeaderProps {
   onBack: (e: React.MouseEvent) => void;
 }
 
-interface ModalSideNavItemProps {
-  __type: 'LIST_SUBTITLE' | 'LIST_ITEM' | string;
-  value?: string;
-  text?: string;
-  children?: string;
-  selected?: boolean;
-  iconName?: string;
+interface MSSubtitleProps {
+  __type: 'LIST_SUBTITLE';
+  text: string;
+  selected?: unknown;
+  value?: unknown;
+  onClick?: unknown;
+}
+
+interface MSListItemProps {
+  __type: 'LIST_ITEM';
+  value: string;
+  iconName: string;
+  text: string;
   rightIconName?: string;
+  selected?: boolean;
   onClick?: (value: string) => void;
 }
 
+export type ModalSideNavIface = MSSubtitleProps | MSListItemProps;
+
+// interface ModalSideNavItemProps {
+//   __type: 'LIST_SUBTITLE' | 'LIST_ITEM' | string;
+//   value?: string;
+//   text?: string;
+//   children?: string;
+//   selected?: boolean;
+//   iconName?: string;
+//   rightIconName?: string;
+//   onClick?: (value: string) => void;
+// }
+
 interface ModalSideNavProps {
   selectedValue: string;
-  options: ModalSideNavItemProps[][];
+  options: ModalSideNavIface[][];
   onClickItem: (value: string) => void;
 }
 
@@ -188,31 +208,31 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
  * Modal; side nav links
  */
 
-export function ModalSideNavItem(p: ModalSideNavItemProps) {
-  const { __type, iconName, rightIconName, text } = p;
+export function ModalSideNavItem(p: ModalSideNavIface) {
+  const { __type, text } = p;
   const itemCn = 'px_xs py_3';
 
   switch (__type) {
     case 'LIST_SUBTITLE':
       return (
-        <li className={`${itemCn} ml_3 mb_3 title`}>
-          <strong className='cl_md'>
+        <li className={`${itemCn} ml_2 mb_2 title`}>
+          <span className='cl_lt ft_sm ft_medium'>
             {text}
-          </strong>
+          </span>
         </li>
       );
     case 'LIST_ITEM':
     default:
   }
 
-  const { value, selected, onClick } = p;
+  const { value, selected, onClick, iconName, rightIconName } = p as MSListItemProps;
   const hasLink = !!onClick;
 
   return (
     <li
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role
       role='button'
-      className={cn('r_sm h_item mb_2', itemCn, hasLink ? 'link' : '', selected ? 'bg_alt cl_df' : 'bg_alt_hv cl_bd')}
+      className={cn('r_sm h_item mb_2', itemCn, hasLink ? 'link' : '', selected ? 'bg_alt cl_df' : 'bg_alt_hv cl_df')}
       onClick={onClick ? () => onClick(value!) : undefined}
     >
       {!iconName ? null
@@ -242,7 +262,7 @@ export function ModalSideNav(p: ModalSideNavProps) {
   return (
     <nav className='mw_snav y_scr always'>
       {options?.map((list, i) => (
-        <ul className='p_df' key={i}>
+        <ul className='px_df py_sm' key={i}>
           {list.map((item, i) => (
             <ModalSideNavItem
               key={i}
@@ -268,23 +288,25 @@ export function ModalFloatingSaveButton(p: ModalFloatingSaveButtonProps) {
   // const saving = true;
 
   return (
-    <div className={cn('mfs_cnt h_spread rt_df z_10', hasChanges ? 'active' : '')}>
+    <div className={cn('mfs_cnt bg_alt h_spread rt_df z_10', hasChanges ? 'active' : '')}>
       <div className='h_item px_xs'>
         {i18n.t('form.unsaved_changes_msg')}
       </div>
 
       <div className='h_right'>
         <div className='pill pill_sm h_center mr_xs'>
-          <button className='text h_right' onClick={onReset}>
-            <Icon name='arrow-back-up' />
-            <span className='ml_xs'>
-              {i18n.t('form.undo_changes')}
+          <button className='text' onClick={onReset}>
+            <span className='h_right'>
+              <Icon name='arrow-back-up' />
+              <span className='ml_xs'>
+                {i18n.t('form.undo_changes')}
+              </span>
             </span>
           </button>
         </div>
 
         <button
-          className={cn('mfs_btn pill pill_df r bg_main', saving ? 'loading' : '')}
+          className={cn('mfs_btn pill pill_df r bg_primary', saving ? 'loading' : '')}
           onClick={onSave}
         >
           {!saving ? null : (

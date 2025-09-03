@@ -3,6 +3,7 @@
 # loop through array of directories
 directories=(
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:app"
+  "/Users/saeho/Documents/apps/nebula/packages/@jsb188:app-settings-web"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:css"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:graphql"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:mday"
