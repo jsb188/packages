@@ -44,6 +44,10 @@ function getDatabaseAction(
         } else {
           hasChanges = true;
         }
+
+        if (hasChanges) {
+          break;
+        }
       }
     }
   }
