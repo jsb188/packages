@@ -53,9 +53,6 @@ export function AppSettingsLayout(p: ModalHandlerProps & {
 
   const onClickNavItem = (value: any) => {
     const handlerValue = p.onClickNavItem?.(value);
-    // @ts-ignore - value will be undefined or boolean
-    console.log('handlerValue', handlerValue);
-
     if (handlerValue !== false) {
       setController({
         switchCase: value,
