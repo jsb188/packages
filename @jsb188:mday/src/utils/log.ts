@@ -113,3 +113,15 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 	}
 	return '..';
 }
+
+/**
+ * Get the text format for this log
+ * @param log - Log entry object from database
+ * @return Log in text format
+ */
+
+export function getTextFormatLog(log: LogEntryDataObj) {
+  const { notes } = log.details;
+  const title = getLogEntryTitle(log.details, true);
+  return (title + '\n\n' + (notes + '')).trim();
+}
