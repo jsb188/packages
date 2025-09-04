@@ -125,16 +125,17 @@
 }
 
 .anim_move_up_center.on_mount, .anim_move_up_center.reverse {
-  animation-name: keyframes_shift_appear_center;
+  animation-name: keyframes_move_up_center;
+  /* anim_move_up_center on_mount spd_3 */
   animation-duration: 200ms;
   animation-timing-function: ease-out;
   animation-fill-mode: both;
 }
 
-@keyframes keyframes_shift_appear_center {
+@keyframes keyframes_move_up_center {
   /* NOTE: This is double opacity animation because of modal container + content animation; */
   /* but having 2 opacity transitions made it smoother */
-  from { transform: translateY(20%); opacity: 0; }
+  from { transform: translateY(50%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 

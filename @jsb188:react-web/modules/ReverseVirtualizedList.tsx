@@ -474,6 +474,13 @@ function useVirtualizedDOM(p: ReverseVZListProps, vzState: VirtualizedState) {
       referenceObj.current.itemIds = mergeItemIds(referenceObj.current, endOfListItems, false, true, p);
       referenceObj.current.lastItemIdOnMount = getItemId(endOfListItems[endOfListItems.length - 1]);
 
+      if (!listData) {
+        // If listData is null, this list needs a refresh (it hasn't been rendered yet and is waiting for a state update).
+        // If it's not null, this list has already been rendered, and a re-render will be triggered automatically.
+        // This non-render state bug happens often when user "refreshes" the browser.
+        // To fix, we refresh the cursorPosition state.
+        setCursorPosition( getCursorPosition(null, true, listRef.current, p) );
+      }
     }
   }, [eolLen, rootElementQuery]);
 
