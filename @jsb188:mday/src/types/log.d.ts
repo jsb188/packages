@@ -35,6 +35,7 @@ interface LogArableObj {
 	type?: LogArableTypeEnum; // Only set in server if manually extended
 	activity: LogArableActivityEnum;
 	notes: string | null;
+	translation: string | null;
 	metadata?: Partial<LogArableMetadata> | null;
 }
 
@@ -70,6 +71,7 @@ export interface LogEntryDataObj {
 	id: number;
 	accountId: number;
 	organizationId: number;
+	distance?: number; // For vector search
 	details: LogArableDetailsObj;
 	date: Date;
 	createdAt: Date;
