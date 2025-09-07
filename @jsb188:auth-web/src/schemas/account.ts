@@ -75,7 +75,7 @@ export function makeEditAccountSchema(
         focused: focusedName === (formId + '_settings.language'),
         name: 'settings.language',
         placeholder: i18n.t(`form.activity_ph`),
-        getter: (value: string) => i18n.t(`form.lang.${value || 'ENGLISH'}`),
+        getter: (value: string) => i18n.t(`form.lang.${value || 'en'}`),
 
         popOverProps: {
           id: formId + '_settings.language',
@@ -92,7 +92,7 @@ export function makeEditAccountSchema(
                 // rightIconClassName: 'ft_xs mb_2',
                 name: 'settings.language',
                 value: lang,
-                selected: (settings?.language || 'ENGLISH') === lang,
+                selected: (settings?.language || 'en') === lang,
               }))
             }
           }

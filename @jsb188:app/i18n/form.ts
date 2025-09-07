@@ -108,8 +108,8 @@ export default {
 
     // Languages
 		lang: {
-			ENGLISH: 'English',
-      SPANISH: 'Spanish',
+			en: 'English',
+      es: 'Spanish',
 		},
   },
 };

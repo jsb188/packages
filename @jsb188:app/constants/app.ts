@@ -49,8 +49,8 @@ export const SOCIAL_URLS = {
 // Languages
 
 export const SUPPORTED_LANGUAGES = [
-  'ENGLISH',
-  'SPANISH',
+  'en',
+  'es',
 ];
 
 // Colors
