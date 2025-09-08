@@ -246,6 +246,10 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
               borderRadiusClassName ?? 'r_sm',
               inputClassName,
               'w_70',
+              // Use .cl_md for faded color for "disabled" status,
+              // but we're combining "Edit" and "Create" forms together now,
+              // So I prefer if everything is not-faded.
+              // disabled ? 'disabled cl_md' : '',
               disabled ? 'disabled' : '',
             )}
             id={htmlFor}
@@ -277,6 +281,11 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
           className={cn(
             'form_input h_spread pl_xs fs ml_xs',
             borderRadiusClassName ?? 'r_sm',
+            // Use .cl_md for faded color for "disabled" status,
+            // but we're combining "Edit" and "Create" forms together now,
+            // So I prefer if everything is not-faded.
+            // disabled ? 'disabled cl_md' : '',
+            disabled ? 'disabled' : '',
           )}
           zClassName='z9'
           position='bottom_left'

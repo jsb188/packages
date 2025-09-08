@@ -125,8 +125,8 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
 
   return <SmartLink
     className={cn(
-      'mx_xs my_2 py_3 r_sm bl',
-      selected ? 'bg_active disabled cl_df' : 'bg_active_hv cl_bd',
+      'mx_xs my_2 py_3 r_sm bl cl_df',
+      selected ? 'bg_active disabled' : 'bg_active_hv',
       className
     )}
     disabled={selected}

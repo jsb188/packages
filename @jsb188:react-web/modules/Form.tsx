@@ -289,7 +289,11 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
             'w_f form_input',
             borderRadiusClassName ?? 'r_sm',
             inputClassName,
-            disabled ? 'disabled cl_md' : '',
+            // Use .cl_md for faded color for "disabled" status,
+            // but we're combining "Edit" and "Create" forms together now,
+            // So I prefer if everything is not-faded.
+            // disabled ? 'disabled cl_md' : '',
+            disabled ? 'disabled' : '',
           )}
           id={htmlFor}
           name={name}
@@ -806,27 +810,26 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
  * To make it easier, use this Component to prevent re-renders.
  */
 
-interface ContentEditableProps {
-  domId?: string;
-  role?: string;
-  tabIndex?: number;
-  className?: string;
-  disabled?: boolean;
-  htmlText: string;
-  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  onInput: (e: React.FormEvent<HTMLDivElement>) => void;
-  onPaste: (e: React.ClipboardEvent<HTMLDivElement>) => void;
-  onFocus?: (e: React.FocusEvent<HTMLDivElement>) => void;
-  onBlur?: (e: React.FocusEvent<HTMLDivElement>) => void;
-}
-
 export const ContentEditable = memo(forwardRef((
-  p: ContentEditableProps,
+  p: {
+    domId?: string;
+    role?: string;
+    tabIndex?: number;
+    className?: string;
+    disabled?: boolean;
+    htmlText: string;
+    placeholder?: string;
+    onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+    onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+    onInput: (e: React.FormEvent<HTMLDivElement>) => void;
+    onPaste: (e: React.ClipboardEvent<HTMLDivElement>) => void;
+    onFocus?: (e: React.FocusEvent<HTMLDivElement>) => void;
+    onBlur?: (e: React.FocusEvent<HTMLDivElement>) => void;
+  },
   ref: React.ForwardedRef<HTMLDivElement>
 ) => {
 
-  const { domId, role, tabIndex, className, disabled, htmlText, onKeyDown, onKeyUp, onInput, onPaste, onFocus, onBlur } = p;
+  const { domId, role, tabIndex, className, disabled, placeholder, htmlText, onKeyDown, onKeyUp, onInput, onPaste, onFocus, onBlur } = p;
 
   return <div
     ref={ref}
@@ -835,7 +838,7 @@ export const ContentEditable = memo(forwardRef((
     role={role ?? 'textbox'}
     tabIndex={tabIndex ?? 0}
     contentEditable={disabled ? 'false' : 'true'}
-    data-placeholder={i18n.t('ai_chat.placeholder', { name : '@AI' })}
+    data-placeholder={placeholder}
     onKeyDown={onKeyDown}
     onKeyUp={onKeyUp}
     onInput={onInput}

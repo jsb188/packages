@@ -65,10 +65,6 @@ a.em:before {
   background-color: rgb(var(--color-primary));
 }
 
-.bg_active_hv:hover {
-  background-color: rgb(var(--color-bg-active)) !important;
-}
-
 .bg_hv:hover {
   background-color: rgb(var(--color-bg)) !important;
 }
@@ -880,8 +876,6 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .shadow_line, .shadow_line_hv:hover { box-shadow: var(--shadow-line); }
 .shadow_light, .shadow_light_hv:hover { box-shadow: var(--shadow-light); }
 .shadow_float, .shadow_float_hv:hover { box-shadow: var(--shadow-float); }
-.shadow_textarea, .shadow_textarea_hv:hover { box-shadow: var(--shadow-textarea); }
-.shadow_textarea_focused, .shadow_textarea_focused_hv:hover { box-shadow: var(--shadow-textarea-focused); }
 .shadow_bg, .shadow_bg_hv:hover { box-shadow: 0 0 7px rgb(var(--color-bg)); }
 .shadow_bg_lg, .shadow_bg_lg_hv:hover { box-shadow: 0 0 25px rgb(var(--color-bg)); }
 .shadow_bg_alt_lg, .shadow_bg_alt_lg_hv:hover { box-shadow: 0 0 25px rgb(var(--color-bg-alt)); }
@@ -924,11 +918,11 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 
 /* These are used for animation transitions, ecetera */
 
-.delay_1 { animation-delay: 0.5s; }
-.delay_2 { animation-delay: 1s; }
-.delay_3 { animation-delay: 2s; }
-.delay_4 { animation-delay: 5s; }
-.delay_5 { animation-delay: 10s; }
+.delay_1 { animation-delay: 0.25s; }
+.delay_2 { animation-delay: .5s; }
+.delay_3 { animation-delay: 1s; }
+.delay_4 { animation-delay: 2s; }
+.delay_5 { animation-delay: 4s; }
 
 /* Y-axis scroller */
 

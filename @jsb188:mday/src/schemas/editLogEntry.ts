@@ -82,7 +82,8 @@ export function makeLogEntryDetailsSchema(
   timeZone: string | null | undefined,
   __typename: string,
   focusedName: string,
-  formValues: Record<string, any> = {}
+  formValues: Record<string, any> = {},
+  isCreateNew = false
 ) {
 
   let activitiesList: any[] = [];
@@ -117,7 +118,7 @@ export function makeLogEntryDetailsSchema(
           locked: () => true,
           focused: focusedName === (formId + '_activity'),
           name: 'arableDetails.activity',
-          placeholder: i18n.t(`form.activity_ph`),
+          placeholder: isCreateNew && i18n.t(`form.activity_ph`),
           getter: (value: string) => value ? i18n.t(`log.activity.${value}`) : '',
         },
       }, {
@@ -130,7 +131,7 @@ export function makeLogEntryDetailsSchema(
           step: 0.1,
           min: 0.1,
           max: 99999999.99, // database max is numeric(10, 2)
-          placeholder: i18n.t('form.concentration_ph'),
+          placeholder: isCreateNew && i18n.t('form.concentration_ph'),
         },
       }, {
         __type: isWaterTesting ? 'input' : 'none',
@@ -138,7 +139,7 @@ export function makeLogEntryDetailsSchema(
         item: {
           name: 'arableDetails.concentrationUnit',
           maxLength: 40,
-          placeholder: i18n.t('form.concentration_unit_ph'),
+          placeholder: isCreateNew && i18n.t('form.concentration_unit_ph'),
         },
       }, {
         // Regular inputs
@@ -150,7 +151,7 @@ export function makeLogEntryDetailsSchema(
           step: 0.1,
           min: 0.1,
           max: 99999999.99, // database max is numeric(10, 2)
-          placeholder: i18n.t('form.quantity_ph'),
+          placeholder: isCreateNew && i18n.t('form.quantity_ph'),
         },
       }, {
         __type: 'input',
@@ -158,7 +159,7 @@ export function makeLogEntryDetailsSchema(
         item: {
           name: 'arableDetails.unit',
           maxLength: 40,
-          placeholder: i18n.t(isWaterTesting ? 'form.water_unit_ph' : 'log.unit_arable_ph'),
+          placeholder: isCreateNew && i18n.t(isWaterTesting ? 'form.water_unit_ph' : 'log.unit_arable_ph'),
         },
       }, {
         __type: isPriceRelated ? 'input' : 'none',
@@ -169,14 +170,14 @@ export function makeLogEntryDetailsSchema(
           step: 0.1,
           min: 0.1,
           max: 99999999.99, // database max is numeric(10, 2)
-          placeholder: i18n.t('log.price_arable_ph'),
+          placeholder: isCreateNew && i18n.t('log.price_arable_ph'),
         },
       }, {
         __type: isWaterTesting ? 'none' : 'input',
         label: i18n.t('form.crop'),
         item: {
           name: 'arableDetails.crop',
-          placeholder: 'Tomato, broccoli, etc.',
+          placeholder: isCreateNew && i18n.t('log.crop_ph'),
         }
       }];
     default:

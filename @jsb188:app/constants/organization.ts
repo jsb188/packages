@@ -1,7 +1,14 @@
 // Organization constants
 // IMPORTANT NOTE: Array order must *never* change, indexes are used to create PDF URLs
 
-export const OPERATION_ENUMS = ['ARABLE', 'LIVESTOCK'];
+export const OPERATION_ENUMS = [
+  // Farms
+  'ARABLE',
+  'LIVESTOCK',
+
+  // Organizations
+  'FARMERS_MARKET',
+];
 
 // Employee ACL
 

@@ -74,8 +74,8 @@ input.invis_input::-webkit-inner-spin-button {
   background-color: rgba(var(--color-main), .04) !important;
 }
 
-.form_el .form_input:not(.error):focus, .form_el:not(.error):hover .form_input:not(.error):focus,
-.form_el.focused .form_input:not(.error) {
+.form_el .form_input:not(.error):not(.disabled):focus, .form_el:not(.error):not(.disabled):hover .form_input:not(.error):not(.disabled):focus,
+.form_el.focused .form_input:not(.error):not(.disabled) {
   background-color: rgba(var(--color-main), .075) !important;
 }
 
@@ -84,7 +84,7 @@ input.invis_input::-webkit-inner-spin-button {
   background: linear-gradient(to left, var(--color-main-bg) 50%, rgba(var(--color-main), 0)) !important;
 }
 
-.form_el .form_input:focus, .form_el.focused .form_input {
+.form_el .form_input:not(.disabled):focus, .form_el.focused .form_input:not(.disabled) {
   border-color: var(--color-text-default) !important;
 }
 
