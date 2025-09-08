@@ -99,14 +99,6 @@ strong, .ft_bold {
   text-indent: -.0075em;
 }
 
-.ft_condensed_bold, .ft_condensed_heading {
-  font-family: var(--font-condensed-bold);
-}
-
-.ft_condensed_heading {
-  letter-spacing: -.0175em; text-indent: -.0175em;
-}
-
 .ft_medium {
   font-family: var(--font-sans-medium);
   font-weight: normal;
@@ -146,7 +138,7 @@ div, p {
 .lh_5 { line-height: 1.7; }
 
 .ls_1 { letter-spacing: -.08em; text-indent: -.08em; }
-.ls_2 { letter-spacing: -.04em; text-indent: -.04em; }
+.ls_2 { letter-spacing: -.0425em; text-indent: -.0425em; } /* Use this when heading is .ft_normal */
 .ls_3 { letter-spacing: -.025em; text-indent: -.025em; }
 .ls_4 { letter-spacing: -.0175em; text-indent: -.0175em; }
 

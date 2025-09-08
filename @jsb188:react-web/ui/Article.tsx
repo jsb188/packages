@@ -20,7 +20,7 @@ export const CondensedGroupTitle = memo((p: CondensedGroupTitleProps) => {
   const { text, domId } = p;
 
   return <div className='mt_md mb_sm' id={domId}>
-    <h4 className='ft_condensed_heading ft_xs p_n m_n cl_darker_2'>
+    <h4 className='ft_normal ft_xs p_n m_n cl_darker_2 ls_2'>
       {text}
     </h4>
   </div>
@@ -34,7 +34,7 @@ CondensedGroupTitle.displayName = 'CondensedGroupTitle';
 
 export function CondensedGroupTitleMock() {
   return <div className='mt_md mb_sm'>
-    <h4 className='ft_condensed_heading ft_xs p_n m_n cl_invis'>
+    <h4 className='ft_normal ft_xs p_n m_n cl_invis'>
       ....
     </h4>
   </div>;
@@ -121,7 +121,7 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
       ) : <span className='f' />}
 
       {!RightComponent ? null
-      : <div className='h_right gap_xs'>
+      : <div className='h_right gap_xs ml_xs'>
         {RightComponent}
       </div>}
     </div>
