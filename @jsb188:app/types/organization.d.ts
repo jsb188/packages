@@ -1,4 +1,4 @@
-import { OPERATION_ENUMS, ROLE_ENUMS, ROLE_CATEGORY_ENUMS } from '../constants/organization.ts';
+import { CHILD_ORGANIZATION_TYPE_ENUMS, OPERATION_ENUMS, ROLE_CATEGORY_ENUMS, ROLE_ENUMS } from '../constants/organization.ts';
 
 /*
  * ACL
@@ -7,6 +7,7 @@ import { OPERATION_ENUMS, ROLE_ENUMS, ROLE_CATEGORY_ENUMS } from '../constants/o
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
+export type OrganizationChildTypeEnum = typeof CHILD_ORGANIZATION_TYPE_ENUMS[number];
 
 type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-write, 3: allow-manage
 type ACLPermissionEnum = 'NONE' | 'READ' | 'WRITE' | 'MANAGE';
@@ -73,7 +74,7 @@ export interface OrganizationRelData {
 }
 
 /**
- * GraphQL data for organization relationship
+ * GraphQL data for organization types
  */
 
 export interface OrganizationGQLData {
@@ -90,5 +91,11 @@ export interface OrganizationRelGQLData {
 	primary: boolean;
 	role: OrganizationRoleEnum;
 	acl: OrganizationACLGQLData;
+	organization: OrganizationGQLData;
+}
+
+export interface ChildOrganizationGQLData {
+  id: string;
+  childType: OrganizationChildTypeEnum;
 	organization: OrganizationGQLData;
 }

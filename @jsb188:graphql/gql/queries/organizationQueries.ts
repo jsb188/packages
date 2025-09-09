@@ -44,10 +44,31 @@ query myOrganizations {
 
     organization {
       ...organizationFragment
+      membersCount
     }
   }
 }
 
 ${organizationFragment}
 ${organizationRelationshipFragment}
+`;
+
+export const childOrganizationsQry = gql`
+query childOrganizations (
+  $organizationId: GenericID!
+) {
+  childOrganizations (
+    organizationId: $organizationId
+  ) {
+    id
+    childType
+    addedAt
+
+    organization {
+      ...organizationFragment
+    }
+  }
+}
+
+${organizationFragment}
 `;
