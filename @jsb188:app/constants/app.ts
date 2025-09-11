@@ -1,8 +1,4 @@
 
-// Big planet constants
-
-export const NOTIF_EXPIRE_DAYS = 30;
-
 // DOM element names (ids)
 
 export const DOM_IDS = {
@@ -10,6 +6,12 @@ export const DOM_IDS = {
   mainFocusTextarea: 'main_tx',
   mainBodyScrollArea: 'main_scr',
   popOverScrollArea: 'pop_over_scr',
+};
+
+// Common, repeatable classnames
+
+export const COMMON_CLASSNAMES = {
+  listContainer: 'cw md responsive px_lg pt_md pb_lg'
 };
 
 // Local storage

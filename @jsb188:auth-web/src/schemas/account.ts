@@ -104,7 +104,7 @@ export function makeEditAccountSchema(
         name: 'change_phoneNumber',
         maxLength: MIN_LEN_VALUES.email,
         setter: (data: any) => formatPhoneNumber(data?.phone?.number || ''),
-        label: i18n.t('account.phone'),
+        label: i18n.t('form.phone_number'),
         autoComplete: 'off',
         disabled: true,
         buttonText: i18n.t('form.change'),

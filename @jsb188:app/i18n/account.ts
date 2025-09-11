@@ -10,7 +10,6 @@ export default {
     username_info: 'Username, ID, and e-mail is used to log in to your account.',
     email: 'E-mail',
     email_ph: 'e.g. jane_doe@email.com',
-    phone: 'Phone number',
     phone_ph: 'e.g. 123-444-5555',
     password: 'Password',
     password_ph: 'Enter your password',

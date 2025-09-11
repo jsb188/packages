@@ -363,7 +363,7 @@ export function escapeCSVValue(value: string): string {
  */
 
 export function formatPhoneNumber(phone: string): string {
-  const match = phone.match(/(\d{3})(\d{3})(\d{4})$/);
+  const match = phone?.match(/(\d{3})(\d{3})(\d{4})$/);
   if (match) {
     const [, area, first, second] = match;
     const countryCode = phone.substring(0, phone.length - area.length - first.length - second.length);

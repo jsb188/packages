@@ -30,6 +30,7 @@
     "./ui/OtherUI": "./ui/OtherUI.tsx",
     "./ui/PopOverUI": "./ui/PopOverUI.tsx",
     "./ui/SidebarUI": "./ui/SidebarUI.tsx",
+    "./ui/TableListUI": "./ui/TableListUI.tsx",
     "./ui/TopNavUI": "./ui/TopNavUI.tsx",
     "./ui/Tab": "./ui/Tab.tsx",
     "./utils/dom": "./utils/dom.ts",

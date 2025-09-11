@@ -2,9 +2,10 @@ import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { uniq } from '@jsb188/app/utils/object';
 import { cn } from '@jsb188/app/utils/string';
 import { loadFragment } from '@jsb188/graphql/cache';
+import { TDCol, TRow } from '@jsb188/react-web/ui/TableListUI';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { ReactDivElement } from '../types/dom.d';
+import { isValidElement, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { ReactDivElement, ReactSpanElement } from '../types/dom.d';
 
 /**
  * Logic
@@ -33,9 +34,12 @@ type FetchMoreFn = (after: boolean, cursor: string | null, limit: number) => Pro
 
 type RenderItemFn = (
   // This is when you use the groupItems() fn
-  (item: any[], i: number, list: any[][]) => React.ReactNode
+  // the item will become an array (because of the grouping)
+  // (item: any[], i: number, list: any[][]) => React.ReactNode
+  (item: any, i: number, list: any[]) => React.ReactNode
 ) |
 (
+  // When groupItems() is not used, it will be a normal list map, like so:
   (item: VZListItemObj, i: number, list: VZListItemObj[]) => React.ReactNode
 );
 
@@ -49,9 +53,10 @@ interface VZReferenceObj {
   bottomCursor: [string, string] | null; // [id, cursor]
 }
 
-interface VZListItemObj {
+export interface VZListItemObj {
   item: any;
   otherProps?: any;
+  lastItemIdOnMount: string | null;
 
   // If you use the groupItems() fn, you can add DatePeriodObj and any other props here
   [key: string]: any;
@@ -95,6 +100,8 @@ interface VirtualizedListProps extends ReactDivElement {
   rootElementQuery: string; // Scrollable DOM element where the list is contained
 }
 
+type VirtualizedListOmit = Omit<VirtualizedListProps, 'HeaderComponent' | 'FooterComponent' | 'renderItem' | 'groupItems'>;
+
 /**
  * Static list container with same class name
  */
@@ -116,7 +123,7 @@ function mergeItemIds(
   data: any[],
   mergeFromLastItem: boolean,
   after: boolean,
-  p: VirtualizedListProps
+  p: VirtualizedListProps | VirtualizedListOmit
 ): string[] {
   const getItemId_ = p.getItemId || ((item: any) => item.id);
   const currentList = currentObj.itemIds || [];
@@ -150,7 +157,7 @@ function getCursorPosition(
   id: string | null,
   after: boolean,
   listElement: HTMLDivElement | null,
-  p: VirtualizedListProps
+  p: VirtualizedListProps | VirtualizedListOmit
 ): CursorPositionObj | null {
 
   if (id === null) {
@@ -243,7 +250,7 @@ function scrollToTop(rootElementQuery: string, instant = false) {
 function repositionList(
   cursorPosition: CursorPositionObj,
   listElement: HTMLDivElement | null,
-  p: VirtualizedListProps
+  p: VirtualizedListProps | VirtualizedListOmit
 ) {
   console.dev('REPOSITIONING LIST');
 
@@ -286,7 +293,7 @@ function repositionList(
  * Virtualized list state
  */
 
-function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
+function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): VirtualizedState {
   const { otherProps, fragmentName, refreshKey, limit, loading, maxFetchLimit } = p;
   const [cursorPosition, setCursorPosition] = useState<CursorPositionObj | null>(null);
   // const [, forceUpdate] = useReducer(x => x + 1, 0);
@@ -296,6 +303,7 @@ function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
 
   const itemIds = referenceObj.current.itemIds;
   const listData = useMemo(() => {
+
     if (itemIds && limit > 0) {
       let viewing: string[];
       if (cursorPosition === null || cursorPosition[0] === null) {
@@ -322,7 +330,7 @@ function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
       return viewing.map((id) => {
         const item = loadFragment(`${fragmentName}:${id}`);
         if (!item) {
-          console.dev('Error in [VirtualizedList.tsx]; item not found in cache:', 'warning', id);
+          console.dev('Error in [VirtualizedList.tsx]; item not found in cache:', 'warning', `${fragmentName}:${id}`);
           return null;
         }
 
@@ -378,7 +386,7 @@ function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
  * Re-position list as needed
  */
 
-function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState) {
+function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzState: VirtualizedState) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
   const { startOfListItems, rootElementQuery, limit, fetchMore, openModalPopUp } = p;
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -537,7 +545,7 @@ function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState) {
  * Virtualized list
  */
 
-function VirtualizedList(p: VirtualizedListProps) {
+export function VirtualizedList(p: VirtualizedListProps) {
   const { renderItem, MockComponent, HeaderComponent, FooterComponent, groupItems, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
@@ -551,8 +559,6 @@ function VirtualizedList(p: VirtualizedListProps) {
   }, [groupItems, listData]);
 
   return <>
-    {/* {MockComponent} */}
-
     <div ref={topRef}>
       {hasMoreTop ? MockComponent : HeaderComponent}
     </div>
@@ -573,4 +579,65 @@ function VirtualizedList(p: VirtualizedListProps) {
   </>;
 }
 
-export default VirtualizedList;
+/**
+ * Virtualized table list
+ */
+
+export interface TableHeaderObj {
+  text: string;
+  style: React.CSSProperties;
+  className?: string;
+}
+
+export function VirtualizedTableList(p: VirtualizedListOmit & {
+  gridLayoutStyle?: string;
+  cellClassNames?: (string | undefined)[];
+  headers: TableHeaderObj[];
+  // Use this to map list data to table row cells data
+  mapListData: (item: VZListItemObj, i: number, list: VZListItemObj[]) => (string | ReactSpanElement | React.ReactNode)[]
+}) {
+  const { MockComponent, className, headers, cellClassNames, mapListData, gridLayoutStyle } = p;
+  const vzState = useVirtualizedState(p);
+  const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
+  const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
+  const numColumns = headers.length;
+
+  // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
+  return <div className='-mx_xs'>
+    <div
+      ref={listRef}
+      style={gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
+      className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns, className)}
+    >
+      <TRow thead>
+        {headers.map(({text, className, ...rest}, i) => (
+          <TDCol
+            key={i}
+            className={cn('ft_medium cl_md', cellClassNames?.[i], className)}
+            {...rest}
+          >
+            {text}
+          </TDCol>
+        ))}
+      </TRow>
+
+      <div className='gcol_fill' ref={topRef}>
+        {hasMoreTop && MockComponent}
+      </div>
+
+      {listData?.map((item: any, i: number, list: any[]) =>
+        <TRow key={item.item.id}>
+          {mapListData(item, i, list).map((cell, j) =>
+            <TDCol className={cellClassNames?.[i]} key={j}>
+              {isValidElement(cell) ? cell : typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
+            </TDCol>
+          )}
+        </TRow>
+      )}
+    </div>
+
+    <div className='gcol_fill' ref={bottomRef}>
+      {hasMoreBottom && MockComponent}
+    </div>
+  </div>;
+}

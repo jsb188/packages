@@ -1,6 +1,8 @@
 import { useQuery } from '@jsb188/graphql/client';
 import { organizationRelationshipQry, myOrganizationsQry, childOrganizationsQry } from '../gql/queries/organizationQueries';
-import type { UseQueryParams } from '../types.d';
+import type { PaginationArgs, UseQueryParams } from '../types.d';
+
+const ORGS_LIMIT = 200;
 
 /**
  * Fetch organization relationship
@@ -40,12 +42,18 @@ export function useMyOrganizations(params: UseQueryParams = {}) {
  * Fetch child organizations
  */
 
-export function useChildOrganizations(organizationId?: string | null, params: UseQueryParams = {}) {
+export function useChildOrganizations(variables: PaginationArgs & {
+  organizationId: string | null;
+  // filters: ? not ready yet
+}, params: UseQueryParams = {}) {
   const { data, ...other } = useQuery(childOrganizationsQry, {
     variables: {
-      organizationId
+      ...variables,
+      cursor: null,
+      after: true,
+      limit: ORGS_LIMIT
     },
-    skip: !organizationId,
+    skip: !variables.organizationId,
     ...params,
   });
 

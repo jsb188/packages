@@ -266,7 +266,7 @@ export const makeSendPhoneVerificationSchema = () => ({
     __type: 'input',
     item: {
       name: 'phone',
-      label: i18n.t('account.phone'),
+      label: i18n.t('form.phone_number'),
       placeholder: i18n.t('account.phone_ph'),
     },
   }],

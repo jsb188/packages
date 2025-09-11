@@ -1251,36 +1251,47 @@ svg.av_xl .s_dot {
 
 /* Grid; columns per row */
 
-.grid.size_2 {
+.grid.size_2, .table.size_2 {
   grid-template-columns: repeat(2, 1fr);
 }
 
-.grid.size_3 {
+.grid.size_3, .table.size_3 {
   grid-template-columns: repeat(3, 1fr);
 }
 
-.grid.size_4 {
+.grid.size_4, .table.size_4 {
   grid-template-columns: repeat(4, 1fr);
 }
 
-.grid.size_5 {
+.grid.size_5, .table.size_5 {
   grid-template-columns: repeat(5, 1fr);
 }
 
-.grid.size_6 {
+.grid.size_6, .table.size_6 {
   grid-template-columns: repeat(6, 1fr);
 }
 
-.grid.size_7 {
+.grid.size_7, .table.size_7 {
   grid-template-columns: repeat(7, 1fr);
 }
 
-.grid.size_8 {
+.grid.size_8, .table.size_8 {
   grid-template-columns: repeat(8, 1fr);
 }
 
-.grid.size_9 {
+.grid.size_9, .table.size_9 {
   grid-template-columns: repeat(9, 1fr);
+}
+
+/* Table */
+
+.table {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+}
+
+.trow {
+  display: contents;
 }
 
 /*

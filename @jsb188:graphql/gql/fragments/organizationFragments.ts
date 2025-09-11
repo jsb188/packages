@@ -30,3 +30,9 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
     reminders
   }
 }`;
+
+export const organizationChildFragment = `fragment organizationChildFragment on OrganizationChild {
+  id
+  childType
+  addedAt
+}`;

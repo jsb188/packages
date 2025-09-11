@@ -94,7 +94,7 @@ export interface OrganizationRelGQLData {
 	organization: OrganizationGQLData;
 }
 
-export interface ChildOrganizationGQLData {
+export interface OrganizationChildGQLData {
   id: string;
   childType: OrganizationChildTypeEnum;
 	organization: OrganizationGQLData;

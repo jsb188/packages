@@ -27,14 +27,12 @@ export function getDefaultLogEntriesFilter(operation: FilterLogEntriesArgs['oper
  * Fetch log entries
  */
 
-interface LogEntriesArgs extends PaginationArgs {
+export function useLogEntries(variables: PaginationArgs & {
   organizationId: string;
   accountId?: string;
   timeZone: string | null;
   filter: FilterLogEntriesArgs;
-}
-
-export function useLogEntries(variables: LogEntriesArgs, params: UseQueryParams = {}) {
+}, params: UseQueryParams = {}) {
 
   const { data, ...rest } = useQuery(logEntriesQry, {
     variables: {

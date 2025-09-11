@@ -177,9 +177,33 @@ export function loadFragment(id: string) {
 
   let fragmentWithSpreads = { ...fragment };
   for (const key in spreads) {
+
     if (Object.prototype.hasOwnProperty.call(spreads, key)) {
-      const spreadId = spreads[key];
-      const spreadData = enforceArrayType(FRAGMENTS.get(spreadId));
+      const spreadValue = spreads[key];
+
+      let spreadData;
+      if (typeof spreadValue === 'string') {
+        spreadData = enforceArrayType(FRAGMENTS.get(spreadValue));
+      } else if (Array.isArray(spreadValue)) {
+        spreadData = spreadValue.reduce((acc, value) => {
+          if (typeof value === 'string') {
+            const fragmentData = enforceArrayType(FRAGMENTS.get(value));
+            return {
+              ...acc,
+              ...fragmentData,
+            };
+          } else if (Array.isArray(value)) {
+            const [namespace, innerValue] = value;
+            return {
+              ...acc,
+              [namespace]: innerValue,
+            };
+          }
+
+          return acc;
+        }, {});
+      }
+
       if (spreadData) {
         fragmentWithSpreads[key] = spreadData;
       }
@@ -219,7 +243,6 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       // Whether fragment is partial or not, always merge data;
       // Because partials might have data that's not in the main fragment
       const currentData = loadFragment(fragmentKey);
-
       FRAGMENTS.set(fragmentKey, mergeNestedObjects(currentData, extractFragment(data, innerSelections)));
       updatedKeys.push(fragmentKey);
 
@@ -332,17 +355,23 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
   if (cacheObj.__flat?.data?.[0]) {
     const spreadsFragmentKey = `${cacheObj.__flat.data[0]}.spreads`;
 
-    let spreads: Record<string, string> | undefined;
+    let spreads: Record<string, any> | undefined;
     for (const cKey in cacheObj) {
       if (
         cKey !== '__flat' &&
-        Object.prototype.hasOwnProperty.call(cacheObj, cKey) &&
-        typeof cacheObj[cKey]?.data?.[0] === 'string'
+        Object.prototype.hasOwnProperty.call(cacheObj, cKey)
       ) {
         if (!spreads) {
           spreads = {};
         }
-        spreads[cKey] = cacheObj[cKey].data[0];
+
+        if (cacheObj[cKey]?.data.length === 1 && typeof cacheObj[cKey]?.data?.[0] === 'string') {
+          // Single spread with single fragment
+          spreads[cKey] = cacheObj[cKey].data[0];
+        } else if (cacheObj[cKey]?.data.length) {
+          // Spread with more spreads inside
+          spreads[cKey] = cacheObj[cKey].data;
+        }
       }
     }
 
