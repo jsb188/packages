@@ -167,7 +167,6 @@ export function loadFragment(id: string) {
   const fragment = enforceArrayType(FRAGMENTS.get(id));
   if (!fragment) {
     return null;
-
   }
 
   const spreads = FRAGMENTS.get(`${id}.spreads`);
@@ -188,12 +187,16 @@ export function loadFragment(id: string) {
         spreadData = spreadValue.reduce((acc, value) => {
           if (typeof value === 'string') {
             const fragmentData = enforceArrayType(FRAGMENTS.get(value));
+            // console.log('1:', value, fragmentData);
+
             return {
               ...acc,
               ...fragmentData,
             };
           } else if (Array.isArray(value)) {
             const [namespace, innerValue] = value;
+            // console.log('2:', namespace, value);
+
             return {
               ...acc,
               [namespace]: innerValue,
@@ -365,10 +368,18 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
           spreads = {};
         }
 
-        if (cacheObj[cKey]?.data.length === 1 && typeof cacheObj[cKey]?.data?.[0] === 'string') {
+        // Spreads here
+
+        if (cacheObj[cKey]?.data?.length === 1 && typeof cacheObj[cKey]?.data?.[0] === 'string') {
           // Single spread with single fragment
           spreads[cKey] = cacheObj[cKey].data[0];
-        } else if (cacheObj[cKey]?.data.length) {
+        } else if (cacheObj[cKey].__list === true) {
+          // List of spreads
+          spreads[cKey] = {
+            __list: true,
+            data: cacheObj[cKey].data
+          };
+        } else if (Array.isArray(cacheObj[cKey]?.data)) {
           // Spread with more spreads inside
           spreads[cKey] = cacheObj[cKey].data;
         }

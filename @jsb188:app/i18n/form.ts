@@ -6,6 +6,7 @@ export default {
     ok: 'OK',
     or: 'or',
     n_a: 'N/A',
+    unknown: 'Unknown',
     warning: 'Warning',
     cancel: 'Cancel',
     continue: 'Continue',

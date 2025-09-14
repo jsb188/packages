@@ -564,9 +564,7 @@ function ReverseVZList(p: ReverseVZListProps) {
   //   return () => clearTimeout(timer);
   // }, [counter]);
 
-  return <section
-    className={cn('px_lg pt_df pb_xl fs', className)}
-  >
+  return <section className={cn('px_lg pt_df pb_xl fs', className)}>
     <div ref={topRef}>
       {hasMoreTop ? MockComponent : HeaderComponent}
     </div>

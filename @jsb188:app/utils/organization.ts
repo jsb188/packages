@@ -46,6 +46,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				settings: acl.settings || 'MANAGE',
 				integrations: acl.integrations || 'MANAGE',
 				reminders: acl.reminders || 'MANAGE',
+        events: acl.events || 'MANAGE',
 			};
 		case 'MANAGER':
 			return {
@@ -58,6 +59,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				settings: acl.settings || 'READ',
 				integrations: acl.integrations || 'NONE',
 				reminders: acl.reminders || 'MANAGE',
+        events: acl.events || 'MANAGE',
 			};
 		case 'MEMBER':
 		default:
@@ -73,6 +75,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 		settings: acl.settings || 'READ',
 		integrations: acl.integrations || 'NONE',
 		reminders: acl.reminders || 'WRITE',
+    events: acl.events || 'MANAGE',
 	};
 }
 
