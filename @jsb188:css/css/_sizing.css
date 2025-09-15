@@ -1287,7 +1287,6 @@ svg.av_xl .s_dot {
 
 .table {
   display: grid;
-  grid-template-columns: 100px 1fr;
 }
 
 .trow {

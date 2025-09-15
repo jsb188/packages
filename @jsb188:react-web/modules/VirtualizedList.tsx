@@ -590,29 +590,36 @@ export interface TableHeaderObj {
 }
 
 export function VirtualizedTableList(p: VirtualizedListOmit & {
+  onClickRow?: (vzItem?: VZListItemObj) => void;
+  applyGridToRows?: boolean;
   gridLayoutStyle?: string;
   cellClassNames?: (string | undefined)[];
   headers: TableHeaderObj[];
   // Use this to map list data to table row cells data
   mapListData: (item: VZListItemObj, i: number, list: VZListItemObj[]) => (string | ReactSpanElement | React.ReactNode)[]
 }) {
-  const { MockComponent, className, headers, cellClassNames, mapListData, gridLayoutStyle } = p;
+  const { MockComponent, className, headers, cellClassNames, mapListData, applyGridToRows, gridLayoutStyle, onClickRow } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
-  const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
+  const { listData, hasMoreTop, hasMoreBottom } = vzState;
   const numColumns = headers.length;
 
   // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
   return <div className='-mx_xs'>
     <div
       ref={listRef}
-      style={gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
+      style={!applyGridToRows && gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
       className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns, className)}
     >
-      <TRow thead>
+      <TRow
+        applyGridToRows={applyGridToRows}
+        gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
+        thead
+      >
         {headers.map(({text, className, ...rest}, i) => (
           <TDCol
             key={i}
+            applyGridToRows={applyGridToRows}
             className={cn('ft_medium cl_md', cellClassNames?.[i], className)}
             {...rest}
           >
@@ -625,10 +632,19 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
         {hasMoreTop && MockComponent}
       </div>
 
-      {listData?.map((item: any, i: number, list: any[]) =>
-        <TRow key={item.item.id}>
+      {listData?.map((item: VZListItemObj, i: number, list: any[]) =>
+        <TRow
+          key={item.item.id}
+          onClick={() => onClickRow?.(item)}
+          applyGridToRows={applyGridToRows}
+          gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
+        >
           {mapListData(item, i, list).map((cell, j) =>
-            <TDCol className={cellClassNames?.[i]} key={j}>
+            <TDCol
+              key={j}
+              className={cellClassNames?.[i]}
+              applyGridToRows={applyGridToRows}
+            >
               {isValidElement(cell) ? cell : typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
             </TDCol>
           )}

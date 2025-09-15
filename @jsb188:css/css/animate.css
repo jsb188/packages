@@ -109,33 +109,58 @@
   to { opacity: 1; }
 }
 
-/* Shift-appear up */
+/* Shift-up without fade */
 
 .anim_move_up_center .target:not(.anim_inner), .anim_move_up_center.target {
-  transition-property: transform, opacity;
-  transition-timing-function: ease-out;
+  transition-property: transform;
+  transition-timing-function: linear;
   transition-duration: 200ms;
-  transform: translateY(20%);
-  opacity: 0;
+  transform: translateY(100%);
 }
 
 .anim_move_up_center.visible .target:not(.anim_inner), .anim_move_up_center.visible.target {
   transform: translateY(0);
-  opacity: 1;
 }
 
 .anim_move_up_center.on_mount, .anim_move_up_center.reverse {
-  animation-name: keyframes_move_up_center;
-  /* anim_move_up_center on_mount spd_3 */
+  animation-name: anim_move_up_center;
   animation-duration: 200ms;
-  animation-timing-function: ease-out;
+  animation-timing-function: linear;
   animation-fill-mode: both;
 }
 
-@keyframes keyframes_move_up_center {
+@keyframes anim_move_up_center {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Shift-appear up */
+
+.anim_move_up_center_appear .target:not(.anim_inner), .anim_move_up_center_appear.target {
+  transition-property: transform, opacity;
+  transition-timing-function: linear;
+  transition-duration: 200ms;
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.anim_move_up_center_appear.visible .target:not(.anim_inner), .anim_move_up_center_appear.visible.target {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.anim_move_up_center_appear.on_mount, .anim_move_up_center_appear.reverse {
+  animation-name: keyframes_move_up_center_appear;
+  /* anim_move_up_center_appear on_mount spd_3 */
+  animation-duration: 200ms;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+@keyframes keyframes_move_up_center_appear {
   /* NOTE: This is double opacity animation because of modal container + content animation; */
   /* but having 2 opacity transitions made it smoother */
-  from { transform: translateY(50%); opacity: 0; }
+  from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 

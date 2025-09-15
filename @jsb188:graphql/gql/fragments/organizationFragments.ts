@@ -8,8 +8,26 @@ export const organizationFragment = `fragment organizationFragment on Organizati
   domains
 
   settings {
-    emoji
     timeZone
+    language
+    color
+  }
+}`;
+
+export const organizationComplianceFragment = `fragment organizationComplianceFragment on OrganizationCompliance {
+  id
+  number
+  name
+  type
+  expirationDate
+  notes
+
+  files {
+    id
+    complianceId
+    storageId
+    order
+    uri
   }
 }`;
 
@@ -28,11 +46,11 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
     settings
     integrations
     reminders
+    compliance
   }
 }`;
 
 export const organizationChildFragment = `fragment organizationChildFragment on OrganizationChild {
   id
-  childType
   addedAt
 }`;

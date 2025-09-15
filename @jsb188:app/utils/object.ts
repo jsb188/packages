@@ -285,15 +285,28 @@ export function groupCollections(
 	innerCollectionDefaultValues: Record<string, any> = {},
 	primaryKeyName = 'id',
 ): any[] {
-	return collections.reduce((acc, obj) => {
+  let hasHash = false;
+	const groupedCollections = collections.reduce((acc, obj) => {
 		const primaryKey = obj[primaryKeyName];
 		const i = acc.findIndex((o: any) => o[primaryKeyName] === primaryKey);
 
 		if (i === -1) {
+      // Map everything without hash first (inner array collections)
 			innerCollectionNames.forEach((name: string) => {
 				const defaultValue = innerCollectionDefaultValues[name] || [];
-				const ref = getObject(obj, name);
+        const [, afterHash] = name.split('.#.');
 
+        if (afterHash) {
+          // This is a merged array collection
+          // This mapping is handled separately after first merge
+          // const beforeHashObj = getObject(obj, beforeHash);
+          // console.log('beforeHashObj:', beforeHash, beforeHashObj);
+          // name = `${beforeHash}.1.${afterHash ? `${afterHash}` : ''}`;
+          hasHash = true;
+          return;
+        }
+
+				const ref = getObject(obj, name);
 				if (ref) {
 					setObject(obj, name, Array.isArray(defaultValue) ? [ref] : ref);
 				} else {
@@ -312,13 +325,25 @@ export function groupCollections(
 		} else {
 			innerCollectionNames.forEach((name: string) => {
 				const defaultValue = innerCollectionDefaultValues[name] || [];
+        const [, afterHash] = name.split('.#.');
+
+        if (afterHash) {
+          // This is a merged array collection
+          // This mapping is handled separately after first merge
+          // const beforeHashObj = getObject(obj, beforeHash);
+          // console.log('beforeHashObj:', beforeHash, beforeHashObj);
+          // name = `${beforeHash}.1.${afterHash ? `${afterHash}` : ''}`;
+          hasHash = true;
+          return;
+        }
+
 				const innerObj = getObject(obj, name);
-				const ref = getObject(acc[i], name);
+        const ref = getObject(acc[i], name);
 
 				if (!ref) {
 					setObject(acc[i], name, innerObj && Array.isArray(innerObj) ? [innerObj] : (innerObj || defaultValue));
 				} else if (innerObj && !ref.find((o: any) => o.id === innerObj.id)) {
-					setObject(acc[i], name, Array.isArray(ref) ? ref.concat(innerObj) : innerObj);
+          setObject(acc[i], name, Array.isArray(ref) ? ref.concat(innerObj) : innerObj);
 				}
 
 				// Old version, but this doesn't support merged array collections
@@ -333,6 +358,57 @@ export function groupCollections(
 
 		return acc;
 	}, []);
+
+  if (!hasHash) {
+    return groupedCollections;
+  }
+
+  innerCollectionNames.forEach((name: string) => {
+    const [beforeHash, afterHash] = name.split('.#.');
+    if (!afterHash) {
+      return;
+    }
+
+    const flatName = name.replace('.#.', '.');
+    collections.forEach((obj) => {
+      const innerObj = getObject(obj, flatName);
+      if (!innerObj) {
+        return;
+      }
+
+      const primaryKey = obj[primaryKeyName];
+      const i = groupedCollections.findIndex((o: any) => o[primaryKeyName] === primaryKey);
+      const innerParent = getObject(obj, beforeHash);
+      const innerParentId = innerParent?.[primaryKeyName];
+
+      if (innerParentId && i >= 0) {
+        const innerArr = getObject(groupedCollections[i], beforeHash) || [];
+        const j = innerArr.findIndex((o: any) => o[primaryKeyName] === innerParentId);
+
+        if (j >= 0) {
+          const currentValue = innerArr[j][afterHash];
+          const actualPathName = `${beforeHash}.${j}.${afterHash}`;
+
+          let newValue;
+          if (Array.isArray(currentValue)) {
+            if (!currentValue.find((o) => o.id === innerObj.id)) {
+              newValue = currentValue.concat(innerObj);
+            }
+          } else if (currentValue && currentValue.id !== innerObj.id) {
+            newValue = [currentValue].concat(innerObj);
+          } else if (!currentValue) {
+            newValue = [innerObj];
+          }
+
+          if (newValue) {
+            setObject(groupedCollections[i], actualPathName, newValue);
+          }
+        }
+      }
+    });
+  });
+
+  return groupedCollections;
 }
 
 /**

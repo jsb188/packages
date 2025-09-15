@@ -1,6 +1,6 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
-import { organizationChildFragment, organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
 import { emailFragment, phoneFragment } from '../fragments/otherFragments';
 
 // Always use organizationRelationship() instead
@@ -31,11 +31,16 @@ query organizationRelationship (
     organization {
       ...organizationFragment
       membersCount
+
+      compliance {
+        ...organizationComplianceFragment
+      }
     }
   }
 }
 
 ${organizationFragment}
+${organizationComplianceFragment}
 ${organizationRelationshipFragment}
 `;
 
@@ -47,11 +52,16 @@ query myOrganizations {
     organization {
       ...organizationFragment
       membersCount
+
+      compliance {
+        ...organizationComplianceFragment
+      }
     }
   }
 }
 
 ${organizationFragment}
+${organizationComplianceFragment}
 ${organizationRelationshipFragment}
 `;
 
@@ -73,6 +83,10 @@ query childOrganizations (
     organization {
       ...organizationFragment
       membersCount
+
+      compliance {
+        ...organizationComplianceFragment
+      }
     }
 
     primaryContact {
@@ -91,6 +105,7 @@ query childOrganizations (
 
 ${organizationChildFragment}
 ${organizationFragment}
+${organizationComplianceFragment}
 ${accountFragment}
 ${emailFragment}
 ${phoneFragment}

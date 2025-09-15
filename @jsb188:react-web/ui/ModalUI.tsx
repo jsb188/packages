@@ -473,12 +473,10 @@ export interface ModalToolbarBreadcrumb {
   variables?: any;
 }
 
-interface ModalToolbarProps {
+export function ModalToolbar(p: {
   breadcrumbs?: ModalToolbarBreadcrumb[];
   onCloseModal?: () => void;
-}
-
-export function ModalToolbar(p: ModalToolbarProps) {
+}) {
   const { breadcrumbs, onCloseModal } = p;
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
@@ -486,7 +484,7 @@ export function ModalToolbar(p: ModalToolbarProps) {
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
   return <div className='of w_f rt_smw bd_b_1 bd_lt'>
     <nav className='h_45 h_spread shadow_bg shift_down'>
-      <div className='px_df ft_medium'>
+      <div className='px_df ft_medium ft_sm mt_1'>
         {!breadcrumbs ? null : breadcrumbs.map((item, i) => (
           <span
             key={i}
@@ -496,7 +494,9 @@ export function ModalToolbar(p: ModalToolbarProps) {
             // do modal change with variables here
           >
             {item.text}
-            {i < breadcrumbs.length - 1 ? ' / ' : ''}
+            {i < (breadcrumbs.length - 1) && (
+              <span className='mx_xs shift_up cl_darker_2'>/</span>
+            )}
           </span>
         ))}
       </div>

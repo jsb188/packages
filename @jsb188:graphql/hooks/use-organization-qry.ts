@@ -1,4 +1,4 @@
-import { useQuery } from '@jsb188/graphql/client';
+import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import { organizationRelationshipQry, myOrganizationsQry, childOrganizationsQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
 
@@ -61,4 +61,21 @@ export function useChildOrganizations(variables: PaginationArgs & {
     childOrganizations: data?.childOrganizations,
     ...other
   };
+}
+
+/**
+ * Get reactive organization fragment
+ */
+
+export function useReactiveOrganizationChildFragment(organizationId: string, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    [
+      `$organizationChildFragment:${organizationId}`,
+      // [`$organizationChildArableFragment:${organizationId}`, null],
+      // By having the second paramter as null, we only observe the reactive changes without setting the data
+      // [`$logEntryArableFragment:${logEntryId}`, null],
+    ],
+    queryCount,
+  );
 }

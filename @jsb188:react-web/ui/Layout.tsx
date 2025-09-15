@@ -163,27 +163,31 @@ export function ModalCover(p: ModalCoverProps) {
  * Modal alert screen cover with extra animation and gradient background effect
  */
 
-interface ModalCoverAnimationProps extends ModalCoverProps {
+export function ModalCoverAnimation(p: ModalCoverProps & {
+  bacgroundClassName?: string;
   containerClassName?: string;
   containerAnimationName?: string;
   closePopOver?: () => void;
-}
-
-export function ModalCoverAnimation(p: ModalCoverAnimationProps) {
-  const { children, containerAnimationName, containerClassName, ...other } = p;
+}) {
+  const { children, bacgroundClassName, containerAnimationName, containerClassName, ...other } = p;
   const { visible } = p;
 
   return <ModalCover {...other}>
-    <div
-      className={cn(
-        'w_f h_f v_center spd_1 target anim_inner',
-        containerAnimationName || 'anim_move_up_center',
-        visible === 2 ? 'visible' : visible === .5 ? 'reverse' : '',
-        containerClassName
+    <>
+      {bacgroundClassName && (
+        <div className={cn('abs_full', bacgroundClassName)} />
       )}
-    >
-      {children}
-    </div>
+      <div
+        className={cn(
+          'w_f h_f v_center spd_1 target anim_inner rel z2',
+          containerAnimationName || 'anim_move_up_center_appear',
+          visible === 2 ? 'visible' : visible === .5 ? 'reverse' : '',
+          containerClassName
+        )}
+      >
+        {children}
+      </div>
+    </>
   </ModalCover>;
 }
 

@@ -11,7 +11,7 @@ export const DOM_IDS = {
 // Common, repeatable classnames
 
 export const COMMON_CLASSNAMES = {
-  listContainer: 'cw md responsive px_lg pt_md pb_lg'
+  listContainer: 'cw lg responsive px_lg pt_md pb_lg'
 };
 
 // Local storage

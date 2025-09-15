@@ -1,4 +1,6 @@
-import { CHILD_ORGANIZATION_TYPE_ENUMS, OPERATION_ENUMS, ROLE_CATEGORY_ENUMS, ROLE_ENUMS } from '../constants/organization.ts';
+import { OPERATION_ENUMS, ROLE_CATEGORY_ENUMS, ROLE_ENUMS } from '../constants/organization.ts';
+import type { AccountData } from './account.d.ts';
+import type { StorageData } from './other.d.ts';
 
 /*
  * ACL
@@ -7,7 +9,6 @@ import { CHILD_ORGANIZATION_TYPE_ENUMS, OPERATION_ENUMS, ROLE_CATEGORY_ENUMS, RO
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
-export type OrganizationChildTypeEnum = typeof CHILD_ORGANIZATION_TYPE_ENUMS[number];
 
 type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-write, 3: allow-manage
 type ACLPermissionEnum = 'NONE' | 'READ' | 'WRITE' | 'MANAGE';
@@ -51,14 +52,15 @@ export interface OrganizationData {
 	id: number;
 	stripeCustomerId: string | null;
 	name: string;
-  operation: OrganizationOperationEnum;
-  dailyDigestTime: string | null;
-  reminders: string | null;
+	operation: OrganizationOperationEnum;
+	dailyDigestTime: string | null;
+	reminders: string | null;
 	domains: string[] | null;
-  settings?: {
-    emoji: string | null;
-    timeZone: string | null;
-  }
+	settings?: {
+		timeZone: string | null;
+    language: string | null;
+    color: string | null;
+	};
 }
 
 /**
@@ -81,7 +83,7 @@ export interface OrganizationGQLData {
 	id: string;
 	name: string;
 	stripeCustomerId: string | null;
-  reminders: string | null;
+	reminders: string | null;
 	domains: string[] | null;
 	membersCount: number;
 }
@@ -95,7 +97,39 @@ export interface OrganizationRelGQLData {
 }
 
 export interface OrganizationChildGQLData {
-  id: string;
-  childType: OrganizationChildTypeEnum;
+	id: string;
 	organization: OrganizationGQLData;
+  primaryContact: AccountData;
+  addedAt: Date;
+}
+
+/**
+ * Compliances
+ */
+
+export interface OrganizationComplianceFileData {
+	__table: 'organization_compliance_files';
+	id: number;
+	complianceId: number;
+	storageId: number;
+	order: number;
+	file: StorageData;
+}
+
+export interface OrganizationComplianceInsertObj {
+	storageIds: number[] | null;
+	number: string;
+	name: string;
+	expirationDate: string; // cast as date: "YYYY-MM-DD" format (in database)
+	notes?: string;
+}
+
+export interface OrganizationComplianceData extends Omit<OrganizationComplianceInsertObj, 'expirationDate'> {
+	__table: 'organization_compliances';
+	id: number;
+	organizationId: number;
+	expirationDate: Date; // in runtime deno-postgres converts it into JS Date (apparently because it has to)
+	documents: OrganizationComplianceFileData[] | null;
+	createdAt: Date;
+	updatedAt: Date;
 }
