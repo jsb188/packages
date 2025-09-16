@@ -17,6 +17,7 @@ export default {
     show: 'Show',
     deleted: 'Deleted',
     delete: 'Delete',
+    balance: 'Balance',
     try_again: 'Try again',
     refresh_page: 'Refresh page',
     search: 'Search',

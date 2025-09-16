@@ -56,7 +56,7 @@ export const CondensedArticleItem = memo((p: {
   const { __deleted, hideSeparator, preset, domIdPrefix, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
-  const useAltLabelColors = preset === 'default';
+  const useAltLabelColors = !['modal','card'].includes(preset!);
 
   // paddingClassName='px_df -mx_5'
 
@@ -118,7 +118,7 @@ export const CondensedArticleItem = memo((p: {
       {title && <span className={'f_shrink shift_down ' + yPaddingClassName}>{title}</span>}
 
       {description || descriptionPlaceholder ? (
-        <span className={cn('ellip py_sm f shift_down', description ? 'cl_darker_4' : 'cl_darker_2')}>
+        <span className={cn('ellip f shift_down', yPaddingClassName, description ? 'cl_darker_4' : 'cl_darker_2')}>
           {description || descriptionPlaceholder}
         </span>
       ) : <span className='f' />}
@@ -166,8 +166,6 @@ export function CondensedArticleItemMock(p: {
             outline
             color='alt'
             textColorClassName='cl_primary'
-
-            // @ts-ignore - adding class name to color indicator
             colorIndicator='active'
             text={
               <span className='mock active strong mr_2'>
