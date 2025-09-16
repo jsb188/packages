@@ -70,6 +70,7 @@ export default {
     partners: 'Partners',
     partner: 'Partner',
     vendors: 'Vendors',
+    'vendors_#': 'Vendors #',
     vendor: 'Vendor',
     vendor_info: 'Vendor information',
     markets: 'Markets',

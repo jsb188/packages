@@ -371,21 +371,12 @@ export function groupCollections(
 
 		const flatName = name.replace('.#.', '.');
 
-    collections.forEach((obj) => {
+		collections.forEach((obj) => {
 			const innerObj = getObject(obj, flatName);
 			const primaryKey = obj[primaryKeyName];
 			const i = groupedCollections.findIndex((o: any) => o[primaryKeyName] === primaryKey);
 			const innerParent = getObject(obj, beforeHash);
 			const innerParentId = innerParent?.[primaryKeyName];
-
-      if (Array.isArray(innerParent)) {
-        innerParent.forEach((obj: any) => {
-          const innerParentObj = getObject(obj, afterHash);
-          if (innerParentObj && !Array.isArray(innerParentObj)) {
-            setObject(obj, afterHash, [innerParentObj]);
-          }
-        });
-      }
 
 			if (!innerObj) {
 				return;
@@ -416,9 +407,27 @@ export function groupCollections(
 					if (newValue) {
 						setObject(groupedCollections[i], actualPathName, newValue);
 					}
-        }
+				}
 			}
 		});
+
+		collections.forEach((obj) => {
+			const innerParent = getObject(obj, beforeHash);
+
+			if (Array.isArray(innerParent)) {
+				innerParent.forEach((obj: any) => {
+					const innerParentObj = getObject(obj, afterHash);
+					if (innerParentObj) {
+            if (Array.isArray(innerParentObj)) {
+              setObject(obj, afterHash, uniqBy(innerParentObj, primaryKeyName));
+            } else {
+              setObject(obj, afterHash, [innerParentObj]);
+            }
+          }
+				});
+			}
+    });
+
 	});
 
 	return groupedCollections;
