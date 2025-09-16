@@ -87,7 +87,6 @@ export const CondensedArticleItem = memo((p: {
     id={id ? `${domIdPrefix ? domIdPrefix + '_' : ''}${id}` : undefined}
     className={cn(
       'article_item rel',
-      __deleted ? 'op_40' : '',
       !addDivSeparator && !hideSeparator ? 'bd_lt bd_t_1' : undefined,
       xPaddingClassName,
       hasLink ? 'link ' + linkHoverClassName : undefined
@@ -99,7 +98,7 @@ export const CondensedArticleItem = memo((p: {
       <div className='bd_t_1 bd_lt' />
     )}
 
-    <div className='h_item gap_xs'>
+    <div className={cn('h_item gap_xs', __deleted ? 'op_40' : '')}>
       {labels?.length && (
         <div className={'h_item f_shrink mr_3 ' + yPaddingClassName}>
           {labels.map((label, i) => (

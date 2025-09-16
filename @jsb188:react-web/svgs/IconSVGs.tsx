@@ -214,7 +214,7 @@ export const BugFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 <path d="M12,3.4c2.3,0,4.2,1.8,4.3,4.1v.2c.2,0,.3,0,.5.1l3.2-2.1c.5-.3,1.2-.2,1.5.3.3.5.2,1.2-.3,1.5,0,0,0,0,0,0l-3.2,2.1c.3.8.5,1.6.5,2.4h3.2c.6,0,1.1.5,1.1,1.1s-.5,1.1-1.1,1.1h-3.2v1.1c0,.6,0,1.1-.2,1.6l2.9,1.7c.5.3.7,1,.4,1.5s-1,.7-1.5.4h0l-2.7-1.6c-1,1.5-2.5,2.4-4.3,2.7v-6.3c0-.6-.5-1.1-1.1-1.1s-1.1.5-1.1,1.1v6.3c-1.7-.3-3.3-1.3-4.3-2.7l-2.7,1.6c-.5.3-1.2.1-1.5-.4s-.1-1.2.4-1.5h0l2.9-1.7c-.1-.5-.2-1.1-.2-1.6v-1.1h-3.2c-.6,0-1.1-.5-1.1-1.1s.5-1.1,1.1-1.1h3.2c0-.9.2-1.6.5-2.4l-3.2-2.1c-.5-.3-.7-1-.4-1.5.3-.5,1-.7,1.5-.4,0,0,0,0,0,0l3.2,2.1h0s0,0,0,0h0s0,0,0,0h0s0,0,0,0h0s0,0,0,0h0s0,0,0,0h0s0,0,0,0c0-2.4,1.9-4.3,4.3-4.3ZM12,5.5c-1.2,0-2.1,1-2.1,2.1h4.3c0-1.2-1-2.1-2.1-2.1Z"/>
 </svg>;
 
-export const BuildingCottage = <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-building-cottage">
+export const BuildingCottage = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-building-cottage">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M3 21l18 0" />
 <path d="M4 21v-11l2.5 -4.5l5.5 -2.5l5.5 2.5l2.5 4.5v11" />
@@ -228,6 +228,15 @@ export const Bulb = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
 <path d="M3,11h1M12,2v1M20,11h1M5.6,4.6l.7.7M18.4,4.6l-.7.7"/>
 <path d="M9,15c-2.2-1.7-2.7-4.8-1-7s4.8-2.7,7-1c2.2,1.7,2.7,4.8,1,7-.3.4-.6.7-1,1-.8.8-1.2,1.9-1,3,0,1.1-.9,2-2,2s-2-.9-2-2c.2-1.1-.2-2.2-1-3"/>
 <path d="M9.7,16h4.6"/>
+</svg>;
+
+export const CalendarCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-check">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" />
+<path d="M16 3v4" />
+<path d="M8 3v4" />
+<path d="M4 11h16" />
+<path d="M15 19l2 2l4 -4" />
 </svg>;
 
 export const CalendarClock = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-clock">
@@ -501,6 +510,18 @@ export const ClockCheck = <svg xmlns="http://www.w3.org/2000/svg" className="ico
 <path d="M20.942 13.021a9 9 0 1 0 -9.407 7.967" stroke="currentColor" />
 <path d="M12 7v5l3 3" stroke="currentColor" />
 <path d="M15 19l2 2l4 -4" stroke="currentColor" />
+</svg>;
+
+export const ClockHour4 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-clock-hour-4">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+<path d="M12 12l3 2" />
+<path d="M12 7v5" />
+</svg>;
+
+export const ClockHour4Filled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-clock-hour-4">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M17 3.34a10 10 0 1 1 -15 8.66l.005 -.324a10 10 0 0 1 14.995 -8.336m-5 2.66a1 1 0 0 0 -1 1v5.026l.009 .105l.02 .107l.04 .129l.048 .102l.046 .078l.042 .06l.069 .08l.088 .083l.083 .062l3 2a1 1 0 1 0 1.11 -1.664l-2.555 -1.704v-4.464a1 1 0 0 0 -.883 -.993z" />
 </svg>;
 
 export const ClockHour5 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-clock-hour-5">
