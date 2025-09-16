@@ -179,8 +179,8 @@ export function ModalCoverAnimation(p: ModalCoverProps & {
       )}
       <div
         className={cn(
-          'w_f h_f v_center spd_1 target anim_inner rel z2',
-          containerAnimationName || 'anim_move_up_center_appear',
+          'w_f h_f v_center target spd_1 anim_inner rel z2',
+          containerAnimationName || 'anim_move_up_center',
           visible === 2 ? 'visible' : visible === .5 ? 'reverse' : '',
           containerClassName
         )}

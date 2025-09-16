@@ -9,6 +9,7 @@ import type { StorageData } from './other.d.ts';
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
+export type OrganizationComplianceType = typeof COMPLIANCE_DOCUMENT_TYPE_ENUMS[number];
 
 type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-write, 3: allow-manage
 type ACLPermissionEnum = 'NONE' | 'READ' | 'WRITE' | 'MANAGE';
@@ -58,8 +59,8 @@ export interface OrganizationData {
 	domains: string[] | null;
 	settings?: {
 		timeZone: string | null;
-    language: string | null;
-    color: string | null;
+		language: string | null;
+		color: string | null;
 	};
 }
 
@@ -79,11 +80,28 @@ export interface OrganizationRelData {
  * GraphQL data for organization types
  */
 
+export interface OrganizationComplianceGQLData {
+	id: string;
+	number: string;
+	name: string;
+	type: OrganizationComplianceType;
+	expirationDate: string; // YYYY-MM-DD
+	notes: string;
+	files: {
+		id: string;
+		complianceId: string;
+		storageId: string;
+		uri: string | null;
+		order: number;
+	}[];
+}
+
 export interface OrganizationGQLData {
 	id: string;
-	name: string;
 	stripeCustomerId: string | null;
-	reminders: string | null;
+	name: string;
+	operation: OrganizationOperationEnum;
+	compliance: OrganizationComplianceGQLData[] | null;
 	domains: string[] | null;
 	membersCount: number;
 }
@@ -99,8 +117,8 @@ export interface OrganizationRelGQLData {
 export interface OrganizationChildGQLData {
 	id: string;
 	organization: OrganizationGQLData;
-  primaryContact: AccountData;
-  addedAt: Date;
+	primaryContact: AccountData;
+	addedAt: Date;
 }
 
 /**

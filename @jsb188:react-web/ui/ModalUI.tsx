@@ -484,7 +484,7 @@ export function ModalToolbar(p: {
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
   return <div className='of w_f rt_smw bd_b_1 bd_lt'>
     <nav className='h_45 h_spread shadow_bg shift_down'>
-      <div className='px_df ft_medium ft_sm mt_1'>
+      <div className='px_df ft_medium mt_1'>
         {!breadcrumbs ? null : breadcrumbs.map((item, i) => (
           <span
             key={i}

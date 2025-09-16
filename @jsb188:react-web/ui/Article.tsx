@@ -4,19 +4,13 @@ import type { InlineBlockLabelProps } from './Button';
 import { InlineBlockLabel } from './Button';
 
 /**
- * Types
- */
-
-interface CondensedGroupTitleProps {
-  domId?: string;
-  text: string;
-}
-
-/**
  * Condensed group title
  */
 
-export const CondensedGroupTitle = memo((p: CondensedGroupTitleProps) => {
+export const CondensedGroupTitle = memo((p: {
+  domId?: string;
+  text: string;
+}) => {
   const { text, domId } = p;
 
   return <div className='mt_md mb_sm' id={domId}>
@@ -44,67 +38,76 @@ export function CondensedGroupTitleMock() {
  * Condensed article list item
  */
 
-interface CondensedArticleItemProps {
+export const CondensedArticleItem = memo((p: {
   __deleted?: boolean;
   domIdPrefix?: string;
   id?: string;
-  preset?: 'modal' | 'default';
+  preset?: 'modal' | 'card' | 'default';
+  rightComponentClassName?: string;
   onClick?: (itemId?: string) => void;
   disabled?: boolean;
+  hideSeparator?: boolean;
   RightComponent?: React.ReactNode;
-  title: string;
-  description: string | null;
+  title?: string;
+  description?: string | null;
   descriptionPlaceholder?: string;
   labels?: Partial<InlineBlockLabelProps>[]
-}
-
-export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
-  const { __deleted, preset, domIdPrefix, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels } = p;
+}) => {
+  const { __deleted, hideSeparator, preset, domIdPrefix, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
-  const isModalPreset = preset === 'modal';
+  const useAltLabelColors = preset === 'default';
 
   // paddingClassName='px_df -mx_5'
 
-  let linkHoverClassName, paddingClassName, addSeparator;
+  let linkHoverClassName, xPaddingClassName, yPaddingClassName, addDivSeparator;
   switch (preset) {
     case 'modal':
-      addSeparator = true;
+      addDivSeparator = true;
       linkHoverClassName = 'bg_lighter_hv_4';
-      paddingClassName = 'px_md -mx_5';
+      xPaddingClassName = 'px_md -mx_5';
+      yPaddingClassName = 'py_sm';
+      break;
+    case 'card':
+      addDivSeparator = false;
+      linkHoverClassName = 'bg_lighter_hv_4';
+      xPaddingClassName = 'px_xs -mx_xs';
+      yPaddingClassName = 'py_xs';
       break;
     default:
-      addSeparator = false;
+      addDivSeparator = false;
       linkHoverClassName = 'bg_primary_hv';
-      paddingClassName = 'px_xs -mx_xs';
+      xPaddingClassName = 'px_xs -mx_xs';
+      yPaddingClassName = 'py_sm';
+      break;
   }
 
   return <article
     // style={{height: 750}}
-    id={`${domIdPrefix ? domIdPrefix + '_' : ''}${id}`}
+    id={id ? `${domIdPrefix ? domIdPrefix + '_' : ''}${id}` : undefined}
     className={cn(
       'article_item rel',
       __deleted ? 'op_40' : '',
-      !addSeparator ? 'bd_lt bd_t_1' : undefined,
-      paddingClassName,
+      !addDivSeparator && !hideSeparator ? 'bd_lt bd_t_1' : undefined,
+      xPaddingClassName,
       hasLink ? 'link ' + linkHoverClassName : undefined
     )}
     role={hasLink ? 'button' : undefined}
     onClick={hasLink ? () => onClick(id) : undefined}
   >
-    {addSeparator && (
+    {addDivSeparator && !hideSeparator && (
       <div className='bd_t_1 bd_lt' />
     )}
 
     <div className='h_item gap_xs'>
       {labels?.length && (
-        <div className='h_item f_shrink mr_3 py_sm'>
+        <div className={'h_item f_shrink mr_3 ' + yPaddingClassName}>
           {labels.map((label, i) => (
             <InlineBlockLabel
               key={i}
               as='span'
               outline
-              color={isModalPreset ? 'bg' : 'alt'}
+              color={useAltLabelColors ? 'alt' : 'bg'}
               // textColorClassName='cl_primary'
               {...label}
             />
@@ -112,16 +115,16 @@ export const CondensedArticleItem = memo((p: CondensedArticleItemProps) => {
         </div>
       )}
 
-      {title && <span className='f_shrink py_sm shift_down'>{title}</span>}
+      {title && <span className={'f_shrink shift_down ' + yPaddingClassName}>{title}</span>}
 
       {description || descriptionPlaceholder ? (
-        <span className={cn('ellip py_sm f shift_down', description ? 'cl_md' : 'cl_lt')}>
+        <span className={cn('ellip py_sm f shift_down', description ? 'cl_darker_4' : 'cl_darker_2')}>
           {description || descriptionPlaceholder}
         </span>
       ) : <span className='f' />}
 
       {!RightComponent ? null
-      : <div className='h_right gap_xs ml_xs'>
+      : <div className={cn('h_right gap_xs ml_xs', rightComponentClassName)}>
         {RightComponent}
       </div>}
     </div>
@@ -134,12 +137,10 @@ CondensedArticleItem.displayName = 'CondensedArticleItem';
  * Condensed article item mock
  */
 
-interface CondensedArticleItemMockProps {
+export function CondensedArticleItemMock(p: {
   addSeparator?: boolean;
   index?: number;
-}
-
-export function CondensedArticleItemMock(p: CondensedArticleItemMockProps) {
+}) {
   const { addSeparator, index } = p;
   const modulus = index !== undefined ? index % 3 : 0;
 
@@ -189,4 +190,27 @@ export function CondensedArticleItemMock(p: CondensedArticleItemMockProps) {
       </span>
     </div>
   </article>;
+}
+
+/**
+ * Artile card container
+ */
+
+export function ArticleCard(p: {
+  className?: string;
+  title?: string;
+  children?: React.ReactNode;
+}) {
+  const { title, children, className } = p;
+
+  return <div className={cn('bg_alt r_df', className)}>
+    {title && (
+      <div className='py_xs px_xs rt_df bg_active'>
+        {title}
+      </div>
+    )}
+    <div className='p_xs'>
+      {children}
+    </div>
+  </div>;
 }

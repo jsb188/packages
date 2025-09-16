@@ -28,6 +28,7 @@ export const organizationComplianceFragment = `fragment organizationComplianceFr
     storageId
     order
     uri
+    contentType
   }
 }`;
 

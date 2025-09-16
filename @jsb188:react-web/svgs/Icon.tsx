@@ -76,6 +76,7 @@ export const COMMON_ICON_NAMES = {
   image: 'photo',
   images: 'library-photo',
   info: 'info-circle',
+  link_chevron: 'chevron-right',
   live: 'broadcast',
   lock: 'lock',
   lock_filled: 'lock-filled',

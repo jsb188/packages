@@ -34,7 +34,7 @@ export function makeUploadsUrl(
     // Do size paths here
   }
 
-  return 'https://assets.chiefhappiness.co/' + prefix + urlPath;
+  return 'https://assets.chiefhappiness.co/marketday/' + prefix + urlPath;
 }
 
 /**

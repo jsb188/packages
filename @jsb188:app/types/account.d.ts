@@ -37,7 +37,7 @@ export interface AccountData extends AccountObj {
 	};
 	email: {
 		id: number;
-		email: string;
+		address: string;
 		primary: boolean;
 		verified: boolean;
 		banned: boolean;

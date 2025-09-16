@@ -679,3 +679,34 @@ export function getHHMMIncrements(
 
 	return hhmm;
 }
+
+/**
+ * Get color indicator based on expiration date
+ */
+
+export function getExpirationColor(
+  expirationDate: string | Date, // YYYY-MM-DD format or Date object
+): 'red' | 'yellow' | 'green' {
+  let expDate: Date;
+  if (expirationDate instanceof Date) {
+    expDate = expirationDate;
+  } else {
+    expDate = new Date(expirationDate);
+  }
+
+  if (!isValidDate(expDate)) {
+    return 'red'; // Invalid date
+  }
+
+  const now = new Date();
+  const diff = expDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+
+  if (diffDays < 0) {
+    return 'red'; // Expired
+  } else if (diffDays <= 30) {
+    return 'yellow'; // Expiring soon
+  } else {
+    return 'green'; // Valid
+  }
+}

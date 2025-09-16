@@ -727,7 +727,7 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .cl_darker_1 { color: rgba(var(--color-darker-rgb),.1); }
 .cl_darker_2 { color: rgba(var(--color-darker-rgb),.2); }
 .cl_darker_3 { color: rgba(var(--color-darker-rgb),.3); }
-.cl_darker_4 { color: rgba(var(--color-darker-rgb),.5); }
+.cl_darker_4 { color: rgba(var(--color-darker-rgb),.42); }
 .cl_darker_5 { color: rgba(var(--color-darker-rgb),.64); }
 
 .cl_lighter_1 { color: rgba(var(--color-lighter-rgb),.1); }
