@@ -418,16 +418,15 @@ export function groupCollections(
 				innerParent.forEach((obj: any) => {
 					const innerParentObj = getObject(obj, afterHash);
 					if (innerParentObj) {
-            if (Array.isArray(innerParentObj)) {
-              setObject(obj, afterHash, uniqBy(innerParentObj, primaryKeyName));
-            } else {
-              setObject(obj, afterHash, [innerParentObj]);
-            }
-          }
+						if (Array.isArray(innerParentObj)) {
+							setObject(obj, afterHash, uniqBy(innerParentObj, primaryKeyName));
+						} else {
+							setObject(obj, afterHash, [innerParentObj]);
+						}
+					}
 				});
 			}
-    });
-
+		});
 	});
 
 	return groupedCollections;
