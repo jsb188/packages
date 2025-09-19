@@ -69,6 +69,7 @@ export default {
     dismiss: 'Dismiss',
     description: 'Description',
     no_desc: 'No description.',
+    no_additional_notes: 'No additional notes.',
     use_default: 'Use default',
     use_personal: 'Use personal',
     learn_more: 'Learn more',

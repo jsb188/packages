@@ -36,6 +36,7 @@ export const FileViewer = memo((p: {
   switch (contentType) {
     case 'application/pdf':
       return <iframe
+        style={{ border: 'none', outline: 'none' }}
         // src={fileUrl + '#toolbar=0&navpanes=0&scrollbar=0'}
         // src={fileUrl + '#navpanes=0&scrollbar=0'}
         src={fileUrl}
@@ -94,11 +95,10 @@ const DocumentViewer = memo((p: {
         // paddingClassName='px_md'
         breadcrumbs={breadcrumbs}
         onCloseModal={onCloseModal}
-
       />
 
       <div className='px_md'>
-        <h4 className='pt_md mb_df ft_tn ft_medium'>
+        <h4 className='pt_md mb_20 ft_tn ft_medium'>
           {title}
         </h4>
 

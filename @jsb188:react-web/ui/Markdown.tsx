@@ -590,13 +590,11 @@ function MarkdownCmp(p: MarkdownProps) {
  * Types
  */
 
-type CodeComponentProps = {
+export type RenderMappedCodeFn = (p: {
   code: string;
   imageUri?: string;
   fullText: string;
-};
-
-export type RenderMappedCodeFn = (p: CodeComponentProps) => React.ReactNode;
+}) => React.ReactNode;
 
 type MarkdownProps = Partial<{
   children: string;

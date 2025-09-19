@@ -621,7 +621,7 @@ export const LabeledContentLine = memo((p: {
   marginClassName?: string;
   labelClassName?: string;
   label: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) => {
   const { label, labelClassName, marginClassName, children } = p;
   const El = p.as || 'div';
