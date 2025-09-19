@@ -259,7 +259,7 @@ export function ModalWrapper(p: ModalWrapperProps) {
     >
       {!onCloseModal ? null : (
         <button
-          className='abs_corner_df z1 cl_lt mt_5 mr_xs v_center'
+          className='abs_corner_df z1 cl_lt v_center'
           onClick={onCloseModal}
         >
           <span className='r av_sm v_center ic_df'>

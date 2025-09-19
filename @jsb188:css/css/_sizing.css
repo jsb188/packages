@@ -322,6 +322,14 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .py_25 { padding-top: 25px; padding-bottom: 25px; }
 .px_25 { padding-left: 25px; padding-right: 25px; }
 
+.p_50 { padding: 50px; }
+.py_50 { padding-top: 50px; padding-bottom: 50px; }
+.px_50 { padding-left: 50px; padding-right: 50px; }
+
+.p_75 { padding: 75px; }
+.py_75 { padding-top: 75px; padding-bottom: 75px; }
+.px_75 { padding-left: 75px; padding-right: 75px; }
+
 .p_xs { padding: var(--rem-xsmall); }
 .py_xs { padding-top: var(--rem-xsmall); padding-bottom: var(--rem-xsmall); }
 .px_xs { padding-left: var(--rem-xsmall); padding-right: var(--rem-xsmall); }
@@ -436,6 +444,16 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .pb_25 { padding-bottom: 25px; }
 .pl_25 { padding-left: 25px; }
 
+.pt_50 { padding-top: 50px; }
+.pr_50 { padding-right: 50px; }
+.pb_50 { padding-bottom: 50px; }
+.pl_50 { padding-left: 50px; }
+
+.pt_75 { padding-top: 75px; }
+.pr_75 { padding-right: 75px; }
+.pb_75 { padding-bottom: 75px; }
+.pl_75 { padding-left: 75px; }
+
 .pt_xs { padding-top: var(--rem-xsmall); }
 .pr_xs { padding-right: var(--rem-xsmall); }
 .pb_xs { padding-bottom: var(--rem-xsmall); }
@@ -539,6 +557,14 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .m_25 { margin: 25px; }
 .my_25 { margin-top: 25px; margin-bottom: 25px; }
 .mx_25 { margin-left: 25px; margin-right: 25px; }
+
+.m_50 { margin: 50px; }
+.my_50 { margin-top: 50px; margin-bottom: 50px; }
+.mx_50 { margin-left: 50px; margin-right: 50px; }
+
+.m_75 { margin: 75px; }
+.my_75 { margin-top: 75px; margin-bottom: 75px; }
+.mx_75 { margin-left: 75px; margin-right: 75px; }
 
 .m_xs { margin: var(--rem-xsmall); }
 .my_xs { margin-top: var(--rem-xsmall); margin-bottom: var(--rem-xsmall); }
@@ -653,6 +679,16 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .mr_25 { margin-right: 25px; }
 .mb_25 { margin-bottom: 25px; }
 .ml_25 { margin-left: 25px; }
+
+.mt_50 { margin-top: 50px; }
+.mr_50 { margin-right: 50px; }
+.mb_50 { margin-bottom: 50px; }
+.ml_50 { margin-left: 50px; }
+
+.mt_75 { margin-top: 75px; }
+.mr_75 { margin-right: 75px; }
+.mb_75 { margin-bottom: 75px; }
+.ml_75 { margin-left: 75px; }
 
 .mt_xs { margin-top: var(--rem-xsmall); }
 .mr_xs { margin-right: var(--rem-xsmall); }

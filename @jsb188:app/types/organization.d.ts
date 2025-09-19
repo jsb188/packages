@@ -92,6 +92,7 @@ export interface OrganizationComplianceGQLData {
 		complianceId: string;
 		storageId: string;
 		uri: string | null;
+    contentType: string | null;
 		order: number;
 	}[];
 }
@@ -138,6 +139,7 @@ export interface OrganizationComplianceInsertObj {
 	storageIds: number[] | null;
 	number: string;
 	name: string;
+  type: OrganizationComplianceType;
 	expirationDate: string; // cast as date: "YYYY-MM-DD" format (in database)
 	notes?: string;
 }

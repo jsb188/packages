@@ -24,11 +24,15 @@ export const CHILD_ORGANIZATION_TYPE_ENUMS = ['PRODUCER', 'VENDOR'];
 
 // Compliance
 
-export const COMPLIANCE_DOCUMENT_TYPE_ENUMS = [
-  'ORGANIC',
-  'INSURANCE',
-  'PRODUCERS_CERTIFICATE',
-  'MILK_HANDLER_LICENSE',
-  'EGG_HANDLER_LICENSE',
-  'NURSERY_LICENSE'
-];
+export const COMPLIANCE_DOCUMENT_TYPE_MAP = {
+	'Organic Certificate': 'ORGANIC',
+	'Insurance Policy/Insurance Certificate': 'INSURANCE',
+	"Producer's Certificate": 'PRODUCERS_CERTIFICATE',
+	'Milk Handler License': 'MILK_HANDLER_LICENSE',
+	'Egg Handler License': 'EGG_HANDLER_LICENSE',
+	'Nursery License': 'NURSERY_LICENSE',
+};
+
+export const COMPLIANCE_DOCUMENT_TYPE_ENUMS = Object.values(COMPLIANCE_DOCUMENT_TYPE_MAP);
+
+export const COMPLIANCE_DOCUMENT_TYPE_LABELS = Object.keys(COMPLIANCE_DOCUMENT_TYPE_MAP);

@@ -18,6 +18,7 @@ export default {
     deleted: 'Deleted',
     delete: 'Delete',
     balance: 'Balance',
+    untitled_document: 'Untitled document',
     try_again: 'Try again',
     refresh_page: 'Refresh page',
     search: 'Search',
