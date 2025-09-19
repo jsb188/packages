@@ -506,7 +506,7 @@ export const FloatingMessage = memo((p: FloatingMessageProps) => {
 
   return <div
     className={cn(
-      'floating_msg_cnt abs_t z3 cw df pt_sm',
+      'floating_msg_cnt abs_t z4 cw df pt_sm',
       visibility >= 2 ? 'active' : visibility ? '' : 'hidden',
       className
     )}

@@ -1,6 +1,9 @@
+import i18n from '@jsb188/app/i18n';
 import { orderBy } from '@jsb188/app/utils/object';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
-import { memo, useState, useMemo } from 'react';
+import { ModalToolbar } from '@jsb188/react-web/ui/ModalUI';
+import type { ModalToolbarBreadcrumb } from '@jsb188/react-web/ui/ModalUI';
+import { memo, useMemo, useState } from 'react';
 
 /**
  * Types
@@ -18,7 +21,7 @@ interface DocumentViewerFileObj {
  * View files
  */
 
-const FileViewer = memo((p: {
+export const FileViewer = memo((p: {
   file: DocumentViewerFileObj;
 }) => {
   const { file } = p;
@@ -61,32 +64,47 @@ FileViewer.displayName = 'FileViewer';
  */
 
 const DocumentViewer = memo((p: {
+  onCloseModal?: () => void;
   children: React.ReactNode;
   initialIndex?: number;
   files: DocumentViewerFileObj[];
   title: string;
+  breadcrumbs?: ModalToolbarBreadcrumb[];
 }) => {
 
-  const { title, files, children, initialIndex } = p;
+  const { onCloseModal, breadcrumbs, title, files, children, initialIndex } = p;
   const [selectedIx, setSelectedIx] = useState(initialIndex || 0);
   const documentFiles = useMemo(() => {
     return orderBy(files, 'order', 'asc');
   }, [files]);
 
   return <div className='w_f h_f h_top'>
-    <div className='fs'>
+    <div className='rel z1 fs shadow_soft_lg'>
       <FileViewer
         file={documentFiles[selectedIx]}
       />
     </div>
 
-    <div className='w_350 f_shrink px_df py_df bg_alt f_stretch'>
-      <h4 className='pt_md mb_df ft_xs ft_medium'>
-        {title}
-      </h4>
+    <aside className='w_350 f_shrink bg f_stretch'>
+      {/* <ModalAsideToolbar
+        title={i18n.t('organization.compliance_title')}
+        onCloseModal={onCloseModal}
+      /> */}
+      <ModalToolbar
+        // paddingClassName='px_md'
+        breadcrumbs={breadcrumbs}
+        onCloseModal={onCloseModal}
 
-      {children}
-    </div>
+      />
+
+      <div className='px_md'>
+        <h4 className='pt_md mb_df ft_tn ft_medium'>
+          {title}
+        </h4>
+
+        {children}
+      </div>
+    </aside>
   </div>;
 });
 

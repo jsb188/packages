@@ -873,6 +873,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 
 /* Shadow */
 .shadow, .shadow_hv:hover { box-shadow: var(--shadow); }
+.shadow_soft_lg, .shadow_soft_lg_hv:hover { box-shadow: var(--shadow-soft-lg); }
 .shadow_line, .shadow_line_hv:hover { box-shadow: var(--shadow-line); }
 .shadow_light, .shadow_light_hv:hover { box-shadow: var(--shadow-light); }
 .shadow_float, .shadow_float_hv:hover { box-shadow: var(--shadow-float); }

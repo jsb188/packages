@@ -7,6 +7,7 @@ import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
 import Markdown, { EmojiWrapper } from './Markdown';
 import { ShortcutKey } from './OtherUI';
+import { memo } from 'react';
 
 /**
  * Types
@@ -464,7 +465,7 @@ export function AlertPopUp(p: AlertDataProps) {
 }
 
 /**
- * Alert toolbar with breadcrumbs
+ * Modal toolbar with breadcrumbs inside screen or popup
  */
 
 export interface ModalToolbarBreadcrumb {
@@ -474,17 +475,18 @@ export interface ModalToolbarBreadcrumb {
 }
 
 export function ModalToolbar(p: {
+  paddingClassName?: string;
   breadcrumbs?: ModalToolbarBreadcrumb[];
   onCloseModal?: () => void;
 }) {
-  const { breadcrumbs, onCloseModal } = p;
+  const { paddingClassName, breadcrumbs, onCloseModal } = p;
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
   return <div className='of w_f rt_smw bd_b_1 bd_lt'>
     <nav className='h_45 h_spread shadow_bg shift_down'>
-      <div className='px_df ft_medium mt_1'>
+      <div className={cn('ft_medium mt_1', paddingClassName ?? 'px_df')}>
         {!breadcrumbs ? null : breadcrumbs.map((item, i) => (
           <span
             key={i}

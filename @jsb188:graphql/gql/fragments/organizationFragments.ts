@@ -21,6 +21,8 @@ export const organizationComplianceFragment = `fragment organizationComplianceFr
   type
   expirationDate
   notes
+  createdAt
+  updatedAt
 
   files {
     id

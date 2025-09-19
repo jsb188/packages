@@ -611,3 +611,28 @@ export const StickyFooterArea = memo((p: StickyFooterAreaProps) => {
 });
 
 StickyFooterArea.displayName = 'StickyFooterArea';
+
+/**
+ * Label + content line item
+ */
+
+export const LabeledContentLine = memo((p: {
+  as?: React.ElementType;
+  marginClassName?: string;
+  labelClassName?: string;
+  label: string;
+  children: React.ReactNode;
+}) => {
+  const { label, labelClassName, marginClassName, children } = p;
+  const El = p.as || 'div';
+
+  return <El className={cn('h_item', marginClassName ?? 'mb_xs')}>
+    <span className={cn('mr_sm shift_down', labelClassName)}>
+      {label}
+    </span>
+
+    {children}
+  </El>;
+});
+
+LabeledContentLine.displayName = 'LabeledContentLine';

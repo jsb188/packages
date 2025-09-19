@@ -87,6 +87,9 @@ export interface OrganizationComplianceGQLData {
 	type: OrganizationComplianceType;
 	expirationDate: string; // YYYY-MM-DD
 	notes: string;
+  createdAt: string; // ISO date string
+	updatedAt: string; // ISO date string
+
 	files: {
 		id: string;
 		complianceId: string;

@@ -330,7 +330,7 @@ export interface InlineBlockLabelProps {
 
 export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
   const { color, iconSizeClassName, iconName, text, className, fillTextColor, textColorClassName, colorIndicator, outline } = p;
-  const El = p.as || 'strong';
+  const El = p.as || 'span';
   const isLightBackground = ['bg', 'alt', 'active'].includes(String(color));
 
   return <El className={cn('ib_label f_shrink', outline && 'outline', !fillTextColor && (color && `${color}_bf`), className)}>
