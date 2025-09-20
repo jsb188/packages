@@ -80,19 +80,19 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
   background-color: rgb(var(--color-bg-active)) !important;
 }
 
-.bg_medium_hv:hover {
+.bg_medium_fd, .bg_medium_hv:hover {
   background-color: rgb(var(--color-bg-medium)) !important;
 }
 
-.bg_primary_hv:hover {
+.bg_primary_fd, .bg_primary_hv:hover {
   background-color: rgba(var(--color-primary), .064) !important;
 }
 
-.bg_secondary_hv:hover {
+.bg_secondary_fd, .bg_secondary_hv:hover {
   background-color: rgba(var(--color-secondary), .1) !important;
 }
 
-.bg_main_hv:hover {
+.bg_main_fd, .bg_main_hv:hover {
   background-color: rgba(var(--color-main), .064) !important;
 }
 
@@ -528,194 +528,257 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 
 /* Colors - Palette */
 
+.cl_red_fd { color: var(--color-red-fade); }
 .cl_red_lt { color: var(--color-red-light); }
 .cl_red_md { color: var(--color-red-medium); }
 .cl_red { color: var(--color-red-default); }
+.cl_orange_fd { color: var(--color-orange-fade); }
 .cl_orange_lt { color: var(--color-orange-light); }
 .cl_orange_md { color: var(--color-orange-medium); }
 .cl_orange { color: var(--color-orange-default); }
+.cl_brown_fd { color: var(--color-brown-fade); }
 .cl_brown_lt { color: var(--color-brown-light); }
 .cl_brown_md { color: var(--color-brown-medium); }
 .cl_brown { color: var(--color-brown-default); }
+.cl_amber_fd { color: var(--color-amber-fade); }
 .cl_amber_lt { color: var(--color-amber-light); }
 .cl_amber_md { color: var(--color-amber-medium); }
 .cl_amber { color: var(--color-amber-default); }
+.cl_yellow_fd { color: var(--color-yellow-fade); }
 .cl_yellow_lt { color: var(--color-yellow-light); }
 .cl_yellow_md { color: var(--color-yellow-medium); }
 .cl_yellow { color: var(--color-yellow-default); }
+.cl_lime_fd { color: var(--color-lime-fade); }
 .cl_lime_lt { color: var(--color-lime-light); }
 .cl_lime_md { color: var(--color-lime-medium); }
 .cl_lime { color: var(--color-lime-default); }
+.cl_green_fd { color: var(--color-green-fade); }
 .cl_green_lt { color: var(--color-green-light); }
 .cl_green_md { color: var(--color-green-medium); }
 .cl_green { color: var(--color-green-default); }
+.cl_emerald_fd { color: var(--color-emerald-fade); }
 .cl_emerald_lt { color: var(--color-emerald-light); }
 .cl_emerald_md { color: var(--color-emerald-medium); }
 .cl_emerald { color: var(--color-emerald-default); }
+.cl_teal_fd { color: var(--color-teal-fade); }
 .cl_teal_lt { color: var(--color-teal-light); }
 .cl_teal_md { color: var(--color-teal-medium); }
 .cl_teal { color: var(--color-teal-default); }
+.cl_cyan_fd { color: var(--color-cyan-fade); }
 .cl_cyan_lt { color: var(--color-cyan-light); }
 .cl_cyan_md { color: var(--color-cyan-medium); }
 .cl_cyan { color: var(--color-cyan-default); }
+.cl_sky_fd { color: var(--color-sky-fade); }
 .cl_sky_lt { color: var(--color-sky-light); }
 .cl_sky_md { color: var(--color-sky-medium); }
 .cl_sky { color: var(--color-sky-default); }
+.cl_blue_fd { color: var(--color-blue-fade); }
 .cl_blue_lt { color: var(--color-blue-light); }
 .cl_blue_md { color: var(--color-blue-medium); }
 .cl_blue { color: var(--color-blue-default); }
+.cl_indigo_fd { color: var(--color-indigo-fade); }
 .cl_indigo_lt { color: var(--color-indigo-light); }
 .cl_indigo_md { color: var(--color-indigo-medium); }
 .cl_indigo { color: var(--color-indigo-default); }
+.cl_violet_fd { color: var(--color-violet-fade); }
 .cl_violet_lt { color: var(--color-violet-light); }
 .cl_violet_md { color: var(--color-violet-medium); }
 .cl_violet { color: var(--color-violet-default); }
+.cl_purple_fd { color: var(--color-purple-fade); }
 .cl_purple_lt { color: var(--color-purple-light); }
 .cl_purple_md { color: var(--color-purple-medium); }
 .cl_purple { color: var(--color-purple-default); }
+.cl_fuchsia_fd { color: var(--color-fuchsia-fade); }
 .cl_fuchsia_lt { color: var(--color-fuchsia-light); }
 .cl_fuchsia_md { color: var(--color-fuchsia-medium); }
 .cl_fuchsia { color: var(--color-fuchsia-default); }
+.cl_pink_fd { color: var(--color-pink-fade); }
 .cl_pink_lt { color: var(--color-pink-light); }
 .cl_pink_md { color: var(--color-pink-medium); }
 .cl_pink { color: var(--color-pink-default); }
+.cl_rose_fd { color: var(--color-rose-fade); }
 .cl_rose_lt { color: var(--color-rose-light); }
 .cl_rose_md { color: var(--color-rose-medium); }
 .cl_rose { color: var(--color-rose-default); }
+.cl_slate_fd { color: var(--color-slate-fade); }
 .cl_slate_lt { color: var(--color-slate-light); }
 .cl_slate_md { color: var(--color-slate-medium); }
 .cl_slate { color: var(--color-slate-default); }
+.cl_zinc_fd { color: var(--color-zinc-fade); }
 .cl_zinc_lt { color: var(--color-zinc-light); }
 .cl_zinc_md { color: var(--color-zinc-medium); }
 .cl_zinc { color: var(--color-zinc-default); }
+.cl_stone_fd { color: var(--color-stone-fade); }
 .cl_stone_lt { color: var(--color-stone-light); }
 .cl_stone_md { color: var(--color-stone-medium); }
 .cl_stone { color: var(--color-stone-default); }
 
+.bg_red_fd { background-color: var(--color-red-fade); }
 .bg_red_lt { background-color: var(--color-red-light); }
 .bg_red_md { background-color: var(--color-red-medium); }
 .bg_red { background-color: var(--color-red-default); color: var(--color-solid); }
+.bg_orange_fd { background-color: var(--color-orange-fade); }
 .bg_orange_lt { background-color: var(--color-orange-light); }
 .bg_orange_md { background-color: var(--color-orange-medium); }
 .bg_orange { background-color: var(--color-orange-default); color: var(--color-solid); }
+.bg_brown_fd { background-color: var(--color-brown-fade); }
 .bg_brown_lt { background-color: var(--color-brown-light); }
 .bg_brown_md { background-color: var(--color-brown-medium); }
 .bg_brown { background-color: var(--color-brown-default); color: var(--color-solid); }
+.bg_amber_fd { background-color: var(--color-amber-fade); }
 .bg_amber_lt { background-color: var(--color-amber-light); }
 .bg_amber_md { background-color: var(--color-amber-medium); }
 .bg_amber { background-color: var(--color-amber-default); color: var(--color-solid); }
+.bg_yellow_fd { background-color: var(--color-yellow-fade); }
 .bg_yellow_lt { background-color: var(--color-yellow-light); }
 .bg_yellow_md { background-color: var(--color-yellow-medium); }
 .bg_yellow { background-color: var(--color-yellow-default); color: var(--color-solid); }
+.bg_lime_fd { background-color: var(--color-lime-fade); }
 .bg_lime_lt { background-color: var(--color-lime-light); }
 .bg_lime_md { background-color: var(--color-lime-medium); }
 .bg_lime { background-color: var(--color-lime-default); color: var(--color-solid); }
+.bg_green_fd { background-color: var(--color-green-fade); }
 .bg_green_lt { background-color: var(--color-green-light); }
 .bg_green_md { background-color: var(--color-green-medium); }
 .bg_green { background-color: var(--color-green-default); color: var(--color-solid); }
+.bg_emerald_fd { background-color: var(--color-emerald-fade); }
 .bg_emerald_lt { background-color: var(--color-emerald-light); }
 .bg_emerald_md { background-color: var(--color-emerald-medium); }
 .bg_emerald { background-color: var(--color-emerald-default); color: var(--color-solid); }
+.bg_teal_fd { background-color: var(--color-teal-fade); }
 .bg_teal_lt { background-color: var(--color-teal-light); }
 .bg_teal_md { background-color: var(--color-teal-medium); }
 .bg_teal { background-color: var(--color-teal-default); color: var(--color-solid); }
+.bg_cyan_fd { background-color: var(--color-cyan-fade); }
 .bg_cyan_lt { background-color: var(--color-cyan-light); }
 .bg_cyan_md { background-color: var(--color-cyan-medium); }
 .bg_cyan { background-color: var(--color-cyan-default); color: var(--color-solid); }
+.bg_sky_fd { background-color: var(--color-sky-fade); }
 .bg_sky_lt { background-color: var(--color-sky-light); }
 .bg_sky_md { background-color: var(--color-sky-medium); }
 .bg_sky { background-color: var(--color-sky-default); color: var(--color-solid); }
+.bg_blue_fd { background-color: var(--color-blue-fade); }
 .bg_blue_lt { background-color: var(--color-blue-light); }
 .bg_blue_md { background-color: var(--color-blue-medium); }
 .bg_blue { background-color: var(--color-blue-default); color: var(--color-solid); }
+.bg_indigo_fd { background-color: var(--color-indigo-fade); }
 .bg_indigo_lt { background-color: var(--color-indigo-light); }
 .bg_indigo_md { background-color: var(--color-indigo-medium); }
 .bg_indigo { background-color: var(--color-indigo-default); color: var(--color-solid); }
+.bg_violet_fd { background-color: var(--color-violet-fade); }
 .bg_violet_lt { background-color: var(--color-violet-light); }
 .bg_violet_md { background-color: var(--color-violet-medium); }
 .bg_violet { background-color: var(--color-violet-default); color: var(--color-solid); }
+.bg_purple_fd { background-color: var(--color-purple-fade); }
 .bg_purple_lt { background-color: var(--color-purple-light); }
 .bg_purple_md { background-color: var(--color-purple-medium); }
 .bg_purple { background-color: var(--color-purple-default); color: var(--color-solid); }
+.bg_fuchsia_fd { background-color: var(--color-fuchsia-fade); }
 .bg_fuchsia_lt { background-color: var(--color-fuchsia-light); }
 .bg_fuchsia_md { background-color: var(--color-fuchsia-medium); }
 .bg_fuchsia { background-color: var(--color-fuchsia-default); color: var(--color-solid); }
+.bg_pink_fd { background-color: var(--color-pink-fade); }
 .bg_pink_lt { background-color: var(--color-pink-light); }
 .bg_pink_md { background-color: var(--color-pink-medium); }
 .bg_pink { background-color: var(--color-pink-default); color: var(--color-solid); }
+.bg_rose_fd { background-color: var(--color-rose-fade); }
 .bg_rose_lt { background-color: var(--color-rose-light); }
 .bg_rose_md { background-color: var(--color-rose-medium); }
 .bg_rose { background-color: var(--color-rose-default); color: var(--color-solid); }
+.bg_slate_fd { background-color: var(--color-slate-fade); }
 .bg_slate_lt { background-color: var(--color-slate-light); }
 .bg_slate_md { background-color: var(--color-slate-medium); }
 .bg_slate { background-color: var(--color-slate-default); color: var(--color-solid); }
+.bg_zinc_fd { background-color: var(--color-zinc-fade); }
 .bg_zinc_lt { background-color: var(--color-zinc-light); }
 .bg_zinc_md { background-color: var(--color-zinc-medium); }
 .bg_zinc { background-color: var(--color-zinc-default); color: var(--color-solid); }
+.bg_stone_fd { background-color: var(--color-stone-fade); }
 .bg_stone_lt { background-color: var(--color-stone-light); }
 .bg_stone_md { background-color: var(--color-stone-medium); }
 .bg_stone { background-color: var(--color-stone-default); color: var(--color-solid); }
 
+.bd_red_fd { border-color: var(--color-red-fade); }
 .bd_red_lt { border-color: var(--color-red-light); }
 .bd_red_md { border-color: var(--color-red-medium); }
 .bd_red { border-color: var(--color-red-default); }
+.bd_orange_fd { border-color: var(--color-orange-fade); }
 .bd_orange_lt { border-color: var(--color-orange-light); }
 .bd_orange_md { border-color: var(--color-orange-medium); }
 .bd_orange { border-color: var(--color-orange-default); }
+.bd_brown_fd { border-color: var(--color-brown-fade); }
 .bd_brown_lt { border-color: var(--color-brown-light); }
 .bd_brown_md { border-color: var(--color-brown-medium); }
 .bd_brown { border-color: var(--color-brown-default); }
+.bd_amber_fd { border-color: var(--color-amber-fade); }
 .bd_amber_lt { border-color: var(--color-amber-light); }
 .bd_amber_md { border-color: var(--color-amber-medium); }
 .bd_amber { border-color: var(--color-amber-default); }
+.bd_yellow_fd { border-color: var(--color-yellow-fade); }
 .bd_yellow_lt { border-color: var(--color-yellow-light); }
 .bd_yellow_md { border-color: var(--color-yellow-medium); }
 .bd_yellow { border-color: var(--color-yellow-default); }
+.bd_lime_fd { border-color: var(--color-lime-fade); }
 .bd_lime_lt { border-color: var(--color-lime-light); }
 .bd_lime_md { border-color: var(--color-lime-medium); }
 .bd_lime { border-color: var(--color-lime-default); }
+.bd_green_fd { border-color: var(--color-green-fade); }
 .bd_green_lt { border-color: var(--color-green-light); }
 .bd_green_md { border-color: var(--color-green-medium); }
 .bd_green { border-color: var(--color-green-default); }
+.bd_emerald_fd { border-color: var(--color-emerald-fade); }
 .bd_emerald_lt { border-color: var(--color-emerald-light); }
 .bd_emerald_md { border-color: var(--color-emerald-medium); }
 .bd_emerald { border-color: var(--color-emerald-default); }
+.bd_teal_fd { border-color: var(--color-teal-fade); }
 .bd_teal_lt { border-color: var(--color-teal-light); }
 .bd_teal_md { border-color: var(--color-teal-medium); }
 .bd_teal { border-color: var(--color-teal-default); }
+.bd_cyan_fd { border-color: var(--color-cyan-fade); }
 .bd_cyan_lt { border-color: var(--color-cyan-light); }
 .bd_cyan_md { border-color: var(--color-cyan-medium); }
 .bd_cyan { border-color: var(--color-cyan-default); }
+.bd_sky_fd { border-color: var(--color-sky-fade); }
 .bd_sky_lt { border-color: var(--color-sky-light); }
 .bd_sky_md { border-color: var(--color-sky-medium); }
 .bd_sky { border-color: var(--color-sky-default); }
+.bd_blue_fd { border-color: var(--color-blue-fade); }
 .bd_blue_lt { border-color: var(--color-blue-light); }
 .bd_blue_md { border-color: var(--color-blue-medium); }
 .bd_blue { border-color: var(--color-blue-default); }
+.bd_indigo_fd { border-color: var(--color-indigo-fade); }
 .bd_indigo_lt { border-color: var(--color-indigo-light); }
 .bd_indigo_md { border-color: var(--color-indigo-medium); }
 .bd_indigo { border-color: var(--color-indigo-default); }
+.bd_violet_fd { border-color: var(--color-violet-fade); }
 .bd_violet_lt { border-color: var(--color-violet-light); }
 .bd_violet_md { border-color: var(--color-violet-medium); }
 .bd_violet { border-color: var(--color-violet-default); }
+.bd_purple_fd { border-color: var(--color-purple-fade); }
 .bd_purple_lt { border-color: var(--color-purple-light); }
 .bd_purple_md { border-color: var(--color-purple-medium); }
 .bd_purple { border-color: var(--color-purple-default); }
+.bd_fuchsia_fd { border-color: var(--color-fuchsia-fade); }
 .bd_fuchsia_lt { border-color: var(--color-fuchsia-light); }
 .bd_fuchsia_md { border-color: var(--color-fuchsia-medium); }
 .bd_fuchsia { border-color: var(--color-fuchsia-default); }
+.bd_pink_fd { border-color: var(--color-pink-fade); }
 .bd_pink_lt { border-color: var(--color-pink-light); }
 .bd_pink_md { border-color: var(--color-pink-medium); }
 .bd_pink { border-color: var(--color-pink-default); }
+.bd_rose_fd { border-color: var(--color-rose-fade); }
 .bd_rose_lt { border-color: var(--color-rose-light); }
 .bd_rose_md { border-color: var(--color-rose-medium); }
 .bd_rose { border-color: var(--color-rose-default); }
+.bd_slate_fd { border-color: var(--color-slate-fade); }
 .bd_slate_lt { border-color: var(--color-slate-light); }
 .bd_slate_md { border-color: var(--color-slate-medium); }
 .bd_slate { border-color: var(--color-slate-default); }
+.bd_zinc_fd { border-color: var(--color-zinc-fade); }
 .bd_zinc_lt { border-color: var(--color-zinc-light); }
 .bd_zinc_md { border-color: var(--color-zinc-medium); }
 .bd_zinc { border-color: var(--color-zinc-default); }
+.bd_stone_fd { border-color: var(--color-stone-fade); }
 .bd_stone_lt { border-color: var(--color-stone-light); }
 .bd_stone_md { border-color: var(--color-stone-medium); }
 .bd_stone { border-color: var(--color-stone-default); }

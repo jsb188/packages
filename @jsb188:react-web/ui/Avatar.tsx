@@ -353,12 +353,11 @@ export function Avatar(p: AvatarProps) {
  * Avatar
  */
 
-interface AvatarImgProps extends AvatarProps {
+export function AvatarImg(p: AvatarProps & {
+  outline?: boolean;
   square?: boolean;
   letterBackgroundClassName?: string;
-}
-
-export function AvatarImg(p: AvatarImgProps) {
+}) {
   const {
     children,
     draggable,
@@ -370,6 +369,7 @@ export function AvatarImg(p: AvatarImgProps) {
     imageClassName,
     animateGifs,
     square,
+    outline,
     letterAs
   } = p;
 
@@ -405,7 +405,7 @@ export function AvatarImg(p: AvatarImgProps) {
         sizeClass,
         'av main',
         radiusClassName,
-        !hasImg && displayName && letterBackgroundClassName,
+        outline || (!hasImg && displayName) ? letterBackgroundClassName : '',
         hasImg ? '' : 'v_center',
         className,
       )}

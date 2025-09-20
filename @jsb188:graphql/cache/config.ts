@@ -25,6 +25,7 @@ export const RULES = {
   cardsForUser: true,
   chat: true,
   chatsList: true,
+  organizationEvents: true,
   childOrganizations: true,
   parentOrganization: true,
   editChat: true,

@@ -1,8 +1,9 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
-import { organizationRelationshipQry, myOrganizationsQry, childOrganizationsQry } from '../gql/queries/organizationQueries';
+import { organizationRelationshipQry, myOrganizationsQry, childOrganizationsQry, organizationEventsQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
 
-const ORGS_LIMIT = 200;
+const ORG_CHILDREN_LIMIT = 200;
+const ORG_EVENTS_LIMIT = 200;
 
 /**
  * Fetch organization relationship
@@ -51,7 +52,7 @@ export function useChildOrganizations(variables: PaginationArgs & {
       ...variables,
       cursor: null,
       after: true,
-      limit: ORGS_LIMIT
+      limit: ORG_CHILDREN_LIMIT
     },
     skip: !variables.organizationId,
     ...params,
@@ -84,6 +85,24 @@ export function useReactiveOrganizationChildFragment(organizationId: string, cur
  * Fetch org events
  */
 
-export function useOrganizationEvents() {
-  // organizationEventsQry
+export function useOrganizationEvents(variables: PaginationArgs & {
+  organizationId: string;
+  timeZone: string | null;
+  // filter: FilterLogEntriesArgs;
+}, params: UseQueryParams = {}) {
+  const { data, ...other } = useQuery(organizationEventsQry, {
+    variables: {
+      ...variables,
+      cursor: null,
+      after: true,
+      limit: ORG_EVENTS_LIMIT
+    },
+    skip: !variables.organizationId,
+    ...params,
+  });
+
+  return {
+    organizationEvents: data?.organizationEvents,
+    ...other
+  };
 }

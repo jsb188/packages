@@ -67,13 +67,15 @@ ${organizationRelationshipFragment}
 
 export const organizationEventsQry = gql`
 query organizationEvents (
-  $organizationId: GenericID!
+  $organizationId: GenericID
+  $timeZone: String
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!
 ) {
   organizationEvents (
     organizationId: $organizationId
+    timeZone: $timeZone
     cursor: $cursor
     after: $after
     limit: $limit
