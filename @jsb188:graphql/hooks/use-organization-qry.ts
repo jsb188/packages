@@ -79,3 +79,11 @@ export function useReactiveOrganizationChildFragment(organizationId: string, cur
     queryCount,
   );
 }
+
+/**
+ * Fetch org events
+ */
+
+export function useOrganizationEvents() {
+  // organizationEventsQry
+}

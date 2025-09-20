@@ -1,5 +1,4 @@
 import { gql } from 'graphql-tag';
-import { alertFragment } from '../fragments/otherFragments';
 
 export const prepareFileUploadMtn = gql`
 mutation prepareFileUpload (
@@ -27,20 +26,4 @@ mutation finishFileUpload (
     uri
   }
 }
-`;
-
-export const alertCallToActionMtn = gql`
-mutation alertCallToAction (
-  $alertId: GenericID!
-  $approve: Boolean!
-) {
-  alertCallToAction (
-    alertId: $alertId
-    approve: $approve
-  ) {
-    ...alertFragment
-  }
-}
-
-${alertFragment}
 `;

@@ -11,12 +11,15 @@ export const phoneFragment = `fragment phoneFragment on Phone {
   primary
 }`;
 
-export const alertFragment = `fragment alertFragment on Alert {
+export const addressFragment = `fragment addressFragment on Address {
   id
-  relatedId
-  relatedUserId
-  type
-  value
-  createdAt
-  updatedAt
+	organizationId
+  line1
+  line2
+  city
+  state
+  postalCode
+  country
+	createdAt
+	updatedAt
 }`;

@@ -14,6 +14,19 @@ export const organizationFragment = `fragment organizationFragment on Organizati
   }
 }`;
 
+export const organizationEventFragment = `fragment organizationEventFragment on OrganizationEvent {
+  id
+	organizationId
+
+  name
+  type
+  startAt
+  endAt
+
+	createdAt
+	updatedAt
+}`;
+
 export const organizationComplianceFragment = `fragment organizationComplianceFragment on OrganizationCompliance {
   id
   number

@@ -29,7 +29,6 @@
     "./queries/billing": "./gql/queries/billingQueries.ts",
     "./queries/log": "./gql/queries/logQueries.ts",
     "./queries/organization": "./gql/queries/organizationQueries.ts",
-    "./queries/other": "./gql/queries/otherQueries.ts",
     "./queries/user": "./gql/queries/userQueries.ts",
     "./cache": "./cache/index.ts",
     "./client": "./client/index.ts",
