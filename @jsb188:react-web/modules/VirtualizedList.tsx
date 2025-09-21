@@ -1,10 +1,12 @@
+import { DOM_IDS } from '@jsb188/app/constants/app';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { uniq } from '@jsb188/app/utils/object';
 import { cn } from '@jsb188/app/utils/string';
 import { loadFragment } from '@jsb188/graphql/cache';
-import { TDCol, TRow } from '@jsb188/react-web/ui/TableListUI';
+import type { TableHeaderObj } from '@jsb188/react-web/ui/TableListUI';
+import { TDCol, THead, TRow } from '@jsb188/react-web/ui/TableListUI';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
-import { isValidElement, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactDivElement, ReactSpanElement } from '../types/dom.d';
 
 /**
@@ -42,6 +44,12 @@ type RenderItemFn = (
   // When groupItems() is not used, it will be a normal list map, like so:
   (item: VZListItemObj, i: number, list: VZListItemObj[]) => React.ReactNode
 );
+
+type MapListDataFn = (
+  item: VZListItemObj,
+  i: number,
+  list: VZListItemObj[]
+) => (string | ReactSpanElement | React.ReactNode | null)[]; // Returning "null" hides the row
 
 interface VZReferenceObj {
   mounted: boolean;
@@ -97,10 +105,10 @@ interface VirtualizedListProps extends ReactDivElement {
   openModalPopUp: OpenModalPopUpFn;
 
   // DOM props
-  rootElementQuery: string; // Scrollable DOM element where the list is contained
+  rootElementQuery?: string; // Scrollable DOM element where the list is contained
 }
 
-type VirtualizedListOmit = Omit<VirtualizedListProps, 'HeaderComponent' | 'FooterComponent' | 'renderItem' | 'groupItems'>;
+type VirtualizedListOmit = Omit<VirtualizedListProps, 'renderItem' | 'groupItems'>;
 
 /**
  * Static list container with same class name
@@ -165,7 +173,7 @@ function getCursorPosition(
     return [null, null, 0, true, Date.now()];
   }
 
-  const { rootElementQuery } = p;
+  const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const rootElement = globalThis?.document.querySelector(rootElementQuery);
   if (!rootElement || !listElement) {
     return null; // Impossible logic
@@ -194,7 +202,8 @@ function getCursorPosition(
  * Scroll to bottom
  */
 
-function scrollToTop(rootElementQuery: string, instant = false) {
+function scrollToTop(rootElementQuery_: string, instant = false) {
+  const rootElementQuery = rootElementQuery_ || `#${DOM_IDS.mainBodyScrollArea}`;
 
   // requestAnimationFrame() is necessary to prevent a slight difference in scroll position calculation
   if (instant) {
@@ -252,9 +261,8 @@ function repositionList(
   listElement: HTMLDivElement | null,
   p: VirtualizedListProps | VirtualizedListOmit
 ) {
-  console.dev('REPOSITIONING LIST');
 
-  const { rootElementQuery } = p;
+  const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const [id, itemDomId, topOffset] = cursorPosition;
   const rootElement = globalThis?.document.querySelector(rootElementQuery);
   if (!id || !rootElement || !listElement) {
@@ -388,7 +396,8 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
 
 function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzState: VirtualizedState) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
-  const { startOfListItems, rootElementQuery, limit, fetchMore, openModalPopUp } = p;
+  const { startOfListItems, limit, fetchMore, openModalPopUp } = p;
+  const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const listRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -570,6 +579,7 @@ export function VirtualizedList(p: VirtualizedListProps) {
     <div ref={bottomRef}>
       {hasMoreBottom && MockComponent}
     </div>
+
     {!hasMoreBottom && FooterComponent &&
       <FooterComponent
         maxFetchLimit={maxFetchLimit}
@@ -580,14 +590,57 @@ export function VirtualizedList(p: VirtualizedListProps) {
 }
 
 /**
- * Virtualized table list
+ * Upcoming events table list
  */
 
-export interface TableHeaderObj {
-  text: string;
-  style: React.CSSProperties;
-  className?: string;
-}
+export const TableList = memo((p: {
+  gridLayoutStyle?: string;
+  cellClassNames?: (string | undefined)[];
+  applyGridToRows?: boolean;
+  headers: TableHeaderObj[];
+  listData: VZListItemObj[] | null;
+  mapListData: MapListDataFn;
+  onClickRow?: (vzItem?: VZListItemObj) => void;
+}) => {
+  const { gridLayoutStyle, headers, listData, mapListData, cellClassNames, applyGridToRows, onClickRow } = p;
+  return <>
+    <THead
+      applyGridToRows={applyGridToRows}
+      gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
+      headers={headers}
+      cellClassNames={cellClassNames}
+    />
+    {listData?.map((item: VZListItemObj, i: number, list: any[]) => {
+      const rowData = mapListData(item, i, list);
+      if (!rowData) {
+        return null;
+      }
+
+      return <TRow
+        key={item.item.id}
+        onClick={() => onClickRow?.(item)}
+        applyGridToRows={applyGridToRows}
+        gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
+      >
+        {rowData.map((cell, j) =>
+          <TDCol
+            key={j}
+            className={cellClassNames?.[i]}
+            applyGridToRows={applyGridToRows}
+          >
+            {isValidElement(cell) ? cell : typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
+          </TDCol>
+        )}
+      </TRow>;
+    })}
+  </>;
+});
+
+TableList.displayName = 'TableList';
+
+/**
+ * Virtualized table list
+ */
 
 export function VirtualizedTableList(p: VirtualizedListOmit & {
   onClickRow?: (vzItem?: VZListItemObj) => void;
@@ -596,64 +649,45 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   cellClassNames?: (string | undefined)[];
   headers: TableHeaderObj[];
   // Use this to map list data to table row cells data
-  mapListData: (item: VZListItemObj, i: number, list: VZListItemObj[]) => (string | ReactSpanElement | React.ReactNode)[]
+  mapListData: MapListDataFn;
 }) {
-  const { MockComponent, className, headers, cellClassNames, mapListData, applyGridToRows, gridLayoutStyle, onClickRow } = p;
+  const { HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, mapListData, applyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
-  const { listData, hasMoreTop, hasMoreBottom } = vzState;
+  const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
   const numColumns = headers.length;
 
   // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
-  return <div className='-mx_xs'>
+  return <div className={cn('-mx_xs', className)}>
+    <div ref={topRef}>
+      {hasMoreTop ? MockComponent : HeaderComponent}
+    </div>
+
     <div
       ref={listRef}
       style={!applyGridToRows && gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
-      className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns, className)}
+      className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns)}
     >
-      <TRow
+      <TableList
+        gridLayoutStyle={gridLayoutStyle}
         applyGridToRows={applyGridToRows}
-        gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
-        thead
-      >
-        {headers.map(({text, className, ...rest}, i) => (
-          <TDCol
-            key={i}
-            applyGridToRows={applyGridToRows}
-            className={cn('ft_medium cl_md', cellClassNames?.[i], className)}
-            {...rest}
-          >
-            {text}
-          </TDCol>
-        ))}
-      </TRow>
-
-      <div className='gcol_fill' ref={topRef}>
-        {hasMoreTop && MockComponent}
-      </div>
-
-      {listData?.map((item: VZListItemObj, i: number, list: any[]) =>
-        <TRow
-          key={item.item.id}
-          onClick={() => onClickRow?.(item)}
-          applyGridToRows={applyGridToRows}
-          gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
-        >
-          {mapListData(item, i, list).map((cell, j) =>
-            <TDCol
-              key={j}
-              className={cellClassNames?.[i]}
-              applyGridToRows={applyGridToRows}
-            >
-              {isValidElement(cell) ? cell : typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
-            </TDCol>
-          )}
-        </TRow>
-      )}
+        listData={listData}
+        mapListData={mapListData}
+        headers={headers}
+        cellClassNames={cellClassNames}
+        onClickRow={onClickRow}
+      />
     </div>
 
-    <div className='gcol_fill' ref={bottomRef}>
+    <div ref={bottomRef}>
       {hasMoreBottom && MockComponent}
     </div>
+
+    {!hasMoreBottom && FooterComponent &&
+      <FooterComponent
+        maxFetchLimit={maxFetchLimit}
+        loadedDataSize={referenceObj.current.itemIds!?.length}
+      />
+    }
   </div>;
 }

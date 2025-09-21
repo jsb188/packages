@@ -16,15 +16,22 @@ export const organizationFragment = `fragment organizationFragment on Organizati
 
 export const organizationEventFragment = `fragment organizationEventFragment on OrganizationEvent {
   id
+  accountId
 	organizationId
 
   name
   type
+  status
+  recurring
   startAt
   endAt
 
 	createdAt
 	updatedAt
+}`;
+
+export const organizationLoadListFragment = `fragment organizationLoadListFragment on OrganizationLoadList {
+  id
 }`;
 
 export const organizationComplianceFragment = `fragment organizationComplianceFragment on OrganizationCompliance {

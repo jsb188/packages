@@ -1,28 +1,8 @@
-
 /**
  * Types
  */
 
 type LightModeValue = 'LIGHT' | 'DARK' | 'SYSTEM';
-type FriendStatusEnum = 'BLOCKED' | 'DECLINED' | 'PENDING' | 'ACCEPTED';
-
-interface FriendFragment {
-  myStatus: FriendStatusEnum;
-  otherStatus: FriendStatusEnum;
-}
-
-interface FriendOptionsObj {
-  friendButtonText: string;
-  friendButtonIconName: string;
-  friendStatusText: string;
-  messageAllowed: boolean;
-  options: {
-    value: string;
-    iconName: string;
-    text: string;
-  }[];
-}
-
 type PlusGroupEnum = 'NORMAL' | 'PERKS' | 'PLUS' | 'PRO';
 
 interface UserSubOutput {
@@ -68,7 +48,7 @@ export function updateLightMode(mode_: string | undefined, newValue: LightModeVa
  * Resolve user's online status for chat
  */
 
-export function resolveOnlineStatus(user: object, viewerUserId: number) {
+export function resolveOnlineStatus(user: any, viewerUserId: number) {
   // console.log('..... RESOLVE ONLINE STATUS .....', user.id, viewerUserId, user.onlineStatus);
   if (
     // This check won't be valid if user is switching logins;

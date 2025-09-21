@@ -25,6 +25,7 @@
     "./utils/number": "./utils/number.ts",
     "./utils/object": "./utils/object.ts",
     "./utils/organization": "./utils/organization.ts",
+    "./utils/organization-event": "./utils/organization-event.ts",
     "./utils/string": "./utils/string.ts",
     "./utils/timeZone": "./utils/timeZone.ts",
     "./utils/url_client": "./utils/url_client.ts",

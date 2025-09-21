@@ -27,12 +27,15 @@ export function getDefaultLogEntriesFilter(operation: FilterLogEntriesArgs['oper
  * Fetch log entries
  */
 
-export function useLogEntries(variables: PaginationArgs & {
-  organizationId: string;
-  accountId?: string;
-  timeZone: string | null;
-  filter: FilterLogEntriesArgs;
-}, params: UseQueryParams = {}) {
+export function useLogEntries(
+  variables: PaginationArgs & {
+    organizationId: string;
+    accountId?: string;
+    timeZone: string | null;
+    filter: FilterLogEntriesArgs;
+  },
+  params: UseQueryParams = {}
+) {
 
   const { data, ...rest } = useQuery(logEntriesQry, {
     variables: {

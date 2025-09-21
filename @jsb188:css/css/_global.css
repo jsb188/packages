@@ -7,6 +7,15 @@ html, body {
   overscroll-behavior-y: none;
 }
 
+/*
+This will allow things like "animate height to auto" behaviors
+Right now its only supported for Chrome.
+But later (years later) when its supported everywhere, we can enable it.
+`
+html {
+  interpolate-size: allow-keywords;
+} */
+
 body {
   scroll-behavior: smooth;
   padding: 0;
@@ -1170,3 +1179,66 @@ rect.s_dot_away {
 .secondary_bf:before {
   background-color: rgb(var(--color-secondary));
 }
+
+.red_light_bf:before { background-color: var(--color-red-light); }
+.red_light_bf { color: var(--color-red-default) !important; }
+
+.orange_light_bf:before { background-color: var(--color-orange-light); }
+.orange_light_bf { color: var(--color-orange-default) !important; }
+
+.brown_light_bf:before { background-color: var(--color-brown-light); }
+.brown_light_bf { color: var(--color-brown-default) !important; }
+
+.amber_light_bf:before { background-color: var(--color-amber-light); }
+.amber_light_bf { color: var(--color-amber-default) !important; }
+
+.yellow_light_bf:before { background-color: var(--color-yellow-light); }
+.yellow_light_bf { color: var(--color-yellow-default) !important; }
+
+.lime_light_bf:before { background-color: var(--color-lime-light); }
+.lime_light_bf { color: var(--color-lime-default) !important; }
+
+.green_light_bf:before { background-color: var(--color-green-light); }
+.green_light_bf { color: var(--color-green-default) !important; }
+
+.emerald_light_bf:before { background-color: var(--color-emerald-light); }
+.emerald_light_bf { color: var(--color-emerald-default) !important; }
+
+.teal_light_bf:before { background-color: var(--color-teal-light); }
+.teal_light_bf { color: var(--color-teal-default) !important; }
+
+.cyan_light_bf:before { background-color: var(--color-cyan-light); }
+.cyan_light_bf { color: var(--color-cyan-default) !important; }
+
+.sky_light_bf:before { background-color: var(--color-sky-light); }
+.sky_light_bf { color: var(--color-sky-default) !important; }
+
+.blue_light_bf:before { background-color: var(--color-blue-light); }
+.blue_light_bf { color: var(--color-blue-default) !important; }
+
+.indigo_light_bf:before { background-color: var(--color-indigo-light); }
+.indigo_light_bf { color: var(--color-indigo-default) !important; }
+
+.violet_light_bf:before { background-color: var(--color-violet-light); }
+.violet_light_bf { color: var(--color-violet-default) !important; }
+
+.purple_light_bf:before { background-color: var(--color-purple-light); }
+.purple_light_bf { color: var(--color-purple-default) !important; }
+
+.fuchsia_light_bf:before { background-color: var(--color-fuchsia-light); }
+.fuchsia_light_bf { color: var(--color-fuchsia-default) !important; }
+
+.pink_light_bf:before { background-color: var(--color-pink-light); }
+.pink_light_bf { color: var(--color-pink-default) !important; }
+
+.rose_light_bf:before { background-color: var(--color-rose-light); }
+.rose_light_bf { color: var(--color-rose-default) !important; }
+
+.slate_light_bf:before { background-color: var(--color-slate-light); }
+.slate_light_bf { color: var(--color-slate-default) !important; }
+
+.zinc_light_bf:before { background-color: var(--color-zinc-light); }
+.zinc_light_bf { color: var(--color-zinc-default) !important; }
+
+.stone_light_bf:before { background-color: var(--color-stone-light); }
+.stone_light_bf { color: var(--color-stone-default) !important; }

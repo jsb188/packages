@@ -317,7 +317,7 @@ export function InlineButtonLink(p: NormalButtonLinkProps) {
 
 export interface InlineBlockLabelProps {
   as?: React.ElementType;
-  color?: 'bg' | 'alt' | 'active' | 'primary' | 'secondary';
+  color?: 'bg' | 'alt' | 'active' | 'primary' | 'secondary' | string;
   iconSizeClassName?: string;
   className?: string;
   textColorClassName?: string;

@@ -230,6 +230,28 @@ export const Bulb = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
 <path d="M9.7,16h4.6"/>
 </svg>;
 
+export const Calendar1 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-calendar">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" />
+<path d="M16 3v4" />
+<path d="M8 3v4" />
+<path d="M4 11h16" />
+<path d="M11 15h1" />
+<path d="M12 15v3" />
+</svg>;
+
+export const Calendar1Filled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-tabler icons-tabler-filled icon-tabler-calendar">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M16 2a1 1 0 0 1 .993 .883l.007 .117v1h1a3 3 0 0 1 2.995 2.824l.005 .176v12a3 3 0 0 1 -2.824 2.995l-.176 .005h-12a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-12a3 3 0 0 1 2.824 -2.995l.176 -.005h1v-1a1 1 0 0 1 1.993 -.117l.007 .117v1h6v-1a1 1 0 0 1 1 -1zm3 7h-14v9.625c0 .705 .386 1.286 .883 1.366l.117 .009h12c.513 0 .936 -.53 .993 -1.215l.007 -.16v-9.625z" />
+<path d="M12 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 1 -1.993 .117l-.007 -.117v-2a1 1 0 0 1 -.117 -1.993l.117 -.007h1z" />
+</svg>;
+
+export const CalendarCancelFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-calendar-cancel">
+<path d="M14.6,18.3c0,2,1.6,3.7,3.7,3.7s3.7-1.6,3.7-3.7-1.6-3.7-3.7-3.7-3.7,1.6-3.7,3.7" fill="none" stroke="currentColor" strokeWidth="2" />
+<path d="M15.9,20.8l4.9-4.9" fill="none" stroke="currentColor" strokeWidth="2" />
+<path d="M21,6.8c0-1.6-1.4-2.8-3-2.8h-1v-1h0c0-.6-.5-1-1-1s-1,.4-1,1v1h-6v-1h0c0-.6-.5-1-1-1s-1,.4-1,1v1h-1.2c-1.6,0-2.8,1.4-2.8,3v12.2c0,1.6,1.4,2.8,3,2.8h5.5c.6,0,1-.4,1-1s-.4-1-1-1h-5.7c-.5,0-.9-.7-.9-1.4v-9.6h14v2.5c0,.6.4,1,1,1s1.1-.4,1.1-1v-4.7Z" fill="currentColor" />
+</svg>;
+
 export const CalendarCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-check">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" />
@@ -237,6 +259,11 @@ export const CalendarCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 <path d="M8 3v4" />
 <path d="M4 11h16" />
 <path d="M15 19l2 2l4 -4" />
+</svg>;
+
+export const CalendarCheckFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-calendar-cancel">
+<path d="M21,6.8c0-1.6-1.4-2.8-3-2.8h-1v-1h0c0-.6-.5-1-1-1s-1,.4-1,1v1h-6v-1h0c0-.6-.5-1-1-1s-1,.4-1,1v1h-1.2c-1.6,0-2.8,1.4-2.8,3v12.2c0,1.6,1.4,2.8,3,2.8h4.5c.6,0,1-.4,1-1s-.4-1-1-1h-4.7c-.5,0-.9-.7-.9-1.4v-9.6h14v3.5c0,.6.4,1,1,1s1.1-.4,1.1-1v-5.7Z"/>
+<path d="M14,18.7l2.5,2.5,5.1-5.1" fill="none" stroke="currentColor" strokeWidth="2" />
 </svg>;
 
 export const CalendarClock = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-clock">
@@ -256,6 +283,12 @@ export const CalendarDot = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 <path d="M8 3v4" stroke="currentColor" />
 <path d="M4 11h16" stroke="currentColor" />
 <path d="M19 19m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" stroke="currentColor" />
+</svg>;
+
+export const CalendarDotFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-tabler icons-tabler-filled icon-tabler-calendar-event">
+<path d="M0,0h24v24H0V0Z"  stroke="none" fill="none"/>
+<path d="M16,2c.5,0,.9.4,1,.9h0v1.1h1c1.6,0,2.9,1.2,3,2.8v.2s0,12,0,12c0,1.6-1.2,2.9-2.8,3h-.2s-12,0-12,0c-1.6,0-2.9-1.2-3-2.8v-.2s0-12,0-12c0-1.6,1.2-2.9,2.8-3h.2s1,0,1,0v-1c0-.6.4-1,1-1,.5,0,.9.4,1,.9h0v1.1h6v-1c0-.6.4-1,1-1M19,9H5v9.6c0,.7.4,1.3.9,1.4h.1s12,0,12,0c.5,0,.9-.5,1-1.2v-.2s0-9.6,0-9.6Z"/>
+<circle cx="12" cy="14.5" r="1.8"/>
 </svg>;
 
 export const CalendarEvent = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-event">
@@ -307,6 +340,12 @@ export const CalendarWeekFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBo
 <path d="M17.02 13a1 1 0 0 1 -1 1a1.001 1.001 0 1 1 -.005 -2c.557 0 1.005 .448 1.005 1" />
 <path d="M12.02 15a1 1 0 0 1 0 2a1.001 1.001 0 1 1 -.005 -2z" />
 <path d="M9.015 16a1 1 0 0 1 -1 1a1.001 1.001 0 1 1 -.005 -2c.557 0 1.005 .448 1.005 1" />
+</svg>;
+
+export const Cancel = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-cancel">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+<path d="M18.364 5.636l-12.728 12.728" />
 </svg>;
 
 export const CannabisFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-cannabis">
@@ -450,6 +489,11 @@ export const CircleNumber1 = <svg xmlns="http://www.w3.org/2000/svg" className="
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" stroke="currentColor" />
 <path d="M10 10l2 -2v8" stroke="currentColor" />
+</svg>;
+
+export const CircleNumber1Filled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"  fill="currentColor"  className="icon icon-tabler icons-tabler-filled icon-tabler-circle-number-1">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10zm.994 5.886c-.083 -.777 -1.008 -1.16 -1.617 -.67l-.084 .077l-2 2l-.083 .094a1 1 0 0 0 0 1.226l.083 .094l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l.293 -.293v5.586l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-8l-.006 -.114z" />
 </svg>;
 
 export const CircleNumber2 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-circle-number-2" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -1320,6 +1364,12 @@ export const Sparkles = <svg xmlns="http://www.w3.org/2000/svg" className="icon 
 export const Square = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-square">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" />
+</svg>;
+
+export const SquareCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-square-check">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" />
+<path d="M9 12l2 2l4 -4" />
 </svg>;
 
 export const SquareCheckFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-square-check">

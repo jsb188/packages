@@ -1,6 +1,7 @@
-import { ORGANIZATION_EVENT_TYPES } from '../constants/organization-event.ts';
+import { ORGANIZATION_EVENT_TYPES, ORGANIZATION_EVENT_STATUS } from '../constants/organization-event.ts';
 
 export type OrganizationEventTypeEnum = typeof ORGANIZATION_EVENT_TYPES[number];
+export type OrganizationEventStatusEnum = typeof ORGANIZATION_EVENT_STATUS[number];
 
 /**
  * Org addresses
@@ -71,6 +72,8 @@ export interface OrganizationEventGQLData {
 	accountId: string;
 	name: string;
 	type: OrganizationEventTypeEnum;
+  status: OrganizationEventStatusEnum;
+  recurring: boolean;
 	startAt: string;
 	endAt: string;
 	address: OrganizationAddressGQLData; // This must *never* be null

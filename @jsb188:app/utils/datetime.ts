@@ -95,7 +95,7 @@ export function getDatePeriod(d1: Date, d2: Date): DatePeriodEnum {
  */
 
 export function getFullDateTime(
-	_d: Date | string | number | null,
+	d_: Date | string | number | null,
 	params?: Partial<{
 		timeZone: string | null;
 		locales: string;
@@ -103,6 +103,7 @@ export function getFullDateTime(
 		hideDate: boolean;
 		hideTime: boolean;
 		textDateStyle: 'long' | 'short' | 'numeric' | null;
+    militaryTime: boolean;
 		alwaysShowYear: boolean;
 		includeWeekday: boolean | 'long' | 'short' | 'narrow';
 	}>,
@@ -114,16 +115,17 @@ export function getFullDateTime(
 		hideDate,
 		hideTime,
 		textDateStyle,
+    militaryTime,
 		alwaysShowYear,
 		includeWeekday,
 	} = params || {};
 
 	let d;
-	if (_d instanceof Date) {
-		d = _d;
+	if (d_ instanceof Date) {
+		d = d_;
 	} else {
-		// Make sure _d is not null, before using this function
-		d = _d ? new Date(_d) : new Date(-1);
+		// Make sure d_ is not null, before using this function
+		d = d_ ? new Date(d_) : new Date(-1);
 	}
 
 	let timeZone = timeZone_ || undefined; // cannot be null, else it will throw error
@@ -134,8 +136,9 @@ export function getFullDateTime(
 	if (hideDate) {
 		return d.toLocaleTimeString(locales, {
 			timeZone,
-			hour: 'numeric',
-			minute: '2-digit',
+      hour: hideTime ? undefined : militaryTime ? '2-digit' : 'numeric',
+      minute: hideTime ? undefined : '2-digit',
+      hour12: !militaryTime,
 		});
 	}
 
@@ -162,8 +165,9 @@ export function getFullDateTime(
 		weekday: weekday as 'long' | 'short' | 'narrow',
 		month: textDateStyle || 'numeric',
 		year: hideYear_ ? undefined : 'numeric',
-		hour: hideTime ? undefined : 'numeric',
+		hour: hideTime ? undefined : militaryTime ? '2-digit' : 'numeric',
 		minute: hideTime ? undefined : '2-digit',
+    hour12: !militaryTime,
 	});
 }
 
@@ -346,7 +350,7 @@ export function isFutureCalDate(
  */
 
 export function getTimeAgo(
-	_d: Date | string | number | null,
+	d_: Date | string | number | null,
 	params?: Partial<TimeAgoParams>,
 ) {
 	const {
@@ -359,13 +363,13 @@ export function getTimeAgo(
 	} = params || {};
 
 	let d;
-	if (_d instanceof Date) {
-		d = _d;
-	} else if (!isNaN(Number(_d))) {
-		d = new Date(Number(_d));
+	if (d_ instanceof Date) {
+		d = d_;
+	} else if (!isNaN(Number(d_))) {
+		d = new Date(Number(d_));
 	} else {
 		// Make sure date is not null, before using this function
-		d = _d ? new Date(_d) : new Date(-1);
+		d = d_ ? new Date(d_) : new Date(-1);
 	}
 
 	const ts = d.getTime();
@@ -430,18 +434,39 @@ export function getTimeAgo(
  */
 
 export function getFullDate(
-	_d: Date | string | number | null,
-	outputStyle: 'DATE_ONLY' | 'DATE_TEXT' | 'MINIMAL' | 'DETAILED' = 'DATE_ONLY',
+	d_: Date | string | number | null,
+	outputStyle_: 'DATE_ONLY' | 'DAY_IF_WEEK' | 'DATE_TEXT' | 'MINIMAL' | 'DETAILED' = 'DATE_ONLY',
 	timeZone: string | null,
 	locales: string = 'en-US',
 ) {
 	let d;
-	if (_d instanceof Date) {
-		d = _d;
+	if (d_ instanceof Date) {
+		d = d_;
 	} else {
-		// Make sure _d is not null, before using this function
-		d = _d ? new Date(_d) : new Date(-1);
+		// Make sure d_ is not null, before using this function
+		d = d_ ? new Date(d_) : new Date(-1);
 	}
+
+  let outputStyle;
+  if (outputStyle_ === 'DAY_IF_WEEK') {
+    const datePeriod = getDatePeriod(d, new Date());
+    if (['TODAY', 'TOMORROW'].includes(datePeriod)) {
+      return i18n.t(`datetime.period_${datePeriod}`);
+    }
+
+    const daysRemaining = getDaysDiff(d, new Date());
+    if (daysRemaining >= 0 && daysRemaining <= 6) {
+      // return "Monday", "Tuesday", etc.
+      return d.toLocaleDateString(locales, {
+        timeZone: timeZone || undefined, // null is not allowed, it will throw error
+        weekday: 'long',
+      });
+    }
+
+    outputStyle = 'DATE_ONLY';
+  } else {
+    outputStyle = outputStyle_;
+  }
 
 	switch (outputStyle) {
 		case 'DATE_ONLY':

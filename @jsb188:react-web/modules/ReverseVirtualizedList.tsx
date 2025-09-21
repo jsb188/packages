@@ -1,3 +1,4 @@
+import { DOM_IDS } from '@jsb188/app/constants/app';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { uniq } from '@jsb188/app/utils/object';
 import { cn } from '@jsb188/app/utils/string';
@@ -85,7 +86,7 @@ interface ReverseVZListProps extends ReactDivElement {
   openModalPopUp: OpenModalPopUpFn;
 
   // DOM props
-  rootElementQuery: string; // Scrollable DOM element where the list is contained
+  rootElementQuery?: string; // Scrollable DOM element where the list is contained
   scrollBottomThreshold?: number; // Positon from bottom to be considered "scrolled to bottom" // If decimals (.25), then it's % of clientHeight of scrollable DOM
 }
 
@@ -152,7 +153,7 @@ function getCursorPosition(
     return [null, null, 0, true, Date.now()];
   }
 
-  const { rootElementQuery } = p;
+  const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const rootElement = globalThis?.document.querySelector(rootElementQuery);
   if (!rootElement || !listElement) {
     return null; // Impossible logic
@@ -181,7 +182,9 @@ function getCursorPosition(
  * Scroll to bottom
  */
 
-function scrollToBottom(rootElementQuery: string, instant = false) {
+function scrollToBottom(rootElementQuery_: string, instant = false) {
+  const rootElementQuery = rootElementQuery_ || `#${DOM_IDS.mainBodyScrollArea}`;
+
   // requestAnimationFrame() is necessary to prevent a slight difference in scroll position calculation
   if (instant) {
     globalThis?.requestAnimationFrame(() => {
@@ -238,7 +241,7 @@ function repositionList(
   listElement: HTMLDivElement | null,
   p: ReverseVZListProps
 ) {
-  const { rootElementQuery } = p;
+  const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const [id, itemDomId, topOffset] = cursorPosition;
   const rootElement = globalThis?.document.querySelector(rootElementQuery);
   if (!id || !rootElement || !listElement) {
@@ -376,7 +379,8 @@ function useVirtualizedState(p: ReverseVZListProps): VirtualizedState {
 
 function useVirtualizedDOM(p: ReverseVZListProps, vzState: VirtualizedState) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
-  const { endOfListItems, rootElementQuery, scrollBottomThreshold, limit, fetchMore, openModalPopUp } = p;
+  const { endOfListItems, scrollBottomThreshold, limit, fetchMore, openModalPopUp } = p;
+  const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const listRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);

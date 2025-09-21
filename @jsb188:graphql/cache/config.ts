@@ -26,6 +26,8 @@ export const RULES = {
   chat: true,
   chatsList: true,
   organizationEvents: true,
+  organizationLoadLists: true,
+  myOrganizations: true,
   childOrganizations: true,
   parentOrganization: true,
   editChat: true,

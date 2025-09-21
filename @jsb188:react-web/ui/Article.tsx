@@ -10,10 +10,11 @@ import { InlineBlockLabel } from './Button';
 export const CondensedGroupTitle = memo((p: {
   domId?: string;
   text: string;
+  marginClassName?: string;
 }) => {
-  const { text, domId } = p;
+  const { text, domId, marginClassName } = p;
 
-  return <div className='mt_md mb_sm' id={domId}>
+  return <div className={marginClassName ?? 'mt_md mb_sm'} id={domId}>
     <h4 className='ft_normal ft_xs p_n m_n cl_darker_2 ls_2'>
       {text}
     </h4>
