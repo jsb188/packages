@@ -16,11 +16,11 @@
   box-shadow: var(--shadow);
 }
 
-.popover.small .tooltip {
+.popover.small .tooltip:not(.w_override) {
   max-width: 150px;
 }
 
-.popover.default .tooltip {
+.popover.default .tooltip:not(.w_override) {
   max-width: 225px;
 }
 

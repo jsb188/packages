@@ -950,12 +950,8 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .shadow_light, .shadow_light_hv:hover { box-shadow: var(--shadow-light); }
 .shadow_float, .shadow_float_hv:hover { box-shadow: var(--shadow-float); }
 .shadow_bg, .shadow_bg_hv:hover { box-shadow: 0 0 7px rgb(var(--color-bg)); }
-.shadow_bg_lg, .shadow_bg_lg_hv:hover { box-shadow: 0 25px 50px rgb(var(--color-bg)); }
+.shadow_bg_lg, .shadow_bg_lg_hv:hover { box-shadow: 0 20px 40px rgb(var(--color-bg)); }
 .shadow_bg_alt_lg, .shadow_bg_alt_lg_hv:hover { box-shadow: 0 0 25px rgb(var(--color-bg-alt)); }
-
-/* Minor effects */
-
-.op_btn:hover { opacity: .58; }
 
 /* Transitions */
 

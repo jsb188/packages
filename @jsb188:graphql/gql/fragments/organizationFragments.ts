@@ -21,11 +21,21 @@ export const organizationEventFragment = `fragment organizationEventFragment on 
 
   name
   type
-  status
-  recurring
+  paused
+
+  schedule {
+    frequency
+    interval
+    byDay
+    byMonthDay
+    byMonth
+    once
+    startTime
+    endTime
+  }
+
   startAt
   endAt
-
 	createdAt
 	updatedAt
 }`;

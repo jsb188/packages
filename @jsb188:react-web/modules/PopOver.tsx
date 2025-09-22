@@ -388,6 +388,7 @@ type TooltipButtonProps = {
   position?: POPosition;
   title?: string;
   message?: string;
+  tooltipClassName?: string;
   disabled?: boolean;
   className?: string;
   children: any;
@@ -402,7 +403,7 @@ type TooltipButtonProps = {
  */
 
 export const TooltipButton = memo((p: TooltipButtonProps) => {
-  const { disabled, children, title, message, position, offsetX, offsetY, onClick, as, ...other } = p;
+  const { disabled, children, title, message, position, offsetX, offsetY, onClick, as, tooltipClassName, ...rest } = p;
   const Element = as || 'button';
   const tooltipDisabled = disabled || !message;
   const { tooltip, openTooltip, closeTooltip } = useTooltip();
@@ -421,6 +422,7 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
         id: unique.current,
         title,
         message,
+        tooltipClassName,
         position,
         offsetX,
         offsetY,
@@ -457,30 +459,7 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
       }
     },
     onMouseEnter: (e: React.MouseEvent) => {
-      if (e.isTrusted && !tooltipDisabled && unique.current !== tooltip?.id) {
-        // Can't use this because e.target sometimes returns inner element, which causes incorrect positioning
-        // const rect = e.target.getBoundingClientRect();
-        const rect = el.current!.getBoundingClientRect();
-
-        openTooltip({
-          id: unique.current,
-          title,
-          message,
-          position,
-          offsetX,
-          offsetY,
-          rect: {
-            width: rect.width,
-            height: rect.height,
-            left: rect.left,
-            right: rect.right,
-            top: rect.top,
-            bottom: rect.bottom,
-            x: rect.x,
-            y: rect.y,
-          },
-        });
-      }
+      onOpenTooltip(e);
     },
     onMouseLeave: (e: React.MouseEvent) => {
       if (e.isTrusted && !tooltipDisabled) {
@@ -504,7 +483,7 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
   }, [disabled]);
 
   return (
-    <Element {...props} {...other} ref={el}>
+    <Element {...props} {...rest} ref={el}>
       {children}
     </Element>
   );

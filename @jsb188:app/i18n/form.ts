@@ -100,6 +100,7 @@ export default {
     time_with_zone: 'Time (%{timeZone})',
     day: 'Day',
     date: 'Date',
+    schedule: 'Schedule',
     recurring: 'Recurring',
     start_date: 'Start date',
     end_date: 'End date',

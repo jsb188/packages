@@ -1,7 +1,7 @@
-import { ORGANIZATION_EVENT_TYPES, ORGANIZATION_EVENT_STATUS } from '../constants/organization-event.ts';
+import { ORGANIZATION_EVENT_TYPES } from '../constants/organization-event.ts';
+import type { EventScheduleObj } from './other.d.ts';
 
 export type OrganizationEventTypeEnum = typeof ORGANIZATION_EVENT_TYPES[number];
-export type OrganizationEventStatusEnum = typeof ORGANIZATION_EVENT_STATUS[number];
 
 /**
  * Org addresses
@@ -47,10 +47,10 @@ export interface OrganizationEventUpsertObj {
 	addressId: number;
 	addressOverrideId?: number | null;
 
-	deleted?: boolean; // For delete ops only
-
 	name: string;
 	type: OrganizationEventTypeEnum;
+	paused: boolean;
+  schedule: EventScheduleObj | null;
 	startAt: Date;
 	endAt: Date;
 }
@@ -72,10 +72,10 @@ export interface OrganizationEventGQLData {
 	accountId: string;
 	name: string;
 	type: OrganizationEventTypeEnum;
-  status: OrganizationEventStatusEnum;
-  recurring: boolean;
-	startAt: string;
-	endAt: string;
+	paused: boolean;
+	schedule: EventScheduleObj; // resolver will force non-null values
+	startAt: string | Date;
+	endAt: string | Date | null;
 	address: OrganizationAddressGQLData; // This must *never* be null
 	addressOverride?: OrganizationAddressGQLData | null;
 	createdAt: string;

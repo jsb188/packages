@@ -243,6 +243,7 @@ export interface PopOverHookProps extends PopOverHandlerProps {
 export interface TooltipProps extends Partial<FixedElementProps> {
   title?: string;
   message?: string;
+  tooltipClassName?: string;
 }
 
 export type OpenTooltipFn = (data: TooltipProps) => void;

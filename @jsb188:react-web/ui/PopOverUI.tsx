@@ -1,5 +1,5 @@
 import { cn } from '@jsb188/app/utils/string';
-import type { ClosePopOverFn, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POTextObj } from '@jsb188/react/types/PopOver.d';
+import type { ClosePopOverFn, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POTextObj, TooltipProps } from '@jsb188/react/types/PopOver.d';
 import { forwardRef, memo, useRef } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
@@ -44,16 +44,16 @@ export function guessTooltipSize(message: string): PopOverSize {
  * Tooltip
  */
 
-interface TooltipTextProps {
-  title?: string;
-  message?: string;
-}
-
-export const TooltipText = memo((p: TooltipTextProps) => {
-  const { title, message } = p;
-
+export const TooltipText = memo((p: TooltipProps) => {
+  const { title, message, tooltipClassName } = p;
   return (
-    <div className='tooltip ft_xs lh_3 bg_contrast r_sm'>
+    <div
+      className={cn(
+        'tooltip ft_xs lh_3 bg_contrast r_sm',
+        tooltipClassName && /\bmax_w_/.test(tooltipClassName) && 'w_override',
+        tooltipClassName
+      )}
+    >
       {!title ? null : (
         <p className='shift_up'>
           <strong>

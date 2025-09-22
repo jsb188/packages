@@ -1,9 +1,3 @@
 export const ORGANIZATION_EVENT_TYPES = [
 	'MARKET',
 ];
-
-export const ORGANIZATION_EVENT_STATUS = [
-  'SCHEDULED',
-  'PAUSED',
-	'CANCELED'
-];

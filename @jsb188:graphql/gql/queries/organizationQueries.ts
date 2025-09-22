@@ -85,6 +85,10 @@ query organizationEvents (
     address {
       ...addressFragment
     }
+
+    addressOverride {
+      ...addressFragment
+    }
   }
 }
 

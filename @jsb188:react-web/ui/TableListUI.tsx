@@ -101,46 +101,49 @@ THead.displayName = 'THead';
  * Table main cell
  */
 
-export const TDColMain = memo((p: {
+export const TDColMain = memo((p: Partial<{
   title: string;
-  iconName?: string;
-  labelIcons?: Partial<{
+  iconName: string;
+  avatarDisplayName: string;
+  labelIcons: Partial<{
     iconName: string;
     tooltipText: string;
     color: string;
     text: string;
   }>[];
-}) => {
-  const { iconName, title, labelIcons } = p;
+}>) => {
+  const { iconName, avatarDisplayName, title, labelIcons } = p;
+  const hasAvatar = !!(iconName || avatarDisplayName);
 
   return <span className='h_item'>
-    <AvatarImg
-      className='mr_sm'
-      // letterBackgroundClassName='bg_primary_fd'
-      letterBackgroundClassName='bg'
-      square outline
-      size='tiny'
-      // urlPath={photoUri}
-    >
-      <span className='v_center f p_n r av av_xs ft_xs ft_bold'>
-        {iconName && (
-          <Icon
-            name={iconName}
-          />
-        )}
-      </span>
-    </AvatarImg>
+    {hasAvatar && (
+      <AvatarImg
+        className='mr_sm'
+        // letterBackgroundClassName='bg_primary_fd'
+        letterBackgroundClassName='bg'
+        square outline
+        size='tiny'
+        // urlPath={photoUri}
+      >
+        <span className='v_center f p_n r av av_xs ft_xs ft_bold'>
+          {iconName && <Icon name={iconName} />}
+        </span>
+      </AvatarImg>
+    )}
 
-    <span className='ellip'>
-      {title}
-    </span>
+    {title && (
+      <span className='ellip'>
+        {title}
+      </span>
+    )}
 
     {labelIcons && (
-      <span className='f_shrink h_item ml_sm ft_tn gap_2'>
+      <span className={cn('f_shrink h_item ft_tn gap_2', hasAvatar || title ? 'ml_sm' : undefined)}>
         {labelIcons.map(({ iconName, tooltipText, color, text }, i) => {
           return <TooltipButton
             key={i}
             className={iconName && color ? `cl_${color}` : text ? 'h_item mx_3' : ''}
+            tooltipClassName='a_c max_w_200'
             as='div'
             position='top'
             message={tooltipText}
