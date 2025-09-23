@@ -50,7 +50,7 @@ export function TRow(p: ReactDivElement & Partial<{
 export const TDCol = memo((p: ReactDivElement & {
   applyGridToRows?: boolean;
 }) => {
-  const { className, applyGridToRows, ...rest } = p;
+  const { className, applyGridToRows, children, ...rest } = p;
   return <div
     className={cn(
       'tdcol px_xs py_sm min_h_50 h_item',
@@ -58,7 +58,9 @@ export const TDCol = memo((p: ReactDivElement & {
       className
     )}
     {...rest}
-  />
+  >
+    {typeof children === 'string' ? <span className='shift_down ellip'>{children}</span> : children}
+  </div>
 });
 
 
@@ -87,7 +89,7 @@ export const THead = memo((p: ReactDivElement & {
         {...rest}
       >
         {iconName && <Icon name={iconName} />}
-        <span className={cn('ellip', mock ? 'mock alt ft_md' : '')}>
+        <span className={cn('ellip shift_down', mock ? 'mock alt ft_md' : '')}>
           {text}
         </span>
       </TDCol>
@@ -132,23 +134,23 @@ export const TDColMain = memo((p: Partial<{
     )}
 
     {title && (
-      <span className='ellip'>
+      <span className='ellip shift_down'>
         {title}
       </span>
     )}
 
     {labelIcons && (
-      <span className={cn('f_shrink h_item ft_tn gap_2', hasAvatar || title ? 'ml_sm' : undefined)}>
+      <span className={cn('f_shrink h_item gap_1', hasAvatar || title ? 'ml_10' : undefined)}>
         {labelIcons.map(({ iconName, tooltipText, color, text }, i) => {
           return <TooltipButton
             key={i}
-            className={iconName && color ? `cl_${color}` : text ? 'h_item mx_3' : ''}
+            className={cn('pr_2', iconName && color ? `cl_${color}` : text ? 'h_item mx_3' : '')}
             tooltipClassName='a_c max_w_200'
             as='div'
             position='top'
             message={tooltipText}
-            offsetX={0}
-            offsetY={-5}
+            offsetX={2} // +2 to adjust for .pr_2 padding-right
+            offsetY={iconName ? -6 : -14}
           >
             {iconName
             ? <Icon name={iconName} />

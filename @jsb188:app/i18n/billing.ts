@@ -40,7 +40,7 @@ export default {
     choose_payment_opt: 'Choose a payment option',
 
     PERKS_desc_1: 'Say something nice on YouTube, TikTok, Instagram, X, personal blog, or anywhere you want.',
-    PERKS_desc_2: `Follow us on X and share your message mentioning us (@${SOCIAL_URLS.big_planet.x_username}) with your Big Planet ID or username.`,
+    PERKS_desc_2: `Follow us on X and share your message mentioning us (@${SOCIAL_URLS.MARKETDAY.x_username}) with your Big Planet ID or username.`,
     PERKS_desc_3: `Wait until you receive a reply on X, Perks subscription (${PerksSubDays} days) will be added to your account.`,
 
     PLUS_year: 'Plus (yearly)',

@@ -103,7 +103,7 @@ export function getFullDateTime(
 		hideDate: boolean;
 		hideTime: boolean;
 		textDateStyle: 'long' | 'short' | 'numeric' | null;
-    militaryTime: boolean;
+		militaryTime: boolean;
 		alwaysShowYear: boolean;
 		includeWeekday: boolean | 'long' | 'short' | 'narrow';
 	}>,
@@ -115,7 +115,7 @@ export function getFullDateTime(
 		hideDate,
 		hideTime,
 		textDateStyle,
-    militaryTime,
+		militaryTime,
 		alwaysShowYear,
 		includeWeekday,
 	} = params || {};
@@ -136,9 +136,9 @@ export function getFullDateTime(
 	if (hideDate) {
 		return d.toLocaleTimeString(locales, {
 			timeZone,
-      hour: hideTime ? undefined : militaryTime ? '2-digit' : 'numeric',
-      minute: hideTime ? undefined : '2-digit',
-      hour12: !militaryTime,
+			hour: hideTime ? undefined : militaryTime ? '2-digit' : 'numeric',
+			minute: hideTime ? undefined : '2-digit',
+			hour12: !militaryTime,
 		});
 	}
 
@@ -167,7 +167,7 @@ export function getFullDateTime(
 		year: hideYear_ ? undefined : 'numeric',
 		hour: hideTime ? undefined : militaryTime ? '2-digit' : 'numeric',
 		minute: hideTime ? undefined : '2-digit',
-    hour12: !militaryTime,
+		hour12: !militaryTime,
 	});
 }
 
@@ -315,9 +315,21 @@ export function convertIntToCalDate(calDateInt: number | string, delimiter: stri
  */
 
 export function isValidCalDate(
-	calDate: string | number,
+	calDate_: string | number,
+  allowDashes: boolean = false,
 	minCalDate: number = 19500101,
 ): boolean {
+  let calDate;
+  if (
+    allowDashes &&
+    typeof calDate_ === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(calDate_)
+  ) {
+    calDate = calDate_.replace(/-/g, '');
+  } else {
+    calDate = calDate_;
+  }
+
 	const value = Number(calDate);
 	if (!calDate || !Number.isInteger(value) || value < 10000000 || value > 90000000) {
 		return false;
@@ -447,26 +459,26 @@ export function getFullDate(
 		d = d_ ? new Date(d_) : new Date(-1);
 	}
 
-  let outputStyle;
-  if (outputStyle_ === 'DAY_IF_WEEK') {
-    const datePeriod = getDatePeriod(d, new Date());
-    if (['TODAY', 'TOMORROW'].includes(datePeriod)) {
-      return i18n.t(`datetime.period_${datePeriod}`);
-    }
+	let outputStyle;
+	if (outputStyle_ === 'DAY_IF_WEEK') {
+		const datePeriod = getDatePeriod(d, new Date());
+		if (['TODAY', 'TOMORROW'].includes(datePeriod)) {
+			return i18n.t(`datetime.period_${datePeriod}`);
+		}
 
-    const daysRemaining = getDaysDiff(d, new Date());
-    if (daysRemaining >= 0 && daysRemaining <= 6) {
-      // return "Monday", "Tuesday", etc.
-      return d.toLocaleDateString(locales, {
-        timeZone: timeZone || undefined, // null is not allowed, it will throw error
-        weekday: 'long',
-      });
-    }
+		const daysRemaining = getDaysDiff(d, new Date());
+		if (daysRemaining >= 0 && daysRemaining <= 6) {
+			// return "Monday", "Tuesday", etc.
+			return d.toLocaleDateString(locales, {
+				timeZone: timeZone || undefined, // null is not allowed, it will throw error
+				weekday: 'long',
+			});
+		}
 
-    outputStyle = 'DATE_ONLY';
-  } else {
-    outputStyle = outputStyle_;
-  }
+		outputStyle = 'DATE_ONLY';
+	} else {
+		outputStyle = outputStyle_;
+	}
 
 	switch (outputStyle) {
 		case 'DATE_ONLY':
@@ -533,9 +545,12 @@ export function getDayPeriod(): 'MORNING' | 'AFTERNOON' | 'EVENING' | 'NIGHT' {
  * Convert YYYY-MM-DD to Date
  */
 
-export function getDateFromCalDate(calDate: string) {
-	const [year, month, day] = calDate.split('-');
-	return new Date(Number(year), Number(month) - 1, Number(day));
+export function getDateFromCalDate(calDate: string, timeZone?: string | null): Date {
+  const dt = DateTime.fromISO(calDate, { zone: timeZone });
+  const jsDate = dt.toJSDate();
+  // const [year, month, day] = calDate.split('-');
+	// console.log(new Date(Number(year), Number(month) - 1, Number(day)));
+  return jsDate;
 }
 
 /**
@@ -710,28 +725,28 @@ export function getHHMMIncrements(
  */
 
 export function getExpirationColor(
-  expirationDate: string | Date, // YYYY-MM-DD format or Date object
+	expirationDate: string | Date, // YYYY-MM-DD format or Date object
 ): 'red' | 'yellow' | 'green' {
-  let expDate: Date;
-  if (expirationDate instanceof Date) {
-    expDate = expirationDate;
-  } else {
-    expDate = new Date(expirationDate);
-  }
+	let expDate: Date;
+	if (expirationDate instanceof Date) {
+		expDate = expirationDate;
+	} else {
+		expDate = new Date(expirationDate);
+	}
 
-  if (!isValidDate(expDate)) {
-    return 'red'; // Invalid date
-  }
+	if (!isValidDate(expDate)) {
+		return 'red'; // Invalid date
+	}
 
-  const now = new Date();
-  const diff = expDate.getTime() - now.getTime();
-  const diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+	const now = new Date();
+	const diff = expDate.getTime() - now.getTime();
+	const diffDays = Math.ceil(diff / (1000 * 3600 * 24));
 
-  if (diffDays < 0) {
-    return 'red'; // Expired
-  } else if (diffDays <= 30) {
-    return 'yellow'; // Expiring soon
-  } else {
-    return 'green'; // Valid
-  }
+	if (diffDays < 0) {
+		return 'red'; // Expired
+	} else if (diffDays <= 30) {
+		return 'yellow'; // Expiring soon
+	} else {
+		return 'green'; // Valid
+	}
 }

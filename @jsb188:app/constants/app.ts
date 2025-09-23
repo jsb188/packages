@@ -11,7 +11,10 @@ export const DOM_IDS = {
 // Common, repeatable classnames
 
 export const COMMON_CLASSNAMES = {
-  listContainer: 'cw lg responsive px_lg pt_md pb_lg'
+  listContainer: 'cw lg responsive px_lg pt_md pb_lg',
+  modalScreenSplitForm: 'h_top px_md pb_md gap_md',
+  modalScreenSplitContent: 'h_top px_md pb_md gap_lg',
+  modalScreenHeading: 'pt_md pb_df ft_normal ft_xs cl_darker_2 ls_2',
 };
 
 // Local storage
@@ -29,19 +32,15 @@ export const STORAGE_KEYS = {
 // Support e-mails
 
 export const SUPPORT_EMAILS = {
-  marketday: 'hello@marketday.ai'
+  MARKETDAY: 'hello@marketday.ai'
 } as Record<string, string>;
 
 // Social media
 
 export const SOCIAL_URLS = {
-  big_planet: {
-    x: 'https://x.com/bigplanetai',
-    x_username: 'BigPlanetAI',
-  },
-  cosmic: {
-    x: 'https://x.com/bigplanetai',
-    x_username: 'BigPlanetAI',
+  MARKETDAY: {
+    x: 'https://x.com/?',
+    x_username: '?',
   }
 } as Record<string, {
   x: string;

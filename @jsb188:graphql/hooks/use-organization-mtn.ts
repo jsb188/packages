@@ -8,8 +8,7 @@ import { useMutation } from './index';
 import { useOrganizationRelationship, useReactiveOrganizationEventFragment } from './use-organization-qry';
 
 /**
- * Fetch a single log entry,
- * from cache first; only check server if cache is not found.
+ * Edit Org Event, get ACL, and fetch Org Event fragment from cache
  */
 
 export function useEditOrganizationEvent(
@@ -39,7 +38,7 @@ export function useEditOrganizationEvent(
     return checkACLPermission(organizationRelationship, 'events', isMyDocument ? 'WRITE' : 'MANAGE');
   }, [organizationRelationship?.acl, organizationRelationship?.role]);
 
-  console.log('viewerAccountId', viewerAccountId, organizationEvent?.accountId, isMyDocument, allowEdit);
+  // console.log('viewerAccountId', viewerAccountId, organizationEvent?.accountId, isMyDocument, allowEdit);
 
   return {
     organizationEvent,

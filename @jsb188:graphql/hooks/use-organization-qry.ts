@@ -1,6 +1,8 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
-import { childOrganizationsQry, myOrganizationsQry, organizationEventsQry, organizationLoadListsQry, organizationRelationshipQry } from '../gql/queries/organizationQueries';
+import { childOrganizationsQry, myOrganizationsQry, organizationEventAttendanceListQry, organizationEventsQry, organizationRelationshipQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
+import { useMemo } from 'react';
+import { checkACLPermission } from '@jsb188/app/utils/organization';
 
 const ORG_CHILDREN_LIMIT = 200;
 const ORG_EVENTS_LIMIT = 200;
@@ -11,7 +13,7 @@ const ORG_LOAD_LISTS_LIMIT = 200;
  */
 
 export function useOrganizationRelationship(organizationId?: string | null, params: UseQueryParams = {}) {
-  const { data, ...other } = useQuery(organizationRelationshipQry, {
+  const { data, ...rest } = useQuery(organizationRelationshipQry, {
     variables: {
       organizationId
     },
@@ -21,7 +23,7 @@ export function useOrganizationRelationship(organizationId?: string | null, para
 
   return {
     organizationRelationship: data?.organizationRelationship,
-    ...other
+    ...rest
   };
 }
 
@@ -30,13 +32,13 @@ export function useOrganizationRelationship(organizationId?: string | null, para
  */
 
 export function useMyOrganizations(params: UseQueryParams = {}) {
-  const { data, ...other } = useQuery(myOrganizationsQry, {
+  const { data, ...rest } = useQuery(myOrganizationsQry, {
     ...params,
   });
 
   return {
     myOrganizations: data?.myOrganizations,
-    ...other
+    ...rest
   };
 }
 
@@ -48,7 +50,7 @@ export function useChildOrganizations(variables: PaginationArgs & {
   organizationId: string | null;
   // filters: ? not ready yet
 }, params: UseQueryParams = {}) {
-  const { data, ...other } = useQuery(childOrganizationsQry, {
+  const { data, ...rest } = useQuery(childOrganizationsQry, {
     variables: {
       ...variables,
       cursor: null,
@@ -61,7 +63,7 @@ export function useChildOrganizations(variables: PaginationArgs & {
 
   return {
     childOrganizations: data?.childOrganizations,
-    ...other
+    ...rest
   };
 }
 
@@ -86,7 +88,12 @@ export function useReactiveOrganizationChildFragment(organizationId: string, cur
  * Get reactive org event fragment
  */
 
-export function useReactiveOrganizationEventFragment(orgEventId: string, addressId?:string, currentData?: any, queryCount?: number) {
+export function useReactiveOrganizationEventFragment(
+  orgEventId: string,
+  addressId?: string | null,
+  currentData?: any,
+  queryCount?: number
+) {
   return useReactiveFragment(
     currentData,
     [
@@ -115,7 +122,7 @@ export function useOrganizationEvents(variables: PaginationArgs & {
   organizationId: string;
   timeZone: string | null;
 }, params: UseQueryParams = {}) {
-  const { data, ...other } = useQuery(organizationEventsQry, {
+  const { data, ...rest } = useQuery(organizationEventsQry, {
     variables: {
       ...variables,
       cursor: null,
@@ -128,35 +135,51 @@ export function useOrganizationEvents(variables: PaginationArgs & {
 
   return {
     organizationEvents: data?.organizationEvents,
-    ...other
+    ...rest
   };
 }
 
 /**
- * Fetch load lists for an org event
+ * Fetch Org Event attendance, ACL, and Org Event fragment from cache
  */
 
-export function useOrganizationLoadLists(
-  variables: PaginationArgs & {
-    orgEventId: string;
+export function useOrgEventAttendance(
+  viewerAccountId: string,
+  variables: {
     organizationId: string;
+    orgEventId: string;
+    calDate: string;
   },
-  params: UseQueryParams = {}
+  params: UseQueryParams = {},
 ) {
-  const { data, ...other } = useQuery(organizationLoadListsQry, {
-    variables: {
-      ...variables,
-      cursor: null,
-      after: true,
-      limit: ORG_LOAD_LISTS_LIMIT
-    },
-    skip: !variables.orgEventId || !variables.organizationId,
+
+  const { organizationId, orgEventId, calDate } = variables;
+  const { organizationRelationship } = useOrganizationRelationship(organizationId);
+  const notReady = !organizationRelationship;
+
+  const { data, ...rest } = useQuery(organizationEventAttendanceListQry, {
+    variables,
+    skip: !orgEventId || !calDate || !organizationId,
     ...params,
   });
 
-  return {
-    organizationLoadLists: data?.organizationLoadLists,
-    ...other
-  };
+  console.log('skip?', orgEventId || calDate || organizationId);
 
+
+  const organizationEvent = useReactiveOrganizationEventFragment(orgEventId);
+  const isMyDocument = !!viewerAccountId && organizationEvent?.accountId === viewerAccountId;
+
+  const allowEdit = useMemo(() => {
+    return checkACLPermission(organizationRelationship, 'events', isMyDocument ? 'WRITE' : 'MANAGE');
+  }, [organizationRelationship?.acl, organizationRelationship?.role]);
+
+  // console.log('viewerAccountId', viewerAccountId, organizationEvent?.accountId, isMyDocument, allowEdit);
+
+  return {
+    organizationEvent,
+    organizationEventAttendanceList: data?.organizationEventAttendanceList,
+    notReady,
+    allowEdit,
+    ...rest
+  };
 }

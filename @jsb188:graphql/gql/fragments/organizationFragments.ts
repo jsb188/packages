@@ -21,7 +21,6 @@ export const organizationEventFragment = `fragment organizationEventFragment on 
 
   name
   type
-  paused
 
   schedule {
     frequency
@@ -30,8 +29,14 @@ export const organizationEventFragment = `fragment organizationEventFragment on 
     byMonthDay
     byMonth
     once
-    startTime
-    endTime
+    time
+    time_SU
+    time_MO
+    time_TU
+    time_WE
+    time_TH
+    time_FR
+    time_SA
   }
 
   startAt
@@ -40,8 +45,9 @@ export const organizationEventFragment = `fragment organizationEventFragment on 
 	updatedAt
 }`;
 
-export const organizationLoadListFragment = `fragment organizationLoadListFragment on OrganizationLoadList {
+export const organizationEventAttendanceFragment = `fragment organizationEventAttendanceFragment on OrganizationEventAttendance {
   id
+  attended
 }`;
 
 export const organizationComplianceFragment = `fragment organizationComplianceFragment on OrganizationCompliance {

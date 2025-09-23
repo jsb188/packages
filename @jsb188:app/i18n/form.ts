@@ -98,8 +98,14 @@ export default {
     end: 'End',
     time: 'Time',
     time_with_zone: 'Time (%{timeZone})',
+    not_specified: 'Not specified',
+    attendance: 'Attendance',
     day: 'Day',
+    all_day: 'All day',
     date: 'Date',
+    daily: 'Daily',
+    weekly: 'Weekly',
+    monthly: 'Monthly',
     schedule: 'Schedule',
     recurring: 'Recurring',
     start_date: 'Start date',
@@ -144,5 +150,16 @@ export default {
 			en: 'English',
       es: 'Spanish',
 		},
+
+    // Day of week
+    dayOfWeek: {
+      SU: 'Sunday',
+      MO: 'Monday',
+      TU: 'Tuesday',
+      WE: 'Wednesday',
+      TH: 'Thursday',
+      FR: 'Friday',
+      SA: 'Saturday',
+    },
   },
 };

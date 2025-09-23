@@ -31,6 +31,12 @@ export interface EventScheduleObj {
   byMonthDay: number[];
   byMonth: number[];
   once: boolean;
-  startTime: number;
-  endTime: number;
+	time: [number, number];
+  time_SU: [number, number];
+	time_MO: [number, number];
+  time_TU: [number, number];
+  time_WE: [number, number];
+  time_TH: [number, number];
+  time_FR: [number, number];
+  time_SA: [number, number];
 }

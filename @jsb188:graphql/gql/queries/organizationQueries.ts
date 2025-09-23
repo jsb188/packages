@@ -1,6 +1,6 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
-import { organizationLoadListFragment, organizationEventFragment, organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
+import { organizationChildFragment, organizationComplianceFragment, organizationEventAttendanceFragment, organizationEventFragment, organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
 import { addressFragment, emailFragment, phoneFragment } from '../fragments/otherFragments';
 
 // Always use organizationRelationship() instead
@@ -142,24 +142,29 @@ ${emailFragment}
 ${phoneFragment}
 `;
 
-export const organizationLoadListsQry = gql`
-query organizationLoadLists (
+export const organizationEventAttendanceListQry = gql`
+query organizationEventAttendanceList (
   $orgEventId: GenericID!
   $organizationId: GenericID!
-  $cursor: Cursor
-  $after: Boolean!
-  $limit: Int!
+  $calDate: CalDateString!
 ) {
-  organizationLoadLists (
+  organizationEventAttendanceList (
     orgEventId: $orgEventId
     organizationId: $organizationId
-    cursor: $cursor
-    after: $after
-    limit: $limit
+    calDate: $calDate
   ) {
-    ...organizationLoadListFragment
+    ...organizationEventAttendanceFragment
+
+    organization {
+      ...organizationFragment
+    }
+    checkedBy {
+      ...accountFragment
+    }
   }
 }
 
-${organizationLoadListFragment}
+${organizationEventAttendanceFragment}
+${organizationFragment}
+${accountFragment}
 `;

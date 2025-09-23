@@ -222,9 +222,10 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
       bottom = 'auto';
   }
 
-  const leftOffset = (left as number + 50) - windowWidth;
-  const isRightEdge = leftOffset > -(rightEdgeThreshold || 0);
+  // const leftOffset = (left as number + 50) - windowWidth;
   const isLeftEdge = (left as number - 50) < (leftEdgeThreshold || 0);
+  const rightOffset = (left as number) + (contentDimensions[0] as number / 2);
+  const isRightEdge = (rightOffset + (rightEdgeThreshold || 0)) > windowWidth;
 
   if (isRightEdge) {
     left = 'auto';

@@ -15,6 +15,7 @@
     "./constants/billing": "./constants/billing.ts",
     "./constants/emoji": "./constants/emoji.ts",
     "./constants/organization": "./constants/organization.ts",
+    "./constants/other": "./constants/other.ts",
     "./constants/user": "./constants/user.ts",
     "./constants/ws": "./constants/ws.ts",
     "./utils/api": "./utils/api.ts",
