@@ -7,12 +7,15 @@ import './CalendarUI.css';
  * Types
  */
 
+export type CalendaryDayDesignValue = 'underline'; // add more design preset names here if needed
+
 export interface CalendarDayObj {
   int: number;
   day: number;
   month: number;
   year: number;
   isOtherMonth: boolean;
+  design?: CalendaryDayDesignValue;
 }
 
 /**
@@ -21,7 +24,7 @@ export interface CalendarDayObj {
 
 export type DayHoverLabel = string | ((dayInt: number, startInt?: number, endInt?: number) => string | undefined);
 
-interface CalendarDayProps extends CalendarDayObj {
+export const CalendarDay = memo((p: CalendarDayObj & {
   dayState?: 'START' | 'END' | 'SELECTED';
   inRange?: boolean;
   disabled?: boolean;
@@ -29,10 +32,8 @@ interface CalendarDayProps extends CalendarDayObj {
   dayHoverLabel?: DayHoverLabel;
   startDateInt?: number;
   endDateInt?: number;
-}
-
-export const CalendarDay = memo((p: CalendarDayProps) => {
-  const { int, day, month, year, inRange, isOtherMonth, disabled, dayState, startDateInt, endDateInt, dayHoverLabel, onClickItem } = p;
+}) => {
+  const { design, int, day, month, year, inRange, isOtherMonth, disabled, dayState, startDateInt, endDateInt, dayHoverLabel, onClickItem } = p;
   const selected = !!dayState;
 
   let dayLabel;
@@ -57,6 +58,10 @@ export const CalendarDay = memo((p: CalendarDayProps) => {
           <span className='shift_down'>
             {day}
           </span>
+
+          {design === 'underline' && (
+            <span className='cal_design underline r bg_contrast' />
+          )}
         </button>
       )}
     </div>

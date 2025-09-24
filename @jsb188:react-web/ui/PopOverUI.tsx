@@ -217,7 +217,7 @@ export const POListItem = memo((p: POListItemProps) => {
 
       {hasRightComponent && (
         <span className='saving_area ml_sm'>
-          {saving ? <ActivityDots size='tiny' /> : null}
+          {saving ? <ActivityDots size='tn' /> : null}
           {saving || (!selected && !rightIconName) ? null : (
             <span className={cn('bl shift_right', rightIconClassName ?? 'cl_lt')}>
               <Icon name={rightIconName || 'check'} />
@@ -270,7 +270,7 @@ export const PONavAvatarItem = memo((p: PONavAvatarItemProps) => {
 
       {hasRightComponent && (
         <span className='saving_area ml_xs'>
-          {saving ? <ActivityDots size='tiny' /> : null}
+          {saving ? <ActivityDots size='tn' /> : null}
           {!saving && selected ? <Icon name='check' /> : null}
           {!saving && !selected && rightIconName ? <Icon name={rightIconName} /> : null}
         </span>

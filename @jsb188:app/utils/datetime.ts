@@ -555,8 +555,9 @@ export function getDayPeriod(): 'MORNING' | 'AFTERNOON' | 'EVENING' | 'NIGHT' {
  * Convert YYYY-MM-DD to Date
  */
 
-export function getDateFromCalDate(calDate: string, timeZone?: string | null): Date {
-	const dt = DateTime.fromISO(calDate, { zone: timeZone });
+export function getDateFromCalDate(value: string | number, timeZone?: string | null): Date {
+  const calDate = typeof value === 'number' ? convertIntToCalDate(value) : value;
+	const dt = DateTime.fromISO(calDate, timeZone ? { zone: timeZone } : undefined);
 	const jsDate = dt.toJSDate();
 	// const [year, month, day] = calDate.split('-');
 	// console.log(new Date(Number(year), Number(month) - 1, Number(day)));

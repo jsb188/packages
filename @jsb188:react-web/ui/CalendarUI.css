@@ -106,3 +106,12 @@
   display: block;
   transition: opacity .2s ease-in-out;
 }
+
+/* Calendar day - design element */
+
+.cal_design {
+  position: absolute;
+  width: 14px;
+  height: 2px;
+  bottom: 4px;
+}

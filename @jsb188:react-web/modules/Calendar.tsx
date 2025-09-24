@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
 import { memo, useCallback, useMemo, useState } from 'react';
-import type { CalendarDayObj, DayHoverLabel } from '../ui/CalendarUI';
+import type { CalendarDayObj, CalendaryDayDesignValue, DayHoverLabel } from '../ui/CalendarUI';
 import { CalendarMonthHeader, CalendarWeekDays, WeekdayLabels } from '../ui/CalendarUI';
 
 /**
@@ -150,10 +150,11 @@ interface CalendarWeeksProps {
   hideNextMonthDays?: boolean;
   onClickItem?: OnChangeCalendarDayFn;
   dayHoverLabel?: DayHoverLabel;
+  getDayDesignValue?: GetDayDesignValueFn;
 }
 
 const CalendarWeeks = memo((p: CalendarWeeksProps) => {
-  const { rowPaddingClassName, dayHoverLabel, maxDateInt, selectedInt, startDateInt, endDateInt, month, year, hideNextMonthDays, onClickItem } = p;
+  const { getDayDesignValue, rowPaddingClassName, dayHoverLabel, maxDateInt, selectedInt, startDateInt, endDateInt, month, year, hideNextMonthDays, onClickItem } = p;
 
   // Create an array for the calendar days
   const weeksArr = useMemo(() => {
@@ -172,23 +173,29 @@ const CalendarWeeks = memo((p: CalendarWeeksProps) => {
     // Fill leading days from previous month
     for (let i = firstWeekday - 1; i >= 0; i--) {
       const day = prevMonthLastDay - i;
+      const calInt = getCalendarInt(day, prevMonth, prevYear);
+
       daysList.push({
-        int: getCalendarInt(day, prevMonth, prevYear),
+        int: calInt,
         day,
         month: prevMonth,
         year: prevYear,
         isOtherMonth: true,
+        design: getDayDesignValue?.(calInt)
       });
     }
 
     // Fill current month
     for (let day = 1; day <= daysInMonth; day++) {
+      const calInt = getCalendarInt(day, month, year);
+
       daysList.push({
-        int: getCalendarInt(day, month, year),
+        int: calInt,
         day,
         month,
         year,
         isOtherMonth: false,
+        design: getDayDesignValue?.(calInt)
       });
     }
 
@@ -200,12 +207,14 @@ const CalendarWeeks = memo((p: CalendarWeeksProps) => {
       const nextYear = month === 12 ? year + 1 : year;
 
       for (let day = 1; day <= remainingCells; day++) {
+        const calInt = getCalendarInt(day, nextMonth, nextYear);
         daysList.push({
-          int: getCalendarInt(day, nextMonth, nextYear),
+          int: calInt,
           day,
           month: nextMonth,
           year: nextYear,
           isOtherMonth: true,
+          design: getDayDesignValue?.(calInt)
         });
       }
     }
@@ -221,7 +230,7 @@ const CalendarWeeks = memo((p: CalendarWeeksProps) => {
 
     // return daysList;
     return daysByWeek;
-  }, [month, year]);
+  }, [month, year, getDayDesignValue]);
 
   return (
     <div className='a_c ft_xs py_xs'>
@@ -250,6 +259,8 @@ CalendarWeeks.displayName = 'CalendarWeeks';
 
 export type OnChangeCalendarDayFn = (value: CalendarSelectedObj | null, startInt?: number, endInt?: number) => void;
 
+export type GetDayDesignValueFn = (dayInt: number) => CalendaryDayDesignValue | null;
+
 type AnyDateValue = Date | CalendarSelectedObj | string | number;
 
 interface CalendarProps {
@@ -266,6 +277,7 @@ interface CalendarProps {
   hideNextMonthDays?: boolean;
   onChange?: OnChangeCalendarDayFn;
   dayHoverLabel?: DayHoverLabel;
+  getDayDesignValue?: GetDayDesignValueFn;
 }
 
 export interface CalendarSelectedObj {
@@ -281,7 +293,7 @@ interface CalendarViewObj {
 }
 
 export const Calendar = memo((p: CalendarProps) => {
-  const { name, weekdayRowPaddingClassName, rowPaddingClassName, className, dayHoverLabel, hideNextMonthDays, initialCalendarViewDate, maxDate, minDate, onChange } = p;
+  const { getDayDesignValue, name, weekdayRowPaddingClassName, rowPaddingClassName, className, dayHoverLabel, hideNextMonthDays, initialCalendarViewDate, maxDate, minDate, onChange } = p;
 
   const value = useMemo(() => {
     return getCalendarSelector(p.value);
@@ -334,6 +346,7 @@ export const Calendar = memo((p: CalendarProps) => {
     />
     <CalendarWeeks
       {...calendarView}
+      getDayDesignValue={getDayDesignValue}
       rowPaddingClassName={rowPaddingClassName}
       dayHoverLabel={dayHoverLabel}
       maxDateInt={maxDateObj?.int}

@@ -494,7 +494,7 @@ export function Pill(p: Partial<PillProps>) {
     >
       {!loading || !addLoadingIndicator ? null : (
         <span className='abs_full v_center'>
-          <ActivityDots size={['large', 'xlarge'].includes(size || '') ? 'large' : 'medium'} />
+          <ActivityDots size={['lg', 'xl'].includes(size || '') ? 'lg' : 'md'} />
         </span>
       )}
       {children}

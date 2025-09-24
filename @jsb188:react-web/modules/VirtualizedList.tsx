@@ -54,7 +54,10 @@ type MapTableListDataFn = (
 ) => {
   columns: TableColumnElement[];
   // This will create another list of rows below the main row
-  subRows?: TableColumnElement[][];
+  subRows?: {
+    value: any;
+    columns: TableColumnElement[]
+  }[];
 } | null; // Returning "null" hides the row
 
 interface VZReferenceObj {
@@ -606,7 +609,7 @@ export const TableList = memo((p: {
   headers: TableHeaderObj[];
   listData: VZListItemObj[] | null;
   mapListData: MapTableListDataFn;
-  onClickRow?: (vzItem?: VZListItemObj) => void;
+  onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any) => void;
 }) => {
   const { gridLayoutStyle, headers, listData, mapListData, cellClassNames, applyGridToRows, onClickRow } = p;
   return <>
@@ -642,15 +645,15 @@ export const TableList = memo((p: {
         </TRow>
 
         <div className='rel pattern_texture primary_bf bd_l_4 bd_primary -ml_4'>
-          {rowData.subRows?.map((subRow, k) => {
+          {rowData.subRows?.map((subRowItem, k) => {
             return <TRow
               key={k}
               className='rel z1'
-              onClick={() => onClickRow?.(item)}
+              onClick={() => onClickRow?.(item, subRowItem.value)}
               applyGridToRows={applyGridToRows}
               gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
             >
-              {subRow.map(renderCell)}
+              {subRowItem.columns.map(renderCell)}
             </TRow>;
           })}
         </div>

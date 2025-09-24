@@ -7,11 +7,11 @@ import { memo, useEffect, useState } from 'react';
 
 interface ActivityDotsProps {
   className?: string;
-  size?: 'tiny' | 'small' | 'default' | 'medium' | 'large';
+  size?: 'tn' | 'sm' | 'df' | 'md' | 'lg';
 }
 
 export function ActivityDots(p: ActivityDotsProps) {
-  const size = p.size || 'default';
+  const size = p.size || 'df';
 
   return (
     <span className={cn('activity h_center', size, p.className)}>

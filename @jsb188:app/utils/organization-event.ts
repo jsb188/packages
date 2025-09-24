@@ -21,21 +21,20 @@ import { DEFAULT_TIMEZONE } from './timeZone';
  */
 
 export function getAddressText(
-  address: OrganizationAddressObj | OrganizationAddressGQLData | null,
-  multiline = false,
+	address: OrganizationAddressObj | OrganizationAddressGQLData | null,
+	multiline = false,
 ): string {
 	if (!address) {
 		return i18n.t('form.not_specified');
 	}
 
 	const { line1, line2, city, state, postalCode, country } = address;
-  if (multiline) {
-    return [
-      [line1, line2].filter(Boolean).join(', '),
-      [city, state, postalCode, country].filter(Boolean).join(', '),
-    ].filter(Boolean).join('\n');
-
-  }
+	if (multiline) {
+		return [
+			[line1, line2].filter(Boolean).join(', '),
+			[city, state, postalCode, country].filter(Boolean).join(', '),
+		].filter(Boolean).join('\n');
+	}
 	return [line1, line2, city, state, postalCode, country].filter(Boolean).join(', ');
 }
 
@@ -254,7 +253,7 @@ export function getNextDateFromSchedule(
 	schedule: EventScheduleObj | null,
 	startAt: string | Date | null,
 	timeZone_: string | null,
-  afterDate?: Date | null,
+	afterDate?: Date | null,
 ) {
 	const timeZone = timeZone_ || DEFAULT_TIMEZONE;
 	const once = !schedule || !!schedule?.once;
@@ -267,7 +266,7 @@ export function getNextDateFromSchedule(
 
 	// Get date in time zone using Luxon package
 	const realNowValue = DateTime.now().setZone(timeZone).toJSDate();
-  const now = afterDate && afterDate > realNowValue ? afterDate : realNowValue;
+	const now = afterDate && afterDate > realNowValue ? afterDate : realNowValue;
 
 	const { frequency } = schedule;
 	const daySchedTime = getTimeArrayFromSchedule(schedule, now, timeZone);
@@ -341,6 +340,29 @@ export function getNextDateFromSchedule(
 		date: null,
 		text: '-',
 	};
+}
+
+/**
+ * Check if date is a scheduled date
+ */
+
+export function isScheduledDate(
+  schedule: EventScheduleObj,
+  date: Date,
+) {
+  const { frequency, byDay } = schedule;
+
+  switch (frequency) {
+    case 'DAILY':
+      return true;
+    case 'WEEKLY':
+      const dateDay = DAY_OF_WEEK[date.getDay()];
+      return byDay.includes(dateDay);
+    default:
+      console.dev(`isScheduledDate(): ${frequency} frequency is not implemented yet`);
+  }
+
+  return false;
 }
 
 /**

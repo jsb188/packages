@@ -169,6 +169,7 @@ export default {
       WEEKLY: 'Repeats weekly',
       BI_WEEKLY: 'Repeats every two weeks',
       MONTHLY: 'Repeats monthly',
+      ONCE: 'One-time event', // This one is not part of the enums
     }
   },
 };

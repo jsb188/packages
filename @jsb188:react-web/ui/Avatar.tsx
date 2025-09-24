@@ -342,7 +342,7 @@ export function Avatar(p: AvatarProps) {
 
       {!typing ? null : (
         <span className={cn('s_typing_dots v_center', getSizeClassName('dots', size), status || 'ONLINE')}>
-          <ActivityDots size='tiny' />
+          <ActivityDots size='tn' />
         </span>
       )}
     </div>
