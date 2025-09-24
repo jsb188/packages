@@ -1,6 +1,5 @@
-import { Fragment, useMemo, memo } from 'react';
+import { Fragment, memo, useMemo } from 'react';
 
-import { Link } from 'react-router';
 import { nameToEmoji } from '@jsb188/app/constants/emoji';
 import parseEmojiText from '@jsb188/app/utils/emoji';
 import { randomItem } from '@jsb188/app/utils/object';

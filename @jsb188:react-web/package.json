@@ -15,6 +15,7 @@
     "./modules/Scroll": "./modules/Scroll.tsx",
     "./modules/Form": "./modules/Form.tsx",
     "./modules/HorizontalScrollTabs": "./modules/HorizontalScrollTabs.tsx",
+    "./modules/ListFeatures": "./modules/ListFeatures.tsx",
     "./modules/PopOver": "./modules/PopOver.tsx",
     "./modules/ReverseVirtualizedList": "./modules/ReverseVirtualizedList.tsx",
     "./modules/SchemaForm": "./modules/SchemaForm.tsx",

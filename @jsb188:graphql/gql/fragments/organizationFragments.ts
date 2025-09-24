@@ -47,7 +47,9 @@ export const organizationEventFragment = `fragment organizationEventFragment on 
 
 export const organizationEventAttendanceFragment = `fragment organizationEventAttendanceFragment on OrganizationEventAttendance {
   id
+  orgEventId
   attended
+  calDate
 }`;
 
 export const organizationComplianceFragment = `fragment organizationComplianceFragment on OrganizationCompliance {

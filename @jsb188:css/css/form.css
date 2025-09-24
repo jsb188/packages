@@ -290,7 +290,7 @@ fieldset input[type="radio"] {
   background-color: var(--color-solid-hover) !important;
 }
 
-.btn.em:active, .btn.em:disabled {
+.btn.em:active, .btn.em:disabled, .btn.em.disabled {
   transform: translateY(2px);
   box-shadow: none;
 }
@@ -299,7 +299,7 @@ fieldset input[type="radio"] {
   background-color: var(--color-solid-active) !important;
 }
 
-.btn.em:disabled {
+.btn.em:disabled, .btn.em.disabled {
   background-color: var(--color-solid-hover) !important;
 }
 
@@ -309,31 +309,41 @@ fieldset input[type="radio"] {
   background-color: rgba(0,0,0,.1);
 }
 
-.btn.subtle:disabled {
+.btn.subtle:disabled, .btn.subtle.disabled {
   color: var(--color-text-medium);
 }
 
-.btn.subtle:not(:disabled):hover, .btn.cl_err:not(:disabled):hover {
+.btn.subtle:not(:disabled):not(.disabled):hover, .btn.cl_err:not(:disabled):not(.disabled):hover {
   background-color: rgba(0,0,0,.2);
 }
 
-.btn.subtle:not(:disabled):active, .btn.cl_err:not(:disabled):active {
+.btn.subtle:not(:disabled):not(.disabled):active, .btn.cl_err:not(:disabled):not(.disabled):active {
   background-color: rgba(0,0,0,.25);
 }
 
 /* Outline */
 
 .btn.outline {
-  border: solid 2px var(--color-text-light);
+  border: solid 2px var(--color-darker-light);
   background-color: rgb(var(--color-bg-alt));
 }
 
-.btn.outline:not(:disabled):hover {
+.btn.outline:not(:disabled):not(.disabled):hover {
   background-color: rgb(var(--color-bg-active));
 }
 
-.btn.outline:not(:disabled):active {
+.btn.outline:not(:disabled):not(.disabled):active {
   background-color: rgb(var(--color-bg-medium));
+}
+
+/* Subtle outline */
+
+.btn.outline_subtle {
+  box-shadow: inset 0 0 0 2px var(--color-darker-light);
+}
+
+.btn.outline_subtle:not(:disabled):not(.disabled):hover {
+  background-color: var(--color-darker-soft);
 }
 
 /* Inline button */

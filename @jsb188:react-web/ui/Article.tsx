@@ -1,5 +1,8 @@
 import { cn } from '@jsb188/app/utils/string';
 import { memo } from 'react';
+import type { LabelsAndIconsItemProps } from '../modules/ListFeatures';
+import { LabelsAndIcons } from '../modules/ListFeatures';
+import { AvatarImg } from './Avatar';
 import type { InlineBlockLabelProps } from './Button';
 import { InlineBlockLabel } from './Button';
 
@@ -10,11 +13,12 @@ import { InlineBlockLabel } from './Button';
 export const CondensedGroupTitle = memo((p: {
   domId?: string;
   text: string;
+  className?: string;
   marginClassName?: string;
 }) => {
-  const { text, domId, marginClassName } = p;
+  const { text, domId, className, marginClassName } = p;
 
-  return <div className={marginClassName ?? 'mt_md mb_sm'} id={domId}>
+  return <div className={cn(marginClassName ?? 'mt_md mb_sm', className)} id={domId}>
     <h4 className='ft_normal ft_xs p_n m_n cl_darker_2 ls_2'>
       {text}
     </h4>
@@ -53,11 +57,16 @@ export const CondensedArticleItem = memo((p: {
   description?: string | null;
   descriptionPlaceholder?: string;
   labels?: Partial<InlineBlockLabelProps>[]
+  avatarDisplayName?: string | null;
+  avatarPhotoUri?: string | null;
+  avatarColor?: string | null;
+  labelIcons?: LabelsAndIconsItemProps[];
 }) => {
-  const { __deleted, hideSeparator, preset, domIdPrefix, id, onClick, RightComponent, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
+  const { __deleted, hideSeparator, preset, domIdPrefix, id, onClick, labelIcons, RightComponent, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
   const useAltLabelColors = !['modal','card'].includes(preset!);
+  const hasDescription = !!(description || descriptionPlaceholder);
 
   // paddingClassName='px_df -mx_5'
 
@@ -100,6 +109,18 @@ export const CondensedArticleItem = memo((p: {
     )}
 
     <div className={cn('h_item gap_xs', __deleted ? 'op_40' : '')}>
+
+      {(avatarDisplayName || avatarPhotoUri) &&
+        <AvatarImg
+          className='mr_xs'
+          square
+          size='tiny'
+          urlPath={avatarPhotoUri}
+          displayName={avatarDisplayName}
+          letterBackgroundClassName={avatarColor ? `bg_${avatarColor}` : undefined}
+        />
+      }
+
       {labels?.length && (
         <div className={'h_item f_shrink mr_3 ' + yPaddingClassName}>
           {labels.map((label, i) => (
@@ -117,11 +138,30 @@ export const CondensedArticleItem = memo((p: {
 
       {title && <span className={'f_shrink shift_down ' + yPaddingClassName}>{title}</span>}
 
-      {description || descriptionPlaceholder ? (
-        <span className={cn('ellip f shift_down', yPaddingClassName, description ? 'cl_darker_4' : 'cl_darker_2')}>
-          {description || descriptionPlaceholder}
+      {(hasDescription || labelIcons) && (
+        <span
+          className={cn(
+            'ellip f',
+            yPaddingClassName,
+            labelIcons && 'h_item',
+            description ? 'cl_darker_4' : 'cl_darker_2'
+          )}
+        >
+          {hasDescription && (
+            <span className='shift_down'>
+              {description || descriptionPlaceholder}
+            </span>
+          )}
+
+          {labelIcons && (
+            <span className={cn('h_item gap_2', hasDescription ? 'ml_10' : 'ml_5')}>
+              <LabelsAndIcons
+                items={labelIcons}
+              />
+            </span>
+          )}
         </span>
-      ) : <span className='f' />}
+      )}
 
       {!RightComponent ? null
       : <div className={cn('h_right gap_xs ml_xs', rightComponentClassName)}>

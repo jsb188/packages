@@ -6,7 +6,7 @@ import { loadFragment } from '@jsb188/graphql/cache';
 import type { TableHeaderObj } from '@jsb188/react-web/ui/TableListUI';
 import { TDCol, THead, TRow } from '@jsb188/react-web/ui/TableListUI';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
-import { isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactDivElement, ReactSpanElement } from '../types/dom.d';
 
 /**
@@ -45,11 +45,17 @@ type RenderItemFn = (
   (item: VZListItemObj, i: number, list: VZListItemObj[]) => React.ReactNode
 );
 
-type MapListDataFn = (
+type TableColumnElement = string | ReactSpanElement | React.ReactNode | null;
+
+type MapTableListDataFn = (
   item: VZListItemObj,
   i: number,
   list: VZListItemObj[]
-) => (string | ReactSpanElement | React.ReactNode | null)[]; // Returning "null" hides the row
+) => {
+  columns: TableColumnElement[];
+  // This will create another list of rows below the main row
+  subRows?: TableColumnElement[][];
+} | null; // Returning "null" hides the row
 
 interface VZReferenceObj {
   mounted: boolean;
@@ -599,7 +605,7 @@ export const TableList = memo((p: {
   applyGridToRows?: boolean;
   headers: TableHeaderObj[];
   listData: VZListItemObj[] | null;
-  mapListData: MapListDataFn;
+  mapListData: MapTableListDataFn;
   onClickRow?: (vzItem?: VZListItemObj) => void;
 }) => {
   const { gridLayoutStyle, headers, listData, mapListData, cellClassNames, applyGridToRows, onClickRow } = p;
@@ -616,22 +622,39 @@ export const TableList = memo((p: {
         return null;
       }
 
-      return <TRow
-        key={item.item.id}
-        onClick={() => onClickRow?.(item)}
-        applyGridToRows={applyGridToRows}
-        gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
-      >
-        {rowData.map((cell, j) =>
-          <TDCol
-            key={j}
-            className={cellClassNames?.[i]}
-            applyGridToRows={applyGridToRows}
-          >
-            {isValidElement(cell) ? cell : typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
-          </TDCol>
-        )}
-      </TRow>;
+      const renderCell = (cell: TableColumnElement, j: number) => {
+        return <TDCol
+          key={j}
+          className={cellClassNames?.[i]}
+          applyGridToRows={applyGridToRows}
+        >
+          {isValidElement(cell) ? cell : typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
+        </TDCol>;
+      };
+
+      return <Fragment key={item.item.id}>
+        <TRow
+          onClick={() => onClickRow?.(item)}
+          applyGridToRows={applyGridToRows}
+          gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
+        >
+          {rowData.columns.map(renderCell)}
+        </TRow>
+
+        <div className='rel pattern_texture primary_bf bd_l_4 bd_primary -ml_4'>
+          {rowData.subRows?.map((subRow, k) => {
+            return <TRow
+              key={k}
+              className='rel z1'
+              onClick={() => onClickRow?.(item)}
+              applyGridToRows={applyGridToRows}
+              gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
+            >
+              {subRow.map(renderCell)}
+            </TRow>;
+          })}
+        </div>
+      </Fragment>;
     })}
   </>;
 });
@@ -649,7 +672,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   cellClassNames?: (string | undefined)[];
   headers: TableHeaderObj[];
   // Use this to map list data to table row cells data
-  mapListData: MapListDataFn;
+  mapListData: MapTableListDataFn;
 }) {
   const { HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, mapListData, applyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);

@@ -70,6 +70,7 @@ CalendarDay.displayName = 'CalendarDay';
  */
 
 interface CalendarWeekDaysProps {
+  paddingClassName?: string;
   week: CalendarDayObj[];
   startDateInt?: number;
   endDateInt?: number;
@@ -80,7 +81,7 @@ interface CalendarWeekDaysProps {
 }
 
 export const CalendarWeekDays = memo((p: CalendarWeekDaysProps) => {
-  const { week, maxDateInt, startDateInt, endDateInt, selectedInt, dayHoverLabel, onClickItem } = p;
+  const { paddingClassName, week, maxDateInt, startDateInt, endDateInt, selectedInt, dayHoverLabel, onClickItem } = p;
   const weekStartInt = week[0]?.int;
   const weekEndInt = week[week.length - 1]?.int;
 
@@ -103,7 +104,7 @@ export const CalendarWeekDays = memo((p: CalendarWeekDaysProps) => {
 
   const isDateRange = rangeStartIx !== null && rangeEndIx !== null;
 
-  return <div className='cal_week grid size_7 gap_n rel py_1 rel'>
+  return <div className={cn('cal_week grid size_7 gap_n rel rel', paddingClassName ?? 'py_1')}>
     {rangeStartIx === null && rangeEndIx === null ? null
     : <div
       className={cn('cal_week_range',
@@ -135,14 +136,17 @@ CalendarWeekDays.displayName = 'CalendarWeekDays';
  * Weekday labels
  */
 
-export const WeekdayLabels = memo(() => {
+export const WeekdayLabels = memo((p: {
+  rowPaddingClassName?: string;
+}) => {
+  const { rowPaddingClassName } = p;
   const weekdays = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(1970, 0, 4 + i); // Jan 4, 1970 is a Sunday
     return date.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
   });
 
   return (
-    <div className='grid size_7 gap_n a_c ft_xs bd_b_1 bd_lt py_xs mt_xs cl_md'>
+    <div className={cn('grid size_7 gap_n a_c ft_xs bd_b_1 bd_lt mt_xs cl_md', rowPaddingClassName ?? 'py_xs')}>
       {weekdays.map((day, index) => (
         <div key={index} className='weekday_label'>
           {day}

@@ -1,4 +1,10 @@
-import { OPERATION_ENUMS, ROLE_CATEGORY_ENUMS, ROLE_ENUMS } from '../constants/organization.ts';
+import {
+  COMPLIANCE_DOCUMENT_TYPE_ENUMS,
+  OPERATION_ENUMS,
+  ROLE_CATEGORY_ENUMS,
+  ROLE_ENUMS
+} from '../constants/organization.ts';
+
 import type { AccountData } from './account.d.ts';
 import type { StorageData } from './other.d.ts';
 
@@ -50,6 +56,7 @@ export interface OrganizationShortData {
 }
 
 export interface OrganizationData {
+  __table: 'organizations';
 	id: number;
 	stripeCustomerId: string | null;
 	name: string;
@@ -57,11 +64,13 @@ export interface OrganizationData {
 	dailyDigestTime: string | null;
 	reminders: string | null;
 	domains: string[] | null;
-	settings?: {
-		timeZone: string | null;
-		language: string | null;
-		color: string | null;
-	};
+	settings?: OrganizationSettingsObj | null;
+}
+
+export interface OrganizationSettingsObj {
+  timeZone: string | null;
+  language: string | null;
+  color: string | null;
 }
 
 /**
@@ -87,7 +96,7 @@ export interface OrganizationComplianceGQLData {
 	type: OrganizationComplianceType;
 	expirationDate: string; // YYYY-MM-DD
 	notes: string;
-  createdAt: string; // ISO date string
+	createdAt: string; // ISO date string
 	updatedAt: string; // ISO date string
 
 	files: {
@@ -95,7 +104,7 @@ export interface OrganizationComplianceGQLData {
 		complianceId: string;
 		storageId: string;
 		uri: string | null;
-    contentType: string | null;
+		contentType: string | null;
 		order: number;
 	}[];
 }
@@ -107,6 +116,7 @@ export interface OrganizationGQLData {
 	operation: OrganizationOperationEnum;
 	compliance: OrganizationComplianceGQLData[] | null;
 	domains: string[] | null;
+	settings?: OrganizationSettingsObj | null;
 	membersCount: number;
 }
 
@@ -142,7 +152,7 @@ export interface OrganizationComplianceInsertObj {
 	storageIds: number[] | null;
 	number: string;
 	name: string;
-  type: OrganizationComplianceType;
+	type: OrganizationComplianceType;
 	expirationDate: string; // cast as date: "YYYY-MM-DD" format (in database)
 	notes?: string;
 }

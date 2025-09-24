@@ -1,10 +1,9 @@
 import { cn } from '@jsb188/app/utils/string';
-import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
-import type { ReactDivElement } from '@jsb188/react-web/types/dom.d';
 import { memo } from 'react';
+import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFeatures';
+import { Icon } from '../svgs/Icon';
+import type { ReactDivElement } from '../types/dom.d';
 import { AvatarImg } from './Avatar';
-import { InlineBlockLabel } from './Button';
 
 /**
  * Types
@@ -16,6 +15,7 @@ export type TableHeaderObj = Partial<{
   text: string;
   style: React.CSSProperties;
   className: string;
+  flexClassName: string;
 }>;
 
 /**
@@ -24,14 +24,15 @@ export type TableHeaderObj = Partial<{
 
 export function TRow(p: ReactDivElement & Partial<{
   thead: boolean;
+  removeBorderLine: boolean;
   applyGridToRows: boolean;
   gridLayoutStyle: string;
 }>) {
-  const { thead, applyGridToRows, gridLayoutStyle, className, ...rest } = p;
+  const { thead, removeBorderLine, applyGridToRows, gridLayoutStyle, className, ...rest } = p;
   return <div
     className={cn(
       'lh_1',
-      applyGridToRows ? 'bd_lt bd_b_1' : '',
+      applyGridToRows && !removeBorderLine ? 'bd_lt bd_b_1' : '',
       applyGridToRows ? 'grid gap_n' : 'trow',
       rest.onClick ? 'link bg_primary_hv' : '',
       thead ? 'thead ft_medium cl_md' : '',
@@ -49,11 +50,13 @@ export function TRow(p: ReactDivElement & Partial<{
 
 export const TDCol = memo((p: ReactDivElement & {
   applyGridToRows?: boolean;
+  flexClassName?: string;
 }) => {
-  const { className, applyGridToRows, children, ...rest } = p;
+  const { className, flexClassName, applyGridToRows, children, ...rest } = p;
   return <div
     className={cn(
-      'tdcol px_xs py_sm min_h_50 h_item',
+      'tdcol px_xs py_sm min_h_50',
+      flexClassName || 'h_item',
       applyGridToRows ? '' : 'bd_lt bd_b_1',
       className
     )}
@@ -70,13 +73,15 @@ export const TDCol = memo((p: ReactDivElement & {
 
 export const THead = memo((p: ReactDivElement & {
   cellClassNames?: (string | undefined)[];
+  removeBorderLine?: boolean;
   applyGridToRows?: boolean;
   gridLayoutStyle?: string;
   headers: TableHeaderObj[];
 }) => {
-  const { applyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
+  const { removeBorderLine, applyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
   return <TRow
     className={className}
+    removeBorderLine={removeBorderLine}
     applyGridToRows={applyGridToRows}
     gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
     thead
@@ -107,12 +112,7 @@ export const TDColMain = memo((p: Partial<{
   title: string;
   iconName: string;
   avatarDisplayName: string;
-  labelIcons: Partial<{
-    iconName: string;
-    tooltipText: string;
-    color: string;
-    text: string;
-  }>[];
+  labelIcons: LabelsAndIconsItemProps[];
 }>) => {
   const { iconName, avatarDisplayName, title, labelIcons } = p;
   const hasAvatar = !!(iconName || avatarDisplayName);
@@ -141,28 +141,9 @@ export const TDColMain = memo((p: Partial<{
 
     {labelIcons && (
       <span className={cn('f_shrink h_item gap_1', hasAvatar || title ? 'ml_10' : undefined)}>
-        {labelIcons.map(({ iconName, tooltipText, color, text }, i) => {
-          return <TooltipButton
-            key={i}
-            className={cn('pr_2', iconName && color ? `cl_${color}` : text ? 'h_item mx_3' : '')}
-            tooltipClassName='a_c max_w_200'
-            as='div'
-            position='top'
-            message={tooltipText}
-            offsetX={2} // +2 to adjust for .pr_2 padding-right
-            offsetY={iconName ? -6 : -14}
-          >
-            {iconName
-            ? <Icon name={iconName} />
-            : text
-            ? <InlineBlockLabel
-                text={text}
-                color={color}
-                textColorClassName={color}
-              />
-            : null}
-          </TooltipButton>
-        })}
+        <LabelsAndIcons
+          items={labelIcons}
+        />
       </span>
     )}
   </span>;

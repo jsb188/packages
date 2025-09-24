@@ -316,19 +316,19 @@ export function convertIntToCalDate(calDateInt: number | string, delimiter: stri
 
 export function isValidCalDate(
 	calDate_: string | number,
-  allowDashes: boolean = false,
+	allowDashes: boolean = false,
 	minCalDate: number = 19500101,
 ): boolean {
-  let calDate;
-  if (
-    allowDashes &&
-    typeof calDate_ === 'string' &&
-    /^\d{4}-\d{2}-\d{2}$/.test(calDate_)
-  ) {
-    calDate = calDate_.replace(/-/g, '');
-  } else {
-    calDate = calDate_;
-  }
+	let calDate;
+	if (
+		allowDashes &&
+		typeof calDate_ === 'string' &&
+		/^\d{4}-\d{2}-\d{2}$/.test(calDate_)
+	) {
+		calDate = calDate_.replace(/-/g, '');
+	} else {
+		calDate = calDate_;
+	}
 
 	const value = Number(calDate);
 	if (!calDate || !Number.isInteger(value) || value < 10000000 || value > 90000000) {
@@ -447,7 +447,7 @@ export function getTimeAgo(
 
 export function getFullDate(
 	d_: Date | string | number | null,
-	outputStyle_: 'DATE_ONLY' | 'DAY_IF_WEEK' | 'DATE_TEXT' | 'MINIMAL' | 'DETAILED' = 'DATE_ONLY',
+	outputStyle_: 'NUMERIC' | 'DATE_ONLY_SHORT' | 'DAY_IF_WEEK' | 'DATE_TEXT' | 'MINIMAL' | 'DETAILED' = 'NUMERIC',
 	timeZone: string | null,
 	locales: string = 'en-US',
 ) {
@@ -475,13 +475,13 @@ export function getFullDate(
 			});
 		}
 
-		outputStyle = 'DATE_ONLY';
+		outputStyle = 'NUMERIC';
 	} else {
 		outputStyle = outputStyle_;
 	}
 
 	switch (outputStyle) {
-		case 'DATE_ONLY':
+		case 'NUMERIC':
 			// Expected output: "9/1/2024"
 			return new Intl.DateTimeFormat(locales, {
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
@@ -493,6 +493,16 @@ export function getFullDate(
 				timeStyle: 'short', // 'full', 'long', 'medium', 'short'
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
+    case 'DATE_ONLY_SHORT': {
+			// Expected output: "Sep 1" (or "Sep 1, 2025" if not current year)
+      const dateYear = d.getFullYear();
+      const currentYear = new Date().getFullYear();
+      return new Intl.DateTimeFormat(locales, {
+				dateStyle: 'medium',
+        year: dateYear === currentYear ? undefined : 'numeric',
+				timeZone: timeZone || undefined, // null is not allowed, it will throw error
+			}).format(d);
+    }
 		case 'DATE_TEXT':
 			// Expected output: "September 1, 2024"
 			return new Intl.DateTimeFormat(locales, {
@@ -546,11 +556,11 @@ export function getDayPeriod(): 'MORNING' | 'AFTERNOON' | 'EVENING' | 'NIGHT' {
  */
 
 export function getDateFromCalDate(calDate: string, timeZone?: string | null): Date {
-  const dt = DateTime.fromISO(calDate, { zone: timeZone });
-  const jsDate = dt.toJSDate();
-  // const [year, month, day] = calDate.split('-');
+	const dt = DateTime.fromISO(calDate, { zone: timeZone });
+	const jsDate = dt.toJSDate();
+	// const [year, month, day] = calDate.split('-');
 	// console.log(new Date(Number(year), Number(month) - 1, Number(day)));
-  return jsDate;
+	return jsDate;
 }
 
 /**

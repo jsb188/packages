@@ -1,7 +1,7 @@
 import type { ColorEnum } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
-import { Link, type To } from 'react-router';
 import React, { memo } from 'react';
+import { Link, type To } from 'react-router';
 import { Icon } from '../svgs/Icon';
 import { AvatarImg } from './Avatar';
 import { ActivityDots } from './Loading';
@@ -10,7 +10,9 @@ import { ActivityDots } from './Loading';
  * Types
  */
 
-export type ButtonPresetEnum = 'em' | 'subtle' | 'cl_err' | 'bg' | 'bg_main' | 'bg_primary' | 'bg_secondary' | 'bg_contrast' | 'bg_medium' | 'outline';
+export type ButtonPresetEnum = 'em' | 'subtle' | 'cl_err' | 'bg' | 'bg_main' | 'bg_primary' | 'bg_secondary' | 'bg_contrast' | 'bg_medium' | 'bg_active' | 'outline' | 'outline_subtle';
+
+// If smaller size is needed, use .lh_1 .lh_2 class names instead
 export type ButtonSizeEnum = 'sm' | 'md' | 'df' | 'lg';
 
 /**

@@ -249,7 +249,7 @@ interface AvatarProps {
   status?: OnlineStatusEnums;
   typing?: boolean;
   draggable?: boolean;
-  displayName?: string;
+  displayName?: string | null;
   size?: AvatarSize | null;
   role?: 'button';
   urlSize?: 'small' | 'medium' | 'large';

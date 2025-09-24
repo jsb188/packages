@@ -6,7 +6,6 @@ import { checkACLPermission } from '@jsb188/app/utils/organization';
 
 const ORG_CHILDREN_LIMIT = 200;
 const ORG_EVENTS_LIMIT = 200;
-const ORG_LOAD_LISTS_LIMIT = 200;
 
 /**
  * Fetch organization relationship
@@ -162,9 +161,6 @@ export function useOrgEventAttendance(
     skip: !orgEventId || !calDate || !organizationId,
     ...params,
   });
-
-  console.log('skip?', orgEventId || calDate || organizationId);
-
 
   const organizationEvent = useReactiveOrganizationEventFragment(orgEventId);
   const isMyDocument = !!viewerAccountId && organizationEvent?.accountId === viewerAccountId;

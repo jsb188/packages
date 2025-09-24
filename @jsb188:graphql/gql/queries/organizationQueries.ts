@@ -85,10 +85,6 @@ query organizationEvents (
     address {
       ...addressFragment
     }
-
-    addressOverride {
-      ...addressFragment
-    }
   }
 }
 
@@ -157,7 +153,12 @@ query organizationEventAttendanceList (
 
     organization {
       ...organizationFragment
+
+      compliance {
+        ...organizationComplianceFragment
+      }
     }
+
     checkedBy {
       ...accountFragment
     }
@@ -166,5 +167,6 @@ query organizationEventAttendanceList (
 
 ${organizationEventAttendanceFragment}
 ${organizationFragment}
+${organizationComplianceFragment}
 ${accountFragment}
 `;

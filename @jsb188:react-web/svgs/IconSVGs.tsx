@@ -383,6 +383,16 @@ export const CaretDownFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="
 <path d="M18 9c.852 0 1.297 .986 .783 1.623l-.076 .084l-6 6a1 1 0 0 1 -1.32 .083l-.094 -.083l-6 -6l-.083 -.094l-.054 -.077l-.054 -.096l-.017 -.036l-.027 -.067l-.032 -.108l-.01 -.053l-.01 -.06l-.004 -.057v-.118l.005 -.058l.009 -.06l.01 -.052l.032 -.108l.027 -.067l.07 -.132l.065 -.09l.073 -.081l.094 -.083l.077 -.054l.096 -.054l.036 -.017l.067 -.027l.108 -.032l.053 -.01l.06 -.01l.057 -.004l12.059 -.002z" />
 </svg>;
 
+export const Certificate = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-certificate">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M15 15m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+<path d="M13 17.5v4.5l2 -1.5l2 1.5v-4.5" />
+<path d="M10 19h-5a2 2 0 0 1 -2 -2v-10c0 -1.1 .9 -2 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -1 1.73" />
+<path d="M6 9l12 0" />
+<path d="M6 12l3 0" />
+<path d="M6 15l2 0" />
+</svg>;
+
 export const Check = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-check" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M5 12l5 5l10 -10" stroke="currentColor" />
@@ -498,9 +508,22 @@ export const CircleKey = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 <path d="M12 2c5.523 0 10 4.477 10 10a10 10 0 0 1 -20 0c0 -5.523 4.477 -10 10 -10zm2 5a3 3 0 0 0 -2.98 2.65l-.015 .174l-.005 .176l.005 .176c.019 .319 .087 .624 .197 .908l.09 .209l-3.5 3.5l-.082 .094a1 1 0 0 0 0 1.226l.083 .094l1.5 1.5l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l.083 -.094a1 1 0 0 0 0 -1.226l-.083 -.094l-.792 -.793l.585 -.585l.793 .792l.094 .083a1 1 0 0 0 1.403 -1.403l-.083 -.094l-.792 -.793l.792 -.792a3 3 0 1 0 1.293 -5.708zm0 2a1 1 0 1 1 0 2a1 1 0 0 1 0 -2z" fill="currentColor" />
 </svg>;
 
+export const CircleLetterM = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-circle-letter-m">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+<path d="M9 16v-8l3 5l3 -5v8" />
+</svg>;
+
 export const CircleLetterMFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-circle-letter-m">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m4 6c0 -1.014 -1.336 -1.384 -1.857 -.514l-2.143 3.57l-2.143 -3.57c-.521 -.87 -1.857 -.5 -1.857 .514v8a1 1 0 0 0 1 1l.117 -.007a1 1 0 0 0 .883 -.993v-4.39l1.143 1.904l.074 .108a1 1 0 0 0 1.64 -.108l1.143 -1.904v4.39a1 1 0 0 0 2 0z" />
+</svg>;
+
+export const CircleLetterT = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-circle-letter-t">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+<path d="M10 8h4" />
+<path d="M12 8v8" />
 </svg>;
 
 export const CircleLetterTFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-circle-letter-t">
@@ -508,14 +531,33 @@ export const CircleLetterTFilled = <svg xmlns="http://www.w3.org/2000/svg" viewB
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m2 5h-4a1 1 0 1 0 0 2h1v7a1 1 0 0 0 .883 .993l.117 .007a1 1 0 0 0 1 -1v-7h1a1 1 0 0 0 .993 -.883l.007 -.117a1 1 0 0 0 -1 -1" />
 </svg>;
 
+export const CircleLetterW = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-circle-letter-w">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+<path d="M9 8l1 8l2 -5l2 5l1 -8" />
+</svg>;
+
 export const CircleLetterWFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-circle-letter-w">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m2.008 5.876l-.52 4.153l-.56 -1.4c-.319 -.799 -1.41 -.837 -1.803 -.114l-.053 .114l-.561 1.4l-.519 -4.153a1 1 0 0 0 -1 -.876l-.116 .008a1 1 0 0 0 -.868 1.116l1 8c.128 1.025 1.537 1.207 1.92 .247l1.072 -2.678l1.072 2.678c.383 .96 1.792 .778 1.92 -.247l1 -8a1 1 0 0 0 -1.984 -.248" />
 </svg>;
 
+export const CircleLetterF = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-circle-letter-f">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+<path d="M10 12h3" />
+<path d="M14 8h-4v8" />
+</svg>;
+
 export const CircleLetterFFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-circle-letter-f">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m2 5h-4a1 1 0 0 0 -1 1v8a1 1 0 0 0 1 1l.117 -.007a1 1 0 0 0 .883 -.993v-3h2a1 1 0 0 0 .993 -.883l.007 -.117a1 1 0 0 0 -1 -1h-2v-2h3a1 1 0 0 0 0 -2" />
+</svg>;
+
+export const CircleLetterS = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-circle-letter-s">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+<path d="M10 15a1 1 0 0 0 1 1h2a1 1 0 0 0 1 -1v-2a1 1 0 0 0 -1 -1h-2a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1" />
 </svg>;
 
 export const CircleLetterSFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-circle-letter-s">
@@ -891,7 +933,7 @@ export const HeadphonesOff = <svg xmlns="http://www.w3.org/2000/svg" className="
 
 export const HeartFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-heart">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z" />
+<path d="M22.7,12.3c0-1.2-.7-2.4-1.4-3s-1.4-.7-2-.8h-7.7c-.3-3.1-3.5-5-6.5-5h-.3l-3.3,6.6,2.5,2.5,2.5-1.6-.7,7.5c0,1,.6,1.9,1.7,2h.3c1,0,1.9-.6,2.3-1.6l1-2.5c.2-.6.8-.9,1.4-.9h1c.6,0,1.2.4,1.4.9l1,2.5c.4,1,1.3,1.6,2.3,1.6h.1c.5,0,1-.2,1.3-.5s.5-.8.5-1.3v-.2l-.8-8.2c.5,0,.9.3,1.1.5.5.5.8,1.2.8,2v.8h0c0,.4.3.7.7.7s.8-.2.8-.6,0,0,0,0h0v-1.3Z"/>
 </svg>;
 
 export const Help = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-help">
@@ -912,6 +954,16 @@ export const Home = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
 <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
 <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
 <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>;
+
+export const Horse = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-horse">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M7 10l-.85 8.507a1.357 1.357 0 0 0 1.35 1.493h.146a2 2 0 0 0 1.857 -1.257l.994 -2.486a2 2 0 0 1 1.857 -1.257h1.292a2 2 0 0 1 1.857 1.257l.994 2.486a2 2 0 0 0 1.857 1.257h.146a1.37 1.37 0 0 0 1.364 -1.494l-.864 -9.506h-8c0 -3 -3 -5 -6 -5l-3 6l2 2l3 -2z" />
+<path d="M22 14v-2a3 3 0 0 0 -3 -3" />
+</svg>;
+
+export const HorseFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-horse-filled">
+<path d="M22.7,12c0-1-.6-2-1.3-2.7-.5-.5-1.5-.7-2.1-.8h0s-7.7,0-7.7,0c-.3-3.1-3.5-5-6.5-5h-.3l-3.3,6.6,2.5,2.5,2.5-1.6-.7,7.5c-.1,1,.6,1.9,1.7,2,0,0,.1,0,.2,0h.1c1,0,1.9-.6,2.3-1.6l1-2.5c.2-.6.8-.9,1.4-.9h1c.6,0,1.2.4,1.4.9l1,2.5c.4,1,1.3,1.6,2.3,1.6h.1c.5,0,1-.2,1.3-.5.4-.4.5-.8.5-1.3,0,0,0-.1,0-.2l-.8-8.5c.5,0,.9.3,1.1.5.5.5.8,1,.8,1.8v1.3h0s0,0,0,0c0,.4.3.7.7.7s.7-.3.7-.7,0,0,0,0h0v-1.5Z"/>
 </svg>;
 
 export const ID = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-id" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -1383,6 +1435,13 @@ export const Rosette = <svg xmlns="http://www.w3.org/2000/svg" className="icon i
 export const RosetteCheckFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-rosette-check">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12.01 2.011a3.2 3.2 0 0 1 2.113 .797l.154 .145l.698 .698a1.2 1.2 0 0 0 .71 .341l.135 .008h1a3.2 3.2 0 0 1 3.195 3.018l.005 .182v1c0 .27 .092 .533 .258 .743l.09 .1l.697 .698a3.2 3.2 0 0 1 .147 4.382l-.145 .154l-.698 .698a1.2 1.2 0 0 0 -.341 .71l-.008 .135v1a3.2 3.2 0 0 1 -3.018 3.195l-.182 .005h-1a1.2 1.2 0 0 0 -.743 .258l-.1 .09l-.698 .697a3.2 3.2 0 0 1 -4.382 .147l-.154 -.145l-.698 -.698a1.2 1.2 0 0 0 -.71 -.341l-.135 -.008h-1a3.2 3.2 0 0 1 -3.195 -3.018l-.005 -.182v-1a1.2 1.2 0 0 0 -.258 -.743l-.09 -.1l-.697 -.698a3.2 3.2 0 0 1 -.147 -4.382l.145 -.154l.698 -.698a1.2 1.2 0 0 0 .341 -.71l.008 -.135v-1l.005 -.182a3.2 3.2 0 0 1 3.013 -3.013l.182 -.005h1a1.2 1.2 0 0 0 .743 -.258l.1 -.09l.698 -.697a3.2 3.2 0 0 1 2.269 -.944zm3.697 7.282a1 1 0 0 0 -1.414 0l-3.293 3.292l-1.293 -1.292l-.094 -.083a1 1 0 0 0 -1.32 1.497l2 2l.094 .083a1 1 0 0 0 1.32 -.083l4 -4l.083 -.094a1 1 0 0 0 -.083 -1.32z" />
+</svg>;
+
+export const Seedling = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-seedling">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 10a6 6 0 0 0 -6 -6h-3v2a6 6 0 0 0 6 6h3" />
+<path d="M12 14a6 6 0 0 1 6 -6h3v1a6 6 0 0 1 -6 6h-3" />
+<path d="M12 20l0 -10" />
 </svg>;
 
 export const SeedlingFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-seedling">

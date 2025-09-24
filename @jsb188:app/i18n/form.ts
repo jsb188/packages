@@ -19,6 +19,7 @@ export default {
     delete: 'Delete',
     balance: 'Balance',
     number: 'Number',
+    frequency: 'Frequency',
     expiration: 'Expiration',
     expiration_date: 'Expiration date',
     document: 'Document',
@@ -161,5 +162,13 @@ export default {
       FR: 'Friday',
       SA: 'Saturday',
     },
+
+    // Schedule frequency
+    schedule_frequency: {
+      DAILY: 'Repeats daily',
+      WEEKLY: 'Repeats weekly',
+      BI_WEEKLY: 'Repeats every two weeks',
+      MONTHLY: 'Repeats monthly',
+    }
   },
 };

@@ -27,7 +27,6 @@ function getCalendarInt(day: number, month: number, year: number): number {
 export function getCalendarSelector(date?: CalendarSelectedObj | Date | string | number | null): CalendarSelectedObj | null {
 
   if (date instanceof Date) {
-
     const calDateObj = {
       day: date.getDate(),
       month: date.getMonth() + 1, // Months are zero-indexed
@@ -50,7 +49,7 @@ export function getCalendarSelector(date?: CalendarSelectedObj | Date | string |
   }
 
   // Convert string or number to Date
-  const value = String(date);
+  const value = String(date).replace(/-/g, '');
   if (!isNaN(Number(value)) && value.length === 8) {
     // This is 8 digit YYYYMMDD CalDate
     const year = Number(value.slice(0, 4));
@@ -141,6 +140,7 @@ MonthHeader.displayName = 'MonthHeader';
  */
 
 interface CalendarWeeksProps {
+  rowPaddingClassName?: string;
   maxDateInt?: number;
   selectedInt?: number;
   startDateInt?: number;
@@ -153,7 +153,7 @@ interface CalendarWeeksProps {
 }
 
 const CalendarWeeks = memo((p: CalendarWeeksProps) => {
-  const { dayHoverLabel, maxDateInt, selectedInt, startDateInt, endDateInt, month, year, hideNextMonthDays, onClickItem } = p;
+  const { rowPaddingClassName, dayHoverLabel, maxDateInt, selectedInt, startDateInt, endDateInt, month, year, hideNextMonthDays, onClickItem } = p;
 
   // Create an array for the calendar days
   const weeksArr = useMemo(() => {
@@ -228,6 +228,7 @@ const CalendarWeeks = memo((p: CalendarWeeksProps) => {
       {weeksArr.map((week, index) =>
         <CalendarWeekDays
           key={`week_${index}`}
+          paddingClassName={rowPaddingClassName}
           week={week}
           dayHoverLabel={dayHoverLabel}
           startDateInt={startDateInt}
@@ -253,6 +254,8 @@ type AnyDateValue = Date | CalendarSelectedObj | string | number;
 
 interface CalendarProps {
   name: string; // Form name; ie. for start/end date
+  weekdayRowPaddingClassName?: string;
+  rowPaddingClassName?: string;
   startDate?: AnyDateValue | null;
   endDate?: AnyDateValue | null;
   value?: AnyDateValue | null;
@@ -278,7 +281,7 @@ interface CalendarViewObj {
 }
 
 export const Calendar = memo((p: CalendarProps) => {
-  const { name, className, dayHoverLabel, hideNextMonthDays, initialCalendarViewDate, maxDate, minDate, onChange } = p;
+  const { name, weekdayRowPaddingClassName, rowPaddingClassName, className, dayHoverLabel, hideNextMonthDays, initialCalendarViewDate, maxDate, minDate, onChange } = p;
 
   const value = useMemo(() => {
     return getCalendarSelector(p.value);
@@ -326,9 +329,12 @@ export const Calendar = memo((p: CalendarProps) => {
       year={calendarView.year}
       setCalendarView={setCalendarView}
     />
-    <WeekdayLabels />
+    <WeekdayLabels
+      rowPaddingClassName={weekdayRowPaddingClassName}
+    />
     <CalendarWeeks
       {...calendarView}
+      rowPaddingClassName={rowPaddingClassName}
       dayHoverLabel={dayHoverLabel}
       maxDateInt={maxDateObj?.int}
       hideNextMonthDays={hideNextMonthDays}

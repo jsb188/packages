@@ -18,10 +18,6 @@ export const ROLE_ENUMS = ['MEMBER', 'MANAGER', 'ADMIN', 'OWNER']; // first is d
 
 export const ROLE_CATEGORY_ENUMS = ['EMPLOYEES_ONLY', 'MANAGERS_ONLY'];
 
-// Child organization types
-
-export const CHILD_ORGANIZATION_TYPE_ENUMS = ['PRODUCER', 'VENDOR'];
-
 // Compliance
 
 export const COMPLIANCE_DOCUMENT_TYPE_MAP = {

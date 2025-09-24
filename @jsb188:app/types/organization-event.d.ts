@@ -1,5 +1,7 @@
 import { ORGANIZATION_EVENT_TYPES } from '../constants/organization-event.ts';
+import type { OrganizationGQLData } from './organization.d.ts';
 import type { EventScheduleObj } from './other.d.ts';
+import type { AccountData } from './account.d.ts';
 
 export type OrganizationEventTypeEnum = typeof ORGANIZATION_EVENT_TYPES[number];
 
@@ -44,13 +46,12 @@ export interface OrganizationAddressGQLData {
 
 export interface OrganizationEventUpsertObj {
 	id?: number; // Only for edits
-	addressId: number;
-	addressOverrideId?: number | null;
+	addressId?: number;
 
 	name: string;
 	type: OrganizationEventTypeEnum;
 	paused: boolean;
-  schedule: EventScheduleObj | null;
+	schedule: EventScheduleObj | null;
 	startAt: Date;
 	endAt: Date;
 }
@@ -60,8 +61,7 @@ export interface OrganizationEventDataObj extends OrganizationEventUpsertObj {
 	id: number;
 	organizationId: number;
 	accountId: number;
-	address: OrganizationAddressObj; // This must *never* be null
-	addressOverride?: OrganizationAddressObj | null;
+	address: OrganizationAddressObj | null; // This must *never* be null
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -77,7 +77,37 @@ export interface OrganizationEventGQLData {
 	startAt: string | Date;
 	endAt: string | Date | null;
 	address: OrganizationAddressGQLData; // This must *never* be null
-	addressOverride?: OrganizationAddressGQLData | null;
 	createdAt: string;
 	updatedAt: string;
+}
+
+/**
+ * Org event attendance
+ */
+
+export interface OrgEventAttendanceUpsertObj {
+  id?: number; // Only for edits
+  organizationId: number;
+  orgEventId: number;
+  accountId: number;
+  attended: boolean | null;
+  calDate: string; // "YYYY-MM-DD" format
+  history: [string, '0' | '1'][]; // [YYYY-MM-DD, '0' | '1'][]
+}
+
+export interface OrgEventAttendanceDataObj extends OrgEventAttendanceUpsertObj {
+  __table: 'organization_event_attendance';
+  id: number;
+  organization: OrganizationData;
+  account: AccountData; // account data
+}
+
+export interface OrgEventAttendanceGQLData {
+  __deleted: boolean; // For client-side only
+  id: string;
+  orgEventId: string;
+  attended: boolean | null;
+  calDate: string; // "YYYY-MM-DD" format
+  organization: OrganizationGQLData;
+  checkedBy: any; // account data
 }

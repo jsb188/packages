@@ -17,6 +17,7 @@ export interface AccountPhoneObj {
 
 export interface AccountObj {
 	id: number;
+	settings: Record<string, any>;
 	profile: {
 		id: number;
 		firstName: string;
@@ -27,6 +28,7 @@ export interface AccountObj {
 }
 
 export interface AccountData extends AccountObj {
+  __table: 'accounts';
 	phone: {
 		id: number;
 		number: string;
@@ -43,6 +45,8 @@ export interface AccountData extends AccountObj {
 		banned: boolean;
 		editAt: Date;
 	};
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
