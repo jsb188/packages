@@ -38,6 +38,7 @@ export const logEntryFarmersMarketFragment = `fragment logEntryFarmersMarketFrag
   activity
 
   childOrgId
+  childOrganizationName
   notes
 
   void

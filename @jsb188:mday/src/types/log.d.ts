@@ -57,27 +57,31 @@ interface LogArableObj {
 interface LogArableDetailsObj extends LogArableObj {
 	__table: 'logs_arable';
 	id: number;
+  childOrg: never;
 }
 
 // Log details - Farmers Market
 
 interface LogFarmersMarketMetadata {
-  void: boolean;
-  values: { label: string; value: string }[];
+	void: boolean;
+	values: { label: string; value: string }[];
 }
 
 interface LogFarmersMarketObj {
-  childOrgId: number;
-  type?: LogFarmersMarketTypeEnum; // Only set in server if manually extended
-  activity: LogFarmersMarketActivityEnum;
-  notes: string | null;
-  translation?: string | null;
-  metadata?: Partial<LogFarmersMarketMetadata> | null;
+	childOrgId: number;
+	type?: LogFarmersMarketTypeEnum; // Only set in server if manually extended
+	activity: LogFarmersMarketActivityEnum;
+	notes: string | null;
+	translation?: string | null;
+	metadata?: Partial<LogFarmersMarketMetadata> | null;
 }
 
 interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
-  __table: 'logs_farmers_market';
-  id: number;
+	__table: 'logs_farmers_market';
+	id: number;
+  childOrg: {
+    name: string;
+  };
 }
 
 // Union type for log details
@@ -112,7 +116,7 @@ export interface LogEntryDataObj {
 	accountId: number;
 	organizationId: number;
 	distance?: number; // For vector search
-	details: LogArableDetailsObj;
+	details: LogArableDetailsObj | LogFarmersMarketDetailsObj;
 	date: Date;
 	createdAt: Date;
 	updatedAt: Date;

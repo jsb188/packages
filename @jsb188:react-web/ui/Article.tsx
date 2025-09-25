@@ -138,7 +138,8 @@ export const CondensedArticleItem = memo((p: {
 
       {title && <span className={'f_shrink shift_down ' + yPaddingClassName}>{title}</span>}
 
-      {(hasDescription || labelIcons) && (
+      {(hasDescription || labelIcons)
+      ? (
         <span
           className={cn(
             'ellip f',
@@ -161,7 +162,8 @@ export const CondensedArticleItem = memo((p: {
             </span>
           )}
         </span>
-      )}
+      )
+      : <span className='f' />}
 
       {!RightComponent ? null
       : <div className={cn('h_right gap_xs ml_xs', rightComponentClassName)}>

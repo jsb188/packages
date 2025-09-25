@@ -295,7 +295,7 @@ export function joinReadable(
 	lastSeparator: string = ' and ',
 ) {
 	const lastIx = texts.length - 1;
-	return texts.reduce((acc, text, i) => {
+	return texts.filter(Boolean).reduce((acc, text, i) => {
 		return acc + (!acc ? '' : i === lastIx ? lastSeparator : separator) + text;
 	}, '');
 }

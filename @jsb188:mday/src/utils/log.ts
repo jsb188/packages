@@ -112,8 +112,9 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 				],
 			);
 		}
+    case 'FARMERS_MARKET':
     case 'logs_farmers_market':
-    case 'FARMERS_MARKET': {
+    case 'LogEntryFarmersMarket': {
       const creditsText = md.values?.map((item: any) => {
         return `${formatCurrency(item.value, 'en-US', 'USD')} ${item.label}`;
       }).join(', ') || '';
@@ -121,6 +122,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
       const voidText = md.void ? i18n.t('form.void').toUpperCase() : '';
       return `${creditsText} ${creditsText && voidText ? '(' + voidText + ')' : voidText}`.trim();
     }
+    case 'LIVESTOCK':
 		case 'logs_livestock':
 		case 'LogEntryLivestock': {
 			// .. live stock logs here ..
