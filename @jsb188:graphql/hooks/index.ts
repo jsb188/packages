@@ -580,7 +580,7 @@ export function useQuery(
   query: any,
   options?: GraphQLQueryOptions,
 ): GraphQLQueryResult {
-  const { onCompleted, onError, openModalPopUp, variables, cacheMap, skip, eagerFragmentKeyMap } = options || {};
+  const { onCompleted, onError, openModalPopUp, variables, cacheMap, skip, eagerFragmentKeyMap, doTest } = options || {};
   const variablesKey = makeVariablesKey(variables);
   const connectedToServer = useConnectedToServerValue();
   const screenIsFocused = useScreenIsFocusedValue();
@@ -616,7 +616,6 @@ export function useQuery(
   const doQuery = async (queryVariables?: any, triedCount: number = 0) => {
 
     const currentHookId = QRY_TRACKER.get(queryKey);
-
     if (!currentHookId) {
       QRY_TRACKER.set(queryKey, tracker.current.unique);
     } else if (currentHookId) {

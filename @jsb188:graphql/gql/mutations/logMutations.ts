@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { logEntryFragment, logEntryArableFragment } from '../fragments/logFragments';
+import { logEntryFragment, logEntryArableFragment, logEntryLivestockFragment, logEntryFarmersMarketFragment } from '../fragments/logFragments';
 
 export const editLogEntryMtn = gql`
 mutation editLogEntry (
@@ -24,12 +24,20 @@ mutation editLogEntry (
       ...on LogEntryArable {
         ...logEntryArableFragment
       }
+      ...on LogEntryLivestock {
+        ...logEntryLivestockFragment
+      }
+      ...on LogEntryFarmersMarket {
+        ...logEntryFarmersMarketFragment
+      }
     }
   }
 }
 
 ${logEntryFragment}
 ${logEntryArableFragment}
+${logEntryLivestockFragment}
+${logEntryFarmersMarketFragment}
 `;
 
 export const deleteLogEntryMtn = gql`

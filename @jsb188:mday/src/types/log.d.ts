@@ -1,16 +1,31 @@
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import type { AccountObj } from '@jsb188/app/types/account.d';
-import { LOG_ARABLE_ACTIVITY_ENUMS } from '../constants/log';
+import { LOG_ARABLE_ACTIVITY_ENUMS, LOG_FARMERS_MARKET_ACTIVITY_ENUMS } from '../constants/log';
 
-// All logs types
+/**
+ * Arable
+ */
 
 export type LogArableTypeEnum = 'SEED' | 'PLANTING' | 'FIELD' | 'HARVEST' | 'POST_HARVEST' | 'SALES' | 'WATER';
-export type LogTypeEnum = LogArableTypeEnum;
-
-// All logs activities
-
 export type LogArableActivityEnum = typeof LOG_ARABLE_ACTIVITY_ENUMS[number];
-export type LogActivityEnum = LogArableActivityEnum;
+
+/**
+ * Farmers Market
+ */
+
+export type LogFarmersMarketTypeEnum = 'MARKET_RECEIPTS' | 'MARKET_OPERATIONS';
+export type LogFarmersMarketActivityEnum = typeof LOG_FARMERS_MARKET_ACTIVITY_ENUMS[number];
+
+/**
+ * All logs
+ */
+
+export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum;
+export type LogActivityEnum = LogArableActivityEnum | LogFarmersMarketActivityEnum;
+
+/**
+ * Log data types
+ */
 
 interface LogDetailsGQLBase {
 	__typename: string;
@@ -20,7 +35,7 @@ interface LogDetailsGQLBase {
 	notes: string;
 }
 
-// Log entry object
+// Log details - Arable
 
 interface LogArableMetadata {
 	crop: string;
@@ -35,7 +50,7 @@ interface LogArableObj {
 	type?: LogArableTypeEnum; // Only set in server if manually extended
 	activity: LogArableActivityEnum;
 	notes: string | null;
-	translation: string | null;
+	translation?: string | null;
 	metadata?: Partial<LogArableMetadata> | null;
 }
 
@@ -44,7 +59,32 @@ interface LogArableDetailsObj extends LogArableObj {
 	id: number;
 }
 
-export type LogDetailsObj = LogArableObj;
+// Log details - Farmers Market
+
+interface LogFarmersMarketMetadata {
+  void: boolean;
+  values: { label: string; value: string }[];
+}
+
+interface LogFarmersMarketObj {
+  childOrgId: number;
+  type?: LogFarmersMarketTypeEnum; // Only set in server if manually extended
+  activity: LogFarmersMarketActivityEnum;
+  notes: string | null;
+  translation?: string | null;
+  metadata?: Partial<LogFarmersMarketMetadata> | null;
+}
+
+interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
+  __table: 'logs_farmers_market';
+  id: number;
+}
+
+// Union type for log details
+
+export type LogDetailsObj = LogArableObj | LogFarmersMarketObj;
+
+// GQL data interfaces
 
 export interface LogEntryGQLData {
 	id: string;

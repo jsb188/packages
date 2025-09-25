@@ -42,7 +42,7 @@ export const CalendarDay = memo((p: CalendarDayObj & {
   }
 
   return (
-    <div className={cn('v_center', disabled ? 'cl_darker_2' : isOtherMonth && !inRange ? 'cl_md' : '')}>
+    <div className={cn('v_center', disabled ? 'cl_darker_2' : isOtherMonth && !selected && !inRange ? 'cl_md' : '')}>
       {int && (
         <button
           className={cn(

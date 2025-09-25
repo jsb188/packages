@@ -23,3 +23,26 @@ export const logEntryArableFragment = `fragment logEntryArableFragment on LogEnt
   price
   notes
 }`;
+
+export const logEntryLivestockFragment = `fragment logEntryLivestockFragment on LogEntryLivestock {
+  __typename
+
+  id
+}`;
+
+export const logEntryFarmersMarketFragment = `fragment logEntryFarmersMarketFragment on LogEntryFarmersMarket {
+  __typename
+
+  id
+  type
+  activity
+
+  childOrgId
+  notes
+
+  void
+  values {
+    label
+    value
+  }
+}`;

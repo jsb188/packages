@@ -1,27 +1,12 @@
-import type { LogArableTypeEnum } from '../types/log.d.ts';
+import type { LogArableTypeEnum, LogFarmersMarketTypeEnum } from '../types/log.d.ts';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 
 /**
- * IMPORTANT: Keep this list updated.
- *
- * These are the function call names where the AI can see the args for after calling the function.
- * When you include the args for functions such as write_log(), it's unnecessary data that only confuses the AI,
- * and makes the AI less accurate.
+ * Arable farming logs
+ * NOTE: This constant defines all the enums and activities for both GraphQL and database
  */
 
-// Not using this any more (?)
-// export const SHOW_ARGS_FUNCTION_CALL_NAMES = [
-// 	'search_logs_arable_farming',
-// 	'search_logs_livestock_farming',
-// 	'get_arable_farming_logs_file',
-// 	'get_livestock_farming_logs_file',
-// 	'find_persons',
-// ];
-
-// Arable farming logs
-// NOTE: This constant defines all the enums and activities for both GraphQL and database
-
-export const ARABLE_ACTIVITIES_GROUPED = [
+export const ARABLE_ACTIVITIES_GROUPED: [LogArableTypeEnum, string[]][] = [
 	[
 		'SEED',
 		[
@@ -89,9 +74,9 @@ export const ARABLE_ACTIVITIES_GROUPED = [
 			'OTHER_WATER_TESTING_ACTIVITY',
 		],
 	],
-] as [LogArableTypeEnum, string[]][];
+];
 
-export const ARABLE_TYPES_TO_TEXT = {
+export const ARABLE_TYPES_TO_TEXT: Record<LogArableTypeEnum, string> = {
 	SEED: 'seed purchases',
 	PLANTING: 'seeding, transplanting activities',
 	FIELD: 'field activities',
@@ -100,15 +85,15 @@ export const ARABLE_TYPES_TO_TEXT = {
 	SALES: 'sales related activities',
 	WATER: 'water testing activities',
 
-	// This is not part of the enums
+	// @ts-expect-error - This is not part of the enums
 	EVERYTHING: 'all activities',
-} as Record<LogArableTypeEnum, string>;
+};
 
-export const TEXT_TO_ARABLE_TYPES = Object.fromEntries(
+export const TEXT_TO_ARABLE_TYPES: Record<string, string> = Object.fromEntries(
 	Object.entries(ARABLE_TYPES_TO_TEXT).map(([key, value]) => [value, key]),
-) as Record<string, string>;
+);
 
-export const LOG_ARABLE_TYPE_ENUMS = [
+export const LOG_ARABLE_TYPE_ENUMS: LogArableTypeEnum[] = [
 	'SEED',
 	'PLANTING',
 	'FIELD',
@@ -116,28 +101,78 @@ export const LOG_ARABLE_TYPE_ENUMS = [
 	'POST_HARVEST',
 	'SALES',
 	'WATER',
-] as LogArableTypeEnum[];
+];
 
 export const LOG_ARABLE_ACTIVITY_ENUMS = ARABLE_ACTIVITIES_GROUPED.reduce(
 	(acc, a) => acc.concat(a[1]),
 	[] as string[],
 );
 
-// All log types & activities
+/**
+ * Farmers Market logs
+ */
 
-export const LOG_ACTIVITIES_GROUPED = [
-	...ARABLE_ACTIVITIES_GROUPED,
+export const FARMERS_MARKET_ACTIVITIES_GROUPED: [LogFarmersMarketTypeEnum, string[]][] = [
+	[
+		'MARKET_RECEIPTS',
+		[
+			'MARKET_CREDIT_RECEIPT',
+		],
+	],
+	[
+		'MARKET_OPERATIONS',
+		[
+			'FARMER_NOTES',
+			'FARMERS_MARKET_NOTES',
+			'OTHER_NOTES',
+		],
+	],
 ];
+
+export const FARMERS_MARKET_TYPES_TO_TEXT: Record<LogFarmersMarketTypeEnum, string> = {
+	MARKET_RECEIPTS: 'market credit receipts and coins redemption',
+	MARKET_OPERATIONS: 'notes about farmers and markets',
+
+	// @ts-expect-error - This is not part of the enums
+	EVERYTHING: 'all activities',
+};
+
+export const TEXT_TO_FARMERS_MARKET_TYPES: Record<string, string> = Object.fromEntries(
+	Object.entries(FARMERS_MARKET_TYPES_TO_TEXT).map(([key, value]) => [value, key]),
+);
+
+export const LOG_FARMERS_MARKET_TYPE_ENUMS: LogFarmersMarketTypeEnum[] = [
+	'MARKET_RECEIPTS',
+	'MARKET_OPERATIONS',
+];
+
+export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUPED.reduce(
+	(acc, a) => acc.concat(a[1]),
+	[] as string[],
+);
+
+/**
+ * All log types & activities
+ */
 
 export const LOG_TYPE_ENUMS = [
 	...LOG_ARABLE_TYPE_ENUMS,
-];
+	...LOG_FARMERS_MARKET_TYPE_ENUMS,
+].filter((value, index, self) => self.indexOf(value) === index);
 
 export const LOG_ACTIVITY_ENUMS = [
 	...LOG_ARABLE_ACTIVITY_ENUMS,
-];
+	...LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
+].filter((value, index, self) => self.indexOf(value) === index);
 
-export const LOG_TYPES_BY_OPERATION = {
+export const LOG_ACTIVITIES_BY_OPERATION: Record<OrganizationOperationEnum, any> = {
+	ARABLE: ARABLE_ACTIVITIES_GROUPED,
+	LIVESTOCK: [],
+	FARMERS_MARKET: FARMERS_MARKET_ACTIVITIES_GROUPED,
+};
+
+export const LOG_TYPES_BY_OPERATION: Record<OrganizationOperationEnum, (typeof LOG_TYPE_ENUMS)[number][]> = {
 	ARABLE: LOG_ARABLE_TYPE_ENUMS,
 	LIVESTOCK: [],
-} as Record<OrganizationOperationEnum, (typeof LOG_TYPE_ENUMS)[number][]>;
+	FARMERS_MARKET: LOG_FARMERS_MARKET_TYPE_ENUMS,
+};

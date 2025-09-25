@@ -56,7 +56,7 @@ export interface OrganizationShortData {
 }
 
 export interface OrganizationData {
-  __table: 'organizations';
+	__table: 'organizations';
 	id: number;
 	stripeCustomerId: string | null;
 	name: string;
@@ -68,9 +68,21 @@ export interface OrganizationData {
 }
 
 export interface OrganizationSettingsObj {
-  timeZone: string | null;
-  language: string | null;
-  color: string | null;
+	timeZone: string | null;
+	language: string | null;
+	color: string | null;
+}
+
+export interface OrganizationChildData {
+  __table: 'organization_rels';
+	id: number;
+	organization: OrganizationData;
+	primaryContact: {
+    __table: 'account_organization_rels';
+    id: number;
+    account: AccountData;
+  };
+	addedAt: Date;
 }
 
 /**

@@ -7,6 +7,7 @@ export default {
     or: 'or',
     n_a: 'N/A',
     unknown: 'Unknown',
+    void: 'Void', // Use uppercase if needed
     warning: 'Warning',
     cancel: 'Cancel',
     continue: 'Continue',
