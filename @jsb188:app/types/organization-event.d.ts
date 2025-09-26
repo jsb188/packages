@@ -86,28 +86,28 @@ export interface OrganizationEventGQLData {
  */
 
 export interface OrgEventAttendanceUpsertObj {
-  id?: number; // Only for edits
-  organizationId: number;
-  orgEventId: number;
-  accountId: number;
-  attended: boolean | null;
-  calDate: string; // "YYYY-MM-DD" format
-  history: [string, '0' | '1'][]; // [YYYY-MM-DD, '0' | '1'][]
+	id?: number; // Only for edits
+	organizationId: number;
+	orgEventId: number;
+	accountId: number;
+	attended: boolean | null;
+	calDate: string; // "YYYY-MM-DD" format
+	history?: [string, '0' | '1'][] | null; // [YYYY-MM-DD, '0' | '1'][]
 }
 
 export interface OrgEventAttendanceDataObj extends OrgEventAttendanceUpsertObj {
-  __table: 'organization_event_attendance';
-  id: number;
-  organization: OrganizationData;
-  account: AccountData; // account data
+	__table: 'organization_event_attendance';
+	id: number;
+	organization: OrganizationData;
+	account: AccountData; // account data
 }
 
 export interface OrgEventAttendanceGQLData {
-  __deleted: boolean; // For client-side only
-  id: string;
-  orgEventId: string;
-  attended: boolean | null;
-  calDate: string; // "YYYY-MM-DD" format
-  organization: OrganizationGQLData;
-  checkedBy: any; // account data
+	__deleted: boolean; // For client-side only
+	id: string;
+	orgEventId: string;
+	attended: boolean | null;
+	calDate: string; // "YYYY-MM-DD" format
+	organization: OrganizationGQLData;
+	checkedBy: any; // account data
 }
