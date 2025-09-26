@@ -174,9 +174,9 @@ export function getReadableSchedule(schedule: EventScheduleObj | null) {
 
 	return DAY_OF_WEEK.map((day) => {
 		const isScheduled = schedule.byDay?.includes(day);
-    if (!isScheduled) {
-      return '';
-    }
+		if (!isScheduled) {
+			return '';
+		}
 
 		const daySchedTime = (schedule?.[`time_${day}` as keyof EventScheduleObj] || defaultSchedTime) as [number, number];
 		const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
@@ -396,11 +396,12 @@ export function isScheduledDate(
 	switch (frequency) {
 		case 'DAILY':
 			return true;
-		case 'WEEKLY':
+		case 'WEEKLY': {
 			const dateDay = DAY_OF_WEEK[date.getDay()];
 			return byDay.includes(dateDay);
+		}
 		default:
-			console.dev(`isScheduledDate(): ${frequency} frequency is not implemented yet`);
+			console.warn(`isScheduledDate(): ${frequency} frequency is not implemented yet`);
 	}
 
 	return false;
@@ -413,10 +414,9 @@ export function isScheduledDate(
  */
 
 export function getTimeFromSchedule(schedule: EventScheduleObj | null, date: Date | null, timeZone: string | null) {
-
-  if (!schedule && date) {
-    return convertToMilitaryTime(date.getHours() * 100 + date.getMinutes());
-  }
+	if (!schedule && date) {
+		return convertToMilitaryTime(date.getHours() * 100 + date.getMinutes());
+	}
 
 	const daySchedTime = getTimeArrayFromSchedule(schedule, date, timeZone);
 	const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);

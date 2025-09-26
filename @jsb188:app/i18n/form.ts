@@ -28,6 +28,7 @@ export default {
     untitled_document: 'Untitled document',
     try_again: 'Try again',
     refresh_page: 'Refresh page',
+    total: 'Total',
     search: 'Search',
     submitted: 'Submitted',
     no_results: 'No results',

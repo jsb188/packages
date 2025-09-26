@@ -115,9 +115,15 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
     case 'FARMERS_MARKET':
     case 'logs_farmers_market':
     case 'LogEntryFarmersMarket': {
-      const creditsText = md.values?.map((item: any) => {
-        return `${formatCurrency(item.value, 'en-US', 'USD')} ${item.label}`;
-      }).join(', ') || '';
+      let creditsText = '';
+      if (Array.isArray(md.values) && md.values.length) {
+        creditsText = md.values.map((item: any) => {
+          return `${formatCurrency(item.value, 'en-US', 'USD')} ${item.label}`;
+        }).join(', ');
+
+        const totalAmount = md.values.reduce((sum: number, item: any) => sum + Number(item.value || 0), 0);
+        creditsText += ` = ${i18n.t('form.total')}: ${formatCurrency(totalAmount, 'en-US', 'USD')}`;
+      }
 
       const voidText = md.void ? i18n.t('form.void').toUpperCase() : '';
       return `${creditsText} ${creditsText && voidText ? '(' + voidText + ')' : voidText}`.trim();
