@@ -203,7 +203,7 @@ export function makeLogEntryDetailsSchema(
         iface: {
           name: 'PO_LIST',
           variables: {
-            designClassName: 'w_300',
+            designClassName: 'w_350',
             className: 'max_h_40vh',
             initialState: {
               date: formValues.date ? new Date(formValues.date) : new Date(),

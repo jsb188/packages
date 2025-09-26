@@ -154,7 +154,6 @@ export function useOrgEventAttendance(
 
   const { organizationId, orgEventId, calDate } = variables;
   const { organizationRelationship } = useOrganizationRelationship(organizationId);
-  const notReady = !organizationRelationship;
 
   const { data, ...rest } = useQuery(organizationEventAttendanceListQry, {
     variables,
@@ -163,7 +162,9 @@ export function useOrgEventAttendance(
   });
 
   const organizationEvent = useReactiveOrganizationEventFragment(orgEventId);
+  const organizationEventAttendanceList = data?.organizationEventAttendanceList;
   const isMyDocument = !!viewerAccountId && organizationEvent?.accountId === viewerAccountId;
+  const notReady = !organizationRelationship || !organizationEventAttendanceList || !organizationEvent;
 
   const allowEdit = useMemo(() => {
     return checkACLPermission(organizationRelationship, 'events', isMyDocument ? 'WRITE' : 'MANAGE');
@@ -173,7 +174,7 @@ export function useOrgEventAttendance(
 
   return {
     organizationEvent,
-    organizationEventAttendanceList: data?.organizationEventAttendanceList,
+    organizationEventAttendanceList,
     notReady,
     allowEdit,
     ...rest

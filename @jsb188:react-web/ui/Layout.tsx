@@ -6,6 +6,7 @@ import { useAnimationVisibility } from '@jsb188/react/hooks';
 import { memo } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
+import { BigLoading } from './Loading';
 
 // const cssPaths = ['/css/layout.css', '/css/alert.css'];
 
@@ -455,6 +456,7 @@ export function PageContent(p: PageContentProps) {
 interface ContentGateProps {
   children: React.ReactNode;
   NotReadyComponent?: React.ElementType;
+  showLoadingIfNotReady?: boolean;
   notReady?: boolean;
   loading?: boolean;
   notReadyClassName?: string;
@@ -464,7 +466,7 @@ interface ContentGateProps {
 }
 
 export function ContentGate(p: ContentGateProps) {
-  const { children, error, loading, notReady, NotReadyComponent, notReadyClassName, hideButtonIfNotRetriable, onRefetch } = p;
+  const { children, error, loading, notReady, showLoadingIfNotReady, NotReadyComponent, notReadyClassName, hideButtonIfNotRetriable, onRefetch } = p;
 
   if (notReady) {
     // return <div className='v_center h_f'>
@@ -482,6 +484,8 @@ export function ContentGate(p: ContentGateProps) {
       />
       : NotReadyComponent
       ? <NotReadyComponent />
+      : showLoadingIfNotReady
+        ? <BigLoading color='active' />
       : null}
     </div>;
   }

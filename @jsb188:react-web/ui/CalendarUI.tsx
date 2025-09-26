@@ -176,10 +176,10 @@ interface CalendarMonthHeaderProps {
 export const CalendarMonthHeader = memo((p: CalendarMonthHeaderProps) => {
   const { onClickPrev, onClickNext, text } = p;
 
-  return <div className='h_spread a_c ft_xs lh_1 r bg_alt'>
+  return <div className='grid size_7 gap_n a_c ft_xs lh_1 r bg_alt'>
     {onClickPrev
     ? <button
-      className='f_stretch v_center av_w_xs ml_3 link'
+      className='v_center ml_3 link'
       onClick={onClickPrev}
     >
       <span className='target trans_transform'>
@@ -188,13 +188,13 @@ export const CalendarMonthHeader = memo((p: CalendarMonthHeaderProps) => {
     </button>
     : <span className='f_stretch v_center av_w_xs ml_3' />}
 
-    <span className='py_xs'>
+    <span className='py_xs g_span_5'>
       {text}
     </span>
 
     {onClickNext
     ? <button
-      className='f_stretch v_center av_w_xs mr_3 link'
+      className='v_center mr_3 link'
       onClick={onClickNext}
     >
       <span className='target trans_transform'>
