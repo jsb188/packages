@@ -28,7 +28,6 @@ export const organizationEventFragment = `fragment organizationEventFragment on 
     byDay
     byMonthDay
     byMonth
-    once
     time
     time_SU
     time_MO

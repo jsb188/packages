@@ -53,7 +53,7 @@ export function checkIfOrgEventIsUpcoming(orgEvent: OrganizationEventGQLData): b
 		return false;
 	}
 
-	const once = !orgEvent.schedule || !!orgEvent.schedule?.once;
+	const once = !orgEvent.schedule;
 	if (once) {
 		const startAt = new Date(orgEvent.startAt);
 		return startAt > now;
@@ -78,7 +78,7 @@ export function getEventIconName(
 ): string {
 	const startAt = new Date(startAt_);
 	const endAt = endAt_ ? new Date(endAt_) : null;
-	const once = !schedule || !!schedule?.once;
+	const once = !schedule;
 
 	let isUpcoming;
 	if (typeof showRecurringSchedule === 'boolean') {
@@ -152,6 +152,47 @@ export function getOrgEventLabelIcons(orgEvent: OrganizationEventGQLData) {
 
 /**
  * Get schedule info and icons
+ * @param schedule - Organization event schedule data
+ * @returns Array of icon label objects with icon name and tooltip text
+ */
+
+export function getReadableSchedule(schedule: EventScheduleObj | null) {
+	if (!schedule) {
+		return i18n.t('organization.single_event_msg');
+	}
+
+	const daily = schedule.frequency === 'DAILY';
+	if (daily) {
+		return [{
+			text: i18n.t('form.daily'),
+			color: 'sky_light',
+			tooltipText: i18n.t('organization.daily_event_msg'),
+		}];
+	}
+
+	const defaultSchedTime = schedule.time || [];
+
+	return DAY_OF_WEEK.map((day) => {
+		const isScheduled = schedule.byDay?.includes(day);
+    if (!isScheduled) {
+      return '';
+    }
+
+		const daySchedTime = (schedule?.[`time_${day}` as keyof EventScheduleObj] || defaultSchedTime) as [number, number];
+		const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
+		const endTime = (daySchedTime[1] || daySchedTime[1] === 0) && convertToMilitaryTime(daySchedTime[1]);
+
+		let timeText = '';
+		if (startTime) {
+			timeText = ` ${startTime}${endTime ? ' - ' + endTime : ''}`;
+		}
+
+		return i18n.t(`form.dayOfWeek.${day}`) + timeText;
+	}).filter(Boolean).join(', ');
+}
+
+/**
+ * Get schedule info and icons
  * @param orgEvent - Organization event data
  * @param alwaysFillIcon - Whether to always use filled icons
  * @returns Array of icon label objects with icon name and tooltip text
@@ -159,7 +200,7 @@ export function getOrgEventLabelIcons(orgEvent: OrganizationEventGQLData) {
 
 export function getScheduleIcons(orgEvent: OrganizationEventGQLData, alwaysFillIcon = false) {
 	const { schedule } = orgEvent;
-	const once = !schedule || schedule?.once;
+	const once = !schedule;
 
 	if (once) {
 		return [{
@@ -256,7 +297,7 @@ export function getNextDateFromSchedule(
 	afterDate?: Date | null,
 ) {
 	const timeZone = timeZone_ || DEFAULT_TIMEZONE;
-	const once = !schedule || !!schedule?.once;
+	const once = !schedule;
 	if (once) {
 		return {
 			date: startAt ? new Date(startAt) : null,
@@ -347,22 +388,22 @@ export function getNextDateFromSchedule(
  */
 
 export function isScheduledDate(
-  schedule: EventScheduleObj,
-  date: Date,
+	schedule: EventScheduleObj,
+	date: Date,
 ) {
-  const { frequency, byDay } = schedule;
+	const { frequency, byDay } = schedule;
 
-  switch (frequency) {
-    case 'DAILY':
-      return true;
-    case 'WEEKLY':
-      const dateDay = DAY_OF_WEEK[date.getDay()];
-      return byDay.includes(dateDay);
-    default:
-      console.dev(`isScheduledDate(): ${frequency} frequency is not implemented yet`);
-  }
+	switch (frequency) {
+		case 'DAILY':
+			return true;
+		case 'WEEKLY':
+			const dateDay = DAY_OF_WEEK[date.getDay()];
+			return byDay.includes(dateDay);
+		default:
+			console.dev(`isScheduledDate(): ${frequency} frequency is not implemented yet`);
+	}
 
-  return false;
+	return false;
 }
 
 /**
@@ -372,6 +413,11 @@ export function isScheduledDate(
  */
 
 export function getTimeFromSchedule(schedule: EventScheduleObj | null, date: Date | null, timeZone: string | null) {
+
+  if (!schedule && date) {
+    return convertToMilitaryTime(date.getHours() * 100 + date.getMinutes());
+  }
+
 	const daySchedTime = getTimeArrayFromSchedule(schedule, date, timeZone);
 	const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
 	const endTime = (daySchedTime[1] || daySchedTime[1] === 0) && convertToMilitaryTime(daySchedTime[1]);
