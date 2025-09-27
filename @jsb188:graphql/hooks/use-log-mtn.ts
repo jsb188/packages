@@ -36,7 +36,7 @@ export function useEditLogEntry(
   const logEntry = useReactiveLogFragment(logEntryId, null, mtnValues.mutationCount);
   // const logEntry = useReactiveFragment(
   //   null,
-  //   [`$logEntryFragment:${logEntryId}`, [`$logEntryArableFragment:${logEntryId}`, 'details']],
+  //   [`$logEntryFragment:${logEntryId}`, [`$logArableFragment:${logEntryId}`, 'details']],
   //   mtnValues.mutationCount,
   // );
 

@@ -77,7 +77,7 @@ export function useReactiveOrganizationChildFragment(organizationId: string, cur
       `$organizationChildFragment:${organizationId}`,
       // [`$organizationChildArableFragment:${organizationId}`, null],
       // By having the second paramter as null, we only observe the reactive changes without setting the data
-      // [`$logEntryArableFragment:${logEntryId}`, null],
+      // [`$logArableFragment:${logEntryId}`, null],
     ],
     queryCount,
   );

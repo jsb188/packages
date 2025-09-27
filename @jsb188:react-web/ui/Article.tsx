@@ -67,6 +67,7 @@ export const CondensedArticleItem = memo((p: {
   const hasLink = !!onClick && !disabled;
   const useAltLabelColors = !['modal','card'].includes(preset!);
   const hasDescription = !!(description || descriptionPlaceholder);
+  const hasDescriptionOrLabelIcons = hasDescription || (labelIcons && labelIcons?.length > 0);
 
   // paddingClassName='px_df -mx_5'
 
@@ -136,9 +137,13 @@ export const CondensedArticleItem = memo((p: {
         </div>
       )}
 
-      {title && <span className={'f_shrink shift_down ' + yPaddingClassName}>{title}</span>}
+      {title && <span className={cn('f_shrink shift_down', yPaddingClassName, !hasDescriptionOrLabelIcons && 'f')}>
+        <span className='ellip'>
+          {title}
+        </span>
+      </span>}
 
-      {(hasDescription || labelIcons)
+      {hasDescriptionOrLabelIcons
       ? (
         <span
           className={cn(
@@ -163,10 +168,12 @@ export const CondensedArticleItem = memo((p: {
           )}
         </span>
       )
-      : <span className='f' />}
+      : !title
+      ? <span className='f' />
+      : null}
 
       {!RightComponent ? null
-      : <div className={cn('h_right gap_xs ml_xs', rightComponentClassName)}>
+      : <div className={cn('h_right gap_xs ml_xs f_shrink', rightComponentClassName)}>
         {RightComponent}
       </div>}
     </div>

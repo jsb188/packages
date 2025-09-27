@@ -1,12 +1,13 @@
-import type { LogArableTypeEnum, LogFarmersMarketTypeEnum } from '../types/log.d.ts';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 
 /**
+ * #### #### #### ####
  * Arable farming logs
  * NOTE: This constant defines all the enums and activities for both GraphQL and database
+ * #### #### #### ####
  */
 
-export const ARABLE_ACTIVITIES_GROUPED: [LogArableTypeEnum, string[]][] = [
+export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 	[
 		'SEED',
 		[
@@ -76,7 +77,9 @@ export const ARABLE_ACTIVITIES_GROUPED: [LogArableTypeEnum, string[]][] = [
 	],
 ];
 
-export const ARABLE_TYPES_TO_TEXT: Record<LogArableTypeEnum, string> = {
+export const LOG_ARABLE_TYPE_ENUMS = ARABLE_ACTIVITIES_GROUPED.map(([type]) => type);
+
+export const ARABLE_TYPES_TO_TEXT = {
 	SEED: 'seed purchases',
 	PLANTING: 'seeding, transplanting activities',
 	FIELD: 'field activities',
@@ -84,24 +87,12 @@ export const ARABLE_TYPES_TO_TEXT: Record<LogArableTypeEnum, string> = {
 	POST_HARVEST: 'after-harvest activities such as handling, packaging produce and cold storage',
 	SALES: 'sales related activities',
 	WATER: 'water testing activities',
-
-	// @ts-expect-error - This is not part of the enums
-	EVERYTHING: 'all activities',
+	EVERYTHING: 'all activities', // Not part of enums
 };
 
-export const TEXT_TO_ARABLE_TYPES: Record<string, string> = Object.fromEntries(
+export const TEXT_TO_ARABLE_TYPES = Object.fromEntries(
 	Object.entries(ARABLE_TYPES_TO_TEXT).map(([key, value]) => [value, key]),
 );
-
-export const LOG_ARABLE_TYPE_ENUMS: LogArableTypeEnum[] = [
-	'SEED',
-	'PLANTING',
-	'FIELD',
-	'HARVEST',
-	'POST_HARVEST',
-	'SALES',
-	'WATER',
-];
 
 export const LOG_ARABLE_ACTIVITY_ENUMS = ARABLE_ACTIVITIES_GROUPED.reduce(
 	(acc, a) => acc.concat(a[1]),
@@ -109,10 +100,12 @@ export const LOG_ARABLE_ACTIVITY_ENUMS = ARABLE_ACTIVITIES_GROUPED.reduce(
 );
 
 /**
+ * #### #### #### ####
  * Farmers Market logs
+ * #### #### #### ####
  */
 
-export const FARMERS_MARKET_ACTIVITIES_GROUPED: [LogFarmersMarketTypeEnum, string[]][] = [
+export const FARMERS_MARKET_ACTIVITIES_GROUPED = [
 	[
 		'MARKET_RECEIPTS',
 		[
@@ -124,27 +117,21 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [LogFarmersMarketTypeEnum, strin
 		[
 			'FARMER_NOTES',
 			'FARMERS_MARKET_NOTES',
-			'OTHER_NOTES',
 		],
 	],
 ];
 
-export const FARMERS_MARKET_TYPES_TO_TEXT: Record<LogFarmersMarketTypeEnum, string> = {
+export const LOG_FARMERS_MARKET_TYPE_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUPED.map(([type]) => type);
+
+export const FARMERS_MARKET_TYPES_TO_TEXT = {
 	MARKET_RECEIPTS: 'market credit receipts and coins redemption',
 	MARKET_OPERATIONS: 'notes about farmers and markets',
-
-	// @ts-expect-error - This is not part of the enums
-	EVERYTHING: 'all activities',
+	EVERYTHING: 'all activities', // Not part of enums
 };
 
-export const TEXT_TO_FARMERS_MARKET_TYPES: Record<string, string> = Object.fromEntries(
+export const TEXT_TO_FARMERS_MARKET_TYPES = Object.fromEntries(
 	Object.entries(FARMERS_MARKET_TYPES_TO_TEXT).map(([key, value]) => [value, key]),
 );
-
-export const LOG_FARMERS_MARKET_TYPE_ENUMS: LogFarmersMarketTypeEnum[] = [
-	'MARKET_RECEIPTS',
-	'MARKET_OPERATIONS',
-];
 
 export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUPED.reduce(
 	(acc, a) => acc.concat(a[1]),
@@ -152,27 +139,114 @@ export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUP
 );
 
 /**
+ * #### #### #### ####
+ * Livestock logs
+ * #### #### #### ####
+ */
+
+export const LIVESTOCK_ACTIVITIES_GROUPED = [
+  [
+		'FEED_MANAGEMENT',
+    [
+      'FEED_PURCHASE',
+      'OTHER_FEED_MANAGEMENT_ACTIVITY',
+    ]
+  ],
+	[
+		'LIVESTOCK_LIFE_CYCLE',
+		[
+      'LIVESTOCK_PURCHASE',
+      'LIVESTOCK_BIRTH',
+      'LIVESTOCK_REPRODUCTION',
+      'LIVESTOCK_DEATH',
+      'OTHER_LIVESTOCK_LIFE_CYCLE_ACTIVITY',
+		],
+	],
+  [
+    'LIVESTOCK_TRACKING',
+    [
+      'LIVESTOCK_GROUP_TRACKING', // moving to different group because of age
+      'LIVESTOCK_PASTURE_TRACKING', // where they are in pasture
+      'LIVESTOCK_ROTATIONAL_GRAZING',
+      'OTHER_LIVESTOCK_TRACKING_ACTIVITY',
+    ]
+  ],
+  [
+    'PASTURE_LAND_MANAGEMENT',
+    [
+      'PASTURE_SEEDING',
+      'FENCE_MAINTENANCE', // buffer zones/buffer management
+      'WATER_SOURCE_MAINTENANCE',
+      'OTHER_PASTURE_LAND_MANAGEMENT_ACTIVITY',
+    ]
+  ],
+	[
+		'LIVESTOCK_HEALTHCARE',
+		[
+      'LIVESTOCK_VACCINATION',
+			'LIVESTOCK_SICK',
+      'LIVESTOCK_INJURY',
+      'LIVESTOCK_CULL',
+      'LIVESTOCK_TREATMENT',
+			'OTHER_LIVESTOCK_HEALTHCARE_ACTIVITY',
+		],
+	],
+  [
+    'LIVESTOCK_SALE',
+    [
+      'LIVESTOCK_SALE',
+      'OTHER_LIVESTOCK_SALE_ACTIVITY',
+    ]
+  ]
+];
+
+export const LOG_LIVESTOCK_TYPE_ENUMS = LIVESTOCK_ACTIVITIES_GROUPED.map(([type]) => type);
+
+export const LIVESTOCK_TYPES_TO_TEXT = {
+	FEED_MANAGEMENT: 'feed management',
+	LIVESTOCK_LIFE_CYCLE: 'livestock life cycle events',
+	LIVESTOCK_TRACKING: 'livestock movement and tracking',
+	PASTURE_LAND_MANAGEMENT: 'pasture and land management',
+	LIVESTOCK_HEALTHCARE: 'livestock healthcare',
+	LIVESTOCK_SALE: 'livestock sale',
+	EVERYTHING: 'all activities', // Not part of enums
+};
+
+export const TEXT_TO_LIVESTOCK_TYPES = Object.fromEntries(
+	Object.entries(LIVESTOCK_TYPES_TO_TEXT).map(([key, value]) => [value, key]),
+);
+
+export const LOG_LIVESTOCK_ACTIVITY_ENUMS = LIVESTOCK_ACTIVITIES_GROUPED.reduce(
+	(acc, a) => acc.concat(a[1]),
+	[] as string[],
+);
+
+/**
+ * #### #### #### ####
  * All log types & activities
+ * #### #### #### ####
  */
 
 export const LOG_TYPE_ENUMS = [
 	...LOG_ARABLE_TYPE_ENUMS,
 	...LOG_FARMERS_MARKET_TYPE_ENUMS,
+	...LOG_LIVESTOCK_TYPE_ENUMS,
 ].filter((value, index, self) => self.indexOf(value) === index);
 
 export const LOG_ACTIVITY_ENUMS = [
 	...LOG_ARABLE_ACTIVITY_ENUMS,
 	...LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
+	...LOG_LIVESTOCK_ACTIVITY_ENUMS,
 ].filter((value, index, self) => self.indexOf(value) === index);
 
 export const LOG_ACTIVITIES_BY_OPERATION: Record<OrganizationOperationEnum, any> = {
 	ARABLE: ARABLE_ACTIVITIES_GROUPED,
-	LIVESTOCK: [],
+	LIVESTOCK: LIVESTOCK_ACTIVITIES_GROUPED,
 	FARMERS_MARKET: FARMERS_MARKET_ACTIVITIES_GROUPED,
 };
 
 export const LOG_TYPES_BY_OPERATION: Record<OrganizationOperationEnum, (typeof LOG_TYPE_ENUMS)[number][]> = {
 	ARABLE: LOG_ARABLE_TYPE_ENUMS,
-	LIVESTOCK: [],
+	LIVESTOCK: LOG_LIVESTOCK_TYPE_ENUMS,
 	FARMERS_MARKET: LOG_FARMERS_MARKET_TYPE_ENUMS,
 };

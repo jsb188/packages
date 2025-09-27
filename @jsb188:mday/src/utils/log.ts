@@ -17,11 +17,11 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
 	// Do switch operation here
 	// switch (operation) {
 	//   case 'ARABLE':
-	//   case 'LogEntryArable':
+	//   case 'LogArable':
 	//     // ..
 	//     break;
 	//   case 'LIVESTOCK':
-	//   case 'LogEntryLivestock':
+	//   case 'LogLivestock':
 	//     // ..
 	//     break;
 	//   default:
@@ -58,13 +58,13 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
 export function getLogTypeFromActivity(operation: OrganizationOperationEnum | string, activity: any) {
 	switch (operation) {
 		case 'ARABLE':
-		case 'LogEntryArable':
+		case 'LogArable':
 			return ARABLE_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] || null;
 		case 'LIVESTOCK':
-		case 'LogEntryLivestock':
+		case 'LogLivestock':
 			return null; // Livestock activities are not defined in this context
 		case 'FARMERS_MARKET':
-		case 'LogEntryFarmersMarket':
+		case 'LogFarmersMarket':
 			return FARMERS_MARKET_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] || null;
 		default:
 			console.warn('(!1) Cannot get log type from unknown operation type:', operation);
@@ -89,7 +89,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 	switch (iface || __typename || __table) {
 		case 'ARABLE':
 		case 'logs_arable':
-		case 'LogEntryArable': {
+		case 'LogArable': {
 			const quantityText = [formatDecimal(md.quantity, true, true), md.unit].filter(Boolean).join(' ');
 
 			let cropName = ucFirst(md.crop);
@@ -114,7 +114,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		}
     case 'FARMERS_MARKET':
     case 'logs_farmers_market':
-    case 'LogEntryFarmersMarket': {
+    case 'LogFarmersMarket': {
       let creditsText = '';
       if (Array.isArray(md.values) && md.values.length) {
         creditsText = md.values.map((item: any) => {
@@ -130,7 +130,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
     }
     case 'LIVESTOCK':
 		case 'logs_livestock':
-		case 'LogEntryLivestock': {
+		case 'LogLivestock': {
 			// .. live stock logs here ..
 		}
 		default:

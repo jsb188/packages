@@ -66,7 +66,7 @@ export function useReactiveLogFragment(logEntryId: string, currentData?: any, qu
       `$logEntryFragment:${logEntryId}`,
 
       // By having the second paramter as null, we only observe the reactive changes without setting the data
-      [`$logEntryArableFragment:${logEntryId}`, null],
+      [`$logArableFragment:${logEntryId}`, null],
 
       // This is not needed because $logEntryFragment has spread data
       // [`$accountFragment:${logEntryId}`, 'account']

@@ -8,7 +8,9 @@ export const WATER_TESTING_ACTIVITY_TO_TEXT = {
 };
 
 /**
+ * #### #### #### ####
  * Arable farming
+ * #### #### #### ####
  */
 
 export const ARABLE_FARMING_ACTIVITY_TO_TEXT = {
@@ -54,16 +56,15 @@ export const ARABLE_FARMING_ACTIVITY_TO_TEXT = {
 };
 
 export const ARABLE_ACTIVITIES_TO_TEXT = {
-	// * Arable-specific activities (these have their own functions)
 	COLD_STORAGE_TEMPERATURE: 'checking or changing temperature (cold storage)',
-	// # Farming activities
 	...ARABLE_FARMING_ACTIVITY_TO_TEXT,
-	// # Water testing activities
 	...WATER_TESTING_ACTIVITY_TO_TEXT,
 };
 
 /**
+ * #### #### #### ####
  * Farmers Market receipts
+ * #### #### #### ####
  */
 
 export const FARMERS_MARKET_RECEIPT_ACTIVITY_TO_TEXT = {
@@ -73,14 +74,61 @@ export const FARMERS_MARKET_RECEIPT_ACTIVITY_TO_TEXT = {
 export const FARMERS_MARKET_OPERATION_ACTIVITY_TO_TEXT = {
 	FARMER_NOTE: 'notes about a farmer',
 	FARMERS_MARKET_NOTES: 'notes about farmers market',
-	OTHER_NOTES: 'other notes',
 };
 
 export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {
-	// # Sales activities
 	...FARMERS_MARKET_RECEIPT_ACTIVITY_TO_TEXT,
-	// # Operation activities
 	...FARMERS_MARKET_OPERATION_ACTIVITY_TO_TEXT,
+};
+
+/**
+ * #### #### #### ####
+ * Livestock receipts
+ * #### #### #### ####
+ */
+
+export const LIVESTOCK_ACTIVITY_TO_TEXT = {
+  // LIVESTOCK_LIFE_CYCLE
+  LIVESTOCK_PURCHASE: 'livestock purchase',
+  LIVESTOCK_BIRTH: 'livestock birth',
+  LIVESTOCK_REPRODUCTION: 'livestock reproduction',
+  LIVESTOCK_DEATH: 'livestock death',
+  OTHER_LIVESTOCK_LIFE_CYCLE_ACTIVITY: 'other livestock life cycle related activities',
+
+  // LIVESTOCK_TRACKING
+  LIVESTOCK_GROUP_TRACKING: 'livestock group tracking/movement',
+  LIVESTOCK_PASTURE_TRACKING: 'livestock pasture tracking/movement', // where they are in pasture
+  LIVESTOCK_ROTATIONAL_GRAZING: 'livestock rotational grazing',
+  OTHER_LIVESTOCK_TRACKING_ACTIVITY: 'other livestock tracking related activities',
+
+	// LIVESTOCK_HEALTHCARE
+	LIVESTOCK_VACCINATION: 'livestock vaccination',
+	LIVESTOCK_SICK: 'livestock sickness',
+	LIVESTOCK_INJURY: 'livestock injury',
+	LIVESTOCK_CULL: 'livestock culling',
+	LIVESTOCK_TREATMENT: 'livestock treatment and recovery',
+	OTHER_LIVESTOCK_HEALTHCARE_ACTIVITY: 'other livestock healthcare related activities',
+
+  // LIVESTOCK_SALE
+  LIVESTOCK_SALE: 'livestock sale',
+  OTHER_LIVESTOCK_SALE_ACTIVITY: 'other livestock sale related activities',
+};
+
+export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
+	// FEED_MANAGEMENT
+  FEED_PURCHASE: 'feed purchase',
+  OTHER_FEED_MANAGEMENT_ACTIVITY: 'other feed management related activities',
+
+  // PASTURE_LAND_MANAGEMENT
+  PASTURE_SEEDING: 'pasture seeding',
+  FENCE_MAINTENANCE: 'fence maintenance and buffer management', // buffer zones/buffer management
+  WATER_SOURCE_MAINTENANCE: 'water source maintenance',
+  OTHER_PASTURE_LAND_MANAGEMENT_ACTIVITY: 'other pasture land management related activities',
+};
+
+export const LIVESTOCK_TO_TEXT = {
+	...LIVESTOCK_ACTIVITY_TO_TEXT,
+	...LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT,
 };
 
 /**
@@ -91,7 +139,8 @@ export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {
 
 export const AGENT_TEXT_TO_ACTIVITIES: Record<string, string> = Object.fromEntries(
 	Object.entries({
-    ...ARABLE_ACTIVITIES_TO_TEXT,
-    ...FARMERS_MARKET_ACTIVITIES_TO_TEXT,
-  }).map(([key, value]) => [value, key]),
+		...ARABLE_ACTIVITIES_TO_TEXT,
+		...FARMERS_MARKET_ACTIVITIES_TO_TEXT,
+    ...LIVESTOCK_TO_TEXT,
+	}).map(([key, value]) => [value, key]),
 );

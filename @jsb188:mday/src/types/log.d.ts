@@ -1,5 +1,5 @@
-import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import type { AccountObj } from '@jsb188/app/types/account.d';
+import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { LOG_ARABLE_ACTIVITY_ENUMS, LOG_FARMERS_MARKET_ACTIVITY_ENUMS } from '../constants/log';
 
 /**
@@ -17,11 +17,18 @@ export type LogFarmersMarketTypeEnum = 'MARKET_RECEIPTS' | 'MARKET_OPERATIONS';
 export type LogFarmersMarketActivityEnum = typeof LOG_FARMERS_MARKET_ACTIVITY_ENUMS[number];
 
 /**
- * All logs
+ * Livestock
  */
 
-export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum;
-export type LogActivityEnum = LogArableActivityEnum | LogFarmersMarketActivityEnum;
+export type LogLivestockTypeEnum = 'FEED_MANAGEMENT' | 'LIVESTOCK_LIFE_CYCLE' | 'LIVESTOCK_TRACKING' | 'PASTURE_LAND_MANAGEMENT' | 'LIVESTOCK_HEALTHCARE' | 'LIVESTOCK_SALE';
+export type LogLivestockActivityEnum = typeof LOG_LIVESTOCK_ACTIVITY_ENUMS[number];
+
+/**
+ * All log types/activities Union
+ */
+
+export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogLivestockTypeEnum;
+export type LogActivityEnum = LogArableActivityEnum | LogFarmersMarketActivityEnum | LogLivestockActivityEnum;
 
 /**
  * Log data types
@@ -35,7 +42,9 @@ interface LogDetailsGQLBase {
 	notes: string;
 }
 
-// Log details - Arable
+/**
+ * Log details - Arable
+ */
 
 interface LogArableMetadata {
 	crop: string;
@@ -57,14 +66,19 @@ interface LogArableObj {
 interface LogArableDetailsObj extends LogArableObj {
 	__table: 'logs_arable';
 	id: number;
-  childOrg: never;
+	childOrg: never;
 }
 
-// Log details - Farmers Market
+/**
+ * Log details - Farmers Market
+ */
 
 interface LogFarmersMarketMetadata {
 	void: boolean;
-	values: { label: string; value: string }[];
+	values: {
+    label: string;
+    value: string
+  }[];
 }
 
 interface LogFarmersMarketObj {
@@ -79,16 +93,47 @@ interface LogFarmersMarketObj {
 interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
 	__table: 'logs_farmers_market';
 	id: number;
-  childOrg: {
-    name: string;
-  };
+	childOrg: {
+		name: string;
+	};
 }
 
-// Union type for log details
+/**
+ * Log details - Livestock
+ */
 
-export type LogDetailsObj = LogArableObj | LogFarmersMarketObj;
+interface LogLivestockMetadata {
+	livestock: string;
+	livestockIdentifiers: string[];
+  item: string;
+	quantity: number;
+	unit: string;
+  price: number;
+}
 
-// GQL data interfaces
+interface LogLivestockObj {
+	type?: LogLivestockTypeEnum; // Only set in server if manually extended
+	activity: LogLivestockActivityEnum;
+	notes: string | null;
+	translation?: string | null;
+	metadata?: Partial<LogLivestockMetadata> | null;
+}
+
+interface LogLivestockDetailsObj extends LogLivestockObj {
+  __table: 'logs_livestock';
+  id: number;
+  childOrg: never;
+}
+
+/**
+ * Union type for log details
+ */
+
+export type LogDetailsObj = LogArableObj | LogFarmersMarketObj | LogLivestockObj;
+
+/**
+ * GQL data interfaces
+ */
 
 export interface LogEntryGQLData {
 	id: string;
@@ -116,7 +161,7 @@ export interface LogEntryDataObj {
 	accountId: number;
 	organizationId: number;
 	distance?: number; // For vector search
-	details: LogArableDetailsObj | LogFarmersMarketDetailsObj;
+	details: LogArableDetailsObj | LogFarmersMarketDetailsObj | LogLivestockDetailsObj;
 	date: Date;
 	createdAt: Date;
 	updatedAt: Date;
@@ -125,7 +170,9 @@ export interface LogEntryDataObj {
 	account?: AccountObj;
 }
 
-// Filters for search
+/**
+ * Filters for search for client-side
+ */
 
 export interface FilterLogEntriesArgs {
 	operation: OrganizationOperationEnum;

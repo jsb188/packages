@@ -249,7 +249,7 @@ export function getScheduleIcons(orgEvent: OrganizationEventGQLData, alwaysFillI
 
 		let timeText = '';
 		if (startTime) {
-			timeText = `: ${startTime}${endTime ? ' - ' + endTime : ''}`;
+			timeText = ` ${startTime}${endTime ? ' - ' + endTime : ''}`;
 		}
 
 		return {

@@ -19,7 +19,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQLData) {
 
   const { details } = logEntry;
   switch (details?.__typename) {
-    case 'LogEntryArable':
+    case 'LogArable':
       formValues.arableDetails = {
         activity: details.activity,
         quantity: details.quantity,
@@ -31,7 +31,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQLData) {
         notes: details.notes,
       };
       break;
-    case 'LogEntryLivestock':
+    case 'LogLivestock':
       break;
     default:
       console.log(`${details?.__typename} is not done yet.`);
@@ -64,7 +64,7 @@ export function formatFormValuesForMutation(formValues: Record<string, any>) {
 
 export function getLogDetailsInputName(__typename: string) {
   switch (__typename) {
-    case 'LogEntryArable':
+    case 'LogArable':
       // Some of the types omit some fields, but for now, we're including all
       return 'arableDetails';
     default:
@@ -104,7 +104,7 @@ export function makeLogEntryDetailsSchema(
   maxDate.setMonth(maxDate.getMonth() + 1);
 
   switch (__typename) {
-    case 'LogEntryArable':
+    case 'LogArable':
       const logType = getLogTypeFromActivity('ARABLE', formValues.arableDetails?.activity);
       const isWaterTesting = logType === 'WATER';
       const isPriceRelated = ['SALES', 'SEED'].includes(logType!);

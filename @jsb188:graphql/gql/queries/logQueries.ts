@@ -1,6 +1,6 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
-import { logEntryFragment, logEntryArableFragment, logEntryLivestockFragment, logEntryFarmersMarketFragment } from '../fragments/logFragments';
+import { logEntryFragment, logArableFragment, logLivestockFragment, logFarmersMarketFragment } from '../fragments/logFragments';
 
 export const logEntriesQry = gql`
 query logEntries (
@@ -20,14 +20,14 @@ query logEntries (
     ...logEntryFragment
 
     details {
-      ...on LogEntryArable {
-        ...logEntryArableFragment
+      ...on LogArable {
+        ...logArableFragment
       }
-      ...on LogEntryLivestock {
-        ...logEntryLivestockFragment
+      ...on LogFarmersMarket {
+        ...logFarmersMarketFragment
       }
-      ...on LogEntryFarmersMarket {
-        ...logEntryFarmersMarketFragment
+      ...on LogLivestock {
+        ...logLivestockFragment
       }
     }
 
@@ -39,7 +39,7 @@ query logEntries (
 
 ${accountFragment}
 ${logEntryFragment}
-${logEntryArableFragment}
-${logEntryLivestockFragment}
-${logEntryFarmersMarketFragment}
+${logArableFragment}
+${logFarmersMarketFragment}
+${logLivestockFragment}
 `;

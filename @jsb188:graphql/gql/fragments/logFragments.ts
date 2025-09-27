@@ -9,7 +9,7 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   updatedAt
 }`;
 
-export const logEntryArableFragment = `fragment logEntryArableFragment on LogEntryArable {
+export const logArableFragment = `fragment logArableFragment on LogArable {
   __typename
 
   id
@@ -24,13 +24,7 @@ export const logEntryArableFragment = `fragment logEntryArableFragment on LogEnt
   notes
 }`;
 
-export const logEntryLivestockFragment = `fragment logEntryLivestockFragment on LogEntryLivestock {
-  __typename
-
-  id
-}`;
-
-export const logEntryFarmersMarketFragment = `fragment logEntryFarmersMarketFragment on LogEntryFarmersMarket {
+export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on LogFarmersMarket {
   __typename
 
   id
@@ -46,4 +40,20 @@ export const logEntryFarmersMarketFragment = `fragment logEntryFarmersMarketFrag
     label
     value
   }
+}`;
+
+export const logLivestockFragment = `fragment logLivestockFragment on LogLivestock {
+  __typename
+
+  id
+  type
+  activity
+
+  livestock
+  livestockIdentifiers
+  item
+	quantity
+	unit
+  price
+  notes
 }`;
