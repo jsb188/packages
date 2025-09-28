@@ -96,9 +96,9 @@ export const LIVESTOCK_ACTIVITY_TO_TEXT = {
   OTHER_LIVESTOCK_LIFE_CYCLE_ACTIVITY: 'other livestock life cycle related activities',
 
   // LIVESTOCK_TRACKING
-  LIVESTOCK_GROUP_TRACKING: 'livestock group tracking/movement',
+  LIVESTOCK_GROUP_TRACKING: 'livestock group tracking/movement based on age or other criteria',
   LIVESTOCK_PASTURE_TRACKING: 'livestock pasture tracking/movement', // where they are in pasture
-  LIVESTOCK_ROTATIONAL_GRAZING: 'livestock rotational grazing',
+  LIVESTOCK_ROTATIONAL_GRAZING: 'livestock rotational grazing/movement',
   OTHER_LIVESTOCK_TRACKING_ACTIVITY: 'other livestock tracking related activities',
 
 	// LIVESTOCK_HEALTHCARE

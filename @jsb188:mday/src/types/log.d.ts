@@ -1,6 +1,10 @@
 import type { AccountObj } from '@jsb188/app/types/account.d';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
-import { LOG_ARABLE_ACTIVITY_ENUMS, LOG_FARMERS_MARKET_ACTIVITY_ENUMS } from '../constants/log';
+import {
+  LOG_ARABLE_ACTIVITY_ENUMS,
+  LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
+	LOG_LIVESTOCK_ACTIVITY_ENUMS,
+} from '../constants/log';
 
 /**
  * Arable
@@ -20,7 +24,13 @@ export type LogFarmersMarketActivityEnum = typeof LOG_FARMERS_MARKET_ACTIVITY_EN
  * Livestock
  */
 
-export type LogLivestockTypeEnum = 'FEED_MANAGEMENT' | 'LIVESTOCK_LIFE_CYCLE' | 'LIVESTOCK_TRACKING' | 'PASTURE_LAND_MANAGEMENT' | 'LIVESTOCK_HEALTHCARE' | 'LIVESTOCK_SALE';
+export type LogLivestockTypeEnum =
+	| 'FEED_MANAGEMENT'
+	| 'LIVESTOCK_LIFE_CYCLE'
+	| 'LIVESTOCK_TRACKING'
+	| 'PASTURE_LAND_MANAGEMENT'
+	| 'LIVESTOCK_HEALTHCARE'
+	| 'LIVESTOCK_SALE';
 export type LogLivestockActivityEnum = typeof LOG_LIVESTOCK_ACTIVITY_ENUMS[number];
 
 /**
@@ -76,9 +86,9 @@ interface LogArableDetailsObj extends LogArableObj {
 interface LogFarmersMarketMetadata {
 	void: boolean;
 	values: {
-    label: string;
-    value: string
-  }[];
+		label: string;
+		value: string;
+	}[];
 }
 
 interface LogFarmersMarketObj {
@@ -105,10 +115,10 @@ interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
 interface LogLivestockMetadata {
 	livestock: string;
 	livestockIdentifiers: string[];
-  item: string;
+	item: string;
 	quantity: number;
 	unit: string;
-  price: number;
+	price: number;
 }
 
 interface LogLivestockObj {
@@ -120,9 +130,9 @@ interface LogLivestockObj {
 }
 
 interface LogLivestockDetailsObj extends LogLivestockObj {
-  __table: 'logs_livestock';
-  id: number;
-  childOrg: never;
+	__table: 'logs_livestock';
+	id: number;
+	childOrg: never;
 }
 
 /**

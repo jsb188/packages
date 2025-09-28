@@ -3,7 +3,7 @@ import type { ColorEnum } from '@jsb188/app/types/app.d';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { formatCurrency, formatDecimal } from '@jsb188/app/utils/number';
 import { textWithBrackets, ucFirst } from '@jsb188/app/utils/string';
-import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED } from '../constants/log';
+import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log';
 import type { LogEntryDataObj, LogTypeEnum } from '../types/log.d';
 
 /**
@@ -13,7 +13,6 @@ import type { LogEntryDataObj, LogTypeEnum } from '../types/log.d';
  */
 
 export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
-
 	// Do switch operation here
 	// switch (operation) {
 	//   case 'ARABLE':
@@ -28,7 +27,7 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
 	// }
 
 	const logTypeToColor = {
-    // ARABLE
+		// #### ARABLE
 		SEED: 'brown',
 		PLANTING: 'amber',
 		FIELD: 'lime',
@@ -38,9 +37,17 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
 		WATER: 'violet',
 		DELETED: 'medium',
 
-    // FARMERS_MARKET
-    MARKET_RECEIPTS: 'blue',
+		// #### FARMERS_MARKET
+		MARKET_RECEIPTS: 'blue',
 		MARKET_OPERATIONS: 'rose',
+
+    // #### LIVESTOCK
+		FEED_MANAGEMENT: 'brown',
+    LIVESTOCK_LIFE_CYCLE: 'amber',
+    LIVESTOCK_TRACKING: 'lime',
+		PASTURE_LAND_MANAGEMENT: 'green',
+		LIVESTOCK_HEALTHCARE: 'teal',
+		LIVESTOCK_SALE: 'blue',
 	} as Record<LogTypeEnum, ColorEnum>;
 
 	// Default to zinc if type is not found
@@ -55,17 +62,17 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
  * @returns The log type or null if not found
  */
 
-export function getLogTypeFromActivity(operation: OrganizationOperationEnum | string, activity: any) {
+export function getLogTypeFromActivity(operation: OrganizationOperationEnum | string, activity: any): LogTypeEnum | null {
 	switch (operation) {
 		case 'ARABLE':
 		case 'LogArable':
-			return ARABLE_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] || null;
+			return ARABLE_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] as LogTypeEnum || null;
 		case 'LIVESTOCK':
 		case 'LogLivestock':
-			return null; // Livestock activities are not defined in this context
+			return LIVESTOCK_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] as LogTypeEnum || null;
 		case 'FARMERS_MARKET':
 		case 'LogFarmersMarket':
-			return FARMERS_MARKET_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] || null;
+			return FARMERS_MARKET_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] as LogTypeEnum || null;
 		default:
 			console.warn('(!1) Cannot get log type from unknown operation type:', operation);
 			return null;
@@ -112,23 +119,23 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 				],
 			);
 		}
-    case 'FARMERS_MARKET':
-    case 'logs_farmers_market':
-    case 'LogFarmersMarket': {
-      let creditsText = '';
-      if (Array.isArray(md.values) && md.values.length) {
-        creditsText = md.values.map((item: any) => {
-          return `${formatCurrency(item.value, 'en-US', 'USD')} ${item.label}`;
-        }).join(', ');
+		case 'FARMERS_MARKET':
+		case 'logs_farmers_market':
+		case 'LogFarmersMarket': {
+			let creditsText = '';
+			if (Array.isArray(md.values) && md.values.length) {
+				creditsText = md.values.map((item: any) => {
+					return `${formatCurrency(item.value, 'en-US', 'USD')} ${item.label}`;
+				}).join(', ');
 
-        const totalAmount = md.values.reduce((sum: number, item: any) => sum + Number(item.value || 0), 0);
-        creditsText += ` = ${i18n.t('form.total')}: ${formatCurrency(totalAmount, 'en-US', 'USD')}`;
-      }
+				const totalAmount = md.values.reduce((sum: number, item: any) => sum + Number(item.value || 0), 0);
+				creditsText += ` = ${i18n.t('form.total')}: ${formatCurrency(totalAmount, 'en-US', 'USD')}`;
+			}
 
-      const voidText = md.void ? i18n.t('form.void').toUpperCase() : '';
-      return `${creditsText} ${creditsText && voidText ? '(' + voidText + ')' : voidText}`.trim();
-    }
-    case 'LIVESTOCK':
+			const voidText = md.void ? i18n.t('form.void').toUpperCase() : '';
+			return `${creditsText} ${creditsText && voidText ? '(' + voidText + ')' : voidText}`.trim();
+		}
+		case 'LIVESTOCK':
 		case 'logs_livestock':
 		case 'LogLivestock': {
 			// .. live stock logs here ..
