@@ -88,18 +88,18 @@ export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {
  */
 
 export const LIVESTOCK_ACTIVITY_TO_TEXT = {
-  // LIVESTOCK_LIFE_CYCLE
-  LIVESTOCK_PURCHASE: 'livestock purchase',
-  LIVESTOCK_BIRTH: 'livestock birth',
-  LIVESTOCK_REPRODUCTION: 'livestock reproduction',
-  LIVESTOCK_DEATH: 'livestock death',
-  OTHER_LIVESTOCK_LIFE_CYCLE_ACTIVITY: 'other livestock life cycle related activities',
+	// LIVESTOCK_LIFE_CYCLE
+	LIVESTOCK_PURCHASE: 'livestock purchase',
+	LIVESTOCK_BIRTH: 'livestock birth',
+	LIVESTOCK_REPRODUCTION: 'livestock reproduction',
+	LIVESTOCK_DEATH: 'livestock death',
+	OTHER_LIVESTOCK_LIFE_CYCLE_ACTIVITY: 'other livestock life cycle related activities',
 
-  // LIVESTOCK_TRACKING
-  LIVESTOCK_GROUP_TRACKING: 'livestock group tracking/movement based on age or other criteria',
-  LIVESTOCK_PASTURE_TRACKING: 'livestock pasture tracking/movement', // where they are in pasture
-  LIVESTOCK_ROTATIONAL_GRAZING: 'livestock rotational grazing/movement',
-  OTHER_LIVESTOCK_TRACKING_ACTIVITY: 'other livestock tracking related activities',
+	// LIVESTOCK_TRACKING
+	LIVESTOCK_GROUP_TRACKING: 'livestock group tracking/movement based on age or other criteria',
+	LIVESTOCK_PASTURE_TRACKING: 'livestock pasture tracking/movement', // where they are in pasture
+	LIVESTOCK_ROTATIONAL_GRAZING: 'livestock rotational grazing/movement',
+	OTHER_LIVESTOCK_TRACKING_ACTIVITY: 'other livestock tracking related activities',
 
 	// LIVESTOCK_HEALTHCARE
 	LIVESTOCK_VACCINATION: 'livestock vaccination',
@@ -109,21 +109,21 @@ export const LIVESTOCK_ACTIVITY_TO_TEXT = {
 	LIVESTOCK_TREATMENT: 'livestock treatment and recovery',
 	OTHER_LIVESTOCK_HEALTHCARE_ACTIVITY: 'other livestock healthcare related activities',
 
-  // LIVESTOCK_SALE
-  LIVESTOCK_SALE: 'livestock sale',
-  OTHER_LIVESTOCK_SALE_ACTIVITY: 'other livestock sale related activities',
+	// LIVESTOCK_SALE
+	LIVESTOCK_SALE: 'livestock sale',
+	OTHER_LIVESTOCK_SALE_ACTIVITY: 'other sales activities',
 };
 
 export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
 	// FEED_MANAGEMENT
-  FEED_PURCHASE: 'feed purchase',
-  OTHER_FEED_MANAGEMENT_ACTIVITY: 'other feed management related activities',
+	FEED_PURCHASE: 'feed purchase',
+	OTHER_FEED_MANAGEMENT_ACTIVITY: 'other feed management related activities',
 
-  // PASTURE_LAND_MANAGEMENT
-  PASTURE_SEEDING: 'pasture seeding',
-  FENCE_MAINTENANCE: 'fence maintenance and buffer management', // buffer zones/buffer management
-  WATER_SOURCE_MAINTENANCE: 'water source maintenance',
-  OTHER_PASTURE_LAND_MANAGEMENT_ACTIVITY: 'other pasture land management related activities',
+	// PASTURE_LAND_MANAGEMENT
+	PASTURE_SEEDING: 'pasture seeding',
+	FENCE_MAINTENANCE: 'fence maintenance and buffer management', // buffer zones/buffer management
+	WATER_SOURCE_MAINTENANCE: 'water source maintenance',
+	OTHER_PASTURE_LAND_MANAGEMENT_ACTIVITY: 'other pasture land management related activities',
 };
 
 export const LIVESTOCK_TO_TEXT = {
@@ -141,6 +141,6 @@ export const AGENT_TEXT_TO_ACTIVITIES: Record<string, string> = Object.fromEntri
 	Object.entries({
 		...ARABLE_ACTIVITIES_TO_TEXT,
 		...FARMERS_MARKET_ACTIVITIES_TO_TEXT,
-    ...LIVESTOCK_TO_TEXT,
+		...LIVESTOCK_TO_TEXT,
 	}).map(([key, value]) => [value, key]),
 );

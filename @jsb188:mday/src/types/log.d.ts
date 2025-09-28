@@ -41,7 +41,7 @@ export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogLive
 export type LogActivityEnum = LogArableActivityEnum | LogFarmersMarketActivityEnum | LogLivestockActivityEnum;
 
 /**
- * Log data types
+ * Log metadata
  */
 
 interface LogDetailsGQLBase {
@@ -51,7 +51,6 @@ interface LogDetailsGQLBase {
 	activity: any;
 	notes: string;
 }
-
 /**
  * Log details - Arable
  */
@@ -79,12 +78,15 @@ interface LogArableDetailsObj extends LogArableObj {
 	childOrg: never;
 }
 
+export type LogArableMetadataGQL = LogArableMetadata & LogDetailsGQLBase;
+
 /**
  * Log details - Farmers Market
  */
 
 interface LogFarmersMarketMetadata {
 	void: boolean;
+  childOrgId: string | number;
 	values: {
 		label: string;
 		value: string;
@@ -108,6 +110,8 @@ interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
 	};
 }
 
+export type LogFarmersMarketMetadataGQL = LogFarmersMarketMetadata & LogDetailsGQLBase;
+
 /**
  * Log details - Livestock
  */
@@ -115,6 +119,7 @@ interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
 interface LogLivestockMetadata {
 	livestock: string;
 	livestockIdentifiers: string[];
+  livestockGroups: string[];
 	item: string;
 	quantity: number;
 	unit: string;
@@ -135,21 +140,24 @@ interface LogLivestockDetailsObj extends LogLivestockObj {
 	childOrg: never;
 }
 
+export type LogLivestockMetadataGQL = LogLivestockMetadata & LogDetailsGQLBase;
+
 /**
  * Union type for log details
  */
 
 export type LogDetailsObj = LogArableObj | LogFarmersMarketObj | LogLivestockObj;
+export type LogMetadataGQL = LogArableMetadataGQL | LogFarmersMarketMetadataGQL | LogLivestockMetadataGQL;
 
 /**
  * GQL data interfaces
  */
 
-export interface LogEntryGQLData {
+export interface LogEntryGQL {
 	id: string;
 	accountId: string;
 	organizationId: string;
-	details: LogArableMetadata & LogDetailsGQLBase;
+	details: LogMetadataGQL;
 
 	account: any;
 	date: string; // ISO date string

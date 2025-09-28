@@ -138,7 +138,13 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'LIVESTOCK':
 		case 'logs_livestock':
 		case 'LogLivestock': {
-			// .. live stock logs here ..
+      return textWithBrackets(
+        ucFirst(md.livestock),
+        (md.livestockGroups || []).concat(
+          (md.livestockIdentifiers || []).map((id: string) => `#${id}`)
+        ).join(', '),
+        [' - ', '']
+      );
 		}
 		default:
 	}
@@ -153,6 +159,6 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 
 export function getTextFormatLog(log: LogEntryDataObj) {
 	const { notes } = log.details;
-	const title = getLogEntryTitle(log.details, true);
+	const title = getLogEntryTitle(log.details || {}, true);
 	return (title + '\n\n' + (notes + '')).trim();
 }

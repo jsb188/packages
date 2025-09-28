@@ -417,7 +417,7 @@ export function AlertPopUp(p: AlertDataProps) {
         <h3 className='ft_sm a_c'>
           {title}
         </h3>
-        <div className='px_lg'>
+        <div className='px_50'>
           <Markdown as='p' className='a_c'>
             {message}
           </Markdown>
