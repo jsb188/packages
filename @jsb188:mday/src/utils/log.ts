@@ -42,7 +42,7 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
 		MARKET_OPERATIONS: 'rose',
 
     // #### LIVESTOCK
-		FEED_MANAGEMENT: 'brown',
+		SUPPLY_PURCHASE: 'brown',
     LIVESTOCK_LIFE_CYCLE: 'amber',
     LIVESTOCK_TRACKING: 'lime',
 		PASTURE_LAND_MANAGEMENT: 'green',

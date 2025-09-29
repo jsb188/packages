@@ -8,6 +8,7 @@ export default {
     n_a: 'N/A',
     unknown: 'Unknown',
     void: 'Void', // Use uppercase if needed
+    void_: 'Void?',
     warning: 'Warning',
     cancel: 'Cancel',
     continue: 'Continue',

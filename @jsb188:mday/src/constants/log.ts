@@ -146,10 +146,10 @@ export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUP
 
 export const LIVESTOCK_ACTIVITIES_GROUPED: [string, string[]][] = [
 	[
-		'FEED_MANAGEMENT',
+		'SUPPLY_PURCHASE',
 		[
 			'FEED_PURCHASE',
-			'OTHER_FEED_MANAGEMENT_ACTIVITY',
+			'OTHER_SUPPLY_PURCHASE_ACTIVITY',
 		],
 	],
 	[
@@ -203,7 +203,7 @@ export const LIVESTOCK_ACTIVITIES_GROUPED: [string, string[]][] = [
 export const LOG_LIVESTOCK_TYPE_ENUMS = LIVESTOCK_ACTIVITIES_GROUPED.map(([type]) => type);
 
 export const LIVESTOCK_TYPES_TO_TEXT = {
-	FEED_MANAGEMENT: 'feed management',
+	SUPPLY_PURCHASE: 'supply purchases',
 	LIVESTOCK_LIFE_CYCLE: 'livestock life cycle events',
 	LIVESTOCK_TRACKING: 'livestock movement and tracking',
 	PASTURE_LAND_MANAGEMENT: 'pasture and land management',

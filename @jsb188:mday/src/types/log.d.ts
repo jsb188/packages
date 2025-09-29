@@ -25,7 +25,7 @@ export type LogFarmersMarketActivityEnum = typeof LOG_FARMERS_MARKET_ACTIVITY_EN
  */
 
 export type LogLivestockTypeEnum =
-	| 'FEED_MANAGEMENT'
+	| 'SUPPLY_PURCHASE'
 	| 'LIVESTOCK_LIFE_CYCLE'
 	| 'LIVESTOCK_TRACKING'
 	| 'PASTURE_LAND_MANAGEMENT'

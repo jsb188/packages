@@ -301,7 +301,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
           step={step}
           min={min}
           max={max}
-          placeholder={placeholder}
+          placeholder={placeholder || ''}
           value={(getter ? getter(value) : value) || ''}
           disabled={disabled || locked}
           autoFocus={autoFocus}
@@ -676,7 +676,6 @@ export function FormItem(p: any) {
     }
     case 'group': {
       const { label, items } = item;
-
       return (
         <div className={`grid gapx_xs size_${items.length}`}>
           {label
@@ -725,6 +724,7 @@ interface FormInputProps extends InputType {
   // Used when the form needs to listen to changes.
   listenToInput?: boolean;
   onChangeText?: (value: string, name: string) => void;
+  setter?: (value: any) => any; // Used to transform the value before setting it in formValues
 }
 
 export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean) {
@@ -738,6 +738,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
       onSubmit,
       formValues,
       setFormValues,
+      setter,
     } = p;
 
     const platform = getPlatform();
@@ -770,7 +771,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
             onInput(e, name_);
           }
           const value = platform === 'WEB' ? (e.target as HTMLInputElement)?.value : e;
-          setFormValues({ ...setObject(formValues, String(name_), value) });
+          setFormValues({ ...setObject(formValues, String(name_), setter ? setter(value) : value) });
         },
       };
     } else if (platform === 'MOBILE') {
@@ -779,7 +780,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
           if (onChangeText) {
             onChangeText(value, name_);
           }
-          setFormValues({ ...setObject(formValues, String(name_), value) });
+          setFormValues({ ...setObject(formValues, String(name_), setter ? setter(value) : value) });
         },
       };
     } else {
@@ -789,7 +790,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
           if (onChange) {
             onChange(e, name_);
           }
-          setFormValues({ ...setObject(formValues, String(name_), e.target?.value) });
+          setFormValues({ ...setObject(formValues, String(name_), setter ? setter(e.target?.value) : e.target?.value) });
         },
       };
     }

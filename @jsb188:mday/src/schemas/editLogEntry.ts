@@ -3,7 +3,7 @@ import { getCalDate } from '@jsb188/app/utils/datetime';
 import { getObject } from '@jsb188/app/utils/object';
 import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log';
-import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL } from '../types/log.d';
+import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL, LogTypeEnum } from '../types/log.d';
 import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log';
 
 /**
@@ -57,6 +57,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         activity: details.activity,
         livestock: details.livestock,
         livestockIdentifiers: details.livestockIdentifiers,
+        livestockGroups: details.livestockGroups,
         item: details.item,
         quantity: details.quantity,
         unit: details.unit,
@@ -67,7 +68,6 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
     default:
       console.log(`${logEntry.details?.__typename} is not done yet.`);
   }
-
 
   // input LogArableInput {
   //   activity: LogArableActivity
@@ -125,179 +125,220 @@ export function formatFormValuesForMutation(formValues: Record<string, any>) {
  * Arable log metadata schema
  */
 
-function makeArableMetadataSchema(
+type ValidMetadataFieldName =
+  | 'activity'
+
+  // ARABLE
+  | 'concentration'
+  | 'concentration_unit'
+  | 'water_quantity'
+  | 'quantity'
+  | 'water_unit'
+  | 'unit'
+  | 'price'
+  | 'crop'
+
+  // FARMERS_MARKET
+  | 'childOrgId'
+  | 'void'
+  | 'marketCredits'
+
+  // LIVESTOCK
+  | 'livestock'
+  | 'livestockIdentifiers'
+  | 'livestockGroups'
+  | 'item_purchased'
+  | 'item_used'
+  | null;
+
+function makeMetadataSchema(
+  namespace: string,
   formValues: Record<string, any>,
-  focusedName: string,
-  formId: string,
-  isCreateNew: boolean,
+  metadataParams: MakeMetadataSchemaParams,
+  schemaFields: ValidMetadataFieldName[]
 ) {
-  const namespace = 'arableDetails';
-  const logType = getLogTypeFromActivity('ARABLE', formValues[namespace]?.activity);
-  const isWaterTesting = logType === 'WATER';
-  const isPriceRelated = ['SALES', 'SEED'].includes(logType!);
-
-  const schemaItems = [{
-    __type: 'input_click',
-    forceClickId: `input_click_${namespace}.activity`,
-    label: i18n.t('form.activity'),
-    item: {
-      locked: () => true,
-      focused: focusedName === (formId + '_activity'),
-      name: `${namespace}.activity`,
-      placeholder: isCreateNew && i18n.t(`form.activity_ph`),
-      getter: (value: string) => value ? i18n.t(`log.activity.${value}`) : '',
-    },
-  }, {
-    // Water testing inputs
-    __type: isWaterTesting ? 'input' : 'none',
-    label: i18n.t('form.concentration'),
-    item: {
-      name: `${namespace}.concentration`,
-      type: 'number',
-      step: 0.1,
-      min: 0.1,
-      max: 99999999.99, // database max is numeric(10, 2)
-      placeholder: isCreateNew && i18n.t('form.concentration_ph'),
-    },
-  }, {
-    __type: isWaterTesting ? 'input' : 'none',
-    label: i18n.t('form.concentration_unit'),
-    item: {
-      name: `${namespace}.concentrationUnit`,
-      maxLength: 40,
-      placeholder: isCreateNew && i18n.t('form.concentration_unit_ph'),
-    },
-  }, {
-    // Regular inputs
-    __type: 'input',
-    label: i18n.t(isWaterTesting ? 'form.water_quantity' : 'form.quantity'),
-    item: {
-      name: `${namespace}.quantity`,
-      type: 'number',
-      step: 0.1,
-      min: 0.1,
-      max: 99999999.99, // database max is numeric(10, 2)
-      placeholder: isCreateNew && i18n.t('form.quantity_ph'),
-    },
-  }, {
-    __type: 'input',
-    label: i18n.t(isWaterTesting ? 'form.water_unit' : 'form.unit'),
-    item: {
-      name: `${namespace}.unit`,
-      maxLength: 40,
-      placeholder: isCreateNew && i18n.t(isWaterTesting ? 'form.water_unit_ph' : 'log.unit_arable_ph'),
-    },
-  }, {
-    __type: isPriceRelated ? 'input' : 'none',
-    label: i18n.t('form.price'),
-    item: {
-      name: `${namespace}.price`,
-      type: 'number',
-      step: 0.1,
-      min: 0.1,
-      max: 99999999.99, // database max is numeric(10, 2)
-      placeholder: isCreateNew && i18n.t('log.price_arable_ph'),
-    },
-  }, {
-    __type: isWaterTesting ? 'none' : 'input',
-    label: i18n.t('form.crop'),
-    item: {
-      name: `${namespace}.crop`,
-      placeholder: isCreateNew && i18n.t('log.crop_ph'),
+  const { scrollAreaDOMId, formId, timeZone, focusedName, isCreateNew } = metadataParams;
+  const schemaItems = schemaFields.map((field: string | null) => {
+    if (!field) {
+      return null;
     }
-  }];
 
-  return schemaItems;
-}
-
-/**
- * Livestock log metadata schema
- */
-
-function makeLivestockMetadataSchema(
-  formValues: Record<string, any>,
-  focusedName: string,
-  formId: string,
-  isCreateNew: boolean
-) {
-  const namespace = 'livestockDetails';
-  const logType = getLogTypeFromActivity('LIVESTOCK', formValues[namespace]?.activity);
-  const isWaterTesting = logType === 'WATER';
-  const isPriceRelated = ['SALES', 'SEED'].includes(logType!);
-
-  console.log('logType', logType);
-
-
-  const schemaItems = [{
-    __type: 'input_click',
-    forceClickId: `input_click_${namespace}.activity`,
-    label: i18n.t('form.activity'),
-    item: {
-      locked: () => true,
-      focused: focusedName === (formId + '_activity'),
-      name: `${namespace}.activity`,
-      placeholder: isCreateNew && i18n.t(`form.activity_ph`),
-      getter: (value: string) => value ? i18n.t(`log.activity.${value}`) : '',
-    },
-  }, {
-    // Water testing inputs
-    __type: isWaterTesting ? 'input' : 'none',
-    label: i18n.t('form.concentration'),
-    item: {
-      name: `${namespace}.concentration`,
-      type: 'number',
-      step: 0.1,
-      min: 0.1,
-      max: 99999999.99, // database max is numeric(10, 2)
-      placeholder: isCreateNew && i18n.t('form.concentration_ph'),
-    },
-  }, {
-    __type: isWaterTesting ? 'input' : 'none',
-    label: i18n.t('form.concentration_unit'),
-    item: {
-      name: `${namespace}.concentrationUnit`,
-      maxLength: 40,
-      placeholder: isCreateNew && i18n.t('form.concentration_unit_ph'),
-    },
-  }, {
-    // Regular inputs
-    __type: 'input',
-    label: i18n.t(isWaterTesting ? 'form.water_quantity' : 'form.quantity'),
-    item: {
-      name: `${namespace}.quantity`,
-      type: 'number',
-      step: 0.1,
-      min: 0.1,
-      max: 99999999.99, // database max is numeric(10, 2)
-      placeholder: isCreateNew && i18n.t('form.quantity_ph'),
-    },
-  }, {
-    __type: 'input',
-    label: i18n.t(isWaterTesting ? 'form.water_unit' : 'form.unit'),
-    item: {
-      name: `${namespace}.unit`,
-      maxLength: 40,
-      placeholder: isCreateNew && i18n.t(isWaterTesting ? 'form.water_unit_ph' : 'log.unit_arable_ph'),
-    },
-  }, {
-    __type: isPriceRelated ? 'input' : 'none',
-    label: i18n.t('form.price'),
-    item: {
-      name: `${namespace}.price`,
-      type: 'number',
-      step: 0.1,
-      min: 0.1,
-      max: 99999999.99, // database max is numeric(10, 2)
-      placeholder: isCreateNew && i18n.t('log.price_arable_ph'),
-    },
-  }, {
-    __type: isWaterTesting ? 'none' : 'input',
-    label: i18n.t('form.crop'),
-    item: {
-      name: `${namespace}.crop`,
-      placeholder: isCreateNew && i18n.t('log.crop_ph'),
+    switch (field) {
+      case 'activity':
+        return {
+          __type: 'input_click',
+          forceClickId: `input_click_${namespace}.activity`,
+          label: i18n.t('form.activity'),
+          item: {
+            locked: () => true,
+            focused: focusedName === (formId + '_activity'),
+            name: `${namespace}.activity`,
+            placeholder: isCreateNew ? i18n.t(`form.activity_ph`) : '',
+            getter: (value: string) => value ? i18n.t(`log.activity.${value}`) : '',
+          },
+        };
+      case 'water_testing':
+        return {
+          __type: 'input',
+          label: i18n.t('form.concentration'),
+          item: {
+            name: `${namespace}.concentration`,
+            type: 'number',
+            step: 0.1,
+            min: 0.1,
+            max: 99999999.99, // database max is numeric(10, 2)
+            placeholder: isCreateNew ? i18n.t('form.concentration_ph') : '',
+          }
+        };
+      case 'concentration_unit':
+        return {
+          __type: 'input',
+          label: i18n.t('form.concentration_unit'),
+          item: {
+            name: `${namespace}.concentrationUnit`,
+            maxLength: 40,
+            placeholder: isCreateNew ? i18n.t('form.concentration_unit_ph') : '',
+          },
+        };
+      case 'water_quantity':
+        return {
+          __type: 'input',
+          label: i18n.t('form.water_quantity'),
+          item: {
+            name: `${namespace}.quantity`,
+            type: 'number',
+            step: 0.1,
+            min: 0.1,
+            max: 99999999.99, // database max is numeric(10, 2)
+            placeholder: isCreateNew ? i18n.t('form.quantity_ph') : '',
+          }
+        };
+      case 'quantity':
+        return {
+          __type: 'input',
+          label: i18n.t('form.quantity'),
+          item: {
+            name: `${namespace}.quantity`,
+            type: 'number',
+            step: 0.1,
+            min: 0.1,
+            max: 99999999.99, // database max is numeric(10, 2)
+            placeholder: isCreateNew ? i18n.t('form.quantity_ph') : '',
+          }
+        };
+      case 'water_unit':
+        return {
+          __type: 'input',
+          label: i18n.t('form.water_unit'),
+          item: {
+            name: `${namespace}.unit`,
+            maxLength: 40,
+            placeholder: isCreateNew ? i18n.t('form.water_unit_ph') : '',
+          }
+        };
+      case 'unit':
+        return {
+          __type: 'input',
+          label: i18n.t('form.unit'),
+          item: {
+            name: `${namespace}.unit`,
+            maxLength: 40,
+            placeholder: isCreateNew ? i18n.t('log.unit_arable_ph') : '',
+          }
+        };
+      case 'price':
+        return {
+          __type: 'input',
+          label: i18n.t('form.price'),
+          item: {
+            name: `${namespace}.price`,
+            type: 'number',
+            step: 0.1,
+            min: 0.1,
+            max: 99999999.99, // database max is numeric(10, 2)
+            placeholder: isCreateNew ? i18n.t('log.price_arable_ph') : '',
+          },
+        };
+      case 'crop':
+        return {
+          __type: 'input',
+          label: i18n.t('form.crop'),
+          item: {
+            name: `${namespace}.crop`,
+            placeholder: isCreateNew ? i18n.t('log.crop_ph') : '',
+          }
+        };
+      case 'livestock':
+        return {
+          __type: 'input',
+          label: i18n.t('log.livestock'),
+          item: {
+            name: `${namespace}.livestock`,
+            placeholder: isCreateNew ? i18n.t('log.livestock_ph') : '',
+          }
+        };
+      case 'livestockIdentifiers':
+        return {
+          __type: 'input',
+          label: i18n.t('log.id_tags'),
+          item: {
+            name: `${namespace}.livestockIdentifiers`,
+            placeholder: isCreateNew ? i18n.t('log.id_tags_ph') : '',
+            getter: (value: string[]) => value ? value.join(',') : '',
+            setter: (value: string) => value.split(',')
+          }
+        };
+      case 'livestockGroups':
+        return {
+          __type: 'input',
+          label: i18n.t('log.groups'),
+          item: {
+            name: `${namespace}.livestockGroups`,
+            placeholder: isCreateNew ? i18n.t('log.groups_ph') : '',
+            getter: (value: string[]) => value ? value.join(',') : '',
+            setter: (value: string) => value.split(',')
+          }
+        };
+      case 'childOrgId':
+        return {
+          __type: 'input',
+          label: i18n.t('log.childOrgId'),
+          item: {
+            name: `${namespace}.childOrgId`,
+            // placeholder: isCreateNew ? i18n.t('log.groups_ph') : '',
+            // getter: (value: string[]) => value ? value.join(',') : '',
+            // setter: (value: string) => value.split(',')
+          }
+        };
+      case 'void':
+        return {
+          __type: 'input_click',
+          forceClickId: `input_click_${namespace}.activity`,
+          label: i18n.t('form.void_'),
+          item: {
+            locked: () => true,
+            focused: focusedName === (formId + '_activity'),
+            name: `${namespace}.activity`,
+            placeholder: isCreateNew ? i18n.t(`form.activity_ph`) : '',
+            getter: (value: string) => value ? i18n.t(`log.activity.${value}`) : '',
+          },
+        };
+      case 'marketCredits':
+        return {
+          __type: 'input',
+          label: i18n.t('log.marketCredits'),
+          item: {
+            name: `${namespace}.marketCredits`,
+            // placeholder: isCreateNew ? i18n.t('log.groups_ph') : '',
+            // getter: (value: string[]) => value ? value.join(',') : '',
+            // setter: (value: string) => value.split(',')
+          }
+        };
+      default:
+        console.warn(`Field ${field} is not defined in metadata schema.`);
+        return null;
     }
-  }];
+  }).filter(Boolean);
 
   return schemaItems;
 }
@@ -306,15 +347,20 @@ function makeLivestockMetadataSchema(
  * Get editable values based on activity & type (which is also used to display UI)
  */
 
+interface MakeMetadataSchemaParams {
+  __typename: string;
+  scrollAreaDOMId: string;
+  formId: string;
+  timeZone: string | null | undefined;
+  focusedName: string;
+  isCreateNew: boolean;
+}
+
 export function makeLogMetadataSchema(
-  scrollAreaDOMId: string,
-  formId: string,
-  timeZone: string | null | undefined,
-  __typename: string,
-  focusedName: string,
   formValues: Record<string, any> = {},
-  isCreateNew = false
+  metadataParams: MakeMetadataSchemaParams,
 ) {
+  const { __typename, scrollAreaDOMId, formId, timeZone, focusedName, isCreateNew } = metadataParams;
 
   let activitiesList: any[] = [];
   let schemaItems: any[] = [];
@@ -333,19 +379,61 @@ export function makeLogMetadataSchema(
   const maxDate = new Date();
   maxDate.setMonth(maxDate.getMonth() + 1);
 
+  const namespace = {
+    LogArable: 'arableDetails',
+    LogFarmersMarket: 'farmersMarketDetails',
+    LogLivestock: 'livestockDetails',
+  }[__typename] || '';
+
+  const logType = getLogTypeFromActivity(__typename, formValues[namespace]?.activity);
+
   switch (__typename) {
-    case 'LogArable':
+    case 'LogArable': {
+      const isWaterTesting = logType === 'WATER';
+      const isPriceRelated = ['SALES', 'SEED'].includes(logType!);
+
       activitiesList = ARABLE_ACTIVITIES_GROUPED;
-      schemaItems = makeArableMetadataSchema(formValues, focusedName, formId, isCreateNew);
-      break;
-    case 'LogFarmersMarket':
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, [
+        'activity',
+        isWaterTesting ? 'concentration' : null,
+        isWaterTesting ? 'concentration_unit' : null,
+        isWaterTesting ? 'water_quantity' : 'quantity',
+        isWaterTesting ? 'water_unit' : 'unit',
+        isPriceRelated ? 'price' : null,
+        isWaterTesting ? null : 'crop',
+      ]);
+    } break;
+    case 'LogFarmersMarket': {
+      const isReceipt = ['MARKET_RECEIPTS'].includes(logType!);
+      const isSupplyPurchase = logType === 'SUPPLY_PURCHASE';
+      const isLandManagement = logType === 'PASTURE_LAND_MANAGEMENT';
+
       activitiesList = FARMERS_MARKET_ACTIVITIES_GROUPED;
-      schemaItems = makeFarmersMarketMetadataSchema(formValues);
-      break;
-    case 'LogLivestock':
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, [
+        'activity',
+        'childOrgId',
+        isReceipt ? 'void' : null,
+        isReceipt ? 'marketCredits' : null,
+      ]);
+    } break;
+    case 'LogLivestock': {
+      const isLivestock = ['LIVESTOCK_LIFE_CYCLE', 'LIVESTOCK_TRACKING', 'LIVESTOCK_HEALTHCARE'].includes(logType!);
+      const isSupplyPurchase = logType === 'SUPPLY_PURCHASE';
+      const isLandManagement = logType === 'PASTURE_LAND_MANAGEMENT';
+
       activitiesList = LIVESTOCK_ACTIVITIES_GROUPED;
-      schemaItems = makeLivestockMetadataSchema(formValues);
-      break;
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, [
+        'activity',
+        isLivestock ? 'livestock' : null,
+        isLivestock ? 'livestockIdentifiers' : null,
+        isLivestock ? 'livestockGroups' : null,
+        isSupplyPurchase ? 'item_purchased' : null,
+        isLandManagement ? 'item_used' : null,
+        isLivestock ? null : 'quantity',
+        isLivestock ? null : 'unit',
+        isLivestock || isSupplyPurchase ? 'price' : null,
+      ]);
+    } break;
     default:
   }
 

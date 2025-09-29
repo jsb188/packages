@@ -115,9 +115,9 @@ export const LIVESTOCK_ACTIVITY_TO_TEXT = {
 };
 
 export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
-	// FEED_MANAGEMENT
+	// SUPPLY_PURCHASE
 	FEED_PURCHASE: 'feed purchase',
-	OTHER_FEED_MANAGEMENT_ACTIVITY: 'other feed management related activities',
+	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase activities',
 
 	// PASTURE_LAND_MANAGEMENT
 	PASTURE_SEEDING: 'pasture seeding',

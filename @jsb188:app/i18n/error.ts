@@ -104,6 +104,7 @@ export default {
     // 3x
 
     30000: 'An unknown error occured.',
+    30002: 'We made an error in our code. We will fix this soon.',
     30003: "We're having trouble accessing the server.",
     30004: 'We made a mistake in our code. We will fix this soon.',
     30010: 'Google servers are not responding right now.',
