@@ -1,9 +1,10 @@
 import i18n from '@jsb188/app/i18n';
 import { getCalDate } from '@jsb188/app/utils/datetime';
+import { formatCurrency } from '@jsb188/app/utils/number';
 import { getObject } from '@jsb188/app/utils/object';
 import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log';
-import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL, LogTypeEnum } from '../types/log.d';
+import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL } from '../types/log.d';
 import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log';
 
 /**
@@ -46,7 +47,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
       formValues.farmersMarketDetails = {
         activity: details.activity,
         childOrgId: details.childOrgId,
-        void: details.void,
+        voided: details.voided,
         values: details.values,
         notes: details.notes,
       };
@@ -83,7 +84,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
   // input LogFarmersMarketInput {
   //   activity: LogFarmersMarketActivity
   //   childOrgId: GenericID
-  //   void: Boolean
+  //   voided: Boolean
   //   values: [LabelAndValueInput]
   //   notes: String
   // }
@@ -155,6 +156,7 @@ function makeMetadataSchema(
   namespace: string,
   formValues: Record<string, any>,
   metadataParams: MakeMetadataSchemaParams,
+  basePopOverProps: Record<string, any>,
   schemaFields: ValidMetadataFieldName[]
 ) {
   const { scrollAreaDOMId, formId, timeZone, focusedName, isCreateNew } = metadataParams;
@@ -313,25 +315,75 @@ function makeMetadataSchema(
       case 'void':
         return {
           __type: 'input_click',
-          forceClickId: `input_click_${namespace}.activity`,
-          label: i18n.t('form.void_'),
+          forceClickId: `input_click_${namespace}.voided`,
+          label: i18n.t('form.void'),
+          inputClassName: formValues[namespace]?.voided ? 'cl_red' : '',
           item: {
-            locked: () => true,
-            focused: focusedName === (formId + '_activity'),
-            name: `${namespace}.activity`,
-            placeholder: isCreateNew ? i18n.t(`form.activity_ph`) : '',
-            getter: (value: string) => value ? i18n.t(`log.activity.${value}`) : '',
+            // locked: () => true,
+            focused: focusedName === (formId + '_void'),
+            name: `${namespace}.voided`,
+            placeholder: isCreateNew ? i18n.t(`form.void_ph`) : '',
+            getter: (value: string) => i18n.t(value ? 'log.receipt_is_void' : 'log.receipt_is_not_void'),
           },
+          popOverProps: {
+            id: formId + '_void',
+            ...basePopOverProps,
+            iface: {
+              name: 'PO_LIST',
+              variables: {
+                designClassName: 'w_250',
+                className: 'max_h_40vh',
+                options: [{
+                  __type: 'LIST_ITEM' as const,
+                  text: i18n.t('log.receipt_is_not_void'),
+                  iconName: 'receipt-2',
+                  selected: !formValues[namespace]?.voided,
+                  name: `${namespace}.voided`,
+                  value: false,
+                }, {
+                  __type: 'LIST_ITEM' as const,
+                  text: i18n.t('log.receipt_is_void'),
+                  iconName: 'receipt-off',
+                  selected: formValues[namespace]?.voided === true,
+                  name: `${namespace}.voided`,
+                  value: true,
+                }]
+              }
+            }
+          }
         };
       case 'marketCredits':
         return {
-          __type: 'input',
+          __type: 'input_click',
           label: i18n.t('log.marketCredits'),
+          forceClickId: `input_click_${namespace}.values`,
           item: {
-            name: `${namespace}.marketCredits`,
-            // placeholder: isCreateNew ? i18n.t('log.groups_ph') : '',
-            // getter: (value: string[]) => value ? value.join(',') : '',
-            // setter: (value: string) => value.split(',')
+            // locked: () => true,
+            focused: focusedName === (formId + '_values'),
+            name: `${namespace}.values`,
+            placeholder: isCreateNew ? i18n.t(`log.marketCredits_ph`) : '',
+            getter: (labelsAndValues: string[]) => {
+              return labelsAndValues?.map((lv: any) => {
+                return `${formatCurrency(lv.value, 'en-US', 'USD')} ${lv.label}`;
+              }).join(', ');
+            },
+          },
+          popOverProps: {
+            id: formId + '_marketCredits',
+            ...basePopOverProps,
+            iface: {
+              name: 'PO_LABELS_AND_VALUES',
+              variables: {
+                gridLayoutStyle: '85px 1fr',
+                designClassName: 'w_250',
+                className: 'max_h_40vh',
+                flipInputOrder: true,
+                forceNumericValues: true,
+                name: `${namespace}.values`,
+                labels: [`$ ${i18n.t('form.amount')}`, i18n.t('log.name_of_credit')],
+                inputs: formValues[namespace]?.values || [],
+              }
+            }
           }
         };
       default:
@@ -365,7 +417,7 @@ export function makeLogMetadataSchema(
   let activitiesList: any[] = [];
   let schemaItems: any[] = [];
 
-  const poProps = {
+  const basePopOverProps = {
     scrollAreaDOMId,
     zClassName: 'z9',
     position: 'bottom_left',
@@ -393,7 +445,7 @@ export function makeLogMetadataSchema(
       const isPriceRelated = ['SALES', 'SEED'].includes(logType!);
 
       activitiesList = ARABLE_ACTIVITIES_GROUPED;
-      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, [
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, [
         'activity',
         isWaterTesting ? 'concentration' : null,
         isWaterTesting ? 'concentration_unit' : null,
@@ -405,11 +457,9 @@ export function makeLogMetadataSchema(
     } break;
     case 'LogFarmersMarket': {
       const isReceipt = ['MARKET_RECEIPTS'].includes(logType!);
-      const isSupplyPurchase = logType === 'SUPPLY_PURCHASE';
-      const isLandManagement = logType === 'PASTURE_LAND_MANAGEMENT';
 
       activitiesList = FARMERS_MARKET_ACTIVITIES_GROUPED;
-      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, [
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, [
         'activity',
         'childOrgId',
         isReceipt ? 'void' : null,
@@ -422,7 +472,7 @@ export function makeLogMetadataSchema(
       const isLandManagement = logType === 'PASTURE_LAND_MANAGEMENT';
 
       activitiesList = LIVESTOCK_ACTIVITIES_GROUPED;
-      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, [
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, [
         'activity',
         isLivestock ? 'livestock' : null,
         isLivestock ? 'livestockIdentifiers' : null,
@@ -453,7 +503,7 @@ export function makeLogMetadataSchema(
       },
       popOverProps: {
         id: formId + '_date',
-        ...poProps,
+        ...basePopOverProps,
         iface: {
           name: 'PO_LIST',
           variables: {
@@ -488,7 +538,7 @@ export function makeLogMetadataSchema(
     const activityValue = getObject(formValues, schemaItems[0].item.name);
     schemaItems[0].item.popOverProps = {
       id: formId + '_activity',
-      ...poProps,
+      ...basePopOverProps,
       iface: {
         name: 'PO_LIST',
         variables: {

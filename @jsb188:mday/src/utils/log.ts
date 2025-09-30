@@ -1,9 +1,12 @@
 import i18n from '@jsb188/app/i18n';
-import type { ColorEnum } from '@jsb188/app/types/app.d';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { formatCurrency, formatDecimal } from '@jsb188/app/utils/number';
 import { textWithBrackets, ucFirst } from '@jsb188/app/utils/string';
-import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log';
+import {
+  ARABLE_ACTIVITIES_GROUPED,
+  FARMERS_MARKET_ACTIVITIES_GROUPED,
+  LIVESTOCK_ACTIVITIES_GROUPED
+} from '../constants/log';
 import type { LogEntryDataObj, LogTypeEnum } from '../types/log.d';
 
 /**
@@ -12,7 +15,7 @@ import type { LogEntryDataObj, LogTypeEnum } from '../types/log.d';
  * @returns The color associated with the journal type
  */
 
-export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
+export function getLogCategoryColor(type: LogTypeEnum) {
 	// Do switch operation here
 	// switch (operation) {
 	//   case 'ARABLE':
@@ -41,14 +44,14 @@ export function getLogCategoryColor(type: LogTypeEnum): ColorEnum {
 		MARKET_RECEIPTS: 'blue',
 		MARKET_OPERATIONS: 'rose',
 
-    // #### LIVESTOCK
+		// #### LIVESTOCK
 		SUPPLY_PURCHASE: 'brown',
-    LIVESTOCK_LIFE_CYCLE: 'amber',
-    LIVESTOCK_TRACKING: 'lime',
+		LIVESTOCK_LIFE_CYCLE: 'amber',
+		LIVESTOCK_TRACKING: 'lime',
 		PASTURE_LAND_MANAGEMENT: 'green',
 		LIVESTOCK_HEALTHCARE: 'teal',
 		LIVESTOCK_SALE: 'blue',
-	} as Record<LogTypeEnum, ColorEnum>;
+	} as Record<LogTypeEnum, string>;
 
 	// Default to zinc if type is not found
 	const color = logTypeToColor[type] || 'zinc';
@@ -132,19 +135,19 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 				creditsText += ` = ${i18n.t('form.total')}: ${formatCurrency(totalAmount, 'en-US', 'USD')}`;
 			}
 
-			const voidText = md.void ? i18n.t('form.void').toUpperCase() : '';
-			return `${creditsText} ${creditsText && voidText ? '(' + voidText + ')' : voidText}`.trim();
+			const voidText = isServer && md.voided ? i18n.t('form.void').toUpperCase() : '';
+			return `${creditsText && voidText ? '(' + voidText + ')' : voidText} ${creditsText}`.trim();
 		}
 		case 'LIVESTOCK':
 		case 'logs_livestock':
 		case 'LogLivestock': {
-      return textWithBrackets(
-        ucFirst(md.livestock),
-        (md.livestockGroups || []).concat(
-          (md.livestockIdentifiers || []).map((id: string) => `#${id}`)
-        ).join(', '),
-        [' - ', '']
-      );
+			return textWithBrackets(
+				ucFirst(md.livestock),
+				(md.livestockGroups || []).concat(
+					(md.livestockIdentifiers || []).map((id: string) => `#${id}`),
+				).join(', '),
+				[' - ', ''],
+			);
 		}
 		default:
 	}

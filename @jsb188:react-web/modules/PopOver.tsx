@@ -4,7 +4,7 @@ import { usePopOver, useSetPopOverIsHover, useTooltip } from '@jsb188/react/stat
 import type { ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps } from '@jsb188/react/types/PopOver.d';
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { guessTooltipSize, TooltipText } from '../ui/PopOverUI';
-import { PopOverCheckList, PopOverList } from './PopOver-List';
+import { PopOverCheckList, PopOverList, PopOverLabelsAndValues } from './PopOver-List';
 import PopOverImage from './PopOver-ViewImage';
 
 /**
@@ -655,5 +655,4 @@ export function TooltipModule() {
   );
 }
 
-export { PopOverCheckList, PopOverImage, PopOverList };
-
+export { PopOverCheckList, PopOverImage, PopOverList, PopOverLabelsAndValues };

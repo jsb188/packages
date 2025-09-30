@@ -35,7 +35,7 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
   childOrganizationName
   notes
 
-  void
+  voided
   values {
     label
     value

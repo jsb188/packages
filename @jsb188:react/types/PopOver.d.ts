@@ -167,7 +167,28 @@ export interface POImageIface {
   }
 }
 
-export type PopOverIface = POListIface | POCheckListIface | POImageIface;
+export interface POLabelsAndValuesIface {
+  name: 'PO_LABELS_AND_VALUES';
+  variables: {
+    name: string; // Name for form, for formValues object
+    designClassName?: string;
+    className?: string;
+    addFooterButton?: boolean;
+    footerButtonText?: string;
+    gridLayoutStyle?: string;
+    notReady?: boolean;
+    description?: string;
+    flipInputOrder?: boolean;
+    forceNumericValues?: boolean;
+    labels: [string, string][];
+    inputs: {
+      label: string;
+      value: string;
+    }[];
+  }
+}
+
+export type PopOverIface = POListIface | POCheckListIface | POImageIface | POLabelsAndValuesIface;
 
 /**
  * Pop overs
@@ -213,6 +234,7 @@ export interface PopOverGlobalStateParams {
   action: 'ITEM' | 'ITEM_AUTO' | 'SUBMIT' | 'MOUNT' | 'UNMOUNT';
   name?: string | null; // Name of form item
   value: any;
+  doNotClosePopOver?: boolean;
 }
 
 export interface PopOverGlobalStateObj extends PopOverGlobalStateParams {

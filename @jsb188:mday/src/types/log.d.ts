@@ -85,7 +85,7 @@ export type LogArableMetadataGQL = LogArableMetadata & LogDetailsGQLBase;
  */
 
 interface LogFarmersMarketMetadata {
-	void: boolean;
+	voided: boolean;
   childOrgId: string | number;
 	values: {
 		label: string;

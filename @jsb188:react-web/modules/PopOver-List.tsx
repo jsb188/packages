@@ -2,11 +2,11 @@ import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
-import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, POModalItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
+import type { POLabelsAndValuesIface, POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, POModalItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
-import { POListBreak, POListItem, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
+import { POLabelsAndValues, POListBreak, POListItem, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
 import type { CalendarSelectedObj, OnChangeCalendarDayFn } from './Calendar';
 import { Calendar, CalendarDateRange, getCalendarSelector } from './Calendar';
 
@@ -14,14 +14,12 @@ import { Calendar, CalendarDateRange, getCalendarSelector } from './Calendar';
  * Pop over date range picker
  */
 
-interface PODatePickerProps {
+const PODatePicker = memo((p: {
   name: string;
   item: PODatePickerObj;
   value?: CalendarSelectedObj | null;
   onClickItem: (name: string, value: any, notEventBased?: boolean) => void;
-}
-
-const PODatePicker = memo((p: PODatePickerProps) => {
+}) => {
   const { name, value, item, onClickItem } = p;
   const { minDate, maxDate } = item;
 
@@ -60,14 +58,12 @@ PODatePicker.displayName = 'PODatePicker';
  * Pop over date range picker
  */
 
-interface PODateRangeProps {
+const PODateRange = memo((p: {
   name: string;
   item: PODateRangeObj;
   value?: [CalendarSelectedObj | null, CalendarSelectedObj | null] | null;
   onClickItem: (name: string, value: any, notEventBased?: boolean) => void;
-}
-
-const PODateRange = memo((p: PODateRangeProps) => {
+}) => {
   const { name, value, item, onClickItem } = p;
   const [startDate, endDate] = value || [];
   const { minDate, maxDate } = item;
@@ -169,14 +165,12 @@ POModalScreenListItem.displayName = 'POModalScreenListItem';
  * Ifaces for pop over nav item
  */
 
-interface PONavItemIfaceProps extends PONavItemBase {
+export function PONavItemIface(p: PONavItemBase & {
   name: string;
   value?: any;
   item: POListIfaceItem;
   checked?: boolean;
-}
-
-export function PONavItemIface(p: PONavItemIfaceProps) {
+}) {
   const { item, checked, ...other } = p;
   const { __type } = item;
 
@@ -214,11 +208,9 @@ export function PONavItemIface(p: PONavItemIfaceProps) {
  * Nav list popover
  */
 
-interface PopOverListProps extends PopOverHandlerProps {
+export function PopOverList(p: PopOverHandlerProps & {
   variables: POListIface['variables'];
-}
-
-export function PopOverList(p: PopOverListProps) {
+}) {
   const { closePopOver, setPopOverState, variables } = p;
 
   const {
@@ -301,11 +293,9 @@ export function PopOverList(p: PopOverListProps) {
  * Pop over check list with multiple selectable options
  */
 
-interface PopOverCheckListProps extends PopOverHandlerProps {
+export function PopOverCheckList(p: PopOverHandlerProps & {
   variables: POCheckListIface['variables'];
-}
-
-export function PopOverCheckList(p: PopOverCheckListProps) {
+}) {
   const { closePopOver, setPopOverState, variables } = p;
 
   const {
@@ -325,7 +315,7 @@ export function PopOverCheckList(p: PopOverCheckListProps) {
 
   useOnClickOutside(divRef, true, false, 'ignore_outside_click', dismissFn);
 
-  const onClickItem = (name: string | null, value: string | null) => {
+  const onClickItem = (name: string | null, value: any) => {
     setPopOverState({
       action: 'ITEM',
       name,
@@ -367,6 +357,111 @@ export function PopOverCheckList(p: PopOverCheckListProps) {
             selected={false}
           />;
         })}
+      </div>
+
+      {addFooterButton && (
+        <PopOverListFooterButton
+          onClick={onSubmit}
+          text={footerButtonText || i18n.t('form.apply')}
+        />
+      )}
+    </PopOverListContainer>
+  );
+}
+
+/**
+ * Pop over labels and values list/form
+ */
+
+export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
+  variables: POLabelsAndValuesIface['variables'];
+}) {
+  const { closePopOver, setPopOverState, variables } = p;
+
+  const {
+    notReady,
+    designClassName,
+    className,
+    gridLayoutStyle,
+    name,
+    labels,
+    inputs,
+    addFooterButton,
+    footerButtonText,
+    flipInputOrder,
+    forceNumericValues,
+  } = variables;
+
+  const [formValues, setFormValues] = useState(inputs);
+  const divRef = useRef<HTMLDivElement>(null);
+  const dismissFn = closePopOver ? () => closePopOver() : undefined;
+
+  useOnClickOutside(divRef, true, false, 'ignore_outside_click', dismissFn);
+
+  useEffect(() => {
+    setPopOverState({
+      action: 'ITEM',
+      name,
+      value: formValues,
+      doNotClosePopOver: true,
+    });
+  }, [formValues]);
+
+  const onChangeItem = (name: 'label' | 'value', value_: any, i: number) => {
+    const updatedValues = [...formValues];
+    const value = name === 'value' && forceNumericValues ? String(value_).replace(/[^0-9.-]/g, '') : value_;
+    if (i >= 0 && i < updatedValues.length) {
+      updatedValues[i] = {
+        ...updatedValues[i],
+        [name]: value,
+      };
+    } else if (i >= updatedValues.length) {
+      updatedValues.push({
+        label: name === 'label' ? value : '',
+        value: name === 'value' ? value : '',
+      });
+    }
+    setFormValues(updatedValues);
+  };
+
+  const onSubmit = () => {
+    setPopOverState({
+      action: 'SUBMIT',
+      value: formValues,
+    });
+  };
+
+  return (
+    <PopOverListContainer
+      ref={divRef}
+      className={designClassName}
+    >
+      <div className={cn('inside y_scr_hidden gap_2', className)}>
+        {notReady
+        ? <div className='p_md'>
+          <ActivityDots />
+        </div>
+        : <>
+          <POLabelsAndValues
+            maxItems={10}
+            gridLayoutStyle={gridLayoutStyle}
+            flipInputOrder={flipInputOrder}
+            labels={labels}
+            inputs={formValues}
+            onChangeItem={onChangeItem}
+          />
+          {/* {inputs.map((item: POLabelsAndValuesIface['variables']['inputs'][number], i: number) => {
+            return <LabelsAndValues
+              key={i}
+              name={item.label}
+              // item={item}
+              onClickItem={onClickItem}
+              saving={savingValue !== undefined && savingValue === item.value}
+              checked={checked.includes(item.value)}
+              selected={false}
+            />;
+          })}  */}
+        </>}
       </div>
 
       {addFooterButton && (

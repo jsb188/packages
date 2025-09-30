@@ -17,6 +17,12 @@
   padding: .58rem;
 }
 
+.form_cnt.smaller,
+.form_el.smaller input, .form_el.smaller textarea, .form_el.smaller .tx_virtualizer {
+  /* If less is needed, use .lh_1 .lh_2 to further flatten the height */
+  padding: .32rem 6px;
+}
+
 /* Input */
 
 .form_cnt.outline,

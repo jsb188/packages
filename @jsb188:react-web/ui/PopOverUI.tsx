@@ -24,12 +24,10 @@ export interface PONavItemBase {
  * NOTE: Keep this value in sync with CSS
  */
 
-interface PopOverSize {
+export function guessTooltipSize(message: string): {
   name: 'default' | 'small';
   assumedWidth: number;
-}
-
-export function guessTooltipSize(message: string): PopOverSize {
+} {
   const assumedLetterWidth = 14;
   const len = message.length;
   const assumedWidth = (len + 2) * assumedLetterWidth; // +2 for padding and extra buffer
@@ -74,7 +72,7 @@ TooltipText.displayName = 'TooltipText';
  * Popover container
  */
 
-interface PopOverContainerProps {
+export function PopOverContainer(p: {
   themeName?: string;
   lightMode?: 'LIGHT' | 'DARK';
   notReady?: boolean;
@@ -82,9 +80,7 @@ interface PopOverContainerProps {
   children: any;
   backgroundClassName?: string;
   closePopOver: ClosePopOverFn;
-}
-
-export function PopOverContainer(p: PopOverContainerProps) {
+}) {
   const { notReady, children, visible, closePopOver, backgroundClassName, themeName, lightMode } = p;
   const el = useRef<HTMLDivElement>(null);
 
@@ -161,12 +157,10 @@ export const POText = memo((p: POTextProps) => {
  * Pop over option item
  */
 
-interface POListItemProps extends PONavItemBase {
+export const POListItem = memo((p: PONavItemBase & {
   name: string | null;
   item: POListItemObj;
-}
-
-export const POListItem = memo((p: POListItemProps) => {
+}) => {
   const { name, item, saving } = p;
   const { colorIndicator, preset, className, textClassName, disabled, allowDisabledOnClick, to, text, value, iconName, rightIconName, rightIconClassName, photoUri, avatarDisplayName, selected } = item;
   const hasAvatar = !!photoUri || !!avatarDisplayName;
@@ -219,7 +213,7 @@ export const POListItem = memo((p: POListItemProps) => {
         <span className='saving_area ml_sm'>
           {saving ? <ActivityDots size='tn' /> : null}
           {saving || (!selected && !rightIconName) ? null : (
-            <span className={cn('bl shift_right', rightIconClassName ?? 'cl_lt')}>
+            <span className={cn('bl shift_right', !selected && 'cl_lt', rightIconClassName)}>
               <Icon name={rightIconName || 'check'} />
             </span>
           )}
@@ -235,12 +229,10 @@ POListItem.displayName = 'POListItem';
  * Pop over avatar item
  */
 
-interface PONavAvatarItemProps extends PONavItemBase {
+export const PONavAvatarItem = memo((p: PONavItemBase & {
   name: string | null;
   item: PONavAvatarItemObj;
-}
-
-export const PONavAvatarItem = memo((p: PONavAvatarItemProps) => {
+}) => {
   const { name, item, onClickItem, saving, selected } = p;
   const { className, disabled, square, allowDisabledOnClick, to, text, label, value, rightIconName, photoUri, avatarDisplayName } = item;
   const undefinedValue = value === undefined;
@@ -324,3 +316,72 @@ export const PopOverListFooterButton = memo((p: PopOverListFooterButtonProps) =>
 });
 
 PopOverListFooterButton.displayName = 'PopOverListFooterButton';
+
+/**
+ * Labels and values; Form
+ */
+
+export function POLabelsAndValues(p: {
+  maxItems?: number;
+  description?: string;
+  labels: [string, string][];
+  inputs: { label: string; value: string; }[];
+  gridLayoutStyle?: string;
+  flipInputOrder?: boolean;
+  onChangeItem: (name: 'label' | 'value', value: any, i: number) => void;
+}) {
+  const { description, labels, inputs, gridLayoutStyle, flipInputOrder, onChangeItem, maxItems } = p;
+  const formClassName = 'form_el smaller rel lighter focus_outline';
+  const inputClassName = 'bd_lt bd_1 r_sm lh_1';
+  const labelIx = flipInputOrder ? 1 : 0;
+
+  return <>
+    {description && (
+      <p className='pt_xs px_6 ft_xs cl_md'>
+        {description}
+      </p>
+    )}
+    <div
+      className={cn('grid size_2 gap_5', !description && 'mt_5')}
+      style={gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
+    >
+      {labels.map((text, i) => {
+        return <div className='px_6' key={i}>
+          <strong className='ft_xs cl_md shift_down'>
+            {text}
+          </strong>
+        </div>;
+      })}
+
+      {inputs.map((item, i) => {
+        const { label, value } = item;
+        const arr = flipInputOrder ? [value, label] : [label, value];
+        return arr.map((text, j) => {
+          return <div className={formClassName} key={j}>
+            <input
+              type='text'
+              className={inputClassName}
+              value={text}
+              onChange={(e) => onChangeItem(j === labelIx ? 'label' : 'value', e.target.value, i)}
+            />
+          </div>;
+        });
+      })}
+
+      {maxItems && inputs.length < maxItems &&
+        (flipInputOrder ? [1, 0] : [0, 1]).map((k) =>
+          <div className={formClassName} key={`extra_${inputs.length}_${k}`}>
+            <input
+              type='text'
+              className={inputClassName}
+              value={''}
+              onChange={(e) => onChangeItem(k === 0 ? 'label' : 'value', e.target.value, inputs.length)}
+            />
+          </div>
+        )
+      }
+    </div>
+  </>;
+}
+
+POLabelsAndValues.displayName = 'POLabelsAndValues';

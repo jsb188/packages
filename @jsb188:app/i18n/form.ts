@@ -8,7 +8,6 @@ export default {
     n_a: 'N/A',
     unknown: 'Unknown',
     void: 'Void', // Use uppercase if needed
-    void_: 'Void?',
     warning: 'Warning',
     cancel: 'Cancel',
     continue: 'Continue',
@@ -54,6 +53,7 @@ export default {
     keep_current_img: 'Keep current image',
     select_file: 'Select file',
     name: 'Name',
+    amount: 'Amount',
     address: 'Address',
     information: 'Information',
     type: 'Type',

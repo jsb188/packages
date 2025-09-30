@@ -130,6 +130,7 @@ export const CondensedArticleItem = memo((p: {
               as='span'
               outline
               color={useAltLabelColors ? 'alt' : 'bg'}
+              // className='red_light_bf'
               // textColorClassName='cl_primary'
               {...label}
             />
