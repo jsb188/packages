@@ -1,0 +1,7 @@
+export const ORGANIZATION_EVENT_TYPES = [
+	'MARKET',
+];
+
+export const ORGANIZATION_PRODUCT_TYPES = [
+  'LIVESTOCK_ANIMAL'
+];

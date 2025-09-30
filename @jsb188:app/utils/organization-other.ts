@@ -6,7 +6,7 @@ import type {
   OrganizationAddressObj,
   OrganizationEventGQLData,
   OrgEventAttendanceDataObj,
-} from '../types/organization-event.d.ts';
+} from '../types/organization-other.d';
 import type { OrganizationGQLData } from '../types/organization.d';
 import type { EventScheduleObj } from '../types/other.d';
 import { getFullDate } from './datetime';
