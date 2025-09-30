@@ -1,14 +1,13 @@
-import { ORGANIZATION_EVENT_TYPES, ORGANIZATION_PRODUCT_TYPES } from '../constants/organization-other';
+import { ORGANIZATION_EVENT_TYPES } from '../constants/organization-other';
+import type { AccountData } from './account.d';
 import type { OrganizationGQLData } from './organization.d';
 import type { EventScheduleObj } from './other.d';
-import type { AccountData } from './account.d';
 
 /**
  * Enums
  */
 
 export type OrganizationEventTypeEnum = typeof ORGANIZATION_EVENT_TYPES[number];
-export type OrganizationProductTypeEnum = typeof ORGANIZATION_PRODUCT_TYPES[number];
 
 /**
  * Org addresses

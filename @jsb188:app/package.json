@@ -16,6 +16,7 @@
     "./constants/emoji": "./constants/emoji.ts",
     "./constants/organization": "./constants/organization.ts",
     "./constants/organization-other": "./constants/organization-other.ts",
+    "./constants/product": "./constants/product.ts",
     "./constants/other": "./constants/other.ts",
     "./constants/user": "./constants/user.ts",
     "./constants/ws": "./constants/ws.ts",
@@ -39,6 +40,7 @@
     "./types/form.d": "./types/form.d.ts",
     "./types/organization.d": "./types/organization.d.ts",
     "./types/organization-other.d": "./types/organization-other.d.ts",
+    "./types/product.d": "./types/product.d.ts",
     "./types/other.d": "./types/other.d.ts"
   },
   "dependencies": {

@@ -3,7 +3,7 @@ import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d
 import {
   LOG_ARABLE_ACTIVITY_ENUMS,
   LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
-	LOG_LIVESTOCK_ACTIVITY_ENUMS,
+  LOG_LIVESTOCK_ACTIVITY_ENUMS,
 } from '../constants/log';
 
 /**
@@ -51,11 +51,16 @@ interface LogDetailsGQLBase {
 	activity: any;
 	notes: string;
 }
+
+interface LogMetadataBase {
+  __before: any;
+}
+
 /**
  * Log details - Arable
  */
 
-interface LogArableMetadata {
+export type LogArableMetadata = LogMetadataBase & {
 	crop: string;
 	quantity: number;
 	unit: string;
@@ -64,7 +69,7 @@ interface LogArableMetadata {
 	price: number;
 }
 
-interface LogArableObj {
+export interface LogArableObj {
 	type?: LogArableTypeEnum; // Only set in server if manually extended
 	activity: LogArableActivityEnum;
 	notes: string | null;
@@ -72,7 +77,7 @@ interface LogArableObj {
 	metadata?: Partial<LogArableMetadata> | null;
 }
 
-interface LogArableDetailsObj extends LogArableObj {
+export interface LogArableDetailsObj extends LogArableObj {
 	__table: 'logs_arable';
 	id: number;
 	childOrg: never;
@@ -84,16 +89,16 @@ export type LogArableMetadataGQL = LogArableMetadata & LogDetailsGQLBase;
  * Log details - Farmers Market
  */
 
-interface LogFarmersMarketMetadata {
+export type LogFarmersMarketMetadata = LogMetadataBase & {
 	voided: boolean;
-  childOrgId: string | number;
+	childOrgId: string | number;
 	values: {
 		label: string;
 		value: string;
 	}[];
 }
 
-interface LogFarmersMarketObj {
+export interface LogFarmersMarketObj {
 	childOrgId: number;
 	type?: LogFarmersMarketTypeEnum; // Only set in server if manually extended
 	activity: LogFarmersMarketActivityEnum;
@@ -102,7 +107,7 @@ interface LogFarmersMarketObj {
 	metadata?: Partial<LogFarmersMarketMetadata> | null;
 }
 
-interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
+export interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
 	__table: 'logs_farmers_market';
 	id: number;
 	childOrg: {
@@ -116,17 +121,17 @@ export type LogFarmersMarketMetadataGQL = LogFarmersMarketMetadata & LogDetailsG
  * Log details - Livestock
  */
 
-interface LogLivestockMetadata {
+export type LogLivestockMetadata = LogMetadataBase & {
 	livestock: string;
 	livestockIdentifiers: string[];
-  livestockGroups: string[];
+	livestockGroups: string[];
 	item: string;
 	quantity: number;
 	unit: string;
 	price: number;
 }
 
-interface LogLivestockObj {
+export interface LogLivestockObj {
 	type?: LogLivestockTypeEnum; // Only set in server if manually extended
 	activity: LogLivestockActivityEnum;
 	notes: string | null;
@@ -134,7 +139,7 @@ interface LogLivestockObj {
 	metadata?: Partial<LogLivestockMetadata> | null;
 }
 
-interface LogLivestockDetailsObj extends LogLivestockObj {
+export interface LogLivestockDetailsObj extends LogLivestockObj {
 	__table: 'logs_livestock';
 	id: number;
 	childOrg: never;

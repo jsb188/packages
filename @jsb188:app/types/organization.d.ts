@@ -9,13 +9,17 @@ import type { AccountData } from './account.d.ts';
 import type { StorageData } from './other.d.ts';
 
 /*
- * ACL
+ * Enums
  */
 
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
 export type OrganizationComplianceType = typeof COMPLIANCE_DOCUMENT_TYPE_ENUMS[number];
+
+/*
+ * ACL
+ */
 
 type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-write, 3: allow-manage
 type ACLPermissionEnum = 'NONE' | 'READ' | 'WRITE' | 'MANAGE';
@@ -74,14 +78,14 @@ export interface OrganizationSettingsObj {
 }
 
 export interface OrganizationChildData {
-  __table: 'organization_rels';
+	__table: 'organization_rels';
 	id: number;
 	organization: OrganizationData;
 	primaryContact: {
-    __table: 'account_organization_rels';
-    id: number;
-    account: AccountData;
-  };
+		__table: 'account_organization_rels';
+		id: number;
+		account: AccountData;
+	};
 	addedAt: Date;
 }
 
