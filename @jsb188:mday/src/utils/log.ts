@@ -161,24 +161,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
  */
 
 export function getTextFormatLog(log: LogEntryDataObj) {
-	const { __table, notes } = log.details;
+	const { notes } = log.details;
 	const title = getLogEntryTitle(log.details || {}, true);
-
-  let ifaceText = '';
-  switch (__table) {
-    case 'logs_livestock': {
-      const livestockIdentifiers = (log.details.metadata?.livestockIdentifiers || []).filter(Boolean);
-      if (livestockIdentifiers.length) {
-        ifaceText += 'IDs: ' + livestockIdentifiers.map(id => `#${id}`).join(', ') + '\n';
-      }
-
-      const livestockGroups = (log.details.metadata?.livestockGroups || []).filter(Boolean);
-      if (livestockGroups.length) {
-        ifaceText += 'Groups: ' + livestockGroups.join(', ') + '\n';
-      }
-    } break;
-    default:
-  }
-
-	return (title + '\n' + ifaceText + '\n' + (notes + '')).trim();
+	return (title + '\n\n' + (notes + '')).trim();
 }

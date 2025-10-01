@@ -155,7 +155,7 @@ export const CondensedArticleItem = memo((p: {
           )}
         >
           {hasDescription && (
-            <span className='shift_down'>
+            <span className='shift_down ib'>
               {description || descriptionPlaceholder}
             </span>
           )}
