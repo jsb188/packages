@@ -20,6 +20,7 @@ export default {
     delete: 'Delete',
     balance: 'Balance',
     number: 'Number',
+    livestock: 'Livestock',
     frequency: 'Frequency',
     expiration: 'Expiration',
     expiration_date: 'Expiration date',
