@@ -15,7 +15,7 @@
     "./constants/billing": "./constants/billing.ts",
     "./constants/emoji": "./constants/emoji.ts",
     "./constants/organization": "./constants/organization.ts",
-    "./constants/organization-other": "./constants/organization-other.ts",
+    "./constants/event": "./constants/event.ts",
     "./constants/product": "./constants/product.ts",
     "./constants/other": "./constants/other.ts",
     "./constants/user": "./constants/user.ts",
@@ -28,7 +28,7 @@
     "./utils/number": "./utils/number.ts",
     "./utils/object": "./utils/object.ts",
     "./utils/organization": "./utils/organization.ts",
-    "./utils/organization-other": "./utils/organization-other.ts",
+    "./utils/event": "./utils/event.ts",
     "./utils/string": "./utils/string.ts",
     "./utils/timeZone": "./utils/timeZone.ts",
     "./utils/url_client": "./utils/url_client.ts",
@@ -39,7 +39,7 @@
     "./types/auth.d": "./types/auth.d.ts",
     "./types/form.d": "./types/form.d.ts",
     "./types/organization.d": "./types/organization.d.ts",
-    "./types/organization-other.d": "./types/organization-other.d.ts",
+    "./types/event.d": "./types/event.d.ts",
     "./types/other.d": "./types/other.d.ts"
   },
   "dependencies": {

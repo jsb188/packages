@@ -14,43 +14,6 @@ export const organizationFragment = `fragment organizationFragment on Organizati
   }
 }`;
 
-export const organizationEventFragment = `fragment organizationEventFragment on OrganizationEvent {
-  id
-  accountId
-	organizationId
-
-  name
-  type
-
-  schedule {
-    frequency
-    interval
-    byDay
-    byMonthDay
-    byMonth
-    time
-    time_SU
-    time_MO
-    time_TU
-    time_WE
-    time_TH
-    time_FR
-    time_SA
-  }
-
-  startAt
-  endAt
-	createdAt
-	updatedAt
-}`;
-
-export const organizationEventAttendanceFragment = `fragment organizationEventAttendanceFragment on OrganizationEventAttendance {
-  id
-  orgEventId
-  attended
-  calDate
-}`;
-
 export const organizationComplianceFragment = `fragment organizationComplianceFragment on OrganizationCompliance {
   id
   number

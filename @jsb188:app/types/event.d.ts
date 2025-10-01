@@ -1,13 +1,13 @@
-import { ORGANIZATION_EVENT_TYPES } from '../constants/organization-other';
+import { EVENT_TYPES } from '../constants/event';
 import type { AccountData } from './account.d';
-import type { OrganizationGQLData } from './organization.d';
+import type { OrganizationGQLData, OrganizationData } from './organization.d';
 import type { EventScheduleObj } from './other.d';
 
 /**
  * Enums
  */
 
-export type OrganizationEventTypeEnum = typeof ORGANIZATION_EVENT_TYPES[number];
+export type EventTypeEnum = typeof EVENT_TYPES[number];
 
 /**
  * Org addresses
@@ -48,20 +48,20 @@ export interface OrganizationAddressGQLData {
  * Org events
  */
 
-export interface OrganizationEventUpsertObj {
+export interface EventUpsertObj {
 	id?: number; // Only for edits
 	addressId?: number;
 
 	name: string;
-	type: OrganizationEventTypeEnum;
+	type: EventTypeEnum;
 	paused: boolean;
 	schedule: EventScheduleObj | null;
 	startAt: Date;
 	endAt: Date;
 }
 
-export interface OrganizationEventDataObj extends OrganizationEventUpsertObj {
-	__table: 'organization_events';
+export interface EventDataObj extends EventUpsertObj {
+	__table: 'events';
 	id: number;
 	organizationId: number;
 	accountId: number;
@@ -70,12 +70,12 @@ export interface OrganizationEventDataObj extends OrganizationEventUpsertObj {
 	updatedAt: Date;
 }
 
-export interface OrganizationEventGQLData {
+export interface EventGQLData {
 	id: string;
 	organizationId: string;
 	accountId: string;
 	name: string;
-	type: OrganizationEventTypeEnum;
+	type: EventTypeEnum;
 	paused: boolean;
 	schedule: EventScheduleObj; // resolver will force non-null values
 	startAt: string | Date;
@@ -89,27 +89,27 @@ export interface OrganizationEventGQLData {
  * Org event attendance
  */
 
-export interface OrgEventAttendanceUpsertObj {
+export interface EventAttendanceUpsertObj {
 	id?: number; // Only for edits
 	organizationId: number;
-	orgEventId: number;
+	eventId: number;
 	accountId: number;
 	attended: boolean | null;
 	calDate: string; // "YYYY-MM-DD" format
 	history?: [string, '0' | '1'][] | null; // [YYYY-MM-DD, '0' | '1'][]
 }
 
-export interface OrgEventAttendanceDataObj extends OrgEventAttendanceUpsertObj {
-	__table: 'organization_event_attendance';
+export interface EventAttendanceDataObj extends EventAttendanceUpsertObj {
+	__table: 'event_attendance';
 	id: number;
 	organization: OrganizationData;
 	account: AccountData; // account data
 }
 
-export interface OrgEventAttendanceGQLData {
+export interface EventAttendanceGQLData {
 	__deleted: boolean; // For client-side only
 	id: string;
-	orgEventId: string;
+	eventId: string;
 	attended: boolean | null;
 	calDate: string; // "YYYY-MM-DD" format
 	organization: OrganizationGQLData;

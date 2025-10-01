@@ -4,9 +4,9 @@ import i18n from '../i18n';
 import type {
   OrganizationAddressGQLData,
   OrganizationAddressObj,
-  OrganizationEventGQLData,
-  OrgEventAttendanceDataObj,
-} from '../types/organization-other.d';
+  EventGQLData,
+  EventAttendanceDataObj,
+} from '../types/event.d';
 import type { OrganizationGQLData } from '../types/organization.d';
 import type { EventScheduleObj } from '../types/other.d';
 import { getFullDate } from './datetime';
@@ -45,7 +45,7 @@ export function getAddressText(
  * @returns boolean value to indicate if event is upcoming
  */
 
-export function checkIfOrgEventIsUpcoming(orgEvent: OrganizationEventGQLData): boolean {
+export function checkIfEventIsUpcoming(orgEvent: EventGQLData): boolean {
 	const now = new Date();
 	const endAt = orgEvent.endAt ? new Date(orgEvent.endAt) : null;
 	const finished = endAt && (endAt < now);
@@ -84,7 +84,7 @@ export function getEventIconName(
 	if (typeof showRecurringSchedule === 'boolean') {
 		isUpcoming = showRecurringSchedule;
 	} else {
-		isUpcoming = checkIfOrgEventIsUpcoming({ startAt, endAt, schedule } as OrganizationEventGQLData);
+		isUpcoming = checkIfEventIsUpcoming({ startAt, endAt, schedule } as EventGQLData);
 	}
 
 	if (isUpcoming && !once) {
@@ -112,7 +112,7 @@ export function getEventIconName(
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getOrgEventLabelIcons(orgEvent: OrganizationEventGQLData) {
+export function getEventLabelIcons(orgEvent: EventGQLData) {
 	const { schedule, address } = orgEvent;
 	const addressText = address && getAddressText(address);
 	const labelIcons = [];
@@ -198,7 +198,7 @@ export function getReadableSchedule(schedule: EventScheduleObj | null) {
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getScheduleIcons(orgEvent: OrganizationEventGQLData, alwaysFillIcon = false) {
+export function getScheduleIcons(orgEvent: EventGQLData, alwaysFillIcon = false) {
 	const { schedule } = orgEvent;
 	const once = !schedule;
 
@@ -436,10 +436,10 @@ export function getTimeFromSchedule(schedule: EventScheduleObj | null, date: Dat
  * @returns Filtered array of organization event attendance data objects
  */
 
-export function filterOrgEventAttendance(
-	attendance: OrgEventAttendanceDataObj[],
+export function filterEventAttendance(
+	attendance: EventAttendanceDataObj[],
 	calDate: string,
-): OrgEventAttendanceDataObj[] {
+): EventAttendanceDataObj[] {
 	const targetJSDate = new Date(calDate);
 	const checkedAttendance = new Set<number>();
 	for (const item of attendance) {
@@ -448,7 +448,7 @@ export function filterOrgEventAttendance(
 		}
 	}
 
-	const isActiveOnDate = (item: OrgEventAttendanceDataObj): boolean => {
+	const isActiveOnDate = (item: EventAttendanceDataObj): boolean => {
 		if (
 			item.calDate || // If "calDate" is set, this was a manual override by a human, so history is ignored
 			!item.history || item.history.length === 0

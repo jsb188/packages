@@ -3,18 +3,19 @@ import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn } from '@jsb188/react/states';
 import { useMemo } from 'react';
 // import { updateFragment } from '../cache/index';
-import { editOrganizationEventMtn } from '../gql/mutations/organizationMutations';
+import { editEventMtn } from '../gql/mutations/eventMutations';
 import { useMutation } from './index';
-import { useOrganizationRelationship, useReactiveOrganizationEventFragment } from './use-organization-qry';
+import { useReactiveEventFragment } from './use-event-qry';
+import { useOrganizationRelationship } from './use-organization-qry';
 
 /**
  * Edit Org Event, get ACL, and fetch Org Event fragment from cache
  */
 
-export function useEditOrganizationEvent(
+export function useEditEvent(
   viewerAccountId: string,
   organizationId: string,
-  orgEventId: string,
+  eventId: string,
   addressId: string,
   params: UseMutationParams = {},
   openModalPopUp?: OpenModalPopUpFn
@@ -23,8 +24,8 @@ export function useEditOrganizationEvent(
   const { organizationRelationship } = useOrganizationRelationship(organizationId);
   const notReady = !organizationRelationship;
 
-  const [editOrganizationEvent, mtnValues, mtnHandlers] = useMutation(
-    editOrganizationEventMtn,
+  const [editEvent, mtnValues, mtnHandlers] = useMutation(
+    editEventMtn,
     {
       // checkMountedBeforeCallback: true,
       openModalPopUp,
@@ -32,7 +33,7 @@ export function useEditOrganizationEvent(
     },
   );
 
-  const organizationEvent = useReactiveOrganizationEventFragment(orgEventId, addressId, null, mtnValues.mutationCount);
+  const organizationEvent = useReactiveEventFragment(eventId, addressId, null, mtnValues.mutationCount);
   const isMyDocument = !!viewerAccountId && organizationEvent?.accountId === viewerAccountId;
   const allowEdit = useMemo(() => {
     return checkACLPermission(organizationRelationship, 'events', isMyDocument ? 'WRITE' : 'MANAGE');
@@ -42,7 +43,7 @@ export function useEditOrganizationEvent(
 
   return {
     organizationEvent,
-    editOrganizationEvent,
+    editEvent,
     notReady,
     allowEdit,
     ...mtnValues,
