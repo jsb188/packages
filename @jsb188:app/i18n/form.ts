@@ -57,6 +57,8 @@ export default {
     amount: 'Amount',
     address: 'Address',
     information: 'Information',
+    summary: 'Summary',
+    status: 'Status',
     type: 'Type',
     pin_to_top: 'Pin to top',
     create_new: 'Create new',
