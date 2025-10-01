@@ -17,11 +17,15 @@ export const productLivestockFragment = `fragment productLivestockFragment on Pr
   __typename
 
   id
-  animalId
-  damId
+  damIdentifier
+  livestockIdentifier
+  livestockGroup
+
   type
   status
   breed
+  summary
+
   birthDate
   deathDate
 }`;

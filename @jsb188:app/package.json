@@ -40,7 +40,6 @@
     "./types/form.d": "./types/form.d.ts",
     "./types/organization.d": "./types/organization.d.ts",
     "./types/organization-other.d": "./types/organization-other.d.ts",
-    "./types/product.d": "./types/product.d.ts",
     "./types/other.d": "./types/other.d.ts"
   },
   "dependencies": {

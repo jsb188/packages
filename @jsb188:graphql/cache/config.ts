@@ -36,6 +36,7 @@ export const RULES = {
   myChats: true,
   organizationRelationship: true,
   platformProducts: true,
+  productsList: true,
   searchUsers: true,
   updateNote: true,
   userIdToChatId: true,
@@ -52,5 +53,4 @@ export const PARTIALS_MAP = {
   // Partial fragments are supported if you map them to its original fragment name
   chatPartial: 'chatFragment',
   chatStatusPartial: 'chatFragment',
-  userPartial: 'userFragment',
 } as Record<string, string>;
