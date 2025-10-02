@@ -110,11 +110,12 @@ THead.displayName = 'THead';
 
 export const TDColMain = memo((p: Partial<{
   title: string;
+  titleClassName: string;
   iconName: string;
   avatarDisplayName: string;
   labelIcons: LabelsAndIconsItemProps[];
 }>) => {
-  const { iconName, avatarDisplayName, title, labelIcons } = p;
+  const { iconName, avatarDisplayName, title, titleClassName, labelIcons } = p;
   const hasAvatar = !!(iconName || avatarDisplayName);
 
   return <span className='h_item'>
@@ -134,7 +135,7 @@ export const TDColMain = memo((p: Partial<{
     )}
 
     {title && (
-      <span className='ellip shift_down'>
+      <span className={cn('ellip shift_down', titleClassName)}>
         {title}
       </span>
     )}

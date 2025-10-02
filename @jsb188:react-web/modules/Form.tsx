@@ -144,7 +144,7 @@ type SideInputButtonProps = {
 export function FormBreak(p: FormBreakType) {
   const { children, className } = p;
   return (
-    <div className={cn('pattern_texture medium_bf rel h_10 h_center', className)}>
+    <div className={cn('pattern_texture secondary_bf rel h_10 h_center', className)}>
       {children ? <span className='text ft_sm bg rel z2 px_xs lh_1 cl_bd'>{children}</span> : null}
     </div>
   );

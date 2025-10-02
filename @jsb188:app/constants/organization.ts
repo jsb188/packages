@@ -4,6 +4,7 @@
 export const OPERATION_ENUMS = [
 	// Farms
 	'ARABLE',
+  'ARABLE_SUPPLY_CHAIN',
 	'LIVESTOCK',
 
 	// Organizations

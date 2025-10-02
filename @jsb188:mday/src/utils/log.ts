@@ -68,6 +68,7 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 export function getLogTypeFromActivity(operation: OrganizationOperationEnum | string, activity: any): LogTypeEnum | null {
 	switch (operation) {
 		case 'ARABLE':
+    case 'ARABLE_SUPPLY_CHAIN':
 		case 'LogArable':
 			return ARABLE_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] as LogTypeEnum || null;
 		case 'LIVESTOCK':
@@ -98,6 +99,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 
 	switch (iface || __typename || __table) {
 		case 'ARABLE':
+    case 'ARABLE_SUPPLY_CHAIN':
 		case 'logs_arable':
 		case 'LogArable': {
 			const quantityText = [formatDecimal(md.quantity, true, true), md.unit].filter(Boolean).join(' ');

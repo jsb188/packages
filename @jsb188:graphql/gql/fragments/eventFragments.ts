@@ -23,6 +23,15 @@ export const eventFragment = `fragment eventFragment on Event {
     time_SA
   }
 
+  orders {
+    id
+    eventId
+    item
+    quantity
+    unit
+    notes
+  }
+
   startAt
   endAt
 	createdAt
@@ -35,3 +44,4 @@ export const eventAttendanceFragment = `fragment eventAttendanceFragment on Even
   attended
   calDate
 }`;
+1

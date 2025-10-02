@@ -1,3 +1,4 @@
+import type { EventTypeEnum } from '@jsb188/app/types/event.d';
 import { checkACLPermission } from '@jsb188/app/utils/organization';
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import { useMemo } from 'react';
@@ -43,6 +44,7 @@ export function useReactiveEventFragment(
 
 export function useEventsList(variables: PaginationArgs & {
   organizationId: string;
+  type: EventTypeEnum | null;
   timeZone: string | null;
 }, params: UseQueryParams = {}) {
   const { data, ...rest } = useQuery(eventsListQry, {
@@ -85,10 +87,10 @@ export function useEventAttendance(
     ...params,
   });
 
-  const organizationEvent = useReactiveEventFragment(eventId);
+  const orgEvent = useReactiveEventFragment(eventId);
   const eventAttendanceList = data?.eventAttendanceList;
-  const isMyDocument = !!viewerAccountId && organizationEvent?.accountId === viewerAccountId;
-  const notReady = !organizationRelationship || !eventAttendanceList || !organizationEvent;
+  const isMyDocument = !!viewerAccountId && orgEvent?.accountId === viewerAccountId;
+  const notReady = !organizationRelationship || !eventAttendanceList || !orgEvent;
 
   const allowEdit = useMemo(() => {
     return checkACLPermission(organizationRelationship, 'events', isMyDocument ? 'WRITE' : 'MANAGE');
@@ -97,7 +99,7 @@ export function useEventAttendance(
   // console.log('viewerAccountId', viewerAccountId, organizationEvent?.accountId, isMyDocument, allowEdit);
 
   return {
-    organizationEvent,
+    orgEvent,
     eventAttendanceList,
     notReady,
     allowEdit,

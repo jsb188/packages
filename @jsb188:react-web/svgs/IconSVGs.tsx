@@ -294,10 +294,9 @@ export const CalendarDot = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 <path d="M19 19m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" stroke="currentColor" />
 </svg>;
 
-export const CalendarDotFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-tabler icons-tabler-filled icon-tabler-calendar-event">
-<path d="M0,0h24v24H0V0Z" stroke="none" fill="none"/>
-<path d="M16,2c.5,0,.9.4,1,.9h0v1.1h1c1.6,0,2.9,1.2,3,2.8v.2s0,12,0,12c0,1.6-1.2,2.9-2.8,3h-.2s-12,0-12,0c-1.6,0-2.9-1.2-3-2.8v-.2s0-12,0-12c0-1.6,1.2-2.9,2.8-3h.2s1,0,1,0v-1c0-.6.4-1,1-1,.5,0,.9.4,1,.9h0v1.1h6v-1c0-.6.4-1,1-1M19,9H5v9.6c0,.7.4,1.3.9,1.4h.1s12,0,12,0c.5,0,.9-.5,1-1.2v-.2s0-9.6,0-9.6Z"/>
-<circle cx="12" cy="14.5" r="1.8"/>
+export const CalendarDotFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-calendar-dot-filled">
+<path d="M19,23c-2.2,0-4-1.8-4-4s1.8-4,4-4,4,1.8,4,4-1.8,4-4,4ZM19,17c-1.1,0-2,.9-2,2s.9,2,2,2,2-.9,2-2-.9-2-2-2Z"/>
+<path d="M13.1,20h-7.2c-.5,0-.9-.7-.9-1.4v-9.6h14v4c.7,0,1.4.1,2,.4v-6.6c0-1.6-1.4-2.8-3-2.8h-1v-1.1c0-.5-.5-.9-1-.9s-1,.4-1,1v1h-6v-1.1c0-.5-.5-.9-1-.9s-1,.4-1,1v1h-1.2c-1.6,0-2.8,1.4-2.8,3v12.2c0,1.6,1.4,2.8,3,2.8h7.8c-.4-.6-.6-1.3-.7-2Z"/>
 </svg>;
 
 export const CalendarEvent = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-event">
@@ -1538,6 +1537,15 @@ export const Sticker = <svg xmlns="http://www.w3.org/2000/svg" className="icon i
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M20 12l-2 .5a6 6 0 0 1 -6.5 -6.5l.5 -2l8 8" stroke="currentColor" />
 <path d="M20 12a8 8 0 1 1 -8 -8" stroke="currentColor" />
+</svg>;
+
+export const Package = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-package">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5" />
+<path d="M12 12l8 -4.5" />
+<path d="M12 12l0 9" />
+<path d="M12 12l-8 -4.5" />
+<path d="M16 5.25l-8 4.5" />
 </svg>;
 
 export const Password = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-password" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

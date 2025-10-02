@@ -447,7 +447,14 @@ export function getTimeAgo(
 
 export function getFullDate(
 	d_: Date | string | number | null,
-	outputStyle_: 'NUMERIC' | 'DATE_ONLY_SHORT' | 'DAY_IF_WEEK' | 'DATE_TEXT' | 'MINIMAL' | 'DETAILED' = 'NUMERIC',
+	outputStyle_:
+		| 'NUMERIC'
+		| 'DATE_ONLY_SHORT'
+		| 'DAY_IF_WEEK'
+		| 'TOMORROW_OR_NUMERIC'
+		| 'DATE_TEXT'
+		| 'MINIMAL'
+		| 'DETAILED' = 'NUMERIC',
 	timeZone: string | null,
 	locales: string = 'en-US',
 ) {
@@ -460,7 +467,7 @@ export function getFullDate(
 	}
 
 	let outputStyle;
-	if (outputStyle_ === 'DAY_IF_WEEK') {
+	if (['TOMORROW_OR_NUMERIC', 'DAY_IF_WEEK'].includes(outputStyle_)) {
 		const datePeriod = getDatePeriod(d, new Date());
 		if (['TODAY', 'TOMORROW'].includes(datePeriod)) {
 			return i18n.t(`datetime.period_${datePeriod}`);
@@ -469,10 +476,15 @@ export function getFullDate(
 		const daysRemaining = getDaysDiff(d, new Date());
 		if (daysRemaining >= 0 && daysRemaining <= 6) {
 			// return "Monday", "Tuesday", etc.
-			return d.toLocaleDateString(locales, {
+			const dayOfWeekText = d.toLocaleDateString(locales, {
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
-				weekday: 'long',
+        ...(outputStyle_ === 'TOMORROW_OR_NUMERIC' ? {
+
+        } : {
+          weekday: 'long',
+        })
 			});
+      return dayOfWeekText;
 		}
 
 		outputStyle = 'NUMERIC';
@@ -647,7 +659,7 @@ export function labelSortByDatePeriod<T>(
 	timeZone?: string | null,
 	mapFn?: (item: any) => any,
 ): DatePeriodObj[] {
-	const ordered = items.sort((a: any, b: any) => {
+	const ordered: any[] = items.sort((a: any, b: any) => {
 		const valueA = a[dateKey];
 		const valueB = b[dateKey];
 

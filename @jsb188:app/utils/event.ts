@@ -88,7 +88,7 @@ export function getEventIconName(
 	}
 
 	if (isUpcoming && !once) {
-		return 'calendar-month-filled'; // Upcoming/unfinished recurring event
+		return 'calendar-week-filled'; // Upcoming/unfinished recurring event
 	}
 
 	const now = new Date();
@@ -255,7 +255,40 @@ export function getScheduleIcons(orgEvent: EventGQL, alwaysFillIcon = false) {
 		return {
 			iconName: `circle-letter-${dayLetter}${isScheduled || alwaysFillIcon ? '-filled' : ''}`,
 			color: !isScheduled ? 'darker_2' : dayLetter === 's' ? 'sky' : 'lime',
-			tooltipText: isScheduled && (i18n.t(`form.dayOfWeek.${day}`) + timeText),
+			tooltipText: isScheduled ? (i18n.t(`form.dayOfWeek.${day}`) + timeText) : undefined,
+		};
+	});
+
+	return labelIcons;
+}
+
+/**
+ * Create Day of Week schedule icons from a single date
+ * @param orgEvent - Organization event data
+ * @returns Array of icon label objects with icon name and tooltip text
+ */
+
+export function getDayOfWeekIcons(
+  date_: Date,
+  timeZone: string | null,
+  includeTime = false,
+  alwaysFillIcon = false,
+) {
+  const luxonDate = DateTime.fromJSDate(date_).setZone(timeZone || DEFAULT_TIMEZONE);
+  const dayOfWeek = luxonDate.toFormat('cccc');
+  const hour = luxonDate.toFormat('HH');
+  const minute = luxonDate.toFormat('mm');
+  const dayOfWeekCode = dayOfWeek.slice(0, 2).toUpperCase();
+
+	const labelIcons = DAY_OF_WEEK.map((day) => {
+		const isScheduled = day === dayOfWeekCode;
+		const dayLetter = day.charAt(0).toLowerCase();
+		const startTime = includeTime ? ` - ${hour}:${minute}` : '';
+
+		return {
+			iconName: `circle-letter-${dayLetter}${isScheduled || alwaysFillIcon ? '-filled' : ''}`,
+			color: !isScheduled ? 'darker_2' : dayLetter === 's' ? 'sky' : 'lime',
+			tooltipText: isScheduled ? (i18n.t(`form.dayOfWeek.${day}`) + startTime) : undefined,
 		};
 	});
 
@@ -301,7 +334,7 @@ export function getNextDateFromSchedule(
 	if (once) {
 		return {
 			date: startAt ? new Date(startAt) : null,
-			text: getFullDate(startAt, 'DAY_IF_WEEK', timeZone),
+			text: getFullDate(startAt, 'TOMORROW_OR_NUMERIC', timeZone),
 		};
 	}
 
@@ -372,7 +405,7 @@ export function getNextDateFromSchedule(
 
 	if (nextDate) {
 		return {
-			text: getFullDate(nextDate, 'DAY_IF_WEEK', timeZone),
+			text: getFullDate(nextDate, 'TOMORROW_OR_NUMERIC', timeZone),
 			date: nextDate,
 		};
 	}
@@ -488,6 +521,7 @@ export function filterEventAttendance(
 export function getOperationIconName(operation: string | null | undefined): string {
 	return {
 		ARABLE: 'seedling-filled',
+    ARABLE_SUPPLY_CHAIN: 'seedling-filled',
 		LIVESTOCK: 'horse-filled',
 	}[operation || ''] || 'info-circle-filled';
 }

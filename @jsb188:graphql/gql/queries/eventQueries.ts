@@ -8,6 +8,7 @@ export const eventsListQry = gql`
 query eventsList (
   $organizationId: GenericID
   $timeZone: String
+  $type: EventType
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!
@@ -15,6 +16,7 @@ query eventsList (
   eventsList (
     organizationId: $organizationId
     timeZone: $timeZone
+    type: $type
     cursor: $cursor
     after: $after
     limit: $limit
