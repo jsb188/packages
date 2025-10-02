@@ -9,6 +9,7 @@
     "./constants/log": "./src/constants/log.ts",
     "./schemas/editLogEntry": "./src/schemas/editLogEntry.ts",
     "./schemas/logsQueryParam": "./src/schemas/logsQueryParam.ts",
+    "./types/event.d": "./src/types/event.d.ts",
     "./types/log.d": "./src/types/log.d.ts",
     "./types/product.d": "./src/types/product.d.ts",
     "./utils/log": "./src/utils/log.ts"

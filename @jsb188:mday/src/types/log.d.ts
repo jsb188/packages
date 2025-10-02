@@ -134,8 +134,8 @@ export interface LogLivestockObj {
 	activity: LogLivestockActivityEnum;
 	notes: string | null;
 	translation?: string | null;
-  livestockIdentifiers?: string[];
-  livestockGroups?: string[];
+	livestockIdentifiers?: string[];
+	livestockGroup?: string;
 	metadata?: Partial<LogLivestockMetadata> | null;
 }
 

@@ -1,4 +1,4 @@
-import type { EventTypeEnum } from '@jsb188/app/types/event.d';
+import type { EventsFilter, EventTypeEnum } from '@jsb188/mday/types/event.d';
 import { checkACLPermission } from '@jsb188/app/utils/organization';
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import { useMemo } from 'react';
@@ -7,6 +7,16 @@ import type { PaginationArgs, UseQueryParams } from '../types.d';
 import { useOrganizationRelationship } from './use-organization-qry';
 
 const EVENTS_LIMIT = 200;
+
+/**
+ * Helper; use this to get/use same filter for logEntries() query everywhere
+ */
+
+export function getDefaultEventsListFilter(type: EventsFilter['type']): EventsFilter {
+  return {
+    type
+  };
+}
 
 /**
  * Get reactive org event fragment
@@ -44,7 +54,7 @@ export function useReactiveEventFragment(
 
 export function useEventsList(variables: PaginationArgs & {
   organizationId: string;
-  type: EventTypeEnum | null;
+  filter: EventsFilter;
   timeZone: string | null;
 }, params: UseQueryParams = {}) {
   const { data, ...rest } = useQuery(eventsListQry, {

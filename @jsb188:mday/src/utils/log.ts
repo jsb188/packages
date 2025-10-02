@@ -145,7 +145,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'LogLivestock': {
 			return textWithBrackets(
 				ucFirst(md.livestock),
-				(md.livestockGroups || []).concat(
+				(md.livestockGroup ? [md.livestockGroup] : []).concat(
 					(md.livestockIdentifiers || []).map((id: string) => `#${id}`),
 				).join(', '),
 				[' - ', ''],

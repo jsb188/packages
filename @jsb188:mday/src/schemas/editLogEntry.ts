@@ -58,7 +58,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         activity: details.activity,
         livestock: details.livestock,
         livestockIdentifiers: details.livestockIdentifiers,
-        livestockGroups: details.livestockGroups,
+        livestockGroup: details.livestockGroup,
         item: details.item,
         quantity: details.quantity,
         unit: details.unit,
@@ -147,7 +147,7 @@ type ValidMetadataFieldName =
   // LIVESTOCK
   | 'livestock'
   | 'livestockIdentifiers'
-  | 'livestockGroups'
+  | 'livestockGroup'
   | 'item_purchased'
   | 'item_used'
   | null;
@@ -290,13 +290,13 @@ function makeMetadataSchema(
             setter: (value: string) => value.split(',')
           }
         };
-      case 'livestockGroups':
+      case 'livestockGroup':
         return {
           __type: 'input',
           label: i18n.t('log.groups'),
           item: {
-            name: `${namespace}.livestockGroups`,
-            placeholder: isCreateNew ? i18n.t('log.groups_ph') : '',
+            name: `${namespace}.livestockGroup`,
+            placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
             getter: (value: string[]) => value ? value.join(',') : '',
             setter: (value: string) => value.split(',')
           }
@@ -307,7 +307,7 @@ function makeMetadataSchema(
           label: i18n.t('log.childOrgId'),
           item: {
             name: `${namespace}.childOrgId`,
-            // placeholder: isCreateNew ? i18n.t('log.groups_ph') : '',
+            // placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
             // getter: (value: string[]) => value ? value.join(',') : '',
             // setter: (value: string) => value.split(',')
           }
@@ -476,7 +476,7 @@ export function makeLogMetadataSchema(
         'activity',
         isLivestock ? 'livestock' : null,
         isLivestock ? 'livestockIdentifiers' : null,
-        isLivestock ? 'livestockGroups' : null,
+        isLivestock ? 'livestockGroup' : null,
         isSupplyPurchase ? 'item_purchased' : null,
         isLandManagement ? 'item_used' : null,
         isLivestock ? null : 'quantity',

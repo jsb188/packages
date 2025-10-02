@@ -39,7 +39,6 @@
     "./types/auth.d": "./types/auth.d.ts",
     "./types/form.d": "./types/form.d.ts",
     "./types/organization.d": "./types/organization.d.ts",
-    "./types/event.d": "./types/event.d.ts",
     "./types/other.d": "./types/other.d.ts"
   },
   "dependencies": {

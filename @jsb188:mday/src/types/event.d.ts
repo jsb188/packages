@@ -1,7 +1,7 @@
-import { EVENT_TYPES } from '../constants/event';
-import type { AccountData } from './account.d';
-import type { OrganizationGQLData, OrganizationData } from './organization.d';
-import { DAY_OF_WEEK, EVENT_SCHDULE_FREQUENCY } from '../constants/other.ts';
+import { EVENT_TYPES } from '@jsb188/app/constants/event.ts';
+import { DAY_OF_WEEK, EVENT_SCHDULE_FREQUENCY } from '@jsb188/app/constants/other.ts';
+import type { AccountData } from '@jsb188/app/types/account';
+import type { OrganizationData, OrganizationGQLData } from '@jsb188/app/types/organization';
 
 /**
  * Enums
@@ -10,6 +10,10 @@ import { DAY_OF_WEEK, EVENT_SCHDULE_FREQUENCY } from '../constants/other.ts';
 export type EventTypeEnum = typeof EVENT_TYPES[number];
 export type DayOfWeekEnum = typeof DAY_OF_WEEK[number];
 export type EventScheduleFrequencyEnum = typeof EVENT_SCHDULE_FREQUENCY[number];
+
+export interface EventsFilter {
+  type: EventTypeEnum;
+}
 
 /**
  * Addresses

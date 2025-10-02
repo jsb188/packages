@@ -6,9 +6,9 @@ import { addressFragment } from '../fragments/otherFragments';
 
 export const eventsListQry = gql`
 query eventsList (
-  $organizationId: GenericID
+  $organizationId: GenericID!
   $timeZone: String
-  $type: EventType
+  $filter: EventsFilter!
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!
@@ -16,7 +16,7 @@ query eventsList (
   eventsList (
     organizationId: $organizationId
     timeZone: $timeZone
-    type: $type
+    filter: $filter
     cursor: $cursor
     after: $after
     limit: $limit
