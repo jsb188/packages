@@ -4,7 +4,7 @@ export const eventFragment = `fragment eventFragment on Event {
   accountId
 	organizationId
 
-  name
+  title
   type
 
   schedule {

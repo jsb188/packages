@@ -2,13 +2,13 @@ import { DateTime } from 'luxon';
 import { DAY_OF_WEEK } from '../constants/other';
 import i18n from '../i18n';
 import type {
+  EventAttendanceDataObj,
+  EventGQL,
+  EventScheduleObj,
   OrganizationAddressGQLData,
   OrganizationAddressObj,
-  EventGQLData,
-  EventAttendanceDataObj,
 } from '../types/event.d';
 import type { OrganizationGQLData } from '../types/organization.d';
-import type { EventScheduleObj } from '../types/other.d';
 import { getFullDate } from './datetime';
 import { convertToMilitaryTime } from './number';
 import { DEFAULT_TIMEZONE } from './timeZone';
@@ -45,7 +45,7 @@ export function getAddressText(
  * @returns boolean value to indicate if event is upcoming
  */
 
-export function checkIfEventIsUpcoming(orgEvent: EventGQLData): boolean {
+export function checkIfEventIsUpcoming(orgEvent: EventGQL): boolean {
 	const now = new Date();
 	const endAt = orgEvent.endAt ? new Date(orgEvent.endAt) : null;
 	const finished = endAt && (endAt < now);
@@ -84,7 +84,7 @@ export function getEventIconName(
 	if (typeof showRecurringSchedule === 'boolean') {
 		isUpcoming = showRecurringSchedule;
 	} else {
-		isUpcoming = checkIfEventIsUpcoming({ startAt, endAt, schedule } as EventGQLData);
+		isUpcoming = checkIfEventIsUpcoming({ startAt, endAt, schedule } as EventGQL);
 	}
 
 	if (isUpcoming && !once) {
@@ -112,7 +112,7 @@ export function getEventIconName(
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getEventLabelIcons(orgEvent: EventGQLData) {
+export function getEventLabelIcons(orgEvent: EventGQL) {
 	const { schedule, address } = orgEvent;
 	const addressText = address && getAddressText(address);
 	const labelIcons = [];
@@ -198,7 +198,7 @@ export function getReadableSchedule(schedule: EventScheduleObj | null) {
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getScheduleIcons(orgEvent: EventGQLData, alwaysFillIcon = false) {
+export function getScheduleIcons(orgEvent: EventGQL, alwaysFillIcon = false) {
 	const { schedule } = orgEvent;
 	const once = !schedule;
 

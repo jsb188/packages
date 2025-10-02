@@ -1,16 +1,18 @@
 import { EVENT_TYPES } from '../constants/event';
 import type { AccountData } from './account.d';
 import type { OrganizationGQLData, OrganizationData } from './organization.d';
-import type { EventScheduleObj } from './other.d';
+import { DAY_OF_WEEK, EVENT_SCHDULE_FREQUENCY } from '../constants/other.ts';
 
 /**
  * Enums
  */
 
 export type EventTypeEnum = typeof EVENT_TYPES[number];
+export type DayOfWeekEnum = typeof DAY_OF_WEEK[number];
+export type EventScheduleFrequencyEnum = typeof EVENT_SCHDULE_FREQUENCY[number];
 
 /**
- * Org addresses
+ * Addresses
  */
 
 export interface OrganizationAddressInsertObj {
@@ -45,6 +47,27 @@ export interface OrganizationAddressGQLData {
 }
 
 /**
+ * Schedule
+ */
+
+export interface EventScheduleObj {
+  frequency: EventScheduleFrequencyEnum;
+  interval: number;
+  byDay: DayOfWeekEnum[];
+  byMonthDay: number[];
+  byMonth: number[];
+  once: boolean;
+	time: [number, number];
+  time_SU: [number, number];
+	time_MO: [number, number];
+  time_TU: [number, number];
+  time_WE: [number, number];
+  time_TH: [number, number];
+  time_FR: [number, number];
+  time_SA: [number, number];
+}
+
+/**
  * Org events
  */
 
@@ -52,9 +75,8 @@ export interface EventUpsertObj {
 	id?: number; // Only for edits
 	addressId?: number;
 
-	name: string;
+	title: string;
 	type: EventTypeEnum;
-	paused: boolean;
 	schedule: EventScheduleObj | null;
 	startAt: Date;
 	endAt: Date;
@@ -70,19 +92,35 @@ export interface EventDataObj extends EventUpsertObj {
 	updatedAt: Date;
 }
 
-export interface EventGQLData {
+export interface EventGQL {
 	id: string;
 	organizationId: string;
 	accountId: string;
-	name: string;
+	title: string;
 	type: EventTypeEnum;
-	paused: boolean;
 	schedule: EventScheduleObj; // resolver will force non-null values
+  order: EventOrderGQL;
 	startAt: string | Date;
 	endAt: string | Date | null;
 	address: OrganizationAddressGQLData; // This must *never* be null
 	createdAt: string;
 	updatedAt: string;
+}
+
+/**
+ * Event order
+ */
+
+interface EventOrderBase {
+}
+
+interface EventOrderGQL extends EventOrderBase {
+  id: string;
+}
+
+interface EventOrderObj extends EventOrderBase {
+	__table: 'event_orders';
+  id: number;
 }
 
 /**
