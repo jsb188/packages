@@ -66,7 +66,6 @@ export interface OrganizationData {
 	name: string;
 	operation: OrganizationOperationEnum;
 	dailyDigestTime: string | null;
-	reminders: string | null;
 	domains: string[] | null;
 	settings?: OrganizationSettingsObj | null;
 }
