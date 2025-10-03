@@ -293,12 +293,10 @@ function makeMetadataSchema(
       case 'livestockGroup':
         return {
           __type: 'input',
-          label: i18n.t('log.groups'),
+          label: i18n.t('log.group'),
           item: {
             name: `${namespace}.livestockGroup`,
             placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
-            getter: (value: string[]) => value ? value.join(',') : '',
-            setter: (value: string) => value.split(',')
           }
         };
       case 'childOrgId':

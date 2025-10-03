@@ -52,6 +52,8 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
   livestock
   livestockIdentifiers
   livestockGroup
+  damIdentifier
+
   item
 	quantity
 	unit

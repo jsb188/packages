@@ -143,27 +143,32 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'LIVESTOCK':
 		case 'logs_livestock':
 		case 'LogLivestock': {
-      if (isServer) {
-        let livestockText = '';
-        if (md.livestock) {
-          livestockText += 'Species: ' + ucFirst(md.livestock) + '\n';
+			if (isServer) {
+				let livestockText = '';
+				if (md.livestock) {
+					livestockText += 'Species: ' + ucFirst(md.livestock) + '\n';
+				}
+				if (d.livestockGroup) {
+					livestockText += 'Group: ' + d.livestockGroup + '\n';
+				}
+				if (Array.isArray(d.livestockIdentifiers) && d.livestockIdentifiers.length) {
+					livestockText += 'Animal ID(s): ' + d.livestockIdentifiers.join(', ') + '\n';
+				}
+        if (d.damIdentifier) {
+          livestockText += 'Dam ID: ' + d.damIdentifier + '\n';
         }
-        if (d.livestockGroup) {
-          livestockText += 'Group: ' + d.livestockGroup + '\n';
-        }
-        if (Array.isArray(d.livestockIdentifiers) && d.livestockIdentifiers.length) {
-          livestockText += 'Animal ID(s): ' + d.livestockIdentifiers.join(', ') + '\n';
-        }
-        return livestockText.trim();
-      }
+				return livestockText.trim();
+			}
 
-      return textWithBrackets(
-        ucFirst(md.livestock),
-        (d.livestockGroup ? [d.livestockGroup] : []).concat(
-          (d.livestockIdentifiers || []).map((id: string) => `#${id}`),
-        ).join(', '),
-        [' - ', ''],
-      );
+			return textWithBrackets(
+				ucFirst(md.livestock),
+				(d.livestockGroup ? [d.livestockGroup] : []).concat(
+					(d.livestockIdentifiers || []).map((id: string) => `#${id}`),
+				).join(', ') + (
+          d.damIdentifier ? ` (Dam: #${d.damIdentifier})` : ''
+        ),
+				[' - ', ''],
+			);
 		}
 		default:
 	}

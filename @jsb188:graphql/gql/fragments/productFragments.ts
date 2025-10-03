@@ -3,6 +3,11 @@ export const productFragment = `fragment productFragment on Product {
   id
   organizationId
   cursor
+
+  metadata {
+    overview
+  }
+
   createdAt
   updatedAt
 }`;
@@ -23,8 +28,7 @@ export const productLivestockFragment = `fragment productLivestockFragment on Pr
 
   type
   status
-  breed
-  summary
+  livestockClass
 
   birthDate
   deathDate

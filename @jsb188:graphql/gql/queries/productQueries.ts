@@ -4,12 +4,14 @@ import { productArableFragment, productFragment, productLivestockFragment } from
 export const productsListQry = gql`
 query productsList (
   $organizationId: GenericID!
+  $filterLivestock: ProductLivestockFilter
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!
 ) {
   productsList (
     organizationId: $organizationId
+    filterLivestock: $filterLivestock
     cursor: $cursor
     after: $after
     limit: $limit
