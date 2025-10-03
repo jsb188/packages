@@ -15,6 +15,7 @@ export default {
     class: 'Class',
     classification: 'Classification',
     overview: 'Overview',
+    id: 'ID',
     apply: 'Apply',
     apply_filters: 'Apply filters',
     hide: 'Hide',
