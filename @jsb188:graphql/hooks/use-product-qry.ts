@@ -37,7 +37,7 @@ export function useProductsList(
     variables: {
       ...variables,
       cursor: null,
-      after: true,
+      after: false,
       limit: PRODUCTS_LIST_LIMIT
     },
     // If this query is used for virtualized list pagination, set {params.skip=true}
