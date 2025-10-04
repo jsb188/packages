@@ -44,9 +44,11 @@ ${logLivestockFragment}
 
 export const deleteLogEntryMtn = gql`
 mutation deleteLogEntry (
+  $organizationId: GenericID!
   $logEntryId: GenericID!
 ) {
   deleteLogEntry (
+    organizationId: $organizationId
     logEntryId: $logEntryId
   )
 }
