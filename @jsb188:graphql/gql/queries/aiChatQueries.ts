@@ -46,12 +46,14 @@ ${aiChatMessageFragment}
 
 export const aiChatsQry = gql`
 query aiChats (
+  $organizationId: GenericID!
   $filter: AIChatsFilter
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!
 ) {
   aiChats (
+    organizationId: $organizationId
     filter: $filter
     cursor: $cursor
     after: $after

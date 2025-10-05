@@ -204,15 +204,16 @@ export function updateAIChats(aiChat: any, updateObservers: UpdateObserversFn) {
  * Fetch AI chats list
  */
 
-  export function useAIChats(filter?: 'CAL_DATE' | 'CHATS') {
+  export function useAIChats(organizationId: string, filter?: 'CAL_DATE' | 'CHATS') {
   const { data, ...other } = useQuery(aiChatsQry, {
     variables: {
+      organizationId,
       filter,
       cursor: null,
       after: false,
       limit: AI_CHATS_LIMIT
     },
-    skip: false,
+    skip: !organizationId,
   });
 
   return {

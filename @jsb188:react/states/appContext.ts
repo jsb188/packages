@@ -17,6 +17,7 @@ type AppContextAction = {
     | 'APP_GUEST'
     | 'APP_EDIT_AUTH'
     | 'APP_EDIT_ACCOUNT'
+    | 'APP_SWITCH_PRIMARY_ORGANIZATION'
     // Account theme
     | 'APP_THEME'
     | 'APP_SYSTEM_LIGHT_MODE'
@@ -299,13 +300,19 @@ export const appReducer = (state: AppContextData, action: AppContextAction) => {
               ...data.plus,
             },
           },
-          settings: {
+          settings: !data.settings ? state.settings : {
             ...DEFAULT_APP_CONTEXT.settings,
             ...data.settings,
           }
         };
       }
       return state;
+    }
+    case 'APP_SWITCH_PRIMARY_ORGANIZATION': {
+      return {
+        ...state,
+        primaryOrganizationId: data.primaryOrganizationId
+      };
     }
     case 'APP_THEME': {
       if (!data?.preview) {

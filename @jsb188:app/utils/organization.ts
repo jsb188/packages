@@ -117,6 +117,7 @@ export function checkACLPermission(
 export function getOperationIconName(operation: string | null | undefined): string {
 	return {
 		ARABLE: 'seedling-filled',
+    FARMERS_MARKET: 'building-store-filled',
 		LIVESTOCK: 'horse-filled',
 	}[operation || ''] || 'info-circle-filled';
 }

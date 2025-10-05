@@ -49,6 +49,10 @@
   background-color: var(--color-text);
 }
 
+.bg_main .activity .dot, .bg_primary .activity .dot, .bg_secondary .activity .dot {
+  background-color: var(--color-solid);
+}
+
 .activity .d0, .activity .d1, .activity .d2 {
   animation-duration: 1.5s;
   animation-fill-mode: both;

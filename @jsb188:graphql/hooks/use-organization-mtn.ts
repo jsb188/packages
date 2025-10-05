@@ -1,41 +1,41 @@
-import { checkACLPermission } from '@jsb188/app/utils/organization';
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
-import { OpenModalPopUpFn } from '@jsb188/react/states';
-import { useMemo } from 'react';
-import { updateFragment } from '../cache/index';
-import { deleteLogEntryMtn, editLogEntryMtn } from '../gql/mutations/logMutations';
+import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
+// import { useNavigate } from 'react-router';
+import { switchOrganizationMtn } from '../gql/mutations/organizationMutations';
 import { useMutation } from './index';
-import { useReactiveLogFragment } from './use-log-qry';
-import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 
 /**
  * Fetch a single log entry,
  * from cache first; only check server if cache is not found.
  */
 
-export function useSwitchOrganization(
-  viewerAccountId: string,
-  logEntryId: string,
-  organizationId: string,
-  params: UseMutationParams = {},
-  openModalPopUp?: OpenModalPopUpFn
-) {
+export function useSwitchOrganization(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+  const { onCompleted, ...otherParams } = params;
+  // const navigate = useNavigate();
+  const { dispatchApp, account, primaryOrganizationId } = useCurrentAccount();
 
-  console.log('do this part');
-  console.log('do this part');
-  console.log('do this part');
-  console.log('do this part');
-  console.log('do this part');
-  console.log('do this part');
-  console.log('do this part');
-  console.log('do this part');
+  const [switchOrganization, mtnValues, mtnHandlers] = useMutation(switchOrganizationMtn, {
+    // checkMountedBeforeCallback: true,
+    openModalPopUp,
+    onCompleted: (data, error, variables) => {
+      const result = data?.switchOrganization;
+      if (result) {
+        // navigate('/app', { replace: true });
+        dispatchApp({
+          __type: 'APP_SWITCH_PRIMARY_ORGANIZATION',
+          data: {
+            primaryOrganizationId: variables.organizationId,
+          }
+        })
+      }
 
+      onCompleted?.(result, error);
+    },
+    ...otherParams,
+  });
 
   return {
-    logEntry,
-    editLogEntry,
-    notReady,
-    allowEdit,
+    switchOrganization,
     ...mtnValues,
     ...mtnHandlers,
   };

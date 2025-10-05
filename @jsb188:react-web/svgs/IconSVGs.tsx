@@ -231,6 +231,10 @@ export const BuildingStore = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 <path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" />
 </svg>;
 
+export const BuildingStoreFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-building-store-filled">
+<path d="M21.9,8v-1c0,0,0-.1,0-.2,0,0,0-.1,0-.2l-2-4c-.1-.3-.5-.5-.8-.5H5c-.3,0-.6.2-.8.5l-2,4c0,.1-.1.3-.1.4v1c0,1.5.8,2.7,2,3.4v8.8h-1.1c-.5,0-.9.4-.9.9s.4.9.9.9h18c.5,0,.9-.4.9-.9s-.4-.9-.9-.9h-1.1v-8.8c1.2-.7,2-1.9,2-3.4ZM20.1,7.9h0c0,1.3-1,2.2-2.1,2.2s-2.1-1-2.1-2.1h0c0-.1,4.2-.1,4.2-.1ZM14.1,7.9h0c0,1.3-1,2.2-2.1,2.2s-2.1-1-2.1-2.1h0c0-.1,4.2-.1,4.2-.1ZM3.9,7.9h4.2c0,1.3-1,2.2-2.1,2.2s-2.1-1-2.1-2.1h0ZM14.9,20.1h-5.8v-4.1c0-.6.5-1.1,1.1-1.1h3.5c.6,0,1.1.5,1.1,1.1v4.1Z"/>
+</svg>;
+
 // This icon was lifted up by 1 pt from the default SVG code
 export const Bulb = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-bulb">
 <path d="M0,0h24v24H0V0Z" stroke="none" fill="none" />
