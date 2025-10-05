@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { editEventMtn } from '../gql/mutations/eventMutations';
 import { useMutation } from './index';
 import { useReactiveEventFragment } from './use-event-qry';
-import { useOrganizationRelationship } from './use-organization-qry';
+import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 
 /**
  * Edit Org Event, get ACL, and fetch Org Event fragment from cache
@@ -21,7 +21,7 @@ export function useEditEvent(
   openModalPopUp?: OpenModalPopUpFn
 ) {
 
-  const { organizationRelationship } = useOrganizationRelationship(organizationId);
+  const { organizationRelationship } = useOrgRelFromMyOrganizations(organizationId);
   const notReady = !organizationRelationship;
 
   const [editEvent, mtnValues, mtnHandlers] = useMutation(

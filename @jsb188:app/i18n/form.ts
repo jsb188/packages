@@ -15,6 +15,7 @@ export default {
     class: 'Class',
     classification: 'Classification',
     overview: 'Overview',
+    confirmation: 'Confirmation',
     id: 'ID',
     apply: 'Apply',
     apply_filters: 'Apply filters',

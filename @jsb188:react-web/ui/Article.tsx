@@ -47,11 +47,12 @@ export const CondensedArticleItem = memo((p: {
   __deleted?: boolean;
   domIdPrefix?: string;
   id?: string;
-  preset?: 'modal' | 'card' | 'default';
+  preset?: 'modal' | 'card' | 'default' | 'default_spaced';
   rightComponentClassName?: string;
-  onClick?: (itemId?: string) => void;
+  onClick?: ((itemId?: string) => void) | null;
   disabled?: boolean;
   hideSeparator?: boolean;
+  addDivSeparator?: boolean;
   RightComponent?: React.ReactNode;
   title?: string;
   description?: string | null;
@@ -85,12 +86,22 @@ export const CondensedArticleItem = memo((p: {
       xPaddingClassName = 'px_xs -mx_xs';
       yPaddingClassName = 'py_xs';
       break;
+    case 'default_spaced':
+      addDivSeparator = false;
+      linkHoverClassName = 'bg_primary_hv';
+      xPaddingClassName = 'px_20 -mx_20';
+      yPaddingClassName = 'py_sm';
+      break;
     default:
       addDivSeparator = false;
       linkHoverClassName = 'bg_primary_hv';
       xPaddingClassName = 'px_xs -mx_xs';
       yPaddingClassName = 'py_sm';
       break;
+  }
+
+  if (typeof p.addDivSeparator === 'boolean') {
+    addDivSeparator = p.addDivSeparator;
   }
 
   return <article

@@ -8,7 +8,6 @@ import type {
   OrganizationAddressGQLData,
   OrganizationAddressObj,
 } from '../../@jsb188:mday/src/types/event';
-import type { OrganizationGQLData } from '../types/organization.d';
 import { getFullDate } from './datetime';
 import { convertToMilitaryTime } from './number';
 import { DEFAULT_TIMEZONE } from './timeZone';
@@ -510,51 +509,4 @@ export function filterEventAttendance(
 
 	// Sort by organization.name
 	return filteredList.sort((a, b) => a.organization.name.localeCompare(b.organization.name));
-}
-
-/**
- * Get Icon name for organization operation
- * @param operation - Organization operation string
- * @returns Icon name as string
- */
-
-export function getOperationIconName(operation: string | null | undefined): string {
-	return {
-		ARABLE: 'seedling-filled',
-    ARABLE_SUPPLY_CHAIN: 'seedling-filled',
-		LIVESTOCK: 'horse-filled',
-	}[operation || ''] || 'info-circle-filled';
-}
-
-/**
- * Get all title icons for organization/vendor
- * @param org - Organization GQL data
- * @returns Array of icon label objects with icon name and tooltip text
- */
-
-export function getTitleIconsForOrganization(org: OrganizationGQLData) {
-	const { operation, compliance } = org;
-	const titleIcons = [];
-
-	if (operation) {
-		titleIcons.push({
-			iconName: getOperationIconName(operation),
-			tooltipText: i18n.t(`organization.type.${operation}`),
-		});
-	}
-
-	if (compliance?.length) {
-		const today = new Date();
-		const todayCalDate = today.toISOString().split('T')[0];
-		const notExpired = compliance.filter((item: any) => item.expirationDate && item.expirationDate > todayCalDate);
-
-		if (notExpired.length > 0) {
-			titleIcons.push({
-				iconName: 'award-filled',
-				tooltipText: notExpired.map((item: any) => item.name).join(', '),
-			});
-		}
-	}
-
-	return titleIcons;
 }

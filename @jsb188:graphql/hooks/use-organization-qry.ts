@@ -1,39 +1,55 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
-import { childOrganizationsQry, myOrganizationsQry, organizationRelationshipQry } from '../gql/queries/organizationQueries';
+import { childOrganizationsQry, myOrganizationsQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
 
 const ORG_CHILDREN_LIMIT = 200;
 
 /**
  * Fetch organization relationship
+ * // NOTE: This is deprecated in favor of useMyOrganizations()
  */
 
-export function useOrganizationRelationship(organizationId?: string | null, params: UseQueryParams = {}) {
-  const { data, ...rest } = useQuery(organizationRelationshipQry, {
-    variables: {
-      organizationId
-    },
-    skip: !organizationId,
-    ...params,
-  });
+// export function useOrganizationRelationship(organizationId?: string | null, params: UseQueryParams = {}) {
+//   const { data, ...rest } = useQuery(organizationRelationshipQry, {
+//     variables: {
+//       organizationId
+//     },
+//     skip: !organizationId,
+//     ...params,
+//   });
 
-  return {
-    organizationRelationship: data?.organizationRelationship,
-    ...rest
-  };
-}
+//   return {
+//     organizationRelationship: data?.organizationRelationship,
+//     ...rest
+//   };
+// }
 
 /**
  * Fetch my organizations
  */
 
 export function useMyOrganizations(params: UseQueryParams = {}) {
-  const { data, ...rest } = useQuery(myOrganizationsQry, {
-    ...params,
-  });
+  const { data, ...rest } = useQuery(myOrganizationsQry, params);
 
   return {
     myOrganizations: data?.myOrganizations,
+    ...rest
+  };
+}
+
+/**
+ * Fetch my organizations and then get one by ID
+ */
+
+export function useOrgRelFromMyOrganizations(organizationId: string | null) {
+  const { myOrganizations, ...rest } = useMyOrganizations({
+    skip: !organizationId,
+  });
+
+  const organizationRelationship = myOrganizations?.find((orgRel: any) => orgRel.organization?.id === organizationId) || null;
+  return {
+    organizationRelationship,
+    myOrganizations,
     ...rest
   };
 }

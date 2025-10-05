@@ -74,6 +74,20 @@ a.em:before {
   background-color: rgb(var(--color-primary));
 }
 
+.em_text {
+  position: relative;
+}
+
+.em_text:before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background-color: rgba(var(--color-primary), .5);
+}
+
 .bg_hv:hover {
   background-color: rgb(var(--color-bg)) !important;
 }

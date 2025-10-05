@@ -5,9 +5,8 @@ import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
-import Markdown, { EmojiWrapper } from './Markdown';
+import Markdown, { EmojiWrapper, TextWithLinks } from './Markdown';
 import { ShortcutKey } from './OtherUI';
-import { memo } from 'react';
 
 /**
  * Types
@@ -343,6 +342,7 @@ interface AlertDataProps {
   inputLabel?: string;
   inputPlaceholder?: string;
   inputType?: 'text' | 'password';
+  messageHasHTML?: boolean;
   confirmText?: string;
   confirmPreset?: 'main' | 'cancel';
   cancelText?: string;
@@ -362,6 +362,7 @@ export function AlertPopUp(p: AlertDataProps) {
     title,
     message,
     isWarning,
+    messageHasHTML,
     confirmText,
     cancelText,
     onConfirm,
@@ -414,13 +415,18 @@ export function AlertPopUp(p: AlertDataProps) {
       : <div className='h_40' />}
 
       <div className='w_f'>
-        <h3 className='ft_sm a_c'>
+        <h3 className='ft_sm a_c px_25'>
           {title}
         </h3>
         <div className='px_50'>
-          <Markdown as='p' className='a_c'>
+          {/* TextWithLinks */}
+          {messageHasHTML && message
+          ? <TextWithLinks as='p' className='a_c'>
             {message}
-          </Markdown>
+          </TextWithLinks>
+          : <Markdown as='p' className='a_c'>
+            {message}
+          </Markdown>}
         </div>
 
         {children}

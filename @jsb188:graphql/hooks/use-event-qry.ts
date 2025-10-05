@@ -1,10 +1,10 @@
-import type { EventsFilter, EventTypeEnum } from '@jsb188/mday/types/event.d';
 import { checkACLPermission } from '@jsb188/app/utils/organization';
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
+import type { EventsFilter } from '@jsb188/mday/types/event.d';
 import { useMemo } from 'react';
 import { eventAttendanceListQry, eventsListQry } from '../gql/queries/eventQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
-import { useOrganizationRelationship } from './use-organization-qry';
+import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 
 const EVENTS_LIMIT = 200;
 
@@ -89,7 +89,7 @@ export function useEventAttendance(
 ) {
 
   const { organizationId, eventId, calDate } = variables;
-  const { organizationRelationship } = useOrganizationRelationship(organizationId);
+  const { organizationRelationship } = useOrgRelFromMyOrganizations(organizationId);
 
   const { data, ...rest } = useQuery(eventAttendanceListQry, {
     variables,

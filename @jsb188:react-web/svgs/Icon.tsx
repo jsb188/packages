@@ -98,6 +98,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   sms: 'device-mobile-message',
   snooze: 'zzz',
   sticker: 'sticker',
+  switch_organization: 'replace',
   theme: 'photo-hexagon',
   timeout: 'clock-cancel',
   timeout_unban: 'clock-check',

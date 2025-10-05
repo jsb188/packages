@@ -1,4 +1,5 @@
-import { OrganizationRelData, OrganizationRelGQLData } from '../types/organization.d';
+import type { OrganizationGQLData, OrganizationRelData, OrganizationRelGQLData } from '../types/organization.d';
+import i18n from '../i18n';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
@@ -105,4 +106,50 @@ export function checkACLPermission(
 	const acccountPermissionInt = PERMISSION_TO_INT[permission] || 0; // If invalid, it will always return false
 
 	return acccountPermissionInt >= requiredInt;
+}
+
+/**
+ * Get Icon name for organization operation
+ * @param operation - Organization operation string
+ * @returns Icon name as string
+ */
+
+export function getOperationIconName(operation: string | null | undefined): string {
+	return {
+		ARABLE: 'seedling-filled',
+		LIVESTOCK: 'horse-filled',
+	}[operation || ''] || 'info-circle-filled';
+}
+
+/**
+ * Get all title icons for organization/vendor
+ * @param org - Organization GQL data
+ * @returns Array of icon label objects with icon name and tooltip text
+ */
+
+export function getTitleIconsForOrganization(org: OrganizationGQLData) {
+	const { operation, compliance } = org;
+	const titleIcons = [];
+
+	if (operation) {
+		titleIcons.push({
+			iconName: getOperationIconName(operation),
+			tooltipText: i18n.t(`organization.type.${operation}`),
+		});
+	}
+
+	if (compliance?.length) {
+		const today = new Date();
+		const todayCalDate = today.toISOString().split('T')[0];
+		const notExpired = compliance.filter((item: any) => item.expirationDate && item.expirationDate > todayCalDate);
+
+		if (notExpired.length > 0) {
+			titleIcons.push({
+				iconName: 'award-filled',
+				tooltipText: notExpired.map((item: any) => item.name).join(', '),
+			});
+		}
+	}
+
+	return titleIcons;
 }

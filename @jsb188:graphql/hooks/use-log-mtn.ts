@@ -6,7 +6,7 @@ import { updateFragment } from '../cache/index';
 import { deleteLogEntryMtn, editLogEntryMtn } from '../gql/mutations/logMutations';
 import { useMutation } from './index';
 import { useReactiveLogFragment } from './use-log-qry';
-import { useOrganizationRelationship } from './use-organization-qry';
+import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 
 /**
  * Fetch a single log entry,
@@ -21,7 +21,7 @@ export function useEditLogEntry(
   openModalPopUp?: OpenModalPopUpFn
 ) {
 
-  const { organizationRelationship } = useOrganizationRelationship(organizationId);
+  const { organizationRelationship } = useOrgRelFromMyOrganizations(organizationId);
   const notReady = !organizationRelationship;
 
   const [editLogEntry, mtnValues, mtnHandlers] = useMutation(
