@@ -1,8 +1,9 @@
 import { getENVVariable } from '@jsb188/app';
 import { getAuthToken } from '@jsb188/app/utils/api';
+import { makeVariablesKey } from '@jsb188/app/utils/logic';
 import SSE from '@jsb188/sse';
 import { useEffect, useState } from 'react';
-import { loadFragment, loadQuery, makeVariablesKey, updateQuery } from '../cache/';
+import { loadFragment, loadQuery, updateQuery } from '../cache/';
 import { useQuery } from '../client';
 import { aiChatMessagesQry, aiChatQry, aiChatsQry } from '../gql/queries/aiChatQueries';
 import handleSSEData, { type PublishPayload } from '../sse';

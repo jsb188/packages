@@ -418,7 +418,7 @@ export function AlertPopUp(p: AlertDataProps) {
         <h3 className='ft_sm a_c px_25'>
           {title}
         </h3>
-        <div className='px_50'>
+        <div className='px_30'>
           {/* TextWithLinks */}
           {messageHasHTML && message
           ? <TextWithLinks as='p' className='a_c'>

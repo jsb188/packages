@@ -1,4 +1,4 @@
-import { sortObjectByKeys } from './object.ts';
+import { sortObjectByKeys } from './object';
 
 /**
  * Types
@@ -40,8 +40,8 @@ export function getDatabaseAction(
 			if (value instanceof Date) {
 				value = value.toISOString();
 			} else if (value && typeof value === 'object') {
-        value = JSON.stringify(sortObjectByKeys(value));
-      }
+				value = JSON.stringify(sortObjectByKeys(value));
+			}
 
 			const isNullValue = value !== null || allowNull;
 			if (isNullValue) {
@@ -52,8 +52,8 @@ export function getDatabaseAction(
 			if (currentValue instanceof Date) {
 				currentValue = currentValue.toISOString();
 			} else if (currentValue && typeof currentValue === 'object') {
-        currentValue = JSON.stringify(sortObjectByKeys(currentValue));
-      }
+				currentValue = JSON.stringify(sortObjectByKeys(currentValue));
+			}
 
 			if (
 				// Doing loose != check instead of !== type check
@@ -129,4 +129,32 @@ export function timeoutPromise<T>(
 				});
 		}
 	});
+}
+
+/**
+ * Make String based key from variables Object
+ * @param variables - any variables or arguments object
+ * @param doNotLowerCaseCacheKey - If true, the returned key will maintain original casing
+ * @return string key
+ */
+
+export function makeVariablesKey(
+  variables: Record<string, any>,
+  doNotLowerCaseCacheKey?: boolean,
+): string {
+  if (variables) {
+    const key = Object.keys(variables).sort().reduce((acc, key) => {
+      const value = variables[key];
+      if (value || value === 0 || value === false) {
+        return `${acc}$${key}:${typeof value === 'object' ? JSON.stringify(value) : value}`;
+      }
+      return acc;
+    }, '');
+
+    if (!doNotLowerCaseCacheKey) {
+      return key.toLowerCase();
+    }
+    return key;
+  }
+  return 'none';
 }

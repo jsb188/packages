@@ -1,4 +1,5 @@
 import { cloneArrayLike, mapArrayLikeObjects } from '@jsb188/app/utils/object';
+import { makeVariablesKey } from '@jsb188/app/utils/logic';
 import type { UpdateObserversFn } from '../types.d';
 import { PARTIALS_MAP, RULES } from './config';
 
@@ -60,35 +61,6 @@ export function mergeNestedObjects(obj1: any, obj2: any) {
   }
 
   return newObj;
-}
-
-/**
- * Get a single string to represent all variables for a query
- * NOTE: This isn't perfect because variables could have extra or unnnecessary keys/values
- * The correct way to do this would be to compare it against the query {variableDefinitions}
- * But this will work as long as each variables object is used consistently to match the used query.
- *
- * NOTE: Same logic is used in SSE [publish.ts]
- */
-
-export function makeVariablesKey(variables?: any) {
-  if (variables) {
-    const key = Object.keys(variables).sort().reduce((acc, key) => {
-      const value = variables[key];
-      if (value || value === 0 || value === false) {
-        return `${acc}$${key}:${typeof value === 'object' ? JSON.stringify(value) : value}`;
-      }
-      return acc;
-    }, '');
-
-    // NOTE: I can't think of a query where capitalization matters;
-    // So I'm doing lowerCase() here.
-    // Also, I don't think there's any query where null/undefined matters;
-    // So I'm omitting all of those.
-
-    return key.toLowerCase();
-  }
-  return 'none';
 }
 
 /**

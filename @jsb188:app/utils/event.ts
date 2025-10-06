@@ -7,7 +7,7 @@ import type {
   EventScheduleObj,
   OrganizationAddressGQLData,
   OrganizationAddressObj,
-} from '../../@jsb188:mday/src/types/event';
+} from '@jsb188/mday/types/event.d';
 import { getFullDate } from './datetime';
 import { convertToMilitaryTime } from './number';
 import { DEFAULT_TIMEZONE } from './timeZone';

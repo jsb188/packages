@@ -1,11 +1,11 @@
 import { getENVVariable } from '@jsb188/app';
 import type { ServerErrorObj, SimpleErrorType } from '@jsb188/app/types/app.d';
 import { normalizeServerError } from '@jsb188/app/utils/api';
-import { delay } from '@jsb188/app/utils/logic';
+import { delay, makeVariablesKey } from '@jsb188/app/utils/logic';
 import { isServerErrorGQL } from '@jsb188/graphql/utils';
 import { useConnectedToServerValue, useFragmentObserverValue, useQueryObserverValue, useScreenIsFocusedValue, useSetFragmentObserver, useSetQueryObserver } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { checkDataCompleteness, fetchCachedData, loadDataFromCache, loadFragment, makeVariablesKey, removeStaleCache } from '../cache';
+import { checkDataCompleteness, fetchCachedData, loadDataFromCache, loadFragment, removeStaleCache } from '../cache';
 import { QUERY_EXPIRE_TIMES } from '../cache/config';
 import { graphqlRequest } from '../client/request';
 import type { AnyModalPopUpFn, GraphQLHandlers, GraphQLQueryOptions, OnCompletedGQLFn, OnErrorGQLFn, UpdateDataObserverArgs, UpdateObserversFn } from '../types';

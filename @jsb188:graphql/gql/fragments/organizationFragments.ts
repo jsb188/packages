@@ -11,6 +11,8 @@ export const organizationFragment = `fragment organizationFragment on Organizati
     timeZone
     language
     color
+    manageInventory
+    manageEvents
   }
 }`;
 

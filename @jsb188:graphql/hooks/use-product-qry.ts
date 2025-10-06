@@ -1,6 +1,7 @@
 import { useQuery, useReactiveFragment } from '../client';
 import { productsListQry } from '../gql/queries/productQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';
+import type { ProductTypeEnum } from '@jsb188/mday/types/product.d';
 
 /**
  * Constants
@@ -28,6 +29,7 @@ const PRODUCTS_LIST_LIMIT = 200;
 
 export function useProductsList(
   variables: PaginationArgs & {
+    productType: ProductTypeEnum;
     organizationId?: string | null;
     // filter: FilterProductsListArgs;
   },

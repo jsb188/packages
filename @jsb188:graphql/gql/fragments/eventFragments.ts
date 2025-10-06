@@ -8,7 +8,6 @@ export const eventFragment = `fragment eventFragment on Event {
   type
 
   schedule {
-    frequency
     interval
     byDay
     byMonthDay

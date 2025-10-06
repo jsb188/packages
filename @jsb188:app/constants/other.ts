@@ -14,21 +14,14 @@ export const ALERT_ICON_NAMES = {
 	[key: string]: string;
 };
 
-export const EVENT_SCHDULE_FREQUENCY = [
-  'DAILY',
-  'WEEKLY',
-  'MONTHLY',
-  // 'YEARLY', // Not allowing this since it could be forgotten/abandoned and that's a problem with AI automated systems
-];
-
 export const DAY_OF_WEEK = [
-  'SU', // Order matters
-  'MO',
-  'TU',
-  'WE',
-  'TH',
-  'FR',
-  'SA',
+	'SU', // Order matters
+	'MO',
+	'TU',
+	'WE',
+	'TH',
+	'FR',
+	'SA',
 ];
 
 export const DATE_PICKER_MIN = '1950-01-01';

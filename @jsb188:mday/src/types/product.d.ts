@@ -1,14 +1,17 @@
-import { PRODUCT_LIVESTOCK_STATUS, PRODUCT_LIVESTOCK_TYPES } from '../../../@jsb188:app/constants/product';
+import { PRODUCT_EVENT_FREQUENCY, PRODUCT_TYPES, PRODUCT_LIVESTOCK_STATUS, PRODUCT_LIVESTOCK_TYPES } from '@jsb188/app/constants/product';
+import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
 
 /**
  * Enums
  */
 
+export type ProductTypeEnum = typeof PRODUCT_TYPES[number];
 export type ProductLivestockTypeEnum = typeof PRODUCT_LIVESTOCK_TYPES[number];
 export type ProductLivestockStatusEnum = typeof PRODUCT_LIVESTOCK_STATUS[number];
+export type ProductEventFrequencyEnum = typeof PRODUCT_EVENT_FREQUENCY[number];
 
 /**
- * Product details data object
+ * Product details base
  */
 
 interface ProductDetailsBase {
@@ -18,6 +21,10 @@ interface ProductDetailsBase {
     overview: string;
   }
 }
+
+/**
+ * Product details; Livestock
+ */
 
 export interface ProductLivestockObj extends ProductDetailsBase {
   __table: 'products_livestock';
@@ -30,7 +37,42 @@ export interface ProductLivestockObj extends ProductDetailsBase {
   livestockGroup?: string;
 }
 
-export type ProductDetailsObj = ProductLivestockObj;
+/**
+ * Product details; Calendar event
+ */
+
+export interface ProductCalendarEventObj extends ProductDetailsBase {
+  __table: 'products_calendar_events';
+	organizationId: number;
+
+  title: string;
+  frequency: ProductEventFrequencyEnum;
+  schedule: ScheduleObj | null;
+  address: AddressObj | null;
+  startAt: Date;
+  endAt: Date;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProductCalendarEventGQL {
+  id: string;
+  organizationId: string;
+
+  title: string;
+  frequency: ProductEventFrequencyEnum;
+  schedule: ScheduleObj | null;
+  address: AddressObj | null;
+  startAt: Date;
+  endAt: Date;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
+export type ProductDetailsObj = ProductLivestockObj | ProductCalendarEventObj;
 
 /**
  * Product data object
@@ -51,6 +93,14 @@ export interface ProductObj {
  */
 
 export interface ProductGQL {
-	id: number;
-	[key: string]: any;
+	id: string;
+  organizationId: string;
+  cursor: string | null; // Cursor for pagination
+  details: ProductDetailsObj | null;
+  metadata: {
+    overview: string;
+  }
+
+  createdAt: string; // ISO Date
+  updatedAt: string; // ISO Date
 }
