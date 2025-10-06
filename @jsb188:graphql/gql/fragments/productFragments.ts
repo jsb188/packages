@@ -51,6 +51,13 @@ export const productCalendarEventFragment = `fragment productCalendarEventFragme
 	updatedAt
 }`;
 
+export const productAttendanceFragment = `fragment productAttendanceFragment on ProductAttendance {
+  id
+  productId
+  attended
+  calDate
+}`;
+
 export const productLivestockFragment = `fragment productLivestockFragment on ProductLivestock {
   __typename
 

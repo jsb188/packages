@@ -1,7 +1,10 @@
 import { useQuery, useReactiveFragment } from '../client';
-import { productsListQry } from '../gql/queries/productQueries';
+import { productsListQry, productAttendanceListQry } from '../gql/queries/productQueries';
+import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 import type { PaginationArgs, UseQueryParams } from '../types';
 import type { ProductTypeEnum } from '@jsb188/mday/types/product.d';
+import { useMemo } from 'react';
+import { checkACLPermission } from '@jsb188/app/utils/organization';
 
 /**
  * Constants
@@ -67,4 +70,47 @@ export function useReactiveProductFragment(productId: string, currentData?: any,
     // Using the otherCheck() function is the only way I could keep sticker updates reactive
     // (_, updatedKeys) => updatedKeys.find((k) => typeof k === 'string' && k.startsWith('$chatStickerFragment:')),
   );
+}
+
+/**
+ * Fetch Org Event attendance, ACL, and Org Event fragment from cache
+ */
+
+export function useProductAttendance(
+  viewerAccountId: string,
+  variables: {
+    organizationId: string;
+    productId: string;
+    calDate: string;
+  },
+  params: UseQueryParams = {},
+) {
+
+  const { organizationId, productId, calDate } = variables;
+  const { organizationRelationship } = useOrgRelFromMyOrganizations(organizationId);
+
+  const { data, ...rest } = useQuery(productAttendanceListQry, {
+    variables,
+    skip: !productId || !calDate || !organizationId,
+    ...params,
+  });
+
+  const eventProduct = useReactiveProductFragment(productId);
+  const productAttendanceList = data?.productAttendanceList;
+  const isMyDocument = !!viewerAccountId && eventProduct?.accountId === viewerAccountId;
+  const notReady = !organizationRelationship || !productAttendanceList || !eventProduct;
+
+  const allowEdit = useMemo(() => {
+    return checkACLPermission(organizationRelationship, 'events', isMyDocument ? 'WRITE' : 'MANAGE');
+  }, [organizationRelationship?.acl, organizationRelationship?.role]);
+
+  // console.log('viewerAccountId', viewerAccountId, organizationEvent?.accountId, isMyDocument, allowEdit);
+
+  return {
+    eventProduct,
+    productAttendanceList,
+    notReady,
+    allowEdit,
+    ...rest
+  };
 }

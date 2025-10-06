@@ -1,13 +1,8 @@
+import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
+import type { ProductAttendanceObj, ProductCalendarEventGQL, ProductCalendarEventObj, ProductEventFrequencyEnum, ProductGQL } from '@jsb188/mday/types/product.d';
 import { DateTime } from 'luxon';
 import { DAY_OF_WEEK } from '../constants/other';
 import i18n from '../i18n';
-import type {
-  EventAttendanceDataObj,
-  EventGQL,
-  EventScheduleObj,
-  OrganizationAddressGQLData,
-  OrganizationAddressObj,
-} from '@jsb188/mday/types/event.d';
 import { getFullDate } from './datetime';
 import { convertToMilitaryTime } from './number';
 import { DEFAULT_TIMEZONE } from './timeZone';
@@ -20,7 +15,7 @@ import { DEFAULT_TIMEZONE } from './timeZone';
  */
 
 export function getAddressText(
-	address: OrganizationAddressObj | OrganizationAddressGQLData | null,
+	address: AddressObj | null,
 	multiline = false,
 ): string {
 	if (!address) {
@@ -40,21 +35,23 @@ export function getAddressText(
 /**
  * Check if organization event is upcoming
  * Upcoming is defined by: "recurring and not ended" or "date is in the future"
- * @param orgEvent - Organization event GQL data
+ * @param eventProduct - Calendar Event product GQL data
  * @returns boolean value to indicate if event is upcoming
  */
 
-export function checkIfEventIsUpcoming(orgEvent: EventGQL): boolean {
+export function checkIfEventIsUpcoming(eventProduct: ProductGQL): boolean {
 	const now = new Date();
-	const endAt = orgEvent.endAt ? new Date(orgEvent.endAt) : null;
+
+  const eventDetails = eventProduct.details as ProductCalendarEventGQL;
+	const endAt = eventDetails.endAt ? new Date(eventDetails.endAt) : null;
 	const finished = endAt && (endAt < now);
 	if (finished) {
 		return false;
 	}
 
-	const once = !orgEvent.schedule;
+  const once = eventDetails.frequency === 'ONCE' || !eventDetails.schedule;
 	if (once) {
-		const startAt = new Date(orgEvent.startAt);
+		const startAt = new Date(eventDetails.startAt);
 		return startAt > now;
 	}
 
@@ -65,14 +62,16 @@ export function checkIfEventIsUpcoming(orgEvent: EventGQL): boolean {
 /**
  * Get icon for event based on time (finished, upcoming, today, etc)
  * @param startAt - Event start date/time in ISO format
+ * @param endAt - Event end date/time in ISO format
  * @param schedule - Event schedule object
+ * @param showRecurringSchedule - Whether recurring schedule should be shown
  * @returns Icon name as string
  */
 
 export function getEventIconName(
 	startAt_: string | Date,
 	endAt_: string | Date | null,
-	schedule: EventScheduleObj | null,
+	schedule: ScheduleObj | null,
 	showRecurringSchedule?: boolean,
 ): string {
 	const startAt = new Date(startAt_);
@@ -83,7 +82,7 @@ export function getEventIconName(
 	if (typeof showRecurringSchedule === 'boolean') {
 		isUpcoming = showRecurringSchedule;
 	} else {
-		isUpcoming = checkIfEventIsUpcoming({ startAt, endAt, schedule } as EventGQL);
+		isUpcoming = checkIfEventIsUpcoming({ details: { startAt, endAt, schedule } } as ProductGQL);
 	}
 
 	if (isUpcoming && !once) {
@@ -107,12 +106,12 @@ export function getEventIconName(
 
 /**
  * Get the icon labels for Organization event data
- * @param orgEvent - Organization event data
+ * @param eventProduct - Calendar Event product GQL data
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getEventLabelIcons(orgEvent: EventGQL) {
-	const { schedule, address } = orgEvent;
+export function getEventLabelIcons(eventDetails: ProductCalendarEventGQL) {
+	const { schedule, address } = eventDetails;
 	const addressText = address && getAddressText(address);
 	const labelIcons = [];
 
@@ -155,20 +154,12 @@ export function getEventLabelIcons(orgEvent: EventGQL) {
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getReadableSchedule(schedule: EventScheduleObj | null) {
-	if (!schedule) {
+export function getReadableSchedule(eventDetails: ProductCalendarEventObj | ProductCalendarEventGQL | null) {
+	if (!eventDetails || eventDetails.frequency === 'ONCE') {
 		return i18n.t('organization.single_event_msg');
 	}
 
-	const daily = schedule.frequency === 'DAILY';
-	if (daily) {
-		return [{
-			text: i18n.t('form.daily'),
-			color: 'sky_light',
-			tooltipText: i18n.t('organization.daily_event_msg'),
-		}];
-	}
-
+  const schedule = eventDetails.schedule || eventDetails.metadata?.schedule || {} as ScheduleObj;
 	const defaultSchedTime = schedule.time || [];
 
 	return DAY_OF_WEEK.map((day) => {
@@ -177,7 +168,7 @@ export function getReadableSchedule(schedule: EventScheduleObj | null) {
 			return '';
 		}
 
-		const daySchedTime = (schedule?.[`time_${day}` as keyof EventScheduleObj] || defaultSchedTime) as [number, number];
+		const daySchedTime = (schedule?.[`time_${day}` as keyof ScheduleObj] || defaultSchedTime) as [number, number];
 		const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
 		const endTime = (daySchedTime[1] || daySchedTime[1] === 0) && convertToMilitaryTime(daySchedTime[1]);
 
@@ -192,13 +183,13 @@ export function getReadableSchedule(schedule: EventScheduleObj | null) {
 
 /**
  * Get schedule info and icons
- * @param orgEvent - Organization event data
+ * @param eventDetails - Calendar Event details object
  * @param alwaysFillIcon - Whether to always use filled icons
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getScheduleIcons(orgEvent: EventGQL, alwaysFillIcon = false) {
-	const { schedule } = orgEvent;
+export function getScheduleIcons(eventDetails: ProductCalendarEventGQL, alwaysFillIcon = false) {
+	const { frequency, schedule } = eventDetails;
 	const once = !schedule;
 
 	if (once) {
@@ -209,7 +200,7 @@ export function getScheduleIcons(orgEvent: EventGQL, alwaysFillIcon = false) {
 		}];
 	}
 
-	const daily = schedule.frequency === 'DAILY';
+	const daily = frequency === 'DAILY';
 	if (daily) {
 		return [{
 			text: i18n.t('form.daily'),
@@ -223,7 +214,7 @@ export function getScheduleIcons(orgEvent: EventGQL, alwaysFillIcon = false) {
 	// Use this if if you want to only show what's scheduled
 	// const labelIcons = orderBy(schedule.byDay || [], (day) => DAY_OF_WEEK.indexOf(day)).map((day) => {
 	// 	const dayLetter = day.charAt(0).toLowerCase();
-	//   const daySchedTime = schedule?.[`time_${day}` as keyof EventScheduleObj] || defaultSchedTime;
+	//   const daySchedTime = schedule?.[`time_${day}` as keyof ScheduleObj] || defaultSchedTime;
 	//   const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
 	//   const endTime = (daySchedTime[1] || daySchedTime[1] === 0) && convertToMilitaryTime(daySchedTime[1]);
 
@@ -242,7 +233,7 @@ export function getScheduleIcons(orgEvent: EventGQL, alwaysFillIcon = false) {
 	const labelIcons = DAY_OF_WEEK.map((day) => {
 		const isScheduled = schedule.byDay?.includes(day);
 		const dayLetter = day.charAt(0).toLowerCase();
-		const daySchedTime = (schedule?.[`time_${day}` as keyof EventScheduleObj] || defaultSchedTime) as [number, number];
+		const daySchedTime = (schedule?.[`time_${day}` as keyof ScheduleObj] || defaultSchedTime) as [number, number];
 		const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
 		const endTime = (daySchedTime[1] || daySchedTime[1] === 0) && convertToMilitaryTime(daySchedTime[1]);
 
@@ -303,7 +294,7 @@ export function getDayOfWeekIcons(
  */
 
 export function getTimeArrayFromSchedule(
-	schedule: EventScheduleObj | null,
+	schedule: ScheduleObj | null,
 	date: Date | null,
 	timeZone: string | null,
 ) {
@@ -323,7 +314,8 @@ export function getTimeArrayFromSchedule(
  */
 
 export function getNextDateFromSchedule(
-	schedule: EventScheduleObj | null,
+  frequency: ProductEventFrequencyEnum,
+	schedule: ScheduleObj | null,
 	startAt: string | Date | null,
 	timeZone_: string | null,
 	afterDate?: Date | null,
@@ -341,7 +333,6 @@ export function getNextDateFromSchedule(
 	const realNowValue = DateTime.now().setZone(timeZone).toJSDate();
 	const now = afterDate && afterDate > realNowValue ? afterDate : realNowValue;
 
-	const { frequency } = schedule;
 	const daySchedTime = getTimeArrayFromSchedule(schedule, now, timeZone);
 	// const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
 	const hours = Math.floor((daySchedTime[0] || 0) / 100);
@@ -420,10 +411,12 @@ export function getNextDateFromSchedule(
  */
 
 export function isScheduledDate(
-	schedule: EventScheduleObj,
+	eventDetails: ProductCalendarEventObj | ProductCalendarEventGQL | null,
 	date: Date,
 ) {
-	const { frequency, byDay } = schedule;
+  const { frequency } = eventDetails || {};
+  const schedule = eventDetails.schedule || eventDetails.metadata?.schedule || {} as ScheduleObj
+	const { byDay } = schedule;
 
 	switch (frequency) {
 		case 'DAILY':
@@ -445,7 +438,7 @@ export function isScheduledDate(
  * @returns Next date in string format
  */
 
-export function getTimeFromSchedule(schedule: EventScheduleObj | null, date: Date | null, timeZone: string | null) {
+export function getTimeFromSchedule(schedule: ScheduleObj | null, date: Date | null, timeZone: string | null) {
 	if (!schedule && date) {
 		return convertToMilitaryTime(date.getHours() * 100 + date.getMinutes());
 	}
@@ -469,9 +462,9 @@ export function getTimeFromSchedule(schedule: EventScheduleObj | null, date: Dat
  */
 
 export function filterEventAttendance(
-	attendance: EventAttendanceDataObj[],
+	attendance: ProductAttendanceObj[],
 	calDate: string,
-): EventAttendanceDataObj[] {
+): ProductAttendanceObj[] {
 	const targetJSDate = new Date(calDate);
 	const checkedAttendance = new Set<number>();
 	for (const item of attendance) {
@@ -480,7 +473,7 @@ export function filterEventAttendance(
 		}
 	}
 
-	const isActiveOnDate = (item: EventAttendanceDataObj): boolean => {
+	const isActiveOnDate = (item: ProductAttendanceObj): boolean => {
 		if (
 			item.calDate || // If "calDate" is set, this was a manual override by a human, so history is ignored
 			!item.history || item.history.length === 0
@@ -490,7 +483,7 @@ export function filterEventAttendance(
 
 		// Sort history by date to be safe
 		// NOTE: item.history.sort() will mutate the original array, but that's acceptable for our application
-		const sorted = item.history.sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime());
+		const sorted = item.history.sort((a: any, b: any) => new Date(a[0]).getTime() - new Date(b[0]).getTime());
 
 		let active = false;
 		for (const [hDate, status] of sorted) {
