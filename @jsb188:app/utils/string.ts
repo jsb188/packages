@@ -373,3 +373,33 @@ export function formatPhoneNumber(phone: string): string {
 
   return phone;
 }
+
+/**
+ * Split a long text into chunks, making sure each chunk is under the chunk size character limit.
+ * @param text - The long text to split.
+ * @param characterLimit - The maximum number of characters allowed in each chunk.
+ * @returns An array of text chunks.
+ */
+
+export function splitTextIntoChunks(text: string, characterLimit: number): string[] {
+  const words = text.split(' ');
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const word of words) {
+    if ((currentChunk + ' ' + word).trim().length <= characterLimit) {
+      currentChunk = (currentChunk + ' ' + word).trim();
+    } else {
+      if (currentChunk) {
+        chunks.push(currentChunk);
+      }
+      currentChunk = word;
+    }
+  }
+
+  if (currentChunk) {
+    chunks.push(currentChunk);
+  }
+
+  return chunks;
+}
