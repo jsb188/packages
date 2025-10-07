@@ -54,6 +54,9 @@ interface LogDetailsGQLBase {
 
 interface LogMetadataBase {
 	__before: any;
+  childOrg: never;
+  childOrgId: never;
+  referenceNumber: never;
 }
 
 /**
@@ -90,6 +93,7 @@ export type LogArableMetadataGQL = LogArableMetadata & LogDetailsGQLBase;
  */
 
 export type LogFarmersMarketMetadata = LogMetadataBase & {
+  referenceNumber: string;
 	voided: boolean;
 	childOrgId: string | number;
 	values: {
@@ -122,6 +126,9 @@ export type LogFarmersMarketMetadataGQL = LogFarmersMarketMetadata & LogDetailsG
  */
 
 export type LogLivestockMetadata = LogMetadataBase & {
+  damIdentifier?: string;
+	livestockIdentifiers: string[];
+	livestockGroup?: string;
 	livestock: string;
 	item: string;
 	quantity: number;
@@ -134,7 +141,8 @@ export interface LogLivestockObj {
 	activity: LogLivestockActivityEnum;
 	notes: string | null;
 	translation?: string | null;
-	livestockIdentifiers?: string[];
+  damIdentifier?: string;
+	livestockIdentifiers: string[];
 	livestockGroup?: string;
 	metadata?: Partial<LogLivestockMetadata> | null;
 }

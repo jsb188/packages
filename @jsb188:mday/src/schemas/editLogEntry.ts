@@ -47,6 +47,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
       formValues.farmersMarketDetails = {
         activity: details.activity,
         childOrgId: details.childOrgId,
+        referenceNumber: details.referenceNumber,
         voided: details.voided,
         values: details.values,
         notes: details.notes,
@@ -140,6 +141,7 @@ type ValidMetadataFieldName =
   | 'crop'
 
   // FARMERS_MARKET
+  | 'receiptNumber'
   | 'childOrgId'
   | 'void'
   | 'marketCredits'
@@ -297,6 +299,17 @@ function makeMetadataSchema(
           item: {
             name: `${namespace}.livestockGroup`,
             placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
+          }
+        };
+      case 'receiptNumber':
+        return {
+          __type: 'input',
+          label: i18n.t('log.receipt_number'),
+          item: {
+            name: `${namespace}.referenceNumber`,
+            // placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
+            // getter: (value: string[]) => value ? value.join(',') : '',
+            // setter: (value: string) => value.split(',')
           }
         };
       case 'childOrgId':
@@ -459,6 +472,7 @@ export function makeLogMetadataSchema(
       activitiesList = FARMERS_MARKET_ACTIVITIES_GROUPED;
       schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, [
         'activity',
+        isReceipt ? 'receiptNumber' : null,
         'childOrgId',
         isReceipt ? 'void' : null,
         isReceipt ? 'marketCredits' : null,
