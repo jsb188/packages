@@ -239,6 +239,8 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .gap_3 { gap: 3px; }
 .gap_4 { gap: 4px; }
 .gap_5 { gap: 5px; }
+.gap_10 { gap: 10px; }
+.gap_15 { gap: 15px; }
 
 .g_fill { grid-column: 1 / -1; }
 

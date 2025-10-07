@@ -302,7 +302,7 @@ function makeMetadataSchema(
       case 'childOrgId':
         return {
           __type: 'input',
-          label: i18n.t('log.childOrgId'),
+          label: i18n.t('log.receipt_for'),
           item: {
             name: `${namespace}.childOrgId`,
             // placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
