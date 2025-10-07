@@ -74,8 +74,9 @@ export interface OrganizationSettingsObj {
 	timeZone: string | null;
 	language: string | null;
 	color: string | null;
-  manageInventory: boolean;
-  manageEvents: boolean;
+  priorityService: boolean;
+	manageInventory: boolean;
+	manageEvents: boolean;
 }
 
 export interface OrganizationChildData {

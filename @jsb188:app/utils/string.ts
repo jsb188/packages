@@ -377,28 +377,45 @@ export function formatPhoneNumber(phone: string): string {
 /**
  * Split a long text into chunks, making sure each chunk is under the chunk size character limit.
  * @param text - The long text to split.
- * @param characterLimit - The maximum number of characters allowed in each chunk.
+ * @param chunkSize - The maximum number of characters allowed in each chunk.
+ * @param linebreakDistance - The maximum distance from the chunk boundary to look for a line break.
  * @returns An array of text chunks.
  */
 
-export function splitTextIntoChunks(text: string, characterLimit: number): string[] {
-  const words = text.split(' ');
-  const chunks: string[] = [];
-  let currentChunk = '';
-
-  for (const word of words) {
-    if ((currentChunk + ' ' + word).trim().length <= characterLimit) {
-      currentChunk = (currentChunk + ' ' + word).trim();
-    } else {
-      if (currentChunk) {
-        chunks.push(currentChunk);
-      }
-      currentChunk = word;
-    }
+export function splitTextIntoChunks(text: string, chunkSize: number, linebreakDistance: number = 50): string[] {
+  if (!text || chunkSize <= 0 || text.length < chunkSize) {
+    return [text || ''];
   }
 
-  if (currentChunk) {
-    chunks.push(currentChunk);
+  const chunks: string[] = [];
+  let start = 0;
+
+  while (start < text.length) {
+    let end = Math.min(start + chunkSize, text.length);
+
+    if (end < text.length) {
+      // Find the nearest line break around the target chunk boundary
+      const beforeBreak = text.lastIndexOf("\n", end);
+
+      let chosenBreak = -1;
+      if (beforeBreak !== -1 && end - beforeBreak <= linebreakDistance && beforeBreak > start) {
+        chosenBreak = beforeBreak + 1;
+      }
+
+      if (chosenBreak !== -1) {
+        end = chosenBreak;
+      } else {
+        // Fall back to last whitespace near the end
+        const lastSpace = text.lastIndexOf(" ", end);
+        if (lastSpace > start && end - lastSpace < 100) {
+          end = lastSpace;
+        }
+      }
+    }
+
+    const chunk = text.slice(start, end).trim();
+    if (chunk) chunks.push(chunk);
+    start = end;
   }
 
   return chunks;
