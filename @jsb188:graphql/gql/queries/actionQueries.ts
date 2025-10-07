@@ -1,8 +1,7 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
-import { logArableFragment, logEntryFragment, logFarmersMarketFragment, logLivestockFragment } from '../fragments/logFragments';
-import { organizationFragment } from '../fragments/organizationFragments';
 import { actionFragment } from '../fragments/actionFragments';
+import { logArableFragment, logEntryFragment, logFarmersMarketFragment, logLivestockFragment } from '../fragments/logFragments';
 
 export const actionsListQry = gql`
 query actionsList (
@@ -18,10 +17,6 @@ query actionsList (
     limit: $limit
   ) {
     ...actionFragment
-
-    childOrganization {
-      ...organizationFragment
-    }
 
     logEntry {
       ...logEntryFragment
@@ -46,7 +41,6 @@ query actionsList (
 }
 
 ${actionFragment}
-${organizationFragment}
 ${accountFragment}
 ${logEntryFragment}
 ${logArableFragment}

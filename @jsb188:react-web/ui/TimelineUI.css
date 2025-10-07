@@ -1,0 +1,14 @@
+
+/* Horizontal Timeline */
+
+.horizontal_timeline {
+  position: relative;
+  height: 2px;
+}
+
+.horizontal_timeline .tl_dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, 0);
+}

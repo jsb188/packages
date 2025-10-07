@@ -12,7 +12,7 @@ export const organizationFragment = `fragment organizationFragment on Organizati
     language
     color
     manageInventory
-    manageEvents
+    manageActions
   }
 }`;
 

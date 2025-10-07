@@ -2,16 +2,16 @@
 export const actionFragment = `fragment actionFragment on Action {
   id
   referenceNumber
+  actionFor
   status
   cursor
 
   tasks {
     instructions
     response
-    lastActionAt
+    at
   }
 
   scheduledAt
-  createdAt
-  updatedAt
+  lastActionAt
 }`;

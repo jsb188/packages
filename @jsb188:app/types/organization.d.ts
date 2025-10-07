@@ -76,7 +76,7 @@ export interface OrganizationSettingsObj {
 	color: string | null;
   priorityService: boolean;
 	manageInventory: boolean;
-	manageEvents: boolean;
+	manageActions: boolean;
 }
 
 export interface OrganizationChildData {

@@ -16,6 +16,7 @@
     "./fragments/other": "./gql/fragments/otherFragments.ts",
     "./fragments/product": "./gql/fragments/productFragments.ts",
     "./hooks": "./hooks/",
+    "./hooks/use-action-qry": "./hooks/use-action-qry.ts",
     "./hooks/use-aiChat-qry": "./hooks/use-aiChat-qry.ts",
     "./hooks/use-app-qry": "./hooks/use-app-qry.ts",
     "./hooks/use-log-qry": "./hooks/use-log-qry.ts",
