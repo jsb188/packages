@@ -233,7 +233,7 @@ export const LOG_TYPE_ENUMS = [
 	...LOG_LIVESTOCK_TYPE_ENUMS,
 ].filter((value, index, self) => self.indexOf(value) === index);
 
-export const LOG_ACTIVITY_ENUMS = [
+export const LOG_ANY_ACTIVITY_ENUMS = [
 	...LOG_ARABLE_ACTIVITY_ENUMS,
 	...LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
 	...LOG_LIVESTOCK_ACTIVITY_ENUMS,
@@ -250,3 +250,6 @@ export const LOG_TYPES_BY_OPERATION: Record<OrganizationOperationEnum, (typeof L
 	FARMERS_MARKET: LOG_FARMERS_MARKET_TYPE_ENUMS,
 	LIVESTOCK: LOG_LIVESTOCK_TYPE_ENUMS,
 };
+
+// Use this log all activities to keep database up to date
+// console.log(LOG_ANY_ACTIVITY_ENUMS);

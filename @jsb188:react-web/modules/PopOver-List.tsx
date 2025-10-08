@@ -2,7 +2,7 @@ import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
-import type { POLabelsAndValuesIface, POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POListIface, POListIfaceItem, POListItemObj, POModalItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
+import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POLabelsAndValuesIface, POListIface, POListIfaceItem, POListItemObj, POModalItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';

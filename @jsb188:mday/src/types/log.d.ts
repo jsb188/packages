@@ -69,6 +69,7 @@ export type LogArableMetadata = LogMetadataBase & {
 	unit: string;
 	concentration: number;
 	concentrationUnit: string;
+  location: string;
 	price: number;
 };
 
@@ -209,6 +210,7 @@ export interface FilterLogEntriesArgs {
 	operation: OrganizationOperationEnum;
 	accountId?: string | null; // Account ID to filter logs by account
 	types?: LogTypeEnum[] | null;
+  activities?: LogActivityEnum[] | null;
 	startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
 	endDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
 	timeZone?: string | null; // Timezone string, e.g., 'America/New_York'

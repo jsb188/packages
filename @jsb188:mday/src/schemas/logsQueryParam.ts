@@ -3,7 +3,7 @@ import { OPERATION_ENUMS } from '@jsb188/app/constants/organization';
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';
-import { LOG_TYPE_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
+import { LOG_ANY_ACTIVITY_ENUMS, LOG_TYPE_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
 import type { FilterLogEntriesArgs, LogTypeEnum } from '../types/log.d';
 
 /**
@@ -12,6 +12,9 @@ import type { FilterLogEntriesArgs, LogTypeEnum } from '../types/log.d';
 
 export const FilterLogEntriesSchema = z.object({
 	types: z.array(z.enum(LOG_TYPE_ENUMS as [string]))
+		.nullable(),
+  activities: z.array(z.enum(LOG_ANY_ACTIVITY_ENUMS as [string]))
+    .optional()
 		.nullable(),
 	startDate: z.string()
 		.refine((sd) => isValidCalDate(sd), { message: 'START_DATE_INVALID' })
@@ -100,12 +103,14 @@ export function convertLogTypesToDigits(
  * Create a filter object for logEntries() query from the URL search query.
  * @param operationType - The type of operation for organization
  * @param searchQuery - The search query string from the URL
+ * @param otherFiltersObj - Additional filter properties to merge into the result
  * @returns FilterLogEntriesArgs - The filter object to be used in the logEntries() query
  */
 
 export function createFilterFromURL(
 	operationType: OrganizationOperationEnum | null,
 	searchQuery: string,
+  otherFiltersObj: Partial<FilterLogEntriesArgs> = {}
 ) {
 	const urlParams = new URLSearchParams(searchQuery);
 
@@ -135,6 +140,7 @@ export function createFilterFromURL(
 		endDate,
 		timeZone: indexToTimeZone(urlParams.get('z')),
 		query: urlParams.get('q') || '',
+    ...otherFiltersObj,
 	};
 
 	const validation = FilterLogEntriesSchema.safeParse(filter);

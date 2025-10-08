@@ -20,6 +20,7 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   crop
   quantity
   unit
+  location
   price
   notes
 }`;

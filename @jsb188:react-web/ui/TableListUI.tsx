@@ -18,16 +18,19 @@ export type TableHeaderObj = Partial<{
   flexClassName: string;
 }>;
 
+export type TableRowProps = {
+  removeBorderLine: boolean;
+  applyGridToRows: boolean;
+  gridLayoutStyle: string;
+};
+
 /**
  * Table row/head
  */
 
-export function TRow(p: ReactDivElement & Partial<{
-  thead: boolean;
-  removeBorderLine: boolean;
-  applyGridToRows: boolean;
-  gridLayoutStyle: string;
-}>) {
+export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
+  thead?: boolean;
+}) {
   const { thead, removeBorderLine, applyGridToRows, gridLayoutStyle, className, ...rest } = p;
   return <div
     className={cn(
@@ -71,11 +74,8 @@ export const TDCol = memo((p: ReactDivElement & {
  * Table header
  */
 
-export const THead = memo((p: ReactDivElement & {
+export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
   cellClassNames?: (string | undefined)[];
-  removeBorderLine?: boolean;
-  applyGridToRows?: boolean;
-  gridLayoutStyle?: string;
   headers: TableHeaderObj[];
 }) => {
   const { removeBorderLine, applyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
@@ -151,3 +151,104 @@ export const TDColMain = memo((p: Partial<{
 });
 
 TDColMain.displayName = 'TDColMain';
+
+/**
+ * Table list mock item
+ */
+
+export function TableListItemMock(p: Partial<TableRowProps> & {
+  index?: number;
+}) {
+  const { index, ...rest } = p;
+  const columns = (rest.gridLayoutStyle?.split(' ') || []).length || 3;
+  const modulus = index !== undefined ? (index % 4) * 5 : 0;
+
+  return <TRow
+    {...rest}
+    applyGridToRows
+  >
+    {[...Array(columns)].map((_, colIx) => (
+      <TDCol
+        key={colIx}
+        // className={cellClassNames?.[i]}
+        applyGridToRows
+      >
+        <span className='mock alt' style={{width: (93 - modulus * colIx) + '%'}}>
+          ....
+        </span>
+      </TDCol>
+    ))}
+  </TRow>;
+}
+
+/**
+ * Table list mock (client)
+ * NOTE: This cannot be used in SSR due to globalThis object - it will fail the hydration test
+ */
+
+interface TableListMockProps extends Partial<TableRowProps> {
+  browserHeightRatio?: number;
+}
+
+export const TableListMockClient = memo((p: TableListMockProps) => {
+  const { browserHeightRatio, ...rest } = p;
+  const browserHeight = globalThis?.window?.innerHeight || 800; // Fallback to 800 if window is not available
+  const hasRatio = browserHeightRatio && browserHeightRatio > 0;
+
+  // NOTE:
+  // With <AvatarImg>, item height is 57px
+  // Without <AvatarImg>, item height is 51px
+  const mockCount = Math.floor(browserHeight * (hasRatio ? browserHeightRatio : 1) / 57);
+
+  return [...Array(mockCount)].map((_, i) => (
+    <TableListItemMock
+      key={i}
+      index={i}
+      {...rest}
+    />
+  ));
+});
+
+TableListMockClient.displayName = 'TableListMockClient';
+
+/**
+ * Table list mock (SSR allowed)
+ */
+
+export const TableListMockSSR = memo((p: TableListMockProps) => {
+  const didWaitForClient = useWaitForClientRender();
+  if (!didWaitForClient) {
+    return null;
+  }
+  return <TableListMockClient {...p} />;
+});
+
+TableListMockSSR.displayName = 'TableListMockSSR';
+
+/**
+ * Table page mock
+ */
+
+export const TablePageMock = memo(() => {
+  return <>
+    <div className='pb_xs h_item gap_5'>
+      <span className='r h_item py_3 rel pill_xs ft_sm bg_alt'>
+        <span className='mock alt ft_tn'>
+          ... ... ... ... ... ... ... ... .
+        </span>
+      </span>
+
+      <span className='r h_item py_3 rel pill_xs ft_sm bg_alt'>
+        <span className='mock alt ft_tn'>
+          ... ... ... ... ... ... ... ... .
+        </span>
+      </span>
+    </div>
+
+    <CondensedGroupTitleMock />
+
+    <TableListMockSSR browserHeightRatio={.8} />
+  </>;
+});
+
+TablePageMock.displayName = 'TablePageMock';

@@ -186,7 +186,7 @@ export const POListItem = memo((p: PONavItemBase & {
       Component={item.LinkComponent}
       to={to}
       disabled={disabled}
-      className={cn('po_opt bg_link h_item gap_xs lh_1', preset || 'default', presetClassName, disabled ? 'op_50' : '', className)}
+      className={cn('po_opt bg_link h_item gap_xs lh_1', preset || 'default', presetClassName, disabled ? 'op_40' : '', className)}
       onClick={undefinedValue || (disabled && !allowDisabledOnClick) ? undefined : () => onClickItem(name, value)}
     >
       {!hasAvatar ? null : (

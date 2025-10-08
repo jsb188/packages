@@ -103,6 +103,16 @@ export const AsteriskSimple = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0
 <path d="M12 12l-6 8.5" stroke="currentColor" />
 </svg>;
 
+export const AquascapingPlant = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-aquascaping-plant" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M9.5,12.8v-1.5c0-1.6.4-2.7,1.2-3.1"/>
+<path d="M10.7,8.2s-2.4-6.9,5.9-6.6c-2.3,1.8-.4,7.5-5.9,6.6Z"/>
+<path d="M8.2,5.3c-.8-.7-3-2.1-6.5-1.1,3,2,2.3,6.7,8,5"/>
+<path d="M20.2,4l-6.1,9.7-6,2c-.4.1-.6.5-.5.9h0c0,.4.4.6.8.6l8.2-.5,5.3-7.3"/>
+<path d="M9.5,19.3v2.5"/>
+<path d="M2.1,19.9h4.8"/>
+<path d="M21.8,19.9h-9.6"/>
+</svg>;
+
 export const At = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-at" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
 <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" stroke="currentColor" />
@@ -1007,6 +1017,22 @@ export const ID = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-t
 <path d="M7 16l10 0" stroke="currentColor" />
 </svg>;
 
+export const IndoorPlantHouse = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-indoor-plant-house" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M6.5,2.2h10.9l4.3,5.7"/>
+<path d="M21.8,7.9h-12.6"/>
+<path d="M6.5,2.2L2.2,7.9h8.5L6.5,2.2Z"/>
+<path d="M10.3,16.1H2.2"/>
+<path d="M2.2,11.8h7.6"/>
+<path d="M6.5,8.3v7.8"/>
+<path d="M15.1,13.5c.5-1,1-2,1.7-2.8.2-.2.5-.2.6,0,0,0,0,0,0,0,0,0,0,0,0,0,.7.9,1.2,1.8,1.7,2.8"/>
+<path d="M16.9,17.7l3.8-7.1c.3-.2.5-.2.5,0l.4,1.6c.5,2.4-.9,4.8-3.3,5.3-.4,0-.8.1-1.2.1h-.2Z"/>
+<path d="M17.3,17.7l-3.8-7.1c-.3-.2-.5-.2-.5,0l-.4,1.6c-.5,2.4.9,4.8,3.3,5.3.4,0,.8.1,1.2.1h.2Z"/>
+<path d="M20.2,21.8h-6.2c-.5,0-.8-.4-.8-.8h0l-.4-2.4c0-.5.4-.8.8-.8h7c.5,0,.8.4.8.8l-.4,2.4c0,.5-.4.8-.8.8,0,0,0,0,0,0Z"/>
+<path d="M2.2,7.9v8.3"/>
+<path d="M11.8,2.2l4.3,5.7"/>
+<path d="M10.8,7.9v1.5"/>
+</svg>;
+
 export const InfoCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-info-circle" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" stroke="currentColor" />
@@ -1450,6 +1476,14 @@ export const Notes = <svg xmlns="http://www.w3.org/2000/svg" className="icon ico
 <path d="M9 7l6 0" stroke="currentColor" />
 <path d="M9 11l6 0" stroke="currentColor" />
 <path d="M9 15l4 0" stroke="currentColor" />
+</svg>;
+
+export const OrganicPlantGrow1 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-organic-plant-grow-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M2.6,21.5c1.4.2,2.7-.3,3.7-1.3,1.4,1.6,3.7,1.7,5.3.3,0,0,.2-.2.3-.3,1.4,1.6,3.7,1.7,5.3.3l.3-.3c1,1,2.5,1.5,3.7,1.3"/>
+<path d="M19.2,8c-3.9,0-7.2,3.2-7.2,7.3h0c3.9,0,7.2-3.2,7.2-7.3h0Z"/>
+<path d="M14,10.4c1-2.9.3-6.1-2-8.3-2.2,2.3-2.9,5.5-1.9,8.3"/>
+<path d="M4.8,8c3.9,0,7.2,3.2,7.2,7.3h0c-3.9,0-7.2-3.2-7.2-7.3h0Z"/>
+<path d="M12,18.4v-3.1"/>
 </svg>;
 
 export const Outbound = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-outbound" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">

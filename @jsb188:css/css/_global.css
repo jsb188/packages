@@ -152,6 +152,10 @@ button {
   cursor: pointer;
 }
 
+.not_allowed {
+  cursor: not-allowed;
+}
+
 button, .link[role="button"] {
   cursor: pointer;
   user-select: none;

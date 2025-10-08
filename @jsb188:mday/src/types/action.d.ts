@@ -1,10 +1,11 @@
-import { ACTION_STATUS_ENUMS } from '../constants/action';
+import { ACTION_CATEGORY_ENUMS, ACTION_STATUS_ENUMS } from '../constants/action';
 
 /**
  * Enums
  */
 
 export type ActionStatusEnum = (typeof ACTION_STATUS_ENUMS)[number];
+export type ActionCategoryEnum = (typeof ACTION_CATEGORY_ENUMS)[number];
 
 /**
  * Actions; metadata
@@ -41,7 +42,7 @@ export interface ActionObj {
 export interface ActionGQL {
 	id: string;
 	referenceNumber: string;
-  actionFor: string;
+	actionFor: string;
 	status: ActionStatusEnum;
 	cursor: string;
 

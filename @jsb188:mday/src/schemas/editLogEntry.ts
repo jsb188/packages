@@ -38,6 +38,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         unit: details.unit,
         concentration: details.concentration,
         concentrationUnit: details.concentrationUnit,
+        location: details.location,
         price: details.price,
         notes: details.notes,
       };
@@ -139,6 +140,8 @@ type ValidMetadataFieldName =
   | 'unit'
   | 'price'
   | 'crop'
+  | 'location_water'
+  | 'location_arable'
 
   // FARMERS_MARKET
   | 'receiptNumber'
@@ -248,6 +251,26 @@ function makeMetadataSchema(
             name: `${namespace}.unit`,
             maxLength: 40,
             placeholder: isCreateNew ? i18n.t('log.unit_arable_ph') : '',
+          }
+        };
+      case 'location_arable':
+        return {
+          __type: 'input',
+          label: i18n.t('form.location'),
+          item: {
+            name: `${namespace}.location`,
+            maxLength: 40,
+            placeholder: isCreateNew ? i18n.t('log.location_arable_ph') : '',
+          }
+        };
+      case 'location_water':
+        return {
+          __type: 'input',
+          label: i18n.t('form.location'),
+          item: {
+            name: `${namespace}.location`,
+            maxLength: 40,
+            placeholder: isCreateNew ? i18n.t('log.location_water_ph') : '',
           }
         };
       case 'price':
@@ -464,6 +487,7 @@ export function makeLogMetadataSchema(
         isWaterTesting ? 'water_unit' : 'unit',
         isPriceRelated ? 'price' : null,
         isWaterTesting ? null : 'crop',
+        isPriceRelated ? null : isWaterTesting ? 'location_water' : 'location_arable',
       ]);
     } break;
     case 'LogFarmersMarket': {
