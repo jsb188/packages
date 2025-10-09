@@ -266,10 +266,20 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
       'gems\\b',
     ];
 
-    const regex = new RegExp(`\\b(${produceWords.join('|')})`, 'i');
+    const regex = new RegExp(`\\b(${produceWords.join('|')})`, 'gi');
     const match = crop.match(regex);
     if (match) {
-      switch (match[0].toLowerCase()) {
+
+      let matchedWord;
+      if (match.length === 1) {
+        matchedWord = match[0].toLowerCase();
+      } else {
+        // If multiple matches, choose the first match from produce words
+        const lcMatch = match.map(m => m.toLowerCase());
+        matchedWord = produceWords.find(word => lcMatch.includes(word));
+      }
+
+      switch (matchedWord) {
         case 'little gem':
         case 'lil gem':
         case 'marciano':
@@ -360,13 +370,13 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
         case 'radish':
           return 'vegetable-radish';
         default:
-          console.dev('Missing switchase for crop:', crop);
+          console.log('Missing switchcase for crop:', crop);
       }
 
     }
   }
 
-  console.dev('No match found for crop:', crop);
+  console.log('No match found for crop:', crop);
 
   // return 'harvest-product';
   return 'seedling';
