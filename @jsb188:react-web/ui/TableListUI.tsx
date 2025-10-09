@@ -4,6 +4,7 @@ import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFea
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { AvatarImg } from './Avatar';
+import { useWaitForClientRender } from '../utils/dom';
 
 /**
  * Types
@@ -160,22 +161,34 @@ export function TableListItemMock(p: Partial<TableRowProps> & {
   index?: number;
 }) {
   const { index, ...rest } = p;
-  const columns = (rest.gridLayoutStyle?.split(' ') || []).length || 3;
-  const modulus = index !== undefined ? (index % 4) * 5 : 0;
+  const colCount = (rest.gridLayoutStyle?.split(' ') || []).length || 3;
+  const modulus = index !== undefined ? (index % 4) * 10 : 0;
 
   return <TRow
     {...rest}
     applyGridToRows
   >
-    {[...Array(columns)].map((_, colIx) => (
+    {[...Array(colCount)].map((_, colIx) => (
       <TDCol
         key={colIx}
         // className={cellClassNames?.[i]}
         applyGridToRows
       >
-        <span className='mock alt' style={{width: (93 - modulus * colIx) + '%'}}>
+        {
+        colIx
+        ? <span className='mock alt' style={{width: (100 - modulus * colIx) + '%'}}>
           ....
         </span>
+        : <>
+          <AvatarImg
+            className='mr_sm bg_alt'
+            square
+            size='tiny'
+          />
+          <span className='mock alt f'>
+            ....
+          </span>
+        </>}
       </TDCol>
     ))}
   </TRow>;
@@ -200,13 +213,17 @@ export const TableListMockClient = memo((p: TableListMockProps) => {
   // Without <AvatarImg>, item height is 51px
   const mockCount = Math.floor(browserHeight * (hasRatio ? browserHeightRatio : 1) / 57);
 
-  return [...Array(mockCount)].map((_, i) => (
-    <TableListItemMock
-      key={i}
-      index={i}
-      {...rest}
-    />
-  ));
+  return <div className='-mx_xs py_md'>
+    <div className='w_f rel table'>
+      {[...Array(mockCount)].map((_, i) => (
+        <TableListItemMock
+          key={i}
+          index={i}
+          {...rest}
+        />
+      ))}
+    </div>
+  </div>;
 });
 
 TableListMockClient.displayName = 'TableListMockClient';
@@ -229,7 +246,8 @@ TableListMockSSR.displayName = 'TableListMockSSR';
  * Table page mock
  */
 
-export const TablePageMock = memo(() => {
+export const TablePageMock = memo((p: { gridLayoutStyle: string }) => {
+  const { gridLayoutStyle } = p;
   return <>
     <div className='pb_xs h_item gap_5'>
       <span className='r h_item py_3 rel pill_xs ft_sm bg_alt'>
@@ -245,9 +263,12 @@ export const TablePageMock = memo(() => {
       </span>
     </div>
 
-    <CondensedGroupTitleMock />
+    {/* <CondensedGroupTitleMock /> */}
 
-    <TableListMockSSR browserHeightRatio={.8} />
+    <TableListMockSSR
+      gridLayoutStyle={gridLayoutStyle}
+      browserHeightRatio={.85}
+    />
   </>;
 });
 

@@ -134,6 +134,7 @@ export type LogLivestockMetadata = LogMetadataBase & {
 	item: string;
 	quantity: number;
 	unit: string;
+  location: string;
 	price: number;
 };
 

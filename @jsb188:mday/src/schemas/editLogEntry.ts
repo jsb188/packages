@@ -64,6 +64,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         item: details.item,
         quantity: details.quantity,
         unit: details.unit,
+        location: details.location,
         price: details.price,
         notes: details.notes,
       };
@@ -155,6 +156,7 @@ type ValidMetadataFieldName =
   | 'livestockGroup'
   | 'item_purchased'
   | 'item_used'
+  | 'location_livestock' // general
   | null;
 
 function makeMetadataSchema(
@@ -271,6 +273,16 @@ function makeMetadataSchema(
             name: `${namespace}.location`,
             maxLength: 40,
             placeholder: isCreateNew ? i18n.t('log.location_water_ph') : '',
+          }
+        };
+      case 'location_livestock':
+        return {
+          __type: 'input',
+          label: i18n.t('form.location'),
+          item: {
+            name: `${namespace}.location`,
+            maxLength: 40,
+            placeholder: isCreateNew ? i18n.t('log.location_livestock_ph') : '',
           }
         };
       case 'price':
@@ -517,6 +529,7 @@ export function makeLogMetadataSchema(
         isLandManagement ? 'item_used' : null,
         isLivestock ? null : 'quantity',
         isLivestock ? null : 'unit',
+        !isSupplyPurchase ? 'location_livestock' : null,
         isLivestock || isSupplyPurchase ? 'price' : null,
       ]);
     } break;

@@ -684,36 +684,40 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   const numColumns = headers.length;
 
   // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
-  return <div className={cn('-mx_xs', className)}>
-    <div ref={topRef}>
-      {hasMoreTop ? MockComponent : HeaderComponent}
-    </div>
+  return <>
+    {!hasMoreTop && HeaderComponent}
 
-    <div
-      ref={listRef}
-      style={!applyGridToRows && gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
-      className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns)}
-    >
-      <TableList
-        gridLayoutStyle={gridLayoutStyle}
-        applyGridToRows={applyGridToRows}
-        listData={listData}
-        mapListData={mapListData}
-        headers={headers}
-        cellClassNames={cellClassNames}
-        onClickRow={onClickRow}
-      />
-    </div>
+    <div className={cn('-mx_xs', className)}>
+      <div ref={topRef}>
+        {hasMoreTop ? MockComponent : null}
+      </div>
 
-    <div ref={bottomRef}>
-      {hasMoreBottom && MockComponent}
-    </div>
+      <div
+        ref={listRef}
+        style={!applyGridToRows && gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
+        className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns)}
+      >
+        <TableList
+          gridLayoutStyle={gridLayoutStyle}
+          applyGridToRows={applyGridToRows}
+          listData={listData}
+          mapListData={mapListData}
+          headers={headers}
+          cellClassNames={cellClassNames}
+          onClickRow={onClickRow}
+        />
+      </div>
 
-    {!hasMoreBottom && FooterComponent &&
-      <FooterComponent
-        maxFetchLimit={maxFetchLimit}
-        loadedDataSize={referenceObj.current.itemIds!?.length}
-      />
-    }
-  </div>;
+      <div ref={bottomRef}>
+        {hasMoreBottom && MockComponent}
+      </div>
+
+      {!hasMoreBottom && FooterComponent &&
+        <FooterComponent
+          maxFetchLimit={maxFetchLimit}
+          loadedDataSize={referenceObj.current.itemIds!?.length}
+        />
+      }
+    </div>
+  </>;
 }
