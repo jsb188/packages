@@ -208,13 +208,17 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
       'kohlrab',
       'cabbag',
       'parsley',
+      'beoc raab',
       'wasabina',
       'chervil',
       'basil',
       'artichoke',
       'romanesco',
       'zucchini',
+      'zuchini',
+      'midnight light',
       'cilantro',
+      'bennings green',
       'lettuce',
       'escarol',
       'raddish',
@@ -231,11 +235,17 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
       'beet',
       'thaddeus',
       'sunshine kabocha',
+      'yellow star patty',
       'butternut squash',
       'butternutsquash',
       'acorn squash',
       'acornsquash',
+      'delicata squash',
+      'hubbard squash',
+      'hubbard',
+      'red kuri',
       'squash',
+      'cargo pump',
       'pumpkin',
       'cucumber',
       'shiso',
@@ -244,6 +254,19 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
       'di lusia',
       'di lusio',
       'treviso',
+      'scallion',
+      'scalion',
+      'spring onion',
+      'springonion',
+      'onion',
+      'shallot',
+      'wasabi',
+      'lavendar',
+      'lavender',
+      'anise hyssop',
+      'alyssum',
+      'marjoram',
+      'tomato',
 
       // Leave at end for backup
       'marciano',
@@ -258,16 +281,26 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
       'green gem',
       'red gem',
       'starry night',
+      'benning',
       'summar savor',
       'summer savor',
       'summery savor',
       'summary savor',
+      'delicata',
+      'green curl',
+      'red oak',
+      'flower',
+      'yellow tooth',
+      'sage\\b',
+      'sages\\b',
       'flor\\b',
       'gems\\b',
+      'pump\\b',
+      'cruced\\b',
     ];
 
     const regex = new RegExp(`\\b(${produceWords.join('|')})`, 'gi');
-    const match = crop.match(regex);
+    const match = crop.replace('-', ' ').match(regex);
     if (match) {
 
       let matchedWord;
@@ -290,6 +323,7 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
         case 'spretnak':
           return 'vegetable-lettuce-top';
         case 'lettuce':
+        case 'red oak':
         case 'romaine':
         case 'escarol':
         case 'radicchio':
@@ -299,29 +333,49 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
         case 'di lusio':
         case 'treviso':
         case 'thaddeus':
+        case 'cruced':
           return 'vegetable-lettuce';
+        case 'lavendar':
+        case 'lavender':
+        case 'anise hyssop':
+        case 'alyssum':
+          return 'vegetable-lavender';
         case 'basil':
           return 'vegetable-basil';
         case 'chioggia':
         case 'beet':
+        case 'yellow tooth':
           return 'vegetable-beet';
         case 'cauliflow':
         case 'broccoli':
         case 'piracicab':
           return 'vegetable-broccoli';
         case 'pumpkin':
+        case 'pump':
+        case 'cargo pump':
+        case 'bennings green':
+        case 'benning':
           return 'vegetable-pumpkin';
         case 'mesclun':
         case 'spinach':
           return 'vegetable-spinach';
+        case 'tomato':
+          return 'vegetable-tomato'
         case 'sunshine kabocha':
         case 'acorn squash':
         case 'acornsquash':
+        case 'yellow star patty':
           return 'vegetable-acornsquash';
+        case 'delicata':
+        case 'delicata squash':
+          return 'vegetable-delicata-squash'
+        case 'hubbard squash':
+        case 'hubbard':
+        case 'red kuri':
+          return 'vegetable-hubbard-squash';
         case 'shinto':
         case 'cucumber':
           return 'vegetable-cucumber';
-        case 'sunshine kabocha':
         case 'butternut squash':
         case 'butternutsquash':
         case 'butternut':
@@ -339,8 +393,10 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
         case 'puntarelle':
         case 'frisee':
         case 'kale':
+        case 'green curl':
           return 'vegetable-arugula';
         case 'parsley':
+        case 'beoc raab':
         case 'wasabina':
         case 'chervil':
           return 'vegetable-parsley';
@@ -352,6 +408,8 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
         case 'kohlrab':
           return 'vegetable-kohlrabi';
         case 'zucchini':
+        case 'zuchini':
+        case 'midnight light':
           return 'vegetable-zucchini';
         case 'stinging kettle':
         case 'cardoon':
@@ -360,6 +418,17 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
         case 'cresta':
         case 'shiso':
           return 'vegetable-stinging-kettle';
+        case 'sage':
+        case 'marjoram':
+          return 'plant-1'
+        case 'scallion':
+        case 'scalion':
+        case 'spring onion':
+        case 'springonion':
+          return 'vegetable-scallion';
+        case 'onion':
+        case 'shallot':
+          return 'vegetable-onion';
         case 'bean':
         case 'stringbean':
           return 'vegetable-stringbean-1';
@@ -369,14 +438,17 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
         case 'raddish':
         case 'radish':
           return 'vegetable-radish';
+        case 'wasabi':
+          return 'vegetable-wasabi';
+        case 'flower':
+          return 'flower';
         default:
           console.log('Missing switchcase for crop:', crop);
       }
-
     }
-  }
 
-  console.log('No match found for crop:', crop);
+    console.log('No match found for crop:', crop);
+  }
 
   // return 'harvest-product';
   return 'seedling';

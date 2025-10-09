@@ -47,7 +47,7 @@ type RenderItemFn = (
 
 type TableColumnElement = string | ReactSpanElement | React.ReactNode | null;
 
-type MapTableListDataFn = (
+export type MapTableListDataFn = (
   item: VZListItemObj,
   i: number,
   list: VZListItemObj[]
