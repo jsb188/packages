@@ -1,5 +1,12 @@
 export default {
   en: {
+    // Times count
+    weeks_ct: '%{smart_count} week||||%{smart_count} weeks',
+    days_ct: '%{smart_count} day||||%{smart_count} days',
+    hours_ct: '%{smart_count} hour||||%{smart_count} hours',
+    minutes_ct: '%{smart_count} minute||||%{smart_count} minutes',
+    seconds_ct: '%{smart_count} second||||%{smart_count} seconds',
+
     // Ago
     just_now: 'just now',
     in_minutes_ct: 'in %{smart_count} minute||||in %{smart_count} minutes',
