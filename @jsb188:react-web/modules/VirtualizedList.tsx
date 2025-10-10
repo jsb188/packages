@@ -631,13 +631,14 @@ export const TableList = memo((p: {
           className={cellClassNames?.[i]}
           applyGridToRows={applyGridToRows}
         >
-          {isValidElement(cell) ? cell : typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
+          {cell && isValidElement(cell) ? cell : cell &&typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
         </TDCol>;
       };
 
       return <Fragment key={item.item.id}>
         <TRow
-          onClick={() => onClickRow?.(item)}
+          __deleted={rowData.__deleted}
+          onClick={rowData.__deleted ? undefined : () => onClickRow?.(item)}
           applyGridToRows={applyGridToRows}
           gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
         >

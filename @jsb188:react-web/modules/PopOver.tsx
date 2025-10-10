@@ -1,10 +1,11 @@
 import { DOM_IDS } from '@jsb188/app/constants/app';
 import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { usePopOver, useSetPopOverIsHover, useTooltip } from '@jsb188/react/states';
 import type { ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps } from '@jsb188/react/types/PopOver.d';
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { guessTooltipSize, TooltipText } from '../ui/PopOverUI';
-import { PopOverCheckList, PopOverList, PopOverLabelsAndValues } from './PopOver-List';
+import { PopOverCheckList, PopOverLabelsAndValues, PopOverList } from './PopOver-List';
 import PopOverImage from './PopOver-ViewImage';
 
 /**
@@ -20,6 +21,7 @@ interface PopOverButtonProps {
   disabled?: boolean;
   className?: string;
   zClassName?: string;
+  linkClassName?: string;
   activeClassName?: string;
   notActiveClassName?: string;
   animationClassName?: string;
@@ -46,6 +48,7 @@ export function PopOverButton(p: PopOverButtonProps) {
   const { name, variables } = iface;
   const { popOver, openPopOver, closePopOver } = usePopOver();
   const DomEl = p.as || 'div';
+  const linkClassName = p.linkClassName ?? 'link';
 
   const unique = useRef(id || getTimeBasedUnique());
   const el = useRef<HTMLElement>(null);
@@ -110,7 +113,7 @@ export function PopOverButton(p: PopOverButtonProps) {
       className={cn(
         className,
         'ignore_outside_click',
-        disabled ? '' : active ? 'pointer' : 'link',
+        disabled ? '' : active ? 'pointer' : linkClassName,
         active ? (activeClassName || 'active') : notActiveClassName,
       )}
       onClick={disabled ? undefined : onClick}
@@ -120,6 +123,39 @@ export function PopOverButton(p: PopOverButtonProps) {
     </DomEl>
   );
 }
+
+
+/**
+ * Re-usable "more" button for pop over
+ */
+
+function PopOverMoreButton(p: {
+  editOptions: any[];
+  disabled?: boolean;
+}) {
+  const { editOptions, disabled } = p;
+  return <PopOverButton
+    // doNotTrackHover
+    disabled={disabled}
+    className='av av_xxs r v_center'
+    linkClassName='' // This disables double :active state
+    notActiveClassName='bg_active_hv bd_1 bd_invis bd_lt_hv'
+    activeClassName='bg_active bd_1 bd_lt'
+    animationClassName='anim_dropdown_top_right on_mount'
+    // doNotRemoveOnPageEvents
+    iface={{
+      name: 'PO_LIST',
+      variables: {
+        options: editOptions as any[],
+      }
+    }}
+    position='bottom_right'
+    offsetX={0}
+    offsetY={5}
+  >
+    <Icon name='dots' />
+  </PopOverButton>
+};
 
 /**
  * Always render pop over using this wrapper
@@ -655,4 +691,5 @@ export function TooltipModule() {
   );
 }
 
-export { PopOverCheckList, PopOverImage, PopOverList, PopOverLabelsAndValues };
+export { PopOverCheckList, PopOverImage, PopOverLabelsAndValues, PopOverList, PopOverMoreButton };
+

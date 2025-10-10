@@ -31,15 +31,17 @@ export type TableRowProps = {
 
 export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
   thead?: boolean;
+  __deleted?: boolean;
 }) {
-  const { thead, removeBorderLine, applyGridToRows, gridLayoutStyle, className, ...rest } = p;
+  const { thead, removeBorderLine, applyGridToRows, gridLayoutStyle, className, __deleted, ...rest } = p;
   return <div
     className={cn(
       'lh_1',
       applyGridToRows && !removeBorderLine ? 'bd_lt bd_b_1' : '',
       applyGridToRows ? 'grid gap_n' : 'trow',
-      rest.onClick ? 'link bg_primary_hv' : '',
+      !__deleted && rest.onClick ? 'link bg_primary_hv' : '',
       thead ? 'thead ft_medium cl_md' : '',
+      __deleted ? 'op_40' : '',
       className
     )}
     role={rest.onClick ? 'button' : undefined}
@@ -55,27 +57,29 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
 export const TDCol = memo((p: ReactDivElement & {
   applyGridToRows?: boolean;
   flexClassName?: string;
+  placeholderText?: string;
 }) => {
   const { className, flexClassName, applyGridToRows, children, ...rest } = p;
-  console.log('children', children);
+  const placeholderText = p.placeholderText ?? '-';
 
   return <div
     className={cn(
       'tdcol px_xs py_sm min_h_50',
       flexClassName || 'h_item',
       applyGridToRows ? '' : 'bd_lt bd_b_1',
-
+      !children ? 'cl_darker_2' : '',
       className
     )}
     {...rest}
   >
     {children && typeof children !== 'string' ? children
-    : <span className={cn('shift_down ellip')}>
-      {children || '-'}
+    : <span className='shift_down ellip'>
+      {children || placeholderText}
     </span>}
   </div>
 });
 
+TDCol.displayName = 'TDCol';
 
 /**
  * Table header
@@ -120,10 +124,12 @@ export const TDColMain = memo((p: Partial<{
   titleClassName: string;
   iconName: string;
   avatarDisplayName: string;
+  placeholderText?: string;
   labelIcons: LabelsAndIconsItemProps[];
 }>) => {
   const { iconName, avatarDisplayName, title, titleClassName, labelIcons } = p;
   const hasAvatar = !!(iconName || avatarDisplayName);
+  const placeholderText = p.placeholderText ?? '-';
 
   return <span className='h_item'>
     {hasAvatar && (
@@ -141,9 +147,9 @@ export const TDColMain = memo((p: Partial<{
       </AvatarImg>
     )}
 
-    {title && (
-      <span className={cn('ellip shift_down', titleClassName)}>
-        {title}
+    {(title || placeholderText) && (
+      <span className={cn('ellip shift_down', !title && 'cl_darker_2', titleClassName)}>
+        {title || placeholderText}
       </span>
     )}
 
