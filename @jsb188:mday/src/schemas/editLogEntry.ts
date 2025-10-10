@@ -61,6 +61,9 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         livestock: details.livestock,
         livestockIdentifiers: details.livestockIdentifiers,
         livestockGroup: details.livestockGroup,
+        referenceNumber: details.referenceNumber,
+        vendor: details.vendor,
+        values: details.values,
         item: details.item,
         quantity: details.quantity,
         unit: details.unit,
@@ -154,7 +157,9 @@ type ValidMetadataFieldName =
   | 'livestock'
   | 'livestockIdentifiers'
   | 'livestockGroup'
-  | 'item_purchased'
+  | 'vendor'
+  | 'invoiceNumber'
+  | 'invoiceItems'
   | 'item_used'
   | 'location_livestock' // general
   | null;
@@ -336,6 +341,22 @@ function makeMetadataSchema(
             placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
           }
         };
+      case 'vendor':
+        return {
+          __type: 'input',
+          label: i18n.t('log.vendor'),
+          item: {
+            name: `${namespace}.vendor`,
+          }
+        };
+      case 'invoiceNumber':
+        return {
+          __type: 'input',
+          label: i18n.t('log.invoice_number'),
+          item: {
+            name: `${namespace}.referenceNumber`,
+          }
+        };
       case 'receiptNumber':
         return {
           __type: 'input',
@@ -394,6 +415,41 @@ function makeMetadataSchema(
                   name: `${namespace}.voided`,
                   value: true,
                 }]
+              }
+            }
+          }
+        };
+      case 'invoiceItems':
+        return {
+          __type: 'input_click',
+          label: i18n.t('log.invoice_items'),
+          forceClickId: `input_click_${namespace}.values`,
+          item: {
+            // locked: () => true,
+            focused: focusedName === (formId + '_values'),
+            name: `${namespace}.values`,
+            placeholder: isCreateNew ? i18n.t(`log.invoice_items_ph`) : '',
+            getter: (labelsAndValues: string[]) => {
+              return labelsAndValues?.map((lv: any) => {
+                return `${formatCurrency(lv.value, 'en-US', 'USD')} ${lv.label}`;
+              }).join(', ');
+            },
+          },
+          popOverProps: {
+            id: formId + '_invoiceItems',
+            ...basePopOverProps,
+            iface: {
+              name: 'PO_LABELS_AND_VALUES',
+              variables: {
+                gridLayoutStyle: '70px 1fr 85px',
+                designClassName: 'w_400',
+                className: 'max_h_40vh',
+                // flipInputOrder: true,
+                forceNumericValues: true,
+                includeQuantity: true,
+                name: `${namespace}.values`,
+                labels: [i18n.t('form.quantity'), i18n.t('log.invoice_item'), `$ ${i18n.t('form.amount')}`],
+                inputs: formValues[namespace]?.values || [],
               }
             }
           }
@@ -525,12 +581,14 @@ export function makeLogMetadataSchema(
         isLivestock ? 'livestock' : null,
         isLivestock ? 'livestockIdentifiers' : null,
         isLivestock ? 'livestockGroup' : null,
-        isSupplyPurchase ? 'item_purchased' : null,
+        isSupplyPurchase ? 'vendor' : null,
+        isSupplyPurchase ? 'invoiceNumber' : null,
+        isSupplyPurchase ? 'invoiceItems' : null,
         isLandManagement ? 'item_used' : null,
-        isLivestock ? null : 'quantity',
-        isLivestock ? null : 'unit',
+        isLivestock || isSupplyPurchase ? null : 'quantity',
+        isLivestock || isSupplyPurchase ? null : 'unit',
         !isSupplyPurchase ? 'location_livestock' : null,
-        isLivestock || isSupplyPurchase ? 'price' : null,
+        isLivestock ? 'price' : null,
       ]);
     } break;
     default:

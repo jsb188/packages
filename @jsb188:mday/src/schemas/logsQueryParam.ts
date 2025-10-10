@@ -110,7 +110,7 @@ export function convertLogTypesToDigits(
 export function createFilterFromURL(
 	operationType: OrganizationOperationEnum | null,
 	searchQuery: string,
-  otherFiltersObj: Partial<FilterLogEntriesArgs> = {}
+  otherFiltersObj?: Partial<FilterLogEntriesArgs>
 ) {
 	const urlParams = new URLSearchParams(searchQuery);
 

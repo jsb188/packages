@@ -115,10 +115,6 @@ export const LIVESTOCK_ACTIVITY_TO_TEXT = {
 };
 
 export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
-	// SUPPLY_PURCHASE
-	FEED_PURCHASE: 'feed purchase',
-	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase activities',
-
 	// PASTURE_LAND_MANAGEMENT
 	PASTURE_SEEDING: 'pasture seeding',
 	FENCE_MAINTENANCE: 'fence maintenance and buffer management', // buffer zones/buffer management
@@ -126,9 +122,15 @@ export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
 	OTHER_PASTURE_LAND_MANAGEMENT_ACTIVITY: 'other pasture land management related activities',
 };
 
+export const LIVESTOCK_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT = {
+  FEED_PURCHASE: 'feed purchase invoice',
+  OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase invoice',
+};
+
 export const LIVESTOCK_TO_TEXT = {
 	...LIVESTOCK_ACTIVITY_TO_TEXT,
 	...LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT,
+  ...LIVESTOCK_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT,
 };
 
 /**

@@ -131,6 +131,13 @@ export type LogLivestockMetadata = LogMetadataBase & {
 	livestockIdentifiers: string[];
 	livestockGroup?: string;
 	livestock: string;
+  vendor?: string;
+  referenceNumber?: string;
+	values?: {
+		label: string;
+		value: string;
+		quantity?: number;
+	}[];
 	item: string;
 	quantity: number;
 	unit: string;

@@ -390,6 +390,7 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
     footerButtonText,
     flipInputOrder,
     forceNumericValues,
+    includeQuantity,
   } = variables;
 
   const [formValues, setFormValues] = useState(inputs);
@@ -402,12 +403,12 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
     setPopOverState({
       action: 'ITEM',
       name,
-      value: formValues,
+      value: formValues.filter(obj => obj.label || obj.value || (includeQuantity && obj.quantity)),
       doNotClosePopOver: true,
     });
   }, [formValues]);
 
-  const onChangeItem = (name: 'label' | 'value', value_: any, i: number) => {
+  const onChangeItem = (name: 'label' | 'value' | 'quantity', value_: any, i: number) => {
     const updatedValues = [...formValues];
     const value = name === 'value' && forceNumericValues ? String(value_).replace(/[^0-9.-]/g, '') : value_;
     if (i >= 0 && i < updatedValues.length) {
@@ -416,10 +417,19 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
         [name]: value,
       };
     } else if (i >= updatedValues.length) {
-      updatedValues.push({
-        label: name === 'label' ? value : '',
-        value: name === 'value' ? value : '',
-      });
+      if (includeQuantity) {
+        updatedValues.push({
+          label: name === 'label' ? value : '',
+          value: name === 'value' ? value : '',
+          // @ts-expect-error - "quantity" is optional
+          quantity: name === 'quantity' ? Number(value) : '',
+        });
+      } else {
+        updatedValues.push({
+          label: name === 'label' ? value : '',
+          value: name === 'value' ? value : '',
+        });
+      }
     }
     setFormValues(updatedValues);
   };
@@ -446,6 +456,7 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
             maxItems={10}
             gridLayoutStyle={gridLayoutStyle}
             flipInputOrder={flipInputOrder}
+            includeQuantity={includeQuantity}
             labels={labels}
             inputs={formValues}
             onChangeItem={onChangeItem}

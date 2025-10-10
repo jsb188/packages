@@ -41,6 +41,7 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
   values {
     label
     value
+    quantity
   }
 }`;
 
@@ -55,6 +56,14 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
   livestockIdentifiers
   livestockGroup
   damIdentifier
+
+  vendor
+  referenceNumber
+  values {
+    label
+    value
+    quantity
+  }
 
   item
 	quantity

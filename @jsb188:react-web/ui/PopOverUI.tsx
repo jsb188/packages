@@ -322,18 +322,19 @@ PopOverListFooterButton.displayName = 'PopOverListFooterButton';
  */
 
 export function POLabelsAndValues(p: {
-  maxItems?: number;
+  maxItems: number;
   description?: string;
   labels: [string, string][];
-  inputs: { label: string; value: string; }[];
+  inputs: { label: string; value: string; quantity?: number; }[];
   gridLayoutStyle?: string;
   flipInputOrder?: boolean;
-  onChangeItem: (name: 'label' | 'value', value: any, i: number) => void;
+  includeQuantity?: boolean;
+  onChangeItem: (name: 'label' | 'value' | 'quantity', value: any, i: number) => void;
 }) {
-  const { description, labels, inputs, gridLayoutStyle, flipInputOrder, onChangeItem, maxItems } = p;
+  const { description, labels, inputs, gridLayoutStyle, flipInputOrder, includeQuantity, onChangeItem, maxItems } = p;
   const formClassName = 'form_el smaller rel lighter focus_outline';
   const inputClassName = 'bd_lt bd_1 r_sm lh_1';
-  const labelIx = flipInputOrder ? 1 : 0;
+  const inputList: (keyof typeof inputs[0])[] = flipInputOrder ? ['value', 'quantity', 'label'] : ['quantity', 'label', 'value'];
 
   return <>
     {description && (
@@ -342,7 +343,7 @@ export function POLabelsAndValues(p: {
       </p>
     )}
     <div
-      className={cn('grid size_2 gap_5', !description && 'mt_5')}
+      className={cn('grid gap_5', `size_${includeQuantity ? 3 : 2}`, !description && 'mt_5')}
       style={gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
     >
       {labels.map((text, i) => {
@@ -353,33 +354,46 @@ export function POLabelsAndValues(p: {
         </div>;
       })}
 
-      {inputs.map((item, i) => {
-        const { label, value } = item;
-        const arr = flipInputOrder ? [value, label] : [label, value];
-        return arr.map((text, j) => {
-          return <div className={formClassName} key={j}>
+      {[...Array(maxItems)].map((_, i) => {
+        const item = inputs[i];
+        return inputList.map((key, j) => {
+          const aVal = item?.[key] || '';
+
+          return <div
+            key={j}
+            className={cn(!item && i !== inputs.length ? 'hidden' : '', formClassName)}
+          >
             <input
-              type='text'
+              type={key === 'quantity' ? 'number' : 'text'}
               className={inputClassName}
-              value={text}
-              onChange={(e) => onChangeItem(j === labelIx ? 'label' : 'value', e.target.value, i)}
+              value={aVal}
+              onChange={(e) => {
+                let nextValue;
+                if (key === 'quantity') {
+                  nextValue = e.target.value ? Number(e.target.value) : 0;
+                } else {
+                  nextValue = e.target.value;
+                }
+
+                onChangeItem(key, nextValue, i);
+              }}
             />
           </div>;
-        });
+        })
       })}
 
-      {maxItems && inputs.length < maxItems &&
-        (flipInputOrder ? [1, 0] : [0, 1]).map((k) =>
+      {/* {inputs.length < maxItems &&
+        inputList.map((k) =>
           <div className={formClassName} key={`extra_${inputs.length}_${k}`}>
             <input
               type='text'
               className={inputClassName}
               value={''}
-              onChange={(e) => onChangeItem(k === 0 ? 'label' : 'value', e.target.value, inputs.length)}
+              onChange={(e) => onChangeItem(k, e.target.value, inputs.length)}
             />
           </div>
         )
-      }
+      } */}
     </div>
   </>;
 }

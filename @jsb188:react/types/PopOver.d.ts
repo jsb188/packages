@@ -180,10 +180,12 @@ export interface POLabelsAndValuesIface {
     description?: string;
     flipInputOrder?: boolean;
     forceNumericValues?: boolean;
+    includeQuantity?: boolean;
     labels: [string, string][];
     inputs: {
       label: string;
       value: string;
+      quantity?: number;
     }[];
   }
 }
