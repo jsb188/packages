@@ -63,6 +63,8 @@ export default {
     select_file: 'Select file',
     tasks: 'Tasks',
     name: 'Name',
+    item: 'Item',
+    purchase_summary: 'Purchase summary',
     amount: 'Amount',
     address: 'Address',
     information: 'Information',

@@ -225,3 +225,18 @@ export function convertToMilitaryTime(time: number | string): string {
   const timeString = String(time).padStart(4, '0');
   return `${timeString.slice(0, 2)}:${timeString.slice(2)}`;
 }
+
+/**
+ * Calculate totals from LabelAndValueObj[]
+ */
+
+export function calculateTotalAmount(values: any[]) {
+  return (values || []).reduce((acc, obj) => {
+    // NOTE: obj.value is the total, so obj.quantity can be ignored
+    const val = parseFloat(obj?.value);
+    if (!isNaN(val)) {
+      return acc + val;
+    }
+    return acc;
+  }, 0);
+}

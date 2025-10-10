@@ -204,10 +204,10 @@ export function getTodayStartOfDay(timeZone?: string | null) {
 }
 
 /**
- * Get timezone enforced date
+ * Get timezone enforced calendar date
  * @param d - Date to convert
  * @param timeZone - Timezone to enforce
- * @returns Date - Enforced date in the specified timezone
+ * @returns Date - Enforced calendar date in the specified timezone
  */
 
 export function getCalDate(d: Date, timeZone_?: string | null) {
@@ -229,6 +229,31 @@ export function getCalDate(d: Date, timeZone_?: string | null) {
 		calDateInt,
 		time,
 	};
+}
+
+/**
+ * Get timezone enforced calendar date; but month-day first
+ * @param d - Date to convert
+ * @param timeZone - Timezone to enforce
+ * @returns Date - Enforced calendar date in the specified timezone
+ */
+
+export function getReadableCalDate(d: Date, timeZone?: string | null) {
+  if (!d || isNaN(d.getTime())) {
+    return null;
+  }
+
+	let dt = DateTime.fromJSDate(d, { zone: timeZone || undefined });
+	// If timezone is invalid, fallback to system/local
+	if (!dt.isValid) {
+		dt = DateTime.fromJSDate(d); // system default zone
+	}
+
+	if (!dt.isValid) {
+    return null;
+  }
+
+	return dt.toFormat('MM/dd/yyyy');
 }
 
 /**

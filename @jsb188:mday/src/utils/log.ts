@@ -191,7 +191,7 @@ export function getTextFormatLog(log: LogEntryDataObj) {
  * @returns The icon name or a default icon if no match is found
  */
 
-export function getIconNameFromCrops(crop: string | null | undefined): string {
+export function getIconNameForArable(crop: string | null | undefined): string {
   if (crop) {
     // return 'seedling';
     const produceWords = [
@@ -452,4 +452,45 @@ export function getIconNameFromCrops(crop: string | null | undefined): string {
 
   // return 'harvest-product';
   return 'seedling';
+}
+
+/**
+ * Get the icon name for livestock using regex
+ * @param purchasedItem - The name of the purchased item
+ * @returns The icon name or a default icon if no match is found
+ */
+
+export function getIconNameForLivestock(purchasedItem: string | null | undefined, defaultIcon: string = 'oat-2'): string {
+  if (purchasedItem) {
+    // return 'seedling';
+    const produceWords = [
+      'hay\\b',
+    ];
+
+    const regex = new RegExp(`\\b(${produceWords.join('|')})`, 'gi');
+    const match = purchasedItem.replace('-', ' ').match(regex);
+    if (match) {
+
+      let matchedWord;
+      if (match.length === 1) {
+        matchedWord = match[0].toLowerCase();
+      } else {
+        // If multiple matches, choose the first match from produce words
+        const lcMatch = match.map(m => m.toLowerCase());
+        matchedWord = produceWords.find(word => lcMatch.includes(word));
+      }
+
+      switch (matchedWord) {
+        case 'hay':
+          return 'farming-hay';
+        default:
+          console.log('Missing switchcase for crop:', purchasedItem);
+      }
+    }
+
+    console.log('No match found for crop:', purchasedItem);
+  }
+
+  // return 'harvest-product';
+  return defaultIcon;
 }

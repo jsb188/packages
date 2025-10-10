@@ -57,16 +57,22 @@ export const TDCol = memo((p: ReactDivElement & {
   flexClassName?: string;
 }) => {
   const { className, flexClassName, applyGridToRows, children, ...rest } = p;
+  console.log('children', children);
+
   return <div
     className={cn(
       'tdcol px_xs py_sm min_h_50',
       flexClassName || 'h_item',
       applyGridToRows ? '' : 'bd_lt bd_b_1',
+
       className
     )}
     {...rest}
   >
-    {typeof children === 'string' ? <span className='shift_down ellip'>{children}</span> : children}
+    {children && typeof children !== 'string' ? children
+    : <span className={cn('shift_down ellip')}>
+      {children || '-'}
+    </span>}
   </div>
 });
 

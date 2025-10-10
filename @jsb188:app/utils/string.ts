@@ -420,3 +420,14 @@ export function splitTextIntoChunks(text: string, chunkSize: number, linebreakDi
 
   return chunks;
 }
+
+/**
+ * Format reference number
+ */
+
+export function formatReferenceNumber(idStr: string) {
+  if (idStr && /^\d+$/.test(idStr)) {
+    return '#' + idStr;
+  }
+  return idStr;
+}
