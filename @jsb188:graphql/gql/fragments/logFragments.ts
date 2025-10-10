@@ -69,6 +69,7 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
 	quantity
 	unit
   price
+  tax
   location
   notes
 }`;

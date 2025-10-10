@@ -181,9 +181,9 @@ export function formatCurrency(
 	currency: string = 'USD',
 ): string {
 	const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (!num && num !== 0) {
-    return '';
-  }
+	if (!num && num !== 0) {
+		return '';
+	}
 
 	if (isNaN(num)) {
 		return '$0';
@@ -203,18 +203,18 @@ export function formatCurrency(
  */
 
 export function kFormat(
-  num: string | number,
-  locale: string = 'en-US',
+	num: string | number,
+	locale: string = 'en-US',
 ): string {
-  const number = typeof num === 'string' ? parseFloat(num) : num;
-  if (isNaN(number)) {
-    return String(num);
-  }
+	const number = typeof num === 'string' ? parseFloat(num) : num;
+	if (isNaN(number)) {
+		return String(num);
+	}
 
-  return number.toLocaleString(locale, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+	return number.toLocaleString(locale, {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0,
+	});
 }
 
 /**
@@ -222,21 +222,21 @@ export function kFormat(
  */
 
 export function convertToMilitaryTime(time: number | string): string {
-  const timeString = String(time).padStart(4, '0');
-  return `${timeString.slice(0, 2)}:${timeString.slice(2)}`;
+	const timeString = String(time).padStart(4, '0');
+	return `${timeString.slice(0, 2)}:${timeString.slice(2)}`;
 }
 
 /**
  * Calculate totals from LabelAndValueObj[]
  */
 
-export function calculateTotalAmount(values: any[]) {
-  return (values || []).reduce((acc, obj) => {
-    // NOTE: obj.value is the total, so obj.quantity can be ignored
-    const val = parseFloat(obj?.value);
-    if (!isNaN(val)) {
-      return acc + val;
-    }
-    return acc;
-  }, 0);
+export function calculateTotalAmount(values: any[], tax: number = 0): number {
+	return (values || []).reduce((acc, obj) => {
+		// NOTE: obj.value is the total, so obj.quantity can be ignored
+		const val = parseFloat(obj?.value);
+		if (!isNaN(val)) {
+			return acc + val;
+		}
+		return acc;
+	}, tax || 0);
 }

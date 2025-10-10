@@ -69,6 +69,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         unit: details.unit,
         location: details.location,
         price: details.price,
+        tax: details.tax,
         notes: details.notes,
       };
     } break;
@@ -119,7 +120,7 @@ export function formatFormValuesForMutation(formValues: Record<string, any>) {
     if (formValues[key] && typeof formValues[key] === 'object') {
 
       for (const subKey in formValues[key]) {
-        if (['quantity','price','concentration'].includes(subKey)) {
+        if (['quantity','price','tax','concentration'].includes(subKey)) {
           formValues[key][subKey] = parseFloat(formValues[key][subKey]);
         }
       }
@@ -160,6 +161,7 @@ type ValidMetadataFieldName =
   | 'vendor'
   | 'invoiceNumber'
   | 'invoiceItems'
+  | 'tax'
   | 'item_used'
   | 'location_livestock' // general
   | null;
@@ -300,7 +302,20 @@ function makeMetadataSchema(
             step: 0.1,
             min: 0.1,
             max: 99999999.99, // database max is numeric(10, 2)
-            placeholder: isCreateNew ? i18n.t('log.price_arable_ph') : '',
+            placeholder: isCreateNew ? i18n.t('form.price_ph') : '',
+          },
+        };
+      case 'tax':
+        return {
+          __type: 'input',
+          label: i18n.t('form.tax'),
+          item: {
+            name: `${namespace}.tax`,
+            type: 'number',
+            step: 0.1,
+            min: 0.1,
+            max: 99999999.99, // database max is numeric(10, 2)
+            placeholder: isCreateNew ? i18n.t('form.tax_ph') : '',
           },
         };
       case 'crop':
@@ -584,6 +599,7 @@ export function makeLogMetadataSchema(
         isSupplyPurchase ? 'vendor' : null,
         isSupplyPurchase ? 'invoiceNumber' : null,
         isSupplyPurchase ? 'invoiceItems' : null,
+        isSupplyPurchase ? 'tax' : null,
         isLandManagement ? 'item_used' : null,
         isLivestock || isSupplyPurchase ? null : 'quantity',
         isLivestock || isSupplyPurchase ? null : 'unit',

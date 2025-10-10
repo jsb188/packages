@@ -143,6 +143,7 @@ export type LogLivestockMetadata = LogMetadataBase & {
 	unit: string;
   location: string;
 	price: number;
+	tax: number;
 };
 
 export interface LogLivestockObj {
