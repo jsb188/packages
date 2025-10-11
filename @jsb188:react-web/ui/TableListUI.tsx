@@ -1,10 +1,11 @@
+import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
 import { memo } from 'react';
 import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
-import { AvatarImg } from './Avatar';
 import { useWaitForClientRender } from '../utils/dom';
+import { AvatarImg } from './Avatar';
 
 /**
  * Types
@@ -124,6 +125,7 @@ THead.displayName = 'THead';
  */
 
 export const TDColMain = memo((p: Partial<{
+  __deleted: boolean;
   title: string;
   titleClassName: string;
   iconName: string;
@@ -131,9 +133,14 @@ export const TDColMain = memo((p: Partial<{
   placeholderText?: string;
   labelIcons: LabelsAndIconsItemProps[];
 }>) => {
-  const { iconName, avatarDisplayName, title, titleClassName, labelIcons } = p;
+  const { __deleted, iconName, avatarDisplayName, titleClassName, labelIcons } = p;
   const hasAvatar = !!(iconName || avatarDisplayName);
   const placeholderText = p.placeholderText ?? '-';
+
+  let title = p.title;
+  if (__deleted) {
+    title = i18n.t('form.deleted');
+  }
 
   return <span className='h_item'>
     {hasAvatar && (
@@ -158,7 +165,7 @@ export const TDColMain = memo((p: Partial<{
     )}
 
     {labelIcons && (
-      <span className={cn('f_shrink h_item gap_1', hasAvatar || title ? 'ml_10' : undefined)}>
+      <span className={cn('f_shrink h_item gap_1', hasAvatar || title || placeholderText ? 'ml_10' : undefined)}>
         <LabelsAndIcons
           items={labelIcons}
         />

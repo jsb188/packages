@@ -2107,6 +2107,16 @@ export const VegetableCabbage = <svg xmlns="http://www.w3.org/2000/svg" classNam
 <path d="M12,9.8c.9-2.6,3.6-3.4,5.7-3.6-1.9-3.2-5.9-4.2-9.1-2.4-1,.6-1.8,1.4-2.4,2.4,2.1.2,4.8,1,5.7,3.6Z"/>
 </svg>;
 
+export const VegetableCarrot = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-carrot" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M19,10.6c-.5-1.3-1.3-2.4-2.3-3.3-.9-1-2-1.8-3.3-2.3-1.3-.5-2.8.2-3.4,1.4,0,0-6,9.4-8.2,13.9-.3.7,0,1.5.7,1.8.4.2.8.2,1.2,0,4.5-2.2,13.9-8.2,13.9-8.2,1.3-.6,1.9-2.1,1.4-3.4Z"/>
+<path d="M16.7,7.3l2.9-2.9"/>
+<path d="M18,8.7l4.3-.7"/>
+<path d="M15.3,6l.7-4.3"/>
+<path d="M10,6.4l3.3,3.3"/>
+<path d="M4.8,14.9l2.6,2.6"/>
+<path d="M10.9,13.1l3.1,3.1"/>
+</svg>;
+
 export const VegetableCilantro = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-cilantro" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M12,1.8c1.8,0,2.3,2.3,2.3,2.3,0,0,2.3-.5,2.3,1.4,0,3.2-4.5,5.5-4.5,5.5,0,0-4.5-2.3-4.5-5.5s2.3-1.4,2.3-1.4c0,0,.5-2.3,2.3-2.3Z"/>
 <path d="M12,10.9v11.4"/>
@@ -2182,6 +2192,21 @@ export const VegetableLettuce = <svg xmlns="http://www.w3.org/2000/svg" classNam
 <path d="M1.9,16.9c.2,1.3.8,2.6,1.7,3.5,2.3,2.3,6.1,2.3,8.4,0,2.3-2.3,10.6-10.5,8.9-12.1-7.4-1.5-13.2,3.2-10.5,6.7-3,3.2-5.3,2.9-8.5,1.9Z"/>
 <path d="M16.2,8.2c.5-1.2,1-4.3-.1-5.4-1.6-1.6-10.3,6.9-12.5,9.2-1.3,1.3-1.9,3.1-1.7,5"/>
 <path d="M16.1,2.8l1.3-.6c1.9-1,4.1.2,4.1.2,0,0,1.3,2.3.2,4.1l-.8,1.7"/>
+</svg>;
+
+export const VegetableOkra = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-okra" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20.8,8.4l-.3-3,1.3-1.3-2.7-2.7-1.3,1.3-3-.3-1.3,1.3,6,6s1.3-1.3,1.3-1.3Z"/>
+<path d="M16.4,6.7c-2.8,3.2-5.9,6.1-9.4,8.7"/>
+<path d="M13.6,3.9c-.9.6-1.7,1.4-2.5,2.2C3.1,14.1,1.1,19.4,1.4,19.7c.2.2,3.3.3,7.6-1.8"/>
+<path d="M12.2,14.1l5.2-2.8,5.2,2.8v5.7l-5.2,2.8-5.2-2.8v-5.7Z"/>
+<path d="M15,17.3c-.2,0-.4-.2-.4-.4s.2-.4.4-.4"/>
+<path d="M15,17.3c.2,0,.4-.2.4-.4s-.2-.4-.4-.4"/>
+<path d="M17.4,15c-.2,0-.4-.2-.4-.4s.2-.4.4-.4"/>
+<path d="M17.4,15c.2,0,.4-.2.4-.4s-.2-.4-.4-.4"/>
+<path d="M17.4,19.7c-.2,0-.4-.2-.4-.4s.2-.4.4-.4"/>
+<path d="M17.4,19.7c.2,0,.4-.2.4-.4s-.2-.4-.4-.4"/>
+<path d="M19.8,17.3c-.2,0-.4-.2-.4-.4s.2-.4.4-.4"/>
+<path d="M19.8,17.3c.2,0,.4-.2.4-.4s-.2-.4-.4-.4"/>
 </svg>;
 
 export const VegetableOnion = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-onion" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">

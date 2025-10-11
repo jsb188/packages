@@ -185,121 +185,129 @@ export function getTextFormatLog(log: LogEntryDataObj) {
 	return (title + '\n\n' + (notes + '')).trim();
 }
 
+const PRODUCE_WORDS = [
+  'little gem',
+  'lil gem',
+  'romaine',
+  'cauliflow',
+  'broccoli',
+  'piracicab',
+  'mesclun',
+  'spinach',
+  'mustard green',
+  'arugula',
+  'kale',
+  'kohlrab',
+  'cabbag',
+  'parsley',
+  'beoc raab',
+  'wasabina',
+  'chervil',
+  'basil',
+  'artichoke',
+  'romanesco',
+  'zucchini',
+  'zuchini',
+  'carrot',
+  'midnight light',
+  'cilantro',
+  'bennings green',
+  'lettuce',
+  'escarol',
+  'raddish',
+  'radish',
+  'bean',
+  'stringbean',
+  'stinging kettle',
+  'radicchio',
+  'braci ardenti',
+  'braci adenti',
+  'chicory',
+  'puntarelle',
+  'chioggia',
+  'beet',
+  'thaddeus',
+  'sunshine kabocha',
+  'yellow star patty',
+  'butternut squash',
+  'butternutsquash',
+  'acorn squash',
+  'acornsquash',
+  'delicata squash',
+  'hubbard squash',
+  'hubbard',
+  'red kuri',
+  'squash',
+  'cargo pump',
+  'pumpkin',
+  'cucumber',
+  'shiso',
+  'shinto',
+  'thyme',
+  'di lusia',
+  'di lusio',
+  'treviso',
+  'scallion',
+  'scalion',
+  'spring onion',
+  'springonion',
+  'onion',
+  'shallot',
+  'wasabi',
+  'lavendar',
+  'lavender',
+  'anise hyssop',
+  'alyssum',
+  'marjoram',
+  'tomato',
+
+  // Leave at end for backup
+  'marciano',
+  'spretnak',
+  'red butter',
+  'frisee',
+  'cresta',
+  'cardoon',
+  'cynara cardunculus',
+  'cardunculus',
+  'butternut',
+  'green gem',
+  'red gem',
+  'starry night',
+  'benning',
+  'summar savor',
+  'summer savor',
+  'summery savor',
+  'summary savor',
+  'delicata',
+  'matador',
+  'green curl',
+  'red oak',
+  'flower',
+  'yellow tooth',
+  'sage\\b',
+  'sages\\b',
+  'okra',
+  'flor\\b',
+  'gems\\b',
+  'pump\\b',
+  'cruced\\b',
+  'star\\b',
+  'stars\\b',
+  'seed',
+];
+
 /**
  * Get the icon name from crop name by using regex
  * @param crop - The name of the crop
+ * @param note - Additional note that may contain crop type
+ * @param defaultIcon - The default icon to return if no match is found
  * @returns The icon name or a default icon if no match is found
  */
 
-export function getIconNameForArable(crop: string | null | undefined): string {
+export function getIconNameForArable(crop?: string | undefined, note?: string | null): string {
   if (crop) {
-    // return 'seedling';
-    const produceWords = [
-      'little gem',
-      'lil gem',
-      'romaine',
-      'cauliflow',
-      'broccoli',
-      'piracicab',
-      'mesclun',
-      'spinach',
-      'arugula',
-      'kale',
-      'kohlrab',
-      'cabbag',
-      'parsley',
-      'beoc raab',
-      'wasabina',
-      'chervil',
-      'basil',
-      'artichoke',
-      'romanesco',
-      'zucchini',
-      'zuchini',
-      'midnight light',
-      'cilantro',
-      'bennings green',
-      'lettuce',
-      'escarol',
-      'raddish',
-      'radish',
-      'bean',
-      'stringbean',
-      'stinging kettle',
-      'radicchio',
-      'braci ardenti',
-      'braci adenti',
-      'chicory',
-      'puntarelle',
-      'chioggia',
-      'beet',
-      'thaddeus',
-      'sunshine kabocha',
-      'yellow star patty',
-      'butternut squash',
-      'butternutsquash',
-      'acorn squash',
-      'acornsquash',
-      'delicata squash',
-      'hubbard squash',
-      'hubbard',
-      'red kuri',
-      'squash',
-      'cargo pump',
-      'pumpkin',
-      'cucumber',
-      'shiso',
-      'shinto',
-      'thyme',
-      'di lusia',
-      'di lusio',
-      'treviso',
-      'scallion',
-      'scalion',
-      'spring onion',
-      'springonion',
-      'onion',
-      'shallot',
-      'wasabi',
-      'lavendar',
-      'lavender',
-      'anise hyssop',
-      'alyssum',
-      'marjoram',
-      'tomato',
-
-      // Leave at end for backup
-      'marciano',
-      'spretnak',
-      'red butter',
-      'frisee',
-      'cresta',
-      'cardoon',
-      'cynara cardunculus',
-      'cardunculus',
-      'butternut',
-      'green gem',
-      'red gem',
-      'starry night',
-      'benning',
-      'summar savor',
-      'summer savor',
-      'summery savor',
-      'summary savor',
-      'delicata',
-      'green curl',
-      'red oak',
-      'flower',
-      'yellow tooth',
-      'sage\\b',
-      'sages\\b',
-      'flor\\b',
-      'gems\\b',
-      'pump\\b',
-      'cruced\\b',
-    ];
-
-    const regex = new RegExp(`\\b(${produceWords.join('|')})`, 'gi');
+    const regex = new RegExp(`\\b(${PRODUCE_WORDS.join('|')})`, 'gi');
     const match = crop.replace('-', ' ').match(regex);
     if (match) {
 
@@ -309,7 +317,7 @@ export function getIconNameForArable(crop: string | null | undefined): string {
       } else {
         // If multiple matches, choose the first match from produce words
         const lcMatch = match.map(m => m.toLowerCase());
-        matchedWord = produceWords.find(word => lcMatch.includes(word));
+        matchedWord = PRODUCE_WORDS.find(word => lcMatch.includes(word));
       }
 
       switch (matchedWord) {
@@ -358,6 +366,7 @@ export function getIconNameForArable(crop: string | null | undefined): string {
           return 'vegetable-pumpkin';
         case 'mesclun':
         case 'spinach':
+        case 'mustard green':
           return 'vegetable-spinach';
         case 'tomato':
           return 'vegetable-tomato'
@@ -400,8 +409,12 @@ export function getIconNameForArable(crop: string | null | undefined): string {
         case 'wasabina':
         case 'chervil':
           return 'vegetable-parsley';
+        case 'carrot':
+          return 'vegetable-carrot';
         case 'artichoke':
         case 'romanesco':
+        case 'star':
+        case 'stars':
           return 'vegetable-artichoke';
         case 'cabbag':
           return 'vegetable-cabbage';
@@ -418,6 +431,8 @@ export function getIconNameForArable(crop: string | null | undefined): string {
         case 'cresta':
         case 'shiso':
           return 'vegetable-stinging-kettle';
+        case 'okra':
+          return 'vegetable-okra';
         case 'sage':
         case 'marjoram':
           return 'plant-1'
@@ -426,8 +441,11 @@ export function getIconNameForArable(crop: string | null | undefined): string {
         case 'spring onion':
         case 'springonion':
           return 'vegetable-scallion';
+        case 'seed':
+          return 'gardening-seed-bag';
         case 'onion':
         case 'shallot':
+        case 'matador':
           return 'vegetable-onion';
         case 'bean':
         case 'stringbean':
@@ -447,7 +465,11 @@ export function getIconNameForArable(crop: string | null | undefined): string {
       }
     }
 
-    console.log('No match found for crop:', crop);
+    // console.log('No match found for crop:', crop);
+  }
+
+  if (note) {
+    return getIconNameForArable(note);
   }
 
   // return 'harvest-product';
@@ -457,17 +479,23 @@ export function getIconNameForArable(crop: string | null | undefined): string {
 /**
  * Get the icon name for livestock using regex
  * @param purchasedItem - The name of the purchased item
+ * @param note - Additional note that may contain livestock type
+ * @param defaultIcon - The default icon to return if no match is found
  * @returns The icon name or a default icon if no match is found
  */
 
-export function getIconNameForLivestock(purchasedItem: string | null | undefined, defaultIcon: string = 'oat-2'): string {
+export function getIconNameForLivestock(
+  purchasedItem?: string | null,
+  note?: string | null,
+  defaultIcon?: string
+): string {
   if (purchasedItem) {
     // return 'seedling';
-    const produceWords = [
+    const LIVESTOCK_WORDS = [
       'hay\\b',
     ];
 
-    const regex = new RegExp(`\\b(${produceWords.join('|')})`, 'gi');
+    const regex = new RegExp(`\\b(${LIVESTOCK_WORDS.join('|')})`, 'gi');
     const match = purchasedItem.replace('-', ' ').match(regex);
     if (match) {
 
@@ -477,7 +505,7 @@ export function getIconNameForLivestock(purchasedItem: string | null | undefined
       } else {
         // If multiple matches, choose the first match from produce words
         const lcMatch = match.map(m => m.toLowerCase());
-        matchedWord = produceWords.find(word => lcMatch.includes(word));
+        matchedWord = LIVESTOCK_WORDS.find(word => lcMatch.includes(word));
       }
 
       switch (matchedWord) {
@@ -491,6 +519,10 @@ export function getIconNameForLivestock(purchasedItem: string | null | undefined
     console.log('No match found for crop:', purchasedItem);
   }
 
+  if (note) {
+    return getIconNameForLivestock(note, null, defaultIcon);
+  }
+
   // return 'harvest-product';
-  return defaultIcon;
+  return defaultIcon || 'oat-2';
 }

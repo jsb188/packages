@@ -14,9 +14,6 @@ export const WATER_TESTING_ACTIVITY_TO_TEXT = {
  */
 
 export const ARABLE_FARMING_ACTIVITY_TO_TEXT = {
-	// # Seed purchase activities
-	SEED_PURCHASE_INFO: 'seed purchase invoice',
-	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase invoice',
 
 	// # Seeding & transplanting activities
 	SEEDING: 'seeding crops',
@@ -55,8 +52,16 @@ export const ARABLE_FARMING_ACTIVITY_TO_TEXT = {
 	OTHER_SALES_ACTIVITY: 'other sales related activities',
 };
 
+export const ARABLE_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT = {
+
+	// # Seed purchase activities
+	SEED_PURCHASE_INFO: 'seed purchase',
+	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase',
+};
+
 export const ARABLE_ACTIVITIES_TO_TEXT = {
 	COLD_STORAGE_TEMPERATURE: 'checking or changing temperature (cold storage)',
+  ...ARABLE_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT,
 	...ARABLE_FARMING_ACTIVITY_TO_TEXT,
 	...WATER_TESTING_ACTIVITY_TO_TEXT,
 };
@@ -88,20 +93,21 @@ export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {
  */
 
 export const LIVESTOCK_ACTIVITY_TO_TEXT = {
-	// LIVESTOCK_LIFE_CYCLE
+
+	// # Livestock life cycle
 	LIVESTOCK_PURCHASE: 'livestock purchase',
 	LIVESTOCK_BIRTH: 'livestock birth',
 	LIVESTOCK_REPRODUCTION: 'livestock reproduction',
 	LIVESTOCK_DEATH: 'livestock death',
 	OTHER_LIVESTOCK_LIFE_CYCLE_ACTIVITY: 'other livestock life cycle related activities',
 
-	// LIVESTOCK_TRACKING
+	// # Livestock tracking
 	LIVESTOCK_GROUP_TRACKING: 'livestock group tracking/movement based on age or other criteria',
 	LIVESTOCK_PASTURE_TRACKING: 'livestock pasture tracking/movement', // where they are in pasture
 	LIVESTOCK_ROTATIONAL_GRAZING: 'livestock rotational grazing/movement',
 	OTHER_LIVESTOCK_TRACKING_ACTIVITY: 'other livestock tracking related activities',
 
-	// LIVESTOCK_HEALTHCARE
+	// # Livestock healthcare
 	LIVESTOCK_VACCINATION: 'livestock vaccination',
 	LIVESTOCK_SICK: 'livestock sickness',
 	LIVESTOCK_INJURY: 'livestock injury',
@@ -109,13 +115,14 @@ export const LIVESTOCK_ACTIVITY_TO_TEXT = {
 	LIVESTOCK_TREATMENT: 'livestock treatment and recovery',
 	OTHER_LIVESTOCK_HEALTHCARE_ACTIVITY: 'other livestock healthcare related activities',
 
-	// LIVESTOCK_SALE
+	// # Livestock sale
 	LIVESTOCK_SALE: 'livestock sale',
 	OTHER_LIVESTOCK_SALE_ACTIVITY: 'other sales activities',
 };
 
 export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
-	// PASTURE_LAND_MANAGEMENT
+
+  // # Ranch management activities
 	PASTURE_SEEDING: 'pasture seeding',
 	FENCE_MAINTENANCE: 'fence maintenance and buffer management', // buffer zones/buffer management
 	WATER_SOURCE_MAINTENANCE: 'water source maintenance',
@@ -123,8 +130,10 @@ export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
 };
 
 export const LIVESTOCK_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT = {
-	FEED_PURCHASE: 'feed purchase invoice',
-	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase invoice',
+
+  // # Supply purchases
+	FEED_PURCHASE: 'feed purchase',
+	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase',
 };
 
 export const LIVESTOCK_TO_TEXT = {
