@@ -67,8 +67,6 @@ export function useReactiveProductFragment(productId: string, currentData?: any,
       `$productFragment:${productId}`,
     ],
     queryCount,
-    // Using the otherCheck() function is the only way I could keep sticker updates reactive
-    // (_, updatedKeys) => updatedKeys.find((k) => typeof k === 'string' && k.startsWith('$chatStickerFragment:')),
   );
 }
 

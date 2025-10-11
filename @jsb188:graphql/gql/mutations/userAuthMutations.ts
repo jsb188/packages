@@ -6,18 +6,6 @@ mutation signOut {
 }
 `;
 
-export const updateAppSettingsMtn = gql`
-mutation updateAppSettings (
-  $stickySection: StickySection
-) {
-  updateAppSettings (
-    stickySection: $stickySection
-  ) {
-    stickySection
-  }
-}
-`;
-
 export const consumeTokenMtn = gql`
 mutation consumeToken (
   $token: Token!

@@ -83,7 +83,7 @@ export const CondensedArticleItem = memo((p: {
     case 'card':
       addDivSeparator = false;
       linkHoverClassName = 'bg_lighter_hv_4';
-      xPaddingClassName = 'px_xs -mx_xs';
+      xPaddingClassName = 'px_sm -mx_sm';
       yPaddingClassName = 'py_xs';
       break;
     case 'default_spaced':
@@ -252,24 +252,43 @@ export function CondensedArticleItemMock(p: {
 }
 
 /**
- * Artile card container
+ * Article card container
  */
 
 export function ArticleCard(p: {
   className?: string;
   title?: string;
+  TitleComponent?: React.ReactNode;
+  titleStyle?: React.CSSProperties;
+  titleClassName?: string;
+  contentClassName?: string;
+  designClassName?: string;
   children?: React.ReactNode;
 }) {
-  const { title, children, className } = p;
+  const { title, TitleComponent, children, designClassName, className, titleClassName, titleStyle, contentClassName } = p;
 
-  return <div className={cn('bg_alt r_df', className)}>
-    {title && (
-      <div className='py_xs px_xs rt_df bg_active'>
-        {title}
+  return <div className={cn('r_smw', designClassName ?? 'bg_alt', className)}>
+    {(title || TitleComponent) && (
+      <div className={cn('py_9 px_sm rt_smw', titleClassName ?? 'bg_active')} style={titleStyle}>
+        {TitleComponent || title}
       </div>
     )}
-    <div className='p_xs'>
+    <div className={contentClassName ?? 'pt_4 pb_sm px_sm'}>
       {children}
     </div>
+  </div>;
+}
+
+/**
+ * Article card labels
+ */
+
+export function ArticleCardLabels(p: {
+  children?: React.ReactNode;
+}) {
+  const { children } = p;
+
+  return <div className='pattern_texture secondary_bf rel'>
+    {children}
   </div>;
 }

@@ -40,7 +40,7 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
       applyGridToRows && !removeBorderLine ? 'bd_lt bd_b_1' : '',
       applyGridToRows ? 'grid gap_n' : 'trow',
       !__deleted && rest.onClick ? 'link bg_primary_hv' : '',
-      thead ? 'thead ft_medium cl_md' : '',
+      thead ? 'thead' : '',
       __deleted ? 'op_40' : '',
       className
     )}
@@ -55,16 +55,18 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
  */
 
 export const TDCol = memo((p: ReactDivElement & {
+  removeHorizontalPadding?: boolean;
   applyGridToRows?: boolean;
   flexClassName?: string;
   placeholderText?: string;
 }) => {
-  const { className, flexClassName, applyGridToRows, children, ...rest } = p;
+  const { className, flexClassName, applyGridToRows, removeHorizontalPadding, children, ...rest } = p;
   const placeholderText = p.placeholderText ?? '-';
 
   return <div
     className={cn(
-      'tdcol px_xs py_sm min_h_50',
+      'tdcol py_sm min_h_50',
+      !removeHorizontalPadding && 'px_xs',
       flexClassName || 'h_item',
       applyGridToRows ? '' : 'bd_lt bd_b_1',
       !children ? 'cl_darker_2' : '',
@@ -86,10 +88,11 @@ TDCol.displayName = 'TDCol';
  */
 
 export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
+  removeHorizontalPadding?: boolean;
   cellClassNames?: (string | undefined)[];
   headers: TableHeaderObj[];
 }) => {
-  const { removeBorderLine, applyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
+  const { removeHorizontalPadding, removeBorderLine, applyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
   return <TRow
     className={className}
     removeBorderLine={removeBorderLine}
@@ -100,6 +103,7 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
     {headers.map(({iconName, text, mock, className, ...rest}, i) => (
       <TDCol
         key={i}
+        removeHorizontalPadding={removeHorizontalPadding}
         applyGridToRows={applyGridToRows}
         className={cn('ft_medium cl_md', cellClassNames?.[i], className)}
         {...rest}

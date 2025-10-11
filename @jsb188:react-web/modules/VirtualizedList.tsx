@@ -605,15 +605,17 @@ export function VirtualizedList(p: VirtualizedListProps) {
 export const TableList = memo((p: {
   gridLayoutStyle?: string;
   cellClassNames?: (string | undefined)[];
+  removeHorizontalPadding?: boolean;
   applyGridToRows?: boolean;
   headers: TableHeaderObj[];
   listData: VZListItemObj[] | null;
   mapListData: MapTableListDataFn;
   onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any) => void;
 }) => {
-  const { gridLayoutStyle, headers, listData, mapListData, cellClassNames, applyGridToRows, onClickRow } = p;
+  const { gridLayoutStyle, headers, listData, mapListData, cellClassNames, applyGridToRows, removeHorizontalPadding, onClickRow } = p;
   return <>
     <THead
+      removeHorizontalPadding={removeHorizontalPadding}
       applyGridToRows={applyGridToRows}
       gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
       headers={headers}

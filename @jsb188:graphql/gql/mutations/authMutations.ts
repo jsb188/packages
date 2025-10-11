@@ -128,22 +128,6 @@ mutation confirmPhoneVerificationCode (
   }
 }`;
 
-export const sendEmailVerificationMtn = gql`
-mutation sendEmailVerification (
-  $userId: UserID!
-  $email: String!
-) {
-  sendEmailVerification (
-    userId: $userId
-    email: $email
-  ) {
-    token
-    userId
-    username
-    emailAddress
-  }
-}`;
-
 export const signUpWithEmailMtn = gql`
 mutation signUpWithEmail (
   $emailAddress: String!

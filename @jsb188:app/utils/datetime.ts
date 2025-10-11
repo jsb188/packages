@@ -534,11 +534,27 @@ export function getFullDate(
 			// Expected output: "Sep 1" (or "Sep 1, 2025" if not current year)
       const dateYear = d.getFullYear();
       const currentYear = new Date().getFullYear();
+
+      // This will crash because "medium" style with "numeric" year is not allowed
+      // return new Intl.DateTimeFormat(locales, {
+			// 	dateStyle: 'medium',
+      //   year: dateYear === currentYear ? undefined : 'numeric',
+			// 	timeZone: timeZone || undefined, // null is not allowed, it will throw error
+			// }).format(d);
+
+      if (dateYear === currentYear) {
+        return new Intl.DateTimeFormat(locales, {
+          year: undefined,
+          month: 'short',
+          day: 'numeric',
+          timeZone: timeZone || undefined, // null is not allowed, it will throw error
+        }).format(d);
+      }
+
       return new Intl.DateTimeFormat(locales, {
-				dateStyle: 'medium',
-        year: dateYear === currentYear ? undefined : 'numeric',
-				timeZone: timeZone || undefined, // null is not allowed, it will throw error
-			}).format(d);
+        dateStyle: 'medium',
+        timeZone: timeZone || undefined, // null is not allowed, it will throw error
+      }).format(d);
     }
 		case 'DATE_TEXT':
 			// Expected output: "September 1, 2024"
