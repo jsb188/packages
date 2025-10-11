@@ -1,6 +1,7 @@
 import i18n from '@jsb188/app/i18n';
 import { getCalDate } from '@jsb188/app/utils/datetime';
 import { formatCurrency } from '@jsb188/app/utils/number';
+import { buildSingleText, joinReadable, textWithBrackets } from '@jsb188/app/utils/string';
 import { getObject } from '@jsb188/app/utils/object';
 import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log';
@@ -39,6 +40,9 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         concentration: details.concentration,
         concentrationUnit: details.concentrationUnit,
         location: details.location,
+        referenceNumber: details.referenceNumber,
+        vendor: details.vendor,
+        values: details.values,
         price: details.price,
         notes: details.notes,
       };
@@ -446,7 +450,10 @@ function makeMetadataSchema(
             placeholder: isCreateNew ? i18n.t(`log.invoice_items_ph`) : '',
             getter: (labelsAndValues: string[]) => {
               return labelsAndValues?.map((lv: any) => {
-                return `${formatCurrency(lv.value, 'en-US', 'USD')} ${lv.label}`;
+                return textWithBrackets(
+                  `${lv.quantity ? `${lv.quantity} ` : ''}${lv.label}`,
+                  formatCurrency(lv.value, 'en-US', 'USD'),
+                );
               }).join(', ');
             },
           },
@@ -559,18 +566,23 @@ export function makeLogMetadataSchema(
   switch (__typename) {
     case 'LogArable': {
       const isWaterTesting = logType === 'WATER';
-      const isPriceRelated = ['SALES', 'SEED'].includes(logType!);
+      const isSales = ['SALES'].includes(logType!);
+      const isPurchase = ['SEED'].includes(logType!);
 
       activitiesList = ARABLE_ACTIVITIES_GROUPED;
       schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, [
         'activity',
         isWaterTesting ? 'concentration' : null,
         isWaterTesting ? 'concentration_unit' : null,
-        isWaterTesting ? 'water_quantity' : 'quantity',
-        isWaterTesting ? 'water_unit' : 'unit',
-        isPriceRelated ? 'price' : null,
+        isWaterTesting ? 'water_quantity' : isPurchase ? null : 'quantity',
+        isWaterTesting ? 'water_unit' : isPurchase ? null : 'unit',
         isWaterTesting ? null : 'crop',
-        isPriceRelated ? null : isWaterTesting ? 'location_water' : 'location_arable',
+        isPurchase ? 'vendor' : null,
+        isPurchase ? 'invoiceNumber' : null,
+        isPurchase ? 'invoiceItems' : null,
+        isPurchase ? 'tax' : null,
+        isSales && !isPurchase ? 'price' : null,
+        isSales || isPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
       ]);
     } break;
     case 'LogFarmersMarket': {

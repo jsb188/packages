@@ -21,6 +21,16 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   quantity
   unit
   location
+
+  vendor
+  referenceNumber
+  values {
+    label
+    value
+    quantity
+  }
+  tax
+
   price
   notes
 }`;
@@ -64,12 +74,12 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
     value
     quantity
   }
+  tax
 
   item
 	quantity
 	unit
   price
-  tax
   location
   notes
 }`;

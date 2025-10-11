@@ -12,8 +12,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 		'SEED',
 		[
 			'SEED_PURCHASE_INFO',
-			'SEED_COMPLIANCE_NOTE',
-			'OTHER_SEED_ACTIVITY',
+			'OTHER_SUPPLY_PURCHASE_ACTIVITY',
 		],
 	],
 	[
@@ -22,6 +21,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'SEEDING',
 			'DIRECT_SEEDING',
 			'TRANSPLANTING',
+			'SEED_COMPLIANCE_NOTE',
 			'OTHER_TRANSPLANT_ACTIVITY',
 		],
 	],
@@ -80,7 +80,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 export const LOG_ARABLE_TYPE_ENUMS = ARABLE_ACTIVITIES_GROUPED.map(([type]) => type);
 
 export const ARABLE_TYPES_TO_TEXT = {
-	SEED: 'seed purchases',
+	SEED: 'seed & supply purchases',
 	PLANTING: 'seeding, transplanting activities',
 	FIELD: 'field activities',
 	HARVEST: 'harvest activities',

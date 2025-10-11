@@ -59,6 +59,12 @@ interface LogMetadataBase {
   referenceNumber: never;
 }
 
+interface LabelValueObj {
+  label: string;
+  value: string;
+  quantity?: number;
+}
+
 /**
  * Log details - Arable
  */
@@ -70,7 +76,11 @@ export type LogArableMetadata = LogMetadataBase & {
 	concentration: number;
 	concentrationUnit: string;
   location: string;
+  vendor?: string;
+  referenceNumber?: string;
+	values?: LabelValueObj[];
 	price: number;
+	tax: number;
 };
 
 export interface LogArableObj {
@@ -97,10 +107,7 @@ export type LogFarmersMarketMetadata = LogMetadataBase & {
   referenceNumber: string;
 	voided: boolean;
 	childOrgId: string | number;
-	values: {
-		label: string;
-		value: string;
-	}[];
+	values: LabelValueObj[];
 };
 
 export interface LogFarmersMarketObj {
@@ -133,11 +140,7 @@ export type LogLivestockMetadata = LogMetadataBase & {
 	livestock: string;
   vendor?: string;
   referenceNumber?: string;
-	values?: {
-		label: string;
-		value: string;
-		quantity?: number;
-	}[];
+	values?: LabelValueObj[];
 	item: string;
 	quantity: number;
 	unit: string;

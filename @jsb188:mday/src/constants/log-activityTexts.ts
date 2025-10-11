@@ -15,14 +15,14 @@ export const WATER_TESTING_ACTIVITY_TO_TEXT = {
 
 export const ARABLE_FARMING_ACTIVITY_TO_TEXT = {
 	// # Seed purchase activities
-	SEED_PURCHASE_INFO: 'seed purchase information',
-	SEED_COMPLIANCE_NOTE: 'seed compliance notes',
-	OTHER_SEED_ACTIVITY: 'other seed purchase related activities',
+	SEED_PURCHASE_INFO: 'seed purchase invoice',
+	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase invoice',
 
 	// # Seeding & transplanting activities
 	SEEDING: 'seeding crops',
 	DIRECT_SEEDING: 'direct seeding crops',
 	TRANSPLANTING: 'transplanting crops',
+	SEED_COMPLIANCE_NOTE: 'seed compliance notes',
 	OTHER_TRANSPLANT_ACTIVITY: 'other seeding or transplanting activities',
 
 	// # Field activities
@@ -123,14 +123,14 @@ export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
 };
 
 export const LIVESTOCK_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT = {
-  FEED_PURCHASE: 'feed purchase invoice',
-  OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase invoice',
+	FEED_PURCHASE: 'feed purchase invoice',
+	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase invoice',
 };
 
 export const LIVESTOCK_TO_TEXT = {
 	...LIVESTOCK_ACTIVITY_TO_TEXT,
 	...LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT,
-  ...LIVESTOCK_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT,
+	...LIVESTOCK_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT,
 };
 
 /**

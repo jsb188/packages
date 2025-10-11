@@ -365,6 +365,7 @@ export function POLabelsAndValues(p: {
           >
             <input
               type={key === 'quantity' ? 'number' : 'text'}
+              min={key === 'quantity' ? 0 : undefined}
               className={inputClassName}
               value={aVal}
               onChange={(e) => {
@@ -377,6 +378,7 @@ export function POLabelsAndValues(p: {
 
                 onChangeItem(key, nextValue, i);
               }}
+              onBlur={key === 'quantity' && Number(aVal) < 0 ? () => onChangeItem(key, '', i) : undefined}
             />
           </div>;
         })

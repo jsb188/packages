@@ -278,17 +278,3 @@ export function ArticleCard(p: {
     </div>
   </div>;
 }
-
-/**
- * Article card labels
- */
-
-export function ArticleCardLabels(p: {
-  children?: React.ReactNode;
-}) {
-  const { children } = p;
-
-  return <div className='pattern_texture secondary_bf rel'>
-    {children}
-  </div>;
-}
