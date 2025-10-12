@@ -592,6 +592,7 @@ export function useQuery(
   // but only the first query is used for tracking reactivity.
   const queryName = query.definitions?.[0]?.name?.value;
   const queryKey = `#${queryName}:${variablesKey}`;
+  const [queryOutput, setQueryOutput] = useState({ queryKey, data: null });
 
   const tracker = useRef({
     unique: null as string | null,
@@ -827,17 +828,27 @@ export function useQuery(
     return result;
   }, [doQuery]);
 
+  const queryData = loadDataFromCache(
+    qryValues.data,
+    query,
+    variablesKey,
+    cacheMap,
+    eagerFragmentKeyMap,
+  );
+
+  useEffect(() => {
+    // This makes queryKey and data always in sync
+    setQueryOutput({
+      queryKey,
+      data: queryData,
+    });
+  }, [queryData[queryName]]);
+
   return {
     ...qryValues,
-    data: loadDataFromCache(
-      qryValues.data,
-      query,
-      variablesKey,
-      cacheMap,
-      eagerFragmentKeyMap,
-    ),
+    data: queryOutput.data || queryData,
     queryName,
-    queryKey,
+    queryKey: queryOutput.queryKey,
     variablesKey,
     refetch,
     fetchMore,

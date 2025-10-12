@@ -1,5 +1,5 @@
-import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { OPERATION_ENUMS } from '@jsb188/app/constants/organization';
+import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';
@@ -61,7 +61,7 @@ export function convertDigitsToLogTypes(
 		return null;
 	}
 
-	const logTypes = LOG_TYPES_BY_OPERATION[operationType];
+	const logTypes = LOG_TYPES_BY_OPERATION[operationType] as LogTypeEnum[];
 	if (!logTypes) {
 		console.warn(`No log types found for operation type: ${operationType}`);
 		return null;
@@ -91,7 +91,7 @@ export function convertLogTypesToDigits(
 		return null;
 	}
 
-	const logTypes = LOG_TYPES_BY_OPERATION[operationType];
+	const logTypes = LOG_TYPES_BY_OPERATION[operationType] as LogTypeEnum[];
 	if (!logTypes) {
 		console.warn(`No log types found for operation type: ${operationType}`);
 		return null;
@@ -113,8 +113,23 @@ export function convertLogTypesToDigits(
 export function createFilterFromURL(
 	operationType: OrganizationOperationEnum | null,
 	searchQuery: string,
-  otherFiltersObj?: Partial<FilterLogEntriesArgs>
+  otherFiltersObj?: {
+    withoutPreset?: Partial<FilterLogEntriesArgs>,
+    withPreset?: Partial<FilterLogEntriesArgs>
+  }
 ) {
+  if (!searchQuery && otherFiltersObj?.withPreset) {
+    return {
+      operation: operationType!,
+      ...otherFiltersObj.withPreset
+    };
+  } else if (searchQuery === '?preset=none' && otherFiltersObj?.withoutPreset) {
+    return {
+      operation: operationType!,
+      ...otherFiltersObj.withoutPreset
+    };
+  }
+
 	const urlParams = new URLSearchParams(searchQuery);
 
 	let startDate = urlParams.get('sd');
@@ -143,7 +158,7 @@ export function createFilterFromURL(
 		endDate,
 		timeZone: indexToTimeZone(urlParams.get('z')),
 		query: urlParams.get('q') || '',
-    ...otherFiltersObj,
+    ...otherFiltersObj?.withoutPreset,
 	};
 
 	const validation = FilterLogEntriesSchema.safeParse(filter);
@@ -166,12 +181,12 @@ export function searchQueryIsValid(
 ) {
   if (!filter) {
     return !searchQuery; // If no filter, searchQuery must be empty to be valid
-  } else if (!searchQuery) {
+  } else if (!searchQuery || searchQuery === '?preset=none') {
     return true; // If no searchQuery, any filter is valid
   }
 
   const urlParams = new URLSearchParams(searchQuery);
-  const operation = urlParams.get('o');
+  // const operation = urlParams.get('o');
   const types = urlParams.get('t');
   const accountId = urlParams.get('a');
   const startDate = urlParams.get('sd');
@@ -180,7 +195,8 @@ export function searchQueryIsValid(
   const query = urlParams.get('q');
 
   return (
-    !!filter.operation === !!operation &&
+    // operation is allowed to pass through
+    // !!filter.operation === !!operation &&
     !!filter.types?.length === !!types &&
     !!filter.accountId === !!accountId &&
     !!filter.startDate === !!startDate &&
@@ -311,6 +327,9 @@ export function createSearchParamsFromFilter(filter: FilterLogEntriesArgs, skipO
 	if (filter.query) {
 		params.set('q', filter.query);
 	}
+  if (!params.size && filter.preset === null) {
+    params.set('preset', 'none');
+  }
 
 	return params;
 }

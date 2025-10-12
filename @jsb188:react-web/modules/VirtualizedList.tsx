@@ -6,7 +6,7 @@ import { loadFragment } from '@jsb188/graphql/cache';
 import type { TableHeaderObj } from '@jsb188/react-web/ui/TableListUI';
 import { TDCol, THead, TRow } from '@jsb188/react-web/ui/TableListUI';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
-import { Fragment, isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactDivElement, ReactSpanElement } from '../types/dom.d';
 
 /**
@@ -122,7 +122,7 @@ interface VirtualizedListProps extends ReactDivElement {
   rootElementQuery?: string; // Scrollable DOM element where the list is contained
 }
 
-type VirtualizedListOmit = Omit<VirtualizedListProps, 'renderItem' | 'groupItems'>;
+type VirtualizedListOmit = Omit<VirtualizedListProps, 'renderItem' | 'groupItems' | 'HeaderComponent'>;
 
 /**
  * Static list container with same class name
@@ -292,6 +292,13 @@ function repositionList(
   }
 
   globalThis?.requestAnimationFrame(() => {
+    if (itemDomId) {
+      console.dev('Scrolling into view: ' + itemDomId);
+    } else {
+      console.dev('Could not scroll into view! Unless this was intentional, this is a bug and probably will cause an unintentional scrol to top!');
+      console.dev('To fix this, add a proper DOM ID (id="..") prop to the entire list item Component.');
+    }
+
     itemElement.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
     itemElement.scrollTop = topOffset;
   });
@@ -329,6 +336,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
     if (itemIds && limit > 0) {
       let viewing: string[];
       if (cursorPosition === null || cursorPosition[0] === null) {
+        // console.log(':::::1', itemIds.length, '||', cursorPosition, limit);
         viewing = itemIds.slice(0, limit);
       } else {
         let cursorIndex = itemIds.indexOf(cursorPosition[0]);
@@ -342,6 +350,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
 
         const start = Math.max(0, cursorIndex - limit);
         const end = Math.min(itemIds.length, cursorIndex + limit);
+        // console.log(':::::2', itemIds.length, '||', cursorIndex, limit, cursorPosition, start, end);
         viewing = itemIds.slice(start, end);
 
         if (process.env.NODE_ENV === 'development') {
@@ -384,15 +393,22 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
   useEffect(() => {
     // Need this for development purposes
     referenceObj.current.mounted = true;
+    // console.dev('Mounted VZ List!');
+
     return () => {
       referenceObj.current.mounted = false;
+      // console.dev('Unmounted VZ List!');
     };
   }, []);
 
   const { startOfListItemId } = referenceObj.current;
   const isTopOfList = startOfListItemId ? startOfListItemId === listData?.[0]?.item?.id : false;
   const hasMoreTop = !!cursorPosition?.[0] && !!itemIds && !!listData && limit <= itemIds.length && itemIds[0] !== listData[0]?.item?.id;
-  const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? limit <= listData.length : false;
+  // NOTE: Natural bottom limit is limit * 2 because of listData viewing area doubles the limit
+  const naturalBottomLimit = (itemIds?.length || 0) > limit ? limit * 2 : limit;
+  const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? naturalBottomLimit <= listData.length : false;
+  // console.log('naturalBottomLimit:', naturalBottomLimit, 'listData:', listData?.length, '??', itemIds?.length);
+  // console.log('hasMoreBottom:', hasMoreBottom, '||', isTopOfList, '||', (!maxFetchLimit || maxFetchLimit >= itemIds!?.length), '>>', limit, listData?.length);
 
   return {
     cursorPosition,
@@ -410,12 +426,22 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
 
 function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzState: VirtualizedState) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
-  const { startOfListItems, limit, fetchMore, openModalPopUp } = p;
+  const { limit, fetchMore, openModalPopUp } = p;
   const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const listRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [startOfListItems, setStartOfListItems] = useState<any[]>(p.startOfListItems || null);
   const eolLen = startOfListItems.length;
+
+  useEffect(() => {
+    if (!startOfListItems && p.startOfListItems) {
+      // startOfListItems[] is the initial snapshot of data when the Virtualized List is loaded.
+      // Sometimes, startOfListItems[] changes even though its never suppose to change.
+      // This fixes that.
+      setStartOfListItems(p.startOfListItems);
+    }
+  }, [p.startOfListItems]);
 
   // fetchMore() logic for infinite scroll
 
@@ -484,6 +510,13 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
       scrollToTop(rootElementQuery, true);
     }
   }, [!!listData, rootElementQuery]);
+
+  // useEffect(() => {
+  //   console.log('MOUNTED YO!!!!')
+  //   return () => {
+  //     console.log('UNMOUNTED YO!!!!')
+  //   }
+  // }, []);
 
   // On new list item appended
 
@@ -628,7 +661,7 @@ const TableListItem = (p: TableListProps & {
     </TDCol>;
   };
 
-  return <Fragment key={item.item.id}>
+  return <div id={`tlist_item_${item.item.id}`} key={item.item.id}>
     {rowData.RowHeaderComponent}
 
     {rowData.rowHeaders && (
@@ -663,7 +696,7 @@ const TableListItem = (p: TableListProps & {
         </TRow>;
       })}
     </div>
-  </Fragment>;
+  </div>;
 };
 
 TableListItem.displayName = 'TableListItem';
@@ -751,7 +784,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   // Use this to map list data to table row cells data
   mapListData: MapTableListDataFn;
 }) {
-  const { HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, doNotApplyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
+  const { FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, doNotApplyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
   const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
@@ -763,8 +796,6 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
 
   // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
   return <>
-    {!hasMoreTop && HeaderComponent}
-
     <div className={cn('-mx_xs', className)}>
       <div ref={topRef}>
         {hasMoreTop ? MockComponent : null}

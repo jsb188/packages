@@ -139,7 +139,7 @@ export function timeoutPromise<T>(
  */
 
 export function makeVariablesKey(
-  variables: Record<string, any>,
+  variables: Record<string, any> | null | undefined,
   doNotLowerCaseCacheKey?: boolean,
 ): string {
   if (variables) {
