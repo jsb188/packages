@@ -133,7 +133,8 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
     to={to}
     onClick={onClick}
   >
-    <div className='h_item px_sm py_2 ic_df lh_3'>
+    {/* <div className='h_item px_sm py_2 ic_df lh_3'> */}
+    <div className='h_item px_sm pt_3 pb_2 ic_df lh_2'>
       {iconName && <div className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
         <Icon name={iconName} />
       </div>}

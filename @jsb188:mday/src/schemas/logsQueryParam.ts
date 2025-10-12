@@ -11,6 +11,9 @@ import type { FilterLogEntriesArgs, LogTypeEnum } from '../types/log.d';
  */
 
 export const FilterLogEntriesSchema = z.object({
+  preset: z.string()
+    .optional()
+    .nullable(),
 	types: z.array(z.enum(LOG_TYPE_ENUMS as [string]))
 		.nullable(),
   activities: z.array(z.enum(LOG_ANY_ACTIVITY_ENUMS as [string]))
@@ -145,11 +148,46 @@ export function createFilterFromURL(
 
 	const validation = FilterLogEntriesSchema.safeParse(filter);
 	if (!validation.success) {
+    // console.log('validation error', validation.error);
 		// Return null and force the client to go to a valid page
 		return null;
 	}
 
 	return filter;
+}
+
+/**
+ * Test if URL search query is valid against actual filter object
+ */
+
+export function searchQueryIsValid(
+  searchQuery: string,
+  filter: FilterLogEntriesArgs | null
+) {
+  if (!filter) {
+    return !searchQuery; // If no filter, searchQuery must be empty to be valid
+  } else if (!searchQuery) {
+    return true; // If no searchQuery, any filter is valid
+  }
+
+  const urlParams = new URLSearchParams(searchQuery);
+  const operation = urlParams.get('o');
+  const types = urlParams.get('t');
+  const accountId = urlParams.get('a');
+  const startDate = urlParams.get('sd');
+  const endDate = urlParams.get('ed');
+  const timeZone = urlParams.get('z');
+  const query = urlParams.get('q');
+
+  return (
+    !!filter.operation === !!operation &&
+    !!filter.types?.length === !!types &&
+    !!filter.accountId === !!accountId &&
+    !!filter.startDate === !!startDate &&
+    !!filter.endDate === !!endDate &&
+    !!filter.timeZone === !!timeZone &&
+    !!filter.query === !!query
+  );
 }
 
 /**
@@ -239,14 +277,15 @@ export function createLogsFileNameFromURL(
 /**
  * Create URL search params from a filter object
  * @param filter - The filter object to convert to URL search params
+ * @param skipOperation - Whether to skip including the operation in the params
  * @returns URLSearchParams - The search params object
  */
 
-export function createSearchParamsFromFilter(filter: FilterLogEntriesArgs): URLSearchParams {
+export function createSearchParamsFromFilter(filter: FilterLogEntriesArgs, skipOperation?: boolean): URLSearchParams {
 	const params = new URLSearchParams();
 	const { operation } = filter;
 
-	if (operation) {
+	if (operation && !skipOperation) {
 		params.set('o', String(OPERATION_ENUMS.indexOf(operation) + 1));
 	}
 

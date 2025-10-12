@@ -56,7 +56,7 @@ export type MapTableListDataFn = (
 ) => {
   __deleted: boolean;
   RowHeaderComponent?: React.ReactNode;
-  rowHeaders?: TableHeaderObj[];
+  rowHeaders?: Partial<TableHeaderObj>[] | null;
   columns: TableColumnElement[];
   // This will create another list of rows below the main row
   subRows?: {
@@ -694,7 +694,7 @@ interface TableListProps {
   cellClassNames?: (string | undefined)[];
   removeHorizontalPadding?: boolean;
   doNotApplyGridToRows?: boolean;
-  headers?: TableHeaderObj[];
+  headers?: Partial<TableHeaderObj>[];
   listData: VZListItemObj[] | null;
   mapListData: MapTableListDataFn;
   onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any) => void;
@@ -747,7 +747,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   doNotApplyGridToRows?: boolean;
   gridLayoutStyle?: string;
   cellClassNames?: (string | undefined)[];
-  headers?: TableHeaderObj[];
+  headers?: Partial<TableHeaderObj>[];
   // Use this to map list data to table row cells data
   mapListData: MapTableListDataFn;
 }) {
@@ -756,6 +756,10 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
   const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
   const numColumns = headers?.length || 1;
+
+  // useEffect(() => {
+  //   console.log('MOUNTED VirtualizedTableList');
+  // }, []);
 
   // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
   return <>

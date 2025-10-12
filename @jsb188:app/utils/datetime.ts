@@ -62,7 +62,7 @@ function getWeeksDiff(date1: Date, date2: Date) {
  */
 
 function getMonthsDiff(date1: Date, date2: Date) {
-	return (date2.getFullYear() - date1.getFullYear()) * 12 + (date2.getMonth() - date1.getMonth());
+	return (date1.getFullYear() - date2.getFullYear()) * 12 + (date1.getMonth() - date2.getMonth());
 }
 
 /**
@@ -71,7 +71,6 @@ function getMonthsDiff(date1: Date, date2: Date) {
 
 export function getWeeksMonthAgo(d1: Date, d2: Date, weeksThresh = 12): string {
 	const diffWeeks = getWeeksDiff(d2, d1);
-
   if (diffWeeks <= weeksThresh) {
 		return i18n.t('datetime.weeks_ago_ct', { smart_count: diffWeeks });
 	}
@@ -356,10 +355,13 @@ export function updateDate(
  * Convert Int cal date to String YYYY-MM-DD format
  */
 
-export function convertIntToCalDate(calDateInt: number | string, delimiter: string = '-'): string {
+export function convertIntToCalDate(calDateInt: number | string, delimiter: string = '-', yearsFirst: boolean = true): string {
 	const value = String(calDateInt);
 	if (value.length === 8) {
-		return `${value.slice(0, 4)}${delimiter}${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}`;
+    if (yearsFirst) {
+      return `${value.slice(0, 4)}${delimiter}${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}`;
+    }
+    return `${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}${delimiter}${value.slice(0, 4)}`;
 	}
 	// If not 8 digits, return as is
 	return value;

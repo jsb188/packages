@@ -29,7 +29,7 @@ export function getDefaultLogEntriesFilter(operation: FilterLogEntriesArgs['oper
 
 export function useLogEntries(
   variables: PaginationArgs & {
-    organizationId: string;
+    organizationId?: string | null;
     accountId?: string;
     timeZone: string | null;
     filter: FilterLogEntriesArgs;

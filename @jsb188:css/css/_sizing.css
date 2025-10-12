@@ -749,6 +749,26 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .-mb_5 { margin-bottom: -5px; }
 .-ml_5 { margin-left: -5px; }
 
+.-mt_6 { margin-top: -6px; }
+.-mr_6 { margin-right: -6px; }
+.-mb_6 { margin-bottom: -6px; }
+.-ml_6 { margin-left: -6px; }
+
+.-mt_7 { margin-top: -7px; }
+.-mr_7 { margin-right: -7px; }
+.-mb_7 { margin-bottom: -7px; }
+.-ml_7 { margin-left: -7px; }
+
+.-mt_8 { margin-top: -8px; }
+.-mr_8 { margin-right: -8px; }
+.-mb_8 { margin-bottom: -8px; }
+.-ml_8 { margin-left: -8px; }
+
+.-mt_9 { margin-top: -9px; }
+.-mr_9 { margin-right: -9px; }
+.-mb_9 { margin-bottom: -9px; }
+.-ml_9 { margin-left: -9px; }
+
 .-mt_10 { margin-top: -10px; }
 .-mr_10 { margin-right: -10px; }
 .-mb_10 { margin-bottom: -10px; }
