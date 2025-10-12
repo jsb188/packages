@@ -180,6 +180,8 @@ export type LogMetadataGQL = LogArableMetadataGQL | LogFarmersMarketMetadataGQL 
  */
 
 export interface LogEntryGQL {
+  __deleted?: boolean;
+
 	id: string;
 	accountId: string;
 	organizationId: string;

@@ -22,7 +22,7 @@ export type TableHeaderObj = Partial<{
 
 export type TableRowProps = {
   removeBorderLine: boolean;
-  applyGridToRows: boolean;
+  doNotApplyGridToRows: boolean;
   gridLayoutStyle: string;
 };
 
@@ -34,19 +34,19 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
   thead?: boolean;
   __deleted?: boolean;
 }) {
-  const { thead, removeBorderLine, applyGridToRows, gridLayoutStyle, className, __deleted, ...rest } = p;
+  const { thead, removeBorderLine, doNotApplyGridToRows, gridLayoutStyle, className, __deleted, ...rest } = p;
   return <div
     className={cn(
       'lh_1',
-      applyGridToRows && !removeBorderLine ? 'bd_lt bd_b_1' : '',
-      applyGridToRows ? 'grid gap_n' : 'trow',
+      !doNotApplyGridToRows && !removeBorderLine ? 'bd_lt bd_t_1' : '',
+      !doNotApplyGridToRows ? 'grid gap_n' : 'trow',
       !__deleted && rest.onClick ? 'link bg_primary_hv' : '',
       thead ? 'thead' : '',
       __deleted ? 'op_40' : '',
       className
     )}
     role={rest.onClick ? 'button' : undefined}
-    style={applyGridToRows ? { gridTemplateColumns: gridLayoutStyle } : undefined}
+    style={!doNotApplyGridToRows ? { gridTemplateColumns: gridLayoutStyle } : undefined}
     {...rest}
   />;
 }
@@ -57,11 +57,11 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
 
 export const TDCol = memo((p: ReactDivElement & {
   removeHorizontalPadding?: boolean;
-  applyGridToRows?: boolean;
+  doNotApplyGridToRows?: boolean;
   flexClassName?: string;
   placeholderText?: string;
 }) => {
-  const { className, flexClassName, applyGridToRows, removeHorizontalPadding, children, ...rest } = p;
+  const { className, flexClassName, doNotApplyGridToRows, removeHorizontalPadding, children, ...rest } = p;
   const placeholderText = p.placeholderText ?? '-';
 
   return <div
@@ -69,7 +69,7 @@ export const TDCol = memo((p: ReactDivElement & {
       'tdcol py_sm min_h_50',
       !removeHorizontalPadding && 'px_xs',
       flexClassName || 'h_item',
-      applyGridToRows ? '' : 'bd_lt bd_b_1',
+      doNotApplyGridToRows ? 'bd_lt bd_t_1' : '',
       !children ? 'cl_darker_2' : '',
       className
     )}
@@ -93,19 +93,19 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
   cellClassNames?: (string | undefined)[];
   headers: TableHeaderObj[];
 }) => {
-  const { removeHorizontalPadding, removeBorderLine, applyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
+  const { removeHorizontalPadding, removeBorderLine, doNotApplyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
   return <TRow
     className={className}
-    removeBorderLine={removeBorderLine}
-    applyGridToRows={applyGridToRows}
-    gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
+    removeBorderLine
+    doNotApplyGridToRows={doNotApplyGridToRows}
+    gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
     thead
   >
     {headers.map(({iconName, text, mock, className, ...rest}, i) => (
       <TDCol
         key={i}
         removeHorizontalPadding={removeHorizontalPadding}
-        applyGridToRows={applyGridToRows}
+        doNotApplyGridToRows={doNotApplyGridToRows}
         className={cn('ft_medium cl_md', cellClassNames?.[i], className)}
         {...rest}
       >
@@ -189,17 +189,15 @@ export function TableListItemMock(p: Partial<TableRowProps> & {
 
   return <TRow
     {...rest}
-    applyGridToRows
   >
     {[...Array(colCount)].map((_, colIx) => (
       <TDCol
         key={colIx}
         // className={cellClassNames?.[i]}
-        applyGridToRows
       >
         {
         colIx
-        ? <span className='mock alt' style={{width: (100 - modulus * colIx) + '%'}}>
+        ? <span className='mock alt min_w_20' style={{width: (100 - modulus * colIx) + '%'}}>
           ....
         </span>
         : <>

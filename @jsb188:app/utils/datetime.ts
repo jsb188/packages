@@ -50,7 +50,40 @@ function getDaysDiff(date1: Date, date2: Date) {
 }
 
 /**
+ * Get difference in weeks
+ */
+
+function getWeeksDiff(date1: Date, date2: Date) {
+	return Math.floor(getDaysDiff(date1, date2) / 7);
+}
+
+/**
+ * Get difference in months
+ */
+
+function getMonthsDiff(date1: Date, date2: Date) {
+	return (date2.getFullYear() - date1.getFullYear()) * 12 + (date2.getMonth() - date1.getMonth());
+}
+
+/**
  * Get date period from date
+ */
+
+export function getWeeksMonthAgo(d1: Date, d2: Date, weeksThresh = 12): string {
+	const diffWeeks = getWeeksDiff(d2, d1);
+
+  if (diffWeeks <= weeksThresh) {
+		return i18n.t('datetime.weeks_ago_ct', { smart_count: diffWeeks });
+	}
+
+  const diffMonths = getMonthsDiff(d2, d1);
+  return i18n.t('datetime.months_ago_ct', { smart_count: diffMonths });
+}
+
+/**
+ * Get date period from date
+ * @param d1 - Date to check
+ * @param d2 - Reference date (usually current date)
  */
 
 export function getDatePeriod(d1: Date, d2: Date): DatePeriodEnum {
@@ -384,6 +417,8 @@ export function isFutureCalDate(
 
 /**
  * Convert date time "time" ago
+ * @param d_ - Date to convert
+ * @param params - Optional parameters for time ago conversion
  */
 
 export function getTimeAgo(

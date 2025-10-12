@@ -40,6 +40,8 @@ export interface ActionObj {
  */
 
 export interface ActionGQL {
+  __deleted: boolean;
+
 	id: string;
 	referenceNumber: string;
 	actionFor: string;

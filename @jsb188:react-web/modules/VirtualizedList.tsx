@@ -45,6 +45,8 @@ type RenderItemFn = (
   (item: VZListItemObj, i: number, list: VZListItemObj[]) => React.ReactNode
 );
 
+export type ReactiveFragmentFn = (id: string, node: any) => any;
+
 type TableColumnElement = string | ReactSpanElement | React.ReactNode | null;
 
 export type MapTableListDataFn = (
@@ -52,6 +54,9 @@ export type MapTableListDataFn = (
   i: number,
   list: VZListItemObj[]
 ) => {
+  __deleted: boolean;
+  RowHeaderComponent?: React.ReactNode;
+  rowHeaders?: TableHeaderObj[];
   columns: TableColumnElement[];
   // This will create another list of rows below the main row
   subRows?: {
@@ -599,68 +604,133 @@ export function VirtualizedList(p: VirtualizedListProps) {
 }
 
 /**
- * Upcoming events table list
+ * Table list item
  */
 
-export const TableList = memo((p: {
+const TableListItem = (p: TableListProps & {
+  item: VZListItemObj;
+  i: number;
+  list: VZListItemObj[];
+}) => {
+  const { item, i, list, gridLayoutStyle, mapListData, cellClassNames, doNotApplyGridToRows, removeHorizontalPadding, onClickRow } = p;
+  const rowData = mapListData(item, i, list);
+  if (!rowData) {
+    return null;
+  }
+
+  const renderCell = (cell: TableColumnElement, j: number) => {
+    return <TDCol
+      key={j}
+      className={cellClassNames?.[i]}
+      doNotApplyGridToRows={doNotApplyGridToRows}
+    >
+      {cell && isValidElement(cell) ? cell : cell &&typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
+    </TDCol>;
+  };
+
+  return <Fragment key={item.item.id}>
+    {rowData.RowHeaderComponent}
+
+    {rowData.rowHeaders && (
+      <THead
+        removeHorizontalPadding={removeHorizontalPadding}
+        doNotApplyGridToRows={doNotApplyGridToRows}
+        gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
+        headers={rowData.rowHeaders}
+        cellClassNames={cellClassNames}
+      />
+    )}
+
+    <TRow
+      __deleted={rowData.__deleted}
+      onClick={rowData.__deleted ? undefined : () => onClickRow?.(item)}
+      doNotApplyGridToRows={doNotApplyGridToRows}
+      gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
+    >
+      {rowData.columns.map(renderCell)}
+    </TRow>
+
+    <div className='rel pattern_texture primary_bf bd_l_4 bd_primary -ml_4'>
+      {rowData.subRows?.map((subRowItem: any, k: number) => {
+        return <TRow
+          key={k}
+          className='rel z1'
+          onClick={() => onClickRow?.(item, subRowItem.value)}
+          doNotApplyGridToRows={doNotApplyGridToRows}
+          gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
+        >
+          {subRowItem.columns.map(renderCell)}
+        </TRow>;
+      })}
+    </div>
+  </Fragment>;
+};
+
+TableListItem.displayName = 'TableListItem';
+
+/**
+ * Table list reactive item
+ */
+
+const TableListReactiveItem = (p: any) => {
+  const { reactiveFragmentFn, item } = p;
+  const reactiveItem = reactiveFragmentFn(item?.item?.id, item?.item);
+  return <TableListItem
+    {...p}
+    item={{
+      ...item,
+      item: reactiveItem
+    }}
+  />;
+};
+
+/**
+ * Table list
+ */
+
+interface TableListProps {
+  reactiveFragmentFn?: ReactiveFragmentFn;
   gridLayoutStyle?: string;
   cellClassNames?: (string | undefined)[];
   removeHorizontalPadding?: boolean;
-  applyGridToRows?: boolean;
-  headers: TableHeaderObj[];
+  doNotApplyGridToRows?: boolean;
+  headers?: TableHeaderObj[];
   listData: VZListItemObj[] | null;
   mapListData: MapTableListDataFn;
   onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any) => void;
-}) => {
-  const { gridLayoutStyle, headers, listData, mapListData, cellClassNames, applyGridToRows, removeHorizontalPadding, onClickRow } = p;
+}
+
+export const TableList = memo((p: TableListProps) => {
+  const { reactiveFragmentFn, gridLayoutStyle, headers, listData, mapListData, cellClassNames, doNotApplyGridToRows, removeHorizontalPadding, onClickRow } = p;
   return <>
-    <THead
-      removeHorizontalPadding={removeHorizontalPadding}
-      applyGridToRows={applyGridToRows}
-      gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
-      headers={headers}
-      cellClassNames={cellClassNames}
-    />
+    {headers && (
+      <THead
+        removeHorizontalPadding={removeHorizontalPadding}
+        doNotApplyGridToRows={doNotApplyGridToRows}
+        gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
+        headers={headers}
+        cellClassNames={cellClassNames}
+      />
+    )}
     {listData?.map((item: VZListItemObj, i: number, list: any[]) => {
-      const rowData = mapListData(item, i, list);
-      if (!rowData) {
-        return null;
+      if (reactiveFragmentFn) {
+        // Doing this avoids "different number of hooks rendered" rules error
+        return <TableListReactiveItem
+          key={item.item.id}
+          {...p}
+          item={item}
+          i={i}
+          list={list}
+        />;
       }
 
-      const renderCell = (cell: TableColumnElement, j: number) => {
-        return <TDCol
-          key={j}
-          className={cellClassNames?.[i]}
-          applyGridToRows={applyGridToRows}
-        >
-          {cell && isValidElement(cell) ? cell : cell &&typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
-        </TDCol>;
-      };
-
-      return <Fragment key={item.item.id}>
-        <TRow
-          __deleted={rowData.__deleted}
-          onClick={rowData.__deleted ? undefined : () => onClickRow?.(item)}
-          applyGridToRows={applyGridToRows}
-          gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
-        >
-          {rowData.columns.map(renderCell)}
-        </TRow>
-
-        <div className='rel pattern_texture primary_bf bd_l_4 bd_primary -ml_4'>
-          {rowData.subRows?.map((subRowItem, k) => {
-            return <TRow
-              key={k}
-              className='rel z1'
-              onClick={() => onClickRow?.(item, subRowItem.value)}
-              applyGridToRows={applyGridToRows}
-              gridLayoutStyle={applyGridToRows ? gridLayoutStyle : undefined}
-            >
-              {subRowItem.columns.map(renderCell)}
-            </TRow>;
-          })}
-        </div>
-      </Fragment>;
+      return <TableListItem
+        key={item.item.id}
+        {...p}
+        item={item}
+        i={i}
+        list={list}
+      />;
     })}
   </>;
 });
@@ -673,18 +743,19 @@ TableList.displayName = 'TableList';
 
 export function VirtualizedTableList(p: VirtualizedListOmit & {
   onClickRow?: (vzItem?: VZListItemObj) => void;
-  applyGridToRows?: boolean;
+  reactiveFragmentFn?: ReactiveFragmentFn;
+  doNotApplyGridToRows?: boolean;
   gridLayoutStyle?: string;
   cellClassNames?: (string | undefined)[];
-  headers: TableHeaderObj[];
+  headers?: TableHeaderObj[];
   // Use this to map list data to table row cells data
   mapListData: MapTableListDataFn;
 }) {
-  const { HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, mapListData, applyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
+  const { HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, doNotApplyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
   const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
-  const numColumns = headers.length;
+  const numColumns = headers?.length || 1;
 
   // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
   return <>
@@ -697,12 +768,13 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
 
       <div
         ref={listRef}
-        style={!applyGridToRows && gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
+        style={doNotApplyGridToRows && gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
         className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns)}
       >
         <TableList
+          reactiveFragmentFn={reactiveFragmentFn}
           gridLayoutStyle={gridLayoutStyle}
-          applyGridToRows={applyGridToRows}
+          doNotApplyGridToRows={doNotApplyGridToRows}
           listData={listData}
           mapListData={mapListData}
           headers={headers}

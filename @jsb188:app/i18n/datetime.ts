@@ -13,6 +13,8 @@ export default {
     in_hours_ct: 'in %{smart_count} hour||||in %{smart_count} hours',
     minutes_ago_ct: '%{smart_count} minute ago||||%{smart_count} minutes ago',
     hours_ago_ct: '%{smart_count} hour ago||||%{smart_count} hours ago',
+    weeks_ago_ct: '%{smart_count} week ago||||%{smart_count} weeks ago',
+    months_ago_ct: '%{smart_count} month ago||||%{smart_count} months ago',
 
     // Time period
     period_TOMORROW: 'Tomorrow',
