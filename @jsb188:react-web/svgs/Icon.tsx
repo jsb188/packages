@@ -53,6 +53,7 @@ interface SpecialIconProps extends IconProps {
 
 export const COMMON_ICON_NAMES: Record<string, string> = {
   ai_magic: 'sparkles',
+  address_book: 'address-book',
   alert_warning: 'alert-icon-filled',
   billing: 'credit-card',
   broken_file: 'file-broken',
@@ -71,8 +72,9 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   edit_off: 'edit-off',
   empty: 'square-forbid-2',
   favorites: 'stars',
-  address_book: 'address-book',
+  field_work: 'farming-field-sun',
   group: 'users-group',
+  harvest: 'vegetable-corn',
   image: 'photo',
   images: 'library-photo',
   info: 'info-circle',
@@ -91,8 +93,10 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   plans: 'map',
   plus: 'plus',
   plus_circle: 'circle-plus-filled',
+  post_harvest: 'farming-barn-silo',
   read: 'checklist',
   report: 'exclamation-circle',
+  seeding: 'organic-seedling-grow',
   smile: 'confetti',
   settings: 'settings',
   sms: 'device-mobile-message',
@@ -102,6 +106,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   theme: 'photo-hexagon',
   timeout: 'clock-cancel',
   timeout_unban: 'clock-check',
+  transplanting: 'organic-plant-grow',
   unread: 'mailbox',
   user: 'user',
   user_add: 'user-plus',
@@ -115,9 +120,14 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
  * Simple icon with a very basic fix
  */
 
-export const Icon = memo((p: IconProps) => {
-  const { name: iconName } = p;
-  const IconComponent = ICON_MAP[iconName];
+export const Icon = memo((p: IconProps & {
+  tryColor?: boolean;
+}) => {
+  const { name: iconName, tryColor } = p;
+  const IconComponent = (
+    (tryColor && ICON_MAP[iconName + '-color']) ||
+    ICON_MAP[iconName]
+  );
 
   if (!IconComponent) {
     console.warn('Icon: Unknown icon name:', iconName);

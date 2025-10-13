@@ -1,14 +1,57 @@
 
 /* Horizontal Timeline */
 
-.horizontal_timeline {
+.x_timeline {
   position: relative;
-  height: 2px;
+  background-color: rgb(var(--color-bg-active));
 }
 
-.horizontal_timeline .tl_dot {
+.x_timeline .tl_dot {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  transform: translate(-50%, 0);
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px; height: 10px;
+}
+
+.x_timeline .selected {
+  background-color: #7F7F7F;
+}
+
+.x_timeline .not_selected .tl_text {
+  color: rgb(var(--color-bg-medium));
+}
+
+.x_timeline .tl_icon {
+  position: absolute;
+  width: 40px; height: 40px;
+  transform: translate(-15px, -40px);
+  font-size: 1.55rem;
+  color: rgb(var(--color-bg-medium));
+}
+
+.x_timeline .not_last_selected .tl_icon {
+  transform: translate(-15px, -40px) scale(.78);
+}
+
+.x_timeline .tl_text {
+  position: absolute;
+  left: 50%;
+  max-width: 100px;
+  transform: translate(-50%, 14px);
+}
+
+.x_timeline .tl_dot.start .tl_text {
+  transform: translate(-25%, 14px);
+}
+
+.x_timeline .tl_dot.start .tl_text {
+  transform: translate(-25%, 14px);
+}
+
+.x_timeline .tl_dot.end .tl_text {
+  transform: translate(-75%, 14px);
+}
+
+.x_timeline .tl_progress {
+  top: 0; bottom: 0;
 }

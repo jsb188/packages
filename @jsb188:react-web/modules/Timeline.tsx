@@ -3,6 +3,8 @@ import '../ui/TimelineUI';
 
 /**
  * Horizontal Timeline
+ *
+ * this is depreacted
  */
 
 export const HorizontalTimeline = memo(() => {

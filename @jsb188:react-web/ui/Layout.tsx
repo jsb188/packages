@@ -376,8 +376,9 @@ export function ErrorMessage(p: ErrorMessageProps) {
 
   return (
     <div className={cn('p_md v_center cw', containerSize || 'max_w_550', containerClassName)}>
-      <span className='cl_secondary'>
+      <span className='cl_secondary ft_lg'>
         <Icon
+          tryColor
           name={titleIconName}
         />
       </span>

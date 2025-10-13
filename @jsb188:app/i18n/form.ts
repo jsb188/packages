@@ -146,7 +146,6 @@ export default {
     settings: 'Settings',
     note: 'Note',
     notes: 'Notes',
-    ai_notes: 'AI notes',
     details: 'Details',
     quantity: 'Quantity',
     quantity_ph: '7.5',
