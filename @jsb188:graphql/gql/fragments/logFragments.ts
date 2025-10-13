@@ -21,6 +21,7 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   quantity
   unit
   location
+  fieldLocation
 
   vendor
   referenceNumber
@@ -81,5 +82,7 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
 	unit
   price
   location
+  fieldLocation
+
   notes
 }`;

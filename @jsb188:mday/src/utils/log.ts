@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { formatCurrency, formatDecimal } from '@jsb188/app/utils/number';
-import { textWithBrackets, ucFirst } from '@jsb188/app/utils/string';
+import { joinReadable, textWithBrackets, ucFirst } from '@jsb188/app/utils/string';
 import {
   ARABLE_ACTIVITIES_GROUPED,
   FARMERS_MARKET_ACTIVITIES_GROUPED,
@@ -100,13 +100,13 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'ARABLE':
 		case 'logs_arable':
 		case 'LogArable': {
-			const quantityText = [formatDecimal(md.quantity, true, true), md.unit].filter(Boolean).join(' ');
+			const quantityText = joinReadable([formatDecimal(md.quantity, true, true), md.unit], ' ', ' ');
 
 			let cropName = ucFirst(md.crop);
 			let logSpecificText = '';
 
 			if (logType === 'WATER') {
-				logSpecificText = [md.concentration, md.concentration && md.concentrationUnit].filter(Boolean).join(' ');
+				logSpecificText = joinReadable([md.concentration, md.concentration && md.concentrationUnit], ' ', ' ');
 			} else if (logType === 'SALES') {
 				if (!cropName) {
 					cropName = i18n.t('log.unknown_crop');
@@ -264,7 +264,7 @@ const PRODUCE_WORDS = [
 	// Leave at end for backup
 	'marciano',
 	'spretnak',
-  'newham',
+	'newham',
 	'red butter',
 	'frisee',
 	'cresta',

@@ -48,7 +48,7 @@ export const AddressBook = <svg xmlns="http://www.w3.org/2000/svg" className="ic
 <path d="M4 16h3" stroke="currentColor" />
 </svg>;
 
-export const AlertCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-alert-circle" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+export const AlertCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-alert-circle" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M12,16.9c-.2,0-.4-.2-.4-.4s.2-.3.4-.3"/>
 <path d="M12,16.9c.2,0,.4-.2.4-.4s-.2-.3-.4-.3"/>
 <path d="M12,13.4v-7.7"/>
