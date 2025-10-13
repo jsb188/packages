@@ -110,7 +110,7 @@ export function ModalErrorMessage(p: ModalErrorProps) {
       <div className='h_item mb_xs ic_sm cl_err'>
         <span className='mr_xs'>
           <Icon
-            name={iconName || 'alert-icon-filled'}
+            name={iconName || 'alert-circle'}
           />
         </span>
         <strong className='shift_down'>
@@ -409,7 +409,7 @@ export function AlertPopUp(p: AlertDataProps) {
       {iconName !== null
       ? <div className={cn('pt_lg pb_df ic_xxl', iconClassName ?? isWarning ? 'cl_darker_2' : 'cl_primary' )}>
         <Icon
-          name={iconName || 'alert-icon-filled'}
+          name={iconName || 'alert-circle'}
         />
       </div>
       : <div className='h_40' />}

@@ -456,23 +456,31 @@ interface PillProps {
   target?: string;
   title: string;
   children: any;
-  size: 'sm' | 'df' | 'md' | 'lg' | null;
+  preset?: 'outline_lg'; // This overrides size
+  size?: 'sm' | 'df' | 'md' | 'lg' | null;
   className: string;
   onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export function Pill(p: Partial<PillProps>) {
-  const { loading, addLoadingIndicator, to, href, target, onClick, title, children } = p;
-  const size = p.size || 'default';
-  const className = p.className || 'bg_active';
+  const { preset, loading, addLoadingIndicator, to, href, target, onClick, title, children, className } = p;
   const LinkComponent = p.as || (to ? Link : 'a');
-  const sizeClassName = `pill pill_${size || 'df'} `;
 
   let onClick_;
   if (loading) {
     onClick_ = (e: React.MouseEvent) => e.preventDefault();
   } else {
     onClick_ = onClick;
+  }
+
+  let size, presetClassNames;
+  switch (preset) {
+    case 'outline_lg':
+      presetClassNames = 'bd_main_bd bg_alt_hv bd_10 ft_semibold';
+      size = 'lg';
+      break;
+    default:
+      size = p.size || 'df';
   }
 
   return (
@@ -488,8 +496,9 @@ export function Pill(p: Partial<PillProps>) {
         'r h_center',
         loading && !addLoadingIndicator ? 'is_loading' : '',
         loading && addLoadingIndicator ? 'with_loading_indicator' : '',
-        sizeClassName,
-        className,
+        `pill pill_${size || 'df'}`,
+        className ?? (!presetClassNames && 'bg_active'),
+        presetClassNames,
       )}
     >
       {!loading || !addLoadingIndicator ? null : (

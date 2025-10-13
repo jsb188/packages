@@ -5,7 +5,7 @@ import { buildSingleText, joinReadable, textWithBrackets } from '@jsb188/app/uti
 import { getObject } from '@jsb188/app/utils/object';
 import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log';
-import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL } from '../types/log.d';
+import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL, LogTypeEnum } from '../types/log.d';
 import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log';
 
 /**
@@ -137,7 +137,7 @@ export function formatFormValuesForMutation(formValues: Record<string, any>) {
  * Arable log metadata schema
  */
 
-type ValidMetadataFieldName =
+export type ValidMetadataFieldName =
   | 'activity'
 
   // ARABLE
@@ -167,8 +167,7 @@ type ValidMetadataFieldName =
   | 'invoiceItems'
   | 'tax'
   | 'item_used'
-  | 'location_livestock' // general
-  | null;
+  | 'location_livestock'; // general
 
 function makeMetadataSchema(
   namespace: string,
@@ -178,11 +177,7 @@ function makeMetadataSchema(
   schemaFields: ValidMetadataFieldName[]
 ) {
   const { scrollAreaDOMId, formId, timeZone, focusedName, isCreateNew } = metadataParams;
-  const schemaItems = schemaFields.map((field: string | null) => {
-    if (!field) {
-      return null;
-    }
-
+  const schemaItems = schemaFields.map((field: string) => {
     switch (field) {
       case 'activity':
         return {
@@ -520,6 +515,73 @@ function makeMetadataSchema(
 }
 
 /**
+ * Get schema fields from log type
+ */
+
+export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum): ValidMetadataFieldName[] {
+
+  let schemaFields: ValidMetadataFieldName[];
+  switch (__typename) {
+    case 'LogArable': {
+      const isWaterTesting = logType === 'WATER';
+      const isSales = ['SALES'].includes(logType!);
+      const isPurchase = ['SEED'].includes(logType!);
+
+      schemaFields = [
+        'activity',
+        isWaterTesting ? 'concentration' : null,
+        isWaterTesting ? 'concentration_unit' : null,
+        isWaterTesting ? 'water_quantity' : isPurchase ? null : 'quantity',
+        isWaterTesting ? 'water_unit' : isPurchase ? null : 'unit',
+        isWaterTesting ? null : 'crop',
+        isPurchase ? 'vendor' : null,
+        isPurchase ? 'invoiceNumber' : null,
+        isPurchase ? 'invoiceItems' : null,
+        isPurchase ? 'tax' : null,
+        isSales && !isPurchase ? 'price' : null,
+        isSales || isPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
+      ];
+    } break;
+    case 'LogFarmersMarket': {
+      const isReceipt = ['MARKET_RECEIPTS'].includes(logType);
+
+      schemaFields = [
+        'activity',
+        isReceipt ? 'receiptNumber' : null,
+        'childOrgId',
+        isReceipt ? 'void' : null,
+        isReceipt ? 'marketCredits' : null,
+      ];
+    } break;
+    case 'LogLivestock': {
+      const isLivestock = ['LIVESTOCK_LIFE_CYCLE', 'LIVESTOCK_TRACKING', 'LIVESTOCK_HEALTHCARE'].includes(logType);
+      const isSupplyPurchase = logType === 'SUPPLY_PURCHASE';
+      const isLandManagement = logType === 'PASTURE_LAND_MANAGEMENT';
+
+      schemaFields = [
+        'activity',
+        isLivestock ? 'livestock' : null,
+        isLivestock ? 'livestockIdentifiers' : null,
+        isLivestock ? 'livestockGroup' : null,
+        isSupplyPurchase ? 'vendor' : null,
+        isSupplyPurchase ? 'invoiceNumber' : null,
+        isSupplyPurchase ? 'invoiceItems' : null,
+        isSupplyPurchase ? 'tax' : null,
+        isLandManagement ? 'item_used' : null,
+        isLivestock || isSupplyPurchase ? null : 'quantity',
+        isLivestock || isSupplyPurchase ? null : 'unit',
+        !isSupplyPurchase ? 'location_livestock' : null,
+        isLivestock ? 'price' : null,
+      ];
+    } break;
+    default:
+      schemaFields = [];
+  }
+
+  return schemaFields.filter(Boolean);
+}
+
+/**
  * Get editable values based on activity & type (which is also used to display UI)
  */
 
@@ -561,63 +623,21 @@ export function makeLogMetadataSchema(
     LogLivestock: 'livestockDetails',
   }[__typename] || '';
 
-  const logType = getLogTypeFromActivity(__typename, formValues[namespace]?.activity);
+  const logType = getLogTypeFromActivity(__typename, formValues[namespace]?.activity)!;
+  const schemaFields = getSchemaFieldsFromLog(__typename, logType);
 
   switch (__typename) {
     case 'LogArable': {
-      const isWaterTesting = logType === 'WATER';
-      const isSales = ['SALES'].includes(logType!);
-      const isPurchase = ['SEED'].includes(logType!);
-
       activitiesList = ARABLE_ACTIVITIES_GROUPED;
-      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, [
-        'activity',
-        isWaterTesting ? 'concentration' : null,
-        isWaterTesting ? 'concentration_unit' : null,
-        isWaterTesting ? 'water_quantity' : isPurchase ? null : 'quantity',
-        isWaterTesting ? 'water_unit' : isPurchase ? null : 'unit',
-        isWaterTesting ? null : 'crop',
-        isPurchase ? 'vendor' : null,
-        isPurchase ? 'invoiceNumber' : null,
-        isPurchase ? 'invoiceItems' : null,
-        isPurchase ? 'tax' : null,
-        isSales && !isPurchase ? 'price' : null,
-        isSales || isPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
-      ]);
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, schemaFields);
     } break;
     case 'LogFarmersMarket': {
-      const isReceipt = ['MARKET_RECEIPTS'].includes(logType!);
-
       activitiesList = FARMERS_MARKET_ACTIVITIES_GROUPED;
-      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, [
-        'activity',
-        isReceipt ? 'receiptNumber' : null,
-        'childOrgId',
-        isReceipt ? 'void' : null,
-        isReceipt ? 'marketCredits' : null,
-      ]);
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, schemaFields);
     } break;
     case 'LogLivestock': {
-      const isLivestock = ['LIVESTOCK_LIFE_CYCLE', 'LIVESTOCK_TRACKING', 'LIVESTOCK_HEALTHCARE'].includes(logType!);
-      const isSupplyPurchase = logType === 'SUPPLY_PURCHASE';
-      const isLandManagement = logType === 'PASTURE_LAND_MANAGEMENT';
-
       activitiesList = LIVESTOCK_ACTIVITIES_GROUPED;
-      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, [
-        'activity',
-        isLivestock ? 'livestock' : null,
-        isLivestock ? 'livestockIdentifiers' : null,
-        isLivestock ? 'livestockGroup' : null,
-        isSupplyPurchase ? 'vendor' : null,
-        isSupplyPurchase ? 'invoiceNumber' : null,
-        isSupplyPurchase ? 'invoiceItems' : null,
-        isSupplyPurchase ? 'tax' : null,
-        isLandManagement ? 'item_used' : null,
-        isLivestock || isSupplyPurchase ? null : 'quantity',
-        isLivestock || isSupplyPurchase ? null : 'unit',
-        !isSupplyPurchase ? 'location_livestock' : null,
-        isLivestock ? 'price' : null,
-      ]);
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, schemaFields);
     } break;
     default:
   }

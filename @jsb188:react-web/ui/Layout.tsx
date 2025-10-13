@@ -332,10 +332,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
     message = i18n.t('error.unknown_error');
   }
 
-  let containerClassName;
-  let titleClassName;
-  let messageClassName;
-  let buttonClassName;
+  let containerClassName, titleClassName, messageClassName, buttonClassName, buttonPreset;
   let buttonSize: any;
 
   switch (preset) {
@@ -351,8 +348,10 @@ export function ErrorMessage(p: ErrorMessageProps) {
       containerClassName = 'ic_xxxl';
       titleClassName = 'ft_df';
       messageClassName = 'ft_md';
-      buttonClassName = 'bg_secondary';
-      buttonSize = 'md';
+      buttonClassName = 'cl_secondary';
+      // buttonClassName = 'bg_active ft_medium cl_bd';
+      buttonPreset = 'outline_lg' as const;
+      buttonSize = null;
   }
 
   let buttonHandler;
@@ -371,7 +370,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
   if (errorCode == '20019') {
     titleIconName = 'circle-key';
   } else {
-    titleIconName = iconName || 'alert-icon-filled';
+    titleIconName = iconName || 'alert-circle';
   }
 
   return (
@@ -395,6 +394,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
           href={buttonHref}
           loading={loading}
           className={buttonClassName}
+          preset={buttonPreset}
           size={buttonSize}
           onClick={buttonHandler}
         >

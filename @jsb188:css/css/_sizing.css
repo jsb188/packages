@@ -94,7 +94,12 @@ h5, h6, strong, .ft_bold {
   font-weight: normal;
 }
 
-strong, .ft_bold {
+.ft_semibold {
+  font-family: var(--font-sans-semibold);
+  font-weight: normal;
+}
+
+strong, .ft_bold, .ft_semibold {
   letter-spacing: -.0075em;
   text-indent: -.0075em;
 }
@@ -1482,21 +1487,21 @@ svg.av_xl .s_dot {
 
 .pill_lg {
   position: relative;
-  min-width: 4rem;
-  height: 4rem;
+  min-width: 5rem;
+  height: 5rem;
   padding-left: 1.15em;
   padding-right: 1.15em;
   padding-bottom: 2px;
   font-size: var(--text-large);
 }
 
-.pill_lg:before {
+/* .pill_lg:before {
   content: ' ';
   position: absolute; z-index: -1;
   inset: -5px;
   border-radius: 100vmax;
   background-color: rgba(var(--color-darker-rgb), .075);
-}
+} */
 
 /* Grid */
 

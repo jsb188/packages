@@ -88,13 +88,13 @@ export const CondensedArticleItem = memo((p: {
       break;
     case 'default_spaced':
       addDivSeparator = false;
-      linkHoverClassName = 'bg_primary_hv';
+      linkHoverClassName = 'bg_primary_fd_hv';
       xPaddingClassName = 'px_20 -mx_20';
       yPaddingClassName = 'py_sm';
       break;
     default:
       addDivSeparator = false;
-      linkHoverClassName = 'bg_primary_hv';
+      linkHoverClassName = 'bg_primary_fd_hv';
       xPaddingClassName = 'px_xs -mx_xs';
       yPaddingClassName = 'py_sm';
       break;

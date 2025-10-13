@@ -48,10 +48,25 @@ export const AddressBook = <svg xmlns="http://www.w3.org/2000/svg" className="ic
 <path d="M4 16h3" stroke="currentColor" />
 </svg>;
 
-export const AlertIconFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-alert-circle-filled" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M12 2c5.523 0 10 4.477 10 10a10 10 0 0 1 -19.995 .324l-.005 -.324l.004 -.28c.148 -5.393 4.566 -9.72 9.996 -9.72zm.01 13l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007zm-.01 -8a1 1 0 0 0 -.993 .883l-.007 .117v4l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-4l-.007 -.117a1 1 0 0 0 -.993 -.883z" strokeWidth="0" fill="currentColor" />
+export const AlertCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-alert-circle" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M12,16.9c-.2,0-.4-.2-.4-.4s.2-.3.4-.3"/>
+<path d="M12,16.9c.2,0,.4-.2.4-.4s-.2-.3-.4-.3"/>
+<path d="M12,13.4v-7.7"/>
+<path d="M12,22.5c5.8,0,10.5-4.7,10.5-10.5S17.8,1.5,12,1.5,1.5,6.2,1.5,12s4.7,10.5,10.5,10.5Z"/>
 </svg>;
+
+export const AlertCircleColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-alert-circle-color">
+<path fill="#ff808c" d="M23 11.81A11.163 11.163 0 0 1 12 23 10.837 10.837 0 0 1 1 12.192 11.162 11.162 0 0 1 12 1a10.837 10.837 0 0 1 11 10.81Z" strokeWidth="1" />
+<path fill="#ffbfc5" d="M12 5a10.777 10.777 0 0 1 10.81 9c0.139 -0.722 0.203 -1.455 0.19 -2.19A10.838 10.838 0 0 0 12 1 11.162 11.162 0 0 0 1 12.192c0.014 0.609 0.077 1.215 0.188 1.814A11.232 11.232 0 0 1 12 5Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23 11.81A11.163 11.163 0 0 1 12 23 10.837 10.837 0 0 1 1 12.192 11.162 11.162 0 0 1 12 1a10.837 10.837 0 0 1 11 10.81v0Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 14.004v-7" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.991 16a0.245 0.245 0 0 0 -0.241 0.255 0.254 0.254 0 0 0 0.25 0.245v0a0.245 0.245 0 0 0 0.241 -0.255A0.254 0.254 0 0 0 12 16h-0.005" strokeWidth="1" />
+</svg>;
+
+// export const AlertIconFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-alert-circle" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+// <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+// <path d="M12 2c5.523 0 10 4.477 10 10a10 10 0 0 1 -19.995 .324l-.005 -.324l.004 -.28c.148 -5.393 4.566 -9.72 9.996 -9.72zm.01 13l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007zm-.01 -8a1 1 0 0 0 -.993 .883l-.007 .117v4l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-4l-.007 -.117a1 1 0 0 0 -.993 -.883z" strokeWidth="0" fill="currentColor" />
+// </svg>;
 
 export const AlienFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-alien">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>

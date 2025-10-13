@@ -511,6 +511,7 @@ export function getFullDate(
 	d_: Date | string | number | null,
 	outputStyle_:
 		| 'NUMERIC'
+    | 'NUMERIC_TIME'
 		| 'DATE_ONLY_SHORT'
 		| 'DAY_IF_WEEK'
 		| 'TOMORROW_OR_NUMERIC'
@@ -558,6 +559,13 @@ export function getFullDate(
 		case 'NUMERIC':
 			// Expected output: "9/1/2024"
 			return new Intl.DateTimeFormat(locales, {
+				timeZone: timeZone || undefined, // null is not allowed, it will throw error
+			}).format(d);
+    case 'NUMERIC_TIME':
+      // Expected output: "9/1/2024, 8:30 PM"
+			return new Intl.DateTimeFormat(locales, {
+        dateStyle: 'short', // ie. "08/10/2025"
+        timeStyle: 'short', // ie. "8:00 AM"
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
 		case 'MINIMAL':
