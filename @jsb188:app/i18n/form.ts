@@ -147,6 +147,8 @@ export default {
     note: 'Note',
     notes: 'Notes',
     details: 'Details',
+    temperature: 'Temperature',
+    water: 'Water',
     quantity: 'Quantity',
     quantity_ph: '7.5',
     unit: 'Unit',
