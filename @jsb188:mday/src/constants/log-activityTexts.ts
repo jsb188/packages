@@ -14,7 +14,6 @@ export const WATER_TESTING_ACTIVITY_TO_TEXT = {
  */
 
 export const ARABLE_FARMING_ACTIVITY_TO_TEXT = {
-
 	// # Seeding & transplanting activities
 	SEEDING: 'seeding crops',
 	DIRECT_SEEDING: 'direct seeding crops',
@@ -45,25 +44,35 @@ export const ARABLE_FARMING_ACTIVITY_TO_TEXT = {
 	POST_HARVEST_PACKAGING: 'packaging, cooling, or moving produce to storage',
 	OTHER_POST_HARVEST_ACTIVITY: 'other post-harvest activities',
 
-	// # Sales activities
-	SALE_TRANSACTION: 'sale transactions',
+  // # DEPRECATED
+  SALE_TRANSACTION: 'sale transactions',
 	SALE_DETAILS: 'sale details',
 	SALE_FEEDBACK: 'sale feedback or issues',
 	OTHER_SALES_ACTIVITY: 'other sales related activities',
 };
 
 export const ARABLE_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT = {
-
 	// # Seed purchase activities
 	SEED_PURCHASE_INFO: 'seed purchase',
 	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase',
 };
 
+export const SALES_PURCHASE_ORDER_ACTIVITY_TO_TEXT = {
+	// # Sales activities
+  SALE_PRODUCE_ORDER: 'purchase order (produce)',
+  OTHER_SALE_ORDER: 'purchase order (other)',
+	// SALE_TRANSACTION: 'sale transactions',
+	// SALE_DETAILS: 'sale details',
+	// SALE_FEEDBACK: 'sale feedback or issues',
+	// OTHER_SALES_ACTIVITY: 'other sales related activities',
+};
+
 export const ARABLE_ACTIVITIES_TO_TEXT = {
 	COLD_STORAGE_TEMPERATURE: 'checking or changing temperature (cold storage)',
-  ...ARABLE_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT,
+	...ARABLE_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT,
 	...ARABLE_FARMING_ACTIVITY_TO_TEXT,
 	...WATER_TESTING_ACTIVITY_TO_TEXT,
+  ...SALES_PURCHASE_ORDER_ACTIVITY_TO_TEXT,
 };
 
 /**
@@ -93,7 +102,6 @@ export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {
  */
 
 export const LIVESTOCK_ACTIVITY_TO_TEXT = {
-
 	// # Livestock life cycle
 	LIVESTOCK_PURCHASE: 'livestock purchase',
 	LIVESTOCK_BIRTH: 'livestock birth',
@@ -121,8 +129,7 @@ export const LIVESTOCK_ACTIVITY_TO_TEXT = {
 };
 
 export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
-
-  // # Ranch management activities
+	// # Ranch management activities
 	PASTURE_SEEDING: 'pasture seeding',
 	FENCE_MAINTENANCE: 'fence maintenance and buffer management', // buffer zones/buffer management
 	WATER_SOURCE_MAINTENANCE: 'water source maintenance',
@@ -130,8 +137,7 @@ export const LIVESTOCK_RANCH_MANAGEMENT_ACTIVITY_TO_TEXT = {
 };
 
 export const LIVESTOCK_SUPPLY_PURCHASE_ACTIVITY_TO_TEXT = {
-
-  // # Supply purchases
+	// # Supply purchases
 	FEED_PURCHASE: 'feed purchase',
 	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase',
 };

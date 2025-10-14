@@ -42,7 +42,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         location: details.location,
         fieldLocation: details.fieldLocation,
         referenceNumber: details.referenceNumber,
-        vendor: details.vendor,
+        otherParty: details.otherParty,
         values: details.values,
         price: details.price,
         notes: details.notes,
@@ -67,7 +67,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         livestockIdentifiers: details.livestockIdentifiers,
         livestockGroup: details.livestockGroup,
         referenceNumber: details.referenceNumber,
-        vendor: details.vendor,
+        otherParty: details.otherParty,
         values: details.values,
         item: details.item,
         quantity: details.quantity,
@@ -165,7 +165,7 @@ export type ValidMetadataFieldName =
   | 'livestock'
   | 'livestockIdentifiers'
   | 'livestockGroup'
-  | 'vendor'
+  | 'otherParty'
   | 'invoiceNumber'
   | 'invoiceItems'
   | 'tax'
@@ -369,12 +369,12 @@ function makeMetadataSchema(
             placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
           }
         };
-      case 'vendor':
+      case 'otherParty':
         return {
           __type: 'input',
-          label: i18n.t('log.vendor'),
+          label: i18n.t('form.vendor'),
           item: {
-            name: `${namespace}.vendor`,
+            name: `${namespace}.otherParty`,
           }
         };
       case 'invoiceNumber':
@@ -548,7 +548,7 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         isWaterTesting ? 'water_quantity' : isPurchase ? null : 'quantity',
         isWaterTesting ? 'water_unit' : isPurchase ? null : 'unit',
         isWaterTesting ? null : 'crop',
-        isPurchase ? 'vendor' : null,
+        isPurchase ? 'otherParty' : null,
         isPurchase ? 'invoiceNumber' : null,
         isPurchase ? 'invoiceItems' : null,
         isPurchase ? 'tax' : null,
@@ -578,7 +578,7 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         isLivestock ? 'livestock' : null,
         isLivestock ? 'livestockIdentifiers' : null,
         isLivestock ? 'livestockGroup' : null,
-        isSupplyPurchase ? 'vendor' : null,
+        isSupplyPurchase ? 'otherParty' : null,
         isSupplyPurchase ? 'invoiceNumber' : null,
         isSupplyPurchase ? 'invoiceItems' : null,
         isSupplyPurchase ? 'tax' : null,

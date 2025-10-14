@@ -77,7 +77,7 @@ export type LogArableMetadata = LogMetadataBase & {
 	concentrationUnit: string;
   location: string;
   fieldLocation?: string;
-  vendor?: string;
+  otherParty?: string;
   referenceNumber?: string;
 	values?: LabelValueObj[];
 	price: number;
@@ -139,7 +139,7 @@ export type LogLivestockMetadata = LogMetadataBase & {
 	livestockIdentifiers: string[];
 	livestockGroup?: string;
 	livestock: string;
-  vendor?: string;
+  otherParty?: string;
   referenceNumber?: string;
 	values?: LabelValueObj[];
 	item: string;

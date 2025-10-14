@@ -23,7 +23,7 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   location
   fieldLocation
 
-  vendor
+  otherParty
   referenceNumber
   values {
     label
@@ -68,7 +68,7 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
   livestockGroup
   damIdentifier
 
-  vendor
+  otherParty
   referenceNumber
   values {
     label

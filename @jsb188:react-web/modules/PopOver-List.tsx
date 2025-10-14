@@ -422,7 +422,7 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
           label: name === 'label' ? value : '',
           value: name === 'value' ? value : '',
           // @ts-expect-error - "quantity" is optional
-          quantity: name === 'quantity' ? Number(value) : '',
+          quantity: name === 'quantity' ? Number(value) : null, // If you use "", GraphQL will error out from Float scalar
         });
       } else {
         updatedValues.push({

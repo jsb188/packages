@@ -62,6 +62,8 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 	[
 		'SALES',
 		[
+      // 'SALE_PRODUCE_ORDER',
+      // 'OTHER_SALE_ORDER',
 			'SALE_TRANSACTION',
 			'SALE_DETAILS',
 			'SALE_FEEDBACK',
