@@ -71,7 +71,9 @@ function getMonthsDiff(date1: Date, date2: Date) {
 
 export function getWeeksMonthAgo(d1: Date, d2: Date, weeksThresh = 12): string {
 	const diffWeeks = getWeeksDiff(d2, d1);
-  if (diffWeeks <= weeksThresh) {
+  if (diffWeeks === 0) {
+    return i18n.t('datetime.period_THIS_WEEK');
+  } else if (diffWeeks <= weeksThresh) {
 		return i18n.t('datetime.weeks_ago_ct', { smart_count: diffWeeks });
 	}
 

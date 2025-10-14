@@ -780,7 +780,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   doNotApplyGridToRows?: boolean;
   gridLayoutStyle?: string;
   cellClassNames?: (string | undefined)[];
-  headers?: Partial<TableHeaderObj>[];
+  headers?: Partial<TableHeaderObj>[] | null;
   // Use this to map list data to table row cells data
   mapListData: MapTableListDataFn;
 }) {

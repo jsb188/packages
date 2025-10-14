@@ -1,8 +1,8 @@
 import i18n from '@jsb188/app/i18n';
 import { getCalDate } from '@jsb188/app/utils/datetime';
 import { formatCurrency } from '@jsb188/app/utils/number';
-import { buildSingleText, joinReadable, textWithBrackets } from '@jsb188/app/utils/string';
 import { getObject } from '@jsb188/app/utils/object';
+import { textWithBrackets } from '@jsb188/app/utils/string';
 import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
 import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log';
 import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL, LogTypeEnum } from '../types/log.d';
@@ -143,7 +143,7 @@ export type ValidMetadataFieldName =
   | 'activity'
 
   // ARABLE
-  | 'concentration'
+  | 'water_testing'
   | 'concentration_unit'
   | 'water_quantity'
   | 'quantity'
@@ -543,7 +543,7 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
 
       schemaFields = [
         'activity',
-        isWaterTesting ? 'concentration' : null,
+        isWaterTesting ? 'water_testing' : null,
         isWaterTesting ? 'concentration_unit' : null,
         isWaterTesting ? 'water_quantity' : isPurchase ? null : 'quantity',
         isWaterTesting ? 'water_unit' : isPurchase ? null : 'unit',

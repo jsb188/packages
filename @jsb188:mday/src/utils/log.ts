@@ -244,6 +244,7 @@ const PRODUCE_WORDS = [
 	'shiso',
 	'shinto',
 	'thyme',
+	'rosemary',
 	'di lusia',
 	'di lusio',
 	'treviso',
@@ -397,6 +398,7 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'summery savor':
 				case 'summary savor':
 				case 'thyme':
+        case 'rosemary':
 					return 'vegetable-thyme';
 				case 'arugula':
 				case 'chicory':

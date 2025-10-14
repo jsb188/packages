@@ -70,6 +70,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   image: 'photo',
   images: 'library-photo',
   info: 'info-circle',
+  invoice: 'accounting-invoice-dollar',
   link_chevron: 'chevron-right',
   live: 'broadcast',
   lock: 'lock',

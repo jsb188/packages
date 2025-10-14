@@ -940,7 +940,7 @@ export const FarmingBarnSilo = <svg xmlns="http://www.w3.org/2000/svg" fill="non
 <path d="M17,17.3h-5.7c-.4,0-.7.2-1,.4-.3.3-.4.6-.4,1v4.3h8.6v-4.3c0-.4-.2-.7-.4-1s-.6-.4-1-.4c0,0-.1,0-.1,0Z"/>
 </svg>;
 
-export const FarmingBarnSiloColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="icon icon-farming-barn-silo-color">
+export const FarmingBarnSiloColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-farming-barn-silo-color">
 <path fill="#ffbc44" d="M0.5 10.382V23h11V10.382c-0.0008 -0.1277 -0.0091 -0.2553 -0.025 -0.382H0.525c-0.015892 0.1267 -0.02424 0.2543 -0.025 0.382Z" strokeWidth="1"/>
 <path fill="#e3e3e3" d="M5.99999 1c-1.37174 0.00056 -2.69378 0.51369 -3.70669 1.43873C1.28038 3.36377 0.649698 4.63393 0.524994 6H11.475c-0.1247 -1.36607 -0.7554 -2.63623 -1.76831 -3.56127C8.69377 1.51369 7.37174 1.00056 5.99999 1Z" strokeWidth="1"/>
 <path fill="#ffbfc5" d="M21.5 14.9V23h-11v-8.1l4.88 -3.9c0.1759 -0.1409 0.3946 -0.2176 0.62 -0.2176s0.4441 0.0767 0.62 0.2176l4.88 3.9Z" strokeWidth="1"/>
@@ -2505,18 +2505,18 @@ export const VegetableTomato = <svg xmlns="http://www.w3.org/2000/svg" className
 </svg>;
 
 export const VegetableThyme = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-thyme" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path d="M8.2,23.2c-2-6.9-2-12.4-1.5-22.3"/>
-<path d="M4.2,3.4h4.9"/>
-<path d="M3.9,11.4l4.9-3.7"/>
-<path d="M3.7,7.7l5.2,3.5"/>
-<path d="M4.3,19.5l4.7-4.2"/>
-<path d="M3.9,15.8l5.8,3.2"/>
-<path d="M16.1,23.2c2-6.9,2-10.9,1.1-20.3"/>
-<path d="M19.6,4.3l-4.4.9"/>
-<path d="M20.3,12.7l-5.2-3.7"/>
-<path d="M20.3,9.1l-5.2,3.7"/>
-<path d="M19.4,20.4l-4.5-4.2"/>
-<path d="M20.1,16.7l-5.8,2.9"/>
+<path d="M8.4,22.9c-2.2-6.8-2.2-12.2-1.7-22"/>
+<path strokeWidth="1.25" d="M3.7,3.4h6"/>
+<path strokeWidth="1.25" d="M3.3,12.1l6.1-4.2"/>
+<path strokeWidth="1.25" d="M3.3,8l6.2,3.9"/>
+<path strokeWidth="1.25" d="M4.2,21.1l5.7-4.5"/>
+<path strokeWidth="1.25" d="M3.8,17.1l6.9,3.4"/>
+<path d="M16.1,22.9c2.2-6.8,2.2-10.8,1.2-20"/>
+<path strokeWidth="1.25" d="M20.4,4.2l-5.6,1"/>
+<path strokeWidth="1.25" d="M21.1,12.8l-6.3-4"/>
+<path strokeWidth="1.25" d="M21,8.8l-6.2,4.1"/>
+<path strokeWidth="1.25" d="M20.1,20.4l-5.5-4.5"/>
+<path strokeWidth="1.25" d="M20.8,16.4l-6.9,3.1"/>
 </svg>;
 
 export const VegetableWasabi = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-wasabi" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">

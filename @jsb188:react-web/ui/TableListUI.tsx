@@ -40,7 +40,7 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
       'lh_1',
       !doNotApplyGridToRows && !removeBorderLine ? 'bd_lt bd_t_1' : '',
       !doNotApplyGridToRows ? 'grid gap_n' : 'trow',
-      !__deleted && rest.onClick ? 'link bg_primary_hv' : '',
+      !__deleted && rest.onClick ? 'link bg_primary_fd_hv' : '',
       thead ? 'thead' : '',
       __deleted ? 'op_40' : '',
       className
