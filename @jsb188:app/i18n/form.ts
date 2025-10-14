@@ -86,6 +86,7 @@ export default {
     invite: 'Invite',
     invited: 'Invited',
     invoice_date: 'Invoice date',
+    sales: 'Sales',
     add: 'Add',
     remove: 'Remove',
     removed: 'Removed',

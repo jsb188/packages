@@ -431,7 +431,7 @@ function makeMetadataSchema(
                 options: [{
                   __type: 'LIST_ITEM' as const,
                   text: i18n.t('log.receipt_is_not_void'),
-                  iconName: 'receipt-2',
+                  iconName: 'receipt-dollar',
                   selected: !formValues[namespace]?.voided,
                   name: `${namespace}.voided`,
                   value: false,

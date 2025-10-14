@@ -88,6 +88,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   plus_circle: 'circle-plus-filled',
   post_harvest: 'farming-barn-silo',
   read: 'checklist',
+  receipt: 'receipt-dollar',
   report: 'exclamation-circle',
   seeding: 'organic-seedling-grow',
   smile: 'confetti',

@@ -110,7 +110,7 @@ SidebarSubtitle.displayName = 'SidebarSubtitle';
  * Sidebar item
  */
 
-interface SidebarItemProps {
+export const SidebarItem = memo((p: {
   className?: string;
   selected?: boolean;
   to?: string;
@@ -118,9 +118,7 @@ interface SidebarItemProps {
   text: string;
   iconName?: string;
   rightIconName?: string;
-}
-
-export const SidebarItem = memo((p: SidebarItemProps) => {
+}) => {
   const { text, iconName, rightIconName, to, selected, onClick, className } = p;
 
   return <SmartLink
@@ -155,3 +153,15 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
 });
 
 SidebarItem.displayName = 'SidebarItem';
+
+/**
+ * Sidebar break
+ */
+
+export const SidebarBreak = memo(() => {
+  return <div className='pt_3 pb_4 mx_df'>
+    <div className='h_4 rel pattern_texture secondary_bf' />
+  </div>;
+});
+
+SidebarBreak.displayName = 'SidebarBreak';

@@ -297,6 +297,29 @@ const PRODUCE_WORDS = [
 	'star\\b',
 	'stars\\b',
 	'seed',
+
+  // log activities
+  // NOTE: If i18n words change, these have to change too
+  'soil',
+  'irrigation',
+  'fertilization',
+  'crop protection',
+  'crop monitoring',
+  'direct seed',
+  'pruning',
+  'trellising',
+  'preparing crops',
+  'other field',
+  'crops',
+  'estimating yield',
+  'other harvest',
+  'handling or grading produce',
+  'packaging or moving produce',
+  'cold storage temperature',
+  'post harvest',
+  'sale',
+  'water testing',
+  'chlorine level',
 ];
 
 /**
@@ -463,6 +486,43 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 					return 'vegetable-wasabi';
 				case 'flower':
 					return 'flower';
+        case 'soil':
+          return 'product-growth-tree-box';
+        case 'irrigation':
+          return 'gardening-sprinkler';
+        case 'direct seed':
+          return 'agriculture-machine-seeder';
+        case 'fertilization':
+          return 'organic-bag-leaf';
+        case 'crop protection':
+          return 'gardening-tools-1';
+        case 'crop monitoring':
+          return 'farming-barn-sun';
+        case 'pruning':
+          return 'gardening-scissors'
+        case 'trellising':
+          return 'barbed-wire-fence';
+        case 'preparing crops':
+          return 'protein-gluten-wheat';
+        case 'other field':
+          return 'truck-animal';
+        case 'crops':
+          return 'harvest-product';
+        case 'estimating yield':
+        case 'other harvest':
+          return 'crop-info-biotech-1';
+        case 'handling or grading produce':
+        case 'packaging or moving produce':
+          return 'harvest-product';
+        case 'post harvest':
+          return 'warehouse-storage';
+        case 'cold storage temperature':
+          return 'temperature-control-warehouse-1';
+        case 'sale':
+          return 'receipt-dollar';
+        case 'water testing':
+        case 'chlorine level':
+          return 'organic-flask';
 				default:
 					console.log('Missing switchcase for crop:', crop);
 			}
@@ -478,6 +538,7 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 	// return 'harvest-product';
 	return 'seedling';
 }
+
 
 /**
  * Get the icon name for livestock using regex
