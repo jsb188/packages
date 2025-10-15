@@ -1955,15 +1955,6 @@ export const Sticker = <svg xmlns="http://www.w3.org/2000/svg" className="icon i
 <path d="M20 12a8 8 0 1 1 -8 -8" stroke="currentColor" />
 </svg>;
 
-export const Package = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-package">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5" />
-<path d="M12 12l8 -4.5" />
-<path d="M12 12l0 9" />
-<path d="M12 12l-8 -4.5" />
-<path d="M16 5.25l-8 4.5" />
-</svg>;
-
 export const Password = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-password" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 10v4" stroke="currentColor" />

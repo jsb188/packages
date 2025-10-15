@@ -1,4 +1,3 @@
-
 /**
  * Enums
  */
@@ -8,6 +7,7 @@ export const ACTION_STATUS_ENUMS = [
 	'STARTED',
 	'COMPLETED',
 	'ERRORED',
+  'DISABLED',
 ];
 
 export const ACTION_CATEGORY_ENUMS = [

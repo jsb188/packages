@@ -88,6 +88,7 @@ export default {
     invoice_date: 'Invoice date',
     sales: 'Sales',
     sales_orders: 'Sales & orders',
+    actions: 'Actions',
     add: 'Add',
     remove: 'Remove',
     removed: 'Removed',
