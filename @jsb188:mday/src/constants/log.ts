@@ -62,12 +62,12 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 	[
 		'SALES',
 		[
-      // 'SALE_PRODUCE_ORDER',
-      // 'OTHER_SALE_ORDER',
-			'SALE_TRANSACTION',
-			'SALE_DETAILS',
-			'SALE_FEEDBACK',
-			'OTHER_SALES_ACTIVITY',
+			'SALE_PRODUCE_ORDER',
+			'OTHER_SALE_ORDER',
+			// 'SALE_TRANSACTION',
+			// 'SALE_DETAILS',
+			// 'SALE_FEEDBACK',
+			// 'OTHER_SALES_ACTIVITY',
 		],
 	],
 	[
@@ -83,11 +83,11 @@ export const LOG_ARABLE_TYPE_ENUMS = ARABLE_ACTIVITIES_GROUPED.map(([type]) => t
 
 export const ARABLE_TYPES_TO_TEXT = {
 	SEED: 'seed & supply purchases',
-	PLANTING: 'seeding, transplanting activities',
-	FIELD: 'field activities',
+	PLANTING: 'seeding & transplanting',
+	FIELD: 'field work',
 	HARVEST: 'harvest activities',
 	POST_HARVEST: 'after-harvest activities such as handling, packaging produce and cold storage',
-	SALES: 'sales related activities',
+	SALES: 'sales & purchase orders',
 	WATER: 'water testing activities',
 	EVERYTHING: 'all activities', // Not part of enums
 };

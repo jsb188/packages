@@ -54,15 +54,15 @@ interface LogDetailsGQLBase {
 
 interface LogMetadataBase {
 	__before: any;
-  childOrg: never;
-  childOrgId: never;
-  referenceNumber: never;
+	childOrg: never;
+	childOrgId: never;
+	referenceNumber: never;
 }
 
 interface LabelValueObj {
-  label: string;
-  value: string;
-  quantity?: number;
+	label: string;
+	value: string;
+	quantity?: number;
 }
 
 /**
@@ -75,14 +75,13 @@ export type LogArableMetadata = LogMetadataBase & {
 	unit: string;
 	concentration: number;
 	concentrationUnit: string;
-  location: string;
-  fieldLocation?: string;
-  otherParty?: string;
-  referenceNumber?: string;
+	location: string;
+	fieldLocation?: string;
+	otherParty?: string;
+	referenceNumber?: string;
 	values?: LabelValueObj[];
-	price: number;
 	tax: number;
-};
+}
 
 export interface LogArableObj {
 	type?: LogArableTypeEnum; // Only set in server if manually extended
@@ -105,7 +104,7 @@ export type LogArableMetadataGQL = LogArableMetadata & LogDetailsGQLBase;
  */
 
 export type LogFarmersMarketMetadata = LogMetadataBase & {
-  referenceNumber: string;
+	referenceNumber: string;
 	voided: boolean;
 	childOrgId: string | number;
 	values: LabelValueObj[];
@@ -135,18 +134,18 @@ export type LogFarmersMarketMetadataGQL = LogFarmersMarketMetadata & LogDetailsG
  */
 
 export type LogLivestockMetadata = LogMetadataBase & {
-  damIdentifier?: string;
+	damIdentifier?: string;
 	livestockIdentifiers: string[];
 	livestockGroup?: string;
 	livestock: string;
-  otherParty?: string;
-  referenceNumber?: string;
+	otherParty?: string;
+	referenceNumber?: string;
 	values?: LabelValueObj[];
 	item: string;
 	quantity: number;
 	unit: string;
-  location: string;
-  fieldLocation?: string;
+	location: string;
+	fieldLocation?: string;
 	price: number;
 	tax: number;
 };
@@ -156,7 +155,7 @@ export interface LogLivestockObj {
 	activity: LogLivestockActivityEnum;
 	notes: string | null;
 	translation?: string | null;
-  damIdentifier?: string;
+	damIdentifier?: string;
 	livestockIdentifiers: string[];
 	livestockGroup?: string;
 	metadata?: Partial<LogLivestockMetadata> | null;
@@ -182,12 +181,13 @@ export type LogMetadataGQL = LogArableMetadataGQL | LogFarmersMarketMetadataGQL 
  */
 
 export interface LogEntryGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
 	id: string;
 	accountId: string;
 	organizationId: string;
 	details: LogMetadataGQL;
+  status: ActionStatusEnum | null;
 
 	account: any;
 	date: string; // ISO date string
@@ -199,6 +199,7 @@ export interface LogEntryInsertObj {
 	id?: number; // Only for edits
 	accountId: number;
 	organizationId: number;
+  status?: ActionStatusEnum | null;
 	details: LogDetailsObj;
 	date: Date;
 }
@@ -208,6 +209,7 @@ export interface LogEntryDataObj {
 	id: number;
 	accountId: number;
 	organizationId: number;
+  status: ActionStatusEnum | null;
 	distance?: number; // For vector search
 	details: LogArableDetailsObj | LogFarmersMarketDetailsObj | LogLivestockDetailsObj;
 	date: Date;
@@ -225,9 +227,9 @@ export interface LogEntryDataObj {
 export interface FilterLogEntriesArgs {
 	operation: OrganizationOperationEnum;
 	accountId?: string | null; // Account ID to filter logs by account
-  preset?: 'WEEKS_5' | null;
+	preset?: 'WEEKS_5' | null;
 	types?: LogTypeEnum[] | null;
-  activities?: LogActivityEnum[] | null;
+	activities?: LogActivityEnum[] | null;
 	startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
 	endDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
 	timeZone?: string | null; // Timezone string, e.g., 'America/New_York'

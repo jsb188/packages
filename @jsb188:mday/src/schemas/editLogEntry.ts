@@ -44,7 +44,6 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         referenceNumber: details.referenceNumber,
         otherParty: details.otherParty,
         values: details.values,
-        price: details.price,
         notes: details.notes,
       };
     } break;
@@ -151,6 +150,7 @@ export type ValidMetadataFieldName =
   | 'unit'
   | 'price'
   | 'crop'
+  | 'purchased_item'
   | 'fieldLocation'
   | 'location_water'
   | 'location_arable'
@@ -335,6 +335,15 @@ function makeMetadataSchema(
         return {
           __type: 'input',
           label: i18n.t('form.crop'),
+          item: {
+            name: `${namespace}.crop`,
+            placeholder: isCreateNew ? i18n.t('log.crop_ph') : '',
+          }
+        };
+      case 'purchased_item':
+        return {
+          __type: 'input',
+          label: i18n.t('form.purchase_summary'),
           item: {
             name: `${namespace}.crop`,
             placeholder: isCreateNew ? i18n.t('log.crop_ph') : '',
@@ -538,23 +547,23 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
   switch (__typename) {
     case 'LogArable': {
       const isWaterTesting = logType === 'WATER';
-      const isSales = ['SALES'].includes(logType!);
+      const isSale = ['SALES'].includes(logType!);
       const isPurchase = ['SEED'].includes(logType!);
+      const isSaleOrPurchase = isSale || isPurchase;
 
       schemaFields = [
         'activity',
         isWaterTesting ? 'water_testing' : null,
         isWaterTesting ? 'concentration_unit' : null,
-        isWaterTesting ? 'water_quantity' : isPurchase ? null : 'quantity',
-        isWaterTesting ? 'water_unit' : isPurchase ? null : 'unit',
-        isWaterTesting ? null : 'crop',
-        isPurchase ? 'otherParty' : null,
-        isPurchase ? 'invoiceNumber' : null,
-        isPurchase ? 'invoiceItems' : null,
-        isPurchase ? 'tax' : null,
-        isSales && !isPurchase ? 'price' : null,
-        isSales || isPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
-        isSales || isPurchase ? null : 'fieldLocation',
+        isWaterTesting ? 'water_quantity' : isSaleOrPurchase ? null : 'quantity',
+        isWaterTesting ? 'water_unit' : isSaleOrPurchase ? null : 'unit',
+        isWaterTesting ? null : isSaleOrPurchase ? 'purchased_item' : 'crop',
+        isSaleOrPurchase ? 'otherParty' : null,
+        isSaleOrPurchase ? 'invoiceNumber' : null,
+        isSaleOrPurchase ? 'invoiceItems' : null,
+        isSaleOrPurchase ? 'tax' : null,
+        isSaleOrPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
+        isSaleOrPurchase ? null : 'fieldLocation',
       ];
     } break;
     case 'LogFarmersMarket': {

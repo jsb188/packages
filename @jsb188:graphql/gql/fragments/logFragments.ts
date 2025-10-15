@@ -4,6 +4,7 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   accountId
   organizationId
   cursor
+  status
   date
   createdAt
   updatedAt
@@ -32,7 +33,6 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   }
   tax
 
-  price
   notes
 }`;
 
