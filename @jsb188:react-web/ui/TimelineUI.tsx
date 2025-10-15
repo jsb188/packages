@@ -95,23 +95,21 @@ export const CompactTimeline = memo((p: {
   const positionIndex = Number(p.positionIndex);
   const len = items.length - 1;
 
-  return <div className={cn('px_15 py_30', className)}>
-    <div
-      className={cn('rel x_timeline h_6 r')}
-    >
-      {items.map((item, i) => {
-        return <TimelineDot
-          key={i}
-          left={(i / len) * 100 + '%'}
-          position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
-          selected={i <= positionIndex}
-          lastSelected={i === positionIndex}
-          {...item}
-        />;
-      })}
+  return <div
+    className={cn('rel x_timeline compact h_6 r fs')}
+  >
+    {items.map((item, i) => {
+      return <TimelineDot
+        key={i}
+        left={(i / len) * 100 + '%'}
+        position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
+        selected={i <= positionIndex}
+        lastSelected={i === positionIndex}
+        {...item}
+      />;
+    })}
 
-      {positionIndex > 0 && <span className='abs tl_progress bg_darker_2' style={{ width: (positionIndex / len) * 100 + '%' }} />}
-    </div>
+    {positionIndex > 0 && <span className='abs tl_progress bg_darker_2' style={{ width: (positionIndex / len) * 100 + '%' }} />}
   </div>;
 });
 
