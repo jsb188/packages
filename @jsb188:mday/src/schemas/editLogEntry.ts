@@ -470,7 +470,7 @@ function makeMetadataSchema(
               return labelsAndValues?.map((lv: any) => {
                 return textWithBrackets(
                   `${lv.quantity ? `${lv.quantity} ` : ''}${lv.label}`,
-                  formatCurrency(lv.value, 'en-US', 'USD'),
+                  formatCurrency(lv.value, false),
                 );
               }).join(', ');
             },
@@ -506,7 +506,7 @@ function makeMetadataSchema(
             placeholder: isCreateNew ? i18n.t(`log.marketCredits_ph`) : '',
             getter: (labelsAndValues: string[]) => {
               return labelsAndValues?.map((lv: any) => {
-                return `${formatCurrency(lv.value, 'en-US', 'USD')} ${lv.label}`;
+                return `${formatCurrency(lv.value, false)} ${lv.label}`;
               }).join(', ');
             },
           },

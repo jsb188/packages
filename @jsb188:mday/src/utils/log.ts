@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { formatCurrency, formatDecimal } from '@jsb188/app/utils/number';
-import { joinReadable, textWithBrackets, ucFirst } from '@jsb188/app/utils/string';
+import { formatReferenceNumber, joinReadable, textWithBrackets, ucFirst } from '@jsb188/app/utils/string';
 import {
   ARABLE_ACTIVITIES_GROUPED,
   FARMERS_MARKET_ACTIVITIES_GROUPED,
@@ -107,11 +107,12 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 
 			if (logType === 'WATER') {
 				logSpecificText = joinReadable([md.concentration, md.concentration && md.concentrationUnit], ' ', ' ');
-			} else if (logType === 'SALES') {
+			} else if (['SEED','SALES'].includes(logType)) {
 				if (!cropName) {
 					cropName = i18n.t('log.unknown_crop');
 				}
-				logSpecificText = formatCurrency(md.price, 'en-US', 'USD');
+        const totalPrice = (md?.values || []).reduce((sum: number, item: any) => sum + Number(item.value || 0), 0);
+				logSpecificText = formatCurrency(totalPrice, false);
 			}
 
 			return textWithBrackets(
@@ -128,11 +129,11 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 			let creditsText = '';
 			if (Array.isArray(md.values) && md.values.length) {
 				creditsText = md.values.map((item: any) => {
-					return `${formatCurrency(item.value, 'en-US', 'USD')} ${item.label}`;
+					return `${formatCurrency(item.value, false)} ${item.label}`;
 				}).join(', ');
 
 				const totalAmount = md.values.reduce((sum: number, item: any) => sum + Number(item.value || 0), 0);
-				creditsText += ` = ${i18n.t('form.total')}: ${formatCurrency(totalAmount, 'en-US', 'USD')}`;
+				creditsText += ` = ${i18n.t('form.total')}: ${formatCurrency(totalAmount, false)}`;
 			}
 
 			const voidText = isServer && md.voided ? i18n.t('form.void').toUpperCase() : '';
@@ -141,6 +142,17 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'LIVESTOCK':
 		case 'logs_livestock':
 		case 'LogLivestock': {
+
+      if (['SUPPLY_PURCHASE', 'LIVESTOCK_SALE'].includes(logType)) {
+        return joinReadable([
+          formatReferenceNumber(md?.referenceNumber),
+          formatCurrency((md?.values || []).reduce((sum: number, item: any) => sum + Number(item.value || 0), 0), false),
+        ],
+          ' - ',
+          ' - '
+        );
+      }
+
 			if (isServer) {
 				let livestockText = '';
 				if (md.livestock) {
@@ -164,7 +176,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 					(d.livestockIdentifiers || []).map((id: string) => `#${id}`),
 				).join(', ') + (
 					d.damIdentifier ? ` (Dam: #${d.damIdentifier})` : ''
-				),
+        ),
 				[' - ', ''],
 			);
 		}

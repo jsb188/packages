@@ -19,6 +19,7 @@
     "./modules/PopOver": "./modules/PopOver.tsx",
     "./modules/ReverseVirtualizedList": "./modules/ReverseVirtualizedList.tsx",
     "./modules/SchemaForm": "./modules/SchemaForm.tsx",
+    "./modules/Timeline": "./modules/Timeline.tsx",
     "./modules/VirtualizedList": "./modules/VirtualizedList.tsx",
     "./ui/Article": "./ui/Article.tsx",
     "./ui/Avatar": "./ui/Avatar.tsx",

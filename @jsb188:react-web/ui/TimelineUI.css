@@ -1,21 +1,32 @@
 
-/* Horizontal Timeline */
+/* Timeline; horizontal */
 
 .x_timeline {
   position: relative;
   background-color: rgb(var(--color-bg-active));
 }
 
-.x_timeline .tl_dot {
+.x_timeline .tl_dot_cnt {
   position: absolute;
   top: 50%;
-  transform: translate(-50%, -50%);
-  width: 10px; height: 10px;
 }
 
-.x_timeline .selected {
-  background-color: #7F7F7F;
+.x_timeline.horizontal .tl_dot_cnt {
+  transform: translate(-50%, -50%);
 }
+
+.x_timeline.compact .tl_dot_cnt {
+  transform: translate(0, -50%);
+  margin-left: -7.5px;
+}
+
+.x_timeline .tl_dot {
+  box-sizing: content-box;
+}
+
+/* .x_timeline .selected {
+  background-color: #7F7F7F;
+} */
 
 .x_timeline .not_selected .tl_text {
   color: rgb(var(--color-bg-medium));
@@ -24,13 +35,13 @@
 .x_timeline .tl_icon {
   position: absolute;
   width: 40px; height: 40px;
-  transform: translate(-15px, -40px);
+  transform: translate(-15px, -42px);
   font-size: 1.55rem;
   color: rgb(var(--color-bg-medium));
 }
 
 .x_timeline .not_last_selected .tl_icon {
-  transform: translate(-15px, -40px) scale(.78);
+  transform: translate(-15px, -42px) scale(.78);
 }
 
 .x_timeline .tl_text {
@@ -54,4 +65,10 @@
 
 .x_timeline .tl_progress {
   top: 0; bottom: 0;
+}
+
+/* Timeline; compact */
+
+.x_timeline.compact {
+  align-self: center;
 }

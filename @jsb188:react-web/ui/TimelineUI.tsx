@@ -1,116 +1,59 @@
 import { cn } from '@jsb188/app/utils/string';
-import './TimelineUI.css';
 import { memo } from 'react';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
+import { Icon } from '../svgs/Icon';
+import './TimelineUI.css';
 
 /**
  * Types
  */
 
-interface TimelineItem {
+export type TimelineDotColor = 'strong' | 'primary' | 'secondary';
+
+export interface TimelineItem {
   iconName: string;
   selectedIconName?: string;
   text: string;
+  color: TimelineDotColor;
 }
 
 /**
  * Timeline dot item
  */
 
-const TimelineDot = memo((p: TimelineItem & {
-  left: number;
+export const TimelineDot = memo((p: Partial<TimelineItem> & {
+  size: number;
+  left?: number | string;
   position: 'start' | 'middle' | 'end';
   selected: boolean;
   lastSelected: boolean;
   className?: string;
+  color: TimelineDotColor;
+  selectedBorderColor?: string;
 }) => {
-  const { text, left, position, selected, lastSelected, iconName, selectedIconName, className } = p;
+  const { color, selectedBorderColor, size, text, left, position, selected, lastSelected, iconName, selectedIconName, className } = p;
+  const dotIconName = lastSelected && selectedIconName ? selectedIconName : iconName;
 
   return <span
-    style={{ left }}
+    style={left || left === 0 ? { left } : undefined}
     className={cn(
-      'r rel z1 tl_dot',
-      selected ? 'selected' : 'not_selected bg_medium',
-      lastSelected ? 'last_selected' : 'not_last_selected',
+      'r tl_dot tl_dot_cnt rel z1',
+      size >= 4 || selected ? `w_${size} h_${size}` : 'w_4 h_4',
+      selected ? `selected bg_${color} bd_2 bd_${selectedBorderColor ?? 'darker_1'}` : 'not_selected bg_medium',
+      lastSelected ? 'last_selected ' : 'not_last_selected',
+      // lastSelected ? 'bd_1 bd_darker_2' : selected ? '' : '',
       position,
       className
     )}
   >
+    {dotIconName &&
     <span className='tl_icon v_center'>
-      <Icon name={lastSelected && selectedIconName ? selectedIconName : iconName} />
-    </span>
+      <Icon name={dotIconName} />
+    </span>}
+    {text &&
     <span className={cn('tl_text ft_xs nowrap a_c ellip', selected ? 'cl_bd' : '')}>
       {text}
-    </span>
+    </span>}
   </span>;
 });
 
 TimelineDot.displayName = 'TimelineDot';
-
-/**
- * Horizontal Timeline
- */
-
-export const HorizontalTimeline = memo((p: {
-  positionIndex?: number;
-  items: TimelineItem[];
-  className?: string;
-}) => {
-  const { items, className } = p;
-  const positionIndex = Number(p.positionIndex);
-  const len = items.length - 1;
-
-  return <div className={cn('px_15 py_30', className)}>
-    <div
-      className={cn('rel x_timeline h_6 r')}
-    >
-      {items.map((item, i) => {
-        return <TimelineDot
-          key={i}
-          left={(i / len) * 100 + '%'}
-          position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
-          selected={i <= positionIndex}
-          lastSelected={i === positionIndex}
-          {...item}
-        />;
-      })}
-
-      {positionIndex > 0 && <span className='abs tl_progress bg_darker_2' style={{ width: (positionIndex / len) * 100 + '%' }} />}
-    </div>
-  </div>;
-});
-
-HorizontalTimeline.displayName = 'HorizontalTimeline'
-
-/**
- * Smaller timeline with PopOver
- */
-
-export const CompactTimeline = memo((p: {
-  positionIndex?: number;
-  items: TimelineItem[];
-  className?: string;
-}) => {
-  const { items, className } = p;
-  const positionIndex = Number(p.positionIndex);
-  const len = items.length - 1;
-
-  return <div
-    className={cn('rel x_timeline compact h_6 r fs')}
-  >
-    {items.map((item, i) => {
-      return <TimelineDot
-        key={i}
-        left={(i / len) * 100 + '%'}
-        position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
-        selected={i <= positionIndex}
-        lastSelected={i === positionIndex}
-        {...item}
-      />;
-    })}
-
-    {positionIndex > 0 && <span className='abs tl_progress bg_darker_2' style={{ width: (positionIndex / len) * 100 + '%' }} />}
-  </div>;
-});
-
-CompactTimeline.displayName = 'CompactTimeline';

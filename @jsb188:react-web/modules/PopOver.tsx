@@ -428,6 +428,7 @@ type TooltipButtonProps = {
   tooltipClassName?: string;
   disabled?: boolean;
   className?: string;
+  style?: React.CSSProperties;
   children: any;
   offsetX?: number;
   offsetY?: number;

@@ -103,6 +103,10 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
   background-color: rgb(var(--color-bg-active)) !important;
 }
 
+.bg_strong_fd, .bg_strong_hv:hover {
+  background-color: rgb(var(--color-bg-strong)) !important;
+}
+
 .bg_medium_fd, .bg_medium_hv:hover {
   background-color: rgb(var(--color-bg-medium)) !important;
 }
@@ -506,6 +510,7 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
 .bg_alt { background-color: rgb(var(--color-bg-alt)); }
 .bg_active { background-color: rgb(var(--color-bg-active)); }
 .bg_medium { background-color: rgb(var(--color-bg-medium)); }
+.bg_strong { background-color: rgb(var(--color-bg-strong)); }
 
 .bg_invis { background-color: rgba(0,0,0,0); }
 .bg_darker_1 { background-color: rgba(var(--color-darker-rgb),.1); }
@@ -928,6 +933,7 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .bd_alt, .bd_alt_hv:hover { border-color: rgb(var(--color-bg-alt)); }
 .bd_active, .bd_active_hv:hover { border-color: rgb(var(--color-bg-active)); }
 .bd_medium, .bd_medium_hv:hover { border-color: rgb(var(--color-bg-medium)); }
+.bd_strong, .bd_strong_hv:hover { border-color: rgb(var(--color-bg-strong)); }
 
 .bd_secondary, .bd_secondary_hv:hover { border-color: rgb(var(--color-secondary)); }
 .bd_secondary_bd, .bd_secondary_bd_hv:hover { border-color: rgba(var(--color-main), .7); }
@@ -1210,6 +1216,10 @@ rect.s_dot_away {
 .lighter_bf_2:before { background-color: rgba(var(--color-lighter-rgb),.25); }
 .lighter_bf_3:before { background-color: rgba(var(--color-lighter-rgb),.5); }
 .lighter_bf_4:before { background-color: rgba(var(--color-lighter-rgb),.75); }
+
+.strong_bf::before {
+  background-color: rgb(var(--color-bg-strong));
+}
 
 .medium_bf::before {
   background-color: rgb(var(--color-bg-medium));

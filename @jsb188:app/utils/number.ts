@@ -177,6 +177,7 @@ export function getCurrencySymbol(locale: string, currency: string): string {
 
 export function formatCurrency(
 	amount: string | number,
+  trailZeros: boolean = true,
 	locale: string = 'en-US',
 	currency: string = 'USD',
 ): string {
@@ -186,15 +187,15 @@ export function formatCurrency(
 	}
 
 	if (isNaN(num)) {
-		return '$0';
+		return trailZeros ? '$0.00' : '$0';
 	}
 
 	const hasDecimals = num % 1 !== 0;
 	const symbol = getCurrencySymbol(locale, currency);
 
 	return symbol + num.toLocaleString(locale, {
-		minimumFractionDigits: hasDecimals ? 2 : 0,
-		maximumFractionDigits: hasDecimals ? 2 : 0,
+		minimumFractionDigits: hasDecimals || trailZeros ? 2 : 0,
+		maximumFractionDigits: hasDecimals || trailZeros ? 2 : 0,
 	});
 }
 
