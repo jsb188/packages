@@ -22,11 +22,15 @@ import { useCallback } from 'react';
 class PopOver {
   readonly name: string = 'pop_over_state';
   readonly state = atom<PopOverProps | null>(null);
+  public lastOpenId: string | null = null;
 
   open(data: PopOverProps): PopOverProps | null {
+    // console.log('::::: OPEN', data);
     if (!data?.name) {
       return null;
     }
+
+    this.lastOpenId = data?.id || data?.name;
     return data;
   }
 
@@ -36,6 +40,8 @@ class PopOver {
     if (!nextName) {
       return null;
     }
+
+    this.lastOpenId = prev?.id || nextName;
     return {
       ...prev,
       name: nextName,
@@ -44,16 +50,22 @@ class PopOver {
   }
 
   close(prev: PopOverProps | null): PopOverProps | null {
-    if (!prev || !prev.animationClassName) {
+    // console.log('::::: CLOSE', this.lastOpenId, prev?.id);
+    if (
+      !prev || !prev.animationClassName ||
+      !this.lastOpenId
+      // || prev.id !== this.lastOpenId
+    ) {
       return null;
     }
 
-    let nextAnimClassName = prev.animationClassName;
+    let nextAnimClassName = prev.animationClassName || '';
     if (/\bon_mount\b/.test(nextAnimClassName)) {
       nextAnimClassName = nextAnimClassName.replace(/\bon_mount\b/, '').trim();
     } else if (!/\breverse\b/.test(nextAnimClassName)) {
       nextAnimClassName += ' reverse';
     } else {
+      this.lastOpenId = null;
       return null;
     }
 
