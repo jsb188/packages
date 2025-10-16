@@ -220,6 +220,9 @@ const PRODUCE_WORDS = [
 	'romanesco',
 	'zucchini',
 	'zuchini',
+  'eggplant',
+  'jalapeno',
+  'jalapeño',
 	'carrot',
 	'midnight light',
 	'cilantro',
@@ -273,6 +276,15 @@ const PRODUCE_WORDS = [
 	'alyssum',
 	'marjoram',
 	'tomato',
+  'grapes',
+  'blackberr',
+  'raspberr',
+  'cloudberr',
+  'cloud berr',
+  'sweet pepper',
+  'bell pepper',
+  'strawberr',
+  'berry',
 
 	// Leave at end for backup
 	'marciano',
@@ -309,6 +321,9 @@ const PRODUCE_WORDS = [
 	'star\\b',
 	'stars\\b',
 	'seed',
+  'pepper',
+  'chilli',
+  'mix\\b',
 
   // log activities
   // NOTE: If i18n words change, these have to change too
@@ -404,14 +419,30 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'mesclun':
 				case 'spinach':
 				case 'mustard green':
+        case 'mix':
 					return 'vegetable-spinach';
 				case 'tomato':
 					return 'vegetable-tomato';
+        case 'grapes':
+          return 'fruit-grapes';
+        case 'blackberr':
+        case 'raspberr':
+        case 'cloudberr':
+        case 'cloud berr':
+          return 'fruit-cloud-berry';
 				case 'sunshine kabocha':
 				case 'acorn squash':
 				case 'acornsquash':
 				case 'yellow star patty':
+        case 'sweet pepper':
+        case 'bell pepper':
 					return 'vegetable-acornsquash';
+        case 'strawberr':
+        case 'berry':
+          return 'fruit-strawberry';
+        case 'pepper':
+        case 'chilli':
+          return 'seasoning-chilli';
 				case 'delicata':
 				case 'delicata squash':
 					return 'vegetable-delicata-squash';
@@ -462,6 +493,11 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'zuchini':
 				case 'midnight light':
 					return 'vegetable-zucchini';
+        case 'eggplant':
+          return 'vegetable-eggplant';
+        case 'jalapeno':
+        case 'jalapeño':
+          return 'vegetable-jalapeno';
 				case 'stinging kettle':
 				case 'cardoon':
 				case 'cynara cardunculus':

@@ -355,7 +355,12 @@ export function ErrorMessage(p: ErrorMessageProps) {
   }
 
   let buttonHandler;
-  if (!doNotRefreshIfNotLoggedIn && errorCode == '20019') {
+  if (
+    // If "30000" error, this could be an outdated GraphQL fragment error,
+    // so we need to refresh the browser.
+    errorCode === '30000' ||
+    (!doNotRefreshIfNotLoggedIn && errorCode == '20019')
+  ) {
     buttonHandler = () => globalThis.location.reload();
   } else if (
     (onClickButton || buttonHref) &&

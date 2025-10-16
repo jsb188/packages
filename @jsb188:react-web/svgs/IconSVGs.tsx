@@ -1184,13 +1184,37 @@ export const HarvestProduct = <svg xmlns="http://www.w3.org/2000/svg" className=
 <path d="M8.7,4.5l-.2-3"/>
 </svg>;
 
-export const HarvestProductFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon" fill="currentColor" strokeWidth="1.75">
-<g>
-<path d="M22 18H1a0.5 0.5 0 0 0 -0.5 0.5v3A2.5 2.5 0 0 0 3.05 24H20a2.5 2.5 0 0 0 2.49 -2.5v-3A0.5 0.5 0 0 0 22 18Zm-1.86 2.75a1.25 1.25 0 1 1 -1.25 -1.25 1.25 1.25 0 0 1 1.27 1.26Zm-14.48 0a1.25 1.25 0 1 1 -1.25 -1.25 1.25 1.25 0 0 1 1.27 1.26Z" />
-<path d="M21 10.52H2A1.5 1.5 0 0 0 0.56 12v4a0.5 0.5 0 0 0 0.5 0.5H22a0.5 0.5 0 0 0 0.5 -0.5v-4a1.5 1.5 0 0 0 -1.5 -1.48ZM3.19 13.77A1.25 1.25 0 1 1 4.43 15a1.25 1.25 0 0 1 -1.24 -1.23Zm14.47 0A1.25 1.25 0 1 1 18.91 15a1.25 1.25 0 0 1 -1.25 -1.23Z" />
-<path d="M23.39 3.28a1 1 0 0 0 -1.27 -0.61l-2.28 0.78 0.87 -2a1 1 0 1 0 -1.83 -0.81L18 2.74a5.64 5.64 0 0 0 -0.71 -0.33 2.14 2.14 0 0 0 -2.63 1.06s-0.31 0.5 -0.77 1.28a5.5 5.5 0 0 1 2.78 1.36 0.75 0.75 0 1 1 -1 1.12 3.89 3.89 0 0 0 -2.67 -1c-0.48 0.8 -1 1.7 -1.53 2.58a0.5 0.5 0 0 0 0 0.5 0.48 0.48 0 0 0 0.43 0.25l6.16 0.05a0.44 0.44 0 0 0 0.22 -0.05l1.56 -0.78A2.14 2.14 0 0 0 21 6.09a5 5 0 0 0 -0.37 -0.78l2.19 -0.76a1 1 0 0 0 0.57 -1.27Z" />
-<path d="M5.73 6.31a0.74 0.74 0 0 1 0.5 0.93 0.74 0.74 0 0 1 -0.71 0.54l-0.22 0a4.18 4.18 0 0 0 -2 -0.13l0 1.41a0.49 0.49 0 0 0 0.5 0.49H9a0.49 0.49 0 0 0 0.46 -0.3L10.89 6a0.5 0.5 0 0 0 -0.06 -0.51 4.65 4.65 0 0 0 -1.31 -1.16l1.55 -1.94A1 1 0 0 0 10.92 1a1 1 0 0 0 -1.41 0.15L7.75 3.34 7.54 0.92A1 1 0 0 0 6.47 0a1 1 0 0 0 -0.92 1.07l0.2 2.35a3.66 3.66 0 0 0 -0.74 0.1A2.1 2.1 0 0 0 3.34 5.8s0 0.11 0 0.3a6 6 0 0 1 2.39 0.21Z" />
-</g>
+export const FruitStrawberry = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-fruit-strawberry" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M12,22.6c5,0,11.5-13.2,3.5-14.1h-7.1c-7.9.9-1.4,14.1,3.5,14.1Z"/>
+<path d="M13.4,5.6c.6.6,2,.1,3.2-1.1,1.2-1.2,1.6-2.6,1.1-3.2,0,0,0,0,0,0-.6-.6-2-.1-3.2,1.1-1.2,1.2-1.6,2.6-1.1,3.2Z"/>
+<path d="M10.6,5.6c.6-.6.1-2-1.1-3.2-1.2-1.2-2.6-1.6-3.2-1.1,0,0,0,0,0,0-.6.6-.1,2,1.1,3.2,1.2,1.2,2.6,1.6,3.2,1.1Z"/>
+<path d="M7.8,11.3l.7.7"/>
+<path d="M9.9,14.8l.7.7"/>
+<path d="M13.4,14.8l.7.7"/>
+<path d="M11.6,18.3l.7.7"/>
+<path d="M11.6,11.3l.7.7"/>
+<path d="M15.5,11.3l.7.7"/>
+</svg>;
+
+export const FruitCloudBerry = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-fruit-cloud-berry" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M10.5,12.6c-1.2-1-3-.8-4.1.3-1,1.2-.9,2.9.4,3.9.3.2.6.4.9.5"/>
+<path d="M18.2,17.2c1.5-.5,2.3-2.1,1.8-3.5-.5-1.4-2.2-2.2-3.7-1.7-.3.1-.6.3-.9.5"/>
+<path d="M10.6,16.1c-.2,0-.4,0-.5,0-1.6,0-2.9,1.2-2.9,2.7s1.3,2.7,2.9,2.7c1.6,0,2.9-1.2,2.9-2.7,0-.5-.1-.9-.4-1.4"/>
+<path d="M13.4,17.4c-.8,1.3-.4,3,1,3.7,1.4.8,3.1.3,3.9-.9s.4-3-1-3.7c-.6-.3-1.3-.5-2-.3"/>
+<path d="M13,11s-2.4-3.9,0-9.8"/>
+<path d="M19.3,8.9c-1,1-2.7,1-3.7,0-1-1.1-1-2.7,0-3.8,1-1.1,5.3-1.6,5.3-1.6,0,0-.5,4.4-1.5,5.5Z"/>
+<path d="M4.8,8.9c1.1,1,2.8,1,3.8,0,1-1.1,1-2.7,0-3.8-1.1-1.1-5.4-1.6-5.4-1.6,0,0,.5,4.4,1.6,5.5Z"/>
+<path d="M10.1,14.2c0,1.8,1.3,3.2,2.9,3.2s2.9-1.4,2.9-3.2-1.3-3.2-2.9-3.2-2.9,1.4-2.9,3.2"/>
+</svg>;
+
+export const FruitGrapes = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-fruit-grapes" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M14.7,6.9c1.1-1.7,3.3-2.1,4.9-1,1.7,1.1,2.1,3.3,1,4.9-.5.7-1.2,1.3-2.1,1.5"/>
+<path d="M12.1,15.1c-.2-.4-.3-.9-.3-1.4,0-2,1.6-3.6,3.6-3.6,2,0,3.6,1.6,3.6,3.6s-1.6,3.6-3.6,3.6h0"/>
+<path d="M5.5,12.3c-1.9-.4-3.1-2.4-2.7-4.3.4-1.9,2.4-3.1,4.3-2.7.9.2,1.7.8,2.2,1.6"/>
+<path d="M8.7,17.3c-2,0-3.6-1.6-3.6-3.6s1.6-3.6,3.6-3.6c1.4,0,2.8.9,3.3,2.2"/>
+<path d="M8.5,18.7c0,2,1.6,3.6,3.6,3.6,2,0,3.6-1.6,3.6-3.6h0c0-2-1.6-3.6-3.6-3.6s-3.6,1.6-3.6,3.6"/>
+<path d="M8.6,10.2c-.5-1.9.6-3.9,2.5-4.4,1.9-.5,3.9.6,4.4,2.5.2.6.2,1.2,0,1.8"/>
+<path d="M16.2,2.7c-2.8-.2-4.2,3-4.2,3V1.3"/>
 </svg>;
 
 export const FarmingHay = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-farming-hay" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -1872,6 +1896,12 @@ export const ReplaceFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 <path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" />
 </svg>;
 
+export const SeasoningChilli = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-jalapeno" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M12.5,21.4c3.2-1.8,5.8-4.4,7.6-7.5,1-1.7.7-3.8-.8-5.1h0c-1.7-1.5-4.2-1.3-5.7.3-.2.2-.3.4-.4.6l-3.2,5.3c-1.5,2.4-4.1,3.9-7,3.9h-.8c-.4,0-.7.3-.7.7,0,.2,0,.3.2.4h0c2.9,2.7,7.2,3.3,10.7,1.4Z"/>
+<path d="M16,7.8c.8-2.2,3.1-3.3,4.7-2.3,1.4.8,1.7,2.9.6,4.5l-.7,1.2"/>
+<path d="M20.5,5.3l1.9-3.8"/>
+</svg>;
+
 export const Seedling = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-seedling">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 10a6 6 0 0 0 -6 -6h-3v2a6 6 0 0 0 6 6h3" />
@@ -2418,11 +2448,24 @@ export const VegetableDelicataSquash = <svg xmlns="http://www.w3.org/2000/svg" c
 <path d="M2.9,21.1c2.3,2.3,20.3-13,16.7-16.7S.5,18.8,2.9,21.1Z"/>
 </svg>;
 
+export const VegetableEggplant = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-eggplant" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M18.5,7c-1.3,1.4-3.6,0-5-1.1-1.4,2.1-3,4.8-8.3,4.7-3.7,0-5.2,4.9-3,8.1,4.2,6.1,14.3,0,18-6.4-1.1-1.1-3.3-3.8-1.8-5.4Z"/>
+<path d="M20.9,4.5l1.8-1.8"/>
+<path d="M4.8,14.2c2.4.5,4.9-.2,6.7-1.9"/>
+<path d="M18.5,7c-1.9,2.1,2.3,5.9,2.3,5.9,2.4-2.3,2.4-6.1.1-8.4,0,0,0,0,0,0-2.5-2.2-6.2-1.9-8.4.5,0,0,0,0,0,0,0,0,4.1,4,6,2Z"/>
+</svg>;
+
 export const VegetableHubbardSquash = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-hubbard-squash" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M18.1,13c-.1-1,.2-2,.9-2.7,1.4-1.4,1.4-3.7,0-5.2-1.4-1.4-3.7-1.4-5.2,0h0c-.7.7-1.7,1-2.7.9-2.6-.4-5.1.5-7,2.3-3.9,3.9-2.9,11.3-1.3,12.9s9.7,1.9,12.9-1.3c1.8-1.8,2.7-4.4,2.3-7Z"/>
 <path d="M22.5,1.5c-.3,1.8-1.7,3.2-3.4,3.7"/>
 <path d="M2.9,21.3s.6-6.4,3.5-9.3,4.1-1.5,5.1-1.9c1.1-.4,4.7-5.1,7.5-4.9"/>
 <path d="M2.9,21.3s6.4-.6,9.3-3.5c2.3-2.3,1.5-4.1,1.9-5.1.4-1.1,5.1-4.7,4.9-7.5"/>
+</svg>;
+
+export const VegetableJalapeno = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-jalapeno" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M2,14c0,1.3,3,6.1,9.6,6.1s12.4-8.9,9.1-11.3c-4.8-3.5-7,2.6-10,3.5s-8.7-.2-8.7,1.7Z"/>
+<path d="M20.7,8.7c1.3-.4,2.3-3.4-.4-4.8"/>
+<path d="M10.9,15.9c2.2.4,4.1.5,7-3"/>
 </svg>;
 
 export const VegetableKohlrabi = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-cabbage" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
