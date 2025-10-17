@@ -1,6 +1,16 @@
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 
 /**
+ * Constants
+ */
+
+export const LOG_ACTION_STATUS_ENUMS = [
+	'STARTED',
+	'COMPLETED',
+	'ERRORED',
+];
+
+/**
  * #### #### #### ####
  * Arable farming logs
  * NOTE: This constant defines all the enums and activities for both GraphQL and database

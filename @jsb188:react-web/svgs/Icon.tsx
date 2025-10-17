@@ -46,7 +46,7 @@ interface SpecialIconProps extends IconProps {
 export const COMMON_ICON_NAMES: Record<string, string> = {
   ai_magic: 'sparkles',
   address_book: 'address-book',
-  alert_warning: 'alert-circle',
+  alert_warning_filled: 'alert-circle-filled',
   billing: 'credit-card',
   broken_file: 'file-broken',
   call: 'phone-call',

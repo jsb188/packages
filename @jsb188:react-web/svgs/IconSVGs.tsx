@@ -68,6 +68,10 @@ export const AlertCircle = <svg xmlns="http://www.w3.org/2000/svg" className="ic
 <path d="M12,22.5c5.8,0,10.5-4.7,10.5-10.5S17.8,1.5,12,1.5,1.5,6.2,1.5,12s4.7,10.5,10.5,10.5Z"/>
 </svg>;
 
+export const AlertCircleFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-alert-circle-filled" fill="currentColor">
+<path d="M12,2c-2.7,0-5.2,1.1-7.1,3-1.9,1.9-2.9,4.5-2.9,7.1,0,5.4,4.4,9.8,9.8,9.8,0,0,0,0,0,0h.2c5.6,0,10-4.6,10-10.2,0-5.4-4.4-9.8-9.8-9.8,0,0-.1,0-.2,0ZM10.8,15.8c0-.7.5-1.3,1.2-1.3,0,0,0,0,0,0,.7,0,1.2.5,1.3,1.2,0,.7-.5,1.2-1.2,1.3,0,0,0,0,0,0-.7,0-1.3-.5-1.3-1.2ZM11.2,12.4v-5c0-.5.4-.8.8-.8s.8.4.8.8v5c0,.5-.4.8-.8.8s-.8-.4-.8-.8Z"/>
+</svg>;
+
 export const AlertCircleColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-alert-circle-color">
 <path fill="#ff808c" d="M23 11.81A11.163 11.163 0 0 1 12 23 10.837 10.837 0 0 1 1 12.192 11.162 11.162 0 0 1 12 1a10.837 10.837 0 0 1 11 10.81Z" strokeWidth="1" />
 <path fill="#ffbfc5" d="M12 5a10.777 10.777 0 0 1 10.81 9c0.139 -0.722 0.203 -1.455 0.19 -2.19A10.838 10.838 0 0 0 12 1 11.162 11.162 0 0 0 1 12.192c0.014 0.609 0.077 1.215 0.188 1.814A11.232 11.232 0 0 1 12 5Z" strokeWidth="1" />

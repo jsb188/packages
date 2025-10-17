@@ -64,21 +64,19 @@ export const CompactTimeline = memo((p: {
   const positionIndex = Number(p.positionIndex);
   const len = items.length - 1;
 
-  return <div
-    className={cn('rel x_timeline compact h_1 r mx_4', className)}
-  >
+  return <div className={cn('rel x_timeline compact h_1 r mx_4', className)}>
     {items.map((item, i) => {
       const isFinished = i < positionIndex && i === len;
       return <TooltipButton
         key={i}
         style={{ left: (i / len) * 100 + '%' }}
-        className='tl_dot_cnt v_center rel z1 w_25 h_25'
+        className='tl_dot_cnt tl_dot_hv v_center rel z1 w_25 h_25'
         tooltipClassName='a_c'
         as='div'
         position='top'
         message={item.text}
         offsetX={2} // +2 to adjust for .pr_2 padding-right
-        offsetY={0}
+        offsetY={-5}
       >
         {isFinished
         ? <span className={`cl_${color} ft_sm`}>
