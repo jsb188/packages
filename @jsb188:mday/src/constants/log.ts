@@ -10,6 +10,20 @@ export const LOG_ACTION_STATUS_ENUMS = [
 	'ERRORED',
 ];
 
+export const PURCHASE_ACTIVITIES = [
+  // # Arable
+  'SEED_PURCHASE_INFO',
+  'OTHER_SUPPLY_PURCHASE_ACTIVITY',
+  // # Livestock
+  'FEED_PURCHASE',
+];
+
+export const SALE_ACTIVITIES = [
+  // # Arable
+  'SALE_PRODUCE_ORDER',
+  'OTHER_SALE_ORDER',
+];
+
 /**
  * #### #### #### ####
  * Arable farming logs
@@ -262,6 +276,3 @@ export const LOG_TYPES_BY_OPERATION: Record<OrganizationOperationEnum, (typeof L
 	FARMERS_MARKET: LOG_FARMERS_MARKET_TYPE_ENUMS,
 	LIVESTOCK: LOG_LIVESTOCK_TYPE_ENUMS,
 };
-
-// Use this log all activities to keep database up to date
-// console.log(LOG_ANY_ACTIVITY_ENUMS);
