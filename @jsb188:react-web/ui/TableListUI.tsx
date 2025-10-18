@@ -35,6 +35,7 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
   __deleted?: boolean;
 }) {
   const { thead, removeBorderLine, doNotApplyGridToRows, gridLayoutStyle, className, __deleted, ...rest } = p;
+
   return <div
     className={cn(
       'lh_1',

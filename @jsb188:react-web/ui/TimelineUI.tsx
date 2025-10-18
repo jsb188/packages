@@ -47,7 +47,10 @@ export const TimelineDot = memo((p: Partial<TimelineItem> & {
   >
     {dotIconName &&
     <span className='tl_icon v_center'>
-      <Icon name={dotIconName} />
+      <Icon
+        name={dotIconName}
+        tryColor={!selectedIconName && lastSelected}
+      />
     </span>}
     {text &&
     <span className={cn('tl_text ft_xs nowrap a_c ellip', selected ? 'cl_bd' : '')}>

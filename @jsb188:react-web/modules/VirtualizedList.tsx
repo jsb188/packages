@@ -676,7 +676,7 @@ const TableListItem = (p: TableListProps & {
 
     <TRow
       __deleted={rowData.__deleted}
-      onClick={rowData.__deleted ? undefined : () => onClickRow?.(item)}
+      onClick={rowData.__deleted || !onClickRow ? undefined : () => onClickRow(item)}
       doNotApplyGridToRows={doNotApplyGridToRows}
       gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
     >
@@ -688,7 +688,7 @@ const TableListItem = (p: TableListProps & {
         return <TRow
           key={k}
           className='rel z1'
-          onClick={() => onClickRow?.(item, subRowItem.value)}
+          onClick={onClickRow ? () => onClickRow(item, subRowItem.value) : undefined}
           doNotApplyGridToRows={doNotApplyGridToRows}
           gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
         >
@@ -727,14 +727,14 @@ interface TableListProps {
   cellClassNames?: (string | undefined)[];
   removeHorizontalPadding?: boolean;
   doNotApplyGridToRows?: boolean;
-  headers?: Partial<TableHeaderObj>[];
+  headers?: Partial<TableHeaderObj>[] | null;
   listData: VZListItemObj[] | null;
   mapListData: MapTableListDataFn;
   onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any) => void;
 }
 
 export const TableList = memo((p: TableListProps) => {
-  const { reactiveFragmentFn, gridLayoutStyle, headers, listData, mapListData, cellClassNames, doNotApplyGridToRows, removeHorizontalPadding, onClickRow } = p;
+  const { reactiveFragmentFn, gridLayoutStyle, headers, listData, cellClassNames, doNotApplyGridToRows, removeHorizontalPadding } = p;
   return <>
     {headers && (
       <THead

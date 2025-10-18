@@ -10,12 +10,13 @@ import { Icon } from '@jsb188/react-web/svgs/Icon';
  */
 
 export const HorizontalTimeline = memo((p: {
+  removeLine?: boolean;
   positionIndex?: number;
   items: Partial<TimelineItem>[];
   className?: string;
   color?: TimelineDotColor;
 }) => {
-  const { items, className } = p;
+  const { removeLine, items, className } = p;
   const color = p.color || 'strong';
   const positionIndex = Number(p.positionIndex);
   const len = items.length - 1;
@@ -37,7 +38,7 @@ export const HorizontalTimeline = memo((p: {
         />;
       })}
 
-      {positionIndex > 0 && (
+      {!removeLine && positionIndex > 0 && (
         <span
           className={`abs tl_progress bg_${color}`}
           style={{ width: Math.min(100, (positionIndex / len) * 100) + '%' }}

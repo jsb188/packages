@@ -3,7 +3,7 @@
 
 .x_timeline {
   position: relative;
-  background-color: rgb(var(--color-bg-active));
+  background-color: rgb(var(--color-bg-alt));
 }
 
 .x_timeline .tl_dot_cnt {
@@ -35,13 +35,13 @@
 .x_timeline .tl_icon {
   position: absolute;
   width: 40px; height: 40px;
-  transform: translate(-15px, -42px);
+  transform: translate(-16px, -42px);
   font-size: 1.55rem;
   color: rgb(var(--color-bg-medium));
 }
 
 .x_timeline .not_last_selected .tl_icon {
-  transform: translate(-15px, -42px) scale(.78);
+  transform: translate(-16px, -42px) scale(.78);
 }
 
 .x_timeline .tl_text {
