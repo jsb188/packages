@@ -21,9 +21,12 @@ export type ProductEventFrequencyEnum = typeof PRODUCT_EVENT_FREQUENCY[number];
  * Filters
  */
 
-export interface ProductLivestockFilter {
-	type: ProductLivestockTypeEnum;
-	status: ProductLivestockStatusEnum;
+export interface ProductsFilterArgs {
+  preset?: '?' | null;
+	productType: ProductTypeEnum;
+  query?: string | null;
+  timeZone?: string | null; // Server only for now
+	// status: ProductLivestockStatusEnum;
 }
 
 /**
@@ -159,6 +162,8 @@ export interface ProductObj {
  */
 
 export interface ProductGQL {
+  __deleted: boolean; // For client-side only
+
 	id: string;
 	organizationId: string;
 	cursor: string | null; // Cursor for pagination

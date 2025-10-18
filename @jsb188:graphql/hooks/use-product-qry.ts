@@ -1,10 +1,10 @@
-import { useQuery, useReactiveFragment } from '../client';
-import { productsListQry, productAttendanceListQry } from '../gql/queries/productQueries';
-import { useOrgRelFromMyOrganizations } from './use-organization-qry';
-import type { PaginationArgs, UseQueryParams } from '../types';
-import type { ProductTypeEnum } from '@jsb188/mday/types/product.d';
-import { useMemo } from 'react';
 import { checkACLPermission } from '@jsb188/app/utils/organization';
+import type { ProductsFilterArgs } from '@jsb188/mday/types/product.d';
+import { useMemo } from 'react';
+import { useQuery, useReactiveFragment } from '../client';
+import { productAttendanceListQry, productsListQry } from '../gql/queries/productQueries';
+import type { PaginationArgs, UseQueryParams } from '../types';
+import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 
 /**
  * Constants
@@ -32,9 +32,8 @@ const PRODUCTS_LIST_LIMIT = 200;
 
 export function useProductsList(
   variables: PaginationArgs & {
-    productType: ProductTypeEnum;
     organizationId?: string | null;
-    // filter: FilterProductsListArgs;
+    filter: ProductsFilterArgs;
   },
   params: UseQueryParams = {}
 ) {

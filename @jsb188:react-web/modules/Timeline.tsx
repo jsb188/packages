@@ -85,7 +85,7 @@ export const CompactTimeline = memo((p: {
         : <TimelineDot
           position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
           selected={i <= positionIndex}
-          lastSelected={i === positionIndex}
+          lastSelected={i <= positionIndex}
           size={2}
           color={color}
           selectedBorderColor='primary'

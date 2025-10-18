@@ -1,4 +1,3 @@
-
 /**
  * Products; all types
  */

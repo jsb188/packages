@@ -7,12 +7,22 @@ import * as IconSVGs from './IconSVGs';
  */
 
 function camelCaseToDash(str: string) {
+  // This will split numbers
+  // ie. "Name10" -> "name-10"
+  // if (/^[A-Z0-9]+$/.test(str)) {
+  //   return str.toLowerCase();
+  // }
+  // return str.replace(/[A-Z0-9]/g, (m, i) => {
+  //   return `${i ? '-' : ''}${m.toLowerCase()}`;
+  // });
+
   if (/^[A-Z0-9]+$/.test(str)) {
     return str.toLowerCase();
   }
-  return str.replace(/[A-Z0-9]/g, (m, i) => {
-    return `${i ? '-' : ''}${m.toLowerCase()}`;
-  });
+
+  return str.replace(/([A-Z]+|[0-9]+)/g, (m, _, i) =>
+    (i ? '-' : '') + m.toLowerCase()
+  );
 }
 
 /**
@@ -23,8 +33,6 @@ const ICON_MAP = Object.entries(IconSVGs).reduce((acc, [key, IconComponent]) => 
   acc[camelCaseToDash(key)] = IconComponent;
   return acc;
 }, {} as Record<string, React.ReactNode>);
-
-// Full icon map: https://tablericons.com/
 
 /**
  * Types
@@ -72,7 +80,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   info: 'info-circle',
   invoice: 'accounting-invoice-dollar',
   link_chevron: 'chevron-right',
-  live: 'broadcast',
+  livestock: 'livestock-cow-body',
   lock: 'lock',
   lock_filled: 'lock-filled',
   mobile: 'device-mobile',
@@ -81,7 +89,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   not_pinned: 'pinned-off',
   owner: 'crown',
   pensive: 'mood-sad-filled',
-  personas: 'masks-theater',
   pinned: 'pinned',
   plans: 'map',
   plus: 'plus',
@@ -96,7 +103,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   sms: 'device-mobile-message',
   snooze: 'zzz',
   sticker: 'sticker',
-  switch_organization: 'replace',
+  switch_organization_title: 'face-id-10',
+  switch_organization: 'switch-account-1',
   theme: 'photo-hexagon',
   timeout: 'clock-cancel',
   timeout_unban: 'clock-check',

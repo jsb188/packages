@@ -386,7 +386,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
           name={titleIconName}
         />
       </span>
-      <h1 className={cn('ft_bold ls_2 cl_secondary', titleClassName)}>
+      <h1 className={cn('ft_semibold ls_2 cl_secondary', titleClassName)}>
         {title}
       </h1>
       <p className={cn('op_70 a_c mb_md cl_bd', messageClassName)}>

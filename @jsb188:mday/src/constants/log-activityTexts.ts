@@ -43,11 +43,6 @@ export const ARABLE_FARMING_TO_TEXT = {
 	POST_HARVEST_HANDLING: 'washing, drying, trimming, sorting, or grading produce',
 	POST_HARVEST_PACKAGING: 'packaging, cooling, or moving produce to storage',
 	OTHER_POST_HARVEST_ACTIVITY: 'other post-harvest activities',
-	// # DEPRECATED
-	// SALE_TRANSACTION: 'sale transactions',
-	// SALE_DETAILS: 'sale details',
-	// SALE_FEEDBACK: 'sale feedback or issues',
-	// OTHER_SALES_ACTIVITY: 'other sales related activities',
 };
 
 export const ARABLE_TRANSACTIONS_TO_TEXT = {
@@ -55,7 +50,7 @@ export const ARABLE_TRANSACTIONS_TO_TEXT = {
 	SEED_PURCHASE_INFO: 'seed purchase',
 	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase',
 
-  // # Sales activities
+	// # Sales activities
 	SALE_PRODUCE_ORDER: 'purchase order (produce)',
 	OTHER_SALE_ORDER: 'purchase order (other)',
 };

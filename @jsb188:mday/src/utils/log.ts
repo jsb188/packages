@@ -605,6 +605,11 @@ export function getIconNameForLivestock(
 		// return 'seedling';
 		const LIVESTOCK_WORDS = [
 			'hay\\b',
+      'cow',
+      'calf',
+      'cattle',
+      'bull',
+      'sheep',
 		];
 
 		const regex = new RegExp(`\\b(${LIVESTOCK_WORDS.join('|')})`, 'gi');
@@ -622,6 +627,11 @@ export function getIconNameForLivestock(
 			switch (matchedWord) {
 				case 'hay':
 					return 'farming-hay';
+        case 'cow':
+        case 'calf':
+        case 'cattle':
+        case 'bull':
+          return 'livestock-cow-body';
 				default:
 					console.log('Missing switchcase for crop:', purchasedItem);
 			}

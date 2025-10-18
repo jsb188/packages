@@ -110,7 +110,7 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
         {...rest}
       >
         {iconName && <Icon name={iconName} />}
-        <span className={cn('ellip shift_down', mock ? 'mock alt ft_md' : '')}>
+        <span className={cn('ellip shift_down', mock ? 'mock alt ft_md' : 'f')}>
           {text}
         </span>
       </TDCol>

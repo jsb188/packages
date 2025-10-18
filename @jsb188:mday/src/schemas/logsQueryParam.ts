@@ -110,7 +110,7 @@ export function convertLogTypesToDigits(
  * @returns FilterLogEntriesArgs - The filter object to be used in the logEntries() query
  */
 
-export function createFilterFromURL(
+export function createLogFiltersFromURL(
 	operationType: OrganizationOperationEnum | null,
 	searchQuery: string,
   otherFiltersObj?: {
@@ -175,7 +175,7 @@ export function createFilterFromURL(
  * Test if URL search query is valid against actual filter object
  */
 
-export function searchQueryIsValid(
+export function logsSearchQueryIsValid(
   searchQuery: string,
   filter: FilterLogEntriesArgs | null
 ) {
