@@ -162,8 +162,6 @@ export default {
     water: 'Water',
     quantity: 'Quantity',
     quantity_ph: '7.5',
-    unit: 'Unit',
-    price: 'Price',
     cropId: 'Crop',
     logged_edited_at: 'Logged %{logDate}. Updated %{editDate}.',
     logged_at: 'Logged %{logDate}.',

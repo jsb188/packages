@@ -277,6 +277,11 @@ const PRODUCE_WORDS = [
 	'marjoram',
 	'tomato',
   'grapes',
+  'apricot',
+  'peach',
+  'plum',
+  'blueberr',
+  'billberr',
   'blackberr',
   'raspberr',
   'cloudberr',
@@ -425,6 +430,14 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 					return 'vegetable-tomato';
         case 'grapes':
           return 'fruit-grapes';
+        case 'apricot':
+        case 'peach':
+        case 'plum':
+          return 'fruit-apricot';
+        case 'blueberr':
+        case 'billberr':
+        case 'berry':
+          return 'fruit-billberry-blackberry-blueberry';
         case 'blackberr':
         case 'raspberr':
         case 'cloudberr':
@@ -438,7 +451,6 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
         case 'bell pepper':
 					return 'vegetable-acornsquash';
         case 'strawberr':
-        case 'berry':
           return 'fruit-strawberry';
         case 'pepper':
         case 'chilli':
@@ -586,7 +598,6 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 	// return 'harvest-product';
 	return 'seedling';
 }
-
 
 /**
  * Get the icon name for livestock using regex

@@ -116,7 +116,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   unread: 'mailbox',
   user: 'user',
   user_add: 'user-plus',
-  user_scan: 'user-scan',
   user_blocked: 'user-x',
   user_deleted: 'user-off',
   your_account: 'user-circle',

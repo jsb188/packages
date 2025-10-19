@@ -1227,6 +1227,26 @@ export const HarvestProduct = <svg xmlns="http://www.w3.org/2000/svg" className=
 <path d="M8.7,4.5l-.2-3"/>
 </svg>;
 
+export const FruitApricot = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-fruit-apricot" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M12.8,6.3c-.5.2-1.1.2-1.6,0-4.9-2.2-8.4.3-8.4,6.7-.1,5.2,4,9.5,9.2,9.7,5.2-.1,9.3-4.5,9.2-9.7,0-1.9-.3-3.7-1.2-5.4"/>
+<path d="M15.3,6c.8.8,2.4.3,3.8-1,1.3-1.3,1.8-3,1-3.8,0,0,0,0,0,0-.8-.8-2.4-.3-3.8,1-1.3,1.3-1.8,3-1,3.8,0,0,0,0,0,0"/>
+<path d="M12,6.4V2.3"/>
+<path d="M12,6.4c-2.2,1.6-3.5,4.3-3.4,7,0,3.4,1.2,6.6,3.4,9.2"/>
+</svg>;
+
+export const FruitBillberryBlackberryBlueberry = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-fruit-billberry-blackberry-blueberry" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M12.6,9c0-.2,0-.4,0-.6,0-.7-.2-1.5-.5-2.2-.3-.7-.8-1.3-1.4-1.8-.6-.5-1.3-.8-2-1-.7-.2-1.5-.2-2.2,0-.7.1-1.4.4-2,.9-.6.4-1.1,1-1.5,1.7-.4.7-.6,1.4-.6,2.1,0,.7,0,1.5.4,2.2"/>
+<path d="M6.7,6.9c-.2,0-.4-.2-.4-.4s.2-.4.4-.4"/>
+<path d="M6.7,6.9c.2,0,.4-.2.4-.4s-.2-.4-.4-.4"/>
+<path d="M7.6,14.5c-.2,0-.4-.2-.4-.4s.2-.4.4-.4"/>
+<path d="M7.6,14.5c.2,0,.4-.2.4-.4s-.2-.4-.4-.4"/>
+<path d="M18.1,14.5c-.2,0-.4-.2-.4-.4s.2-.4.4-.4"/>
+<path d="M18.1,14.5c.2,0,.4-.2.4-.4s-.2-.4-.4-.4"/>
+<path d="M14,19.8c.8.4,1.7.6,2.6.6.9,0,1.8-.3,2.5-.7.8-.5,1.4-1.1,1.8-1.9.4-.8.6-1.7.6-2.6,0-.9-.3-1.8-.8-2.5-.5-.8-1.1-1.4-1.9-1.8-.8-.4-1.7-.6-2.6-.6-.9,0-1.8.3-2.5.8"/>
+<path d="M8,20.8c2.8,0,5.1-2.3,5.1-5.1s-2.3-5.1-5.1-5.1-5.1,2.3-5.1,5.1,2.3,5.1,5.1,5.1Z"/>
+<path d="M18.5,6.7c-1.3,1.3-3.5,1-3.5,1,0,0-.2-2.3,1-3.5,1.3-1.3,3.5-1,3.5-1,0,0,.2,2.3-1,3.5Z"/>
+</svg>;
+
 export const FruitStrawberry = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-fruit-strawberry" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M12,22.6c5,0,11.5-13.2,3.5-14.1h-7.1c-7.9.9-1.4,14.1,3.5,14.1Z"/>
 <path d="M13.4,5.6c.6.6,2,.1,3.2-1.1,1.2-1.2,1.6-2.6,1.1-3.2,0,0,0,0,0,0-.6-.6-2-.1-3.2,1.1-1.2,1.2-1.6,2.6-1.1,3.2Z"/>
@@ -2092,14 +2112,14 @@ export const Sticker = <svg xmlns="http://www.w3.org/2000/svg" className="icon i
 </svg>;
 
 export const SwitchAccount1 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-switch-account-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path d="m11.1013 1.48782 -6.2722 0c-0.55228 0 -1 0.44771 -1 1l0 6.61374" />
-<path d="m12.8987 22.5122 6.2722 0c0.5523 0 1 -0.4477 1 -1l0 -6.6138" />
-<path d="m1.22949 6.5 2.6008 2.6008L6.43109 6.5" />
-<path d="m22.7705 17.5 -2.6008 -2.6008L17.5689 17.5" />
-<path strokeMiterlimit="10" d="M5.50474 18.5461c1.40908 0 2.55137 -1.1423 2.55137 -2.5514s-1.14229 -2.5513 -2.55137 -2.5513c-1.40908 0 -2.55137 1.1422 -2.55137 2.5513 0 1.4091 1.14229 2.5514 2.55137 2.5514Z" />
-<path strokeMiterlimit="10" d="M9.78157 22.5113c-0.55862 -1.8303 -2.28869 -3.2025 -4.27604 -3.2025 -1.98735 0 -3.71742 1.3722 -4.27604 3.2025" />
-<path strokeMiterlimit="10" d="M18.493 6.59102c1.4091 0 2.5514 -1.14228 2.5514 -2.55137 0 -1.40908 -1.1423 -2.55137 -2.5514 -2.55137s-2.5513 1.14229 -2.5513 2.55137c0 1.40909 1.1422 2.55137 2.5513 2.55137Z" />
-<path strokeMiterlimit="10" d="M22.7698 10.5562c-0.5586 -1.83023 -2.2886 -3.20244 -4.276 -3.20244 -1.9873 0 -3.7174 1.37221 -4.276 3.20244" />
+<path d="M11.1,1.6h-6.2c-.5,0-1,.4-1,1v6.5"/>
+<path d="M12.9,22.4h6.2c.5,0,1-.4,1-1v-6.5"/>
+<path d="M1.3,6.6l2.6,2.6,2.6-2.6"/>
+<path d="M22.6,17.4l-2.6-2.6-2.6,2.6"/>
+<path d="M5.6,18.4c1.3,0,2.5-1.1,2.5-2.5s-1.1-2.5-2.5-2.5-2.5,1.1-2.5,2.5,1.1,2.5,2.5,2.5Z"/>
+<path d="M9.8,22.4c-.5-1.8-2.3-3.1-4.3-3.1s-3.6,1.3-4.3,3.1"/>
+<path d="M18.4,6.7c1.3,0,2.5-1.1,2.5-2.5s-1.1-2.5-2.5-2.5-2.5,1.1-2.5,2.5,1.1,2.5,2.5,2.5Z"/>
+<path d="M22.6,10.5c-.5-1.8-2.3-3.1-4.3-3.1s-3.6,1.3-4.3,3.1"/>
 </svg>;
 
 export const Password = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-password" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -2832,12 +2852,6 @@ export const WifiOffColor = <svg xmlns="http://www.w3.org/2000/svg" className="i
 <path stroke="#191919" fill="none" strokeLinecap="round" strokeLinejoin="round" d="m21.601 1 -19 22" strokeWidth="1"/>
 </svg>;
 
-export const YinYangFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-yin-yang">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M17 3.34a10 10 0 1 1 -14.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 14.995 -8.336zm-9 1.732a8 8 0 0 0 4 14.928l.2 -.005a4 4 0 0 0 0 -7.99l-.2 -.005a4 4 0 0 1 -.2 -7.995l.2 -.005a7.995 7.995 0 0 0 -4 1.072zm4 1.428a1.5 1.5 0 1 0 0 3a1.5 1.5 0 0 0 0 -3z" />
-<path d="M12 14.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0 -3z" />
-</svg>;
-
 export const Unlink = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-unlink">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M17 22v-2" />
@@ -2847,13 +2861,6 @@ export const Unlink = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24
 <path d="M20 17h2" />
 <path d="M2 7h2" />
 <path d="M7 2v2" />
-</svg>;
-
-export const Urgent = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-urgent" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M8 16v-4a4 4 0 0 1 8 0v4" stroke="currentColor" />
-<path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" stroke="currentColor" />
-<path d="M6 16m0 1a1 1 0 0 1 1 -1h10a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z" stroke="currentColor" />
 </svg>;
 
 export const User = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-user" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -2912,16 +2919,6 @@ export const UserQuestion = <svg xmlns="http://www.w3.org/2000/svg" className="i
 <path d="M6 21v-2a4 4 0 0 1 4 -4h3.5" stroke="currentColor" />
 <path d="M19 22v.01" stroke="currentColor" />
 <path d="M19 19a2.003 2.003 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" stroke="currentColor" />
-</svg>;
-
-export const UserScan = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-user-scan" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M10 9a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" stroke="currentColor" />
-<path d="M4 8v-2a2 2 0 0 1 2 -2h2" stroke="currentColor" />
-<path d="M4 16v2a2 2 0 0 0 2 2h2" stroke="currentColor" />
-<path d="M16 4h2a2 2 0 0 1 2 2v2" stroke="currentColor" />
-<path d="M16 20h2a2 2 0 0 0 2 -2v-2" stroke="currentColor" />
-<path d="M8 16a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2" stroke="currentColor" />
 </svg>;
 
 export const UserX = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-user-x" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">

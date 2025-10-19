@@ -1,55 +1,40 @@
-import { ACTION_CATEGORY_ENUMS, ACTION_STATUS_ENUMS } from '../constants/action';
-
-/**
- * Enums
- */
-
-export type ActionStatusEnum = (typeof ACTION_STATUS_ENUMS)[number];
-export type ActionCategoryEnum = (typeof ACTION_CATEGORY_ENUMS)[number];
-
-/**
- * Actions; metadata
- */
-
-export interface ActionTask {
-	instructions: string;
-	response: string | null;
-	at: Date | null;
-}
-
-export interface ActionMetadata {
-	tasks: ActionTask[];
-}
 
 /**
  * Actions data object
  */
 
-export interface ActionObj {
+export interface ActionTaskObj {
 	id?: number; // Optional for updates/inserts
-	referenceNumber: string;
-	status: ActionStatusEnum;
-	metadata: ActionMetadata;
+	logId: number;
+
+  title: string;
+  instruction: string;
 
 	scheduledAt: Date;
-	lastActionAt: Date;
+  delay: number; // seconds
+  completed: boolean;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 /**
  * Actions GraphQL data
  */
 
-export interface ActionGQL {
-  __deleted: boolean;
+export interface ActionTaskGQL {
+	__deleted?: boolean;
 
 	id: string;
-	referenceNumber: string;
-	actionFor: string;
-	status: ActionStatusEnum;
-	cursor: string;
+	logId: string;
 
-	tasks: ActionTask[];
+  title: string;
+  instruction: string;
 
-	scheduledAt: string; // ISO date
-	lastActionAt: string; // ISO date
+	scheduledAt: string; // ISO date string
+  delay: number; // seconds
+  completed: boolean;
+
+  createdAt?: string; // ISO date string
+  updatedAt?: string; // ISO date string
 }

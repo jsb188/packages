@@ -1,6 +1,7 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
 import { logEntryFragment, logArableFragment, logLivestockFragment, logFarmersMarketFragment } from '../fragments/logFragments';
+import { actionTaskFragment } from '../fragments/actionFragments';
 
 export const logEntriesQry = gql`
 query logEntries (
@@ -31,6 +32,10 @@ query logEntries (
       }
     }
 
+    actions {
+      ...actionTaskFragment
+    }
+
     account {
       ...accountFragment
     }
@@ -38,6 +43,7 @@ query logEntries (
 }
 
 ${accountFragment}
+${actionTaskFragment}
 ${logEntryFragment}
 ${logArableFragment}
 ${logFarmersMarketFragment}

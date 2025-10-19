@@ -23,7 +23,7 @@ export const HorizontalTimeline = memo((p: {
 
   return <div className={cn('px_15 py_30', className)}>
     <div
-      className={cn('rel x_timeline horizontal h_8 r')}
+      className={cn('rel x_timeline horizontal bg_alt h_8 r')}
     >
       {items.map((item, i) => {
         return <TimelineDot
@@ -59,13 +59,15 @@ export const CompactTimeline = memo((p: {
   items: Partial<TimelineItem>[];
   className?: string;
   color?: TimelineDotColor;
+  notStarted?: boolean;
 }) => {
-  const { items, className } = p;
+  const { items, className, notStarted } = p;
   const color = p.color || 'primary';
   const positionIndex = Number(p.positionIndex);
   const len = items.length - 1;
+  const showNotStartedDash = notStarted && len <= 0;
 
-  return <div className={cn('rel x_timeline compact h_1 r mx_4', className)}>
+  return <div className={cn('rel x_timeline compact h_item h_1 r mx_4', !showNotStartedDash && 'bg_active', className)}>
     {items.map((item, i) => {
       const isFinished = i < positionIndex && i === len;
       return <TooltipButton
@@ -84,15 +86,23 @@ export const CompactTimeline = memo((p: {
           <Icon name='circle-check-filled' />
         </span>
         : <TimelineDot
+          outline={showNotStartedDash}
           position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
           selected={i <= positionIndex}
           lastSelected={i <= positionIndex}
-          size={2}
-          color={color}
+          size={showNotStartedDash ? 2 : 4}
+          color={showNotStartedDash ? null : color}
           selectedBorderColor='primary'
         />}
       </TooltipButton>;
     })}
+
+    {showNotStartedDash && <>
+      <span className='x_timeline_not_started w_40 f_stretch bg_active' />
+      <span className='x_timeline_not_started w_40 op_70 f_stretch bg_active' />
+      <span className='x_timeline_not_started w_40 op_50 f_stretch bg_active' />
+      <span className='x_timeline_not_started w_40 op_30 f_stretch bg_active' />
+    </>}
 
     {positionIndex > 0 && (
       <span

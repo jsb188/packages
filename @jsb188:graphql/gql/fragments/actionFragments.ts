@@ -1,17 +1,15 @@
 
-export const actionFragment = `fragment actionFragment on Action {
+export const actionTaskFragment = `fragment actionTaskFragment on ActionTask {
   id
-  referenceNumber
-  actionFor
-  status
-  cursor
+  logId
 
-  tasks {
-    instructions
-    response
-    at
-  }
+  title
+  instruction
 
   scheduledAt
-  lastActionAt
+  delay
+  completed
+
+  createdAt
+  updatedAt
 }`;

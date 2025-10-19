@@ -146,6 +146,11 @@ export function loadFragment(id: string) {
     return fragment;
   }
 
+  // const isTest = id.startsWith('$logEntryFragment:9479047167135623');
+  // if (isTest) {
+  //   ..
+  // }
+
   let fragmentWithSpreads = { ...fragment };
   for (const key in spreads) {
 
@@ -177,6 +182,22 @@ export function loadFragment(id: string) {
 
           return acc;
         }, {});
+      } else if (spreadValue?.__list === true) {
+        spreadData = spreadValue.data.map((val: any) => {
+
+          // NOTE: I haven't fully finished this work,
+          // but it should work for most cases.
+
+          if (typeof val === 'string') {
+            return loadFragment(val);
+          } else if (Array.isArray(val) && typeof val[0] === 'string' && val[0].startsWith('$')) {
+            return loadFragment(val[0]);
+          }
+
+          // Unfinished work
+          console.warn('Unfinished GraphQL cache scenario!: ', val)
+          return null;
+        }).filter(Boolean);
       }
 
       if (spreadData) {

@@ -3,7 +3,6 @@
 
 .x_timeline {
   position: relative;
-  background-color: rgb(var(--color-bg-alt));
 }
 
 .x_timeline .tl_dot_cnt {
@@ -78,7 +77,7 @@
 .x_timeline .tl_dot_hv .tl_dot:before {
   content: ' ';
   position: absolute; z-index: -1;
-  top: -6px; left: -6px;
+  top: -5px; left: -5px;
   /* transform: translate(-50%, -50%); */
   transform: scale(.1);
   width: 14px; height: 14px;

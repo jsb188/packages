@@ -1,10 +1,18 @@
 import type { AccountObj } from '@jsb188/app/types/account.d';
+import type { ActionTaskGQL, ActionTaskObj } from '@jsb188/app/types/action.d.ts';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import {
+  LOG_ACTION_STATUS_ENUMS,
   LOG_ARABLE_ACTIVITY_ENUMS,
   LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
   LOG_LIVESTOCK_ACTIVITY_ENUMS,
 } from '../constants/log';
+
+/**
+ * Enums
+ */
+
+export type LogActionStatusEnum = (typeof LOG_ACTION_STATUS_ENUMS)[number];
 
 /**
  * Arable
@@ -81,7 +89,7 @@ export type LogArableMetadata = LogMetadataBase & {
 	referenceNumber?: string;
 	values?: LabelValueObj[];
 	tax: number;
-}
+};
 
 export interface LogArableObj {
 	type?: LogArableTypeEnum; // Only set in server if manually extended
@@ -187,9 +195,11 @@ export interface LogEntryGQL {
 	accountId: string;
 	organizationId: string;
 	details: LogMetadataGQL;
-  status: ActionStatusEnum | null;
+	status: LogActionStatusEnum | null;
 
 	account: any;
+  actions?: ActionTaskGQL[];
+
 	date: string; // ISO date string
 	createdAt: string; // ISO date string
 	updatedAt: string; // ISO date string
@@ -199,7 +209,7 @@ export interface LogEntryInsertObj {
 	id?: number; // Only for edits
 	accountId: number;
 	organizationId: number;
-  status?: ActionStatusEnum | null;
+	status?: LogActionStatusEnum | null;
 	details: LogDetailsObj;
 	date: Date;
 }
@@ -209,7 +219,7 @@ export interface LogEntryDataObj {
 	id: number;
 	accountId: number;
 	organizationId: number;
-  status: ActionStatusEnum | null;
+	status: LogActionStatusEnum | null;
 	distance?: number; // For vector search
 	details: LogArableDetailsObj | LogFarmersMarketDetailsObj | LogLivestockDetailsObj;
 	date: Date;
@@ -218,6 +228,7 @@ export interface LogEntryDataObj {
 
 	// This is for outputs, but will never be set for inserts
 	account?: AccountObj;
+  actions?: ActionTaskObj[];
 }
 
 /**
