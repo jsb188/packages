@@ -42,6 +42,16 @@ function handleQueryConcat(payload: PublishPayload, updateObservers?: UpdateObse
       ) {
         addFragmentToCache(dataFragmentKey, data);
         const updatedList = isAppend ? [...currentList, [dataFragmentKey]] : [[dataFragmentKey], ...currentList];
+
+        // console.log('UPDATED !!!!')
+        // console.log('UPDATED !!!!')
+        // console.log('UPDATED !!!!')
+        // console.log('UPDATED !!!!')
+        // console.log(fragmentNamespace, {
+        //   ...currentData?.[fragmentNamespace],
+        //   data: updatedList
+        // });
+
         return {
           ...currentData,
           ...otherData,
@@ -111,6 +121,7 @@ function handleFragmentUpdate(payload: PublishPayload, updateObservers?: UpdateO
  */
 
 function handleSSEData(payload: PublishPayload, updateObservers?: UpdateObserversFn) {
+
   switch (payload.__type) {
     case 'CONNECTED':
       // Do nothing

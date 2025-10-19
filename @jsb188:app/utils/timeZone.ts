@@ -2353,7 +2353,7 @@ export function parseDateInTimezone(
 	input: Date | string,
 	tz?: string | null,
 	addDay?: number, // Use this for start/end of day
-  isISODate?: boolean, // If true, input is assumed to be ISO Date without any checks
+	isISODate?: boolean, // If true, input is assumed to be ISO Date without any checks
 ): Date {
 	const timeZone = tz || DEFAULT_TIMEZONE;
 
@@ -2374,6 +2374,42 @@ export function parseDateInTimezone(
 	}
 
 	return dt.toJSDate();
+}
+
+/**
+ * Parse date to start or end of day in time zone
+ * @param input - Date object or string in "YYYY-MM-DD" format
+ * @param tz - Timezone string (IANA format), defaults to DEFAULT_TIMEZONE
+ * @param toEndOfDay - If true, set time to end of day (23:59:59.999), otherwise start of day (00:00:00.000)
+ * @returns {Date} - Date object adjusted to the start or end of the day in the specified timezone
+ */
+
+export function parseBoundaryDateInTimezone(
+  input: Date | string,
+  tz?: string | null,
+  toEndOfDay?: boolean,
+): Date {
+  const timeZone = tz || DEFAULT_TIMEZONE;
+
+  let dt: DateTime;
+
+  // If input is a string in "YYYY-MM-DD" format
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    dt = DateTime.fromISO(input, { zone: timeZone });
+  } else if (typeof input === 'string') {
+    dt = DateTime.fromJSDate(new Date(input), { zone: timeZone });
+  } else {
+    dt = DateTime.fromJSDate(input, { zone: timeZone });
+  }
+
+  // Set time to start or end of day
+  if (toEndOfDay) {
+    dt = dt.endOf('day');
+  } else {
+    dt = dt.startOf('day');
+  }
+
+  return dt.toJSDate();
 }
 
 /**
@@ -2418,15 +2454,15 @@ export function indexToTimeZone(index?: number | string | null): string | null {
  */
 
 export function getTimeZoneCode(tz?: string | null, useSystem?: boolean): string | null {
-  try {
-    if (tz) {
-      return DateTime.now().setZone(tz).toFormat('ZZZZ');
-    } else if (useSystem) {
-      // IMPORTANT: If you do this in server, this will always return UTC
-      return DateTime.now().toFormat('ZZZZ');
-    }
-  } catch (e) {
-    console.warn('Invalid timezone:', tz, e);
-  }
-  return null;
+	try {
+		if (tz) {
+			return DateTime.now().setZone(tz).toFormat('ZZZZ');
+		} else if (useSystem) {
+			// IMPORTANT: If you do this in server, this will always return UTC
+			return DateTime.now().toFormat('ZZZZ');
+		}
+	} catch (e) {
+		console.warn('Invalid timezone:', tz, e);
+	}
+	return null;
 }

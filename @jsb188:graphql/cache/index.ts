@@ -124,7 +124,9 @@ export function loadQuery(queryKey: string, referencesOnly?: boolean) {
 
     return mappedCache;
   } else if (references) {
-    const singleCacheData = appendFragmentToCache(references);
+    // console.log('references single:', references);
+    const singleCacheData = appendFragmentToCache(references, true);
+    // console.log('singleCacheData >>>>:', singleCacheData);
     return singleCacheData;
   }
 }
@@ -443,6 +445,7 @@ function saveQueryToMemory(
       if (saveQueryToCache) {
         const customCacheData = cacheMap(data, cacheData, selections, variables);
         // console.log('1--->', queryId);
+        // console.log('UPDATING (1):', typeof customCacheData === 'undefined' ? null : customCacheData);
         QUERIES.set(queryId, typeof customCacheData === 'undefined' ? null : customCacheData);
 
         if (updateObservers) {
@@ -455,6 +458,7 @@ function saveQueryToMemory(
       if (saveQueryToCache) {
         // console.log('2--->', queryId);
         // console.log('2--->', cacheData);
+        // console.log('UPDATING (2):', cacheData);
         QUERIES.set(queryId, cacheData);
       }
 
@@ -519,58 +523,78 @@ export function setDataToCache(
 
 export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
   let newObj = cloneArrayLike(cacheData);
+  let flatObj: any;
 
   // if (testMode) {
   //   console.log('appendFragmentToCache:', newObj);
   // }
 
   for (const key in newObj) {
+
+    // if (testMode) {
+    //   console.log('******* key:', key);
+    //   console.log('******* ??:', newObj[key]);
+    // }
+
     if (newObj[key] && typeof newObj[key] === 'object') {
       const isFlat = key === '__flat';
       const isCache = newObj[key].__cache && newObj[key].data;
 
       if (isCache) {
-
         let cachedObj = {};
         let cacheIsValid = true;
 
         if (newObj[key].__list) {
-
           cachedObj = newObj[key].data.map((di: any[]) => {
 
             let item = {};
             di.forEach((d) => {
+              let mapCacheId;
               if (Array.isArray(d)) {
-                item[d[0]] = d[1];
+                if (d.length === 1 && d?.[0]?.startsWith('$')) {
+                  mapCacheId = d[0];
+                } else {
+                  item[d[0]] = d[1];
+                  return;
+                }
               } else if (typeof d === 'string') {
-                const frgIndex = d.indexOf(':');
-                const frgName = d.substring(1, frgIndex);
-                const frgMap = PARTIALS_MAP[frgName];
+                mapCacheId = d;
+              }
 
-                let fragmentKey;
-                if (frgMap) {
-                  fragmentKey = `$${frgMap}:${d.substring(frgIndex + 1)}`;
-                } else {
-                  fragmentKey = d;
-                }
+              // if (Array.isArray(d)) {
+              //   item[d[0]] = d[1];
+              //   return;
+              // } else if (typeof d === 'string') {
+              //   mapCacheId = d;
+              // }
 
-                const cachedFragment = loadFragment(fragmentKey);
-                if (DO_LOG[0]) {
-                  console.log('LOAD (1): ', d);
-                }
-                if (DO_LOG[1]) {
-                  console.log('LOAD (1): ', cachedFragment);
-                }
+              const frgIndex = mapCacheId.indexOf(':');
+              const frgName = mapCacheId.substring(1, frgIndex);
+              const frgMap = PARTIALS_MAP[frgName];
 
-                if (cachedFragment) {
-                  item = {
-                    ...item,
-                    ...cachedFragment,
-                  };
-                } else {
-                  // Cache was invalidated
-                  cacheIsValid = false;
-                }
+              let fragmentKey;
+              if (frgMap) {
+                fragmentKey = `$${frgMap}:${mapCacheId.substring(frgIndex + 1)}`;
+              } else {
+                fragmentKey = mapCacheId;
+              }
+
+              const cachedFragment = loadFragment(fragmentKey);
+              if (DO_LOG[0]) {
+                console.log('LOAD (1): ', mapCacheId);
+              }
+              if (DO_LOG[1]) {
+                console.log('LOAD (1): ', cachedFragment);
+              }
+
+              if (cachedFragment) {
+                item = {
+                  ...item,
+                  ...cachedFragment,
+                };
+              } else {
+                // Cache was invalidated
+                cacheIsValid = false;
               }
             });
 
@@ -610,10 +634,20 @@ export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
 
               if (cachedFragment) {
                 if (isFlat) {
-                  newObj = {
-                    ...newObj,
-                    ...cachedFragment,
-                  };
+                  // if (testMode) {
+                  //   console.log('///////');
+                  //   console.log('///////');
+                  //   console.log('newObj before:', newObj);
+                  //   console.log('fragmentKey:', fragmentKey);
+                  //   console.log('cachedFragment:', cachedFragment);
+                  // }
+
+                  // newObj = {
+                  //   ...newObj,
+                  //   ...cachedFragment,
+                  // };
+
+                  flatObj = cachedFragment,
                   delete newObj.__flat;
                 } else {
                   cachedObj = {
@@ -653,6 +687,17 @@ export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
             }
           });
         }
+      }
+    }
+  }
+
+  // Merge flat data
+
+  if (flatObj) {
+    for (const key in flatObj) {
+      // console.log('FLAT:', key, flatObj[key], newObj[key]);
+      if (newObj[key] === undefined) {
+        newObj[key] = flatObj[key];
       }
     }
   }
@@ -882,7 +927,6 @@ export function updateFragment(
   updateObservers?: UpdateObserversFn,
 ) {
   const cache = loadFragment(updateFragmentKey);
-
   if (cache && update) {
     let updateObj;
     if (typeof update === 'function') {
@@ -892,7 +936,6 @@ export function updateFragment(
     }
 
     const updatedObj = { ...cache, ...updateObj };
-
     FRAGMENTS.set(updateFragmentKey, updatedObj);
 
     if (replaceId && replaceId !== updateFragmentKey) {
@@ -934,6 +977,8 @@ export function updateQuery(
     }
 
     const updatedObj = Array.isArray(updateObj) ? updateObj : { ...cache, ...updateObj };
+
+    // console.log('UPDATING (3):', updateObj);
     QUERIES.set(queryId, updatedObj);
 
     if (!doNotTriggerObserver && updateObservers) {

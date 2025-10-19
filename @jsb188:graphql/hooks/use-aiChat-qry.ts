@@ -135,9 +135,11 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
           }, false, updateObservers);
         }
       }
-
     }
   }, [dataAIChatId]);
+
+  // console.log(other.queryKey);
+  // console.log(aiChat);
 
   return {
     aiChat,

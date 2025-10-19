@@ -67,6 +67,7 @@ export default {
     upload_img: 'Upload image',
     keep_current_img: 'Keep current image',
     select_file: 'Select file',
+    task_: 'Task – %{text}',
     tasks: 'Tasks',
     name: 'Name',
     item: 'Item',
