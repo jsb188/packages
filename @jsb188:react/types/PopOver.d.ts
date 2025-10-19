@@ -268,6 +268,8 @@ export interface TooltipProps extends Partial<FixedElementProps> {
   title?: string;
   message?: string;
   tooltipClassName?: string;
+  leftIconName?: string;
+  rightIconName?: string;
 }
 
 export type OpenTooltipFn = (data: TooltipProps) => void;

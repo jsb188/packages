@@ -19,9 +19,9 @@
   margin-left: -7.5px;
 }
 
-.x_timeline .tl_dot {
+/* .x_timeline .tl_dot {
   box-sizing: content-box;
-}
+} */
 
 /* .x_timeline .selected {
   background-color: #7F7F7F;
@@ -70,24 +70,4 @@
 
 .x_timeline.compact {
   align-self: center;
-}
-
-/* Timeline; glow on dots on hover */
-
-.x_timeline .tl_dot_hv .tl_dot:before {
-  content: ' ';
-  position: absolute; z-index: -1;
-  top: -5px; left: -5px;
-  /* transform: translate(-50%, -50%); */
-  transform: scale(.1);
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background-color: rgba(var(--color-primary), 1);
-  opacity: 0;
-  transition: transform .15s ease, opacity .15s ease;
-}
-
-.x_timeline .tl_dot_hv:hover .tl_dot:before {
-  opacity: 1;
-  transform: scale(1);
 }

@@ -32,7 +32,7 @@ export const HorizontalTimeline = memo((p: {
           position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
           selected={i <= positionIndex}
           lastSelected={i === positionIndex}
-          size={8}
+          size={10}
           color={color}
           {...item}
         />;
@@ -70,16 +70,19 @@ export const CompactTimeline = memo((p: {
   return <div className={cn('rel x_timeline compact h_item h_1 r mx_4', !showNotStartedDash && 'bg_active', className)}>
     {items.map((item, i) => {
       const isFinished = i < positionIndex && i === len;
+      const selected = i <= positionIndex;
+
       return <TooltipButton
         key={i}
         style={{ left: (i / len) * 100 + '%' }}
-        className='tl_dot_cnt tl_dot_hv v_center rel z1 w_25 h_25'
+        className='tl_dot_cnt v_center rel z1 w_25 h_25'
+        rightIconName={selected ? 'circle-check' : undefined}
         tooltipClassName='a_c'
         as='div'
         position='top'
         message={item.text}
         offsetX={2} // +2 to adjust for .pr_2 padding-right
-        offsetY={-5}
+        offsetY={-3}
       >
         {isFinished
         ? <span className={`cl_${color} ft_sm`}>
@@ -88,9 +91,9 @@ export const CompactTimeline = memo((p: {
         : <TimelineDot
           outline={showNotStartedDash}
           position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
-          selected={i <= positionIndex}
-          lastSelected={i <= positionIndex}
-          size={showNotStartedDash ? 2 : 4}
+          selected={selected}
+          lastSelected={selected}
+          size={8}
           color={showNotStartedDash ? null : color}
           selectedBorderColor='primary'
         />}

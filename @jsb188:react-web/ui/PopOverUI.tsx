@@ -43,7 +43,7 @@ export function guessTooltipSize(message: string): {
  */
 
 export const TooltipText = memo((p: TooltipProps) => {
-  const { title, message, tooltipClassName } = p;
+  const { title, message, tooltipClassName, leftIconName, rightIconName } = p;
   return (
     <div
       className={cn(
@@ -59,8 +59,13 @@ export const TooltipText = memo((p: TooltipProps) => {
           </strong>
         </p>
       )}
-      <p className='shift_up'>
-        {message}
+      <p className={cn('shift_up', leftIconName || rightIconName && 'h_center')}>
+        {leftIconName && <Icon name={leftIconName} />}
+        {!leftIconName && !rightIconName ? message
+        : <span className={cn(leftIconName ? 'ml_3' : '', rightIconName ? 'mr_3' : '')}>
+          {message}
+        </span>}
+        {rightIconName && <Icon name={rightIconName} />}
       </p>
     </div>
   );

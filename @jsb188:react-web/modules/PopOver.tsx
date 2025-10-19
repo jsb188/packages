@@ -425,6 +425,8 @@ type TooltipButtonProps = {
   position?: POPosition;
   title?: string;
   message?: string;
+  leftIconName?: string;
+  rightIconName?: string;
   tooltipClassName?: string;
   disabled?: boolean;
   className?: string;
@@ -441,7 +443,7 @@ type TooltipButtonProps = {
  */
 
 export const TooltipButton = memo((p: TooltipButtonProps) => {
-  const { disabled, children, title, message, position, offsetX, offsetY, onClick, as, tooltipClassName, ...rest } = p;
+  const { leftIconName, rightIconName, disabled, children, title, message, position, offsetX, offsetY, onClick, as, tooltipClassName, ...rest } = p;
   const Element = as || 'button';
   const tooltipDisabled = disabled || !message;
   const { tooltip, openTooltip, closeTooltip } = useTooltip();
@@ -460,6 +462,8 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
         id: unique.current,
         title,
         message,
+        leftIconName,
+        rightIconName,
         tooltipClassName,
         position,
         offsetX,
