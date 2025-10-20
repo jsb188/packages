@@ -30,7 +30,6 @@ export const RULES = {
   myOrganizations: true,
   childOrganizations: true,
   parentOrganization: true,
-  editChat: true,
   friend: true,
   logEntries: true,
   myChats: true,

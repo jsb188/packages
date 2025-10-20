@@ -20,9 +20,11 @@ function camelCaseToDash(str: string) {
     return str.toLowerCase();
   }
 
-  return str.replace(/([A-Z]+|[0-9]+)/g, (m, _, i) =>
-    (i ? '-' : '') + m.toLowerCase()
-  );
+  return str
+    .replace(/([A-Z]|\d+)/g, (match, _, offset) => {
+      // Add a dash only if it's not at the start
+      return (offset > 0 ? '-' : '') + match.toLowerCase();
+    });
 }
 
 /**

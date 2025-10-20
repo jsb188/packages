@@ -575,8 +575,16 @@ export const CircleCheckThick = <svg xmlns="http://www.w3.org/2000/svg" classNam
 </svg>;
 
 export const CircleCheckFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-circle-check-filled" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+{/*
+This one has smaller check mark (original)
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M17 3.34a10 10 0 1 1 -14.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 14.995 -8.336zm-1.293 5.953a1 1 0 0 0 -1.32 -.083l-.094 .083l-3.293 3.292l-1.293 -1.292l-.094 -.083a1 1 0 0 0 -1.403 1.403l.083 .094l2 2l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l4 -4l.083 -.094a1 1 0 0 0 -.083 -1.32z" strokeWidth="0" fill="currentColor" />
+<path d="M17 3.34a10 10 0 1 1 -14.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 14.995 -8.336zm-1.293 5.953a1 1 0 0 0 -1.32 -.083l-.094 .083l-3.293 3.292l-1.293 -1.292l-.094 -.083a1 1 0 0 0 -1.403 1.403l.083 .094l2 2l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l4 -4l.083 -.094a1 1 0 0 0 -.083 -1.32z" strokeWidth="0" fill="currentColor" /> */}
+{/*
+8.35
+<path d="M0,0h24v24H0V0Z"/>
+<path d="M17,3.3c4.8,2.8,6.4,8.9,3.7,13.7-2.8,4.8-8.9,6.4-13.7,3.7-3-1.7-4.9-4.9-5-8.3v-.3s0-.3,0-.3C2.2,6.2,6.8,1.8,12.3,2c1.6,0,3.3.5,4.7,1.3ZM16,9.1c-.4-.4-1-.4-1.4,0h-.1c0,0-3.5,3.6-3.5,3.6l-1.4-1.4h-.1c-.5-.4-1.1-.4-1.5.1-.3.4-.3.9,0,1.3h0c0,.1,2.1,2.2,2.1,2.2h.1c.4.4.9.4,1.3,0h.1c0,0,4.3-4.4,4.3-4.4h0c.3-.5.3-1.1,0-1.5Z" fill="currentColor" /> */}
+<path d="M0,0h24v24H0V0Z"/>
+<path d="M17,3.3c4.8,2.8,6.4,8.9,3.7,13.7-2.8,4.8-8.9,6.4-13.7,3.7-3-1.7-4.9-4.9-5-8.3v-.6C2.2,6.2,6.8,1.8,12.3,2c1.6,0,3.3.5,4.7,1.3ZM16.6,8.7c-.5-.5-1.1-.5-1.6,0h-.1l-4,4.1-1.6-1.6h-.1c-.6-.5-1.3-.5-1.7.1-.3.5-.3,1,0,1.5h0c0,.1,2.4,2.5,2.4,2.5h.1c.5.5,1,.5,1.5,0h.1l4.9-5h0c.3-.6.3-1.3,0-1.7h.1Z" fill="currentColor" />
 </svg>;
 
 export const CircleDashedCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icon-circle-dashed-check">
@@ -2707,6 +2715,22 @@ export const VegetableParsley = <svg xmlns="http://www.w3.org/2000/svg" classNam
 <path d="M12.3,20.1c1.1-1.3,2.5-2.1,4.1-2.5"/>
 <path d="M6.1,12.8c-.1.6,0,1.3.2,1.8-1.7-2-3.9-2.8-5.4-2.4-.2,1.6.8,3.7,3.2,5-1.9-.5-2.7.5-2.9,1.5,2,2.3,5.5,1.7,7-.2.8-.9,1.3-2.3,1.2-3.6"/>
 <path d="M11.9,23c-.2-3.9-3.9-4-4.8-5.8"/>
+</svg>;
+
+export const VegetablePotato = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-potato" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M18.2,18.2c4.7-4.7,5.6-11.2,2.2-14.7C17,.1,10.4,1.1,5.8,5.8,1.1,10.4.1,17,3.6,20.4c3.4,3.4,10,2.5,14.7-2.2Z"/>
+<path d="M14,5.6c-.3,0-.5-.2-.5-.5s.2-.5.5-.5"/>
+<path d="M14,5.6c.3,0,.5-.2.5-.5s-.2-.5-.5-.5"/>
+<path d="M16.9,8.6c-.3,0-.5-.2-.5-.5s.2-.5.5-.5"/>
+<path d="M16.9,8.6c.3,0,.5-.2.5-.5s-.2-.5-.5-.5"/>
+<path d="M12,8.6c-.3,0-.5-.2-.5-.5s.2-.5.5-.5"/>
+<path d="M12,8.6c.3,0,.5-.2.5-.5s-.2-.5-.5-.5"/>
+<path d="M12,16.4c-.3,0-.5-.2-.5-.5s.2-.5.5-.5"/>
+<path d="M12,16.4c.3,0,.5-.2.5-.5s-.2-.5-.5-.5"/>
+<path d="M10,19.4c-.3,0-.5-.2-.5-.5s.2-.5.5-.5"/>
+<path d="M10,19.4c.3,0,.5-.2.5-.5s-.2-.5-.5-.5"/>
+<path d="M7.1,17.4c-.3,0-.5-.2-.5-.5s.2-.5.5-.5"/>
+<path d="M7.1,17.4c.3,0,.5-.2.5-.5s-.2-.5-.5-.5"/>
 </svg>;
 
 export const VegetablePumpkin = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-pumpkin" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">

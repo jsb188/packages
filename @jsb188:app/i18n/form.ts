@@ -98,6 +98,7 @@ export default {
     sales: 'Sales',
     sales_orders: 'Sales & orders',
     actions: 'Actions',
+    ai_tasks: 'AI tasks',
     add: 'Add',
     remove: 'Remove',
     removed: 'Removed',

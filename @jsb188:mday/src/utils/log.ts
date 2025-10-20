@@ -220,6 +220,7 @@ const PRODUCE_WORDS = [
 	'romanesco',
 	'zucchini',
 	'zuchini',
+  'potato',
   'eggplant',
   'jalapeno',
   'jalapeño',
@@ -275,6 +276,8 @@ const PRODUCE_WORDS = [
 	'anise hyssop',
 	'alyssum',
 	'marjoram',
+  'mint',
+  'sorrel',
 	'tomato',
   'grapes',
   'apricot',
@@ -329,6 +332,10 @@ const PRODUCE_WORDS = [
   'pepper',
   'chilli',
   'mix\\b',
+  'chard',
+  'nettle',
+  'savory',
+  'dino',
 
   // log activities
   // NOTE: If i18n words change, these have to change too
@@ -352,6 +359,7 @@ const PRODUCE_WORDS = [
   'sale',
   'water testing',
   'chlorine level',
+  'field',
 ];
 
 /**
@@ -423,6 +431,7 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 					return 'vegetable-pumpkin';
 				case 'mesclun':
 				case 'spinach':
+        case 'chard':
 				case 'mustard green':
         case 'mix':
 					return 'vegetable-spinach';
@@ -477,12 +486,14 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'summary savor':
 				case 'thyme':
         case 'rosemary':
+        case 'savory':
 					return 'vegetable-thyme';
 				case 'arugula':
 				case 'chicory':
 				case 'puntarelle':
 				case 'frisee':
 				case 'kale':
+        case 'dino':
 				case 'green curl':
 					return 'vegetable-arugula';
 				case 'parsley':
@@ -505,12 +516,15 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'zuchini':
 				case 'midnight light':
 					return 'vegetable-zucchini';
+        case 'potato':
+          return 'vegetable-potato';
         case 'eggplant':
           return 'vegetable-eggplant';
         case 'jalapeno':
         case 'jalapeño':
           return 'vegetable-jalapeno';
 				case 'stinging kettle':
+				case 'nettle':
 				case 'cardoon':
 				case 'cynara cardunculus':
 				case 'cardunculus':
@@ -521,6 +535,8 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 					return 'vegetable-okra';
 				case 'sage':
 				case 'marjoram':
+        case 'sorrel':
+				case 'mint':
 					return 'plant-1';
 				case 'scallion':
 				case 'scalion':
@@ -557,6 +573,7 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
         case 'crop protection':
           return 'gardening-tools-1';
         case 'crop monitoring':
+        case 'field':
           return 'farming-barn-sun';
         case 'pruning':
           return 'gardening-scissors'

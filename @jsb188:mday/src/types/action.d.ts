@@ -1,4 +1,3 @@
-
 /**
  * Actions data object
  */
@@ -6,16 +5,17 @@
 export interface ActionTaskObj {
 	id?: number; // Optional for updates/inserts
 	logId: number;
+  queue?: string | null;
 
-  title: string;
-  instruction: string;
+	title: string;
+	instruction: string;
 
-	scheduledAt: Date;
-  delay: number; // seconds
-  completed: boolean;
+	scheduledAt: Date | null;
+	delay: number | null; // seconds
+	completed: boolean;
 
-  createdAt?: Date;
-  updatedAt?: Date;
+	createdAt?: Date;
+	updatedAt?: Date;
 }
 
 /**
@@ -28,13 +28,13 @@ export interface ActionTaskGQL {
 	id: string;
 	logId: string;
 
-  title: string;
-  instruction: string;
+	title: string;
+	instruction: string;
 
 	scheduledAt: string; // ISO date string
-  delay: number; // seconds
-  completed: boolean;
+	delay: number; // seconds
+	completed: boolean;
 
-  createdAt?: string; // ISO date string
-  updatedAt?: string; // ISO date string
+	createdAt?: string; // ISO date string
+	updatedAt?: string; // ISO date string
 }

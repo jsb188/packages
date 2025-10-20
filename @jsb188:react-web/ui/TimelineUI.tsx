@@ -14,6 +14,7 @@ export interface TimelineItem {
   selectedIconName?: string;
   text: string;
   color: TimelineDotColor | null;
+  completed?: boolean;
 }
 
 /**
@@ -37,7 +38,8 @@ export const TimelineDot = memo((p: Partial<TimelineItem> & {
     style={left || left === 0 ? { left } : undefined}
     className={cn(
       'r tl_dot tl_dot_cnt rel z1',
-      outline ? 'bd_2 bd_lt' : '',
+      outline ? 'bd_2' : '',
+      outline && !selected ? 'bd_lt' : '',
       size >= 4 || selected ? `w_${size} h_${size}` : 'w_4 h_4',
       selected ? `selected bg_${color} bd_2 bd_${selectedBorderColor ?? 'darker_1'}` : `not_selected ${outline ? 'bg' : 'bg_medium'}`,
       lastSelected ? 'last_selected ' : 'not_last_selected',

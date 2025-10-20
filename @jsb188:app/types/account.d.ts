@@ -28,7 +28,7 @@ export interface AccountObj {
 }
 
 export interface AccountData extends AccountObj {
-  __table: 'accounts';
+	__table: 'accounts';
 	phone: {
 		id: number;
 		number: string;
@@ -45,8 +45,8 @@ export interface AccountData extends AccountObj {
 		banned: boolean;
 		editAt: Date;
 	};
-  createdAt: Date;
-  updatedAt: Date;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 /**
@@ -59,6 +59,7 @@ export interface AccountMembershipData {
 	organizationId: number;
 	role: OrganizationRoleEnum;
 	acl: OrganizationACL;
+  notes?: string;
 	primary: boolean;
 	createdAt: Date;
 	updatedAt: Date;

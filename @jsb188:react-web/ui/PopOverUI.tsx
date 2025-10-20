@@ -60,12 +60,12 @@ export const TooltipText = memo((p: TooltipProps) => {
         </p>
       )}
       <p className={cn('shift_up', leftIconName || rightIconName && 'h_center')}>
-        {leftIconName && <Icon name={leftIconName} />}
+        {leftIconName && <span className='-ml_3'><Icon name={leftIconName} /></span>}
         {!leftIconName && !rightIconName ? message
         : <span className={cn(leftIconName ? 'ml_3' : '', rightIconName ? 'mr_3' : '')}>
           {message}
         </span>}
-        {rightIconName && <Icon name={rightIconName} />}
+        {rightIconName && <span className='-mr_3'><Icon name={rightIconName} /></span>}
       </p>
     </div>
   );

@@ -60,8 +60,9 @@ export const CompactTimeline = memo((p: {
   className?: string;
   color?: TimelineDotColor;
   notStarted?: boolean;
+  errored?: boolean;
 }) => {
-  const { items, className, notStarted } = p;
+  const { items, className, notStarted, errored } = p;
   const color = p.color || 'primary';
   const positionIndex = Number(p.positionIndex);
   const len = items.length - 1;
@@ -69,14 +70,15 @@ export const CompactTimeline = memo((p: {
 
   return <div className={cn('rel x_timeline compact h_item h_1 r mx_4', !showNotStartedDash && 'bg_active', className)}>
     {items.map((item, i) => {
-      const isFinished = i < positionIndex && i === len;
+      const isFinished = i <= positionIndex && i === len;
       const selected = i <= positionIndex;
+      const completed = !errored && item.completed;
 
       return <TooltipButton
         key={i}
         style={{ left: (i / len) * 100 + '%' }}
         className='tl_dot_cnt v_center rel z1 w_25 h_25'
-        rightIconName={selected ? 'circle-check' : undefined}
+        rightIconName={(isFinished && errored) || !item.completed ? undefined : 'circle-check'}
         tooltipClassName='a_c'
         as='div'
         position='top'
@@ -84,18 +86,18 @@ export const CompactTimeline = memo((p: {
         offsetX={2} // +2 to adjust for .pr_2 padding-right
         offsetY={-3}
       >
-        {isFinished
-        ? <span className={`cl_${color} ft_sm`}>
+        {!errored && (isFinished || completed)
+        ? <span className={`cl_${color} ic_sm bg r move_left`}>
           <Icon name='circle-check-filled' />
         </span>
         : <TimelineDot
-          outline={showNotStartedDash}
+          outline={showNotStartedDash || (errored && isFinished)}
           position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
-          selected={selected}
+          selected={selected && (!errored || isFinished)}
           lastSelected={selected}
           size={8}
-          color={showNotStartedDash ? null : color}
-          selectedBorderColor='primary'
+          color={showNotStartedDash || (errored && isFinished) ? null : color}
+          selectedBorderColor={errored && isFinished ? 'red' : 'primary'}
         />}
       </TooltipButton>;
     })}
@@ -109,7 +111,7 @@ export const CompactTimeline = memo((p: {
 
     {positionIndex > 0 && (
       <span
-        className={`abs tl_progress bg_${color}`}
+        className={`abs tl_progress bg_${errored ? 'zinc_bd' : color}`}
         style={{ width: Math.min(100, (positionIndex / len) * 100) + '%' }}
       />
     )}
