@@ -1,9 +1,9 @@
 import { cn } from '@jsb188/app/utils/string';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { memo } from 'react';
-import type { TimelineItem, TimelineDotColor } from '../ui/TimelineUI';
+import type { TimelineDotColor, TimelineItem } from '../ui/TimelineUI';
 import { TimelineDot } from '../ui/TimelineUI';
 import { TooltipButton } from './PopOver';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
 
 /**
  * Horizontal Timeline
@@ -72,7 +72,8 @@ export const CompactTimeline = memo((p: {
     {items.map((item, i) => {
       const isFinished = i <= positionIndex && i === len;
       const selected = i <= positionIndex;
-      const completed = !errored && item.completed;
+      const completed = item.completed;
+      const errorAndNotCompleted = errored && selected && !completed;
 
       return <TooltipButton
         key={i}
@@ -93,11 +94,11 @@ export const CompactTimeline = memo((p: {
         : <TimelineDot
           outline={showNotStartedDash || (errored && isFinished)}
           position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
-          selected={selected && (!errored || isFinished)}
+          selected={selected}
           lastSelected={selected}
           size={8}
-          color={showNotStartedDash || (errored && isFinished) ? null : color}
-          selectedBorderColor={errored && isFinished ? 'red' : 'primary'}
+          color={showNotStartedDash || errorAndNotCompleted ? null : color}
+          selectedBorderColor={errorAndNotCompleted ? 'red' : 'primary'}
         />}
       </TooltipButton>;
     })}
@@ -111,7 +112,7 @@ export const CompactTimeline = memo((p: {
 
     {positionIndex > 0 && (
       <span
-        className={`abs tl_progress bg_${errored ? 'zinc_bd' : color}`}
+        className={`abs tl_progress bg_${errored ? 'strong' : color}`}
         style={{ width: Math.min(100, (positionIndex / len) * 100) + '%' }}
       />
     )}
