@@ -914,6 +914,8 @@ export function clearGraphQLClientCache() {
 
 /**
  * Clear query cache
+ * NOTE: If "queryId" is a name of query postfixed by ":" like this => "#queryName:"
+ * it will reset all queries everywhere for the same GraphQL query.
  */
 
 export function resetQuery(queryId: string, forceRefetch?: boolean, updateObservers?: UpdateObserversFn) {

@@ -127,29 +127,36 @@ export function useUpdateObservers(): UpdateObserversFn {
 export function useWatchQuery(
   query: any,
   variablesKey: string,
+  lastUpdatedCount: number,
 ): [number, boolean] { // [updatedCount, forceRefetch]
 
   const queryObserver = useQueryObserverValue();
 
   return useMemo(() => {
     if (queryObserver.name) {
-      const matchedQry = query.definitions
-        .filter((d: any) => d.kind === 'OperationDefinition')
-        .find((d: any) => queryObserver.name.startsWith('#' + d.name.value));
+      const queryDefs = query.definitions.filter((d: any) => d.kind === 'OperationDefinition');
+      const matchedQry = queryDefs
+        .find((d: any) =>
+          queryObserver.name.startsWith('#' + d.name.value) ||
+          ('#' + d.name.value + ':') === queryObserver.name
+        );
 
       if (!matchedQry) {
         return [0, false];
       }
 
-      // console.log('matchedQry:', matchedQry);
-      // console.log('queryObserver:', queryObserver);
-
       const queryName = matchedQry.name.value;
       const queryId = `#${queryName}:${variablesKey}`;
+      const forceRefetch = !!queryObserver.forceRefetch;
+
+      let newUpdatedCount = queryObserver.name === queryId || forceRefetch ? queryObserver.count : 0;
+      if (forceRefetch) {
+        newUpdatedCount += 1;
+      }
 
       return [
-        queryObserver.name === queryId ? queryObserver.count : 0,
-        !!queryObserver.forceRefetch,
+        newUpdatedCount,
+        forceRefetch,
       ];
     }
 
@@ -585,7 +592,6 @@ export function useQuery(
   const connectedToServer = useConnectedToServerValue();
   const screenIsFocused = useScreenIsFocusedValue();
   const updateObservers = useUpdateObservers();
-  const [updatedCount, forceRefetch] = useWatchQuery(query, variablesKey);
 
   // useQuery() assumes query is a single graphql query (and not a multi/chain)
   // Multiple queries can be chained using this hook,
@@ -598,6 +604,7 @@ export function useQuery(
     unique: null as string | null,
     abortCtrl: null as AbortController | null,
     reconnectedAt: null as number | null,
+    json: '',
     init: false
   });
 
@@ -610,6 +617,8 @@ export function useQuery(
     error: null as ServerErrorObj | null,
     lastUpdatedCount: 0
   });
+
+  const [updatedCount, forceRefetch] = useWatchQuery(query, variablesKey, qryValues.lastUpdatedCount);
 
   // Query function for the client
   // NOTE: useQuery() assumes {query} and {options} will *never* change, except for {options.variables}
@@ -753,7 +762,6 @@ export function useQuery(
       )
     ) {
       const cachedResult = fetchCachedData(query, variablesKey, updateObservers);
-
       if (cachedResult) {
         setQryValues({
           ...qryValues,
@@ -837,6 +845,13 @@ export function useQuery(
   );
 
   useEffect(() => {
+    const jsonStr = queryKey + '|' + JSON.stringify(queryData[queryName]);
+    if (tracker.current.json === jsonStr) {
+      return;
+    }
+
+    tracker.current.json = jsonStr;
+
     // This makes queryKey and data always in sync
     setQueryOutput({
       queryKey,

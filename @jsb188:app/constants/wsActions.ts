@@ -1,18 +1,19 @@
 const WS_ACTIONS = {
-  // Socket connection
-  // NOTE: these are reserved names in Socket.IO
-  // That means you cannot emit custom events with these names
-  connect: 'connect',
-  disconnect: 'disconnect',
+	// Socket connection
+	// NOTE: these are reserved names in Socket.IO
+	// That means you cannot emit custom events with these names
+	connect: 'connect',
+	disconnect: 'disconnect',
 
-  // Authentication
-  auth: 'auth',
+	// Authentication
+	auth: 'auth',
 
-  // App
-  data_update: 'du',
+	// App
+	data_update: 'du',
 
-  // User
-  me: 'me:',
+	// Account
+	me: 'me:',
+  organization: 'org:',
 };
 
 export default WS_ACTIONS;

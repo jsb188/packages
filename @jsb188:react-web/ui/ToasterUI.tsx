@@ -41,7 +41,7 @@ export const ToastPreviewItem = memo((p: ToastObj & {
     role={onClick ? 'button' : undefined}
     onClick={onClick}
     className={cn(
-      'av_h_xs r v_center px_sm r h_item op_80 cl_darker_3 trans max_w_400',
+      'av_h_xs r v_center px_sm r h_item op_80 cl_darker_4 trans max_w_400',
       onClick ? 'link bg bg_alt_hv cl_df_hv' : '',
     )}
   >
