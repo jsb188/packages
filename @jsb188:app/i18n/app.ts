@@ -73,19 +73,6 @@ export default {
     invite_expire_in_ct: 'This invitation will expire in %{smart_count} day.||||This invitation will expire in %{smart_count} days.',
     notif_not_exist: 'This notification does not exist. It may be deleted.',
 
-    alerts_ct_CO_OWNER_ADDED: '%{smart_count} New co-ownership||||%{smart_count} New co-ownerships',
-    alerts_ct_CO_OWNER_INVITE: '%{smart_count} Co-owner invite||||%{smart_count} Co-owner invites',
-    alerts_ct_NEW_FRIEND: '%{smart_count} New friend alert||||%{smart_count} New friends alerts',
-    alerts_ct_MESSAGE: '%{smart_count} Notification||||%{smart_count} Notifications',
-
-    alerts_CO_OWNER_ADDED: 'New co-ownership',
-    alerts_CO_OWNER_INVITE: 'Co-owner invite',
-    alerts_NEW_FRIEND: 'Friend added',
-    alerts_MESSAGE: 'Notification',
-
-    notif_message_CO_OWNER_ADDED: 'You became a co-owner. You have live and moderation permissions.',
-    notif_message_CO_OWNER_INVITE: 'You received an invitation to become a co-owner for this chat.',
-
     // Homepage; Roadmap
     roadmap: 'Roadmap',
 

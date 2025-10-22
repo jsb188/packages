@@ -1,0 +1,22 @@
+
+/* Toaster preview */
+
+#toaster_preview {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+#toaster_preview.not_animating {
+  transition-duration: 0s !important;
+}
+
+#toaster_preview {
+  transform: translateY(calc(var(--toolbar-ht) * -1));
+  /* transform: translateY(0); */
+}
+
+#toaster_preview.animating {
+  /* transform: translateY(calc(var(--toolbar-ht) * -1)); */
+  transform: translateY(calc(var(--toolbar-ht) * -2));
+}

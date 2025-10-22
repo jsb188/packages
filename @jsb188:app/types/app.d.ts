@@ -47,3 +47,20 @@ export interface SimpleErrorType {
   title?: string;
   message: string;
 }
+
+// Web Socket events
+
+export interface WSDataUpdateObj {
+  id: string;
+  route: string[]; // First items in the array have priority (Different org operations may not allow the actions handled by other org operations)
+  message?: string | null; // If null, nothing will be visible to the client.
+  messageType: 'NORMAL' | 'SUCCESS' | 'ERROR';
+  resetQueryKeys?: string[]; // List of query keys including {variablesKey}
+  resetQueryRule?: ResetQueryRuleEnum; // Defaults to "IF_FRAGMENT_NOT_FOUND"
+  reactiveFragmentKeys?: string[]; // Fragment keys that are used to trigger reactivity
+  fragment?: {
+    name: string;
+    dataId: string;
+    data: any;
+  };
+}

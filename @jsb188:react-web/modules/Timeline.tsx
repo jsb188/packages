@@ -70,9 +70,9 @@ export const CompactTimeline = memo((p: {
 
   return <div className={cn('rel x_timeline compact h_item h_1 r mx_4', !showNotStartedDash && 'bg_active', className)}>
     {items.map((item, i) => {
-      const isFinished = i <= positionIndex && i === len;
+      const isFinished = i <= positionIndex && i === len && !notStarted;
       const selected = i <= positionIndex;
-      const completed = item.completed;
+      const completed = item.completed && !notStarted;
       const errorAndNotCompleted = errored && selected && !completed;
 
       return <TooltipButton
@@ -94,8 +94,8 @@ export const CompactTimeline = memo((p: {
         : <TimelineDot
           outline={showNotStartedDash || (errored && isFinished)}
           position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
-          selected={selected}
-          lastSelected={selected}
+          selected={selected && !notStarted}
+          lastSelected={selected && !notStarted}
           size={8}
           color={showNotStartedDash || errorAndNotCompleted ? null : color}
           selectedBorderColor={errorAndNotCompleted ? 'red' : 'primary'}
@@ -110,7 +110,7 @@ export const CompactTimeline = memo((p: {
       <span className='x_timeline_not_started w_40 op_30 f_stretch bg_active' />
     </>}
 
-    {positionIndex > 0 && (
+    {positionIndex > 0 && !notStarted && (
       <span
         className={`abs tl_progress bg_${errored ? 'strong' : color}`}
         style={{ width: Math.min(100, (positionIndex / len) * 100) + '%' }}

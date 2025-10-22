@@ -12,6 +12,7 @@ export const DOM_IDS = {
 
 export const COMMON_CLASSNAMES = {
   listContainer: 'cw lg responsive px_lg pt_md pb_lg',
+  // listContainer: 'cw lg responsive px_lg py_lg',
   modalScreenSplitForm: 'h_top px_md pb_md gap_md',
   modalScreenSplitContent: 'h_top px_md pb_md gap_lg',
   modalScreenHeading: 'pt_md pb_df ft_normal ft_xs cl_darker_2 ls_2',

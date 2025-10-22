@@ -148,7 +148,7 @@ export function loadFragment(id: string) {
     return fragment;
   }
 
-  // const isTest = id.startsWith('$logEntryFragment:9479047167135623');
+  // const isTest = id.startsWith('$logEntryFragment:9479647167133727') && false;
   // if (isTest) {
   //   ..
   // }
@@ -159,6 +159,10 @@ export function loadFragment(id: string) {
     if (Object.prototype.hasOwnProperty.call(spreads, key)) {
       const spreadValue = spreads[key];
 
+      // if (isTest) {
+      //   console.log('SPREAD:', key, '->', spreadValue);
+      // }
+
       let spreadData;
       if (typeof spreadValue === 'string') {
         spreadData = enforceArrayType(FRAGMENTS.get(spreadValue));
@@ -166,7 +170,10 @@ export function loadFragment(id: string) {
         spreadData = spreadValue.reduce((acc, value) => {
           if (typeof value === 'string') {
             const fragmentData = enforceArrayType(FRAGMENTS.get(value));
-            // console.log('1:', value, fragmentData);
+
+            // if (isTest && key === 'details') {
+            //   console.log('1:', value, fragmentData);
+            // }
 
             return {
               ...acc,
@@ -234,6 +241,12 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
     } else if (inner.kind === 'InlineFragment') {
       // This is Union, etc
       const frgNamesJoined = inner.selectionSet.selections.map((sel: any) => PARTIALS_MAP[sel.name.value] || sel.name.value).join('.');
+
+      if (frgNamesJoined.toLowerCase().indexOf(data.__typename.toLowerCase()) < 0) {
+      // This is untested, but should be fine
+        return null;
+      }
+
       fragmentKey = `$${frgNamesJoined}:${data.id || 'none'}`;
     }
 
@@ -256,7 +269,7 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
     //   name: inner.name.value,
     //   value: data[key]?.[inner.name.value]
     // };
-  });
+  }).filter(Boolean);
 }
 
 /**
@@ -284,6 +297,7 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
           const innerSelections = sel.selectionSet?.selections;
           if (innerSelections) {
             if (Array.isArray(data[key])) {
+              // console.log('key', key, data[key].map((item) => mapSelections(item, innerSelections, updatedKeys)).filter(Boolean));
               cacheObj[key] = {
                 __cache: true,
                 __list: true,
@@ -925,6 +939,7 @@ export function updateFragment(
   replaceId?: string | null,
   doNotTriggerObserver?: boolean,
   updateObservers?: UpdateObserversFn,
+  otherUpdatedFragmentKeys?: string[],
 ) {
   const cache = loadFragment(updateFragmentKey);
   if (cache && update) {
@@ -943,8 +958,13 @@ export function updateFragment(
     }
 
     if (!doNotTriggerObserver && updateObservers) {
+      let observingFragmentIds = [updateFragmentKey];
+      if (Array.isArray(otherUpdatedFragmentKeys)) {
+        observingFragmentIds = observingFragmentIds.concat(otherUpdatedFragmentKeys);
+      }
+
       updateObservers({
-        fragmentIds: [updateFragmentKey],
+        fragmentIds: observingFragmentIds,
       });
 
       // FRAGMENT_OBSERVER.value = {

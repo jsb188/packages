@@ -18,7 +18,7 @@
     "./constants/product": "./constants/product.ts",
     "./constants/other": "./constants/other.ts",
     "./constants/user": "./constants/user.ts",
-    "./constants/ws": "./constants/ws.ts",
+    "./constants/wsActions": "./constants/wsActions.ts",
     "./utils/api": "./utils/api.ts",
     "./utils/billing": "./utils/billing.ts",
     "./utils/datetime": "./utils/datetime.ts",

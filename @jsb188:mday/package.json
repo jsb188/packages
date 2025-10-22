@@ -14,7 +14,8 @@
     "./types/action.d": "./src/types/action.d.ts",
     "./types/log.d": "./src/types/log.d.ts",
     "./types/product.d": "./src/types/product.d.ts",
-    "./utils/log": "./src/utils/log.ts"
+    "./utils/log": "./src/utils/log.ts",
+    "./utils/route": "./src/utils/route-helpers.ts"
   },
   "dependencies": {
     "zod": "^3.25.67"

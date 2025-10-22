@@ -19,7 +19,7 @@ export const CondensedGroupTitle = memo((p: {
   const { text, domId, className, marginClassName } = p;
 
   return <div className={cn(marginClassName ?? 'mt_md mb_sm', className)} id={domId}>
-    <h4 className='ft_normal ft_xs p_n m_n cl_darker_2 ls_2'>
+    <h4 className='ft_normal ft_xs p_n m_n cl_darker_2'>
       {text}
     </h4>
   </div>

@@ -1,7 +1,3 @@
-const NOT_ALLOWED_USERNAMES = [
-	'ai',
-	'kajiwoto',
-];
 
 /**
  * Combine list of class names
@@ -118,18 +114,6 @@ export function isPhone(str: string, doNotConvertInternational: boolean = false)
 		}
 	}
 	return /^\+[0-9]{7,15}$/.test(phoneNumber);
-}
-
-/**
- * Check if valid username
- */
-
-export function isValidUsername(str: string) {
-	const username = str.replace(/^@/, '').toLowerCase();
-	return (
-		/^[a-z0-9_]+$/i.test(username) &&
-		!NOT_ALLOWED_USERNAMES.includes(username)
-	);
 }
 
 /**
@@ -351,10 +335,10 @@ export function removeGeneratedTextGarbage(str: string) {
  */
 
 export function escapeCSVValue(value: string): string {
-  if (/[",\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
+	if (/[",\n]/.test(value)) {
+		return `"${value.replace(/"/g, '""')}"`;
+	}
+	return value;
 }
 
 /**
@@ -363,15 +347,15 @@ export function escapeCSVValue(value: string): string {
  */
 
 export function formatPhoneNumber(phone: string): string {
-  const match = phone?.match(/(\d{3})(\d{3})(\d{4})$/);
-  if (match) {
-    const [, area, first, second] = match;
-    const countryCode = phone.substring(0, phone.length - area.length - first.length - second.length);
-    // NOTE: This does not account for non North American (+1) phone numbers
-    return `${countryCode} (${area}) ${first}-${second}`;
-  }
+	const match = phone?.match(/(\d{3})(\d{3})(\d{4})$/);
+	if (match) {
+		const [, area, first, second] = match;
+		const countryCode = phone.substring(0, phone.length - area.length - first.length - second.length);
+		// NOTE: This does not account for non North American (+1) phone numbers
+		return `${countryCode} (${area}) ${first}-${second}`;
+	}
 
-  return phone;
+	return phone;
 }
 
 /**
@@ -383,42 +367,42 @@ export function formatPhoneNumber(phone: string): string {
  */
 
 export function splitTextIntoChunks(text: string, chunkSize: number, linebreakDistance: number = 50): string[] {
-  if (!text || chunkSize <= 0 || text.length < chunkSize) {
-    return [text || ''];
-  }
+	if (!text || chunkSize <= 0 || text.length < chunkSize) {
+		return [text || ''];
+	}
 
-  const chunks: string[] = [];
-  let start = 0;
+	const chunks: string[] = [];
+	let start = 0;
 
-  while (start < text.length) {
-    let end = Math.min(start + chunkSize, text.length);
+	while (start < text.length) {
+		let end = Math.min(start + chunkSize, text.length);
 
-    if (end < text.length) {
-      // Find the nearest line break around the target chunk boundary
-      const beforeBreak = text.lastIndexOf("\n", end);
+		if (end < text.length) {
+			// Find the nearest line break around the target chunk boundary
+			const beforeBreak = text.lastIndexOf('\n', end);
 
-      let chosenBreak = -1;
-      if (beforeBreak !== -1 && end - beforeBreak <= linebreakDistance && beforeBreak > start) {
-        chosenBreak = beforeBreak + 1;
-      }
+			let chosenBreak = -1;
+			if (beforeBreak !== -1 && end - beforeBreak <= linebreakDistance && beforeBreak > start) {
+				chosenBreak = beforeBreak + 1;
+			}
 
-      if (chosenBreak !== -1) {
-        end = chosenBreak;
-      } else {
-        // Fall back to last whitespace near the end
-        const lastSpace = text.lastIndexOf(" ", end);
-        if (lastSpace > start && end - lastSpace < 100) {
-          end = lastSpace;
-        }
-      }
-    }
+			if (chosenBreak !== -1) {
+				end = chosenBreak;
+			} else {
+				// Fall back to last whitespace near the end
+				const lastSpace = text.lastIndexOf(' ', end);
+				if (lastSpace > start && end - lastSpace < 100) {
+					end = lastSpace;
+				}
+			}
+		}
 
-    const chunk = text.slice(start, end).trim();
-    if (chunk) chunks.push(chunk);
-    start = end;
-  }
+		const chunk = text.slice(start, end).trim();
+		if (chunk) chunks.push(chunk);
+		start = end;
+	}
 
-  return chunks;
+	return chunks;
 }
 
 /**
@@ -426,8 +410,8 @@ export function splitTextIntoChunks(text: string, chunkSize: number, linebreakDi
  */
 
 export function formatReferenceNumber(idStr: string) {
-  if (idStr && /^\d+$/.test(idStr)) {
-    return '#' + idStr;
-  }
-  return idStr;
+	if (idStr && /^\d+$/.test(idStr)) {
+		return '#' + idStr;
+	}
+	return idStr;
 }

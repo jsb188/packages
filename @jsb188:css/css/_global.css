@@ -902,6 +902,7 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .cl_lt_hv:hover { color: var(--color-text-light) !important; }
 .cl_md_hv:hover { color: var(--color-text-medium) !important; }
 .cl_bd_hv:hover { color: var(--color-text-bold) !important; }
+.cl_df_hv:hover { color: var(--color-text) !important; }
 
 .cl_light { color: var(--color-darker-light); }
 .cl_medium { color: var(--color-darker-medium); }
