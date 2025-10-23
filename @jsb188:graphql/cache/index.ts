@@ -946,7 +946,7 @@ export function resetQuery(queryId: string, forceRefetch?: boolean, updateObserv
 
   if (updateObservers) {
     RESET_TIME.set(queryId, Date.now());
-    console.log('SETTING ->', queryId, RESET_TIME.get(queryId));
+    // console.log('SETTING ->', queryId, RESET_TIME.get(queryId));
 
     updateObservers({
       queryId,

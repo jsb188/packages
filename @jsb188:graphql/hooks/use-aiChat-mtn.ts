@@ -1,9 +1,10 @@
-import { updateQuery } from '../cache/';
+import { resetQuery, updateQuery } from '../cache/';
 import { useMutation } from '../client';
 import { updateAIChats } from './use-aiChat-qry';
 import { sendAIChatMessageMtn, startAIChatMtn, stopAIChatMessageMtn } from '../gql/mutations/aiChatMutations';
 import type { UseMutationParams } from '../types.d';
 import { useOpenModalPopUp } from '@jsb188/react/states';
+import { useEffect, useRef } from 'react';
 
 /**
  * Start AI chat
@@ -41,6 +42,7 @@ export function useStartAIChat(params: UseMutationParams = {}) {
 export function useAIChatTextarea(variablesKey: string, params: UseMutationParams = {}) {
 
   const { onCompleted, onError } = params;
+  const didSendRef = useRef(false);
   const openModalPopUp = useOpenModalPopUp();
 
   // Send AI chat message
@@ -50,6 +52,8 @@ export function useAIChatTextarea(variablesKey: string, params: UseMutationParam
     {
       openModalPopUp,
       onCompleted: (data: any, err: any, variables: any) => {
+        didSendRef.current = true;
+
         onCompleted?.(data, err, variables);
 
         const aiChatId = variables.aiChatId;
@@ -82,6 +86,18 @@ export function useAIChatTextarea(variablesKey: string, params: UseMutationParam
       onError,
     },
   );
+
+  // Reset query on unmount if a message was sent;
+  // This fixes an issue where in-progress messages that are stopped midway remain broken
+  // as a result of the SSE pipe breaking at unmount.
+
+  useEffect(() => {
+    return () => {
+      if (didSendRef.current) {
+        resetQuery(`#aiChat:${variablesKey}`, true, updateObservers);
+      }
+    };
+  }, []);
 
   return {
     send: {

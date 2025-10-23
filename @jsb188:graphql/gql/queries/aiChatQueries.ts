@@ -10,6 +10,7 @@ query aiChat (
     aiChatId: $aiChatId
   ) {
     cursor
+    inProgress
     ...aiChatFragment
 
     messages (

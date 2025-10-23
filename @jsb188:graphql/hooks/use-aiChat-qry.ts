@@ -3,7 +3,7 @@ import { getAuthToken } from '@jsb188/app/utils/api';
 import { makeVariablesKey } from '@jsb188/app/utils/logic';
 import SSE from '@jsb188/sse';
 import { useEffect, useState } from 'react';
-import { loadFragment, loadQuery, updateQuery } from '../cache/';
+import { loadFragment, loadQuery, resetQuery, updateQuery } from '../cache/';
 import { useQuery } from '../client';
 import { aiChatMessagesQry, aiChatQry, aiChatsQry } from '../gql/queries/aiChatQueries';
 import handleSSEData, { type PublishPayload } from '../sse';
@@ -50,7 +50,7 @@ function getGeneratingFragmentId(sseData: PublishPayload) {
 
 export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string | null, params: UseQueryParams = {}) {
 
-  const { data, ...other } = useQuery(aiChatQry, {
+  const { data, ...rest } = useQuery(aiChatQry, {
     variables: {
       aiChatId
     },
@@ -58,7 +58,7 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
     ...params,
   });
 
-  const { updateObservers } = other;
+  const { updateObservers } = rest;
   const [sessionKey, setSessionKey] = useState<string | null>(initialSessionKey || null);
   const [generatingFragmentId, setGeneratingFragmentId] = useState<string | null>(null);
   const aiChat = data?.aiChat || loadFragment(`$aiChatFragment:${aiChatId}`);
@@ -96,7 +96,6 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
       };
 
       connection.connect(connectParams);
-
       // const removeNetworkListeners = reconnectOnBrowserNetwork(connection, connectParams);
 
       return () => {
@@ -138,15 +137,21 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
     }
   }, [dataAIChatId]);
 
-  // console.log(other.queryKey);
-  // console.log(aiChat);
+  useEffect(() => {
+    // Force reset if chat message is in progress
+    if (aiChat.inProgress) {
+      return () => {
+        resetQuery(rest.queryKey, true, updateObservers);
+      };
+    }
+  }, [aiChat.inProgress]);
 
   return {
     aiChat,
     generatingFragmentId,
     sessionKey,
     setSessionKey,
-    ...other
+    ...rest
   };
 }
 

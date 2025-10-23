@@ -115,7 +115,6 @@ class SSE {
 
     console.log('Connecting to SSE:', this.endpointUrl);
 
-
     clearTimeout(this.reconnectTimer);
 
     if (this.eventSource) {
