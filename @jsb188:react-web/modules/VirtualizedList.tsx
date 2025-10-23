@@ -598,6 +598,20 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
 }
 
 /**
+ * Virtualized lists have a problem where new data inserted to the list doesn't refresh itself;
+ * To fix this, you should use this as a key to the VZList Component.
+ */
+
+export function useVZListKey(listData: any[] | null) {
+  return useMemo(() => {
+    if (!listData) {
+      return '';
+    }
+    return ':' + listData.map((item: any) => item.id).join(',');
+  }, [listData]);
+}
+
+/**
  * Virtualized list
  */
 

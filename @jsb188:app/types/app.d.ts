@@ -50,7 +50,7 @@ export interface SimpleErrorType {
 
 // Web Socket events
 
-type ResetQueryRuleEnum = 'ALWAYS' | 'IF_FRAGMENT_FOUND' | 'NEVER';
+type ResetQueryRuleEnum = 'ALWAYS' | 'IF_FRAGMENT_NOT_FOUND' | 'IF_FRAGMENT_FOUND' | 'NEVER';
 
 export interface WSDataUpdateObj {
   id: string;

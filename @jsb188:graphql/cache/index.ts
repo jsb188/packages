@@ -10,6 +10,7 @@ const DO_LOG = [
 
 const QUERIES = new Map();
 const FRAGMENTS = new Map();
+const RESET_MAP = new Map();
 
 /**
  * JS Map will sometimes convert nested Array into Array-like Object
@@ -913,6 +914,26 @@ export function clearGraphQLClientCache() {
 }
 
 /**
+ * Check if query was reset (used on mount to check if a new fetch is needed)
+ */
+
+export function isQueryReset(queryName: string, variablesKey: string) {
+  return !!(
+    RESET_MAP.get(`#${queryName}:`) ||
+    RESET_MAP.get(`#${queryName}:${variablesKey}`)
+  );
+}
+
+/**
+ * Clear the reset status of a query
+ */
+
+export function clearQueryResetStatus(queryName: string, variablesKey: string) {
+  RESET_MAP.delete(`#${queryName}:`);
+  RESET_MAP.delete(`#${queryName}:${variablesKey}`);
+}
+
+/**
  * Clear query cache
  * NOTE: If "queryId" is a name of query postfixed by ":" like this => "#queryName:"
  * it will reset all queries everywhere for the same GraphQL query.
@@ -924,6 +945,8 @@ export function resetQuery(queryId: string, forceRefetch?: boolean, updateObserv
   // }
 
   if (updateObservers) {
+    RESET_MAP.set(queryId, true);
+
     updateObservers({
       queryId,
       forceRefetch,

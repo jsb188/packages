@@ -11,17 +11,17 @@ export const LOG_ACTION_STATUS_ENUMS = [
 ];
 
 export const PURCHASE_ACTIVITIES = [
-  // # Arable
-  'SEED_PURCHASE_INFO',
-  'OTHER_SUPPLY_PURCHASE_ACTIVITY',
-  // # Livestock
-  'FEED_PURCHASE',
+	// # Arable
+	'SEED_PURCHASE_INFO',
+	'OTHER_SUPPLY_PURCHASE_ACTIVITY',
+	// # Livestock
+	'FEED_PURCHASE',
 ];
 
 export const SALE_ACTIVITIES = [
-  // # Arable
-  'SALE_PRODUCE_ORDER',
-  'OTHER_SALE_ORDER',
+	// # Arable
+	'SALE_PRODUCE_ORDER',
+	'OTHER_SALE_ORDER',
 ];
 
 /**
@@ -106,7 +106,7 @@ export const ARABLE_TYPES_TO_TEXT = {
 	PLANTING: 'seeding & transplanting',
 	FIELD: 'field work',
 	HARVEST: 'harvest activities',
-	POST_HARVEST: 'after-harvest activities such as handling, packaging produce and cold storage',
+	POST_HARVEST: 'post-harvest activities such as cleaning, storage, maintenance, packaging produce and cold storage',
 	SALES: 'sales & purchase orders',
 	WATER: 'water testing activities',
 	EVERYTHING: 'all activities', // Not part of enums

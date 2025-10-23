@@ -5,7 +5,7 @@ import { delay, makeVariablesKey } from '@jsb188/app/utils/logic';
 import { isServerErrorGQL } from '@jsb188/graphql/utils';
 import { useConnectedToServerValue, useFragmentObserverValue, useQueryObserverValue, useScreenIsFocusedValue, useSetFragmentObserver, useSetQueryObserver } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { checkDataCompleteness, fetchCachedData, loadDataFromCache, loadFragment, removeStaleCache } from '../cache';
+import { checkDataCompleteness, clearQueryResetStatus, fetchCachedData, isQueryReset, loadDataFromCache, loadFragment, removeStaleCache } from '../cache';
 import { QUERY_EXPIRE_TIMES } from '../cache/config';
 import { graphqlRequest } from '../client/request';
 import type { AnyModalPopUpFn, GraphQLHandlers, GraphQLQueryOptions, OnCompletedGQLFn, OnErrorGQLFn, UpdateDataObserverArgs, UpdateObserversFn } from '../types';
@@ -134,7 +134,18 @@ export function useWatchQuery(
 
   return useMemo(() => {
     if (queryObserver.name) {
+
       const queryDefs = query.definitions.filter((d: any) => d.kind === 'OperationDefinition');
+      const queryName = queryDefs?.[0]?.name?.value;
+
+      if (queryName) {
+        const wasReset = isQueryReset(queryName, variablesKey);
+        if (wasReset) {
+          clearQueryResetStatus(queryName, variablesKey);
+          return [lastUpdatedCount + 1, true];
+        }
+      }
+
       const matchedQry = queryDefs
         .find((d: any) =>
           queryObserver.name.startsWith('#' + d.name.value) ||
@@ -145,11 +156,11 @@ export function useWatchQuery(
         return [0, false];
       }
 
-      const queryName = matchedQry.name.value;
-      const queryId = `#${queryName}:${variablesKey}`;
+      const matchedQueryName = matchedQry.name.value;
+      const matchedQueryId = `#${matchedQueryName}:${variablesKey}`;
       const forceRefetch = !!queryObserver.forceRefetch;
 
-      let newUpdatedCount = queryObserver.name === queryId || forceRefetch ? queryObserver.count : 0;
+      let newUpdatedCount = queryObserver.name === matchedQueryId || forceRefetch ? queryObserver.count : 0;
       if (forceRefetch) {
         newUpdatedCount += 1;
       }
@@ -779,7 +790,7 @@ export function useQuery(
         }
 
       } else if (!qryValues.loading) {
-        // doLog(query, '>>>>> $0|' + variablesKey + skip + updatedCount + '|');
+        // console.log(query, '>>>>> $0|' + variablesKey + skip + updatedCount + '|');
         doQuery();
       }
     }

@@ -42,7 +42,7 @@ export const ARABLE_FARMING_TO_TEXT = {
 	// # Post-harvest activities
 	POST_HARVEST_HANDLING: 'washing, drying, trimming, sorting, or grading produce',
 	POST_HARVEST_PACKAGING: 'packaging, cooling, or moving produce to storage',
-	OTHER_POST_HARVEST_ACTIVITY: 'other post-harvest activities',
+	OTHER_POST_HARVEST_ACTIVITY: 'other post-harvest activities such as cleaning, storage, and maintenance',
 };
 
 export const ARABLE_TRANSACTIONS_TO_TEXT = {
