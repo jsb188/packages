@@ -13,8 +13,8 @@ import type { UpdateObserversFn, UseQueryParams } from '../types.d';
  * Constants
  */
 
-const AI_CHATS_LIMIT = 100; // Must match server code exactly
-const AI_CHAT_MESSAGES_LIMIT = 100; // Must match server code exactly
+const AI_CHATS_LIMIT = 70; // Must match server code exactly
+const AI_CHAT_MESSAGES_LIMIT = 55; // Must match server code exactly
 
 /**
  * Helper; get generating (status) key from SSE data
