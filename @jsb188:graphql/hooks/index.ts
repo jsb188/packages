@@ -5,7 +5,7 @@ import { delay, makeVariablesKey } from '@jsb188/app/utils/logic';
 import { isServerErrorGQL } from '@jsb188/graphql/utils';
 import { useConnectedToServerValue, useFragmentObserverValue, useQueryObserverValue, useScreenIsFocusedValue, useSetFragmentObserver, useSetQueryObserver } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { checkDataCompleteness, clearQueryResetStatus, fetchCachedData, isQueryReset, loadDataFromCache, loadFragment, removeStaleCache } from '../cache';
+import { checkDataCompleteness, clearQueryResetStatus, fetchCachedData, getQueryRefreshTime, loadDataFromCache, loadFragment, removeStaleCache } from '../cache';
 import { QUERY_EXPIRE_TIMES } from '../cache/config';
 import { graphqlRequest } from '../client/request';
 import type { AnyModalPopUpFn, GraphQLHandlers, GraphQLQueryOptions, OnCompletedGQLFn, OnErrorGQLFn, UpdateDataObserverArgs, UpdateObserversFn } from '../types';
@@ -62,6 +62,7 @@ type GraphQLQueryResult = {
   fetchMore: (obj: GraphQLRequestOptions) => Promise<any>;
   queryName: string;
   queryKey: string;
+  refreshTime: string;
   variablesKey: string;
   updatedCount: number;
   updateObservers: UpdateObserversFn;
@@ -128,21 +129,20 @@ export function useWatchQuery(
   query: any,
   variablesKey: string,
   lastUpdatedCount: number,
-): [number, boolean] { // [updatedCount, forceRefetch]
+): [number, boolean, string] { // [updatedCount, forceRefetch, refreshTime]
 
   const queryObserver = useQueryObserverValue();
 
   return useMemo(() => {
     if (queryObserver.name) {
-
       const queryDefs = query.definitions.filter((d: any) => d.kind === 'OperationDefinition');
       const queryName = queryDefs?.[0]?.name?.value;
 
       if (queryName) {
-        const wasReset = isQueryReset(queryName, variablesKey);
-        if (wasReset) {
+        const refreshTime = getQueryRefreshTime(queryName, variablesKey);
+        if (refreshTime) {
           clearQueryResetStatus(queryName, variablesKey);
-          return [lastUpdatedCount + 1, true];
+          return [lastUpdatedCount + 1, true, refreshTime];
         }
       }
 
@@ -153,7 +153,7 @@ export function useWatchQuery(
         );
 
       if (!matchedQry) {
-        return [0, false];
+        return [0, false, ''];
       }
 
       const matchedQueryName = matchedQry.name.value;
@@ -165,13 +165,10 @@ export function useWatchQuery(
         newUpdatedCount += 1;
       }
 
-      return [
-        newUpdatedCount,
-        forceRefetch,
-      ];
+      return [newUpdatedCount, forceRefetch, ''];
     }
 
-    return [0, false];
+    return [0, false, ''];
   }, [queryObserver]);
 }
 
@@ -626,10 +623,10 @@ export function useQuery(
     variables,
     loading: false,
     error: null as ServerErrorObj | null,
-    lastUpdatedCount: 0
+    lastUpdatedCount: 0,
   });
 
-  const [updatedCount, forceRefetch] = useWatchQuery(query, variablesKey, qryValues.lastUpdatedCount);
+  const [updatedCount, forceRefetch, refreshTime] = useWatchQuery(query, variablesKey, qryValues.lastUpdatedCount);
 
   // Query function for the client
   // NOTE: useQuery() assumes {query} and {options} will *never* change, except for {options.variables}
@@ -875,6 +872,7 @@ export function useQuery(
     data: queryOutput.data || queryData,
     queryName,
     queryKey: queryOutput.queryKey,
+    refreshTime,
     variablesKey,
     refetch,
     fetchMore,

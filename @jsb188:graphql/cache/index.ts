@@ -10,7 +10,7 @@ const DO_LOG = [
 
 const QUERIES = new Map();
 const FRAGMENTS = new Map();
-const RESET_MAP = new Map();
+const RESET_TIME = new Map();
 
 /**
  * JS Map will sometimes convert nested Array into Array-like Object
@@ -917,10 +917,10 @@ export function clearGraphQLClientCache() {
  * Check if query was reset (used on mount to check if a new fetch is needed)
  */
 
-export function isQueryReset(queryName: string, variablesKey: string) {
-  return !!(
-    RESET_MAP.get(`#${queryName}:`) ||
-    RESET_MAP.get(`#${queryName}:${variablesKey}`)
+export function getQueryRefreshTime(queryName: string, variablesKey: string) {
+  return (
+    RESET_TIME.get(`#${queryName}:`) ||
+    RESET_TIME.get(`#${queryName}:${variablesKey}`)
   );
 }
 
@@ -929,8 +929,8 @@ export function isQueryReset(queryName: string, variablesKey: string) {
  */
 
 export function clearQueryResetStatus(queryName: string, variablesKey: string) {
-  RESET_MAP.delete(`#${queryName}:`);
-  RESET_MAP.delete(`#${queryName}:${variablesKey}`);
+  RESET_TIME.delete(`#${queryName}:`);
+  RESET_TIME.delete(`#${queryName}:${variablesKey}`);
 }
 
 /**
@@ -945,7 +945,8 @@ export function resetQuery(queryId: string, forceRefetch?: boolean, updateObserv
   // }
 
   if (updateObservers) {
-    RESET_MAP.set(queryId, true);
+    RESET_TIME.set(queryId, Date.now());
+    console.log('SETTING ->', queryId, RESET_TIME.get(queryId));
 
     updateObservers({
       queryId,

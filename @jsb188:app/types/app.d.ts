@@ -60,9 +60,9 @@ export interface WSDataUpdateObj {
   resetQueryKeys?: string[]; // List of query keys including {variablesKey}
   resetQueryRule?: ResetQueryRuleEnum; // Defaults to "IF_FRAGMENT_FOUND"
   reactiveFragmentKeys?: string[]; // Fragment keys that are used to trigger reactivity
-  fragment?: {
+  fragments?: null | {
     name: string;
     dataId: string;
     data: any;
-  };
+  }[];
 }

@@ -602,13 +602,13 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
  * To fix this, you should use this as a key to the VZList Component.
  */
 
-export function useVZListKey(listData: any[] | null) {
+export function useVZListKey(listData: any[] | null, refreshTime: string) {
   return useMemo(() => {
     if (!listData) {
       return '';
     }
-    return ':' + listData.map((item: any) => item.id).join(',');
-  }, [listData]);
+    return ':' + listData.map((item: any) => item.id).join(',') + ':' + refreshTime;
+  }, [listData, refreshTime]);
 }
 
 /**
