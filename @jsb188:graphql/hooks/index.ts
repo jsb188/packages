@@ -129,20 +129,22 @@ export function useWatchQuery(
   query: any,
   variablesKey: string,
   lastUpdatedCount: number,
-): [number, boolean, string] { // [updatedCount, forceRefetch, refreshTime]
+) { // [updatedCount, forceRefetch, refreshTime]
 
+  const [refreshTime, setRefreshTime] = useState('');
   const queryObserver = useQueryObserverValue();
 
-  return useMemo(() => {
+  const queryWatcher = useMemo(() => {
     if (queryObserver.name) {
       const queryDefs = query.definitions.filter((d: any) => d.kind === 'OperationDefinition');
       const queryName = queryDefs?.[0]?.name?.value;
 
       if (queryName) {
-        const refreshTime = getQueryRefreshTime(queryName, variablesKey);
-        if (refreshTime) {
+        const qryRefreshTime = getQueryRefreshTime(queryName, variablesKey);
+
+        if (qryRefreshTime) {
           clearQueryResetStatus(queryName, variablesKey);
-          return [lastUpdatedCount + 1, true, refreshTime];
+          return [lastUpdatedCount + 1, true, qryRefreshTime];
         }
       }
 
@@ -170,6 +172,20 @@ export function useWatchQuery(
 
     return [0, false, ''];
   }, [queryObserver]);
+
+  useEffect(() => {
+    if (queryWatcher[2]) {
+      setRefreshTime(queryWatcher[2]);
+    }
+  }, [queryWatcher[2]]);
+
+  // console.log('refreshTime:', refreshTime + queryWatcher[0]);
+
+  return {
+    updatedCount: queryWatcher[0],
+    forceRefetch: queryWatcher[1],
+    refreshTime
+  };
 }
 
 /**
@@ -624,9 +640,10 @@ export function useQuery(
     loading: false,
     error: null as ServerErrorObj | null,
     lastUpdatedCount: 0,
+    lastRefreshTime: '',
   });
 
-  const [updatedCount, forceRefetch, refreshTime] = useWatchQuery(query, variablesKey, qryValues.lastUpdatedCount);
+  const { updatedCount, forceRefetch, refreshTime } = useWatchQuery(query, variablesKey, qryValues.lastUpdatedCount);
 
   // Query function for the client
   // NOTE: useQuery() assumes {query} and {options} will *never* change, except for {options.variables}
@@ -761,9 +778,15 @@ export function useQuery(
 
   // Refetch when variables, skip status or query observer changes
 
+  const isTest = queryName === 'logEntries';
+
   useEffect(() => {
+
+    isTest && console.log('useQuery check:', refreshTime, updatedCount, qryValues.lastUpdatedCount);
+
     if (
       !skip && (
+        (refreshTime && refreshTime !== qryValues.lastRefreshTime) ||
         updatedCount !== qryValues.lastUpdatedCount ||
         variablesKey !== makeVariablesKey(qryValues.variables) ||
         !checkDataCompleteness(qryValues.data, query)
@@ -777,21 +800,22 @@ export function useQuery(
           data: cachedResult,
           error: null,
           loading: false, // IMPORTANT: must be false here
+          lastRefreshTime: refreshTime,
           lastUpdatedCount: updatedCount || 0,
         });
 
         if (forceRefetch && !qryValues.loading) {
           doQuery();
-          // console.log('FORCE REFETCH AT:', query.definitions[0].name.value);
+          isTest && console.log('FORCE REFETCH AT:', query.definitions[0].name.value);
           // console.log('::', variablesKey, skip, updatedCount);
         }
 
       } else if (!qryValues.loading) {
-        // console.log(query, '>>>>> $0|' + variablesKey + skip + updatedCount + '|');
+        isTest && console.log(query, '>>>>> $0|' + variablesKey + skip + updatedCount + '|');
         doQuery();
       }
     }
-  }, [variablesKey, skip, updatedCount]);
+  }, [variablesKey, skip, updatedCount, refreshTime]);
 
   // Refetch when the app reconnects and has no data
 

@@ -1,4 +1,3 @@
-
 /**
  * Combine list of class names
  */
@@ -85,7 +84,7 @@ export function convertToInternationalPhone(str: string) {
 	}
 
 	const digits = str.replace(/[^0-9]/g, '');
-	if (digits.startsWith('0')) {
+	if (!digits || digits.startsWith('0')) {
 		// Invalid
 		return null;
 	} else if (
