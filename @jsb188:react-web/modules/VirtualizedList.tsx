@@ -323,7 +323,7 @@ function repositionList(
  */
 
 function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): VirtualizedState {
-  const { otherProps, fragmentName, refreshKey, limit, loading, maxFetchLimit } = p;
+  const { otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
   const [cursorPosition, setCursorPosition] = useState<CursorPositionObj | null>(null);
   // const [, forceUpdate] = useReducer(x => x + 1, 0);
   const referenceObj = useRef<VZReferenceObj>({ loading, startOfListItemId: null, lastItemIdOnMount: null, mounted: true, itemIds: null, topCursor: null, bottomCursor: null });
@@ -374,7 +374,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
     }
 
     return null;
-  }, [itemIds, cursorPosition?.[0], limit, refreshKey]);
+  }, [itemIds, cursorPosition?.[0], limit]);
 
   // Keep track of certain props so it can referenced inside memoized functions
 
@@ -426,7 +426,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
 
 function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzState: VirtualizedState) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
-  const { limit, fetchMore, openModalPopUp } = p;
+  const { refreshKey, limit, fetchMore, openModalPopUp } = p;
   const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const listRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
@@ -537,13 +537,34 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
     // If you do, infinite scroll will not work.
   }, [eolLen, rootElementQuery]);
 
+  // When there is (potentially) new items added to the list, {refreshKey} will change,
+  // Use this event to keep new items in view
+
+  useLayoutEffect(() => {
+    if (referenceObj.current.itemIds && refreshKey) {
+      const notIncludedIds = p.startOfListItems.map(item => {
+        const getItemId = p.getItemId || ((itm: any) => itm.id);
+        const itemId = getItemId(item);
+        if (referenceObj.current.itemIds?.includes(itemId)) {
+          return null;
+        }
+        return itemId;
+      }).filter(Boolean) as string[];
+
+      if (notIncludedIds.length) {
+        referenceObj.current.itemIds = uniq([...notIncludedIds, ...referenceObj.current.itemIds]);
+        setCursorPosition( getCursorPosition(null, true, listRef.current, p) );
+      }
+    }
+  }, [refreshKey]);
+
   // Reposition list when the current cursorPosition updates
 
   useLayoutEffect(() => {
-      if (cursorPosition?.[0] && listData) {
-        repositionList(cursorPosition, listRef.current, p);
-      }
-    }, [cursorPosition?.[0], cursorPosition?.[4]]);
+    if (cursorPosition?.[0] && listData) {
+      repositionList(cursorPosition, listRef.current, p);
+    }
+  }, [cursorPosition?.[0], cursorPosition?.[4]]);
 
 
   // Use IntersectionObserver to detect when the topRef and bottomRef are in view
@@ -595,20 +616,6 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
   }, [fetchMoreList, !!cursorPosition, referenceObj.current.startOfListItemId]);
 
   return [listRef, topRef, bottomRef];
-}
-
-/**
- * Virtualized lists have a problem where new data inserted to the list doesn't refresh itself;
- * To fix this, you should use this as a key to the VZList Component.
- */
-
-export function useVZListKey(listData: any[] | null, refreshTime: string) {
-  return useMemo(() => {
-    if (!listData) {
-      return '';
-    }
-    return ':' + listData.map((item: any) => item.id).join(',') + ':' + refreshTime;
-  }, [listData, refreshTime]);
 }
 
 /**
