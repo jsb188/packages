@@ -117,7 +117,7 @@ export function checkACLPermission(
 export function getOperationIconName(operation: string | null | undefined): string {
 	return {
 		ARABLE: 'seedling-filled',
-    FARMERS_MARKET: 'building-store-filled',
+    FARMERS_MARKET: 'building-store-filled', // when you replace this, delete the icon too
 		LIVESTOCK: 'horse-filled',
 	}[operation || ''] || 'info-circle-filled';
 }

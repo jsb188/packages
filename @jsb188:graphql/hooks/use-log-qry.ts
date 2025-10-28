@@ -2,7 +2,6 @@ import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d';
 import { useQuery, useReactiveFragment } from '../client';
 import { logEntriesQry } from '../gql/queries/logQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';
-import { useEffect } from 'react';
 
 /**
  * Constants
@@ -49,12 +48,6 @@ export function useLogEntries(
     skip: !variables.organizationId || !variables.filter?.operation,
     ...params,
   });
-
-  useEffect(() => {
-    if (!rest.loading) {
-      console.log('Log entries fetched:', data?.logEntries);
-    }
-  }, [rest.loading]);
 
   return {
     logEntries: data?.logEntries,

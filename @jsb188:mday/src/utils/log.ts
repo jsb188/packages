@@ -247,6 +247,7 @@ const PRODUCE_WORDS = [
 	'yellow star patty',
 	'butternut squash',
 	'butternutsquash',
+	'asparagus',
 	'acorn squash',
 	'acornsquash',
 	'delicata squash',
@@ -452,6 +453,8 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
         case 'cloudberr':
         case 'cloud berr':
           return 'fruit-cloud-berry';
+        case 'asparagus':
+          return 'vegetable-asparagus';
 				case 'sunshine kabocha':
 				case 'acorn squash':
 				case 'acornsquash':

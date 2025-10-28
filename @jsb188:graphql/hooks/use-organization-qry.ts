@@ -2,7 +2,7 @@ import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import { childOrganizationsQry, myOrganizationsQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
 
-const ORG_CHILDREN_LIMIT = 200;
+const ORG_CHILDREN_LIMIT = 100;
 
 /**
  * Fetch organization relationship
@@ -59,7 +59,7 @@ export function useOrgRelFromMyOrganizations(organizationId: string | null) {
  */
 
 export function useChildOrganizations(variables: PaginationArgs & {
-  organizationId: string | null;
+  organizationId?: string | null;
   // filters: ? not ready yet
 }, params: UseQueryParams = {}) {
   const { data, ...rest } = useQuery(childOrganizationsQry, {

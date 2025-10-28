@@ -45,6 +45,7 @@ export default {
     subtotal: 'Subtotal',
     total: 'Total',
     receipts: 'Receipts',
+    market_receipts: 'Market receipts',
     search: 'Search',
     submitted: 'Submitted',
     no_results: 'No results',

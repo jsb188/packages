@@ -7,13 +7,14 @@ const WS_ACTIONS = {
 
 	// Authentication
 	auth: 'auth',
+  auth_reset: 'auth_reset',
 
 	// App
 	data_update: 'du',
 
 	// Account
 	me: 'me:',
-  organization: 'org:',
+	organization: 'org:',
 };
 
 export default WS_ACTIONS;

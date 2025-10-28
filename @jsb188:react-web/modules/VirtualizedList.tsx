@@ -105,7 +105,7 @@ interface VirtualizedListProps extends ReactDivElement {
   // Data props
   loading?: boolean;
   fetchMore?: FetchMoreFn;
-  startOfListItems: any[];
+  startOfListItems?: any[] | null;
   getItemId?: (item: any) => string;
   groupItems?: (items: any[]) => any[]; // Function to group items by date period
   fragmentName: string;
@@ -431,8 +431,8 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
   const listRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const [startOfListItems, setStartOfListItems] = useState<any[]>(p.startOfListItems || null);
-  const eolLen = startOfListItems.length;
+  const [startOfListItems, setStartOfListItems] = useState<any[] | undefined | null>(p.startOfListItems || null);
+  const eolLen = startOfListItems?.length;
 
   useEffect(() => {
     if (!startOfListItems && p.startOfListItems) {
@@ -541,7 +541,7 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
   // Use this event to keep new items in view
 
   useLayoutEffect(() => {
-    if (referenceObj.current.itemIds && refreshKey) {
+    if (referenceObj.current.itemIds && p.startOfListItems && refreshKey) {
       const notIncludedIds = p.startOfListItems.map(item => {
         const getItemId = p.getItemId || ((itm: any) => itm.id);
         const itemId = getItemId(item);

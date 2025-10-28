@@ -1,4 +1,5 @@
 import { PRODUCT_TYPES } from '@jsb188/app/constants/product';
+import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { z } from 'zod';
 import type { ProductsFilterArgs, ProductTypeEnum } from '../types/product.d';
 
@@ -54,12 +55,14 @@ export function convertDigitToProductType(digit?: string | null): ProductTypeEnu
 
 /**
  * Create a filter object for productsList() query from the URL search query.
+ * @param operationType - The organization operation type
  * @param searchQuery - The search query string from the URL
  * @param otherFiltersObj - Additional filter properties to merge into the result
  * @returns ProductsFilterArgs - The filter object to be used in the productsList() query
  */
 
 export function createProductFiltersFromURL(
+  _operationType: OrganizationOperationEnum | null,
 	searchQuery: string,
   otherFiltersObj?: {
     withoutPreset?: Partial<ProductsFilterArgs>,
