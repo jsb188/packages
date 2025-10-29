@@ -107,7 +107,7 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
         key={i}
         removeHorizontalPadding={removeHorizontalPadding}
         doNotApplyGridToRows={doNotApplyGridToRows}
-        className={cn('ft_medium cl_md', cellClassNames?.[i], className)}
+        className={cn('ft_medium cl_lt', cellClassNames?.[i], className)}
         {...rest}
       >
         {iconName && <Icon name={iconName} />}

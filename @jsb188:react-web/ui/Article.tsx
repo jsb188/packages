@@ -159,14 +159,14 @@ export const CondensedArticleItem = memo((p: {
       ? (
         <span
           className={cn(
-            'ellip f',
+            'f',
             yPaddingClassName,
             labelIcons && 'h_item',
-            description ? 'cl_darker_4' : 'cl_darker_2'
+            description ? 'cl_lt' : 'cl_darker_2'
           )}
         >
           {hasDescription && (
-            <span className='shift_down ib'>
+            <span className='shift_down ib ellip'>
               {description || descriptionPlaceholder}
             </span>
           )}

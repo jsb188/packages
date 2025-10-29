@@ -608,6 +608,17 @@ export const CircleCheckColor = <svg xmlns="http://www.w3.org/2000/svg" fill="no
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m18 6.999 -7 9.5 -5 -4" strokeWidth="1" />
 </svg>;
 
+export const CircleDashed = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icon-circle-dashed">
+<path d="M8.56 3.69a9 9 0 0 0 -2.92 1.95" />
+<path d="M3.69 8.56A9 9 0 0 0 3 12" />
+<path d="M3.69 15.44a9 9 0 0 0 1.95 2.92" />
+<path d="M8.56 20.31A9 9 0 0 0 12 21" />
+<path d="M15.44 20.31a9 9 0 0 0 2.92 -1.95" />
+<path d="M20.31 15.44A9 9 0 0 0 21 12" />
+<path d="M20.31 8.56a9 9 0 0 0 -1.95 -2.92" />
+<path d="M15.44 3.69A9 9 0 0 0 12 3" />
+</svg>;
+
 export const CircleDashedCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icon-circle-dashed-check">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M8.56 3.69a9 9 0 0 0 -2.92 1.95" />
@@ -2296,34 +2307,34 @@ export const Plus = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon
 <path d="M5 12l14 0" stroke="currentColor" />
 </svg>;
 
-export const Point = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-point">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" stroke="currentColor" />
-</svg>;
-
-export const PointFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-point">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M12 7a5 5 0 1 1 -4.995 5.217l-.005 -.217l.005 -.217a5 5 0 0 1 4.995 -4.783z" />
-</svg>;
-
-export const Progress = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-progress">
+export const Progress = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-progress">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" />
 <path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" />
 <path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" />
 <path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" />
 <path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" />
-<line x1="10.6" y1="12" x2="13.4" y2="12"/>
+<line x1="10.6" y1="12" x2="13.4" y2="12" strokeWidth="2.25" />
 </svg>;
 
 export const ProgressCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-progress-check">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" stroke="currentColor" />
-<path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" stroke="currentColor" />
-<path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" stroke="currentColor" />
-<path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" stroke="currentColor" />
-<path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" stroke="currentColor" />
-<path d="M9 12l2 2l4 -4" stroke="currentColor" />
+<path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" />
+<path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" />
+<path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" />
+<path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" />
+<path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" />
+<path d="M9 12l2 2l4 -4" />
+</svg>;
+
+export const ProgressX = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icon-progress-x">
+<path d="M10,20.777c-.87-.197-1.706-.524-2.48-.969"/>
+<path d="M14,3.223c4.847,1.107,7.88,5.934,6.772,10.782-.77,3.371-3.402,6.003-6.772,6.772"/>
+<path d="M4.579,17.093c-.545-.793-.96-1.668-1.227-2.592"/>
+<path d="M3.124,10.5c.16-.95.468-1.85.9-2.675l.169-.305"/>
+<path d="M6.907,4.579c.936-.644,1.985-1.104,3.093-1.356"/>
+<path strokeWidth="2.25" d="M14.5,14.5l-5-5"/>
+<path strokeWidth="2.25" d="M9.5,14.5l5-5"/>
 </svg>;
 
 export const ProductGrowthTreeBox = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-product-growth-tree-box" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
