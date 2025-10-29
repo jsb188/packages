@@ -198,7 +198,7 @@ export interface LogEntryGQL {
 	status: LogActionStatusEnum | null;
 
 	account: any;
-  actions?: ActionTaskGQL[];
+	actions?: ActionTaskGQL[];
 
 	date: string; // ISO date string
 	createdAt: string; // ISO date string
@@ -228,7 +228,7 @@ export interface LogEntryDataObj {
 
 	// This is for outputs, but will never be set for inserts
 	account?: AccountObj;
-  actions?: ActionTaskObj[];
+	actions?: ActionTaskObj[];
 }
 
 /**
@@ -238,7 +238,7 @@ export interface LogEntryDataObj {
 export interface FilterLogEntriesArgs {
 	operation: OrganizationOperationEnum;
 	accountId?: string | null; // Account ID to filter logs by account
-	preset?: 'WEEKS_5' | null;
+	preset?: 'WEEKS_5' | 'ACTIONS' | null;
 	types?: LogTypeEnum[] | null;
 	activities?: LogActivityEnum[] | null;
 	startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)

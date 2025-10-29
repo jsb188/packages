@@ -7,23 +7,26 @@ import * as IconSVGs from './IconSVGs';
  */
 
 function camelCaseToDash(str: string) {
-  // This will split numbers
-  // ie. "Name10" -> "name-10"
-  // if (/^[A-Z0-9]+$/.test(str)) {
-  //   return str.toLowerCase();
-  // }
-  // return str.replace(/[A-Z0-9]/g, (m, i) => {
-  //   return `${i ? '-' : ''}${m.toLowerCase()}`;
-  // });
-
   if (/^[A-Z0-9]+$/.test(str)) {
     return str.toLowerCase();
   }
 
+  // let lastOffset = -1;
   return str
     .replace(/([A-Z]|\d+)/g, (match, _, offset) => {
-      // Add a dash only if it's not at the start
-      return (offset > 0 ? '-' : '') + match.toLowerCase();
+      return (offset <= 0 ? '' : '-') + match.toLowerCase();
+
+      // let skipDash = false;
+      // if (offset <= 0) {
+      // // Add a dash only if it's not at the start
+      //   skipDash = true;
+      // } else if ((offset - lastOffset) > 1) {
+      //   skipDash = false;
+      // }
+
+      // lastOffset = offset;
+
+      // return (skipDash ? '' : '-') + match.toLowerCase();
     });
 }
 
@@ -55,6 +58,7 @@ interface SpecialIconProps extends IconProps {
 
 export const COMMON_ICON_NAMES: Record<string, string> = {
   ai_magic: 'sparkles',
+  ai_task: 'document-ai',
   address_book: 'address-book',
   alert_warning_filled: 'alert-circle-filled',
   billing: 'credit-card',

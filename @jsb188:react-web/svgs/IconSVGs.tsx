@@ -886,6 +886,26 @@ export const CrownFilled = <svg xmlns="http://www.w3.org/2000/svg" className="ic
 <path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4z" stroke="none" fill="currentColor" />
 </svg>;
 
+export const DocumentAi = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-document-ai" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M4.2,2.4h15.6c0,0,1.2,0,1.2,1.4v15.6s0,1.3-1.2,1.3H4.2c0,0-1.2,0-1.2-1.4V3.7s0-1.3,1.2-1.3"/>
+<path d="M16.2,16V7.5"/>
+<path d="M7.8,16v-6.8c0-.9.8-1.7,1.7-1.7s1.7.8,1.7,1.7v6.8"/>
+<path d="M7.8,12.6h3.4"/>
+</svg>;
+
+export const DocumentAiColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-0.98 -0.5 24 24" className="icon icon-document-ai-color">
+<path fill="#ffbc44" d="M19.779999999999998 5.9708v14.7476a0.9199999999999999 0.9199999999999999 0 0 1 -0.9199999999999999 0.9199999999999999h-15.639999999999999a0.9199999999999999 0.9199999999999999 0 0 1 -0.9199999999999999 -0.9199999999999999v-19.32a0.9199999999999999 0.9199999999999999 0 0 1 0.9199999999999999 -0.9199999999999999h11.067599999999999c0.299 0 0.598 0.027599999999999996 0.8923999999999999 0.08279999999999998v3.5972a0.9199999999999999 0.9199999999999999 0 0 0 0.9199999999999999 0.9199999999999999h3.5972c0.05519999999999999 0.2944 0.08279999999999998 0.5933999999999999 0.08279999999999998 0.8923999999999999Z" strokeWidth="1"></path>
+<path fill="#ffdda1" d="M15.502 4.8576 2.3 18.0688V1.3983999999999999a0.9199999999999999 0.9199999999999999 0 0 1 0.9199999999999999 -0.9199999999999999h11.067599999999999c0.299 0 0.598 0.027599999999999996 0.8923999999999999 0.08279999999999998v3.5972a0.9476 0.9476 0 0 0 0.32199999999999995 0.6991999999999999Z" strokeWidth="1"></path>
+<path fill="#ffffff" d="M19.6972 5.078399999999999H16.099999999999998a0.9199999999999999 0.9199999999999999 0 0 1 -0.9199999999999999 -0.9199999999999999V0.5611999999999999a5.44916 5.44916 0 0 1 4.5172 4.5172Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18.86 21.638399999999997a0.9199999999999999 0.9199999999999999 0 0 0 0.9199999999999999 -0.9199999999999999V5.9799999999999995A5.49608 5.49608 0 0 0 14.283 0.4784H3.2199999999999998a0.9199999999999999 0.9199999999999999 0 0 0 -0.9199999999999999 0.9199999999999999v19.32a0.9199999999999999 0.9199999999999999 0 0 0 0.9199999999999999 0.9199999999999999h15.639999999999999Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.18 0.5519999999999999v3.6064a0.9199999999999999 0.9199999999999999 0 0 0 0.9199999999999999 0.9199999999999999h3.6064" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M7.819999999999999 17.0384v-4.14a1.38 1.38 0 0 1 2.76 0v4.14" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M7.819999999999999 14.278399999999998h2.76" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M13.34 11.518399999999998v5.52" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.419999999999998 17.0384h1.8399999999999999" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.419999999999998 11.518399999999998h1.8399999999999999" strokeWidth="1"></path>
+</svg>;
+
 export const Devices = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-devices" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M13 9a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1v-10z" stroke="currentColor" />
@@ -2496,28 +2516,28 @@ export const FarmersMarketKiosk = <svg xmlns="http://www.w3.org/2000/svg" classN
 </svg>;
 
 export const FarmersMarketKioskColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-0.5 -1.4231 24 24" className="icon icon-farmers-market-kiosk-color">
-<path fill="#c77f67" d="M19.903846153846157 17.25h-16.80769230769231v3.5384615384615388h16.80769230769231v-3.5384615384615388Z" stroke-width="1"></path>
-<path fill="#e3bfb3" d="M19.903846153846157 17.25h-16.80769230769231v1.7692307692307694h16.80769230769231v-1.7692307692307694Z" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M3.0961538461538463 20.78846153846154V7.375923076923077" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M19.903846153846157 7.375923076923077V20.78846153846154" stroke-width="1"></path>
-<path fill="#ffbfc5" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M11.500000000000002 3.9807692307692313v-3.5384615384615388H6.634615384615385l-0.8846153846153847 3.5384615384615388H11.500000000000002Z" stroke-width="1"></path>
-<path fill="#fff9bf" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M6.634615384615385 0.44230769230769235H3.6428461538461545a0.8846153846153847 0.8846153846153847 0 0 0 -0.790846153846154 0.48919230769230776L1.326923076923077 3.9807692307692313h4.423076923076923l0.8846153846153847 -3.5384615384615388Z" stroke-width="1"></path>
-<path fill="#fff9bf" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="m17.25 3.9807692307692313 -0.8846153846153847 -3.5384615384615388H11.500000000000002v3.5384615384615388h5.750000000000001Z" stroke-width="1"></path>
-<path fill="#ffbfc5" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="m21.673076923076923 3.9807692307692313 -1.5250769230769232 -3.049269230769231A0.8846153846153847 0.8846153846153847 0 0 0 19.35715384615385 0.44230769230769235H16.365384615384617l0.8846153846153847 3.5384615384615388h4.423076923076923Z" stroke-width="1"></path>
-<path fill="#ffef5e" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M11.500000000000002 3.9807692307692313v3.22a3.580923076923077 3.580923076923077 0 0 0 5.750000000000001 -0.5661538461538462v-2.653846153846154H11.500000000000002Z" stroke-width="1"></path>
-<path fill="#ff808c" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M17.25 3.9807692307692313v2.653846153846154a2.5308846153846156 2.5308846153846156 0 0 0 4.423076923076923 -1.7692307692307694v-0.8846153846153847h-4.423076923076923Z" stroke-width="1"></path>
-<path fill="#ffef5e" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M1.326923076923077 3.9807692307692313v0.8846153846153847a2.5326538461538464 2.5326538461538464 0 0 0 4.423076923076923 1.7692307692307694v-2.653846153846154h-4.423076923076923Z" stroke-width="1"></path>
-<path fill="#ff808c" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M5.750000000000001 3.9807692307692313v2.653846153846154a3.580923076923077 3.580923076923077 0 0 0 5.750000000000001 0.5661538461538462V3.9807692307692313H5.750000000000001Z" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M3.0961538461538463 17.25h16.80769230769231" stroke-width="1"></path>
-<path fill="#78eb7b" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M6.634615384615385 17.25a1.7692307692307694 1.7692307692307694 0 1 0 0 -3.5384615384615388 1.7692307692307694 1.7692307692307694 0 0 0 0 3.5384615384615388Z" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M6.634615384615385 13.711538461538463v-0.9810384615384616" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M5.750000000000001 12.826923076923078h0.33792307692307694a1.5993846153846156 1.5993846153846156 0 0 0 1.4313076923076926 -0.8846153846153847" stroke-width="1"></path>
-<path fill="#78eb7b" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M11.057692307692308 17.25a1.7692307692307694 1.7692307692307694 0 1 0 0 -3.5384615384615388 1.7692307692307694 1.7692307692307694 0 0 0 0 3.5384615384615388Z" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M11.057692307692308 13.711538461538463v-0.9810384615384616" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M10.173076923076923 12.826923076923078h0.33792307692307694a1.5993846153846156 1.5993846153846156 0 0 0 1.4313076923076926 -0.8846153846153847" stroke-width="1"></path>
-<path fill="#78eb7b" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M16.365384615384617 17.25a1.7692307692307694 1.7692307692307694 0 1 0 0 -3.5384615384615388 1.7692307692307694 1.7692307692307694 0 0 0 0 3.5384615384615388Z" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M16.365384615384617 13.711538461538463v-0.9810384615384616" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M15.480769230769232 12.826923076923078h0.33792307692307694a1.5993846153846156 1.5993846153846156 0 0 0 1.4313076923076926 -0.8846153846153847" stroke-width="1"></path>
+<path fill="#c77f67" d="M19.903846153846157 17.25h-16.80769230769231v3.5384615384615388h16.80769230769231v-3.5384615384615388Z" strokeWidth="1"></path>
+<path fill="#e3bfb3" d="M19.903846153846157 17.25h-16.80769230769231v1.7692307692307694h16.80769230769231v-1.7692307692307694Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M3.0961538461538463 20.78846153846154V7.375923076923077" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.903846153846157 7.375923076923077V20.78846153846154" strokeWidth="1"></path>
+<path fill="#ffbfc5" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.500000000000002 3.9807692307692313v-3.5384615384615388H6.634615384615385l-0.8846153846153847 3.5384615384615388H11.500000000000002Z" strokeWidth="1"></path>
+<path fill="#fff9bf" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.634615384615385 0.44230769230769235H3.6428461538461545a0.8846153846153847 0.8846153846153847 0 0 0 -0.790846153846154 0.48919230769230776L1.326923076923077 3.9807692307692313h4.423076923076923l0.8846153846153847 -3.5384615384615388Z" strokeWidth="1"></path>
+<path fill="#fff9bf" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m17.25 3.9807692307692313 -0.8846153846153847 -3.5384615384615388H11.500000000000002v3.5384615384615388h5.750000000000001Z" strokeWidth="1"></path>
+<path fill="#ffbfc5" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m21.673076923076923 3.9807692307692313 -1.5250769230769232 -3.049269230769231A0.8846153846153847 0.8846153846153847 0 0 0 19.35715384615385 0.44230769230769235H16.365384615384617l0.8846153846153847 3.5384615384615388h4.423076923076923Z" strokeWidth="1"></path>
+<path fill="#ffef5e" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.500000000000002 3.9807692307692313v3.22a3.580923076923077 3.580923076923077 0 0 0 5.750000000000001 -0.5661538461538462v-2.653846153846154H11.500000000000002Z" strokeWidth="1"></path>
+<path fill="#ff808c" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.25 3.9807692307692313v2.653846153846154a2.5308846153846156 2.5308846153846156 0 0 0 4.423076923076923 -1.7692307692307694v-0.8846153846153847h-4.423076923076923Z" strokeWidth="1"></path>
+<path fill="#ffef5e" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M1.326923076923077 3.9807692307692313v0.8846153846153847a2.5326538461538464 2.5326538461538464 0 0 0 4.423076923076923 1.7692307692307694v-2.653846153846154h-4.423076923076923Z" strokeWidth="1"></path>
+<path fill="#ff808c" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M5.750000000000001 3.9807692307692313v2.653846153846154a3.580923076923077 3.580923076923077 0 0 0 5.750000000000001 0.5661538461538462V3.9807692307692313H5.750000000000001Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M3.0961538461538463 17.25h16.80769230769231" strokeWidth="1"></path>
+<path fill="#78eb7b" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.634615384615385 17.25a1.7692307692307694 1.7692307692307694 0 1 0 0 -3.5384615384615388 1.7692307692307694 1.7692307692307694 0 0 0 0 3.5384615384615388Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.634615384615385 13.711538461538463v-0.9810384615384616" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M5.750000000000001 12.826923076923078h0.33792307692307694a1.5993846153846156 1.5993846153846156 0 0 0 1.4313076923076926 -0.8846153846153847" strokeWidth="1"></path>
+<path fill="#78eb7b" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.057692307692308 17.25a1.7692307692307694 1.7692307692307694 0 1 0 0 -3.5384615384615388 1.7692307692307694 1.7692307692307694 0 0 0 0 3.5384615384615388Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.057692307692308 13.711538461538463v-0.9810384615384616" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10.173076923076923 12.826923076923078h0.33792307692307694a1.5993846153846156 1.5993846153846156 0 0 0 1.4313076923076926 -0.8846153846153847" strokeWidth="1"></path>
+<path fill="#78eb7b" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16.365384615384617 17.25a1.7692307692307694 1.7692307692307694 0 1 0 0 -3.5384615384615388 1.7692307692307694 1.7692307692307694 0 0 0 0 3.5384615384615388Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16.365384615384617 13.711538461538463v-0.9810384615384616" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.480769230769232 12.826923076923078h0.33792307692307694a1.5993846153846156 1.5993846153846156 0 0 0 1.4313076923076926 -0.8846153846153847" strokeWidth="1"></path>
 </svg>;
 
 export const FarmersMarketVendor = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-farmers-market-vendor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -2530,17 +2550,17 @@ export const FarmersMarketVendor = <svg xmlns="http://www.w3.org/2000/svg" class
 </svg>;
 
 export const FarmersMarketVendorColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-farmers-market-vendor-color">
-<path fill="#e3bfb3" d="M0.5 23.5V5.152a1 1 0 0 1 0.671 -0.944l10.5 -3.652a1 1 0 0 1 0.658 0l10.5 3.652a1 1 0 0 1 0.671 0.944V23.5H0.5Z" stroke-width="1"></path>
-<path fill="#c77f67" d="M22.829 4.208 12.329 0.556a0.987 0.987 0 0 0 -0.657 0l-10.5 3.652a1 1 0 0 0 -0.672 0.944v2.5a1 1 0 0 1 0.672 -0.944l10.5 -3.653a1 1 0 0 1 0.657 0l10.5 3.653a1 1 0 0 1 0.671 0.944v-2.5a1 1 0 0 0 -0.671 -0.944Z" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M0.5 23.5V5.152a1 1 0 0 1 0.671 -0.944l10.5 -3.652a1 1 0 0 1 0.658 0l10.5 3.652a1 1 0 0 1 0.671 0.944V23.5" stroke-width="1"></path>
-<path fill="#e3e3e3" d="M20.5 17.5h-17a1 1 0 0 0 -1 1v4a1 1 0 0 0 1 1h17a1 1 0 0 0 1 -1v-4a1 1 0 0 0 -1 -1Z" stroke-width="1"></path>
-<path fill="#ffffff" d="M20.5 17.5h-17a1 1 0 0 0 -1 1v2a1 1 0 0 1 1 -1h17a1 1 0 0 1 1 1v-2a1 1 0 0 0 -1 -1Z" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M20.5 17.5h-17a1 1 0 0 0 -1 1v4a1 1 0 0 0 1 1h17a1 1 0 0 0 1 -1v-4a1 1 0 0 0 -1 -1Z" stroke-width="1"></path>
-<path fill="#ffdda1" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M17.5 13.001a2 2 0 1 0 0 -4 2 2 0 0 0 0 4Z" stroke-width="1"></path>
-<path fill="#66e1ff" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M20.5 17.5V17a3 3 0 0 0 -6 0v0.5h6Z" stroke-width="1"></path>
-<path fill="#808080" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="m11.857 17.5 -0.65 -2.275a1 1 0 0 0 -0.961 -0.725H5.754a1 1 0 0 0 -0.961 0.725l-0.65 2.275h7.714Z" stroke-width="1"></path>
-<path stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M6.5 14.5v-2" stroke-width="1"></path>
-<path fill="#78eb7b" stroke="#191919" stroke-linecap="round" stroke-linejoin="round" d="M7.5 10.5a1 1 0 0 1 0 2h-2a1 1 0 0 1 0 -2h2Z" stroke-width="1"></path>
+<path fill="#e3bfb3" d="M0.5 23.5V5.152a1 1 0 0 1 0.671 -0.944l10.5 -3.652a1 1 0 0 1 0.658 0l10.5 3.652a1 1 0 0 1 0.671 0.944V23.5H0.5Z" strokeWidth="1"></path>
+<path fill="#c77f67" d="M22.829 4.208 12.329 0.556a0.987 0.987 0 0 0 -0.657 0l-10.5 3.652a1 1 0 0 0 -0.672 0.944v2.5a1 1 0 0 1 0.672 -0.944l10.5 -3.653a1 1 0 0 1 0.657 0l10.5 3.653a1 1 0 0 1 0.671 0.944v-2.5a1 1 0 0 0 -0.671 -0.944Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M0.5 23.5V5.152a1 1 0 0 1 0.671 -0.944l10.5 -3.652a1 1 0 0 1 0.658 0l10.5 3.652a1 1 0 0 1 0.671 0.944V23.5" strokeWidth="1"></path>
+<path fill="#e3e3e3" d="M20.5 17.5h-17a1 1 0 0 0 -1 1v4a1 1 0 0 0 1 1h17a1 1 0 0 0 1 -1v-4a1 1 0 0 0 -1 -1Z" strokeWidth="1"></path>
+<path fill="#ffffff" d="M20.5 17.5h-17a1 1 0 0 0 -1 1v2a1 1 0 0 1 1 -1h17a1 1 0 0 1 1 1v-2a1 1 0 0 0 -1 -1Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 17.5h-17a1 1 0 0 0 -1 1v4a1 1 0 0 0 1 1h17a1 1 0 0 0 1 -1v-4a1 1 0 0 0 -1 -1Z" strokeWidth="1"></path>
+<path fill="#ffdda1" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5 13.001a2 2 0 1 0 0 -4 2 2 0 0 0 0 4Z" strokeWidth="1"></path>
+<path fill="#66e1ff" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 17.5V17a3 3 0 0 0 -6 0v0.5h6Z" strokeWidth="1"></path>
+<path fill="#808080" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m11.857 17.5 -0.65 -2.275a1 1 0 0 0 -0.961 -0.725H5.754a1 1 0 0 0 -0.961 0.725l-0.65 2.275h7.714Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.5 14.5v-2" strokeWidth="1"></path>
+<path fill="#78eb7b" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M7.5 10.5a1 1 0 0 1 0 2h-2a1 1 0 0 1 0 -2h2Z" strokeWidth="1"></path>
 </svg>;
 
 export const FarmingSellVegetable = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-farming-sell-vegetable" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">

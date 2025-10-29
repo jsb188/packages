@@ -6,11 +6,11 @@ import { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 
 const ROUTES_MAP = {
   // If path ends with a slash, "$some_param_id" path segment is expected.
+  // Keep these at top
   ai_chat: '/app/c/',
-  // Keep non "/" paths (paths with "$some_param_id") at bottom
+
+  // Keep non "/.." paths (paths with "$some_param_id") at bottom
   app: '/app',
-  livestock: '/app/livestock',
-  logs: '/app/logs',
   markets: '/app/markets',
   orders: '/app/orders',
   partners: '/app/partners',
@@ -23,6 +23,13 @@ const ROUTES_MAP = {
   field_work: '/app/field-work',
   harvested: '/app/harvested',
   post_harvest: '/app/post-harvest',
+
+  // Livestock
+  livestock: '/app/livestock',
+
+  // Unsorted (see all)
+  logs: '/app/logs',
+  ai_tasks: '/app/ai-tasks',
 };
 
 const PATH_TO_ROUTE_NAME = Object.entries(ROUTES_MAP).reduce((acc, [routeName, path]) => {
@@ -36,11 +43,35 @@ const ROUTES_RULE: Record<string, {
   requireManageInventory: boolean;
   requireManageActions: boolean;
 }> = {
-  livestock: {
-    allowedOperations: ['LIVESTOCK'],
-    requireManageInventory: true,
+
+  // Arable
+  seeding: {
+    allowedOperations: ['ARABLE'],
+    requireManageInventory: false,
     requireManageActions: false,
   },
+  transplanting: {
+    allowedOperations: ['ARABLE'],
+    requireManageInventory: false,
+    requireManageActions: false,
+  },
+  field_work: {
+    allowedOperations: ['ARABLE'],
+    requireManageInventory: false,
+    requireManageActions: false,
+  },
+  harvested: {
+    allowedOperations: ['ARABLE'],
+    requireManageInventory: false,
+    requireManageActions: false,
+  },
+  post_harvest: {
+    allowedOperations: ['ARABLE'],
+    requireManageInventory: false,
+    requireManageActions: false,
+  },
+
+  // Farmers Market
   markets: {
     allowedOperations: ['FARMERS_MARKET'],
     requireManageInventory: true,
@@ -67,30 +98,10 @@ const ROUTES_RULE: Record<string, {
     requireManageActions: true,
   },
 
-  // Arable
-  seeding: {
-    allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
-  },
-  transplanting: {
-    allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
-  },
-  field_work: {
-    allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
-  },
-  harvested: {
-    allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
-  },
-  post_harvest: {
-    allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
+  // Livestock
+  livestock: {
+    allowedOperations: ['LIVESTOCK'],
+    requireManageInventory: true,
     requireManageActions: false,
   },
 };

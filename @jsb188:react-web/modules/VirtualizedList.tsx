@@ -6,7 +6,7 @@ import { loadFragment } from '@jsb188/graphql/cache';
 import type { TableHeaderObj } from '@jsb188/react-web/ui/TableListUI';
 import { TDCol, THead, TRow } from '@jsb188/react-web/ui/TableListUI';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
-import { isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactDivElement, ReactSpanElement } from '../types/dom.d';
 
 /**
@@ -34,11 +34,11 @@ type FetchMoreFn = (after: boolean, cursor: string | null, limit: number) => Pro
   error?: ServerErrorObj;
 }>;
 
-type RenderItemFn = (
+export type RenderItemFn = (
   // This is when you use the groupItems() fn
   // the item will become an array (because of the grouping)
   // (item: any[], i: number, list: any[][]) => React.ReactNode
-  (item: any, i: number, list: any[]) => React.ReactNode
+  (item: any[], i: number, list: any[]) => React.ReactNode
 ) |
 (
   // When groupItems() is not used, it will be a normal list map, like so:
@@ -99,7 +99,8 @@ interface VirtualizedListProps extends ReactDivElement {
   MockComponent?: React.ReactNode;
   HeaderComponent?: React.ReactNode;
   FooterComponent?: React.ElementType;
-  renderItem: RenderItemFn;
+  GroupTitleComponent: React.ElementType;
+  ItemComponent: React.ElementType;
   otherProps?: Record<string, any>;
 
   // Data props
@@ -109,6 +110,7 @@ interface VirtualizedListProps extends ReactDivElement {
   getItemId?: (item: any) => string;
   groupItems?: (items: any[]) => any[]; // Function to group items by date period
   fragmentName: string;
+  reactiveFragmentFn?: ReactiveFragmentFn;
 
   // Fetch props
   limit: number;
@@ -117,12 +119,25 @@ interface VirtualizedListProps extends ReactDivElement {
 
   // Callbacks & handler props
   openModalPopUp: OpenModalPopUpFn;
+  onClickItem?: (vzItem?: VZListItemObj) => void;
 
   // DOM props
   rootElementQuery?: string; // Scrollable DOM element where the list is contained
 }
 
-type VirtualizedListOmit = Omit<VirtualizedListProps, 'renderItem' | 'groupItems' | 'HeaderComponent'>;
+type VirtualizedListOmit = Omit<VirtualizedListProps, 'GroupTitleComponent' | 'ItemComponent' | 'groupItems' | 'HeaderComponent'>;
+
+type TableListProps = {
+  reactiveFragmentFn?: ReactiveFragmentFn;
+  gridLayoutStyle?: string;
+  cellClassNames?: (string | undefined)[];
+  removeHorizontalPadding?: boolean;
+  doNotApplyGridToRows?: boolean;
+  headers?: Partial<TableHeaderObj>[] | null;
+  listData: VZListItemObj[] | null;
+  mapListData: MapTableListDataFn;
+  onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any) => void;
+};
 
 /**
  * Static list container with same class name
@@ -619,21 +634,57 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
 }
 
 /**
+ * VZ list reactive item
+ */
+
+const ReactiveVZListItem = (p: any) => {
+  const { reactiveFragmentFn, ItemComponent, ...rest } = p;
+  const reactiveItem = reactiveFragmentFn(p.item?.id, p.item);
+
+  return <ItemComponent
+    { ...rest}
+    item={reactiveItem}
+  />;
+};
+
+/**
  * Virtualized list
  */
 
 export function VirtualizedList(p: VirtualizedListProps) {
-  const { renderItem, MockComponent, HeaderComponent, FooterComponent, groupItems, maxFetchLimit } = p;
+  const { ItemComponent, GroupTitleComponent, MockComponent, HeaderComponent, FooterComponent, groupItems, maxFetchLimit, reactiveFragmentFn, onClickItem } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
   const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
 
-  const renderListData = useMemo(() => {
+  const mappedListData = useMemo(() => {
     if (groupItems && listData) {
       return groupItems(listData);
     }
     return listData;
   }, [groupItems, listData]);
+
+  const isGrouped = !!groupItems && Array.isArray(mappedListData?.[0]);
+  const renderListItem = (listProps: any, i: number, _list: VZListItemObj[]) => {
+    const vzItem = isGrouped ? listProps.item : listProps;
+
+    if (reactiveFragmentFn) {
+      // Doing this avoids "different number of hooks rendered" rules error
+      return <ReactiveVZListItem
+        key={vzItem.item.id}
+        reactiveFragmentFn={reactiveFragmentFn}
+        ItemComponent={ItemComponent}
+        onClickItem={onClickItem}
+        {...vzItem}
+      />;
+    }
+
+    return <ItemComponent
+      key={vzItem.item.id}
+      {...vzItem}
+      onClickItem={onClickItem}
+    />;
+  }
 
   return <>
     <div ref={topRef}>
@@ -641,7 +692,14 @@ export function VirtualizedList(p: VirtualizedListProps) {
     </div>
 
     <div ref={listRef}>
-      {renderListData?.map(renderItem)}
+      {isGrouped
+      ? mappedListData?.map((groupedList, i) => {
+        return <Fragment key={'group_fragment_' + i}>
+          {GroupTitleComponent && <GroupTitleComponent groupedList={groupedList} />}
+          {groupedList.map(renderListItem)}
+        </Fragment>;
+      })
+      : mappedListData?.map(renderListItem)}
     </div>
 
     <div ref={bottomRef}>
@@ -726,7 +784,7 @@ TableListItem.displayName = 'TableListItem';
  * Table list reactive item
  */
 
-const TableListReactiveItem = (p: any) => {
+const ReactiveTableListItem = (p: any) => {
   const { reactiveFragmentFn, item } = p;
   const reactiveItem = reactiveFragmentFn(item?.item?.id, item?.item);
   return <TableListItem
@@ -742,19 +800,7 @@ const TableListReactiveItem = (p: any) => {
  * Table list
  */
 
-interface TableListProps {
-  reactiveFragmentFn?: ReactiveFragmentFn;
-  gridLayoutStyle?: string;
-  cellClassNames?: (string | undefined)[];
-  removeHorizontalPadding?: boolean;
-  doNotApplyGridToRows?: boolean;
-  headers?: Partial<TableHeaderObj>[] | null;
-  listData: VZListItemObj[] | null;
-  mapListData: MapTableListDataFn;
-  onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any) => void;
-}
-
-export const TableList = memo((p: TableListProps) => {
+export const VZTable = memo((p: TableListProps) => {
   const { reactiveFragmentFn, gridLayoutStyle, headers, listData, cellClassNames, doNotApplyGridToRows, removeHorizontalPadding } = p;
   return <>
     {headers && (
@@ -769,27 +815,27 @@ export const TableList = memo((p: TableListProps) => {
     {listData?.map((item: VZListItemObj, i: number, list: any[]) => {
       if (reactiveFragmentFn) {
         // Doing this avoids "different number of hooks rendered" rules error
-        return <TableListReactiveItem
+        return <ReactiveTableListItem
           key={item.item.id}
           {...p}
-          item={item}
           i={i}
           list={list}
+          item={item}
         />;
       }
 
       return <TableListItem
         key={item.item.id}
         {...p}
-        item={item}
         i={i}
         list={list}
+        item={item}
       />;
     })}
   </>;
 });
 
-TableList.displayName = 'TableList';
+VZTable.displayName = 'VZTable';
 
 /**
  * Virtualized table list
@@ -797,7 +843,6 @@ TableList.displayName = 'TableList';
 
 export function VirtualizedTableList(p: VirtualizedListOmit & {
   onClickRow?: (vzItem?: VZListItemObj) => void;
-  reactiveFragmentFn?: ReactiveFragmentFn;
   doNotApplyGridToRows?: boolean;
   gridLayoutStyle?: string;
   cellClassNames?: (string | undefined)[];
@@ -827,7 +872,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
         style={doNotApplyGridToRows && gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
         className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns)}
       >
-        <TableList
+        <VZTable
           reactiveFragmentFn={reactiveFragmentFn}
           gridLayoutStyle={gridLayoutStyle}
           doNotApplyGridToRows={doNotApplyGridToRows}

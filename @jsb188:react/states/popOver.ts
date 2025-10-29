@@ -270,8 +270,9 @@ function composeUpdateTooltipFn( setTooltip: (value: TooltipProps | null) => voi
       const nextTooltipState = tooltipClass.update(data, prev);
       if (nextTooltipState) {
         return nextTooltipState;
+      } else if (data && prev) {
+        console.warn('Invalid {tooltip} data for update():', data);
       }
-      console.warn('Invalid {tooltip} data for update():', data);
       return prev;
     });
   };
