@@ -51,6 +51,9 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 		PASTURE_LAND_MANAGEMENT: 'green',
 		LIVESTOCK_HEALTHCARE: 'teal',
 		LIVESTOCK_SALE: 'blue',
+
+    // #### Merged into every operation
+    AI_TASK: 'slate',
 	} as Record<LogTypeEnum, string>;
 
 	// Default to zinc if type is not found
@@ -86,6 +89,19 @@ export function getLogTypeFromActivity(operation: OrganizationOperationEnum | st
 	}
 
   return logGroup?.[0] as LogTypeEnum || null;
+}
+
+/**
+ * For UI visualization, use this function to get the shortest activity text
+ * @param activity - The activity of the log entry
+ * @returns i18n text for activity
+ */
+
+export function getShorterActivityText(activity: any): string {
+  if (i18n.has(`log.activity_short.${activity}`)) {
+    return i18n.t(`log.activity_short.${activity}`);
+  }
+  return i18n.t(`log.activity.${activity}`);
 }
 
 /**
