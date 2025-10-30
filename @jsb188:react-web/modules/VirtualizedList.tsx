@@ -672,6 +672,7 @@ export function VirtualizedList(p: VirtualizedListProps) {
       // Doing this avoids "different number of hooks rendered" rules error
       return <ReactiveVZListItem
         key={vzItem.item.id}
+        index={i}
         reactiveFragmentFn={reactiveFragmentFn}
         ItemComponent={ItemComponent}
         onClickItem={onClickItem}
@@ -681,8 +682,9 @@ export function VirtualizedList(p: VirtualizedListProps) {
 
     return <ItemComponent
       key={vzItem.item.id}
-      {...vzItem}
+      index={i}
       onClickItem={onClickItem}
+      {...vzItem}
     />;
   }
 

@@ -648,8 +648,10 @@ export function makeLogMetadataSchema(
     LogLivestock: 'livestockDetails',
   }[__typename] || '';
 
-  const logType = getLogTypeFromActivity(__typename, formValues[namespace]?.activity)!;
+  const logActivity = formValues[namespace]?.activity;
+  const logType = getLogTypeFromActivity(__typename, logActivity)!;
   const schemaFields = getSchemaFieldsFromLog(__typename, logType);
+  const isAITask = logType === 'AI_TASK';
 
   switch (__typename) {
     case 'LogArable': {
@@ -665,6 +667,10 @@ export function makeLogMetadataSchema(
       schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, schemaFields);
     } break;
     default:
+  }
+
+  if (isAITask) {
+    activitiesList = activitiesList.filter(([type]) => type !== 'AI_TASK');
   }
 
   // Date, time, createdBy is common across all log types
@@ -719,6 +725,7 @@ export function makeLogMetadataSchema(
     schemaItems[0].item.popOverProps = {
       id: formId + '_activity',
       ...basePopOverProps,
+      disabled: isAITask, // AI tasks' activity cannot be changed
       iface: {
         name: 'PO_LIST',
         variables: {

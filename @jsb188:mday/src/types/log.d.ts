@@ -45,7 +45,7 @@ export type LogLivestockActivityEnum = typeof LOG_LIVESTOCK_ACTIVITY_ENUMS[numbe
  * All log types/activities Union
  */
 
-export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogLivestockTypeEnum;
+export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogLivestockTypeEnum | 'AI_TASK';
 export type LogActivityEnum = LogArableActivityEnum | LogFarmersMarketActivityEnum | LogLivestockActivityEnum;
 
 /**

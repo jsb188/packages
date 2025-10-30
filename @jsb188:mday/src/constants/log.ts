@@ -29,9 +29,12 @@ export const AI_TASKS_GROUP: [string, string[]] = [
   'AI_TASK',
   [
     'AI_SEND_MESSAGE',
-    // Add more later
+    'AI_REMINDER',
+    'AI_CHECK_IN'
   ]
 ];
+
+export const AI_TASK_ACTIVITIES = AI_TASKS_GROUP[1];
 
 /**
  * #### #### #### ####
@@ -41,6 +44,7 @@ export const AI_TASKS_GROUP: [string, string[]] = [
  */
 
 export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
+  AI_TASKS_GROUP,
 	[
 		'SEED',
 		[
@@ -106,7 +110,6 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'OTHER_WATER_TESTING_ACTIVITY',
 		],
 	],
-  AI_TASKS_GROUP
 ];
 
 export const LOG_ARABLE_TYPE_ENUMS = ARABLE_ACTIVITIES_GROUPED.map(([type]) => type);
@@ -138,6 +141,7 @@ export const LOG_ARABLE_ACTIVITY_ENUMS = ARABLE_ACTIVITIES_GROUPED.reduce(
  */
 
 export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
+  AI_TASKS_GROUP,
 	[
 		'MARKET_RECEIPTS',
 		[
@@ -151,7 +155,6 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'FARMERS_MARKET_NOTES',
 		],
 	],
-  AI_TASKS_GROUP
 ];
 
 export const LOG_FARMERS_MARKET_TYPE_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUPED.map(([type]) => type);
@@ -178,6 +181,7 @@ export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUP
  */
 
 export const LIVESTOCK_ACTIVITIES_GROUPED: [string, string[]][] = [
+  AI_TASKS_GROUP,
 	[
 		'SUPPLY_PURCHASE',
 		[
@@ -231,7 +235,6 @@ export const LIVESTOCK_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'OTHER_LIVESTOCK_SALE_ACTIVITY',
 		],
 	],
-  AI_TASKS_GROUP
 ];
 
 export const LOG_LIVESTOCK_TYPE_ENUMS = LIVESTOCK_ACTIVITIES_GROUPED.map(([type]) => type);

@@ -56,11 +56,12 @@ HorizontalTimeline.displayName = 'HorizontalTimeline'
 
 const LastLineGradient = memo((p: {
   errored?: boolean;
+  isSingle?: boolean;
   positionIndex: number;
   lastIndex: number;
   fromColor: string;
 }) => {
-  const { errored, positionIndex, lastIndex, fromColor } = p;
+  const { errored, isSingle, positionIndex, lastIndex, fromColor } = p;
   if (!errored && positionIndex === -1 && lastIndex === 0) {
     return <span
       className='abs tl_progress medium_to_none'
@@ -73,7 +74,7 @@ const LastLineGradient = memo((p: {
 
   if (
     positionIndex < 0 ||
-    positionIndex === lastIndex
+    (positionIndex === lastIndex && (!isSingle || positionIndex > 0))
     // (positionIndex === lastIndex && (positionIndex || lastIndex))
   ) {
     return null;
@@ -180,8 +181,9 @@ export const CompactTimeline = memo((p: {
 
     {
     !notStarted && (
-      linePositionIx > 0 ||
-      (isSingle && linePositionIx === 0)
+      linePositionIx > 0
+      // ||
+      // (isSingle && linePositionIx === 0)
     ) && (
       <span
         className={`abs tl_progress bg_${lineColor}`}
@@ -191,6 +193,7 @@ export const CompactTimeline = memo((p: {
 
     <LastLineGradient
       errored={errored}
+      isSingle={isSingle}
       positionIndex={linePositionIx}
       lastIndex={lastIndex}
       fromColor={itemColors[errored ? linePositionIx : lastIndex] || 'none'}
