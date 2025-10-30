@@ -6,6 +6,8 @@ export function isNumber(input: unknown): input is number | string {
 	switch (typeof input) {
 		case 'number':
 			return input - input === 0;
+    case 'bigint':
+      return true;
 		case 'string':
 			return input.trim() !== '' && !Number.isNaN(Number(input));
 	}
@@ -177,7 +179,7 @@ export function getCurrencySymbol(locale: string, currency: string): string {
 
 export function formatCurrency(
 	amount: string | number,
-  trailZeros: boolean = true,
+	trailZeros: boolean = true,
 	locale: string = 'en-US',
 	currency: string = 'USD',
 ): string {
