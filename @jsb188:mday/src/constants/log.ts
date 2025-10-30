@@ -8,6 +8,7 @@ export const LOG_ACTION_STATUS_ENUMS = [
 	'STARTED',
 	'COMPLETED',
 	'ERRORED',
+  'QUEUED', // Used only for AI Tasks
 ];
 
 export const PURCHASE_ACTIVITIES = [
@@ -22,6 +23,14 @@ export const SALE_ACTIVITIES = [
 	// # Arable
 	'SALE_PRODUCE_ORDER',
 	'OTHER_SALE_ORDER',
+];
+
+export const AI_TASKS_GROUP: [string, string[]] = [
+  'AI_TASK',
+  [
+    'AI_SEND_MESSAGE',
+    // Add more later
+  ]
 ];
 
 /**
@@ -97,6 +106,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'OTHER_WATER_TESTING_ACTIVITY',
 		],
 	],
+  AI_TASKS_GROUP
 ];
 
 export const LOG_ARABLE_TYPE_ENUMS = ARABLE_ACTIVITIES_GROUPED.map(([type]) => type);
@@ -141,6 +151,7 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'FARMERS_MARKET_NOTES',
 		],
 	],
+  AI_TASKS_GROUP
 ];
 
 export const LOG_FARMERS_MARKET_TYPE_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUPED.map(([type]) => type);
@@ -220,6 +231,7 @@ export const LIVESTOCK_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'OTHER_LIVESTOCK_SALE_ACTIVITY',
 		],
 	],
+  AI_TASKS_GROUP
 ];
 
 export const LOG_LIVESTOCK_TYPE_ENUMS = LIVESTOCK_ACTIVITIES_GROUPED.map(([type]) => type);

@@ -7,13 +7,11 @@ import './TimelineUI.css';
  * Types
  */
 
-export type TimelineDotColor = 'strong' | 'primary' | 'secondary';
-
 export interface TimelineItem {
   iconName: string;
   selectedIconName?: string;
   text: string;
-  color: TimelineDotColor | null;
+  color: string | null;
   completed?: boolean;
 }
 
@@ -39,9 +37,9 @@ export const TimelineDot = memo((p: Partial<TimelineItem> & {
     className={cn(
       'r tl_dot tl_dot_cnt rel z1',
       outline ? 'bd_2' : '',
-      outline && !selected ? 'bd_lt' : '',
+      outline && !selected ? 'bd_md' : '',
       size >= 4 || selected ? `w_${size} h_${size}` : 'w_4 h_4',
-      selected ? `selected bg_${color} bd_2 bd_${selectedBorderColor ?? 'darker_1'}` : `not_selected ${outline ? 'bg' : 'bg_medium'}`,
+      selected ? `selected${color ? ' bg_' + color : ''} bd_2 bd_${selectedBorderColor ?? 'darker_1'}` : `not_selected ${outline ? 'bg' : 'bg_medium'}`,
       lastSelected ? 'last_selected ' : 'not_last_selected',
       // lastSelected ? 'bd_1 bd_darker_2' : selected ? '' : '',
       position,

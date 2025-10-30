@@ -395,34 +395,23 @@ a.u, button.u {
 
 .cl_discord { color: var(--color-discord) !important; }
 
+/* Gradient */
+
+.medium_to_none { background: linear-gradient(90deg, rgb(var(--color-bg-medium)), rgba(0,0,0,0)); }
+.none_to_medium { background: linear-gradient(90deg, rgba(0,0,0,0), rgb(var(--color-bg-medium))); }
+
+.bg_pass_to_none { background: linear-gradient(90deg, rgb(var(--color-pass)), rgba(0,0,0,0)); }
+.bg_none_to_pass { background: linear-gradient(90deg, rgba(0,0,0,0), rgb(var(--color-pass))); }
+
 /* Background colors */
 
-.bg_err {
-  color: #FFF;
-  background-color: rgb(var(--color-error)) !important;
-}
+.bg_err { background-color: rgb(var(--color-error)) !important; color: #FFF; }
+a.bg_err:active, button.bg_err:active, .bg_err_av { background-color: rgb(var(--color-error-active)) !important; color: rgba(255, 255, 255, .64); }
+.bg_err_hv:hover { background-color: rgb(var(--color-error-active)) !important; }
+.bg_err_faded_hv:hover { background-color: rgb(var(--color-error-faded), .1) !important; }
 
-a.bg_err:active, button.bg_err:active, .bg_err_av {
-  color: rgba(255, 255, 255, .64);
-  background-color: rgb(var(--color-error-active)) !important;
-}
-
-.bg_err_hv:hover {
-  background-color: rgb(var(--color-error-active)) !important;
-}
-
-.bg_err_faded_hv:hover {
-  background-color: rgb(var(--color-error-faded), .1) !important;
-}
-
-.bg_pass {
-  color: #FFF;
-  background-color: rgb(var(--color-pass)) !important;
-}
-
-a.bg_pass:active, button.bg_pass:active {
-  background-color: rgb(var(--color-pass-active)) !important;
-}
+.bg_pass { background-color: rgb(var(--color-pass)) !important; color: #FFF; }
+a.bg_pass:active, button.bg_pass:active { background-color: rgb(var(--color-pass-active)) !important; }
 
 .bg_contrast {
   color: var(--color-solid) !important;
@@ -1006,6 +995,8 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .bd_primary_bd, .bd_primary_bd_hv:hover { border-color: rgba(var(--color-primary), .7); }
 .bd_main, .bd_main_hv:hover { border-color: rgb(var(--color-main)); }
 .bd_main_bd, .bd_main_bd_hv:hover { border-color: rgba(var(--color-main), .7); }
+.bd_pass, .bd_pass_hv:hover { border-color: rgb(var(--color-pass)); }
+.bd_pass_bd, .bd_pass_bd_hv:hover { border-color: rgba(var(--color-pass), .7); }
 
 .cl_md.link:not(.disabled):not(:disabled):hover, button.cl_md:not(.disabled):not(:disabled):hover, .cl_bd.link:not(.disabled):not(:disabled):hover, button.cl_bd:not(.disabled):not(:disabled):hover { color: var(--color-text); }
 .cl_lt.link:not(.disabled):not(:disabled):hover, button.cl_lt:not(.disabled):not(:disabled):hover { color: var(--color-text-medium); }

@@ -66,20 +66,26 @@ export function getLogCategoryColor(type: LogTypeEnum) {
  */
 
 export function getLogTypeFromActivity(operation: OrganizationOperationEnum | string, activity: any): LogTypeEnum | null {
+  let logGroup;
 	switch (operation) {
 		case 'ARABLE':
 		case 'LogArable':
-			return ARABLE_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] as LogTypeEnum || null;
+			logGroup = ARABLE_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity));
+      break;
 		case 'LIVESTOCK':
 		case 'LogLivestock':
-			return LIVESTOCK_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] as LogTypeEnum || null;
+			logGroup = LIVESTOCK_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity));
+      break;
 		case 'FARMERS_MARKET':
 		case 'LogFarmersMarket':
-			return FARMERS_MARKET_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity))?.[0] as LogTypeEnum || null;
+			logGroup = FARMERS_MARKET_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity));
+      break;
 		default:
 			console.warn('(!1) Cannot get log type from unknown operation type:', operation);
 			return null;
 	}
+
+  return logGroup?.[0] as LogTypeEnum || null;
 }
 
 /**
@@ -107,11 +113,11 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 
 			if (logType === 'WATER') {
 				logSpecificText = joinReadable([md.concentration, md.concentration && md.concentrationUnit], ' ', ' ');
-			} else if (['SEED','SALES'].includes(logType)) {
+			} else if (['SEED', 'SALES'].includes(logType)) {
 				if (!cropName) {
 					cropName = i18n.t('log.unknown_crop');
 				}
-        const totalPrice = (md?.values || []).reduce((sum: number, item: any) => sum + Number(item.value || 0), 0);
+				const totalPrice = (md?.values || []).reduce((sum: number, item: any) => sum + Number(item.value || 0), 0);
 				logSpecificText = formatCurrency(totalPrice, false);
 			}
 
@@ -142,16 +148,16 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'LIVESTOCK':
 		case 'logs_livestock':
 		case 'LogLivestock': {
-
-      if (['SUPPLY_PURCHASE', 'LIVESTOCK_SALE'].includes(logType)) {
-        return joinReadable([
-          formatReferenceNumber(md?.referenceNumber),
-          formatCurrency((md?.values || []).reduce((sum: number, item: any) => sum + Number(item.value || 0), 0), false),
-        ],
-          ' - ',
-          ' - '
-        );
-      }
+			if (['SUPPLY_PURCHASE', 'LIVESTOCK_SALE'].includes(logType)) {
+				return joinReadable(
+					[
+						formatReferenceNumber(md?.referenceNumber),
+						formatCurrency((md?.values || []).reduce((sum: number, item: any) => sum + Number(item.value || 0), 0), false),
+					],
+					' - ',
+					' - ',
+				);
+			}
 
 			if (isServer) {
 				let livestockText = '';
@@ -176,7 +182,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 					(d.livestockIdentifiers || []).map((id: string) => `#${id}`),
 				).join(', ') + (
 					d.damIdentifier ? ` (Dam: #${d.damIdentifier})` : ''
-        ),
+				),
 				[' - ', ''],
 			);
 		}
@@ -220,10 +226,10 @@ const PRODUCE_WORDS = [
 	'romanesco',
 	'zucchini',
 	'zuchini',
-  'potato',
-  'eggplant',
-  'jalapeno',
-  'jalapeño',
+	'potato',
+	'eggplant',
+	'jalapeno',
+	'jalapeño',
 	'carrot',
 	'midnight light',
 	'cilantro',
@@ -277,23 +283,23 @@ const PRODUCE_WORDS = [
 	'anise hyssop',
 	'alyssum',
 	'marjoram',
-  'mint',
-  'sorrel',
+	'mint',
+	'sorrel',
 	'tomato',
-  'grapes',
-  'apricot',
-  'peach',
-  'plum',
-  'blueberr',
-  'billberr',
-  'blackberr',
-  'raspberr',
-  'cloudberr',
-  'cloud berr',
-  'sweet pepper',
-  'bell pepper',
-  'strawberr',
-  'berry',
+	'grapes',
+	'apricot',
+	'peach',
+	'plum',
+	'blueberr',
+	'billberr',
+	'blackberr',
+	'raspberr',
+	'cloudberr',
+	'cloud berr',
+	'sweet pepper',
+	'bell pepper',
+	'strawberr',
+	'berry',
 
 	// Leave at end for backup
 	'marciano',
@@ -330,37 +336,37 @@ const PRODUCE_WORDS = [
 	'star\\b',
 	'stars\\b',
 	'seed',
-  'pepper',
-  'chilli',
-  'mix\\b',
-  'chard',
-  'nettle',
-  'savory',
-  'dino',
+	'pepper',
+	'chilli',
+	'mix\\b',
+	'chard',
+	'nettle',
+	'savory',
+	'dino',
 
-  // log activities
-  // NOTE: If i18n words change, these have to change too
-  'soil',
-  'irrigation',
-  'fertilization',
-  'crop protection',
-  'crop monitoring',
-  'direct seed',
-  'pruning',
-  'trellising',
-  'preparing crops',
-  'other field',
-  'crops',
-  'estimating yield',
-  'other harvest',
-  'handling or grading produce',
-  'packaging or moving produce',
-  'cold storage temperature',
-  'post harvest',
-  'sale',
-  'water testing',
-  'chlorine level',
-  'field',
+	// log activities
+	// NOTE: If i18n words change, these have to change too
+	'soil',
+	'irrigation',
+	'fertilization',
+	'crop protection',
+	'crop monitoring',
+	'direct seed',
+	'pruning',
+	'trellising',
+	'preparing crops',
+	'other field',
+	'crops',
+	'estimating yield',
+	'other harvest',
+	'handling or grading produce',
+	'packaging or moving produce',
+	'cold storage temperature',
+	'post harvest',
+	'sale',
+	'water testing',
+	'chlorine level',
+	'field',
 ];
 
 /**
@@ -432,41 +438,41 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 					return 'vegetable-pumpkin';
 				case 'mesclun':
 				case 'spinach':
-        case 'chard':
+				case 'chard':
 				case 'mustard green':
-        case 'mix':
+				case 'mix':
 					return 'vegetable-spinach';
 				case 'tomato':
 					return 'vegetable-tomato';
-        case 'grapes':
-          return 'fruit-grapes';
-        case 'apricot':
-        case 'peach':
-        case 'plum':
-          return 'fruit-apricot';
-        case 'blueberr':
-        case 'billberr':
-        case 'berry':
-          return 'fruit-billberry-blackberry-blueberry';
-        case 'blackberr':
-        case 'raspberr':
-        case 'cloudberr':
-        case 'cloud berr':
-          return 'fruit-cloud-berry';
-        case 'asparagus':
-          return 'vegetable-asparagus';
+				case 'grapes':
+					return 'fruit-grapes';
+				case 'apricot':
+				case 'peach':
+				case 'plum':
+					return 'fruit-apricot';
+				case 'blueberr':
+				case 'billberr':
+				case 'berry':
+					return 'fruit-billberry-blackberry-blueberry';
+				case 'blackberr':
+				case 'raspberr':
+				case 'cloudberr':
+				case 'cloud berr':
+					return 'fruit-cloud-berry';
+				case 'asparagus':
+					return 'vegetable-asparagus';
 				case 'sunshine kabocha':
 				case 'acorn squash':
 				case 'acornsquash':
 				case 'yellow star patty':
-        case 'sweet pepper':
-        case 'bell pepper':
+				case 'sweet pepper':
+				case 'bell pepper':
 					return 'vegetable-acornsquash';
-        case 'strawberr':
-          return 'fruit-strawberry';
-        case 'pepper':
-        case 'chilli':
-          return 'seasoning-chilli';
+				case 'strawberr':
+					return 'fruit-strawberry';
+				case 'pepper':
+				case 'chilli':
+					return 'seasoning-chilli';
 				case 'delicata':
 				case 'delicata squash':
 					return 'vegetable-delicata-squash';
@@ -488,15 +494,15 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'summery savor':
 				case 'summary savor':
 				case 'thyme':
-        case 'rosemary':
-        case 'savory':
+				case 'rosemary':
+				case 'savory':
 					return 'vegetable-thyme';
 				case 'arugula':
 				case 'chicory':
 				case 'puntarelle':
 				case 'frisee':
 				case 'kale':
-        case 'dino':
+				case 'dino':
 				case 'green curl':
 					return 'vegetable-arugula';
 				case 'parsley':
@@ -519,13 +525,13 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'zuchini':
 				case 'midnight light':
 					return 'vegetable-zucchini';
-        case 'potato':
-          return 'vegetable-potato';
-        case 'eggplant':
-          return 'vegetable-eggplant';
-        case 'jalapeno':
-        case 'jalapeño':
-          return 'vegetable-jalapeno';
+				case 'potato':
+					return 'vegetable-potato';
+				case 'eggplant':
+					return 'vegetable-eggplant';
+				case 'jalapeno':
+				case 'jalapeño':
+					return 'vegetable-jalapeno';
 				case 'stinging kettle':
 				case 'nettle':
 				case 'cardoon':
@@ -538,7 +544,7 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 					return 'vegetable-okra';
 				case 'sage':
 				case 'marjoram':
-        case 'sorrel':
+				case 'sorrel':
 				case 'mint':
 					return 'plant-1';
 				case 'scallion':
@@ -565,44 +571,44 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 					return 'vegetable-wasabi';
 				case 'flower':
 					return 'flower';
-        case 'soil':
-          return 'product-growth-tree-box';
-        case 'irrigation':
-          return 'gardening-sprinkler';
-        case 'direct seed':
-          return 'agriculture-machine-seeder';
-        case 'fertilization':
-          return 'organic-bag-leaf';
-        case 'crop protection':
-          return 'gardening-tools-1';
-        case 'crop monitoring':
-        case 'field':
-          return 'farming-barn-sun';
-        case 'pruning':
-          return 'gardening-scissors'
-        case 'trellising':
-          return 'barbed-wire-fence';
-        case 'preparing crops':
-          return 'protein-gluten-wheat';
-        case 'other field':
-          return 'truck-animal';
-        case 'crops':
-          return 'harvest-product';
-        case 'estimating yield':
-        case 'other harvest':
-          return 'crop-info-biotech-1';
-        case 'handling or grading produce':
-        case 'packaging or moving produce':
-          return 'harvest-product';
-        case 'post harvest':
-          return 'warehouse-storage';
-        case 'cold storage temperature':
-          return 'temperature-control-warehouse-1';
-        case 'sale':
-          return 'receipt-dollar';
-        case 'water testing':
-        case 'chlorine level':
-          return 'organic-flask';
+				case 'soil':
+					return 'product-growth-tree-box';
+				case 'irrigation':
+					return 'gardening-sprinkler';
+				case 'direct seed':
+					return 'agriculture-machine-seeder';
+				case 'fertilization':
+					return 'organic-bag-leaf';
+				case 'crop protection':
+					return 'gardening-tools-1';
+				case 'crop monitoring':
+				case 'field':
+					return 'farming-barn-sun';
+				case 'pruning':
+					return 'gardening-scissors';
+				case 'trellising':
+					return 'barbed-wire-fence';
+				case 'preparing crops':
+					return 'protein-gluten-wheat';
+				case 'other field':
+					return 'truck-animal';
+				case 'crops':
+					return 'harvest-product';
+				case 'estimating yield':
+				case 'other harvest':
+					return 'crop-info-biotech-1';
+				case 'handling or grading produce':
+				case 'packaging or moving produce':
+					return 'harvest-product';
+				case 'post harvest':
+					return 'warehouse-storage';
+				case 'cold storage temperature':
+					return 'temperature-control-warehouse-1';
+				case 'sale':
+					return 'receipt-dollar';
+				case 'water testing':
+				case 'chlorine level':
+					return 'organic-flask';
 				default:
 					console.log('Missing switchcase for crop:', crop);
 			}
@@ -636,11 +642,11 @@ export function getIconNameForLivestock(
 		// return 'seedling';
 		const LIVESTOCK_WORDS = [
 			'hay\\b',
-      'cow',
-      'calf',
-      'cattle',
-      'bull',
-      'sheep',
+			'cow',
+			'calf',
+			'cattle',
+			'bull',
+			'sheep',
 		];
 
 		const regex = new RegExp(`\\b(${LIVESTOCK_WORDS.join('|')})`, 'gi');
@@ -658,11 +664,11 @@ export function getIconNameForLivestock(
 			switch (matchedWord) {
 				case 'hay':
 					return 'farming-hay';
-        case 'cow':
-        case 'calf':
-        case 'cattle':
-        case 'bull':
-          return 'livestock-cow-body';
+				case 'cow':
+				case 'calf':
+				case 'cattle':
+				case 'bull':
+					return 'livestock-cow-body';
 				default:
 					console.log('Missing switchcase for crop:', purchasedItem);
 			}
