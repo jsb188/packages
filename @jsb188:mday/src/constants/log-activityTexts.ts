@@ -142,9 +142,10 @@ export const LIVESTOCK_ACTIVITIES_TEXT = {
  */
 
 export const AI_TASKS_TO_TEXT = {
-  AI_SEND_MESSAGE: 'message',
-  AI_REMINDER: 'delayed message',
-  AI_CHECK_IN: 'check-in message',
+  // NOTE: If updating this, update [functions-aiTasks.ts] too
+	AI_SEND_MESSAGE: 'message',
+	AI_REMINDER: 'reminder message',
+	AI_CHECK_IN: 'check-in message',
 };
 
 /**
@@ -158,6 +159,6 @@ export const AGENT_TEXT_TO_ACTIVITIES: Record<string, string> = Object.fromEntri
 		...ARABLE_ACTIVITIES_TO_TEXT,
 		...FARMERS_MARKET_ACTIVITIES_TO_TEXT,
 		...LIVESTOCK_ACTIVITIES_TEXT,
-    ...AI_TASKS_TO_TEXT,
+		...AI_TASKS_TO_TEXT,
 	}).map(([key, value]) => [value, key]),
 );
