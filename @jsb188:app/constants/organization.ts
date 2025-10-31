@@ -12,7 +12,7 @@ export const OPERATION_ENUMS = [
 
 // Employee ACL
 
-export const ROLE_ENUMS = ['MEMBER', 'MANAGER', 'ADMIN', 'OWNER']; // first is default value
+export const ROLE_ENUMS = ['MEMBER', 'MANAGER', 'ADMIN', 'OWNER', 'GUEST']; // first is default value
 
 // Role categories (used for reminders)
 

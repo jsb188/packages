@@ -64,6 +64,20 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				events: acl.events || 'MANAGE',
         compliance: acl.compliance || 'WRITE',
 			};
+    case 'GUEST':
+			return {
+				billing: acl.billing || 'NONE',
+				digests: acl.digests || 'NONE',
+				logs: acl.logs || 'NONE',
+				viewData: acl.viewData || 'NONE',
+				members: acl.members || 'NONE',
+				finances: acl.finances || 'NONE',
+				settings: acl.settings || 'NONE',
+				integrations: acl.integrations || 'NONE',
+				reminders: acl.reminders || 'NONE',
+				events: acl.events || 'NONE',
+        compliance: acl.compliance || 'NONE',
+			};
 		case 'MEMBER':
 		default:
 	}

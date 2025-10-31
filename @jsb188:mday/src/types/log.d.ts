@@ -101,7 +101,7 @@ export interface LogArableObj {
 
 export interface LogArableDetailsObj extends LogArableObj {
 	__table: 'logs_arable';
-	id: number;
+	id: number | bigint;
 	childOrg: never;
 }
 
@@ -119,7 +119,7 @@ export type LogFarmersMarketMetadata = LogMetadataBase & {
 };
 
 export interface LogFarmersMarketObj {
-	childOrgId: number;
+	childOrgId: number | bigint;
 	type?: LogFarmersMarketTypeEnum; // Only set in server if manually extended
 	activity: LogFarmersMarketActivityEnum;
 	notes: string | null;
@@ -129,7 +129,7 @@ export interface LogFarmersMarketObj {
 
 export interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
 	__table: 'logs_farmers_market';
-	id: number;
+	id: number | bigint;
 	childOrg: {
 		name: string;
 	};
@@ -171,7 +171,7 @@ export interface LogLivestockObj {
 
 export interface LogLivestockDetailsObj extends LogLivestockObj {
 	__table: 'logs_livestock';
-	id: number;
+	id: number | bigint;
 	childOrg: never;
 }
 
@@ -206,9 +206,9 @@ export interface LogEntryGQL {
 }
 
 export interface LogEntryInsertObj {
-	id?: number; // Only for edits
-	accountId: number;
-	organizationId: number;
+	id?: number | bigint; // Only for edits
+	accountId: number | bigint;
+	organizationId: number | bigint;
 	status?: LogActionStatusEnum | null;
 	details: LogDetailsObj;
 	date: Date;
@@ -216,9 +216,9 @@ export interface LogEntryInsertObj {
 
 export interface LogEntryDataObj {
 	__table: 'logs';
-	id: number;
-	accountId: number;
-	organizationId: number;
+	id: number | bigint;
+	accountId: number | bigint;
+	organizationId: number | bigint;
 	status: LogActionStatusEnum | null;
 	distance?: number; // For vector search
 	details: LogArableDetailsObj | LogFarmersMarketDetailsObj | LogLivestockDetailsObj;

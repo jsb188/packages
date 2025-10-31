@@ -22,7 +22,6 @@ export const RULES = {
   aiChats: true,
   aiChatMessages: true,
   alerts: true,
-  cardsForUser: true,
   chat: true,
   chatsList: true,
   eventsList: true,

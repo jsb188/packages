@@ -3,9 +3,9 @@
  */
 
 export interface ActionTaskObj {
-	id?: number; // Optional for updates/inserts
-	logId: number;
-  queue?: string | null;
+	id?: number | bigint; // Optional for updates/inserts
+	logId: number | bigint;
+	queue?: string | null;
 
 	title: string;
 	instruction: string;
