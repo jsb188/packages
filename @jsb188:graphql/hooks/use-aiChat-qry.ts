@@ -139,12 +139,12 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
 
   useEffect(() => {
     // Force reset if chat message is in progress
-    if (aiChat.inProgress) {
+    if (aiChat?.inProgress) {
       return () => {
         resetQuery(rest.queryKey, true, updateObservers);
       };
     }
-  }, [aiChat.inProgress]);
+  }, [aiChat?.inProgress]);
 
   return {
     aiChat,
