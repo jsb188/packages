@@ -1,4 +1,4 @@
-import { sortObjectByKeys } from './object';
+import { sortObjectByKeys, stringifyJSON } from './object.ts';
 
 /**
  * Types
@@ -40,7 +40,7 @@ export function getDatabaseAction(
 			if (value instanceof Date) {
 				value = value.toISOString();
 			} else if (value && typeof value === 'object') {
-				value = JSON.stringify(sortObjectByKeys(value));
+				value = stringifyJSON(sortObjectByKeys(value));
 			}
 
 			const isNullValue = value !== null || allowNull;
@@ -52,7 +52,7 @@ export function getDatabaseAction(
 			if (currentValue instanceof Date) {
 				currentValue = currentValue.toISOString();
 			} else if (currentValue && typeof currentValue === 'object') {
-				currentValue = JSON.stringify(sortObjectByKeys(currentValue));
+				currentValue = stringifyJSON(sortObjectByKeys(currentValue));
 			}
 
 			if (
@@ -139,22 +139,22 @@ export function timeoutPromise<T>(
  */
 
 export function makeVariablesKey(
-  variables: Record<string, any> | null | undefined,
-  doNotLowerCaseCacheKey?: boolean,
+	variables: Record<string, any> | null | undefined,
+	doNotLowerCaseCacheKey?: boolean,
 ): string {
-  if (variables) {
-    const key = Object.keys(variables).sort().reduce((acc, key) => {
-      const value = variables[key];
-      if (value || value === 0 || value === false) {
-        return `${acc}$${key}:${typeof value === 'object' ? JSON.stringify(value) : value}`;
-      }
-      return acc;
-    }, '');
+	if (variables) {
+		const key = Object.keys(variables).sort().reduce((acc, key) => {
+			const value = variables[key];
+			if (value || value === 0 || value === false) {
+				return `${acc}$${key}:${typeof value === 'object' ? stringifyJSON(value) : value}`;
+			}
+			return acc;
+		}, '');
 
-    if (!doNotLowerCaseCacheKey) {
-      return key.toLowerCase();
-    }
-    return key;
-  }
-  return 'none';
+		if (!doNotLowerCaseCacheKey) {
+			return key.toLowerCase();
+		}
+		return key;
+	}
+	return 'none';
 }

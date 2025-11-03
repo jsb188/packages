@@ -79,6 +79,23 @@ export function parseJSON(jsonStr?: string) {
 }
 
 /**
+ * Stringify JSON objects with BigInt support
+ * NOTE: This will work recursively for nested objects as well.
+ */
+
+export function stringifyJSON(obj: any, convertBigIntToNumber: boolean = false): string {
+  if (!convertBigIntToNumber) {
+    return JSON.stringify(obj, (_key, value) =>
+      typeof value === 'bigint' ? Number(value) : value
+    );
+  }
+
+  return JSON.stringify(obj, (_key, value) =>
+    typeof value === 'bigint' ? value.toString() : value
+  );
+}
+
+/**
  * Merge nested objects together
  */
 
