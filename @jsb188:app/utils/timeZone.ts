@@ -2360,7 +2360,7 @@ export function parseDateInTimezone(
 	let dt: DateTime;
 
 	// If input is a string in "YYYY-MM-DD" format
-	if (typeof input === 'string' && (isISODate || /^\d{4}-\d{2}-\d{2}$/.test(input))) {
+  if (typeof input === 'string' && (isISODate || /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2})$/.test(input))) {
 		dt = DateTime.fromISO(input, { zone: timeZone });
 	} else if (typeof input === 'string') {
 		dt = DateTime.fromJSDate(new Date(input), { zone: timeZone });
@@ -2385,31 +2385,31 @@ export function parseDateInTimezone(
  */
 
 export function parseBoundaryDateInTimezone(
-  input: Date | string,
-  tz?: string | null,
-  toEndOfDay?: boolean,
+	input: Date | string, // "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM" format
+	tz?: string | null,
+	toEndOfDay?: boolean,
 ): Date {
-  const timeZone = tz || DEFAULT_TIMEZONE;
+	const timeZone = tz || DEFAULT_TIMEZONE;
 
-  let dt: DateTime;
+	let dt: DateTime;
 
-  // If input is a string in "YYYY-MM-DD" format
-  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
-    dt = DateTime.fromISO(input, { zone: timeZone });
-  } else if (typeof input === 'string') {
-    dt = DateTime.fromJSDate(new Date(input), { zone: timeZone });
-  } else {
-    dt = DateTime.fromJSDate(input, { zone: timeZone });
-  }
+	// If input is a string in "YYYY-MM-DD" format
+	if (typeof input === 'string' && /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2})$/.test(input)) {
+		dt = DateTime.fromISO(input, { zone: timeZone });
+	} else if (typeof input === 'string') {
+		dt = DateTime.fromJSDate(new Date(input), { zone: timeZone });
+	} else {
+		dt = DateTime.fromJSDate(input, { zone: timeZone });
+	}
 
-  // Set time to start or end of day
-  if (toEndOfDay) {
-    dt = dt.endOf('day');
-  } else {
-    dt = dt.startOf('day');
-  }
+	// Set time to start or end of day
+	if (toEndOfDay) {
+		dt = dt.endOf('day');
+	} else {
+		dt = dt.startOf('day');
+	}
 
-  return dt.toJSDate();
+	return dt.toJSDate();
 }
 
 /**
