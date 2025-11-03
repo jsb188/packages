@@ -4,6 +4,7 @@ export const actionTaskFragment = `fragment actionTaskFragment on ActionTask {
   logId
 
   title
+  message
   instruction
 
   scheduledAt

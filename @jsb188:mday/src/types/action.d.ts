@@ -30,6 +30,7 @@ export interface ActionTaskGQL {
 
 	title: string;
 	instruction: string;
+  message: string | null;
 
 	scheduledAt: string; // ISO date string
 	delay: number; // seconds

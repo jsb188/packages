@@ -149,7 +149,7 @@ export const CondensedArticleItem = memo((p: {
         </div>
       )}
 
-      {title && <span className={cn('f_shrink shift_down', yPaddingClassName, !hasDescriptionOrLabelIcons && 'f')}>
+      {title && !hasDescriptionOrLabelIcons && <span className={cn('f f_shrink shift_down', yPaddingClassName)}>
         <span className='ellip'>
           {title}
         </span>
@@ -165,11 +165,20 @@ export const CondensedArticleItem = memo((p: {
             description ? 'cl_lt' : 'cl_darker_2'
           )}
         >
-          {hasDescription && (
+          {hasDescription ? (
             <span className='shift_down ib ellip'>
+              {title && (
+                <span className='mr_xs cl_df'>
+                  {title}
+                </span>
+              )}
               {description || descriptionPlaceholder}
             </span>
-          )}
+          ) : title ? (
+            <span className='shift_down ib ellip cl_df'>
+              {title}
+            </span>
+          ) : null}
 
           {labelIcons && (
             <span className={cn('h_item gap_2', hasDescription ? 'ml_10' : 'ml_5')}>

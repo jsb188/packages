@@ -109,6 +109,7 @@ LastLineGradient.displayName = 'LastLineGradient';
  */
 
 export const CompactTimeline = memo((p: {
+  disabled?: boolean;
   positionIndex?: number;
   items: Partial<TimelineItem>[];
   lastIconName?: string;
@@ -116,7 +117,7 @@ export const CompactTimeline = memo((p: {
   notStarted?: boolean;
   errored?: boolean;
 }) => {
-  const { items, className, notStarted, errored, lastIconName } = p;
+  const { disabled, items, className, notStarted, errored, lastIconName } = p;
   const lineColor = 'pass';
   const positionIndex = Number(p.positionIndex);
   const linePositionIx = positionIndex - (errored ? 1 : 0);
@@ -149,6 +150,7 @@ export const CompactTimeline = memo((p: {
 
       return <TooltipButton
         key={i}
+        disabled={disabled}
         style={{ left: isSingle ? '100%' : (i / lastIndex) * 100 + '%' }}
         className='tl_dot_cnt v_center rel z1 w_25 h_25'
         rightIconName={(isFinished && errored) || !item.completed ? undefined : 'circle-check'}

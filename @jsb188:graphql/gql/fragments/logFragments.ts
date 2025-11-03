@@ -33,6 +33,7 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   }
   tax
 
+  summary
   notes
 }`;
 
@@ -45,6 +46,7 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
 
   childOrgId
   childOrganizationName
+  summary
   notes
 
   referenceNumber
@@ -84,5 +86,6 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
   location
   fieldLocation
 
+  summary
   notes
 }`;
