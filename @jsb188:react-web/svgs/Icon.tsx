@@ -87,7 +87,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   invoice: 'accounting-invoice-dollar',
   link_chevron: 'chevron-right',
   livestock: 'livestock-cow-body',
-  livestock_life_cycle: 'livestock-cow',
+  livestock_life_cycle: 'monitor-heart-beat',
   livestock_tracking: 'tags',
   livestock_pasture: 'outdoors-landscape-meadow',
   livestock_healthcare: 'pets-hospital',

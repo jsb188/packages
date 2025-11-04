@@ -83,6 +83,7 @@ export default {
     amount: 'Amount',
     address: 'Address',
     information: 'Information',
+    instructions: 'Instructions',
     summary: 'Summary',
     status: 'Status',
     orders: 'Orders',

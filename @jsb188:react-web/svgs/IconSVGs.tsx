@@ -637,59 +637,59 @@ export const CircleKey = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 <path d="M12 2c5.523 0 10 4.477 10 10a10 10 0 0 1 -20 0c0 -5.523 4.477 -10 10 -10zm2 5a3 3 0 0 0 -2.98 2.65l-.015 .174l-.005 .176l.005 .176c.019 .319 .087 .624 .197 .908l.09 .209l-3.5 3.5l-.082 .094a1 1 0 0 0 0 1.226l.083 .094l1.5 1.5l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l.083 -.094a1 1 0 0 0 0 -1.226l-.083 -.094l-.792 -.793l.585 -.585l.793 .792l.094 .083a1 1 0 0 0 1.403 -1.403l-.083 -.094l-.792 -.793l.792 -.792a3 3 0 1 0 1.293 -5.708zm0 2a1 1 0 1 1 0 2a1 1 0 0 1 0 -2z" fill="currentColor" />
 </svg>;
 
-export const CircleLetterM = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circle-letter-m">
+export const CircleLetterM = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circleLetter-m">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
 <path d="M9 16v-8l3 5l3 -5v8" />
 </svg>;
 
-export const CircleLetterMFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circle-letter-m">
+export const CircleLetterMFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circleLetter-m">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m4 6c0 -1.014 -1.336 -1.384 -1.857 -.514l-2.143 3.57l-2.143 -3.57c-.521 -.87 -1.857 -.5 -1.857 .514v8a1 1 0 0 0 1 1l.117 -.007a1 1 0 0 0 .883 -.993v-4.39l1.143 1.904l.074 .108a1 1 0 0 0 1.64 -.108l1.143 -1.904v4.39a1 1 0 0 0 2 0z" />
 </svg>;
 
-export const CircleLetterT = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circle-letter-t">
+export const CircleLetterT = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circleLetter-t">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
 <path d="M10 8h4" />
 <path d="M12 8v8" />
 </svg>;
 
-export const CircleLetterTFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circle-letter-t">
+export const CircleLetterTFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circleLetter-t">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m2 5h-4a1 1 0 1 0 0 2h1v7a1 1 0 0 0 .883 .993l.117 .007a1 1 0 0 0 1 -1v-7h1a1 1 0 0 0 .993 -.883l.007 -.117a1 1 0 0 0 -1 -1" />
 </svg>;
 
-export const CircleLetterW = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circle-letter-w">
+export const CircleLetterW = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circleLetter-w">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
 <path d="M9 8l1 8l2 -5l2 5l1 -8" />
 </svg>;
 
-export const CircleLetterWFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circle-letter-w">
+export const CircleLetterWFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circleLetter-w">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m2.008 5.876l-.52 4.153l-.56 -1.4c-.319 -.799 -1.41 -.837 -1.803 -.114l-.053 .114l-.561 1.4l-.519 -4.153a1 1 0 0 0 -1 -.876l-.116 .008a1 1 0 0 0 -.868 1.116l1 8c.128 1.025 1.537 1.207 1.92 .247l1.072 -2.678l1.072 2.678c.383 .96 1.792 .778 1.92 -.247l1 -8a1 1 0 0 0 -1.984 -.248" />
 </svg>;
 
-export const CircleLetterF = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circle-letter-f">
+export const CircleLetterF = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circleLetter-f">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
 <path d="M10 12h3" />
 <path d="M14 8h-4v8" />
 </svg>;
 
-export const CircleLetterFFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circle-letter-f">
+export const CircleLetterFFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circleLetter-f">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m2 5h-4a1 1 0 0 0 -1 1v8a1 1 0 0 0 1 1l.117 -.007a1 1 0 0 0 .883 -.993v-3h2a1 1 0 0 0 .993 -.883l.007 -.117a1 1 0 0 0 -1 -1h-2v-2h3a1 1 0 0 0 0 -2" />
 </svg>;
 
-export const CircleLetterS = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circle-letter-s">
+export const CircleLetterS = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-circleLetter-s">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
 <path d="M10 15a1 1 0 0 0 1 1h2a1 1 0 0 0 1 -1v-2a1 1 0 0 0 -1 -1h-2a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1" />
 </svg>;
 
-export const CircleLetterSFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circle-letter-s">
+export const CircleLetterSFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-circleLetter-s">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m1 5h-2a2 2 0 0 0 -2 2v2a2 2 0 0 0 2 2h2v2h-2a1 1 0 0 0 -2 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-2v-2h2l.007 .117a1 1 0 0 0 1.993 -.117a2 2 0 0 0 -2 -2" />
 </svg>;
@@ -1518,49 +1518,6 @@ export const ListSearch = <svg xmlns="http://www.w3.org/2000/svg" className="ico
 <path d="M4 18h4" stroke="currentColor" />
 </svg>;
 
-export const LivestockCow = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-livestock-cow" strokeWidth="1.75" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-<path d="M8,3.8c-1,.6-1.9,1.6-2.3,2.7-.8,0-1.6.3-2.3.8-2,1.3-1.3,4.7-1.3,4.7.6.1,1.3.1,1.9,0"/>
-<path d="M10,18l.7.7"/>
-<path d="M14,18l-.7.7"/>
-<path d="M16,4c0-1.1-1.8-2-4-2s-4,.9-4,2,2.4.7,2.4.7c0,.2,0,.4.1.6,0,.2.2.3.4.5.2.1.3.2.5.3.2,0,.4,0,.6,0,.2,0,.4,0,.6,0s.4-.1.5-.3c.2-.1.3-.3.4-.5,0-.2.1-.4.1-.6,0,0,2.4.7,2.4-.7Z"/>
-<path d="M7.1,4.5l-1-.5c-.8-.5-1.5-1.2-2-2,0,0-1.3,2-.7,3.3.3.6.7,1,1.2,1.4"/>
-<path d="M17.7,11.5c0,11.1-4.8,10.5-5.1,10.5h-1.2c-.3,0-5.1.7-5.1-10.5"/>
-<path d="M16,3.8c1,.6,1.9,1.6,2.3,2.7.8,0,1.6.3,2.3.8,2,1.3,1.3,4.7,1.3,4.7-.6.1-1.3.1-1.9,0"/>
-<path d="M17.1,17l-.5-.3c-1.4-.9-3-1.3-4.7-1.3s-3.3.5-4.7,1.3l-.5.3"/>
-<path d="M16.9,4.5l1-.5c.8-.5,1.5-1.2,2-2,0,0,1.3,2,.7,3.3-.3.6-.7,1-1.2,1.4"/>
-<g>
-<path d="M9,9.3c-.2,0-.3-.1-.3-.3s.1-.3.3-.3"/>
-<path d="M9,9.3c.2,0,.3-.1.3-.3s-.1-.3-.3-.3"/>
-</g>
-<g>
-<path d="M15,9.3c-.2,0-.3-.1-.3-.3s.1-.3.3-.3"/>
-<path d="M15,9.3c.2,0,.3-.1.3-.3s-.1-.3-.3-.3"/>
-</g>
-</svg>;
-
-export const LivestockCowColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-livestock-cow-color">
-<path fill="#e3e3e3" d="M23.46 11.4001c-1.3175 0.2904 -2.6825 0.2904 -4 0 -0.2224 -0.0551 -0.4399 -0.1287 -0.65 -0.22 -0.2854 2.3338 -0.8322 4.6282 -1.63 6.84 -2.21 -1.8 -8.27 -1.76 -10.35 0 -0.80607 -2.2099 -1.35633 -4.5049 -1.64 -6.84 -0.21015 0.0913 -0.42757 0.1649 -0.65 0.22 -1.31752 0.2904 -2.68248 0.2904 -4 0 0 0 -0.5 -2.00003 2 -3.50003 0.742 -0.44502 1.59502 -0.67041 2.46 -0.65 0.04618 0.0083 0.09311 0.01166 0.14 0.01 0.49678 -1.20017 1.31302 -2.24122 2.36 -3.01 0 -0.39782 0.15804 -0.77935 0.43934 -1.06066 0.2813 -0.2813 0.66284 -0.43934 1.06066 -0.43934 0.22951 0.00079 0.45561 0.0556 0.66 0.16 0.16972 -0.48524 0.4861 -0.90573 0.9053 -1.20323 0.4193 -0.29751 0.9206 -0.45733 1.4347 -0.45733 0.5141 0 1.0154 0.15982 1.4347 0.45733 0.4192 0.2975 0.7356 0.71799 0.9053 1.20323 0.2044 -0.1044 0.4305 -0.15921 0.66 -0.16 0.3978 0 0.7794 0.15804 1.0607 0.43934 0.2813 0.28131 0.4393 0.66284 0.4393 1.06066 1.047 0.76878 1.8632 1.80983 2.36 3.01 0.0469 0.00166 0.0938 -0.0017 0.14 -0.01 0.865 -0.02041 1.718 0.20498 2.46 0.65 2.5 1.5 2 3.50003 2 3.50003Z" strokeWidth="1" />
-<path fill="#ffffff" d="M21.46 7.90007c-0.742 -0.44502 -1.595 -0.67041 -2.46 -0.65 -0.0462 0.0083 -0.0931 0.01166 -0.14 0.01 -0.4968 -1.20017 -1.313 -2.24122 -2.36 -3.01 0 -0.39782 -0.158 -0.77935 -0.4393 -1.06066 -0.2813 -0.2813 -0.6629 -0.43934 -1.0607 -0.43934 -0.2295 0.00079 -0.4556 0.0556 -0.66 0.16 -0.1697 -0.48524 -0.4861 -0.90573 -0.9053 -1.20323 -0.4193 -0.29751 -0.9206 -0.45733 -1.4347 -0.45733 -0.5141 0 -1.0154 0.15982 -1.4347 0.45733 -0.4192 0.2975 -0.73558 0.71799 -0.9053 1.20323 -0.20439 -0.1044 -0.43049 -0.15921 -0.66 -0.16 -0.39782 0 -0.77936 0.15804 -1.06066 0.43934 -0.2813 0.28131 -0.43934 0.66284 -0.43934 1.06066 -1.04698 0.76878 -1.86322 1.80983 -2.36 3.01 -0.04689 0.00166 -0.09382 -0.0017 -0.14 -0.01 -0.86498 -0.02041 -1.718 0.20498 -2.46 0.65 -2.5 1.5 -2 3.50003 -2 3.50003 1.31752 0.2904 2.68248 0.2904 4 0 0.15328 -0.0379 0.30393 -0.0856 0.451 -0.143C6.9514 9.60845 9.43872 8.71878 12 8.75007c2.5613 -0.03129 5.0486 0.85838 7.009 2.50703 0.1471 0.0574 0.2977 0.1051 0.451 0.143 1.3175 0.2904 2.6825 0.2904 4 0 0 0 0.5 -2.00003 -2 -3.50003Z" strokeWidth="1" />
-<path fill="#ffbfc5" d="M17.18 18.0201c-0.3751 1.0343 -0.8023 2.0489 -1.28 3.04 -0.2465 0.5064 -0.6303 0.9334 -1.1077 1.2322 -0.4773 0.2988 -1.0291 0.4574 -1.5923 0.4578h-2.4c-0.5632 -0.0004 -1.11495 -0.159 -1.59234 -0.4578 -0.47739 -0.2988 -0.8612 -0.7258 -1.10766 -1.2322 -0.47826 -0.9861 -0.90223 -1.9976 -1.27 -3.03v-0.01c2.08 -1.76 8.14 -1.8 10.35 0Z" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.75 11.1289c0.0663 0 0.12989 0.0263 0.17678 0.0732 0.04688 0.0469 0.07322 0.1105 0.07322 0.1768" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.5 11.3789c0 -0.0663 0.02634 -0.1299 0.07322 -0.1768 0.04689 -0.0469 0.11048 -0.0732 0.17678 -0.0732" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.75 11.6289c-0.0663 0 -0.12989 -0.0263 -0.17678 -0.0732 -0.04688 -0.0469 -0.07322 -0.1105 -0.07322 -0.1768" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10 11.3789c0 0.0663 -0.02634 0.1299 -0.07322 0.1768 -0.04689 0.0469 -0.11048 0.0732 -0.17678 0.0732" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.25 11.1289c0.0663 0 0.1299 0.0263 0.1768 0.0732 0.0469 0.0469 0.0732 0.1105 0.0732 0.1768" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14 11.3789c0 -0.0663 0.0263 -0.1299 0.0732 -0.1768 0.0469 -0.0469 0.1105 -0.0732 0.1768 -0.0732" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.25 11.6289c-0.0663 0 -0.1299 -0.0263 -0.1768 -0.0732 -0.0469 -0.0469 -0.0732 -0.1105 -0.0732 -0.1768" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.5 11.3789c0 0.0663 -0.0263 0.1299 -0.0732 0.1768 -0.0469 0.0469 -0.1105 0.0732 -0.1768 0.0732" strokeWidth="1" />
-<path fill="#ff808c" d="M13.637 20.283h-3.278c-0.65156 -0.0014 -1.2934 -0.1581 -1.87234 -0.457 -0.57893 -0.2989 -1.07828 -0.7316 -1.45666 -1.262 0.375 0.99 0.747 1.834 1.07 2.5 0.24646 0.5064 0.63026 0.9334 1.10766 1.2322 0.47739 0.2988 1.02914 0.4574 1.59234 0.4578h2.4c0.5632 -0.0004 1.115 -0.159 1.5923 -0.4578 0.4774 -0.2988 0.8612 -0.7258 1.1077 -1.2322 0.323 -0.664 0.7 -1.518 1.079 -2.512 -0.3784 0.5344 -0.8792 0.9705 -1.4606 1.2716 -0.5815 0.3012 -1.2266 0.4587 -1.8814 0.4594Z" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23.46 11.4001c-1.3175 0.2904 -2.6825 0.2904 -4 0 -0.2224 -0.0551 -0.4399 -0.1287 -0.65 -0.22 -0.2854 2.3338 -0.8322 4.6282 -1.63 6.84 -2.21 -1.8 -8.27 -1.76 -10.35 0 -0.80607 -2.2099 -1.35633 -4.5049 -1.64 -6.84 -0.21015 0.0913 -0.42757 0.1649 -0.65 0.22 -1.31752 0.2904 -2.68248 0.2904 -4 0 0 0 -0.5 -2.00003 2 -3.50003 0.742 -0.44502 1.59502 -0.67041 2.46 -0.65 0.04618 0.0083 0.09311 0.01166 0.14 0.01 0.49678 -1.20017 1.31302 -2.24122 2.36 -3.01 0 -0.39782 0.15804 -0.77935 0.43934 -1.06066 0.2813 -0.2813 0.66284 -0.43934 1.06066 -0.43934 0.22951 0.00079 0.45561 0.0556 0.66 0.16 0.16972 -0.48524 0.4861 -0.90573 0.9053 -1.20323 0.4193 -0.29751 0.9206 -0.45733 1.4347 -0.45733 0.5141 0 1.0154 0.15982 1.4347 0.45733 0.4192 0.2975 0.7356 0.71799 0.9053 1.20323 0.2044 -0.1044 0.4305 -0.15921 0.66 -0.16 0.3978 0 0.7794 0.15804 1.0607 0.43934 0.2813 0.28131 0.4393 0.66284 0.4393 1.06066 1.047 0.76878 1.8632 1.80983 2.36 3.01 0.0469 0.00166 0.0938 -0.0017 0.14 -0.01 0.865 -0.02041 1.718 0.20498 2.46 0.65 2.5 1.5 2 3.50003 2 3.50003Z" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.18 18.0201c-0.3751 1.0343 -0.8023 2.0489 -1.28 3.04 -0.2465 0.5064 -0.6303 0.9334 -1.1077 1.2322 -0.4773 0.2988 -1.0291 0.4574 -1.5923 0.4578h-2.4c-0.5632 -0.0004 -1.11495 -0.159 -1.59234 -0.4578 -0.47739 -0.2988 -0.8612 -0.7258 -1.10766 -1.2322 -0.47826 -0.9861 -0.90223 -1.9976 -1.27 -3.03v-0.01c2.08 -1.76 8.14 -1.8 10.35 0Z" strokeWidth="1" />
-<path fill="#ffbc44" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 4.75c-0.2721 0.95045 -0.7894 1.81263 -1.5 2.5 -0.0462 0.0083 -0.0931 0.01165 -0.14 0.01 -0.4968 -1.20017 -1.313 -2.24122 -2.36 -3.01 0.7679 -0.07291 1.481 -0.42946 2 -1 0.3139 -0.30734 0.5682 -0.67011 0.75 -1.07 0.0401 -0.08288 0.1023 -0.15308 0.1797 -0.20287 0.0775 -0.04979 0.1671 -0.07723 0.2592 -0.0793 0.092 -0.00207 0.1829 0.02132 0.2625 0.06758s0.1448 0.1136 0.1886 0.19459c0.4368 0.78891 0.565 1.71188 0.36 2.59v0Z" strokeWidth="1" />
-<path fill="#ffbc44" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M7.5 4.25c-1.04699 0.76878 -1.86323 1.80983 -2.36 3.01 -0.04689 0.00165 -0.09383 -0.0017 -0.14 -0.01 -0.71058 -0.68737 -1.22789 -1.54955 -1.5 -2.5 -0.20505 -0.87812 -0.07676 -1.80109 0.36 -2.59 0.04376 -0.08099 0.10905 -0.14833 0.18865 -0.19459 0.07959 -0.04626 0.17042 -0.06965 0.26246 -0.06758 0.09204 0.00207 0.18173 0.02951 0.25917 0.0793 0.07744 0.04979 0.13963 0.11999 0.17972 0.20287 0.18184 0.39989 0.43612 0.76266 0.75 1.07 0.51904 0.57054 1.23214 0.92709 2 1v0Z" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M7.5 4.25c0.00026 0.29648 0.08838 0.58623 0.25322 0.83266 0.16484 0.24644 0.39901 0.43849 0.67293 0.55191 0.27393 0.11343 0.57532 0.14313 0.86612 0.08536 0.2908 -0.05777 0.55796 -0.20042 0.76773 -0.40993" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M13.94 5.31c0.2098 0.20951 0.4769 0.35216 0.7677 0.40993 0.2908 0.05777 0.5922 0.02807 0.8661 -0.08536 0.274 -0.11342 0.5081 -0.30547 0.673 -0.55191 0.1648 -0.24643 0.2529 -0.53618 0.2532 -0.83266" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10.5 20.1289v-1" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M13.5 20.1289v-1" strokeWidth="1" />
-</svg>;
-
 export const LivestockCowBody = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-livestock-cow-body" strokeWidth="1.75" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
 <path d="M17.84 13.186h0.72a1.819 1.819 0 0 0 1.776 -1.424l1.011 -4.548A1.82 1.82 0 0 0 19.571 5H16.83a1.82 1.82 0 0 0 -1.776 2.214l1.011 4.548a1.819 1.819 0 0 0 1.775 1.424Z" />
 <path d="M15.038 6.5H4.51C2.26 6.5 0.76 8.75 0.76 11v10.5" />
@@ -1725,6 +1682,20 @@ export const MessageOff = <svg xmlns="http://www.w3.org/2000/svg" className="ico
 <path d="M8 13h5" stroke="currentColor" />
 <path d="M8 4h10a3 3 0 0 1 3 3v8c0 .577 -.163 1.116 -.445 1.573m-2.555 1.427h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8c0 -1.085 .576 -2.036 1.439 -2.562" stroke="currentColor" />
 <path d="M3 3l18 18" stroke="currentColor" />
+</svg>;
+
+export const MonitorHeartBeat = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-monitor-heart-beat" strokeWidth="1.75" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+<path d="M16.7,16.3l-4.2,4.4c-.3.3-.7.3-1,0,0,0,0,0,0,0l-4.2-4.4"/>
+<path d="M2.2,10.7c-.9-1.5-.9-3.4-.1-4.9h0c1.3-2.6,4.5-3.7,7.1-2.4.5.3,1,.6,1.4,1l1.5,1.5,1.5-1.5c2.1-2.1,5.4-2.1,7.5,0,.4.4.7.9,1,1.4h0c.8,1.6.7,3.4-.1,4.9"/>
+<path d="M1.5,13.5h6.1c.1,0,.3,0,.3-.2l1.6-3.2c0-.2.3-.2.5-.2,0,0,.2.1.2.2l1.6,5.2c0,.2.3.3.4.2,0,0,.2,0,.2-.2l1.5-3.4c0-.2.3-.3.5-.2,0,0,.1,0,.2.1l1,1.6h7"/>
+</svg>;
+
+export const MonitorHeartBeatColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-monitor-heart-beat-color">
+<path fill="#ffbfc5" d="M18.8,15.6c-1.9,2.1-4.1,4.1-6.5,5.8-.2.1-.4.1-.6,0-2.6-1.6-5-3.6-7-5.8-1-1.1-1.7-2.2-2.3-3.5-.6-1.2-.9-2.5-.9-3.8C1.5,1.1,10.8.6,12,7.3c1.2-6.7,10.5-6.2,10.5.5,0,1.5-.5,3-1.2,4.3-.6,1.3-1.5,2.4-2.5,3.5Z" strokeWidth="1"></path>
+<path fill="#ff808c" d="M12,15.2c-3.2,0-6.4-.7-9.1-2.2.5.9,1.1,1.8,1.9,2.6,2,2.2,4.3,4.2,7,5.8.2.1.4.1.6,0,2.4-1.7,4.6-3.7,6.5-5.8.7-.7,1.3-1.5,1.8-2.3-2.6,1.3-5.6,1.9-8.6,1.9Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M.5,13.9h5.8c.2,0,.3,0,.4-.2l.9-1.2c.2-.2.5-.3.7-.1,0,0,0,0,.1.1l1.1,1.7c.2.2.5.3.7.1,0,0,.1-.1.2-.2l1.5-3.1c.1-.2.4-.3.7-.2.1,0,.2.2.3.3l1.3,4.5c0,.3.4.4.6.3.1,0,.2-.1.3-.3l.8-1.6c0-.2.3-.3.4-.3h7.2" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21.3,12.1c.8-1.3,1.2-2.8,1.2-4.3,0-6.7-9.3-7.2-10.5-.5C10.8.6,1.5,1.1,1.5,8.3c0,1.3.3,2.6.9,3.8" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M4.7,15.6c2,2.2,4.3,4.2,7,5.8.2.1.4.1.6,0,2.4-1.7,4.6-3.7,6.5-5.8" strokeWidth="1"></path>
 </svg>;
 
 export const MoodEmptyFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-mood-empty">
@@ -2743,7 +2714,7 @@ export const VegetableKohlrabi = <svg xmlns="http://www.w3.org/2000/svg" classNa
 <path d="M4.7,18.5h3.9"/>
 </svg>;
 
-export const VegetableLavender = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-lavender" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+export const VegetableLavender = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetableLavender" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M17.8,22.9V7.4"/>
 <path d="M6.2,22.9v-10.4"/>
 <path d="M15.9,3.9c0-.2,0-.4,0-.6,0-.3,0-.6,0-.8,0-.3.2-.5.4-.7.2-.2.4-.4.7-.5.3-.1.5-.2.8-.2s.5,0,.8.2c.3.1.5.3.7.5.2.2.3.4.4.7,0,.3.1.5,0,.8,0,.2,0,.4,0,.6"/>
@@ -2758,7 +2729,7 @@ export const VegetableLavender = <svg xmlns="http://www.w3.org/2000/svg" classNa
 <path d="M7.9,16.9c-1.1,1.1-2.1,3.7-1.5,4.3.6.6,3.1-.4,4.3-1.5.2-.2.4-.4.5-.6.1-.2.2-.5.2-.8s0-.6-.1-.8c0-.3-.2-.5-.4-.7-.2-.2-.4-.3-.7-.4-.3,0-.5-.1-.8-.1s-.5,0-.8.2c-.2.1-.5.3-.6.5Z"/>
 </svg>;
 
-export const VegetableLettuceTop = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-lettuce-top" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+export const VegetableLettuceTop = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetableLettuce-top" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M6.1,12.7c0,3.3,2.7,6,6,6s6-2.7,6-6c0-3.3-2.7-6-6-6-3.3,0-6,2.7-6,6h0"/>
 <path d="M12.1,6.7c-.2,0-.3,0-.5,0-1.6,2.8-.6,6.3,2.2,7.9.9.5,1.9.8,2.9.8.3,0,.6,0,.8,0,1.5-3,.3-6.5-2.7-8-.8-.4-1.7-.6-2.7-.6Z"/>
 <path d="M10.8,9.6c0-1,.3-2,.8-2.9-3.3.3-5.7,3.2-5.4,6.5,0,1,.5,2,1,2.9,2,0,3.9-1.1,4.9-2.8-.8-1-1.3-2.3-1.3-3.7Z"/>
@@ -2767,7 +2738,7 @@ export const VegetableLettuceTop = <svg xmlns="http://www.w3.org/2000/svg" class
 <path d="M13.3,21.1c1.1,1.1,2.8,1.2,4,.1.2-.2.4-.4.5-.6.1-.2.2-.4.3-.7,1.8.2,3.4-1.1,3.6-2.9,0-.8-.1-1.7-.6-2.3.2-.2.3-.4.5-.6.8-1.3.3-3.1-1-3.8-.2,0-.4-.2-.5-.2"/>
 </svg>;
 
-export const VegetableLettuce = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-lettuce" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
+export const VegetableLettuce = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetableLettuce" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M1.9,16.9c.2,1.3.8,2.6,1.7,3.5,2.3,2.3,6.1,2.3,8.4,0,2.3-2.3,10.6-10.5,8.9-12.1-7.4-1.5-13.2,3.2-10.5,6.7-3,3.2-5.3,2.9-8.5,1.9Z"/>
 <path d="M16.2,8.2c.5-1.2,1-4.3-.1-5.4-1.6-1.6-10.3,6.9-12.5,9.2-1.3,1.3-1.9,3.1-1.7,5"/>
 <path d="M16.1,2.8l1.3-.6c1.9-1,4.1.2,4.1.2,0,0,1.3,2.3.2,4.1l-.8,1.7"/>

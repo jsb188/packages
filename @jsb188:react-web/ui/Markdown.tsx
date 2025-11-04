@@ -178,7 +178,8 @@ const getMarkdownEl = (
       }[prefix];
 
       if (dom && headingTextArr[0]) {
-        return [headingTextArr.join(' '), 'op-white', null, dom]; // [3] = Block dom (replaces <p>)
+        // add class names here (in second[2] element)
+        return [headingTextArr.join(' '), '', null, dom]; // [3] = Block dom (replaces <p>)
       }
       break;
     case '*':
@@ -191,7 +192,8 @@ const getMarkdownEl = (
 
       if (/^\*\*(.*?)\*\*$/.test(matchedStr)) {
         const str1 = matchedStr.substring(2, matchedStr.length - 2);
-        return [str1, 'op-white', 'strong'];
+        // add class names here (in second[2] element)
+        return [str1, '', 'strong'];
       }
       return [matchedStr, 'cl_primary'];
     case '_': {
