@@ -898,8 +898,11 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .cl_bold { color: var(--color-darker-bold); }
 
 .cl_main, .cl_main_hv:hover { color: rgb(var(--color-main)) !important; }
+.link.cl_main:hover { color: var(--color-main-hover) !important; }
 .cl_primary, .cl_primary_hv:hover { color: rgb(var(--color-primary)) !important; }
+.link.cl_primary:hover { color: var(--color-primary-hover) !important; }
 .cl_secondary, .cl_secondary_hv:hover { color: rgb(var(--color-secondary)) !important; }
+.link.cl_secondary:hover { color: var(--color-secondary-hover) !important; }
 .cl_solid { color: var(--color-solid) !important; }
 .cl_contrast { color: rgb(var(--color-darker-rgb), 1) !important; }
 .cl_err, .cl_err_hv:hover { color: rgb(var(--color-error)) !important; border-color: rgb(var(--color-error)) !important; }

@@ -1,6 +1,7 @@
-import { Fragment, memo, useMemo } from 'react';
+import { Fragment, memo, useMemo, useState } from 'react';
 
 import { nameToEmoji } from '@jsb188/app/constants/emoji';
+import i18n from '@jsb188/app/i18n';
 import parseEmojiText from '@jsb188/app/utils/emoji';
 import { randomItem } from '@jsb188/app/utils/object';
 import { cn } from '@jsb188/app/utils/string';
@@ -621,5 +622,38 @@ function Markdown(p: MarkdownProps) {
 }
 
 Markdown.displayName = 'Markdown';
+
+/**
+ * Markdown with "read more"
+ */
+
+export const MarkdownReadMore = memo((p: MarkdownProps & {
+  ReadMoreComponent?: React.ElementType;
+  readMoreText?: string;
+  summaryLength?: number;
+}) => {
+  const { ReadMoreComponent, children, summaryLength = 300, readMoreText, ...other } = p;
+  const text = children || '';
+  const [showAll, setShowAll] = useState(false);
+
+  if (text.length <= summaryLength || showAll) {
+    return <Markdown {...other}>
+      {text}
+    </Markdown>;
+  }
+
+  const ReadMoreEl = ReadMoreComponent || 'button';
+
+  return <>
+    <Markdown {...other}>
+      {text.substring(0, summaryLength).trimEnd() + '...'}
+    </Markdown>
+
+    <ReadMoreEl onClick={() => setShowAll(true)} className='link cl_secondary bd_b_5 bd_main'>
+      {readMoreText || i18n.t('form.read_more')}
+    </ReadMoreEl>
+  </>;
+});
+
 
 export default Markdown;

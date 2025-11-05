@@ -261,6 +261,49 @@ export function CondensedArticleItemMock(p: {
 }
 
 /**
+ * Condensed article block for full width clickable area with padding + separator
+ */
+
+export const CondensedArticleBlock = memo((p: {
+  __deleted?: boolean;
+  id?: string;
+  hideSeparator?: boolean;
+  domIdPrefix?: string;
+  paddingSize: 'sm' | 'df' | 'md';
+  className?: string;
+  contentClassName?: string;
+  onClick?: ((itemId?: string) => void) | null;
+  disabled?: boolean;
+  children?: React.ReactNode;
+}) => {
+  const { __deleted, hideSeparator, className, contentClassName, paddingSize, domIdPrefix, id, onClick, children } = p;
+  const disabled = p.disabled || __deleted;
+  const hasLink = !!onClick && !disabled;
+
+  return <article
+    id={id ? `${domIdPrefix ? domIdPrefix + '_' : ''}${id}` : undefined}
+    className={cn(
+      'article_item rel z2',
+      `px_${paddingSize}`,
+      hasLink ? 'link bg_lighter_hv_4' : undefined,
+      className
+    )}
+    role={hasLink ? 'button' : undefined}
+    onClick={hasLink ? () => onClick(id) : undefined}
+  >
+    {!hideSeparator && (
+      <div className='bd_t_1 bd_lt' />
+    )}
+
+    <div className={cn(contentClassName ?? 'py_df h_left gap_sm', __deleted ? 'op_40' : '')}>
+      {children}
+    </div>
+  </article>;
+});
+
+CondensedArticleBlock.displayName = 'CondensedArticleBlock';
+
+/**
  * Article card container
  */
 

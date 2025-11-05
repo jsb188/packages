@@ -9,6 +9,7 @@ export interface ActionTaskObj {
 
 	title: string;
 	instruction: string;
+  message: string | null;
 
 	scheduledAt: Date | null;
 	delay: number | null; // seconds

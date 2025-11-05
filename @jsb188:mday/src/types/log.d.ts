@@ -65,6 +65,10 @@ interface LogMetadataBase {
 	childOrg: never;
 	childOrgId: never;
 	referenceNumber: never;
+
+	recurFromLogId?: number;
+	recurredCount?: number;
+	summary?: string;
 }
 
 interface LabelValueObj {
@@ -114,7 +118,7 @@ export type LogArableMetadataGQL = LogArableMetadata & LogDetailsGQLBase;
 export type LogFarmersMarketMetadata = LogMetadataBase & {
 	referenceNumber: string;
 	voided: boolean;
-	childOrgId: string | number;
+	childOrgId?: number;
 	values: LabelValueObj[];
 };
 
@@ -210,7 +214,7 @@ export interface LogEntryInsertObj {
 	accountId: number | bigint;
 	organizationId: number | bigint;
 	status?: LogActionStatusEnum | null;
-	details: LogDetailsObj;
+	details: any;
 	date: Date;
 }
 
