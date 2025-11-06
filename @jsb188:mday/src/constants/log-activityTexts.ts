@@ -73,7 +73,8 @@ export const FARMERS_MARKET_RECEIPT_TO_TEXT = {
 };
 
 export const FARMERS_MARKET_OPERATION_TO_TEXT = {
-	FARMER_NOTE: 'notes about a farmer',
+	VENDOR_NOTES: 'notes about a vendor',
+	EMPLOYEE_NOTES: 'notes about an employee',
 	FARMERS_MARKET_NOTES: 'notes about farmers market',
 };
 
@@ -142,7 +143,7 @@ export const LIVESTOCK_ACTIVITIES_TEXT = {
  */
 
 export const AI_TASKS_TO_TEXT = {
-  // NOTE: If updating this, update [functions-aiTasks.ts] too
+	// NOTE: If updating this, update [functions-aiTasks.ts] too
 	AI_SEND_MESSAGE: 'message',
 	AI_REMINDER: 'reminder message',
 	AI_CHECK_IN: 'check-in message',

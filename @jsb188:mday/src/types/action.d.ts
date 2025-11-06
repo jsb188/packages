@@ -9,7 +9,7 @@ export interface ActionTaskObj {
 
 	title: string;
 	instruction: string;
-  message: string | null;
+	message?: string | null;
 
 	scheduledAt: Date | null;
 	delay: number | null; // seconds
@@ -31,7 +31,7 @@ export interface ActionTaskGQL {
 
 	title: string;
 	instruction: string;
-  message: string | null;
+	message: string | null;
 
 	scheduledAt: string; // ISO date string
 	delay: number; // seconds

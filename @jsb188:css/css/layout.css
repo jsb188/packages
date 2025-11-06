@@ -19,13 +19,11 @@ body.p_auth {
 
 .mw_adjust_center {
   padding-top: calc(var(--rem-medium) * 2);
-  /* This hides the bottom rounded corners */
-  margin-bottom: -10px;
 }
 
 .mw_adjust_center .mw {
   /* This hides the bottom rounded corners */
-  max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) + 10px);
+  max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) + 14px);
 }
 
 .cw.tn, .mw.tn {

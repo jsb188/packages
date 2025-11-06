@@ -122,6 +122,7 @@ export default {
     phone_number: 'Phone number',
     partners: 'Partners',
     partner: 'Partner',
+    contact_person: 'Contact person',
     vendors: 'Vendors',
     'vendors_#': 'Vendors #',
     vendor: 'Vendor',

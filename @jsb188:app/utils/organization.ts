@@ -130,37 +130,41 @@ export function checkACLPermission(
 
 export function getOperationIconName(operation: string | null | undefined): string {
 	return {
-		ARABLE: 'seedling-filled',
-    FARMERS_MARKET: 'building-store-filled', // when you replace this, delete the icon too
-		LIVESTOCK: 'horse-filled',
-	}[operation || ''] || 'info-circle-filled';
+		ARABLE: 'farming-barn-silo',
+    FARMERS_MARKET: 'farmers-market-kiosk', // when you replace this, delete the icon too
+		LIVESTOCK: 'livestock-cow-body',
+	}[operation || ''] || 'info-circle';
 }
 
 /**
  * Get all title icons for organization/vendor
  * @param org - Organization GQL data
+ * @param showIconsMap - Map of icons to show
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getTitleIconsForOrganization(org: OrganizationGQLData) {
+export function getTitleIconsForOrganization(
+  org: OrganizationGQLData,
+  showIconsMap: Record<string, boolean> = {}
+) {
 	const { operation, compliance } = org;
 	const titleIcons = [];
 
-	if (operation) {
+	if (operation && showIconsMap.operation !== false) {
 		titleIcons.push({
 			iconName: getOperationIconName(operation),
 			tooltipText: i18n.t(`organization.type.${operation}`),
 		});
 	}
 
-	if (compliance?.length) {
+	if (compliance?.length && showIconsMap.compliance !== false) {
 		const today = new Date();
 		const todayCalDate = today.toISOString().split('T')[0];
 		const notExpired = compliance.filter((item: any) => item.expirationDate && item.expirationDate > todayCalDate);
 
 		if (notExpired.length > 0) {
 			titleIcons.push({
-				iconName: 'award-filled',
+				iconName: 'certificate',
 				tooltipText: notExpired.map((item: any) => item.name).join(', '),
 			});
 		}

@@ -2360,7 +2360,7 @@ export function parseDateInTimezone(
 	let dt: DateTime;
 
 	// If input is a string in "YYYY-MM-DD" format
-  if (typeof input === 'string' && (isISODate || /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2})$/.test(input))) {
+	if (typeof input === 'string' && (isISODate || /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2})$/.test(input))) {
 		dt = DateTime.fromISO(input, { zone: timeZone });
 	} else if (typeof input === 'string') {
 		dt = DateTime.fromJSDate(new Date(input), { zone: timeZone });
@@ -2465,4 +2465,30 @@ export function getTimeZoneCode(tz?: string | null, useSystem?: boolean): string
 		console.warn('Invalid timezone:', tz, e);
 	}
 	return null;
+}
+
+/**
+ * Check if time zone is currently in daylight saving time, and get the time difference
+ * @param tz - Timezone string (IANA format)
+ * @param d - DateTime object representing the current time in the specified timezone
+ * @returns { timeZone: string, isDST: boolean; offset: number, shiftHours: number } | null
+ */
+
+export function getDayLightSavingsInfo(tz: string, d?: Date) {
+	let now;
+	if (d) {
+		now = DateTime.fromJSDate(d).setZone(tz);
+	} else {
+		now = DateTime.now().setZone(tz);
+	}
+
+	const jan = DateTime.fromObject({ year: now.year, month: 1, day: 1 }).setZone(tz);
+	const offsetShift = (jan.offset - now.offset) / 60;
+
+	return {
+		timeZone: tz,
+		isDST: now.isInDST, // true if currently observing DST
+		offset: now.offset / 60, // offset from UTC in hours
+		offsetShift, // hours
+	};
 }

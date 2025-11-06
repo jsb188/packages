@@ -182,13 +182,6 @@ export const At = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-a
 <path d="M16 12v1.5a2.5 2.5 0 0 0 5 0v-1.5a9 9 0 1 0 -5.5 8.28" stroke="currentColor" />
 </svg>;
 
-export const AwardFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-award">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M19.496 13.983l1.966 3.406a1.001 1.001 0 0 1 -.705 1.488l-.113 .011l-.112 -.001l-2.933 -.19l-1.303 2.636a1.001 1.001 0 0 1 -1.608 .26l-.082 -.094l-.072 -.11l-1.968 -3.407a8.994 8.994 0 0 0 6.93 -3.999z" />
-<path d="M11.43 17.982l-1.966 3.408a1.001 1.001 0 0 1 -1.622 .157l-.076 -.1l-.064 -.114l-1.304 -2.635l-2.931 .19a1.001 1.001 0 0 1 -1.022 -1.29l.04 -.107l.05 -.1l1.968 -3.409a8.994 8.994 0 0 0 6.927 4.001z" />
-<path d="M12 2l.24 .004a7 7 0 0 1 6.76 6.996l-.003 .193l-.007 .192l-.018 .245l-.026 .242l-.024 .178a6.985 6.985 0 0 1 -.317 1.268l-.116 .308l-.153 .348a7.001 7.001 0 0 1 -12.688 -.028l-.13 -.297l-.052 -.133l-.08 -.217l-.095 -.294a6.96 6.96 0 0 1 -.093 -.344l-.06 -.271l-.049 -.271l-.02 -.139l-.039 -.323l-.024 -.365l-.006 -.292a7 7 0 0 1 6.76 -6.996l.24 -.004z" />
-</svg>;
-
 export const BarbedWireFence = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-barbed-wire-fence" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="m1.207 18.072 8.25 0" />
 <path d="m23.707 18.072 -4.25 0" />
@@ -307,10 +300,6 @@ export const BuildingStore = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 <path d="M5 21l0 -10.15" />
 <path d="M19 21l0 -10.15" />
 <path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" />
-</svg>;
-
-export const BuildingStoreFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-building-store-filled">
-<path d="M21.9,8v-1c0,0,0-.1,0-.2,0,0,0-.1,0-.2l-2-4c-.1-.3-.5-.5-.8-.5H5c-.3,0-.6.2-.8.5l-2,4c0,.1-.1.3-.1.4v1c0,1.5.8,2.7,2,3.4v8.8h-1.1c-.5,0-.9.4-.9.9s.4.9.9.9h18c.5,0,.9-.4.9-.9s-.4-.9-.9-.9h-1.1v-8.8c1.2-.7,2-1.9,2-3.4ZM20.1,7.9h0c0,1.3-1,2.2-2.1,2.2s-2.1-1-2.1-2.1h0c0-.1,4.2-.1,4.2-.1ZM14.1,7.9h0c0,1.3-1,2.2-2.1,2.2s-2.1-1-2.1-2.1h0c0-.1,4.2-.1,4.2-.1ZM3.9,7.9h4.2c0,1.3-1,2.2-2.1,2.2s-2.1-1-2.1-2.1h0ZM14.9,20.1h-5.8v-4.1c0-.6.5-1.1,1.1-1.1h3.5c.6,0,1.1.5,1.1,1.1v4.1Z"/>
 </svg>;
 
 // This icon was lifted up by 1 pt from the default SVG code
@@ -2194,27 +2183,23 @@ export const PinnedOff = <svg xmlns="http://www.w3.org/2000/svg" className="icon
 <path d="M14.5 4l5.5 5.5" stroke="currentColor" />
 </svg>;
 
-export const Phone = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-phone">
+export const Phone = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icons-tabler-outline icon-phone">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" />
 </svg>;
+
+// export const Phone = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icon-phone">
+// <path d="M14.3,19.3h0c1.7,1.1,3.8.8,5.2-.6l.6-.6c.5-.5.5-1.4,0-2l-2.5-2.5c-.5-.5-1.4-.5-2,0h0c-.5.5-1.4.5-2,0,0,0,0,0,0,0l-3.9-3.9c-.5-.5-.5-1.4,0-2h0c.5-.5.5-1.4,0-2,0,0,0,0,0,0l-2.5-2.5c-.5-.5-1.4-.5-2,0l-.6.6c-1.4,1.4-1.6,3.5-.6,5.2h0c2.7,4,6.1,7.4,10.1,10.1Z"/>
+// </svg>
 
 export const PhoneFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-phone">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M9 3a1 1 0 0 1 .877 .519l.051 .11l2 5a1 1 0 0 1 -.313 1.16l-.1 .068l-1.674 1.004l.063 .103a10 10 0 0 0 3.132 3.132l.102 .062l1.005 -1.672a1 1 0 0 1 1.113 -.453l.115 .039l5 2a1 1 0 0 1 .622 .807l.007 .121v4c0 1.657 -1.343 3 -3.06 2.998c-8.579 -.521 -15.418 -7.36 -15.94 -15.998a3 3 0 0 1 2.824 -2.995l.176 -.005h4z" />
 </svg>;
 
-export const PhoneCall = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-phone-call" viewBox="0 0 24 24" strokeWidth="1.3" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" stroke="currentColor" />
-<path d="M15 7a2 2 0 0 1 2 2" stroke="currentColor" />
-<path d="M15 3a6 6 0 0 1 6 6" stroke="currentColor" />
-</svg>;
-
-export const PhoneOff = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-phone-off" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M3 21l18 -18" stroke="currentColor" />
-<path d="M5.831 14.161a15.946 15.946 0 0 1 -2.831 -8.161a2 2 0 0 1 2 -2h4l2 5l-2.5 1.5c.108 .22 .223 .435 .345 .645m1.751 2.277c.843 .84 1.822 1.544 2.904 2.078l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a15.963 15.963 0 0 1 -10.344 -4.657" stroke="currentColor" />
+export const PhoneCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-phone-call" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
+<path d="m14.137 17.7 0.008 0a3.226 3.226 0 0 0 4.014 -0.441l0.452 -0.451a1.076 1.076 0 0 0 0 -1.521l-1.9 -1.9a1.076 1.076 0 0 0 -1.521 0h0a1.077 1.077 0 0 1 -1.522 0l-3.042 -3.043a1.076 1.076 0 0 1 0 -1.521h0a1.076 1.076 0 0 0 0 -1.521l-1.9 -1.9A1.076 1.076 0 0 0 7.2 5.4l-0.452 0.451a3.229 3.229 0 0 0 -0.44 4.015l0 0.007a29.14 29.14 0 0 0 7.829 7.827Z" />
+<path d="M21 18.764a11.251 11.251 0 1 0 -9 4.5c4.418 0 6.446 -2.136 5.215 -5.344" />
 </svg>;
 
 export const Photo = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-photo" viewBox="0 0 24 24" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round">

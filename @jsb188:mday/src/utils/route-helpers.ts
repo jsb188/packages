@@ -7,29 +7,31 @@ import { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 const ROUTES_MAP = {
   // If path ends with a slash, "$some_param_id" path segment is expected.
   // Keep these at top
-  ai_chat: '/app/c/',
+  'app/ai_chat': '/app/c/',
 
   // Keep non "/.." paths (paths with "$some_param_id") at bottom
-  app: '/app',
-  markets: '/app/markets',
-  orders: '/app/orders',
-  partners: '/app/partners',
-  purchases: '/app/purchases',
-  receipts: '/app/receipts',
+  'app': '/app',
+  'app/markets': '/app/markets',
+  'app/orders': '/app/orders',
+  'app/purchases': '/app/purchases',
+  'app/receipts': '/app/receipts',
 
   // Arable
-  seeding: '/app/seeding',
-  transplanting: '/app/transplanting',
-  field_work: '/app/field-work',
-  harvested: '/app/harvested',
-  post_harvest: '/app/post-harvest',
+  'app/seeding': '/app/seeding',
+  'app/transplanting': '/app/transplanting',
+  'app/field_work': '/app/field-work',
+  'app/harvested': '/app/harvested',
+  'app/post_harvest': '/app/post-harvest',
+
+  // Farmers Market
+  'app/vendors': '/app/vendors',
 
   // Livestock
-  livestock: '/app/livestock',
+  'app/livestock': '/app/livestock',
 
   // Unsorted (see all)
-  logs: '/app/logs',
-  ai_tasks: '/app/ai-tasks',
+  'app/logs': '/app/logs',
+  'app/ai_tasks': '/app/ai-tasks',
 };
 
 const PATH_TO_ROUTE_NAME = Object.entries(ROUTES_MAP).reduce((acc, [routeName, path]) => {
@@ -45,61 +47,61 @@ const ROUTES_RULE: Record<string, {
 }> = {
 
   // Arable
-  seeding: {
+  'app/seeding': {
     allowedOperations: ['ARABLE'],
     requireManageInventory: false,
     requireManageActions: false,
   },
-  transplanting: {
+  'app/transplanting': {
     allowedOperations: ['ARABLE'],
     requireManageInventory: false,
     requireManageActions: false,
   },
-  field_work: {
+  'app/field_work': {
     allowedOperations: ['ARABLE'],
     requireManageInventory: false,
     requireManageActions: false,
   },
-  harvested: {
+  'app/harvested': {
     allowedOperations: ['ARABLE'],
     requireManageInventory: false,
     requireManageActions: false,
   },
-  post_harvest: {
+  'app/post_harvest': {
     allowedOperations: ['ARABLE'],
     requireManageInventory: false,
     requireManageActions: false,
   },
 
   // Farmers Market
-  markets: {
+  'app/markets': {
     allowedOperations: ['FARMERS_MARKET'],
     requireManageInventory: true,
     requireManageActions: false,
   },
-  partners: {
+  'app/vendors': {
     allowedOperations: ['FARMERS_MARKET'],
     requireManageInventory: false,
     requireManageActions: false,
   },
-  purchases: {
+  'app/purchases': {
     notAllowedOperations: ['FARMERS_MARKET'],
     requireManageInventory: false,
     requireManageActions: false,
   },
-  orders: {
+  'app/orders': {
     allowedOperations: ['ARABLE', 'LIVESTOCK'],
     requireManageInventory: false,
     requireManageActions: false,
   },
-  receipts: {
+  'app/receipts': {
     allowedOperations: ['FARMERS_MARKET'],
     requireManageInventory: false,
     requireManageActions: true,
   },
 
   // Livestock
-  livestock: {
+  'app/livestock': {
     allowedOperations: ['LIVESTOCK'],
     requireManageInventory: true,
     requireManageActions: false,

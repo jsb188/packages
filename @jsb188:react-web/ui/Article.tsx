@@ -57,13 +57,14 @@ export const CondensedArticleItem = memo((p: {
   title?: string;
   description?: string | null;
   descriptionPlaceholder?: string;
+  labelsClassName?: string;
   labels?: Partial<InlineBlockLabelProps>[]
   avatarDisplayName?: string | null;
   avatarPhotoUri?: string | null;
   avatarColor?: string | null;
   labelIcons?: LabelsAndIconsItemProps[];
 }) => {
-  const { __deleted, hideSeparator, preset, domIdPrefix, id, onClick, labelIcons, RightComponent, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
+  const { __deleted, hideSeparator, preset, domIdPrefix, id, onClick, labelIcons, RightComponent, labelsClassName, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
   const useAltLabelColors = !['modal','card'].includes(preset!);
@@ -181,7 +182,7 @@ export const CondensedArticleItem = memo((p: {
           ) : null}
 
           {labelIcons && (
-            <span className={cn('h_item gap_2', hasDescription ? 'ml_10' : 'ml_5')}>
+            <span className={cn('h_item gap_2', labelsClassName, hasDescription ? 'ml_10' : 'ml_5')}>
               <LabelsAndIcons
                 items={labelIcons}
               />

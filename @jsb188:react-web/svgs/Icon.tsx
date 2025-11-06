@@ -63,7 +63,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   alert_warning_filled: 'alert-circle-filled',
   billing: 'credit-card',
   broken_file: 'file-broken',
-  call: 'phone-call',
   chat: 'message',
   click: 'click',
   close: 'x',
@@ -76,6 +75,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   delete_filled: 'trash-x-filled',
   edit: 'edit',
   edit_off: 'edit-off',
+  email: 'mail', // Tabler version
   empty: 'square-forbid-2',
   favorites: 'stars',
   field_work: 'farming-field-sun',
@@ -102,6 +102,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   owner: 'crown',
   pensive: 'mood-sad-filled',
   pinned: 'pinned',
+  phone: 'phone', // Tabler version
   plans: 'map',
   plus: 'plus',
   plus_circle: 'circle-plus-filled',

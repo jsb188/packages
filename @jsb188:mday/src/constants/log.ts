@@ -24,6 +24,8 @@ export const SALE_ACTIVITIES = [
 	// # Arable
 	'SALE_PRODUCE_ORDER',
 	'OTHER_SALE_ORDER',
+  // # Farmers Market
+  'MARKET_CREDIT_RECEIPT',
 ];
 
 export const AI_TASKS_GROUP: [string, string[]] = [
@@ -152,7 +154,8 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 	[
 		'MARKET_OPERATIONS',
 		[
-			'FARMER_NOTES',
+			'VENDOR_NOTES',
+      'EMPLOYEE_NOTES',
 			'FARMERS_MARKET_NOTES',
 		],
 	],
