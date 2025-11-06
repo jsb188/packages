@@ -199,10 +199,12 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 /* Emojis */
 
 .noto_emoji {
+  /* display: inline-block; */
   font-family: 'Noto Color Emoji', sans-serif;
   font-weight: 400;
   font-style: normal;
   line-height: 1;
+  /* transform: translateY(-.5px); */
   /* margin: 0 .15em; */
 }
 

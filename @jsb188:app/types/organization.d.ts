@@ -66,8 +66,8 @@ export interface OrganizationData {
 	name: string;
 	operation: OrganizationOperationEnum;
 	dailyDigestTime: string | null;
-	domains: string[] | null;
 	settings?: OrganizationSettingsObj | null;
+  activated: boolean;
 }
 
 export interface OrganizationSettingsObj {
@@ -133,8 +133,8 @@ export interface OrganizationGQLData {
 	name: string;
 	operation: OrganizationOperationEnum;
 	compliance: OrganizationComplianceGQLData[] | null;
-	domains: string[] | null;
 	settings?: OrganizationSettingsObj | null;
+  activated: boolean;
 	membersCount: number;
 }
 

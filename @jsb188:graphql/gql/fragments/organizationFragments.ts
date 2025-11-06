@@ -5,7 +5,7 @@ export const organizationFragment = `fragment organizationFragment on Organizati
   name
   operation
   dailyDigestTime
-  domains
+  activated
 
   settings {
     timeZone
