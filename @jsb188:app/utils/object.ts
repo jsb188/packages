@@ -84,15 +84,11 @@ export function parseJSON(jsonStr?: string) {
  */
 
 export function stringifyJSON(obj: any, convertBigIntToNumber: boolean = false): string {
-  if (!convertBigIntToNumber) {
-    return JSON.stringify(obj, (_key, value) =>
-      typeof value === 'bigint' ? Number(value) : value
-    );
-  }
+	if (!convertBigIntToNumber) {
+		return JSON.stringify(obj, (_key, value) => typeof value === 'bigint' ? Number(value) : value);
+	}
 
-  return JSON.stringify(obj, (_key, value) =>
-    typeof value === 'bigint' ? value.toString() : value
-  );
+	return JSON.stringify(obj, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
 }
 
 /**
@@ -130,9 +126,7 @@ export function areObjectsEqual(
 	if (isNested) {
 		return JSON.stringify(obj1) === JSON.stringify(obj2);
 	} else if (obj1 && obj2) {
-		return Object.keys(obj1).every((key: string) =>
-			Object.prototype.hasOwnProperty.call(obj2, key) && obj1[key] === obj2[key]
-		);
+		return Object.keys(obj1).every((key: string) => Object.prototype.hasOwnProperty.call(obj2, key) && obj1[key] === obj2[key]);
 	}
 	return obj1 === obj2;
 }
@@ -297,12 +291,25 @@ export function intersection(arr1: Array<any>, arr2: Array<any>) {
  */
 
 export function groupCollections(
-	collections: Array<any>,
+	collections_: Array<any>,
 	innerCollectionNames: string[],
 	innerCollectionDefaultValues: Record<string, any> = {},
-	primaryKeyName = 'id',
+	primaryKey: string | ((o: any) => string) = 'id',
 ): any[] {
 	let hasHash = false;
+  let primaryKeyName;
+  let collections = collections_;
+
+  if (typeof primaryKey === 'function') {
+    primaryKeyName = '__primaryKey';
+    collections = collections_.map((obj) => ({
+      ...obj,
+      __primaryKey: primaryKey(obj),
+    }));
+  } else {
+    primaryKeyName = primaryKey;
+  }
+
 	const groupedCollections = collections.reduce((acc, obj) => {
 		const primaryKey = obj[primaryKeyName];
 		const i = acc.findIndex((o: any) => o[primaryKeyName] === primaryKey);

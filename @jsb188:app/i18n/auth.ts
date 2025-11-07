@@ -21,6 +21,7 @@ export default {
     account_is_verified: 'Thank you for verifying your account with e-mail address: **%{emailAddress}**. Please log in again using your password.',
     continue_to_login: 'Continue to log in',
     continue_to_app: 'Continue to app',
+    login_changed: 'Login changed',
 
     // Phone 2FA
     send_verification_code_msg: 'Enter your phone number and we will send you a verification code for authentication.',

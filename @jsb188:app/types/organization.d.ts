@@ -67,23 +67,29 @@ export interface OrganizationData {
 	operation: OrganizationOperationEnum;
 	dailyDigestTime: string | null;
 	settings?: OrganizationSettingsObj | null;
-  activated: boolean;
+	activated: boolean;
 }
 
 export interface OrganizationSettingsObj {
 	timeZone: string | null;
 	language: string | null;
 	color: string | null;
-  priorityService: boolean;
+	priorityService: boolean;
 	manageInventory: boolean;
 	manageActions: boolean;
 }
 
 export interface OrganizationChildData {
 	__table: 'organization_rels';
-	id: number;
+	parentId: number | bigint | null;
+  childId: number | bigint;
 	organization: OrganizationData;
 	primaryContact: {
+		__table: 'account_organization_rels';
+		id: number;
+		account: AccountData;
+	};
+	anyContact?: {
 		__table: 'account_organization_rels';
 		id: number;
 		account: AccountData;
@@ -134,7 +140,7 @@ export interface OrganizationGQLData {
 	operation: OrganizationOperationEnum;
 	compliance: OrganizationComplianceGQLData[] | null;
 	settings?: OrganizationSettingsObj | null;
-  activated: boolean;
+	activated: boolean;
 	membersCount: number;
 }
 
