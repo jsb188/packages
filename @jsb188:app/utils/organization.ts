@@ -1,5 +1,7 @@
-import type { OrganizationGQLData, OrganizationRelData, OrganizationRelGQLData } from '../types/organization.d';
+import type { OrganizationGQLData, OrganizationRelData, OrganizationRelGQLData, OrganizationSettingsObj } from '../types/organization.d';
 import i18n from '../i18n';
+import { DEFAULT_TIMEZONE } from './timeZone.ts';
+import { COLORS } from '../constants/app.ts';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
@@ -171,4 +173,18 @@ export function getTitleIconsForOrganization(
 	}
 
 	return titleIcons;
+}
+
+/**
+ * Get the default object for Oganization settings
+ */
+
+export function getDefaultOrganizationSettings(
+  timeZone: string | null,
+  // do params here for priority service + manage roles
+): Partial<OrganizationSettingsObj> {
+	return {
+		timeZone: timeZone || DEFAULT_TIMEZONE,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+	};
 }

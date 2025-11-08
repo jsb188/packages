@@ -10,6 +10,10 @@ export const OPERATION_ENUMS = [
 	'FARMERS_MARKET',
 ];
 
+export const PARENT_ORG_OPERATIONS = [
+  'FARMERS_MARKET',
+];
+
 // Employee ACL
 
 export const ROLE_ENUMS = ['MEMBER', 'MANAGER', 'ADMIN', 'OWNER', 'GUEST']; // first is default value
