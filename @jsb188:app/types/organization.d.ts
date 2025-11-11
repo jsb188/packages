@@ -25,7 +25,6 @@ type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-writ
 type ACLPermissionEnum = 'NONE' | 'READ' | 'WRITE' | 'MANAGE';
 
 export interface OrganizationACL {
-	id: string;
 	billing: ACLPermission;
 	logs: ACLPermission;
 	members: ACLPermission;
@@ -37,7 +36,6 @@ export interface OrganizationACL {
 }
 
 export interface OrganizationACLGQLData {
-	id: string;
 	billing: ACLPermissionEnum;
 	logs: ACLPermissionEnum;
 	members: ACLPermissionEnum;
@@ -82,7 +80,7 @@ export interface OrganizationSettingsObj {
 export interface OrganizationChildData {
 	__table: 'organization_rels';
 	parentId: number | bigint | null;
-  childId: number | bigint;
+	childId: number | bigint;
 	organization: OrganizationData;
 	primaryContact: {
 		__table: 'account_organization_rels';

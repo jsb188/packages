@@ -7,8 +7,7 @@ import type { OrganizationACL, OrganizationRoleEnum } from './organization.d.ts'
 export interface AccountPhoneObj {
 	id: number;
 	number: string;
-	primary: boolean;
-	// verified: boolean; // Assume verified when data is fetched
+  verified: boolean;
 }
 
 /**
@@ -18,13 +17,12 @@ export interface AccountPhoneObj {
 export interface AccountObj {
 	id: number;
 	settings: Record<string, any>;
-	profile: {
-		id: number;
+	profile: Partial<{
 		firstName: string;
 		lastName: string;
 		storageId: number | null;
 		// phone: AccountPhoneObj | null; // ?? This is a coding mistake, I think
-	};
+	}>;
 }
 
 export interface AccountData extends AccountObj {
@@ -32,7 +30,6 @@ export interface AccountData extends AccountObj {
 	phone: {
 		id: number;
 		number: string;
-		primary: boolean;
 		verified: boolean;
 		banned: boolean;
 		editAt: Date;
@@ -40,7 +37,6 @@ export interface AccountData extends AccountObj {
 	email: {
 		id: number;
 		address: string;
-		primary: boolean;
 		verified: boolean;
 		banned: boolean;
 		editAt: Date;
@@ -59,7 +55,7 @@ export interface AccountMembershipData {
 	organizationId: number;
 	role: OrganizationRoleEnum;
 	acl: OrganizationACL;
-  notes?: string;
+	notes?: string;
 	primary: boolean;
 	createdAt: Date;
 	updatedAt: Date;

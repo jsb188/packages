@@ -49,8 +49,8 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				settings: acl.settings || 'MANAGE',
 				integrations: acl.integrations || 'MANAGE',
 				reminders: acl.reminders || 'MANAGE',
-				events: acl.events || 'MANAGE',
-        compliance: acl.compliance || 'MANAGE',
+				orgManagement: acl.orgManagement || 'MANAGE',
+				compliance: acl.compliance || 'MANAGE',
 			};
 		case 'MANAGER':
 			return {
@@ -63,10 +63,10 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				settings: acl.settings || 'READ',
 				integrations: acl.integrations || 'NONE',
 				reminders: acl.reminders || 'MANAGE',
-				events: acl.events || 'MANAGE',
-        compliance: acl.compliance || 'WRITE',
+				orgManagement: acl.orgManagement || 'WRITE',
+				compliance: acl.compliance || 'WRITE',
 			};
-    case 'GUEST':
+		case 'GUEST':
 			return {
 				billing: acl.billing || 'NONE',
 				digests: acl.digests || 'NONE',
@@ -77,8 +77,8 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 				settings: acl.settings || 'NONE',
 				integrations: acl.integrations || 'NONE',
 				reminders: acl.reminders || 'NONE',
-				events: acl.events || 'NONE',
-        compliance: acl.compliance || 'NONE',
+				orgManagement: acl.orgManagement || 'NONE',
+				compliance: acl.compliance || 'NONE',
 			};
 		case 'MEMBER':
 		default:
@@ -94,8 +94,8 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | Org
 		settings: acl.settings || 'READ',
 		integrations: acl.integrations || 'NONE',
 		reminders: acl.reminders || 'WRITE',
-		events: acl.events || 'MANAGE',
-    compliance: acl.compliance || 'READ',
+    orgManagement: acl.orgManagement || 'READ',
+		compliance: acl.compliance || 'READ',
 	};
 }
 
@@ -133,7 +133,7 @@ export function checkACLPermission(
 export function getOperationIconName(operation: string | null | undefined): string {
 	return {
 		ARABLE: 'farming-barn-silo',
-    FARMERS_MARKET: 'farmers-market-kiosk', // when you replace this, delete the icon too
+		FARMERS_MARKET: 'farmers-market-kiosk', // when you replace this, delete the icon too
 		LIVESTOCK: 'livestock-cow-body',
 	}[operation || ''] || 'info-circle';
 }

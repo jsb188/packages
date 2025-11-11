@@ -8,7 +8,6 @@ export const phoneFragment = `fragment phoneFragment on Phone {
   id
   number
   verified
-  primary
 }`;
 
 export const addressFragment = `fragment addressFragment on Address {

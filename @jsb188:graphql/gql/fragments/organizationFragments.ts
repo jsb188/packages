@@ -50,7 +50,7 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
     finances
     settings
     integrations
-    reminders
+    orgManagement
     compliance
   }
 }`;

@@ -29,12 +29,13 @@ export function uniq(arr: Array<any>, fn?: (value: any, index: number, self: Arr
  * Remove undefined (and/or null) values from an object
  */
 
-export function removeUndefined<T>(obj: T, removeNull?: boolean) {
+export function removeUndefined<T>(obj: T, removeNull?: boolean, removeFalsy?: boolean): T {
 	for (const key in obj) {
 		if (Object.prototype.hasOwnProperty.call(obj, key)) {
 			if (
 				obj[key] === undefined ||
-				(removeNull && obj[key] === null)
+				(removeNull && obj[key] === null) ||
+        (removeFalsy && !obj[key])
 			) {
 				delete obj[key];
 			} else if (obj[key] && typeof obj[key] === 'object') {
@@ -297,18 +298,18 @@ export function groupCollections(
 	primaryKey: string | ((o: any) => string) = 'id',
 ): any[] {
 	let hasHash = false;
-  let primaryKeyName;
-  let collections = collections_;
+	let primaryKeyName;
+	let collections = collections_;
 
-  if (typeof primaryKey === 'function') {
-    primaryKeyName = '__primaryKey';
-    collections = collections_.map((obj) => ({
-      ...obj,
-      __primaryKey: primaryKey(obj),
-    }));
-  } else {
-    primaryKeyName = primaryKey;
-  }
+	if (typeof primaryKey === 'function') {
+		primaryKeyName = '__primaryKey';
+		collections = collections_.map((obj) => ({
+			...obj,
+			__primaryKey: primaryKey(obj),
+		}));
+	} else {
+		primaryKeyName = primaryKey;
+	}
 
 	const groupedCollections = collections.reduce((acc, obj) => {
 		const primaryKey = obj[primaryKeyName];
