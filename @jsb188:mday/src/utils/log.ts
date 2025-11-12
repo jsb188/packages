@@ -52,13 +52,27 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 		LIVESTOCK_HEALTHCARE: 'teal',
 		LIVESTOCK_SALE: 'blue',
 
-    // #### Merged into every operation
-    AI_TASK: 'slate',
+		// #### Merged into every operation
+		AI_TASK: 'slate',
 	} as Record<LogTypeEnum, string>;
 
 	// Default to zinc if type is not found
 	const color = logTypeToColor[type] || 'zinc';
 	return color;
+}
+
+/**
+ * Get all log types for the given organization operation
+ * @param operation - The operation of the organization
+ * @returns Array of log types for the operation
+ */
+
+export function getLogTypesForOperation(operation: OrganizationOperationEnum, includeAITask: boolean): LogTypeEnum[] {
+  const logTypes = (LOG_TYPES_BY_OPERATION[operation] || []) as LogTypeEnum[];
+  if (includeAITask) {
+    return logTypes;
+  }
+  return logTypes.filter((type) => type !== 'AI_TASK');
 }
 
 /**
@@ -69,26 +83,26 @@ export function getLogCategoryColor(type: LogTypeEnum) {
  */
 
 export function getLogTypeFromActivity(operation: OrganizationOperationEnum | string, activity: any): LogTypeEnum | null {
-  let logGroup;
+	let logGroup;
 	switch (operation) {
 		case 'ARABLE':
 		case 'LogArable':
 			logGroup = ARABLE_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity));
-      break;
+			break;
 		case 'LIVESTOCK':
 		case 'LogLivestock':
 			logGroup = LIVESTOCK_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity));
-      break;
+			break;
 		case 'FARMERS_MARKET':
 		case 'LogFarmersMarket':
 			logGroup = FARMERS_MARKET_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity));
-      break;
+			break;
 		default:
 			console.warn('(!1) Cannot get log type from unknown operation type:', operation);
 			return null;
 	}
 
-  return logGroup?.[0] as LogTypeEnum || null;
+	return logGroup?.[0] as LogTypeEnum || null;
 }
 
 /**
@@ -98,10 +112,10 @@ export function getLogTypeFromActivity(operation: OrganizationOperationEnum | st
  */
 
 export function getShorterActivityText(activity: any): string {
-  if (i18n.has(`log.activity_short.${activity}`)) {
-    return i18n.t(`log.activity_short.${activity}`);
-  }
-  return i18n.t(`log.activity.${activity}`);
+	if (i18n.has(`log.activity_short.${activity}`)) {
+		return i18n.t(`log.activity_short.${activity}`);
+	}
+	return i18n.t(`log.activity.${activity}`);
 }
 
 /**
@@ -375,8 +389,8 @@ const PRODUCE_WORDS = [
 	'crops',
 	'estimating yield',
 	'other harvest',
-	'handling or grading produce',
-	'packaging or moving produce',
+	'grading produce',
+	'moving produce',
 	'cold storage temperature',
 	'post harvest',
 	'sale',
@@ -613,8 +627,8 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'estimating yield':
 				case 'other harvest':
 					return 'crop-info-biotech-1';
-				case 'handling or grading produce':
-				case 'packaging or moving produce':
+				case 'grading produce':
+				case 'moving produce':
 					return 'harvest-product';
 				case 'post harvest':
 					return 'warehouse-storage';

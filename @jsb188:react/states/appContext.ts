@@ -80,7 +80,7 @@ export const DEFAULT_APP_CONTEXT = {
     theme: null,
     lightMode: 'LIGHT',
     timeZone: null,
-    showSelfAvatar: true,
+    showSelfAvatar: false,
     isBubbleOther: false,
     showOtherAvatar: false,
   },

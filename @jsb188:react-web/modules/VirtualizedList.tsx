@@ -49,11 +49,7 @@ export type ReactiveFragmentFn = (id: string, node: any) => any;
 
 type TableColumnElement = string | ReactSpanElement | React.ReactNode | null;
 
-export type MapTableListDataFn = (
-  item: VZListItemObj,
-  i: number,
-  list: VZListItemObj[]
-) => {
+interface MapTableListOutput {
   __deleted: boolean;
   RowHeaderComponent?: React.ReactNode;
   rowHeaders?: Partial<TableHeaderObj>[] | null;
@@ -63,7 +59,13 @@ export type MapTableListDataFn = (
     value: any;
     columns: TableColumnElement[]
   }[];
-} | null; // Returning "null" hides the row
+}
+
+export type MapTableListDataFn = (
+  item: VZListItemObj,
+  i: number,
+  list: VZListItemObj[]
+) => MapTableListOutput | null; // Returning "null" hides the row
 
 interface VZReferenceObj {
   mounted: boolean;
@@ -125,7 +127,7 @@ interface VirtualizedListProps extends ReactDivElement {
   rootElementQuery?: string; // Scrollable DOM element where the list is contained
 }
 
-type VirtualizedListOmit = Omit<VirtualizedListProps, 'GroupTitleComponent' | 'ItemComponent' | 'groupItems' | 'HeaderComponent'>;
+type VirtualizedListOmit = Omit<VirtualizedListProps, 'GroupTitleComponent' | 'ItemComponent' | 'groupItems'>;
 
 type TableListProps = {
   reactiveFragmentFn?: ReactiveFragmentFn;
@@ -799,7 +801,7 @@ const ReactiveTableListItem = (p: any) => {
 };
 
 /**
- * Table list
+ * VZ Table list
  */
 
 export const VZTable = memo((p: TableListProps) => {
@@ -852,7 +854,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   // Use this to map list data to table row cells data
   mapListData: MapTableListDataFn;
 }) {
-  const { FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, doNotApplyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
+  const { HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, doNotApplyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
   const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
@@ -866,7 +868,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   return <>
     <div className={cn('-mx_xs', className)}>
       <div ref={topRef}>
-        {hasMoreTop ? MockComponent : null}
+        {hasMoreTop ? MockComponent : HeaderComponent}
       </div>
 
       <div

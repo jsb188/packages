@@ -1,4 +1,4 @@
-import type { OrganizationGQLData, OrganizationRelData, OrganizationRelGQLData, OrganizationSettingsObj } from '../types/organization.d';
+import type { OrganizationGQL, OrganizationRelData, OrganizationRelGQL, OrganizationSettingsObj } from '../types/organization.d';
 import i18n from '../i18n';
 import { DEFAULT_TIMEZONE } from './timeZone.ts';
 import { COLORS } from '../constants/app.ts';
@@ -19,7 +19,7 @@ const INT_TO_PERMISSION = Object.keys(PERMISSION_TO_INT);
  * Get default permissions by role
  */
 
-export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQLData | OrganizationRelData | ViewerOrganization) {
+export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | OrganizationRelData | ViewerOrganization) {
 	const role = orgRel?.role || 'MEMBER';
 	const acl: Record<string, any> = { ...orgRel?.acl };
 
@@ -107,7 +107,7 @@ export type ACLPermissionCheck = 'READ' | 'WRITE' | 'MANAGE';
 export type PermissionCheckFor = keyof ReturnType<typeof getDefaultPermissionsByRole>;
 
 export function checkACLPermission(
-	orgRel: OrganizationRelGQLData | OrganizationRelData | ViewerOrganization,
+	orgRel: OrganizationRelGQL | OrganizationRelData | ViewerOrganization,
 	check: PermissionCheckFor,
 	requiredPermission: ACLPermissionCheck,
 ): boolean | null {
@@ -146,7 +146,7 @@ export function getOperationIconName(operation: string | null | undefined): stri
  */
 
 export function getTitleIconsForOrganization(
-  org: OrganizationGQLData,
+  org: OrganizationGQL,
   showIconsMap: Record<string, boolean> = {}
 ) {
 	const { operation, compliance } = org;

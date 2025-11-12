@@ -58,7 +58,7 @@ interface SpecialIconProps extends IconProps {
 
 export const COMMON_ICON_NAMES: Record<string, string> = {
   ai_magic: 'sparkles',
-  ai_task: 'document-ai',
+  ai_workflow: 'document-ai',
   address_book: 'address-book',
   alert_warning_filled: 'alert-circle-filled',
   billing: 'credit-card',
@@ -79,6 +79,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   empty: 'square-forbid-2',
   favorites: 'stars',
   field_work: 'farming-field-sun',
+  file: 'file-description',
   group: 'users-group',
   harvest: 'vegetable-corn',
   image: 'photo',
@@ -132,6 +133,94 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   user_blocked: 'user-x',
   user_deleted: 'user-off',
   your_account: 'user-circle',
+
+  // AI Task types
+  AI_TASK: 'task-list-check-2',
+
+  // Arable types
+  SEED: '',
+  PLANTING: '',
+  FIELD: '',
+  HARVEST: '',
+  POST_HARVEST: '',
+  SALES: '',
+  WATER: '',
+
+  // Farmers Market types
+  MARKET_RECEIPTS: 'farming-sell-vegetable',
+  MARKET_OPERATIONS: '',
+
+  // Livestock types
+  SUPPLY_PURCHASE: '',
+  LIVESTOCK_LIFE_CYCLE: '',
+  LIVESTOCK_TRACKING: '',
+  PASTURE_LAND_MANAGEMENT: '',
+  LIVESTOCK_HEALTHCARE: '',
+  LIVESTOCK_SALE: 'task-list-check-2',
+
+  // AI_TASK - Icon Names for each AI task activity
+  AI_SEND_MESSAGE: 'task-list-check-2',
+	AI_REMINDER: 'task-list-check-2',
+	AI_CHECK_IN: 'task-list-check-2',
+
+  // ARABLE - Icon Names for each log activity
+  OTHER_SUPPLY_PURCHASE_ACTIVITY: 'task-list-check-2',
+  SEEDING: 'task-list-check-2',
+  DIRECT_SEEDING: 'task-list-check-2',
+  TRANSPLANTING: 'task-list-check-2',
+  SEED_COMPLIANCE_NOTE: 'task-list-check-2',
+  OTHER_TRANSPLANT_ACTIVITY: 'task-list-check-2',
+  PREPARE_SOIL: 'task-list-check-2',
+  IRRIGATION: 'task-list-check-2',
+  FERTILIZATION_COMPOST: 'task-list-check-2',
+  PROTECT_CROP: 'task-list-check-2',
+  MONITOR_CROP: 'task-list-check-2',
+  PRUNING: 'task-list-check-2',
+  STRUCTURE_MAINTENANCE: 'task-list-check-2',
+  PREPARE_HARVEST: 'task-list-check-2',
+  OTHER_FIELD_ACTIVITY: 'task-list-check-2',
+  HARVEST_CROP: 'task-list-check-2',
+  HARVEST_COUNT: 'task-list-check-2',
+  SORT_GRADE: 'task-list-check-2',
+  YIELD_LOSS_ESTIMATE: 'task-list-check-2',
+  OTHER_HARVEST_ACTIVITY: 'task-list-check-2',
+  POST_HARVEST_HANDLING: 'task-list-check-2',
+  POST_HARVEST_PACKAGING: 'task-list-check-2',
+  COLD_STORAGE_TEMPERATURE: 'task-list-check-2',
+  OTHER_POST_HARVEST_ACTIVITY: 'task-list-check-2',
+  SALE_PRODUCE_ORDER: 'task-list-check-2',
+  OTHER_SALE_ORDER: 'task-list-check-2',
+  WATER_TESTING: 'task-list-check-2',
+  OTHER_WATER_TESTING_ACTIVITY: 'task-list-check-2',
+
+  // FARMERS MARKET - Icon Names for each log activity
+  MARKET_CREDIT_RECEIPT: 'task-list-check-2',
+  VENDOR_NOTES: 'task-list-check-2',
+  EMPLOYEE_NOTES: 'task-list-check-2',
+  FARMERS_MARKET_NOTES: 'task-list-check-2',
+
+  // LIVESTOCK - Icon Names for each log activity
+  FEED_PURCHASE: 'task-list-check-2',
+  LIVESTOCK_PURCHASE: 'task-list-check-2',
+  LIVESTOCK_BIRTH: 'task-list-check-2',
+  LIVESTOCK_REPRODUCTION: 'task-list-check-2',
+  LIVESTOCK_DEATH: 'task-list-check-2',
+  OTHER_LIVESTOCK_LIFE_CYCLE_ACTIVITY: 'task-list-check-2',
+  LIVESTOCK_GROUP_TRACKING: 'task-list-check-2',
+  LIVESTOCK_PASTURE_TRACKING: 'task-list-check-2',
+  LIVESTOCK_ROTATIONAL_GRAZING: 'task-list-check-2',
+  OTHER_LIVESTOCK_TRACKING_ACTIVITY: 'task-list-check-2',
+  PASTURE_SEEDING: 'task-list-check-2',
+  FENCE_MAINTENANCE: 'task-list-check-2',
+  WATER_SOURCE_MAINTENANCE: 'task-list-check-2',
+  OTHER_PASTURE_LAND_MANAGEMENT_ACTIVITY: 'task-list-check-2',
+  LIVESTOCK_VACCINATION: 'task-list-check-2',
+  LIVESTOCK_SICK: 'task-list-check-2',
+  LIVESTOCK_INJURY: 'task-list-check-2',
+  LIVESTOCK_CULL: 'task-list-check-2',
+  LIVESTOCK_TREATMENT: 'task-list-check-2',
+  OTHER_LIVESTOCK_HEALTHCARE_ACTIVITY: 'task-list-check-2',
+  OTHER_LIVESTOCK_SALE_ACTIVITY: 'task-list-check-2',
 };
 
 /**

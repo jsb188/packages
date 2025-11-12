@@ -918,6 +918,12 @@ export function clearGraphQLClientCache() {
  */
 
 export function getQueryRefreshTime(queryName: string, variablesKey: string) {
+  // if (RESET_TIME.get(`#${queryName}:`) || RESET_TIME.get(`#${queryName}:${variablesKey}`)) {
+  //   console.log(`#${queryName}:${variablesKey}`);
+  //   console.log('1 >>>>>>>', RESET_TIME.get(`#${queryName}:`));
+  //   console.log('2 >>>>>>>', RESET_TIME.get(`#${queryName}:${variablesKey}`));
+  // }
+
   return (
     RESET_TIME.get(`#${queryName}:`) ||
     RESET_TIME.get(`#${queryName}:${variablesKey}`)
@@ -945,13 +951,31 @@ export function resetQuery(queryId: string, forceRefetch?: boolean, updateObserv
   // }
 
   if (updateObservers) {
-    RESET_TIME.set(queryId, Date.now());
-    // console.log('SETTING ->', queryId, RESET_TIME.get(queryId));
 
-    updateObservers({
-      queryId,
-      forceRefetch,
-    });
+    if (queryId.startsWith('^')) {
+      // Reset using regex
+      const regex = new RegExp(queryId);
+
+      // Loop for each of QUERIES map keys
+      for (const key of QUERIES.keys()) {
+        if (regex.test(key)) {
+          RESET_TIME.set(key, Date.now());
+          // console.log('RESETTING ->', key, RESET_TIME.get(key));
+          updateObservers({
+            queryId: key,
+            forceRefetch,
+          });
+        }
+      }
+    } else {
+      // Reset specific query
+      RESET_TIME.set(queryId, Date.now());
+      updateObservers({
+        queryId,
+        forceRefetch,
+      });
+    }
+    // console.log('SETTING ->', queryId, RESET_TIME.get(queryId));
   }
 }
 

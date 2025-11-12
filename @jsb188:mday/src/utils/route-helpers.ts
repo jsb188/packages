@@ -31,7 +31,7 @@ const ROUTES_MAP = {
 
   // Unsorted (see all)
   'app/logs': '/app/logs',
-  'app/ai_tasks': '/app/ai-tasks',
+  'app/ai_workflows': '/app/ai-workflows',
 };
 
 const PATH_TO_ROUTE_NAME = Object.entries(ROUTES_MAP).reduce((acc, [routeName, path]) => {

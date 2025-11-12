@@ -242,7 +242,7 @@ export interface LogEntryDataObj {
 export interface FilterLogEntriesArgs {
 	operation: OrganizationOperationEnum;
 	accountId?: string | null; // Account ID to filter logs by account
-	preset?: 'WEEKS_5' | 'AI_TASKS' | null;
+	preset?: 'WEEKS_5' | 'AI_TASKS' | 'INCLUDE_AI_TASKS' | 'HIDE_AI_TASKS' | null;
 	types?: LogTypeEnum[] | null;
 	activities?: LogActivityEnum[] | null;
 	startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)

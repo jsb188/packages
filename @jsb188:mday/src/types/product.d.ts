@@ -5,7 +5,7 @@ import {
   PRODUCT_TYPES
 } from '@jsb188/app/constants/product';
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
-import type { OrganizationData, OrganizationGQLData } from '@jsb188/app/types/organization.d.ts';
+import type { OrganizationData, OrganizationGQL } from '@jsb188/app/types/organization.d.ts';
 import type { AccountData } from '@jsb188/app/types/account.d.ts';
 
 /**
@@ -139,7 +139,7 @@ export interface ProductAttendanceGQL {
 	eventId: string;
 	attended: boolean | null;
 	calDate: string; // "YYYY-MM-DD" format
-	organization: OrganizationGQLData;
+	organization: OrganizationGQL;
 	checkedBy: any; // account data
 }
 

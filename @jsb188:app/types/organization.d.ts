@@ -7,6 +7,7 @@ import {
 
 import type { AccountData } from './account.d.ts';
 import type { StorageData } from './other.d.ts';
+import type { LogTypeEnum } from './log.d.ts';
 
 /*
  * Enums
@@ -131,7 +132,7 @@ export interface OrganizationComplianceGQLData {
 	}[];
 }
 
-export interface OrganizationGQLData {
+export interface OrganizationGQL {
 	id: string;
 	stripeCustomerId: string | null;
 	name: string;
@@ -142,17 +143,17 @@ export interface OrganizationGQLData {
 	membersCount: number;
 }
 
-export interface OrganizationRelGQLData {
+export interface OrganizationRelGQL {
 	id: string;
 	primary: boolean;
 	role: OrganizationRoleEnum;
 	acl: OrganizationACLGQLData;
-	organization: OrganizationGQLData;
+	organization: OrganizationGQL;
 }
 
-export interface OrganizationChildGQLData {
+export interface OrganizationChildGQL {
 	id: string;
-	organization: OrganizationGQLData;
+	organization: OrganizationGQL;
 	primaryContact: AccountData;
 	addedAt: Date;
 }
@@ -187,4 +188,30 @@ export interface OrganizationComplianceData extends Omit<OrganizationComplianceI
 	documents: OrganizationComplianceFileData[] | null;
 	createdAt: Date;
 	updatedAt: Date;
+}
+
+/**
+ * Workflow instructions
+ */
+
+export interface OrganizationInstructionsData {
+  __table: 'organization_instructions';
+  id: bigint | number;
+  organizationId: bigint | number;
+  logType: LogTypeEnum;
+  instructions: string;
+  summary: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrganizationInstructionsGQL {
+  __deleted?: boolean;
+  id: string;
+  organizationId: string;
+  logType: LogTypeEnum;
+  instructions: string;
+  summary: string;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
 }

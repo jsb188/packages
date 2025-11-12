@@ -150,6 +150,25 @@ export function formatDecimal(
 }
 
 /**
+ * Get quantity text by combining quantity and unit together
+ *
+ * @param quantity - The quantity value
+ * @param unit - The unit string
+ * @returns Combined quantity and unit string
+ */
+
+export function getQuantityText(
+  quantity: string | number,
+  unit?: string,
+): string {
+  const value = formatDecimal(quantity, true, true);
+  return [
+    value + (value && unit && /^[0-9]/.test(unit) ? ', ' : ''),
+    unit
+  ].filter(Boolean).join(' ');
+}
+
+/**
  * Get currency symbol from settings
  * Example 1: getCurrencySymbol('en-US', 'USD'); // "$"
  * Example 2: getCurrencySymbol('fr-FR', 'EUR'); // "€"

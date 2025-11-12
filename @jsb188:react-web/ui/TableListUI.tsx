@@ -130,11 +130,12 @@ export const TDColMain = memo((p: Partial<{
   title: string;
   titleClassName: string;
   iconName: string;
+  avatarColor?: string;
   avatarDisplayName: string;
   placeholderText?: string;
   labelIcons: LabelsAndIconsItemProps[];
 }>) => {
-  const { __deleted, iconName, avatarDisplayName, titleClassName, labelIcons } = p;
+  const { __deleted, iconName, avatarColor, avatarDisplayName, titleClassName, labelIcons } = p;
   const hasAvatar = !!(iconName || avatarDisplayName);
   const placeholderText = p.placeholderText ?? '-';
 
@@ -148,7 +149,7 @@ export const TDColMain = memo((p: Partial<{
       <AvatarImg
         className='mr_sm'
         // letterBackgroundClassName='bg_primary_fd'
-        letterBackgroundClassName='bg'
+        letterBackgroundClassName={'bg' + (avatarColor ? '_' + avatarColor : '')}
         square outline
         size='tiny'
         // urlPath={photoUri}

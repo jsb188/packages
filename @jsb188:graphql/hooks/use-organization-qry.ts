@@ -1,6 +1,7 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
-import { childOrganizationsQry, myOrganizationsQry } from '../gql/queries/organizationQueries';
+import { childOrganizationsQry, myOrganizationsQry, organizationWorkflowsQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
+import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 
 const ORG_CHILDREN_LIMIT = 100;
 
@@ -33,6 +34,25 @@ export function useMyOrganizations(params: UseQueryParams = {}) {
 
   return {
     myOrganizations: data?.myOrganizations,
+    ...rest
+  };
+}
+
+/**
+ * Fetch organization workflows
+ */
+
+export function useOrganizationWorkflows(organizationId: string | null, operation: OrganizationOperationEnum | null) {
+  const { data, ...rest } = useQuery(organizationWorkflowsQry, {
+    variables: {
+      organizationId,
+      operation,
+    },
+    skip: !organizationId || !operation,
+  });
+
+  return {
+    organizationWorkflows: data?.organizationWorkflows,
     ...rest
   };
 }
