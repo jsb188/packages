@@ -498,6 +498,7 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .m_n { margin: 0 !important; }
 .mx_n { margin-left: 0; margin-right: 0; }
 .my_n { margin-top: 0; margin-bottom: 0; }
+.mx_auto { margin-left: auto; margin-right: auto; }
 
 .m_1 { margin: 1px; }
 .my_1 { margin-top: 1px; margin-bottom: 1px; }
