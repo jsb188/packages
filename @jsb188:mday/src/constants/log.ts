@@ -9,7 +9,7 @@ export const LOG_ACTION_STATUS_ENUMS = [
 	'COMPLETED',
 	'ERRORED',
 	'QUEUED', // Used for AI Tasks
-  'CANCELED', // Used for AI Tasks
+	'CANCELED', // Used for AI Tasks
 ];
 
 export const PURCHASE_ACTIVITIES = [
@@ -24,8 +24,8 @@ export const SALE_ACTIVITIES = [
 	// # Arable
 	'SALE_PRODUCE_ORDER',
 	'OTHER_SALE_ORDER',
-  // # Farmers Market
-  'MARKET_CREDIT_RECEIPT',
+	// # Farmers Market
+	'MARKET_CREDIT_RECEIPT',
 ];
 
 export const AI_TASKS_GROUP: [string, string[]] = [
@@ -34,6 +34,7 @@ export const AI_TASKS_GROUP: [string, string[]] = [
 		'AI_SEND_MESSAGE',
 		'AI_REMINDER',
 		'AI_CHECK_IN',
+    'AI_SCHEDULED_TASK',
 	],
 ];
 
@@ -155,7 +156,7 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 		'MARKET_OPERATIONS',
 		[
 			'VENDOR_NOTES',
-      'EMPLOYEE_NOTES',
+			'EMPLOYEE_NOTES',
 			'FARMERS_MARKET_NOTES',
 		],
 	],

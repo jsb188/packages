@@ -46,16 +46,21 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
 
   childOrgId
   childOrganizationName
-  summary
-  notes
 
+  item
+
+  otherParty
   referenceNumber
-  voided
   values {
     label
     value
     quantity
   }
+  tax
+  voided
+
+  summary
+  notes
 }`;
 
 export const logLivestockFragment = `fragment logLivestockFragment on LogLivestock {

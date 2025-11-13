@@ -2,10 +2,12 @@ import i18n from '@jsb188/app/i18n';
 import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 import { formatCurrency, formatDecimal } from '@jsb188/app/utils/number';
 import { formatReferenceNumber, joinReadable, textWithBrackets, ucFirst } from '@jsb188/app/utils/string';
+import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import {
   ARABLE_ACTIVITIES_GROUPED,
   FARMERS_MARKET_ACTIVITIES_GROUPED,
-  LIVESTOCK_ACTIVITIES_GROUPED
+  LIVESTOCK_ACTIVITIES_GROUPED,
+  LOG_TYPES_BY_OPERATION
 } from '../constants/log';
 import type { LogEntryDataObj, LogTypeEnum } from '../types/log.d';
 
@@ -385,7 +387,6 @@ const PRODUCE_WORDS = [
 	'pruning',
 	'trellising',
 	'preparing crops',
-	'other field',
 	'crops',
 	'estimating yield',
 	'other harvest',
@@ -407,7 +408,7 @@ const PRODUCE_WORDS = [
  * @returns The icon name or a default icon if no match is found
  */
 
-export function getIconNameForArable(crop?: string | undefined, note?: string | null): string {
+export function getIconNameForArable(crop?: string | undefined, note?: string | null, defaultIcon?: string): string {
 	if (crop) {
 		const regex = new RegExp(`\\b(${PRODUCE_WORDS.join('|')})`, 'gi');
 		const match = crop.replace('-', ' ').match(regex);
@@ -620,8 +621,6 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 					return 'barbed-wire-fence';
 				case 'preparing crops':
 					return 'protein-gluten-wheat';
-				case 'other field':
-					return 'truck-animal';
 				case 'crops':
 					return 'harvest-product';
 				case 'estimating yield':
@@ -648,11 +647,10 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 	}
 
 	if (note) {
-		return getIconNameForArable(note);
+		return getIconNameForArable(note, null, defaultIcon);
 	}
 
-	// return 'harvest-product';
-	return 'seedling';
+	return defaultIcon || 'seedling';
 }
 
 /**
@@ -711,6 +709,120 @@ export function getIconNameForLivestock(
 		return getIconNameForLivestock(note, null, defaultIcon);
 	}
 
-	// return 'harvest-product';
 	return defaultIcon || 'oat-2';
+}
+
+/**
+ * Get the icon name for farmers market using regex
+ * @param purchasedItem - The name of the purchased item
+ * @param note - Additional note that may contain livestock type
+ * @param defaultIcon - The default icon to return if no match is found
+ * @returns The icon name or a default icon if no match is found
+ */
+
+export function getIconNameForFarmersMarket(
+	purchasedItem?: string | null,
+	note?: string | null,
+	defaultIcon?: string,
+): string {
+	if (purchasedItem) {
+		// return 'seedling';
+		const FARMERS_MARKET_WORDS = [
+			'hay\\b',
+			'cow',
+			'calf',
+			'cattle',
+			'bull',
+			'sheep',
+		];
+
+		const regex = new RegExp(`\\b(${FARMERS_MARKET_WORDS.join('|')})`, 'gi');
+		const match = purchasedItem.replace('-', ' ').match(regex);
+		if (match) {
+			let matchedWord;
+			if (match.length === 1) {
+				matchedWord = match[0].toLowerCase();
+			} else {
+				// If multiple matches, choose the first match from produce words
+				const lcMatch = match.map((m) => m.toLowerCase());
+				matchedWord = FARMERS_MARKET_WORDS.find((word) => lcMatch.includes(word));
+			}
+
+			switch (matchedWord) {
+				case 'hay':
+					return 'farming-hay';
+				case 'cow':
+				case 'calf':
+				case 'cattle':
+				case 'bull':
+					return 'livestock-cow-body';
+				default:
+					console.log('Missing switchcase for crop:', purchasedItem);
+			}
+		}
+
+		console.log('No match found for crop:', purchasedItem);
+	}
+
+	if (note) {
+		return getIconNameForLivestock(note, null, defaultIcon);
+	}
+
+	return defaultIcon || 'farmers-market-kiosk';
+}
+
+
+/**
+ * Get icon name for any operation using regex
+ * @param details - GraphQL log details object
+ * @param defaultIcon - The default icon to return if no match is found
+ * @returns The icon name or a default icon if no match is found
+ */
+
+export function getIconNameForLog(
+  details: any,
+  preferActivityText?: boolean,
+  defaultIcon_?: string,
+) {
+  // "crop" is deprecation support -- it should be "item" going forward
+  const text1 = preferActivityText ? details.activity : (details.item || details.crop);
+  const text2 = preferActivityText ? (details.title + ' ' + details.notes) : details.notes;
+  const defaultIcon = (preferActivityText && COMMON_ICON_NAMES[details.activity]) || defaultIcon_;
+
+  // console.log('defaultIcon', preferActivityText, details.activity, defaultIcon);
+
+
+  switch (details.__typename) {
+    case 'LogArable':
+      return getIconNameForArable(text1, text2, defaultIcon);
+    case 'LogLivestock':
+      return getIconNameForLivestock(text1, text2, defaultIcon);
+    case 'LogFarmersMarket':
+      return getIconNameForFarmersMarket(text1, text2, defaultIcon);
+    default:
+      // titleIconName = COMMON_ICON_NAMES.document;
+  }
+
+  return 'circle';
+}
+
+/**
+ * Get title for log
+ */
+
+export function getTitleForLog(details: any): string {
+  switch (details.__typename) {
+    case 'LogArable':
+      return details.crop;
+    case 'LogFarmersMarket': {
+      // Check if text from values is short, else rely on the AI summary
+      const valuesText = (details.values || []).map((item: any) => item.label).join(', ');
+      if (valuesText.length <= 32) {
+        return valuesText;
+      }
+      return details.item;
+    }
+    default:
+  }
+  return details.item;
 }
