@@ -11,8 +11,7 @@ export const organizationFragment = `fragment organizationFragment on Organizati
     timeZone
     language
     color
-    manageInventory
-    manageActions
+    features
   }
 }`;
 
@@ -44,14 +43,16 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
   acl {
     id
     billing
+    compliance
     digests
+    finances
+    integrations
     logs
     members
-    finances
-    settings
-    integrations
     orgManagement
-    compliance
+    products
+    settings
+    viewData
   }
 }`;
 

@@ -1,12 +1,12 @@
-import type { OrganizationGQL, OrganizationRelData, OrganizationRelGQL, OrganizationSettingsObj } from '../types/organization.d';
+import type { OrganizationGQL, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
 import i18n from '../i18n';
-import { DEFAULT_TIMEZONE } from './timeZone.ts';
-import { COLORS } from '../constants/app.ts';
+import { DEFAULT_TIMEZONE } from './timeZone';
+import { COLORS } from '../constants/app';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
 
-const PERMISSION_TO_INT = {
+export const PERMISSION_TO_INT = {
 	NONE: 0,
 	READ: 1,
 	WRITE: 2,
@@ -14,6 +14,21 @@ const PERMISSION_TO_INT = {
 };
 
 const INT_TO_PERMISSION = Object.keys(PERMISSION_TO_INT);
+
+/**
+ * Get numeric value of role's permission level (used for comparisons)
+ * @param role - Role enum
+ */
+
+export function getRoleValue(role: OrganizationRoleEnum): number {
+	return [
+		'GUEST',
+		'MEMBER',
+		'MANAGER',
+		'ADMIN',
+		'OWNER',
+	].indexOf(role);
+}
 
 /**
  * Get default permissions by role
@@ -24,7 +39,8 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 	const acl: Record<string, any> = { ...orgRel?.acl };
 
 	for (const key in acl) {
-		if (typeof acl[key] === 'number') {
+		// if (typeof acl[key] === 'number') {
+		if (!isNaN(Number(acl[key]))) {
 			acl[key] = INT_TO_PERMISSION[acl[key]] || 'NONE';
 		}
 	}
@@ -41,44 +57,44 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 		case 'OWNER':
 			return {
 				billing: acl.billing || 'MANAGE',
-				digests: acl.digests || 'MANAGE', // 2/3 = receive digests, 1 = only see from web app
-				logs: acl.logs || 'MANAGE', // "READ" for logs does nothing
-				viewData: acl.viewData || 'MANAGE', // This blocks access from users being able to read other people's logs
-				members: acl.members || 'MANAGE',
-				finances: acl.finances || 'MANAGE',
-				settings: acl.settings || 'MANAGE',
-				integrations: acl.integrations || 'MANAGE',
-				reminders: acl.reminders || 'MANAGE',
-				orgManagement: acl.orgManagement || 'MANAGE',
 				compliance: acl.compliance || 'MANAGE',
+				digests: acl.digests || 'MANAGE', // 2/3 = receive digests, 1 = only see from web app
+				finances: acl.finances || 'MANAGE',
+				integrations: acl.integrations || 'MANAGE',
+				logs: acl.logs || 'MANAGE', // "READ" for logs does nothing
+				members: acl.members || 'MANAGE',
+				orgManagement: acl.orgManagement || 'MANAGE',
+				products: acl.products || 'MANAGE',
+				settings: acl.settings || 'MANAGE',
+				viewData: acl.viewData || 'MANAGE', // This blocks access from users being able to read other people's logs
 			};
 		case 'MANAGER':
 			return {
 				billing: acl.billing || 'READ',
-				digests: acl.digests || 'WRITE', // 2/3 = receive digests, 1 = only see from web app
-				logs: acl.logs || 'MANAGE', // "READ" for logs does nothing
-				viewData: acl.viewData || 'MANAGE', // This blocks access from users being able to read other people's logs
-				members: acl.members || 'WRITE',
-				finances: acl.finances || 'READ',
-				settings: acl.settings || 'READ',
-				integrations: acl.integrations || 'NONE',
-				reminders: acl.reminders || 'MANAGE',
-				orgManagement: acl.orgManagement || 'WRITE',
 				compliance: acl.compliance || 'WRITE',
+				digests: acl.digests || 'WRITE', // 2/3 = receive digests, 1 = only see from web app
+				finances: acl.finances || 'READ',
+				integrations: acl.integrations || 'NONE',
+				logs: acl.logs || 'MANAGE', // "READ" for logs does nothing
+				members: acl.members || 'WRITE',
+				orgManagement: acl.orgManagement || 'WRITE',
+				products: acl.products || 'READ',
+				settings: acl.settings || 'READ',
+				viewData: acl.viewData || 'MANAGE', // This blocks access from users being able to read other people's logs
 			};
 		case 'GUEST':
 			return {
 				billing: acl.billing || 'NONE',
-				digests: acl.digests || 'NONE',
-				logs: acl.logs || 'NONE',
-				viewData: acl.viewData || 'NONE',
-				members: acl.members || 'NONE',
-				finances: acl.finances || 'NONE',
-				settings: acl.settings || 'NONE',
-				integrations: acl.integrations || 'NONE',
-				reminders: acl.reminders || 'NONE',
-				orgManagement: acl.orgManagement || 'NONE',
 				compliance: acl.compliance || 'NONE',
+				digests: acl.digests || 'NONE',
+				finances: acl.finances || 'NONE',
+				integrations: acl.integrations || 'NONE',
+				logs: acl.logs || 'NONE',
+				members: acl.members || 'NONE',
+				orgManagement: acl.orgManagement || 'NONE',
+				products: acl.products || 'READ',
+				settings: acl.settings || 'NONE',
+				viewData: acl.viewData || 'NONE',
 			};
 		case 'MEMBER':
 		default:
@@ -86,16 +102,16 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 
 	return {
 		billing: acl.billing || 'NONE',
-		digests: acl.digests || 'NONE', // 2/3 = receive digests, 1 = only see from web app
-		logs: acl.logs || 'WRITE', // "READ" for logs does nothing
-		viewData: acl.viewData || 'NONE', // This blocks access from users being able to read other people's logs
-		members: acl.members || 'READ',
-		finances: acl.finances || 'NONE',
-		settings: acl.settings || 'READ',
-		integrations: acl.integrations || 'NONE',
-		reminders: acl.reminders || 'WRITE',
-    orgManagement: acl.orgManagement || 'READ',
 		compliance: acl.compliance || 'READ',
+		digests: acl.digests || 'NONE', // 2/3 = receive digests, 1 = only see from web app
+		finances: acl.finances || 'NONE',
+		integrations: acl.integrations || 'NONE',
+		logs: acl.logs || 'WRITE', // "READ" for logs does nothing
+		members: acl.members || 'READ',
+		orgManagement: acl.orgManagement || 'READ',
+		products: acl.products || 'READ',
+		settings: acl.settings || 'READ',
+		viewData: acl.viewData || 'NONE', // This blocks access from users being able to read other people's logs
 	};
 }
 
@@ -103,8 +119,8 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
  * Check if this account's ACL has required permissions for an action
  */
 
-export type ACLPermissionCheck = 'READ' | 'WRITE' | 'MANAGE';
 export type PermissionCheckFor = keyof ReturnType<typeof getDefaultPermissionsByRole>;
+export type ACLPermissionCheck = 'READ' | 'WRITE' | 'MANAGE';
 
 export function checkACLPermission(
 	orgRel: OrganizationRelGQL | OrganizationRelData | ViewerOrganization,
@@ -146,8 +162,8 @@ export function getOperationIconName(operation: string | null | undefined): stri
  */
 
 export function getTitleIconsForOrganization(
-  org: OrganizationGQL,
-  showIconsMap: Record<string, boolean> = {}
+	org: OrganizationGQL,
+	showIconsMap: Record<string, boolean> = {},
 ) {
 	const { operation, compliance } = org;
 	const titleIcons = [];
@@ -180,11 +196,11 @@ export function getTitleIconsForOrganization(
  */
 
 export function getDefaultOrganizationSettings(
-  timeZone: string | null,
-  // do params here for priority service + manage roles
+	timeZone: string | null,
+	// do params here for priority service + manage roles
 ): Partial<OrganizationSettingsObj> {
 	return {
 		timeZone: timeZone || DEFAULT_TIMEZONE,
-    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+		color: COLORS[Math.floor(Math.random() * COLORS.length)],
 	};
 }

@@ -1,4 +1,4 @@
-import { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
 
 /**
  * Constants
@@ -42,69 +42,48 @@ const PATH_TO_ROUTE_NAME = Object.entries(ROUTES_MAP).reduce((acc, [routeName, p
 const ROUTES_RULE: Record<string, {
   allowedOperations?: OrganizationOperationEnum[];
   notAllowedOperations?: OrganizationOperationEnum[];
-  requireManageInventory: boolean;
-  requireManageActions: boolean;
+  requiredFeature?: OrganizationFeatureEnum;
 }> = {
 
   // Arable
   'app/seeding': {
     allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
   },
   'app/transplanting': {
     allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
   },
   'app/field_work': {
     allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
   },
   'app/harvested': {
     allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
   },
   'app/post_harvest': {
     allowedOperations: ['ARABLE'],
-    requireManageInventory: false,
-    requireManageActions: false,
   },
 
   // Farmers Market
   'app/markets': {
     allowedOperations: ['FARMERS_MARKET'],
-    requireManageInventory: true,
-    requireManageActions: false,
+    requiredFeature: 'EVENTS',
   },
   'app/vendors': {
     allowedOperations: ['FARMERS_MARKET'],
-    requireManageInventory: false,
-    requireManageActions: false,
   },
   'app/purchases': {
     notAllowedOperations: ['FARMERS_MARKET'],
-    requireManageInventory: false,
-    requireManageActions: false,
   },
   'app/orders': {
     allowedOperations: ['ARABLE', 'LIVESTOCK'],
-    requireManageInventory: false,
-    requireManageActions: false,
   },
   'app/receipts': {
     allowedOperations: ['FARMERS_MARKET'],
-    requireManageInventory: false,
-    requireManageActions: true,
   },
 
   // Livestock
   'app/livestock': {
     allowedOperations: ['LIVESTOCK'],
-    requireManageInventory: true,
-    requireManageActions: false,
+    // requiredFeature: 'LIVESTOCK_ANIMALS', ??
   },
 };
 
@@ -177,15 +156,13 @@ export function doesRouteExist(routePath: string): boolean {
  * Check if this organization's operation allows access to this route path
  * @param routePath - Route path to check.
  * @param operation - Organization operation.
- * @param canManageInventory - Whether organization can manage inventory.
- * @param canManageActions - Whether organization can manage events.
+ * @param orgFeatures - Enabled features for organization.
  */
 
 export function isRouteAllowed(
   routePath: string,
   operation: OrganizationOperationEnum | null,
-  canManageInventory: boolean,
-  canManageActions: boolean
+  orgFeatures: OrganizationOperationEnum[] | null,
 ): boolean {
 
   const routeName = PATH_TO_ROUTE_NAME[routePath];
@@ -201,7 +178,7 @@ export function isRouteAllowed(
   return (
     (!routeRules.allowedOperations || routeRules.allowedOperations.includes(operation || '')) &&
     (!routeRules.notAllowedOperations || !routeRules.notAllowedOperations.includes(operation || '')) &&
-    (!routeRules.requireManageInventory || canManageInventory) &&
-    (!routeRules.requireManageActions || canManageActions)
+    // If {orgFeature} is null, assume data is not finished loading yet, and allow "benefit of doubt" access
+    (!orgFeatures || !routeRules.requiredFeature || orgFeatures.includes(routeRules.requiredFeature))
   );
 }

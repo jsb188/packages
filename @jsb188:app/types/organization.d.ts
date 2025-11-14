@@ -1,18 +1,20 @@
 import {
   COMPLIANCE_DOCUMENT_TYPE_ENUMS,
   OPERATION_ENUMS,
+  ORG_FEATURES,
   ROLE_CATEGORY_ENUMS,
   ROLE_ENUMS
 } from '../constants/organization.ts';
 
 import type { AccountData } from './account.d.ts';
-import type { StorageData } from './other.d.ts';
 import type { LogTypeEnum } from './log.d.ts';
+import type { StorageData } from './other.d.ts';
 
 /*
  * Enums
  */
 
+export type OrganizationFeatureEnum = typeof ORG_FEATURES[number];
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
@@ -74,8 +76,7 @@ export interface OrganizationSettingsObj {
 	language: string | null;
 	color: string | null;
 	priorityService: boolean;
-	manageInventory: boolean;
-	manageActions: boolean;
+	features: OrganizationFeatureEnum[];
 }
 
 export interface OrganizationChildData {
@@ -195,23 +196,23 @@ export interface OrganizationComplianceData extends Omit<OrganizationComplianceI
  */
 
 export interface OrganizationInstructionsData {
-  __table: 'organization_instructions';
-  id: bigint | number;
-  organizationId: bigint | number;
-  logType: LogTypeEnum;
-  instructions: string;
-  summary: string;
-  createdAt: Date;
-  updatedAt: Date;
+	__table: 'organization_instructions';
+	id: bigint | number;
+	organizationId: bigint | number;
+	logType: LogTypeEnum;
+	instructions: string;
+	summary: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface OrganizationInstructionsGQL {
-  __deleted?: boolean;
-  id: string;
-  organizationId: string;
-  logType: LogTypeEnum;
-  instructions: string;
-  summary: string;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
+	__deleted?: boolean;
+	id: string;
+	organizationId: string;
+	logType: LogTypeEnum;
+	instructions: string;
+	summary: string;
+	createdAt: string; // ISO date string
+	updatedAt: string; // ISO date string
 }

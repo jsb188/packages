@@ -11,7 +11,13 @@ export const OPERATION_ENUMS = [
 ];
 
 export const PARENT_ORG_OPERATIONS = [
-  'FARMERS_MARKET',
+	'FARMERS_MARKET',
+];
+
+// Features
+
+export const ORG_FEATURES = [
+  'EVENTS',
 ];
 
 // Employee ACL
