@@ -4,9 +4,9 @@ import {
   PRODUCT_LIVESTOCK_TYPES,
   PRODUCT_TYPES
 } from '@jsb188/app/constants/product';
+import type { AccountData } from '@jsb188/app/types/account.d';
+import type { OrganizationData, OrganizationGQL } from '@jsb188/app/types/organization.d';
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
-import type { OrganizationData, OrganizationGQL } from '@jsb188/app/types/organization.d.ts';
-import type { AccountData } from '@jsb188/app/types/account.d.ts';
 
 /**
  * Enums
@@ -22,31 +22,26 @@ export type ProductEventFrequencyEnum = typeof PRODUCT_EVENT_FREQUENCY[number];
  */
 
 export interface ProductsFilterArgs {
-  preset?: '?' | null;
+	preset?: '?' | null;
 	productType: ProductTypeEnum;
-  query?: string | null;
-  timeZone?: string | null; // Server only for now
+	query?: string | null;
+	timeZone?: string | null; // Server only for now
 	// status: ProductLivestockStatusEnum;
-}
-
-/**
- * Product details base
- */
-
-interface ProductDetailsBase {
-	id?: number;
-	productId: number;
-	metadata: {
-		overview: string;
-	};
 }
 
 /**
  * Product details; Livestock
  */
 
-export interface ProductLivestockObj extends ProductDetailsBase {
+export interface ProductLivestockObj {
+  // This interface is not ready yet; old system has to be migrated.
+  '?': '?';
+}
+
+export interface ProductLivestockData {
 	__table: 'products_livestock';
+	id?: number | bigint;
+	productId: number | bigint;
 	type: ProductLivestockTypeEnum;
 	status: ProductLivestockStatusEnum;
 	birthDate?: string | null; // "YYYY-MM-DD"
@@ -54,6 +49,9 @@ export interface ProductLivestockObj extends ProductDetailsBase {
 	damIdentifier?: string | null;
 	livestockIdentifier: string;
 	livestockGroup?: string | null;
+  metadata: {
+    overview: string;
+  }
 }
 
 export interface ProductLivestockGQL {
@@ -75,41 +73,35 @@ export interface ProductLivestockGQL {
  * Product details; Calendar event
  */
 
-export interface ProductCalendarEventObj extends Omit<ProductDetailsBase, 'metadata'> {
-	__table: 'products_calendar_events';
-	organizationId: number;
-
-	title: string;
-	frequency: ProductEventFrequencyEnum;
-	metadata: {
-		overview: string;
+export interface ProductCalendarEventObj {
+	name: string;
+	metadata: Partial<{
 		schedule: ScheduleObj | null;
-		address: AddressObj | null;
-	};
+		address: Partial<AddressObj> | null;
+	}>;
 
-	startAt: Date;
-	endAt: Date;
+	startAt: Date | string; // ISO Date string
+	endAt?: Date | string | null; // ISO Date string
+}
 
-	createdAt: Date;
-	updatedAt: Date;
+export interface ProductCalendarEventData extends ProductCalendarEventObj {
+	__table: 'products_calendar_events';
+	productId: number | bigint;
 }
 
 export interface ProductCalendarEventGQL {
 	id: string;
 	organizationId: string;
 
-	title: string;
-	frequency: ProductEventFrequencyEnum;
+	name: string;
 	schedule: ScheduleObj | null;
 	address: AddressObj | null;
 	startAt: Date;
 	endAt: Date;
-
-	createdAt: Date;
-	updatedAt: Date;
 }
 
 export type ProductDetailsObj = ProductLivestockObj | ProductCalendarEventObj;
+export type ProductDetailsData = ProductLivestockData | ProductCalendarEventData;
 export type ProductDetailsGQL = ProductLivestockGQL | ProductCalendarEventGQL;
 
 /**
@@ -144,33 +136,25 @@ export interface ProductAttendanceGQL {
 }
 
 /**
- * Product data object
+ * Product data objects
  */
 
-export interface ProductObj {
+export interface ProductData {
 	__table: 'products';
-	id: number;
-	organizationId: number;
-	details: ProductDetailsObj | null;
-
+	productId: number | bigint;
+	organizationId: number | bigint;
+	details: ProductDetailsData;
 	createdAt: Date;
 	updatedAt: Date;
 }
 
-/**
- * GraphQL Data
- */
-
 export interface ProductGQL {
-  __deleted: boolean; // For client-side only
+	__deleted?: boolean; // For client-side only
 
 	id: string;
 	organizationId: string;
 	cursor: string | null; // Cursor for pagination
 	details: ProductDetailsGQL | null;
-	metadata: {
-		overview: string;
-	};
 
 	createdAt: string; // ISO Date
 	updatedAt: string; // ISO Date

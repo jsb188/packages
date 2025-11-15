@@ -17,7 +17,8 @@ export const PARENT_ORG_OPERATIONS = [
 // Features
 
 export const ORG_FEATURES = [
-  'EVENTS',
+  'CAL_EVENTS',
+  'CAL_EVENTS_ATTENDANCE'
 ];
 
 // Employee ACL

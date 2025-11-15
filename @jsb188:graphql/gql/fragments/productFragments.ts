@@ -16,24 +16,13 @@ export const productCalendarEventFragment = `fragment productCalendarEventFragme
   __typename
 
   id
-	organizationId
-
-  title
-  frequency
+  name
 
   schedule {
+    frequency
     interval
-    byDay
-    byMonthDay
-    byMonth
+    daysOfWeek
     time
-    time_SU
-    time_MO
-    time_TU
-    time_WE
-    time_TH
-    time_FR
-    time_SA
   }
 
   address {
@@ -47,8 +36,6 @@ export const productCalendarEventFragment = `fragment productCalendarEventFragme
 
   startAt
   endAt
-	createdAt
-	updatedAt
 }`;
 
 export const productAttendanceFragment = `fragment productAttendanceFragment on ProductAttendance {

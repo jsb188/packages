@@ -65,7 +65,7 @@ const ROUTES_RULE: Record<string, {
   // Farmers Market
   'app/markets': {
     allowedOperations: ['FARMERS_MARKET'],
-    requiredFeature: 'EVENTS',
+    requiredFeature: 'CAL_EVENTS',
   },
   'app/vendors': {
     allowedOperations: ['FARMERS_MARKET'],

@@ -71,14 +71,14 @@ function getMonthsDiff(date1: Date, date2: Date) {
 
 export function getWeeksMonthAgo(d1: Date, d2: Date, weeksThresh = 12): string {
 	const diffWeeks = getWeeksDiff(d2, d1);
-  if (diffWeeks === 0) {
-    return i18n.t('datetime.period_THIS_WEEK');
-  } else if (diffWeeks <= weeksThresh) {
+	if (diffWeeks === 0) {
+		return i18n.t('datetime.period_THIS_WEEK');
+	} else if (diffWeeks <= weeksThresh) {
 		return i18n.t('datetime.weeks_ago_ct', { smart_count: diffWeeks });
 	}
 
-  const diffMonths = getMonthsDiff(d2, d1);
-  return i18n.t('datetime.months_ago_ct', { smart_count: diffMonths });
+	const diffMonths = getMonthsDiff(d2, d1);
+	return i18n.t('datetime.months_ago_ct', { smart_count: diffMonths });
 }
 
 /**
@@ -273,9 +273,9 @@ export function getCalDate(d: Date, timeZone_?: string | null) {
  */
 
 export function getReadableCalDate(d: Date, timeZone?: string | null) {
-  if (!d || isNaN(d.getTime())) {
-    return null;
-  }
+	if (!d || isNaN(d.getTime())) {
+		return null;
+	}
 
 	let dt = DateTime.fromJSDate(d, { zone: timeZone || undefined });
 	// If timezone is invalid, fallback to system/local
@@ -284,8 +284,8 @@ export function getReadableCalDate(d: Date, timeZone?: string | null) {
 	}
 
 	if (!dt.isValid) {
-    return null;
-  }
+		return null;
+	}
 
 	return dt.toFormat('MM/dd/yyyy');
 }
@@ -357,13 +357,17 @@ export function updateDate(
  * Convert Int cal date to String YYYY-MM-DD format
  */
 
-export function convertIntToCalDate(calDateInt: number | string, delimiter: string = '-', yearsFirst: boolean = true): string {
+export function convertIntToCalDate(
+	calDateInt: number | string,
+	delimiter: string = '-',
+	yearsFirst: boolean = true,
+): string {
 	const value = String(calDateInt);
 	if (value.length === 8) {
-    if (yearsFirst) {
-      return `${value.slice(0, 4)}${delimiter}${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}`;
-    }
-    return `${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}${delimiter}${value.slice(0, 4)}`;
+		if (yearsFirst) {
+			return `${value.slice(0, 4)}${delimiter}${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}`;
+		}
+		return `${value.slice(4, 6)}${delimiter}${value.slice(6, 8)}${delimiter}${value.slice(0, 4)}`;
 	}
 	// If not 8 digits, return as is
 	return value;
@@ -513,7 +517,7 @@ export function getFullDate(
 	d_: Date | string | number | null,
 	outputStyle_:
 		| 'NUMERIC'
-    | 'NUMERIC_TIME'
+		| 'NUMERIC_TIME'
 		| 'DATE_ONLY_SHORT'
 		| 'DAY_IF_WEEK'
 		| 'TOMORROW_OR_NUMERIC'
@@ -543,13 +547,11 @@ export function getFullDate(
 			// return "Monday", "Tuesday", etc.
 			const dayOfWeekText = d.toLocaleDateString(locales, {
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
-        ...(outputStyle_ === 'TOMORROW_OR_NUMERIC' ? {
-
-        } : {
-          weekday: 'long',
-        })
+				...(outputStyle_ === 'TOMORROW_OR_NUMERIC' ? {} : {
+					weekday: 'long',
+				}),
 			});
-      return dayOfWeekText;
+			return dayOfWeekText;
 		}
 
 		outputStyle = 'NUMERIC';
@@ -563,11 +565,11 @@ export function getFullDate(
 			return new Intl.DateTimeFormat(locales, {
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
-    case 'NUMERIC_TIME':
-      // Expected output: "9/1/2024, 8:30 PM"
+		case 'NUMERIC_TIME':
+			// Expected output: "9/1/2024, 8:30 PM"
 			return new Intl.DateTimeFormat(locales, {
-        dateStyle: 'short', // ie. "08/10/2025"
-        timeStyle: 'short', // ie. "8:00 AM"
+				dateStyle: 'short', // ie. "08/10/2025"
+				timeStyle: 'short', // ie. "8:00 AM"
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
 		case 'MINIMAL':
@@ -577,32 +579,32 @@ export function getFullDate(
 				timeStyle: 'short', // 'full', 'long', 'medium', 'short'
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
-    case 'DATE_ONLY_SHORT': {
+		case 'DATE_ONLY_SHORT': {
 			// Expected output: "Sep 1" (or "Sep 1, 2025" if not current year)
-      const dateYear = d.getFullYear();
-      const currentYear = new Date().getFullYear();
+			const dateYear = d.getFullYear();
+			const currentYear = new Date().getFullYear();
 
-      // This will crash because "medium" style with "numeric" year is not allowed
-      // return new Intl.DateTimeFormat(locales, {
+			// This will crash because "medium" style with "numeric" year is not allowed
+			// return new Intl.DateTimeFormat(locales, {
 			// 	dateStyle: 'medium',
-      //   year: dateYear === currentYear ? undefined : 'numeric',
+			//   year: dateYear === currentYear ? undefined : 'numeric',
 			// 	timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			// }).format(d);
 
-      if (dateYear === currentYear) {
-        return new Intl.DateTimeFormat(locales, {
-          year: undefined,
-          month: 'short',
-          day: 'numeric',
-          timeZone: timeZone || undefined, // null is not allowed, it will throw error
-        }).format(d);
-      }
+			if (dateYear === currentYear) {
+				return new Intl.DateTimeFormat(locales, {
+					year: undefined,
+					month: 'short',
+					day: 'numeric',
+					timeZone: timeZone || undefined, // null is not allowed, it will throw error
+				}).format(d);
+			}
 
-      return new Intl.DateTimeFormat(locales, {
-        dateStyle: 'medium',
-        timeZone: timeZone || undefined, // null is not allowed, it will throw error
-      }).format(d);
-    }
+			return new Intl.DateTimeFormat(locales, {
+				dateStyle: 'medium',
+				timeZone: timeZone || undefined, // null is not allowed, it will throw error
+			}).format(d);
+		}
 		case 'DATE_TEXT':
 			// Expected output: "September 1, 2024"
 			return new Intl.DateTimeFormat(locales, {
@@ -656,7 +658,7 @@ export function getDayPeriod(): 'MORNING' | 'AFTERNOON' | 'EVENING' | 'NIGHT' {
  */
 
 export function getDateFromCalDate(value: string | number, timeZone?: string | null): Date {
-  const calDate = typeof value === 'number' ? convertIntToCalDate(value) : value;
+	const calDate = typeof value === 'number' ? convertIntToCalDate(value) : value;
 	const dt = DateTime.fromISO(calDate, timeZone ? { zone: timeZone } : undefined);
 	const jsDate = dt.toJSDate();
 	// const [year, month, day] = calDate.split('-');
@@ -860,4 +862,43 @@ export function getExpirationColor(
 	} else {
 		return 'green'; // Valid
 	}
+}
+
+/**
+ * Get HHMM time from "hh:mm" string
+ */
+
+export function timeToHHMM(timeStr: string): string {
+  const [hh, mm] = timeStr.split(':');
+  if (hh && mm) {
+    return `${hh.padStart(2, '0')}${mm.padStart(2, '0')}`;
+  }
+  return timeStr.padStart(4, '0');
+}
+
+/**
+ * Get "hh:mm" string from HHMM time
+ */
+
+export function hhmmToTime(hhmm: string, addAMPM: boolean): string {
+  let hh, mm;
+  if (hhmm.length === 4) {
+    hh = hhmm.slice(0, 2);
+    mm = hhmm.slice(2, 4);
+  } else if (hhmm.length === 3) {
+    hh = hhmm.slice(0, 1);
+    mm = hhmm.slice(1, 3);
+  }
+
+  if (hh) {
+    if (addAMPM) {
+      const hourNum = parseInt(hh, 10);
+      const ampm = hourNum >= 12 ? 'PM' : 'AM';
+      const hour12 = hourNum % 12 === 0 ? 12 : hourNum % 12;
+      return `${hour12}:${mm} ${ampm}`;
+    }
+    return `${hh}:${mm}`;
+  }
+
+  return hhmm;
 }

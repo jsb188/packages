@@ -1,3 +1,11 @@
+import { DAY_OF_WEEK, SCHEDULE_FREQUENCY } from '../constants/other.ts';
+
+/**
+ * Enums
+ */
+
+export type DayOfWeekEnum = typeof DAY_OF_WEEK[number];
+export type ScheduleFrequencyEnum = typeof SCHEDULE_FREQUENCY[number];
 
 /**
  * Storage
@@ -21,12 +29,12 @@ export interface StorageData {
  */
 
 export interface AddressObj {
-  line1: string;
-  line2?: string | null;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
+	line1: string;
+	line2?: string | null;
+	city: string;
+	state: string;
+	postalCode: string;
+	country: string;
 }
 
 /**
@@ -34,17 +42,8 @@ export interface AddressObj {
  */
 
 export interface ScheduleObj {
+  frequency: ScheduleFrequencyEnum;
   interval: number;
-  byDay: DayOfWeekEnum[];
-  byMonthDay: number[];
-  byMonth: number[];
-  once: boolean;
-  time: [number, number];
-  time_SU: [number, number];
-  time_MO: [number, number];
-  time_TU: [number, number];
-  time_WE: [number, number];
-  time_TH: [number, number];
-  time_FR: [number, number];
-  time_SA: [number, number];
+  daysOfWeek: (0|1|2|3|4|5|6)[];
+  time: string; // "hhmm" format
 }

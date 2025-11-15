@@ -1,7 +1,7 @@
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
 import type { ProductAttendanceObj, ProductCalendarEventGQL, ProductCalendarEventObj, ProductEventFrequencyEnum, ProductGQL } from '@jsb188/mday/types/product.d';
 import { DateTime } from 'luxon';
-import { DAY_OF_WEEK } from '../constants/other';
+import { DAY_OF_WEEK_DEPREC } from '../constants/other';
 import i18n from '../i18n';
 import { getFullDate } from './datetime';
 import { convertToMilitaryTime } from './number';
@@ -162,7 +162,7 @@ export function getReadableSchedule(eventDetails: ProductCalendarEventObj | Prod
   const schedule = eventDetails.schedule || eventDetails.metadata?.schedule || {} as ScheduleObj;
 	const defaultSchedTime = schedule.time || [];
 
-	return DAY_OF_WEEK.map((day) => {
+	return DAY_OF_WEEK_DEPREC.map((day) => {
 		const isScheduled = schedule.byDay?.includes(day);
 		if (!isScheduled) {
 			return '';
@@ -212,7 +212,7 @@ export function getScheduleIcons(eventDetails: ProductCalendarEventGQL, alwaysFi
 	const defaultSchedTime = schedule.time || [];
 
 	// Use this if if you want to only show what's scheduled
-	// const labelIcons = orderBy(schedule.byDay || [], (day) => DAY_OF_WEEK.indexOf(day)).map((day) => {
+	// const labelIcons = orderBy(schedule.byDay || [], (day) => DAY_OF_WEEK_DEPREC.indexOf(day)).map((day) => {
 	// 	const dayLetter = day.charAt(0).toLowerCase();
 	//   const daySchedTime = schedule?.[`time_${day}` as keyof ScheduleObj] || defaultSchedTime;
 	//   const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
@@ -230,7 +230,7 @@ export function getScheduleIcons(eventDetails: ProductCalendarEventGQL, alwaysFi
 	// 	};
 	// });
 
-	const labelIcons = DAY_OF_WEEK.map((day) => {
+	const labelIcons = DAY_OF_WEEK_DEPREC.map((day) => {
 		const isScheduled = schedule.byDay?.includes(day);
 		const dayLetter = day.charAt(0).toLowerCase();
 		const daySchedTime = (schedule?.[`time_${day}` as keyof ScheduleObj] || defaultSchedTime) as [number, number];
@@ -270,7 +270,7 @@ export function getDayOfWeekIcons(
   const minute = luxonDate.toFormat('mm');
   const dayOfWeekCode = dayOfWeek.slice(0, 2).toUpperCase();
 
-	const labelIcons = DAY_OF_WEEK.map((day) => {
+	const labelIcons = DAY_OF_WEEK_DEPREC.map((day) => {
 		const isScheduled = day === dayOfWeekCode;
 		const dayLetter = day.charAt(0).toLowerCase();
 		const startTime = includeTime ? ` - ${hour}:${minute}` : '';
@@ -422,7 +422,7 @@ export function isScheduledDate(
 		case 'DAILY':
 			return true;
 		case 'WEEKLY': {
-			const dateDay = DAY_OF_WEEK[date.getDay()];
+			const dateDay = DAY_OF_WEEK_DEPREC[date.getDay()];
 			return byDay.includes(dateDay);
 		}
 		default:
