@@ -3,8 +3,8 @@
  */
 
 export const PRODUCT_TYPES = [
-  'LIVESTOCK',
-  'CALENDAR_EVENT',
+	'LIVESTOCK',
+	'CAL_EVENTS',
 ];
 
 /**
@@ -33,6 +33,8 @@ export const PRODUCT_LIVESTOCK_STATUS = [
  */
 
 export const PRODUCT_EVENT_FREQUENCY = [
-  'ONCE',
-  'WEEKLY',
+	'ONCE',
+	'WEEKLY',
+	'MONTHLY',
+	'YEARLY',
 ];
