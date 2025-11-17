@@ -669,7 +669,7 @@ export function makeLogMetadataSchema(
     default:
   }
 
-  if (isAITask) {
+  if (!isAITask) {
     activitiesList = activitiesList.filter(([type]) => type !== 'AI_TASK');
   }
 

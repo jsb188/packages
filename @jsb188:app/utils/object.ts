@@ -35,11 +35,11 @@ export function removeUndefined<T>(obj: T, removeNull?: boolean, removeFalsy?: b
 			if (
 				obj[key] === undefined ||
 				(removeNull && obj[key] === null) ||
-        (removeFalsy && !obj[key])
+				(removeFalsy && !obj[key])
 			) {
 				delete obj[key];
 			} else if (obj[key] && typeof obj[key] === 'object') {
-				removeUndefined(obj[key], removeNull);
+				removeUndefined(obj[key], removeNull, removeFalsy);
 			}
 		}
 	}

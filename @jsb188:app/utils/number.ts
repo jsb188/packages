@@ -243,9 +243,12 @@ export function kFormat(
  * Convert number based time to military time format (e.g., 1300 to 13:00)
  */
 
-export function convertToMilitaryTime(time: number | string): string {
-	const timeString = String(time).padStart(4, '0');
-	return `${timeString.slice(0, 2)}:${timeString.slice(2)}`;
+export function convertToMilitaryTime(time?: number | string | null): string | null {
+  if (time) {
+    const timeString = String(time).padStart(4, '0');
+    return `${timeString.slice(0, 2)}:${timeString.slice(2)}`;
+  }
+  return null;
 }
 
 /**

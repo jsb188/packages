@@ -2492,3 +2492,13 @@ export function getDayLightSavingsInfo(tz: string, d?: Date) {
 		offsetShift, // hours
 	};
 }
+
+/**
+ * Get time in time zone
+ */
+
+export function getTimeFromDate(date: Date, timeZone?: string | null): string {
+  const luxonDate = DateTime.fromJSDate(date).setZone(timeZone || DEFAULT_TIMEZONE);
+  const timeStr = String(luxonDate.hour * 100 + luxonDate.minute).padStart(4, '0');
+	return `${timeStr.slice(0, 2)}:${timeStr.slice(2)}`;
+}

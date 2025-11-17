@@ -27,14 +27,3 @@ export const PRODUCT_LIVESTOCK_STATUS = [
 	'SOLD',
 	'DECEASED',
 ];
-
-/**
- * Products; Calendar Event
- */
-
-export const PRODUCT_EVENT_FREQUENCY = [
-	'ONCE',
-	'WEEKLY',
-	'MONTHLY',
-	'YEARLY',
-];

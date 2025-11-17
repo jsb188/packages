@@ -13,6 +13,7 @@ import {
  */
 
 export type LogActionStatusEnum = (typeof LOG_ACTION_STATUS_ENUMS)[number];
+export type LogContentType = 'log' | 'ai_task' | 'invoice' | 'receipt'; // For UI visuals, client-side only
 
 /**
  * Arable

@@ -1,9 +1,4 @@
-import {
-  PRODUCT_EVENT_FREQUENCY,
-  PRODUCT_LIVESTOCK_STATUS,
-  PRODUCT_LIVESTOCK_TYPES,
-  PRODUCT_TYPES
-} from '@jsb188/app/constants/product';
+import { PRODUCT_LIVESTOCK_STATUS, PRODUCT_LIVESTOCK_TYPES, PRODUCT_TYPES } from '@jsb188/app/constants/product';
 import type { AccountData } from '@jsb188/app/types/account.d';
 import type { OrganizationData, OrganizationGQL } from '@jsb188/app/types/organization.d';
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
@@ -15,7 +10,6 @@ import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
 export type ProductTypeEnum = typeof PRODUCT_TYPES[number];
 export type ProductLivestockTypeEnum = typeof PRODUCT_LIVESTOCK_TYPES[number];
 export type ProductLivestockStatusEnum = typeof PRODUCT_LIVESTOCK_STATUS[number];
-export type ProductEventFrequencyEnum = typeof PRODUCT_EVENT_FREQUENCY[number];
 
 /**
  * Filters

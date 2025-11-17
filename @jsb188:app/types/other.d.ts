@@ -42,8 +42,11 @@ export interface AddressObj {
  */
 
 export interface ScheduleObj {
-  frequency: ScheduleFrequencyEnum;
-  interval: number;
-  daysOfWeek: (0|1|2|3|4|5|6)[];
-  time: string; // "hhmm" format
+	frequency: ScheduleFrequencyEnum;
+	interval: number;
+	daysOfWeek: (0 | 1 | 2 | 3 | 4 | 5 | 6)[];
+	time: [
+    string, // Star time "hhmm" format
+    string? // End time "hhmm" format (optional)
+  ];
 }

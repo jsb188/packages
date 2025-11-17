@@ -137,12 +137,14 @@ export const TDColMain = memo((p: Partial<{
 }>) => {
   const { __deleted, iconName, avatarColor, avatarDisplayName, titleClassName, labelIcons } = p;
   const hasAvatar = !!(iconName || avatarDisplayName);
-  const placeholderText = p.placeholderText ?? '-';
 
   let title = p.title;
   if (__deleted) {
     title = i18n.t('form.deleted');
   }
+
+  const placeholderText = p.placeholderText ?? '-';
+  const showPlaceholder = !p.title && !!placeholderText && !labelIcons;
 
   return <span className='h_item'>
     {hasAvatar && (
@@ -160,14 +162,14 @@ export const TDColMain = memo((p: Partial<{
       </AvatarImg>
     )}
 
-    {(title || placeholderText) && (
+    {(title || showPlaceholder) && (
       <span className={cn('ellip shift_down', !title && 'cl_darker_2', titleClassName)}>
         {title || placeholderText}
       </span>
     )}
 
     {labelIcons && (
-      <span className={cn('f_shrink h_item gap_1', hasAvatar || title || placeholderText ? 'ml_10' : undefined)}>
+      <span className={cn('f_shrink h_item gap_1', hasAvatar || title || showPlaceholder ? 'ml_10' : undefined)}>
         <LabelsAndIcons
           items={labelIcons}
         />

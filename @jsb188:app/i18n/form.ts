@@ -147,6 +147,8 @@ export default {
     started: 'Started',
     end: 'End',
     time: 'Time',
+    start_time: 'Start time',
+    end_time: 'End time',
     time_with_zone: 'Time (%{timeZone})',
     not_specified: 'Not specified',
     attendance: 'Attendance',
@@ -208,25 +210,5 @@ export default {
 			en: 'English',
       es: 'Spanish',
 		},
-
-    // Day of week
-    dayOfWeek: {
-      SU: 'Sunday',
-      MO: 'Monday',
-      TU: 'Tuesday',
-      WE: 'Wednesday',
-      TH: 'Thursday',
-      FR: 'Friday',
-      SA: 'Saturday',
-    },
-
-    // Schedule frequency
-    schedule_frequency: {
-      DAILY: 'Repeats daily',
-      WEEKLY: 'Repeats weekly',
-      BI_WEEKLY: 'Repeats every two weeks',
-      MONTHLY: 'Repeats monthly',
-      ONCE: 'One-time event', // This one is not part of the enums
-    }
   },
 };

@@ -9,7 +9,23 @@ import {
   LIVESTOCK_ACTIVITIES_GROUPED,
   LOG_TYPES_BY_OPERATION
 } from '../constants/log';
-import type { LogEntryDataObj, LogTypeEnum } from '../types/log.d';
+import type { LogEntryDataObj, LogTypeEnum, LogContentType } from '../types/log.d';
+
+/**
+ * Get content type for log by activity
+ */
+
+export function getLogContentType(activity: string): LogContentType {
+  const value = {
+    'SALE_PRODUCE_ORDER': 'invoice',
+    'OTHER_SALE_ORDER': 'invoice',
+    'FEED_PURCHASE': 'invoice',
+    'OTHER_SUPPLY_PURCHASE_ACTIVITY': 'invoice',
+    'MARKET_CREDIT_RECEIPT': 'receipt',
+  }[activity as string] || 'log';
+
+  return value as LogContentType;
+}
 
 /**
  * Map log type to a color
@@ -761,11 +777,11 @@ export function getIconNameForFarmersMarket(
 			}
 		}
 
-		console.log('No match found for crop:', purchasedItem);
+		// console.log('No match found for farmers market:', purchasedItem);
 	}
 
 	if (note) {
-		return getIconNameForLivestock(note, null, defaultIcon);
+		return getIconNameForFarmersMarket(note, null, defaultIcon);
 	}
 
 	return defaultIcon || 'farmers-market-kiosk';
