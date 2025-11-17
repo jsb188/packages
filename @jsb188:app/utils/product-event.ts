@@ -2,7 +2,7 @@ import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
 import type { ProductAttendanceObj, ProductCalendarEventGQL, ProductCalendarEventObj } from '@jsb188/mday/types/product.d';
 import { DateTime } from 'luxon';
 import i18n from '../i18n';
-import { getFullDate } from './datetime';
+import { getFullDate, hhmmToTime } from './datetime';
 import { convertToMilitaryTime } from './number';
 import { DEFAULT_TIMEZONE, getTimeFromDate } from './timeZone';
 
@@ -201,7 +201,8 @@ export function getNextDateFromSchedule(
 	if (once) {
 		return {
 			date: startAt ? DateTime.fromISO(startAt.toString()).setZone(timeZone).toJSDate() : null,
-			text: getFullDate(startAt, 'TOMORROW_OR_NUMERIC', timeZone),
+			text: getFullDate(startAt, 'DATE_ONLY_SHORT', timeZone),
+			numericText: getFullDate(startAt, 'TOMORROW_OR_NUMERIC', timeZone),
 		};
 	}
 
@@ -254,14 +255,16 @@ export function getNextDateFromSchedule(
 
 	if (nextDate) {
 		return {
-			text: getFullDate(nextDate, 'TOMORROW_OR_NUMERIC', timeZone),
 			date: nextDate,
+			text: getFullDate(nextDate, 'DATE_ONLY_SHORT', timeZone),
+			numericText: getFullDate(nextDate, 'TOMORROW_OR_NUMERIC', timeZone),
 		};
 	}
 
 	return {
 		date: null,
-		text: '-',
+		numericText: '',
+		text: '',
 	};
 }
 
@@ -315,7 +318,7 @@ export function getTimeFromSchedule(
   }
 
   const [startTime, endTime] = timeSched;
-	return [convertToMilitaryTime(startTime), convertToMilitaryTime(endTime)];
+	return [hhmmToTime(startTime, true), endTime && hhmmToTime(endTime, true)];
 }
 
 /**

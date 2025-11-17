@@ -580,7 +580,7 @@ export function getFullDate(
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
 		case 'DATE_ONLY_SHORT': {
-			// Expected output: "Sep 1" (or "Sep 1, 2025" if not current year)
+			// Expected output: "Sep 1" (or "Sep 1, 25" if not current year)
 			const dateYear = d.getFullYear();
 			const currentYear = new Date().getFullYear();
 
@@ -601,7 +601,12 @@ export function getFullDate(
 			}
 
 			return new Intl.DateTimeFormat(locales, {
-				dateStyle: 'medium',
+        // Use this if you want 4 digit years
+				// dateStyle: 'medium',
+        // Use this if you want 2 digit years
+        year: '2-digit',
+        month: 'short',
+        day: 'numeric',
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
 		}
