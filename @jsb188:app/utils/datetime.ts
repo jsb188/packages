@@ -608,7 +608,7 @@ export function getFullDate(
         month: 'short',
         day: 'numeric',
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
-			}).format(d);
+			}).format(d).replace(', ', ', \'');
 		}
 		case 'DATE_TEXT':
 			// Expected output: "September 1, 2024"
@@ -879,31 +879,4 @@ export function timeToHHMM(timeStr: string): string {
     return `${hh.padStart(2, '0')}${mm.padStart(2, '0')}`;
   }
   return timeStr.padStart(4, '0');
-}
-
-/**
- * Get "hh:mm" string from HHMM time
- */
-
-export function hhmmToTime(hhmm: string, addAMPM: boolean): string {
-  let hh, mm;
-  if (hhmm.length === 4) {
-    hh = hhmm.slice(0, 2);
-    mm = hhmm.slice(2, 4);
-  } else if (hhmm.length === 3) {
-    hh = hhmm.slice(0, 1);
-    mm = hhmm.slice(1, 3);
-  }
-
-  if (hh) {
-    if (addAMPM) {
-      const hourNum = parseInt(hh, 10);
-      const ampm = hourNum >= 12 ? 'PM' : 'AM';
-      const hour12 = hourNum % 12 === 0 ? 12 : hourNum % 12;
-      return `${hour12}:${mm} ${ampm}`;
-    }
-    return `${hh}:${mm}`;
-  }
-
-  return hhmm;
 }

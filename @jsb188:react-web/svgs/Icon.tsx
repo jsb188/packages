@@ -197,6 +197,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
 
   // FARMERS MARKET - Icon Names for each log activity
   MARKET_CREDIT_RECEIPT: 'farming-sell-vegetable',
+  MARKET_ATTENDANCE: 'notes-tasks',
+  MARKET_LOAD_LIST: 'notes-tasks',
   VENDOR_NOTES: 'notes-tasks',
   EMPLOYEE_NOTES: 'notes-tasks',
   FARMERS_MARKET_NOTES: 'notes-tasks',

@@ -161,8 +161,8 @@ export function doesRouteExist(routePath: string): boolean {
 
 export function isRouteAllowed(
   routePath: string,
-  operation: OrganizationOperationEnum | null,
-  orgFeatures: OrganizationOperationEnum[] | null,
+  operation?: OrganizationOperationEnum | null,
+  orgFeatures?: OrganizationOperationEnum[] | null,
 ): boolean {
 
   const routeName = PATH_TO_ROUTE_NAME[routePath];

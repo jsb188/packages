@@ -73,6 +73,8 @@ export const FARMERS_MARKET_RECEIPT_TO_TEXT = {
 };
 
 export const FARMERS_MARKET_OPERATION_TO_TEXT = {
+  MARKET_ATTENDANCE: 'attendance for vendor',
+  MARKET_LOAD_LIST: 'vendor load list',
 	VENDOR_NOTES: 'notes about a vendor',
 	EMPLOYEE_NOTES: 'notes about an employee',
 	FARMERS_MARKET_NOTES: 'notes about farmers market',
@@ -147,7 +149,7 @@ export const AI_TASKS_TO_TEXT = {
 	AI_SEND_MESSAGE: 'message',
 	AI_REMINDER: 'reminder message',
 	AI_CHECK_IN: 'check-in message',
-  AI_SCHEDULED_TASK: 'scheduled task',
+	AI_SCHEDULED_TASK: 'scheduled task',
 };
 
 /**

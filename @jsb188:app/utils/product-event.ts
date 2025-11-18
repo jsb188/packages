@@ -2,9 +2,9 @@ import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
 import type { ProductAttendanceObj, ProductCalendarEventGQL, ProductCalendarEventObj } from '@jsb188/mday/types/product.d';
 import { DateTime } from 'luxon';
 import i18n from '../i18n';
-import { getFullDate, hhmmToTime } from './datetime';
+import { getFullDate } from './datetime';
 import { convertToMilitaryTime } from './number';
-import { DEFAULT_TIMEZONE, getTimeFromDate } from './timeZone';
+import { DEFAULT_TIMEZONE, hhmmFromDateOrTime } from './timeZone';
 
 /**
  * Get the address in a single line text format
@@ -306,7 +306,7 @@ export function getTimeFromSchedule(
   timeZone: string | null
 ) {
 	if ((!schedule?.frequency || schedule.frequency === 'ONCE') && date) {
-		return [getTimeFromDate(date, timeZone)];
+		return [hhmmFromDateOrTime(null, date, true, timeZone)];
 	}
 
 	const timeSched = schedule!.time;
@@ -318,7 +318,10 @@ export function getTimeFromSchedule(
   }
 
   const [startTime, endTime] = timeSched;
-	return [hhmmToTime(startTime, true), endTime && hhmmToTime(endTime, true)];
+	return [
+    hhmmFromDateOrTime(startTime, null, true, timeZone),
+    endTime && hhmmFromDateOrTime(endTime, null, true, timeZone)
+  ];
 }
 
 /**

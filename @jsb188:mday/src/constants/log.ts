@@ -34,7 +34,7 @@ export const AI_TASKS_GROUP: [string, string[]] = [
 		'AI_SEND_MESSAGE',
 		'AI_REMINDER',
 		'AI_CHECK_IN',
-    'AI_SCHEDULED_TASK',
+		'AI_SCHEDULED_TASK',
 	],
 ];
 
@@ -150,15 +150,17 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 		'MARKET_RECEIPTS',
 		[
 			'MARKET_CREDIT_RECEIPT',
-		],
+		]
 	],
 	[
 		'MARKET_OPERATIONS',
 		[
+			'MARKET_ATTENDANCE',
+			'MARKET_LOAD_LIST',
 			'VENDOR_NOTES',
 			'EMPLOYEE_NOTES',
 			'FARMERS_MARKET_NOTES',
-		],
+		]
 	],
 ];
 

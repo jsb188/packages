@@ -2495,10 +2495,52 @@ export function getDayLightSavingsInfo(tz: string, d?: Date) {
 
 /**
  * Get time in time zone
+ * @param hhmmStr - Time string in "HHMM" format
+ * @param date - Date object or date string to extract time from if hhmmStr is not provided
+ * @param addAMPM - If true, return time in "HH:MM AM/PM" format, otherwise "HH:MM" format
+ * @param timeZone - Timezone string (IANA format), defaults to DEFAULT_TIMEZONE
+ * @returns {string} - Formatted time string
  */
 
-export function getTimeFromDate(date: Date, timeZone?: string | null): string {
-  const luxonDate = DateTime.fromJSDate(date).setZone(timeZone || DEFAULT_TIMEZONE);
-  const timeStr = String(luxonDate.hour * 100 + luxonDate.minute).padStart(4, '0');
-	return `${timeStr.slice(0, 2)}:${timeStr.slice(2)}`;
+export function hhmmFromDateOrTime(
+  hhmmStr: string | null,
+  dVal: Date | string | null,
+  addAMPM: boolean,
+  timeZone?: string | null
+): string {
+  let hhmm: string = '';
+  if (hhmmStr && /^[0-9]{3,4}$/.test(hhmmStr)) {
+    hhmm = hhmmStr;
+  } else if (dVal) {
+    let date;
+    if (typeof dVal === 'string') {
+      date = new Date(dVal);
+    } else {
+      date = dVal;
+    }
+
+    const luxonDate = DateTime.fromJSDate(date).setZone(timeZone || DEFAULT_TIMEZONE);
+    hhmm = String(luxonDate.hour * 100 + luxonDate.minute).padStart(4, '0');
+  }
+
+  let hh, mm;
+  if (hhmm.length === 4) {
+    hh = hhmm.slice(0, 2);
+    mm = hhmm.slice(2, 4);
+  } else if (hhmm.length === 3) {
+    hh = hhmm.slice(0, 1);
+    mm = hhmm.slice(1, 3);
+  }
+
+  if (hh) {
+    if (addAMPM) {
+      const hourNum = parseInt(hh, 10);
+      const ampm = hourNum >= 12 ? 'PM' : 'AM';
+      const hour12 = hourNum % 12 === 0 ? 12 : hourNum % 12;
+      return `${hour12}:${mm} ${ampm}`;
+    }
+    return `${hh}:${mm}`;
+  }
+
+  return '';
 }
