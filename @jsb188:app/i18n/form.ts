@@ -27,6 +27,8 @@ export default {
     for: 'For',
     apply: 'Apply',
     apply_filters: 'Apply filters',
+    content_missing: 'Content missing',
+    content_not_found_msg: 'The content you are looking for could not be found.',
     hide: 'Hide',
     show: 'Show',
     deleted: 'Deleted',
@@ -50,6 +52,7 @@ export default {
     submitted: 'Submitted',
     no_results: 'No results',
     change: 'Change',
+    loading_: 'Loading...',
     save: 'Save',
     saving_: 'Saving...',
     undo_changes: 'Undo changes',
@@ -209,6 +212,6 @@ export default {
 		lang: {
 			en: 'English',
       es: 'Spanish',
-		},
+		}
   },
 };

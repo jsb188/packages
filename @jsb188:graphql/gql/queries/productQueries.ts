@@ -1,7 +1,7 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
 import { organizationComplianceFragment, organizationFragment } from '../fragments/organizationFragments';
-import { productAttendanceFragment, productCalendarEventFragment, productFragment, productLivestockFragment } from '../fragments/productFragments';
+import { productAttendanceFragment, productCalEventFragment, productFragment, productLivestockFragment } from '../fragments/productFragments';
 
 export const productsListQry = gql`
 query productsList (
@@ -21,8 +21,8 @@ query productsList (
     ...productFragment
 
     details {
-      ...on ProductCalendarEvent {
-        ...productCalendarEventFragment
+      ...on ProductCalEvent {
+        ...productCalEventFragment
       }
       ...on ProductLivestock {
         ...productLivestockFragment
@@ -32,7 +32,7 @@ query productsList (
 }
 
 ${productFragment}
-${productCalendarEventFragment}
+${productCalEventFragment}
 ${productLivestockFragment}
 `;
 

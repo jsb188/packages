@@ -188,7 +188,7 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
       <Icon name={iconName} />
     </span>
 
-    <h1 className='ft_sm ft_bold ls_2 mb_4'>
+    <h1 className='ft_sm ft_semibold ls_2 mb_4'>
       {title}
     </h1>
 

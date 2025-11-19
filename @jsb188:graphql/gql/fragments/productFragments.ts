@@ -12,7 +12,7 @@ export const productFragment = `fragment productFragment on Product {
   updatedAt
 }`;
 
-export const productCalendarEventFragment = `fragment productCalendarEventFragment on ProductCalendarEvent {
+export const productCalEventFragment = `fragment productCalEventFragment on ProductCalEvent {
   __typename
 
   id
@@ -20,7 +20,7 @@ export const productCalendarEventFragment = `fragment productCalendarEventFragme
 
   schedule {
     frequency
-    interval
+    weeksOfMonth
     daysOfWeek
     time
   }
@@ -41,8 +41,9 @@ export const productCalendarEventFragment = `fragment productCalendarEventFragme
 export const productAttendanceFragment = `fragment productAttendanceFragment on ProductAttendance {
   id
   productId
-  attended
+  organizationId
   calDate
+  attended
 }`;
 
 export const productLivestockFragment = `fragment productLivestockFragment on ProductLivestock {

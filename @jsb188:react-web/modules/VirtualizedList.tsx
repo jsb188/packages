@@ -53,10 +53,12 @@ interface MapTableListOutput {
   __deleted: boolean;
   RowHeaderComponent?: React.ReactNode;
   rowHeaders?: Partial<TableHeaderObj>[] | null;
+  onClickProps?: any;
   columns: TableColumnElement[];
   // This will create another list of rows below the main row
   subRows?: {
     value: any;
+    onClickProps?: any;
     columns: TableColumnElement[]
   }[];
 }
@@ -138,7 +140,7 @@ type TableListProps = {
   headers?: Partial<TableHeaderObj>[] | null;
   listData: VZListItemObj[] | null;
   mapListData: MapTableListDataFn;
-  onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any) => void;
+  onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any, onClickProps?: any) => void;
 };
 
 /**
@@ -759,7 +761,7 @@ const TableListItem = (p: TableListProps & {
 
     <TRow
       __deleted={rowData.__deleted}
-      onClick={rowData.__deleted || !onClickRow ? undefined : () => onClickRow(item)}
+      onClick={rowData.__deleted || !onClickRow ? undefined : () => onClickRow(item, null, rowData.onClickProps)}
       doNotApplyGridToRows={doNotApplyGridToRows}
       gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
     >
@@ -771,7 +773,7 @@ const TableListItem = (p: TableListProps & {
         return <TRow
           key={k}
           className='rel z1'
-          onClick={onClickRow ? () => onClickRow(item, subRowItem.value) : undefined}
+          onClick={onClickRow ? () => onClickRow(item, subRowItem.value, subRowItem.onClickProps) : undefined}
           doNotApplyGridToRows={doNotApplyGridToRows}
           gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
         >

@@ -2503,44 +2503,44 @@ export function getDayLightSavingsInfo(tz: string, d?: Date) {
  */
 
 export function hhmmFromDateOrTime(
-  hhmmStr: string | null,
-  dVal: Date | string | null,
-  addAMPM: boolean,
-  timeZone?: string | null
+	hhmmStr: string | number | null,
+	dVal: Date | string | null,
+	addAMPM: boolean,
+	timeZone?: string | null,
 ): string {
-  let hhmm: string = '';
-  if (hhmmStr && /^[0-9]{3,4}$/.test(hhmmStr)) {
-    hhmm = hhmmStr;
-  } else if (dVal) {
-    let date;
-    if (typeof dVal === 'string') {
-      date = new Date(dVal);
-    } else {
-      date = dVal;
-    }
+	let hhmm: string = '';
+	if (hhmmStr && /^[0-9]{3,4}$/.test(String(hhmmStr))) {
+		hhmm = String(hhmmStr);
+	} else if (dVal) {
+		let date;
+		if (typeof dVal === 'string') {
+			date = new Date(dVal);
+		} else {
+			date = dVal;
+		}
 
-    const luxonDate = DateTime.fromJSDate(date).setZone(timeZone || DEFAULT_TIMEZONE);
-    hhmm = String(luxonDate.hour * 100 + luxonDate.minute).padStart(4, '0');
-  }
+		const luxonDate = DateTime.fromJSDate(date).setZone(timeZone || DEFAULT_TIMEZONE);
+		hhmm = String(luxonDate.hour * 100 + luxonDate.minute).padStart(4, '0');
+	}
 
-  let hh, mm;
-  if (hhmm.length === 4) {
-    hh = hhmm.slice(0, 2);
-    mm = hhmm.slice(2, 4);
-  } else if (hhmm.length === 3) {
-    hh = hhmm.slice(0, 1);
-    mm = hhmm.slice(1, 3);
-  }
+	let hh, mm;
+	if (hhmm.length === 4) {
+		hh = hhmm.slice(0, 2);
+		mm = hhmm.slice(2, 4);
+	} else if (hhmm.length === 3) {
+		hh = hhmm.slice(0, 1);
+		mm = hhmm.slice(1, 3);
+	}
 
-  if (hh) {
-    if (addAMPM) {
-      const hourNum = parseInt(hh, 10);
-      const ampm = hourNum >= 12 ? 'PM' : 'AM';
-      const hour12 = hourNum % 12 === 0 ? 12 : hourNum % 12;
-      return `${hour12}:${mm} ${ampm}`;
-    }
-    return `${hh}:${mm}`;
-  }
+	if (hh) {
+		if (addAMPM) {
+			const hourNum = parseInt(hh, 10);
+			const ampm = hourNum >= 12 ? 'PM' : 'AM';
+			const hour12 = hourNum % 12 === 0 ? 12 : hourNum % 12;
+			return `${hour12}:${mm} ${ampm}`;
+		}
+		return `${hh}:${mm}`;
+	}
 
-  return '';
+	return '';
 }

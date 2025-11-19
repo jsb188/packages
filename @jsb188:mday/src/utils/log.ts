@@ -9,13 +9,13 @@ import {
   LIVESTOCK_ACTIVITIES_GROUPED,
   LOG_TYPES_BY_OPERATION
 } from '../constants/log';
-import type { LogEntryDataObj, LogTypeEnum, LogContentType } from '../types/log.d';
+import type { LogEntryDataObj, LogTypeEnum, LogContentName } from '../types/log.d';
 
 /**
  * Get content type for log by activity
  */
 
-export function getLogContentType(activity: string): LogContentType {
+export function getLogContentName(activity: string): LogContentName {
   const value = {
     'SALE_PRODUCE_ORDER': 'invoice',
     'OTHER_SALE_ORDER': 'invoice',
@@ -24,7 +24,7 @@ export function getLogContentType(activity: string): LogContentType {
     'MARKET_CREDIT_RECEIPT': 'receipt',
   }[activity as string] || 'log';
 
-  return value as LogContentType;
+  return value as LogContentName;
 }
 
 /**

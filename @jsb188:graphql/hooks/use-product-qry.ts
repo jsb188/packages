@@ -74,7 +74,6 @@ export function useReactiveProductFragment(productId: string, currentData?: any,
  */
 
 export function useProductAttendance(
-  viewerAccountId: string,
   variables: {
     organizationId: string;
     productId: string;
@@ -92,19 +91,19 @@ export function useProductAttendance(
     ...params,
   });
 
-  const eventProduct = useReactiveProductFragment(productId);
+  console.log('skip', productId, calDate, organizationId);
+
+
   const productAttendanceList = data?.productAttendanceList;
-  const isMyDocument = !!viewerAccountId && eventProduct?.accountId === viewerAccountId;
-  const notReady = !organizationRelationship || !productAttendanceList || !eventProduct;
+  const notReady = !organizationRelationship || !productAttendanceList;
 
   const allowEdit = useMemo(() => {
-    return checkACLPermission(organizationRelationship, 'events', isMyDocument ? 'WRITE' : 'MANAGE');
+    return checkACLPermission(organizationRelationship, 'products', 'MANAGE');
   }, [organizationRelationship?.acl, organizationRelationship?.role]);
 
   // console.log('viewerAccountId', viewerAccountId, organizationEvent?.accountId, isMyDocument, allowEdit);
 
   return {
-    eventProduct,
     productAttendanceList,
     notReady,
     allowEdit,

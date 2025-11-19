@@ -49,6 +49,8 @@ export interface ProductLivestockData {
 }
 
 export interface ProductLivestockGQL {
+  __typename: 'ProductLivestock';
+
 	id: string;
 	organizationId: string;
 	damIdentifier: string | null;
@@ -67,7 +69,7 @@ export interface ProductLivestockGQL {
  * Product details; Calendar event
  */
 
-export interface ProductCalendarEventObj {
+export interface ProductCalEventObj {
 	name: string;
 	metadata: Partial<{
 		schedule: ScheduleObj | null;
@@ -78,12 +80,14 @@ export interface ProductCalendarEventObj {
 	endAt?: Date | string | null; // ISO Date string
 }
 
-export interface ProductCalendarEventData extends ProductCalendarEventObj {
+export interface ProductCalEventData extends ProductCalEventObj {
 	__table: 'products_calendar_events';
 	productId: number | bigint;
 }
 
-export interface ProductCalendarEventGQL {
+export interface ProductCalEventGQL {
+  __typename: 'ProductCalEvent';
+
 	id: string;
 	organizationId: string;
 
@@ -94,27 +98,25 @@ export interface ProductCalendarEventGQL {
 	endAt: Date;
 }
 
-export type ProductDetailsObj = ProductLivestockObj | ProductCalendarEventObj;
-export type ProductDetailsData = ProductLivestockData | ProductCalendarEventData;
-export type ProductDetailsGQL = ProductLivestockGQL | ProductCalendarEventGQL;
+export type ProductDetailsObj = ProductLivestockObj | ProductCalEventObj;
+export type ProductDetailsData = ProductLivestockData | ProductCalEventData;
+export type ProductDetailsGQL = ProductLivestockGQL | ProductCalEventGQL;
 
 /**
  * Product event attendance
  */
 
-export interface ProductAttendanceUpsertObj {
-	id?: number; // Only for edits
-	organizationId: number;
-	eventId: number;
-	accountId: number;
+export interface ProductAttendanceObj {
+  productId: number | bigint;
+	organizationId: number | bigint;
+	accountId: number | bigint;
 	attended: boolean | null;
 	calDate: string; // "YYYY-MM-DD" format
 	history?: [string, '0' | '1'][] | null; // [YYYY-MM-DD, '0' | '1'][]
 }
 
-export interface ProductAttendanceObj extends ProductAttendanceUpsertObj {
+export interface ProductAttendanceData extends ProductAttendanceObj {
 	__table: 'products_attendance';
-	id: number;
 	organization: OrganizationData;
 	account: AccountData; // account data
 }
@@ -122,7 +124,8 @@ export interface ProductAttendanceObj extends ProductAttendanceUpsertObj {
 export interface ProductAttendanceGQL {
 	__deleted: boolean; // For client-side only
 	id: string;
-	eventId: string;
+	productId: string;
+  organizationId: string;
 	attended: boolean | null;
 	calDate: string; // "YYYY-MM-DD" format
 	organization: OrganizationGQL;

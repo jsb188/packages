@@ -182,7 +182,7 @@ export const CondensedArticleItem = memo((p: {
           ) : null}
 
           {labelIcons && (
-            <span className={cn('h_item gap_2', labelsClassName, hasDescription ? 'ml_10' : 'ml_5')}>
+            <span className={cn('h_item gap_2 cl_lt', labelsClassName, hasDescription ? 'ml_10' : 'ml_5')}>
               <LabelsAndIcons
                 items={labelIcons}
               />

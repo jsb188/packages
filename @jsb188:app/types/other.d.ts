@@ -43,7 +43,7 @@ export interface AddressObj {
 
 export interface ScheduleObj {
 	frequency: ScheduleFrequencyEnum;
-	interval?: number;
+	weeksOfMonth?: number[];
 	daysOfWeek?: (0 | 1 | 2 | 3 | 4 | 5 | 6)[];
 	time?: [
 		string?, // Star time "hhmm" format

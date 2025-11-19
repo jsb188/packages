@@ -1,5 +1,5 @@
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
-import type { ProductAttendanceObj, ProductCalendarEventGQL, ProductCalendarEventObj } from '@jsb188/mday/types/product.d';
+import type { ProductAttendanceObj, ProductCalEventGQL, ProductCalEventObj } from '@jsb188/mday/types/product.d';
 import { DateTime } from 'luxon';
 import i18n from '../i18n';
 import { getFullDate } from './datetime';
@@ -38,7 +38,7 @@ export function getAddressText(
  * @returns boolean value to indicate if event is upcoming
  */
 
-export function checkIfEventIsUpcoming(eventDetails: ProductCalendarEventGQL): boolean {
+export function checkIfEventIsUpcoming(eventDetails: ProductCalEventGQL): boolean {
 	const now = new Date();
 
   const once = !eventDetails.schedule?.frequency || eventDetails.schedule.frequency === 'ONCE';
@@ -75,7 +75,7 @@ export function getEventIconName(
 	const startAt = new Date(startAt_);
 	const endAt = endAt_ ? new Date(endAt_) : null;
 	const once = !schedule?.frequency || schedule?.frequency === 'ONCE';
-  const isUpcoming = checkIfEventIsUpcoming({ startAt, endAt, schedule } as ProductCalendarEventGQL);
+  const isUpcoming = checkIfEventIsUpcoming({ startAt, endAt, schedule } as ProductCalEventGQL);
 
 
 
@@ -104,7 +104,7 @@ export function getEventIconName(
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getEventLabelIcons(eventDetails: ProductCalendarEventGQL) {
+export function getEventLabelIcons(eventDetails: ProductCalEventGQL) {
 	const { schedule, address } = eventDetails;
 	const addressText = address && getAddressText(address);
 	const labelIcons = [];
@@ -149,7 +149,7 @@ export function getEventLabelIcons(eventDetails: ProductCalendarEventGQL) {
  * @returns Array of icon label objects with icon name and tooltip text
  */
 
-export function getScheduleIcons(eventDetails: ProductCalendarEventGQL, alwaysFillIcon = false) {
+export function getScheduleIcons(eventDetails: ProductCalEventGQL, alwaysFillIcon = false) {
 	const { schedule } = eventDetails;
 	const once = !schedule?.frequency || schedule.frequency === 'ONCE';
 
@@ -199,8 +199,19 @@ export function getNextDateFromSchedule(
 	const timeZone = timeZone_ || DEFAULT_TIMEZONE;
 	const once = !schedule?.frequency || schedule.frequency === 'ONCE';
 	if (once) {
+    let onceDate, onceCalDate;
+    if (startAt) {
+      const dt = DateTime.fromISO(startAt.toString()).setZone(timeZone);
+      onceDate = dt.toJSDate();
+      onceCalDate = dt.toFormat('yyyy-MM-dd');
+    } else {
+      onceDate = null;
+      onceCalDate = null;
+    }
+
 		return {
-			date: startAt ? DateTime.fromISO(startAt.toString()).setZone(timeZone).toJSDate() : null,
+			date: onceDate,
+      calDate: onceCalDate,
 			text: getFullDate(startAt, 'DATE_ONLY_SHORT', timeZone),
 			numericText: getFullDate(startAt, 'TOMORROW_OR_NUMERIC', timeZone),
 		};
@@ -215,7 +226,7 @@ export function getNextDateFromSchedule(
   const { daysOfWeek } = schedule;
 
 	let nextDate;
-	if (daysOfWeek?.length > 0) {
+	if (daysOfWeek && daysOfWeek.length > 0) {
 		const today = now.getDay();
 
 		let minDiff = Infinity;
@@ -254,8 +265,10 @@ export function getNextDateFromSchedule(
 	}
 
 	if (nextDate) {
+    const calDate = DateTime.fromJSDate(nextDate, { zone: timeZone }).toFormat('yyyy-MM-dd');
 		return {
 			date: nextDate,
+      calDate,
 			text: getFullDate(nextDate, 'DATE_ONLY_SHORT', timeZone),
 			numericText: getFullDate(nextDate, 'TOMORROW_OR_NUMERIC', timeZone),
 		};
@@ -263,6 +276,7 @@ export function getNextDateFromSchedule(
 
 	return {
 		date: null,
+    calDate: null,
 		numericText: '',
 		text: '',
 	};
@@ -273,22 +287,42 @@ export function getNextDateFromSchedule(
  */
 
 export function isScheduledDate(
-	eventDetails: ProductCalendarEventObj | ProductCalendarEventGQL | null,
-	date: Date,
+	eventDetails: ProductCalEventObj | ProductCalEventGQL | null,
+	calDateInt: number,
+  startAt: string | Date | null,
+  endAt: string | Date | null,
 ) {
-  const { frequency } = eventDetails || {};
-  const schedule = eventDetails.schedule || {} as ScheduleObj
-	const { byDay } = schedule;
+  // @ts-ignore - For server + client usage
+  const schedule = (eventDetails?.schedule || eventDetails?.metadata || {}) as ScheduleObj;
+	const { frequency, daysOfWeek } = schedule;
+  const startCalDateInt = startAt ? Number(DateTime.fromJSDate(new Date(startAt)).toFormat('yyyyMMdd')) : 0;
+  const endCalDateInt = endAt ? Number(DateTime.fromJSDate(new Date(endAt)).toFormat('yyyyMMdd')) : 0;
+
+  if (calDateInt < startCalDateInt || (endCalDateInt && calDateInt > endCalDateInt)) {
+    return false;
+  }
 
 	switch (frequency) {
-		case 'DAILY':
-			return true;
+		case 'ONCE':
+      return calDateInt == startCalDateInt;
 		case 'WEEKLY': {
-			const dateDay = DAY_OF_WEEK_DEPREC[date.getDay()];
-			return byDay.includes(dateDay);
+      const hasWeeklyNth = schedule.weeksOfMonth && schedule.weeksOfMonth.length > 0;
+      if (hasWeeklyNth) {
+        const dt = DateTime.fromFormat(String(calDateInt), 'yyyyMMdd');
+        const weekOfMonth = Math.ceil(dt.day / 7);
+        if (!schedule.weeksOfMonth?.includes(weekOfMonth)) {
+          return false;
+        }
+      }
+
+      // Convert yyyyMMdd to day of week (0-6)
+      const dateDay = DateTime.fromFormat(String(calDateInt), 'yyyyMMdd').weekday % 7;
+      return daysOfWeek?.includes(dateDay as any);
 		}
 		default:
-			console.warn(`isScheduledDate(): ${frequency} frequency is not implemented yet`);
+      if (frequency) {
+        console.warn(`isScheduledDate(): ${frequency} frequency is not implemented yet`);
+      }
 	}
 
 	return false;
@@ -309,7 +343,7 @@ export function getTimeFromSchedule(
 		return [hhmmFromDateOrTime(null, date, true, timeZone)];
 	}
 
-	const timeSched = schedule!.time;
+	const timeSched = schedule?.time;
   if (
     !Array.isArray(timeSched) ||
     !timeSched[0]

@@ -29,11 +29,17 @@ export default {
 
     // Schedule
     schedule: {
-      DAILY: 'Every %{interval} day(s)',
-      WEEKLY: 'Every %{interval} week(s)',
-      MONTHLY: 'Every %{interval} month(s)',
-      YEARLY: 'Every %{interval} year(s)',
+      ONCE_fixed: 'Once on %{date}',
+      DAILY_fixed: 'Recurring every %{value} day', // Unused atm
+      WEEKLY_fixed: 'Recurring every %{value} week',
+      MONTHLY_fixed: 'Recurring every %{value} month', // Unused atm
+      YEARLY_fixed: 'Recurring every %{value} year', // Unused atm
+
       ONCE: 'Once on %{date}',
+      DAILY: 'Recurring every day', // Unused atm
+      WEEKLY: 'Recurring every week',
+      MONTHLY: 'Recurring every month', // Unused atm
+      YEARLY: 'Recurring every year', // Unused atm
 
       _on_: ' on %{daysOfWeek}'
     },
