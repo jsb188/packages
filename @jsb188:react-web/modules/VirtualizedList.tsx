@@ -768,8 +768,10 @@ const TableListItem = (p: TableListProps & {
       {rowData.columns.map(renderCell)}
     </TRow>
 
-    <div className='rel pattern_texture primary_bf bd_l_4 bd_primary -ml_4'>
-      {rowData.subRows?.map((subRowItem: any, k: number) => {
+    {rowData.subRows &&
+    <div className='rel pattern_texture medium_bf -ml_4'>
+      {Array.isArray(rowData.subRows)
+      ? rowData.subRows.map((subRowItem: any, k: number) => {
         return <TRow
           key={k}
           className='rel z1'
@@ -779,8 +781,9 @@ const TableListItem = (p: TableListProps & {
         >
           {subRowItem.columns.map(renderCell)}
         </TRow>;
-      })}
-    </div>
+      })
+      : rowData.subRows}
+    </div>}
   </div>;
 };
 

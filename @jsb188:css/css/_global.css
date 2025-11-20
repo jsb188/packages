@@ -987,6 +987,7 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .bd_lighter_3 { border-color: rgba(var(--color-lighter-rgb), .3); }
 .bd_lighter_4 { border-color: rgba(var(--color-lighter-rgb), .5); }
 
+.bd_bg, .bd_bg_hv:hover { border-color: rgb(var(--color-bg)); }
 .bd_alt, .bd_alt_hv:hover { border-color: rgb(var(--color-bg-alt)); }
 .bd_active, .bd_active_hv:hover { border-color: rgb(var(--color-bg-active)); }
 .bd_medium, .bd_medium_hv:hover { border-color: rgb(var(--color-bg-medium)); }
