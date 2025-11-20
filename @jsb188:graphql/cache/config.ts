@@ -35,6 +35,7 @@ export const RULES = {
   organizationRelationship: true,
   organizationWorkflows: true,
   platformProducts: true,
+  productAttendanceList: true,
   productsList: true,
   searchUsers: true,
   updateNote: true,
