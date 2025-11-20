@@ -1,5 +1,5 @@
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
-import type { ProductAttendanceObj, ProductCalEventGQL, ProductCalEventObj } from '@jsb188/mday/types/product.d';
+import type { ProductAttendanceData, ProductCalEventData, ProductCalEventGQL } from '@jsb188/mday/types/product.d';
 import { DateTime } from 'luxon';
 import i18n from '../i18n';
 import { getFullDate } from './datetime';
@@ -288,7 +288,7 @@ export function getNextDateFromSchedule(
 
 export function isScheduledDate(
 	eventDetails: ProductCalEventData['metadata'] | ProductCalEventGQL | null,
-	calDateInt: number,
+	calDateInt_: number | string,
   startAt: string | Date | null,
   endAt: string | Date | null,
 ) {
@@ -297,6 +297,7 @@ export function isScheduledDate(
 	const { frequency, daysOfWeek } = schedule;
   const startCalDateInt = startAt ? Number(DateTime.fromJSDate(new Date(startAt)).toFormat('yyyyMMdd')) : 0;
   const endCalDateInt = endAt ? Number(DateTime.fromJSDate(new Date(endAt)).toFormat('yyyyMMdd')) : 0;
+  const calDateInt = typeof calDateInt_ === 'string' ? Number(calDateInt_.replace(/-/g, '')) : calDateInt_;
 
   if (calDateInt < startCalDateInt || (endCalDateInt && calDateInt > endCalDateInt)) {
     return false;
@@ -317,7 +318,7 @@ export function isScheduledDate(
 
       // Convert yyyyMMdd to day of week (0-6)
       const dateDay = DateTime.fromFormat(String(calDateInt), 'yyyyMMdd').weekday % 7;
-      return daysOfWeek?.includes(dateDay as any);
+      return !!daysOfWeek?.includes(dateDay as any);
 		}
 		default:
       if (frequency) {
@@ -385,18 +386,18 @@ export function getTimeFromSchedule(
  */
 
 export function filterEventAttendance(
-	attendance: ProductAttendanceObj[],
+	attendance: ProductAttendanceData[],
 	calDate: string,
-): ProductAttendanceObj[] {
+): ProductAttendanceData[] {
 	const targetJSDate = new Date(calDate);
-	const checkedAttendance = new Set<number>();
+	const checkedAttendance = new Set<number | bigint>();
 	for (const item of attendance) {
 		if (item.attended !== null) {
 			checkedAttendance.add(item.organizationId);
 		}
 	}
 
-	const isActiveOnDate = (item: ProductAttendanceObj): boolean => {
+	const isActiveOnDate = (item: ProductAttendanceData): boolean => {
 		if (
 			item.calDate || // If "calDate" is set, this was a manual override by a human, so history is ignored
 			!item.history || item.history.length === 0

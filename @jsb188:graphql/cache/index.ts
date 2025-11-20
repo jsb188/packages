@@ -951,7 +951,6 @@ export function resetQuery(queryId: string, forceRefetch?: boolean, updateObserv
   // }
 
   if (updateObservers) {
-
     if (queryId.startsWith('^')) {
       // Reset using regex
       const regex = new RegExp(queryId);
@@ -960,7 +959,7 @@ export function resetQuery(queryId: string, forceRefetch?: boolean, updateObserv
       for (const key of QUERIES.keys()) {
         if (regex.test(key)) {
           RESET_TIME.set(key, Date.now());
-          // console.log('RESETTING ->', key, RESET_TIME.get(key));
+          console.dev('✅ RESET ->', key);
           updateObservers({
             queryId: key,
             forceRefetch,
@@ -970,6 +969,7 @@ export function resetQuery(queryId: string, forceRefetch?: boolean, updateObserv
     } else {
       // Reset specific query
       RESET_TIME.set(queryId, Date.now());
+      console.dev('✅ RESET ->', queryId);
       updateObservers({
         queryId,
         forceRefetch,
