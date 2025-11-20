@@ -287,13 +287,13 @@ export function getNextDateFromSchedule(
  */
 
 export function isScheduledDate(
-	eventDetails: ProductCalEventObj | ProductCalEventGQL | null,
+	eventDetails: ProductCalEventData['metadata'] | ProductCalEventGQL | null,
 	calDateInt: number,
   startAt: string | Date | null,
   endAt: string | Date | null,
 ) {
   // @ts-ignore - For server + client usage
-  const schedule = (eventDetails?.schedule || eventDetails?.metadata || {}) as ScheduleObj;
+  const schedule = (eventDetails?.schedule || eventDetails?.metadata?.schedule || {}) as ScheduleObj;
 	const { frequency, daysOfWeek } = schedule;
   const startCalDateInt = startAt ? Number(DateTime.fromJSDate(new Date(startAt)).toFormat('yyyyMMdd')) : 0;
   const endCalDateInt = endAt ? Number(DateTime.fromJSDate(new Date(endAt)).toFormat('yyyyMMdd')) : 0;
@@ -337,9 +337,28 @@ export function isScheduledDate(
 export function getTimeFromSchedule(
   schedule: ScheduleObj | null,
   date: Date | null,
+  endAt: Date | null,
   timeZone: string | null
 ) {
 	if ((!schedule?.frequency || schedule.frequency === 'ONCE') && date) {
+
+    const endAtDate = endAt ? new Date(endAt) : null;
+    if (endAtDate) {
+
+      const dayDiff = Math.floor((endAtDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      if (dayDiff > 0) {
+        return [
+          hhmmFromDateOrTime(null, date, true, timeZone),
+          getFullDate(endAtDate, 'DATE_ONLY_SHORT', timeZone)
+        ];
+      }
+
+      return [
+        hhmmFromDateOrTime(null, date, true, timeZone),
+        endAtDate > date ? hhmmFromDateOrTime(null, endAtDate, true, timeZone) : null
+      ];
+    }
+
 		return [hhmmFromDateOrTime(null, date, true, timeZone)];
 	}
 

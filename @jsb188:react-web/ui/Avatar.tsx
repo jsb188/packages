@@ -76,15 +76,29 @@ function getSizeClassName(
  * Helper function; get 1 or 2 letters from text
  */
 
-export function getAvatarLetters(text: string) {
-  if (!text) {
+export function getAvatarLetters(text: string, retried = false) {
+  if (!text && retried) {
     return '';
   }
-  const nameArr = text.split(' ');
+
+  const alphaText = retried
+    ? text
+    : text
+      .replace(/[^a-z ]/gi, '') // letters only
+      .replace(/\s+/g, ' ') // remove duplicate spaces
+      .trim();
+
+  const nameArr = alphaText.split(' ');
   if (nameArr.length > 1) {
     return nameArr[0].charAt(0) + nameArr[1].charAt(0);
   }
-  return text.substring(0, 2);
+
+  const avLetters = alphaText.substring(0, 2).trim();
+  if (retried || avLetters.length > 1) {
+    return avLetters;
+  }
+
+  return getAvatarLetters(text, true);
 }
 
 /**
@@ -412,7 +426,7 @@ export function AvatarImg(p: AvatarProps & {
     >
       {!hasImg ? null : (
         <img
-          alt={displayName}
+          alt={displayName || undefined}
           draggable={draggable}
           className={cn('img_auto', radiusClassName, imageClassName)}
           src={avatarUrl}

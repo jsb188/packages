@@ -19,6 +19,7 @@ export interface ProductsFilterArgs {
 	preset?: '?' | null;
 	productType: ProductTypeEnum;
 	query?: string | null;
+  calDate?: string | null; // "YYYY-MM-DD"
 	timeZone?: string | null; // Server only for now
 	// status: ProductLivestockStatusEnum;
 }
@@ -28,8 +29,8 @@ export interface ProductsFilterArgs {
  */
 
 export interface ProductLivestockObj {
-  // This interface is not ready yet; old system has to be migrated.
-  '?': '?';
+	// This interface is not ready yet; old system has to be migrated.
+	'?': '?';
 }
 
 export interface ProductLivestockData {
@@ -43,13 +44,13 @@ export interface ProductLivestockData {
 	damIdentifier?: string | null;
 	livestockIdentifier: string;
 	livestockGroup?: string | null;
-  metadata: {
-    overview: string;
-  }
+	metadata: {
+		overview: string;
+	};
 }
 
 export interface ProductLivestockGQL {
-  __typename: 'ProductLivestock';
+	__typename: 'ProductLivestock';
 
 	id: string;
 	organizationId: string;
@@ -86,7 +87,7 @@ export interface ProductCalEventData extends ProductCalEventObj {
 }
 
 export interface ProductCalEventGQL {
-  __typename: 'ProductCalEvent';
+	__typename: 'ProductCalEvent';
 
 	id: string;
 	organizationId: string;
@@ -107,7 +108,7 @@ export type ProductDetailsGQL = ProductLivestockGQL | ProductCalEventGQL;
  */
 
 export interface ProductAttendanceObj {
-  productId: number | bigint;
+	productId: number | bigint;
 	organizationId: number | bigint;
 	accountId: number | bigint;
 	attended: boolean | null;
@@ -125,7 +126,7 @@ export interface ProductAttendanceGQL {
 	__deleted: boolean; // For client-side only
 	id: string;
 	productId: string;
-  organizationId: string;
+	organizationId: string;
 	attended: boolean | null;
 	calDate: string; // "YYYY-MM-DD" format
 	organization: OrganizationGQL;

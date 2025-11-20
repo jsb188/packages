@@ -91,9 +91,6 @@ export function useProductAttendance(
     ...params,
   });
 
-  console.log('skip', productId, calDate, organizationId);
-
-
   const productAttendanceList = data?.productAttendanceList;
   const notReady = !organizationRelationship || !productAttendanceList;
 
