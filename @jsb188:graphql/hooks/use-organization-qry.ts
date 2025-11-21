@@ -56,6 +56,23 @@ export function useOrganizationWorkflows(organizationId: string | null, operatio
     ...rest
   };
 }
+/**
+ * Get reactive organization fragment
+ */
+
+export function useReactiveOrganizationWorkflowFragment(workflowId: string, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    [
+      `$organizationInstructionsFragment:${workflowId}`,
+      // [`$organizationChildArableFragment:${organizationId}`, null],
+      // By having the second paramter as null, we only observe the reactive changes without setting the data
+      // [`$logArableFragment:${logEntryId}`, null],
+    ],
+    queryCount,
+  );
+}
+
 
 /**
  * Fetch my organizations and then get one by ID
