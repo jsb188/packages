@@ -8,6 +8,21 @@ export const PRODUCT_TYPES = [
 ];
 
 /**
+ * Product features
+ */
+
+export const PRODUCT_FEATURES = [
+  'CAL_EVENTS',
+  'CAL_EVENTS_ATTENDANCE',
+  'CAL_EVENTS_LOAD_LIST'
+];
+
+export const ACTIVITY_TO_FEATURE_MAP = {
+  CAL_EVENTS_ATTENDANCE: ['MARKET_ATTENDANCE'],
+  CAL_EVENTS_LOAD_LIST: ['MARKET_LOAD_LIST']
+};
+
+/**
  * Products; Livestock
  */
 

@@ -1,20 +1,20 @@
 import {
   COMPLIANCE_DOCUMENT_TYPE_ENUMS,
   OPERATION_ENUMS,
-  ORG_FEATURES,
   ROLE_CATEGORY_ENUMS,
   ROLE_ENUMS
 } from '../constants/organization.ts';
+import { PRODUCT_FEATURES } from '../constants/product.ts';
 
+import type { LogTypeEnum } from '@jsb188/mday/types/log.d';
 import type { AccountData } from './account.d.ts';
-import type { LogTypeEnum } from './log.d.ts';
 import type { StorageData } from './other.d.ts';
 
 /*
  * Enums
  */
 
-export type OrganizationFeatureEnum = typeof ORG_FEATURES[number];
+export type OrganizationFeatureEnum = typeof PRODUCT_FEATURES[number];
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];

@@ -218,7 +218,15 @@ export function getNextDateFromSchedule(
 	}
 
 	// Get date in time zone using Luxon package
-	const now = DateTime.now().setZone(timeZone).toJSDate();
+	let now = DateTime.now().setZone(timeZone).toJSDate();
+  if (startAt) {
+    const scheduleStartDate = DateTime.fromISO(startAt.toString()).setZone(timeZone).toJSDate();
+    // If scheduleStartDate is after "now", use that as the base date
+    if (scheduleStartDate > now) {
+      now = scheduleStartDate;
+    }
+  }
+
 	const daySchedTime = (schedule.time || []).map(Number);
 	// const startTime = (daySchedTime[0] || daySchedTime[0] === 0) && convertToMilitaryTime(daySchedTime[0]);
 	const hours = Math.floor((daySchedTime[0] || 0) / 100);

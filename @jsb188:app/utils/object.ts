@@ -333,7 +333,19 @@ export function groupCollections(
 
 				const ref = getObject(obj, name);
 				if (ref) {
-					setObject(obj, name, Array.isArray(defaultValue) ? [ref] : ref);
+          let isNull = true;
+          for (const key in ref) {
+            if (!key.startsWith('__') && ref[key] !== null) {
+              isNull = false;
+              break;
+            }
+          }
+
+          if (!isNull) {
+            setObject(obj, name, Array.isArray(defaultValue) ? [ref] : ref);
+          } else {
+            setObject(obj, name, defaultValue);
+          }
 				} else {
 					setObject(obj, name, defaultValue);
 				}

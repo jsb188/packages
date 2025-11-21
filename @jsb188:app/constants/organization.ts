@@ -14,13 +14,6 @@ export const PARENT_ORG_OPERATIONS = [
 	'FARMERS_MARKET',
 ];
 
-// Features
-
-export const ORG_FEATURES = [
-  'CAL_EVENTS',
-  'CAL_EVENTS_ATTENDANCE'
-];
-
 // Employee ACL
 
 export const ROLE_ENUMS = ['MEMBER', 'MANAGER', 'ADMIN', 'OWNER', 'GUEST']; // first is default value
