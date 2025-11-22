@@ -19,7 +19,7 @@ export interface ProductsFilterArgs {
 	preset?: '?' | null;
 	productType: ProductTypeEnum;
 	query?: string | null;
-  calDate?: string | null; // "YYYY-MM-DD"
+	calDate?: string | null; // "YYYY-MM-DD"
 	timeZone?: string | null; // Server only for now
 	// status: ProductLivestockStatusEnum;
 }
@@ -104,7 +104,7 @@ export type ProductDetailsData = ProductLivestockData | ProductCalEventData;
 export type ProductDetailsGQL = ProductLivestockGQL | ProductCalEventGQL;
 
 /**
- * Product event attendance
+ * CalEvent; attendance
  */
 
 export interface ProductAttendanceObj {
@@ -131,6 +131,20 @@ export interface ProductAttendanceGQL {
 	calDate: string; // "YYYY-MM-DD" format
 	organization: OrganizationGQL;
 	checkedBy: any; // account data
+}
+
+/**
+ * CalEvent; load list
+ */
+
+export interface ProductLoadListData {
+  __table: 'products_load_list';
+  organizationId: number | bigint;
+  productId: number | bigint;
+  calDate: Date; // Postgres returns "date" as JS Date, but it's safe to convert "YYYY-MM-DD" without time zone.
+  items: string[][]; // [ [itemName, quantity, unit], ... ]
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
