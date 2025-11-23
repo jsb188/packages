@@ -345,11 +345,11 @@ export function escapeCSVValue(value: string): string {
  * Example: "+1 (555) 123-4567"
  */
 
-export function formatPhoneNumber(phone: string): string {
+export function formatPhoneNumber(phone?: string | null) {
 	const match = phone?.match(/(\d{3})(\d{3})(\d{4})$/);
 	if (match) {
 		const [, area, first, second] = match;
-		const countryCode = phone.substring(0, phone.length - area.length - first.length - second.length);
+		const countryCode = phone!.substring(0, phone.length - area.length - first.length - second.length);
 		// NOTE: This does not account for non North American (+1) phone numbers
 		return `${countryCode} (${area}) ${first}-${second}`;
 	}

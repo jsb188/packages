@@ -74,6 +74,15 @@ a.em:before {
   background-color: rgb(var(--color-primary));
 }
 
+.__deleted {
+  opacity: .4;
+  text-decoration: line-through;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+}
+
 .em_text {
   position: relative;
 }
@@ -976,6 +985,9 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .bd_bd, .bd_bd_hv:hover { border-color: var(--color-darker-bold); }
 .bd_ih, .bd_ih_hv:hover { border-color: inherit; }
 .bd_err, .bd_err_hv:hover { border-color: rgb(var(--color-error)); }
+
+.bd_solid { border-color: var(--color-solid); }
+.bd_contrast { border-color: var(--color-contrast); }
 
 .bd_darker_1 { border-color: rgba(var(--color-darker-rgb), .078); }
 .bd_darker_2 { border-color: rgba(var(--color-darker-rgb), .15); }

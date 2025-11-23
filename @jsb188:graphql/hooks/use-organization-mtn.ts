@@ -1,7 +1,8 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
 // import { useNavigate } from 'react-router';
-import { switchOrganizationMtn } from '../gql/mutations/organizationMutations';
+import { updateFragment } from '../cache/index';
+import { deleteComplianceDocumentMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
 import { useMutation } from './index';
 
 /**
@@ -36,6 +37,36 @@ export function useSwitchOrganization(params: UseMutationParams = {}, openModalP
 
   return {
     switchOrganization,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Delete a compliance document
+ */
+
+export function useDeleteComplianceDocument(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+  const { onCompleted, ...otherParams } = params;
+
+  const [deleteComplianceDocument, mtnValues, mtnHandlers, updateObservers] = useMutation(deleteComplianceDocumentMtn,
+    {
+      // checkMountedBeforeCallback: true,
+      openModalPopUp,
+      onCompleted: (data, error, variables) => {
+        const deleted = data?.deleteComplianceDocument;
+        if (deleted) {
+          updateFragment(`$organizationComplianceFragment:${variables.complianceId}`, { __deleted: true }, null, false, updateObservers);
+        }
+
+        onCompleted?.(deleted, error);
+      },
+      ...otherParams,
+    }
+  );
+
+  return {
+    deleteComplianceDocument,
     ...mtnValues,
     ...mtnHandlers,
   };

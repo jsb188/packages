@@ -272,7 +272,18 @@ export function getCalDate(d: Date, timeZone_?: string | null) {
  * @returns Date - Enforced calendar date in the specified timezone
  */
 
-export function getReadableCalDate(d: Date, timeZone?: string | null) {
+export function getReadableCalDate(d_: string | Date, timeZone?: string | null) {
+  let d;
+  if (typeof d_ === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d_)) {
+    // Assume YYYY-MM-DD format
+    const [year, month, day] = d_.split('-').map(Number);
+    d = new Date(year, month - 1, day);
+  } else if (d_ instanceof Date) {
+    d = d_;
+  } else {
+    d = d && new Date(d_)
+  }
+
 	if (!d || isNaN(d.getTime())) {
 		return null;
 	}
@@ -568,8 +579,12 @@ export function getFullDate(
 		case 'NUMERIC_TIME':
 			// Expected output: "9/1/2024, 8:30 PM"
 			return new Intl.DateTimeFormat(locales, {
-				dateStyle: 'short', // ie. "08/10/2025"
-				timeStyle: 'short', // ie. "8:00 AM"
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
 		case 'MINIMAL':
@@ -840,11 +855,14 @@ export function getHHMMIncrements(
 
 /**
  * Get color indicator based on expiration date
+ * @param expirationDate - Expiration date in YYYY-MM-DD format or Date object
+ * @returns 'red' | 'yellow' | 'green' | null
  */
 
 export function getExpirationColor(
 	expirationDate: string | Date, // YYYY-MM-DD format or Date object
-): 'red' | 'yellow' | 'green' {
+  validColor: 'green' | null = null,
+): 'red' | 'yellow' | 'green' | null {
 	let expDate: Date;
 	if (expirationDate instanceof Date) {
 		expDate = expirationDate;
@@ -864,9 +882,9 @@ export function getExpirationColor(
 		return 'red'; // Expired
 	} else if (diffDays <= 30) {
 		return 'yellow'; // Expiring soon
-	} else {
-		return 'green'; // Valid
 	}
+
+  return validColor; // Valid
 }
 
 /**

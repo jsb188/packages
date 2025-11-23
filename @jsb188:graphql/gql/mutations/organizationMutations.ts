@@ -9,3 +9,15 @@ mutation switchOrganization (
   )
 }
 `;
+
+export const deleteComplianceDocumentMtn = gql`
+mutation deleteComplianceDocument (
+  $organizationId: GenericID!
+  $complianceId: GenericID!
+) {
+  deleteComplianceDocument (
+    organizationId: $organizationId
+    complianceId: $complianceId
+  )
+}
+`;

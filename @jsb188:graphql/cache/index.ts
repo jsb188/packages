@@ -1,12 +1,7 @@
-import { cloneArrayLike, mapArrayLikeObjects } from '@jsb188/app/utils/object';
 import { makeVariablesKey } from '@jsb188/app/utils/logic';
+import { cloneArrayLike, mapArrayLikeObjects } from '@jsb188/app/utils/object';
 import type { UpdateObserversFn } from '../types.d';
 import { PARTIALS_MAP, RULES } from './config';
-
-const DO_LOG = [
-  false, // [0] Log name
-  false, // [1] Log data
-];
 
 const QUERIES = new Map();
 const FRAGMENTS = new Map();
@@ -224,6 +219,7 @@ export function loadFragment(id: string) {
  */
 
 function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] = []) {
+
   return innerSelections.map((inner) => {
 
     let fragmentKey;
@@ -233,12 +229,23 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       const frgMap = PARTIALS_MAP[frgName];
       fragmentKey = `$${frgMap || frgName}:${data.id || 'none'}`;
 
-      if (DO_LOG[0]) {
-        console.log('SETTING (1): ', fragmentKey);
+    } else if (inner.kind === 'Field' && inner.selectionSet && inner.selectionSet.selections?.length) {
+
+      // These are nested fragments, they need to be cached as a fragment
+
+      const innerData = data?.[inner.name.value];
+      const innerSelections = inner.selectionSet.selections?.filter((sel: any) => sel.kind === 'FragmentSpread');
+
+      if (Array.isArray(innerSelections)) {
+        if (Array.isArray(innerData)) {
+          for (const item of innerData) {
+            mapSelections(item, inner.selectionSet.selections, updatedKeys);
+          }
+        } else {
+          mapSelections(innerData, inner.selectionSet.selections, updatedKeys);
+        }
       }
-      if (DO_LOG[1]) {
-        console.log('SETTING (1): ', extractFragment(data, innerSelections));
-      }
+
     } else if (inner.kind === 'InlineFragment') {
       // This is Union, etc
       const frgNamesJoined = inner.selectionSet.selections.map((sel: any) => PARTIALS_MAP[sel.name.value] || sel.name.value).join('.');
@@ -255,6 +262,13 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       // Whether fragment is partial or not, always merge data;
       // Because partials might have data that's not in the main fragment
       const currentData = loadFragment(fragmentKey);
+
+      // if (fragmentKey.startsWith('$organizationComplianceFragment:')) {
+      //   console.log('>>>>', fragmentKey);
+      //   console.log(data);
+      //   console.log(extractFragment(data, innerSelections));
+      // }
+
       FRAGMENTS.set(fragmentKey, mergeNestedObjects(currentData, extractFragment(data, innerSelections)));
       updatedKeys.push(fragmentKey);
 
@@ -288,17 +302,12 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
       continue;
     }
 
-    // if (DO_LOG[2]) {
-    //   console.log(sel);
-    // }
-
     switch (sel.kind) {
       case 'Field':
         {
           const innerSelections = sel.selectionSet?.selections;
           if (innerSelections) {
             if (Array.isArray(data[key])) {
-              // console.log('key', key, data[key].map((item) => mapSelections(item, innerSelections, updatedKeys)).filter(Boolean));
               cacheObj[key] = {
                 __cache: true,
                 __list: true,
@@ -322,13 +331,6 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
           const fragmentKey = `$${frgMap || frgName}:${data.id || 'none'}`;
 
           if (RULES[frgName] !== false) {
-            if (DO_LOG[0]) {
-              console.log('SETTING (2): ', fragmentKey);
-            }
-            if (DO_LOG[1]) {
-              console.log('SETTING (2): ', extractFragment(data, selections));
-            }
-
             // if (testMode) {
             //   console.log('Array.isArray(data)');
             //   console.log(Array.isArray(data));
@@ -340,6 +342,7 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
             // Because partials might have data that's not in the main fragment
             const currentData = loadFragment(fragmentKey);
 
+            // console.log('>>>>', fragmentKey);
             FRAGMENTS.set(fragmentKey, mergeNestedObjects(currentData, extractFragment(data, selections)));
             updatedKeys.push(fragmentKey);
           }
@@ -397,6 +400,11 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
     }
 
     if (spreads) {
+      // if (spreads?.organization?.[2]?.[1]?.length) {
+      //   console.log('>>>>', spreadsFragmentKey);
+      //   console.log(spreads);
+      // }
+
       FRAGMENTS.set(spreadsFragmentKey, spreads);
     }
   }
@@ -595,12 +603,6 @@ export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
               }
 
               const cachedFragment = loadFragment(fragmentKey);
-              if (DO_LOG[0]) {
-                console.log('LOAD (1): ', mapCacheId);
-              }
-              if (DO_LOG[1]) {
-                console.log('LOAD (1): ', cachedFragment);
-              }
 
               if (cachedFragment) {
                 item = {
@@ -640,12 +642,6 @@ export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
               }
 
               const cachedFragment = loadFragment(fragmentKey);
-              if (DO_LOG[0]) {
-                console.log('LOAD (2): ', d);
-              }
-              if (DO_LOG[1]) {
-                console.log('LOAD (2): ', cachedFragment);
-              }
 
               if (cachedFragment) {
                 if (isFlat) {
@@ -992,6 +988,9 @@ export function updateFragment(
   otherUpdatedFragmentKeys?: string[],
 ) {
   const cache = loadFragment(updateFragmentKey);
+
+  console.log('UPDATING:', updateFragmentKey, !!cache);
+
   if (cache && update) {
     let updateObj;
     if (typeof update === 'function') {

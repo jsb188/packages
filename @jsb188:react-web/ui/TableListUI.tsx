@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
-import { memo } from 'react';
+import { createElement, memo } from 'react';
 import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
@@ -43,7 +43,7 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
       !doNotApplyGridToRows ? 'grid gap_n' : 'trow',
       !__deleted && rest.onClick ? 'link bg_primary_fd_hv' : '',
       thead ? 'thead' : '',
-      __deleted ? 'op_40' : '',
+      __deleted ? '__deleted' : '',
       className
     )}
     role={rest.onClick ? 'button' : undefined}
@@ -127,6 +127,7 @@ THead.displayName = 'THead';
 
 export const TDColMain = memo((p: Partial<{
   __deleted: boolean;
+  className: string;
   title: string;
   titleClassName: string;
   iconName: string;
@@ -135,18 +136,13 @@ export const TDColMain = memo((p: Partial<{
   placeholderText?: string;
   labelIcons: LabelsAndIconsItemProps[];
 }>) => {
-  const { __deleted, iconName, avatarColor, avatarDisplayName, titleClassName, labelIcons } = p;
+  const { __deleted, title, iconName, avatarColor, avatarDisplayName, titleClassName, labelIcons, className } = p;
   const hasAvatar = !!(iconName || avatarDisplayName);
-
-  let title = p.title;
-  if (__deleted) {
-    title = i18n.t('form.deleted');
-  }
 
   const placeholderText = p.placeholderText ?? '-';
   const showPlaceholder = !p.title && !!placeholderText && !labelIcons;
 
-  return <span className='h_item'>
+  return <span className={cn('h_item', className)}>
     {hasAvatar && (
       <AvatarImg
         className='mr_sm'

@@ -742,7 +742,7 @@ const TableListItem = (p: TableListProps & {
       className={cellClassNames?.[i]}
       doNotApplyGridToRows={doNotApplyGridToRows}
     >
-      {cell && isValidElement(cell) ? cell : cell &&typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
+      {cell && isValidElement(cell) ? cell : cell && typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
     </TDCol>;
   };
 

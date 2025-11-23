@@ -182,6 +182,11 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .shift_left { transform: translateX(-1px); }
 .shift_right { transform: translateX(1px); }
 
+.shift_up_2 { transform: translateY(-2px); }
+.shift_down_2 { transform: translateY(2px); }
+.shift_left_2 { transform: translateX(-2px); }
+.shift_right_2 { transform: translateX(2px); }
+
 .move_up { transform: translateY(-4px); }
 .move_down { transform: translateY(4px); }
 .move_left { transform: translateX(-4px); }

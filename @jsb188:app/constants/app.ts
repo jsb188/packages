@@ -1,4 +1,3 @@
-
 // DOM element names (ids)
 
 export const DOM_IDS = {
@@ -7,6 +6,11 @@ export const DOM_IDS = {
   mainBodyScrollArea: 'main_scr',
   popOverScrollArea: 'pop_over_scr',
 };
+
+// Common style variables
+
+export const END_BUTTON_WIDTH = '45px';
+export const DATE_AND_BUTTON_WIDTH = '100px ' + END_BUTTON_WIDTH;
 
 // Common, repeatable classnames
 

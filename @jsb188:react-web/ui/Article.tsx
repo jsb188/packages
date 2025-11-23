@@ -121,7 +121,7 @@ export const CondensedArticleItem = memo((p: {
       <div className='bd_t_1 bd_lt' />
     )}
 
-    <div className={cn('h_item gap_xs', __deleted ? 'op_40' : '')}>
+    <div className={cn('h_item gap_xs', __deleted ? '__deleted' : '')}>
 
       {(avatarDisplayName || avatarPhotoUri) &&
         <AvatarImg
@@ -173,7 +173,11 @@ export const CondensedArticleItem = memo((p: {
                   {title}
                 </span>
               )}
-              {description || descriptionPlaceholder}
+
+              {/* Need a double strikethrough here because of CSS color mismatch */}
+              <span className={__deleted ? 'strikethrough' : undefined}>
+                {description || descriptionPlaceholder}
+              </span>
             </span>
           ) : title ? (
             <span className='shift_down ib ellip cl_df'>

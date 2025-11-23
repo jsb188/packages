@@ -1,7 +1,7 @@
-import type { OrganizationGQL, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
-import i18n from '../i18n';
-import { DEFAULT_TIMEZONE } from './timeZone';
 import { COLORS } from '../constants/app';
+import i18n from '../i18n';
+import type { OrganizationGQL, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
+import { DEFAULT_TIMEZONE } from './timeZone';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;

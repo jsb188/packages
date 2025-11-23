@@ -132,12 +132,14 @@ export function PopOverButton(p: PopOverButtonProps) {
 function PopOverMoreButton(p: {
   editOptions: any[];
   disabled?: boolean;
+  zClassName?: string;
 }) {
-  const { editOptions, disabled } = p;
+  const { editOptions, disabled, zClassName } = p;
   return <PopOverButton
     // doNotTrackHover
     disabled={disabled}
     className='av av_xxs r v_center'
+    zClassName={zClassName}
     linkClassName='' // This disables double :active state
     notActiveClassName='bg_active_hv bd_1 bd_invis bd_lt_hv'
     activeClassName='bg_active bd_1 bd_lt'

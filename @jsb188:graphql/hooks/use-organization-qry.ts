@@ -132,3 +132,20 @@ export function useReactiveOrganizationChildFragment(organizationId: string, cur
     queryCount,
   );
 }
+
+/**
+ * Get reactive organization compliance document fragment
+ */
+
+export function useReactiveOrganizationComplianceFragment(complianceId: string, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    [
+      `$organizationComplianceFragment:${complianceId}`,
+      // [`$organizationChildArableFragment:${organizationId}`, null],
+      // By having the second paramter as null, we only observe the reactive changes without setting the data
+      // [`$logArableFragment:${logEntryId}`, null],
+    ],
+    queryCount,
+  );
+}

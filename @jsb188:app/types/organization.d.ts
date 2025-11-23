@@ -113,7 +113,9 @@ export interface OrganizationRelData {
  * GraphQL data for organization types
  */
 
-export interface OrganizationComplianceGQLData {
+export interface OrganizationComplianceGQL {
+  __deleted?: boolean;
+
 	id: string;
 	number: string;
 	name: string;
@@ -138,7 +140,7 @@ export interface OrganizationGQL {
 	stripeCustomerId: string | null;
 	name: string;
 	operation: OrganizationOperationEnum;
-	compliance: OrganizationComplianceGQLData[] | null;
+	compliance: OrganizationComplianceGQL[] | null;
 	settings?: OrganizationSettingsObj | null;
 	activated: boolean;
 	membersCount: number;
@@ -156,6 +158,11 @@ export interface OrganizationChildGQL {
 	id: string;
 	organization: OrganizationGQL;
 	primaryContact: AccountData;
+  metadata?: Partial<{
+    primaryContactName: string;
+    primaryPhoneNumber: string;
+    primaryEmailAddress: string;
+  }>;
 	addedAt: Date;
 }
 
@@ -172,7 +179,7 @@ export interface OrganizationComplianceFileData {
 	file: StorageData;
 }
 
-export interface OrganizationComplianceInsertObj {
+export interface OrganizationComplianceObj {
 	storageIds: number[] | null;
 	number: string;
 	name: string;
@@ -181,7 +188,7 @@ export interface OrganizationComplianceInsertObj {
 	notes?: string;
 }
 
-export interface OrganizationComplianceData extends Omit<OrganizationComplianceInsertObj, 'expirationDate'> {
+export interface OrganizationComplianceData extends Omit<OrganizationComplianceObj, 'expirationDate'> {
 	__table: 'organization_compliances';
 	id: number;
 	organizationId: number;
@@ -208,6 +215,7 @@ export interface OrganizationInstructionsData {
 
 export interface OrganizationInstructionsGQL {
 	__deleted?: boolean;
+
 	id: string;
 	organizationId: string;
 	logType: LogTypeEnum;

@@ -1,8 +1,7 @@
-import i18n from '@jsb188/app/i18n';
 import { orderBy } from '@jsb188/app/utils/object';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
-import { ModalToolbar } from '@jsb188/react-web/ui/ModalUI';
 import type { ModalToolbarBreadcrumb } from '@jsb188/react-web/ui/ModalUI';
+import { ModalToolbar } from '@jsb188/react-web/ui/ModalUI';
 import { memo, useMemo, useState } from 'react';
 
 /**
@@ -37,9 +36,9 @@ export const FileViewer = memo((p: {
     case 'application/pdf':
       return <iframe
         style={{ border: 'none', outline: 'none' }}
-        // src={fileUrl + '#toolbar=0&navpanes=0&scrollbar=0'}
+        src={fileUrl + '#toolbar=0&navpanes=0&scrollbar=0'}
         // src={fileUrl + '#navpanes=0&scrollbar=0'}
-        src={fileUrl}
+        // src={fileUrl}
         className='w_f h_f'
         title='PDF Viewer'
       />;
@@ -80,13 +79,17 @@ const DocumentViewer = memo((p: {
   }, [files]);
 
   return <div className='w_f h_f h_top'>
-    <div className='rel z1 fs shadow_soft_lg'>
+    <div
+      className='rel z1 fs shadow_soft_lg bd_contrast'
+      // style={{ borderTop: 'solid 75px', borderLeft: 'solid 75px', borderRight: 'solid 75px' }}
+      style={{ border: 'solid 75px' }}
+    >
       <FileViewer
         file={documentFiles[selectedIx]}
       />
     </div>
 
-    <aside className='w_350 f_shrink bg f_stretch'>
+    <aside className='w_375 f_shrink bg f_stretch'>
       {/* <ModalAsideToolbar
         title={i18n.t('organization.compliance_title')}
         onCloseModal={onCloseModal}
@@ -98,7 +101,7 @@ const DocumentViewer = memo((p: {
       />
 
       <div className='px_md'>
-        <h4 className='pt_md mb_20 ft_tn ft_medium'>
+        <h4 className='pt_md mb_20 ft_xs ft_medium'>
           {title}
         </h4>
 

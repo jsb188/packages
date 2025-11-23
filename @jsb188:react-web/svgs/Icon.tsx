@@ -133,6 +133,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   user_blocked: 'user-x',
   user_deleted: 'user-off',
   your_account: 'user-circle',
+  certificate: 'document-license',
 
   // AI Task types
   AI_TASK: 'task-list-check-2',
