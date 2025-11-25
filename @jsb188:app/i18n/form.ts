@@ -81,7 +81,7 @@ export default {
     tax: 'Tax',
     price: 'Price',
     unit: 'Unit',
-    unit_price: 'Unit price',
+    unit_price: 'Unit Price',
 		price_ph: '1000.50',
 		tax_ph: '78.20',
     purchase_summary: 'Purchase summary',

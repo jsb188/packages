@@ -1,5 +1,5 @@
 import { cn } from '@jsb188/app/utils/string';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
+import { COMMON_ICON_NAMES, Icon } from '@jsb188/react-web/svgs/Icon';
 import { memo } from 'react';
 import type { TimelineItem } from '../ui/TimelineUI';
 import { TimelineDot } from '../ui/TimelineUI';
@@ -118,9 +118,23 @@ export const CompactTimeline = memo((p: {
   errored?: boolean;
 }) => {
   const { disabled, items, className, notStarted, errored, lastIconName } = p;
-  const lineColor = 'pass';
-  const positionIndex = Number(p.positionIndex);
-  const linePositionIx = positionIndex - (errored ? 1 : 0);
+  // const positionIndex = Number(p.positionIndex);
+
+  // Find last item that is completed
+  let positionIx = items.reduce((lastIx, item, ix) => {
+    return item.completed ? ix : lastIx;
+  }, -1);
+
+  const isAllErrored = positionIx === -1 && errored;
+  const lineColor = isAllErrored ? 'err' : 'pass';
+
+  if (isAllErrored) {
+    positionIx = items.reduce((lastIx, item, ix) => {
+      return !item.completed ? ix : lastIx;
+    }, 0);
+  }
+
+  const linePositionIx = positionIx; // - (errored ? 1 : 0);
   const lastIndex = items.length - 1;
   const showNotStartedDash = notStarted && lastIndex <= 0;
   const isSingle = !showNotStartedDash && lastIndex === 0;
@@ -134,16 +148,18 @@ export const CompactTimeline = memo((p: {
   // }
 
   const itemColors = items.map((item, i) => {
-    const selected = i <= positionIndex;
+    const selected = i <= positionIx;
+    const middleErrored = selected && !item.completed;
     const completed = item.completed && !notStarted;
     const errorAndNotCompleted = errored && selected && !completed;
-    return showNotStartedDash ? null : errorAndNotCompleted ? 'err' : 'pass';
+    return showNotStartedDash ? null : errorAndNotCompleted || middleErrored ? 'err' : 'pass';
   });
 
   return <div className={cn('rel x_timeline compact h_item h_1 r mx_4', !showNotStartedDash && 'bg_active', className)}>
     {items.map((item, i) => {
-      const isFinished = i <= positionIndex && i === lastIndex && !notStarted;
-      const selected = i <= positionIndex;
+      const isFinished = i <= positionIx && i === lastIndex && !notStarted;
+      const selected = i <= positionIx;
+      // const middleErrored = selected && !item.completed;
       const completed = item.completed && !notStarted;
       const errorAndNotCompleted = errored && selected && !completed;
       const outline = (showNotStartedDash || !completed) && !errorAndNotCompleted;
@@ -166,8 +182,12 @@ export const CompactTimeline = memo((p: {
           <Icon name='circle-check-filled' />
         </span> */}
         {i === lastIndex && lastIconName
-        ? <span className={`cl_${positionIndex < i ? 'lt' : errored ? 'err' : completed ? 'pass' : 'lt'} bg r move_left`}>
-          <Icon name={lastIconName} />
+        ? <span
+          // className={`cl_${positionIx < i ? 'lt' : errored ? 'err' : completed ? 'pass' : 'lt'} bg r move_left`}
+          // className={`cl_${errored ? 'err' : completed ? 'pass' : 'lt'} bg r move_left`}
+          className={`cl_${completed ? 'pass' : errored ? 'err' : 'lt'} bg r move_left`}
+        >
+          <Icon name={errored && !completed ? COMMON_ICON_NAMES.progress_error :lastIconName} />
         </span>
         : <TimelineDot
           outline={outline}
@@ -176,7 +196,8 @@ export const CompactTimeline = memo((p: {
           lastSelected={selected && !notStarted}
           size={outline ? 8 : 6}
           color={itemColors[i]}
-          selectedBorderColor={errorAndNotCompleted ? 'err' : 'pass'}
+          // selectedBorderColor={errorAndNotCompleted ? 'err' : 'pass'}
+          selectedBorderColor={itemColors[i] || 'pass'}
         />}
       </TooltipButton>;
     })}
@@ -199,7 +220,7 @@ export const CompactTimeline = memo((p: {
       positionIndex={linePositionIx}
       lastIndex={lastIndex}
       fromColor={itemColors[errored ? linePositionIx : lastIndex] || 'none'}
-      // toColor={itemColors[errored ? positionIndex : lastIndex + 1] || 'none'}
+      // toColor={itemColors[errored ? positionIx : lastIndex + 1] || 'none'}
     />
   </div>;
 });

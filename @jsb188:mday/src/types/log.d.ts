@@ -219,7 +219,7 @@ export interface LogEntryInsertObj {
 	date: Date;
 }
 
-export interface LogEntryDataObj {
+export interface LogEntryData {
 	__table: 'logs';
 	id: number | bigint;
 	accountId: number | bigint;

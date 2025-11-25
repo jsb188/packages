@@ -2,8 +2,8 @@ import { cn } from '@jsb188/app/utils/string';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
 import { memo } from 'react';
 import { Icon } from '../svgs/Icon';
-import { Avatar, AvatarImg } from './Avatar';
 import type { AvatarSize } from './Avatar';
+import { Avatar, AvatarImg } from './Avatar';
 import { InlineButton } from './Button';
 import { EmojiWrapper } from './Markdown';
 
@@ -636,3 +636,30 @@ export const LabeledContentLine = memo((p: {
 });
 
 LabeledContentLine.displayName = 'LabeledContentLine';
+
+/**
+ * Breaks
+ */
+
+export const BreakLine = memo((p: {
+  preset: 'double_line' | 'texture';
+  yPaddingClassName?: string;
+}) => {
+  const { preset, yPaddingClassName } = p;
+
+  let lineClassName;
+  switch (preset) {
+    case 'double_line':
+      lineClassName = 'h_6 bd_t_1 bd_b_1 bd_lt';
+      break;
+    case 'texture':
+      lineClassName = 'h_6 pattern_texture texture_bf rel';
+      break;
+    default:
+      return null;
+  }
+
+  return <div className={cn(lineClassName, yPaddingClassName ?? 'my_sm')} />;
+});
+
+BreakLine.displayName = 'BreakLine';

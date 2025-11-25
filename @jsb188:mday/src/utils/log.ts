@@ -9,7 +9,7 @@ import {
   LIVESTOCK_ACTIVITIES_GROUPED,
   LOG_TYPES_BY_OPERATION
 } from '../constants/log';
-import type { LogEntryDataObj, LogTypeEnum, LogContentName } from '../types/log.d';
+import type { LogEntryData, LogTypeEnum, LogContentName } from '../types/log.d';
 
 /**
  * Get content type for log by activity
@@ -245,7 +245,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
  * @return Log in text format
  */
 
-export function getTextFormatLog(log: LogEntryDataObj) {
+export function getTextFormatLog(log: LogEntryData) {
 	const { notes } = log.details;
 	const title = getLogEntryTitle(log.details || {}, true);
 	return (title + '\n\n' + (notes + '')).trim();
