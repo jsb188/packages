@@ -136,6 +136,7 @@ export interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
 	__table: 'logs_farmers_market';
 	id: number | bigint;
 	childOrg: {
+    id: number | bigint;
 		name: string;
 	};
 }

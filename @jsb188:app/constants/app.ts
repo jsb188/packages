@@ -1,3 +1,5 @@
+type IDDocumentType = any; // Server <-> Client match
+
 // DOM element names (ids)
 
 export const DOM_IDS = {
@@ -20,6 +22,18 @@ export const COMMON_CLASSNAMES = {
   modalScreenSplitForm: 'h_top px_md pb_md gap_md',
   modalScreenSplitContent: 'h_top px_md pb_md gap_lg',
   modalScreenHeading: 'pt_md pb_df ft_normal ft_xs cl_darker_2 ls_2',
+};
+
+// Encryption
+
+export const DOCUMENT_TYPE_TO_PREFIX: Record<string, IDDocumentType | IDDocumentType[]> = {
+  'activity log or note': 'log',
+  'invoice': ['log', 'inv'],
+  'purchase order': ['log', 'inv'],
+  'user account': 'acc',
+  'ai task': 'task',
+  'event': 'event',
+  'farmers market day': 'event',
 };
 
 // Local storage
