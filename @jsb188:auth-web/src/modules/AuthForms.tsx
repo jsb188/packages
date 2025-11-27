@@ -182,13 +182,20 @@ function SignInMain(p: AuthFormProps) {
       </SchemaForm>
 
       <div className='a_c'>
-        <Link
+        {showSignUpLink
+        ? <Link
           className='text ft_sm cl_md link'
-          to={getAuthRoute(hidePassword ? 'signup' : 'reset_password', authRoutesMap)}
+          to={getAuthRoute('signup', authRoutesMap)}
           replace
         >
-          {i18n.t(showSignUpLink ? 'auth.signup_email' : 'auth.forgot_password_')}
+          {i18n.t('auth.signup_email')}
         </Link>
+        : <button
+          className='text ft_sm cl_md link'
+          onClick={() => setAuthIface('VERIFY_EMAIL')}
+        >
+          {i18n.t('auth.forgot_password_')}
+        </button>}
       </div>
     </>
   );
@@ -298,12 +305,18 @@ function ResetPasswordCompleted(p: AuthFormProps) {
   const emailAddress = initialFormData?.identifier;
   const supportEmail = SUPPORT_EMAILS[appNamespace];
 
+  // Because this screen is opened by a client-side fetch, emailAddress will not always be present;
+  // Only way to have the used e-mail address here is if we used POST form request.
+
   return <ModalSimpleContent
     title={i18n.t('auth.email_sent')}
     iconName='circle-check-filled'
   >
     <TextWithLinks as='p'>
-      {i18n.t('auth.reset_password_requested_msg', { emailAddress: emailAddress || '?' })}
+      {i18n.t(emailAddress
+        ? 'auth.reset_password_requested_msg'
+        : 'auth.reset_password_requested_msg_no_email'
+        , { emailAddress })}
     </TextWithLinks>
     <TextWithLinks as='p'>
       {i18n.t('auth.if_need_more_help_email', { emailAddress: supportEmail })}

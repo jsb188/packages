@@ -57,6 +57,9 @@ export default {
       'Check your e-mail, <strong>%{emailAddress}</strong> ' +
       'for instructions to reset your password.'
     ),
+    reset_password_requested_msg_no_email: (
+      'Please check your e-mail for instructions to reset your password.'
+    ),
     if_need_more_help_email: (
       'If you need assistance, please contact us at ' +
       '[%{emailAddress}](mailto:%{emailAddress}).'
