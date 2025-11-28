@@ -1,7 +1,9 @@
-import { COLORS } from '../constants/app';
-import i18n from '../i18n';
-import type { OrganizationGQL, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
-import { DEFAULT_TIMEZONE } from './timeZone';
+import { COLORS } from '@jsb188/app/constants/app';
+import i18n from '@jsb188/app/i18n';
+import { intersection } from '@jsb188/app/utils/object';
+import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone';
+import type { OrganizationData, OrganizationFeatureEnum, OrganizationGQL, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
+import { FEATURES_BY_OPERATION } from '../constants/product';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
@@ -193,6 +195,8 @@ export function getTitleIconsForOrganization(
 
 /**
  * Get the default object for Oganization settings
+ * @param timeZone - Time zone string
+ * @return Default organization settings object
  */
 
 export function getDefaultOrganizationSettings(
@@ -203,4 +207,21 @@ export function getDefaultOrganizationSettings(
 		timeZone: timeZone || DEFAULT_TIMEZONE,
 		color: COLORS[Math.floor(Math.random() * COLORS.length)],
 	};
+}
+
+/**
+ * Get the enabled features for the organization;
+ * If none or empty, return the default features based on operation
+ */
+
+export function getOrganizationFeatures(
+  org: OrganizationGQL | OrganizationData
+): OrganizationFeatureEnum[] {
+  const operation = org?.operation;
+  const orgFeatures = org?.settings?.features || [];
+  // @ts-expect-error - Allow opereation as string
+  const allowedFeatures = FEATURES_BY_OPERATION[operation] || [];
+
+  const filteredFeatures = intersection(orgFeatures, allowedFeatures);
+  return filteredFeatures.length ? filteredFeatures : allowedFeatures[0] ? [allowedFeatures[0]] : [];
 }

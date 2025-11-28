@@ -1,5 +1,5 @@
-import { OPERATION_ENUMS } from '@jsb188/app/constants/organization';
-import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import { OPERATION_ENUMS } from '../constants/organization';
+import type { OrganizationOperationEnum } from '../types/organization.d';
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';

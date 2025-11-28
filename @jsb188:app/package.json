@@ -14,8 +14,6 @@
     "./constants/app": "./constants/app.ts",
     "./constants/billing": "./constants/billing.ts",
     "./constants/emoji": "./constants/emoji.ts",
-    "./constants/organization": "./constants/organization.ts",
-    "./constants/product": "./constants/product.ts",
     "./constants/other": "./constants/other.ts",
     "./constants/user": "./constants/user.ts",
     "./constants/wsActions": "./constants/wsActions.ts",
@@ -26,8 +24,6 @@
     "./utils/logic": "./utils/logic.ts",
     "./utils/number": "./utils/number.ts",
     "./utils/object": "./utils/object.ts",
-    "./utils/organization": "./utils/organization.ts",
-    "./utils/product-event": "./utils/product-event.ts",
     "./utils/string": "./utils/string.ts",
     "./utils/timeZone": "./utils/timeZone.ts",
     "./utils/url_client": "./utils/url_client.ts",
@@ -37,7 +33,6 @@
     "./types/app.d": "./types/app.d.ts",
     "./types/auth.d": "./types/auth.d.ts",
     "./types/form.d": "./types/form.d.ts",
-    "./types/organization.d": "./types/organization.d.ts",
     "./types/other.d": "./types/other.d.ts"
   },
   "dependencies": {

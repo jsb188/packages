@@ -260,7 +260,7 @@ export const PONavAvatarItem = memo((p: PONavItemBase & {
 
       <span className={cn('f lh_2 pt_2', !hasRightComponent && 'pr_xs')}>
         <strong className='bl ellip'>{text}</strong>
-        <span className='ft_xs cl_md bl ellip'>
+        <span className='ft_xs cl_md bl ellip shift_down'>
           {label}
         </span>
       </span>

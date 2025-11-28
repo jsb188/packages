@@ -1,4 +1,4 @@
-import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '../types/organization.d';
 
 /**
  * Constants
@@ -22,6 +22,7 @@ const ROUTES_MAP = {
   'app/field_work': '/app/field-work',
   'app/harvested': '/app/harvested',
   'app/post_harvest': '/app/post-harvest',
+  'app/hygiene': '/app/hygiene',
 
   // Farmers Market
   'app/vendors': '/app/vendors',
@@ -59,6 +60,9 @@ const ROUTES_RULE: Record<string, {
     allowedOperations: ['ARABLE'],
   },
   'app/post_harvest': {
+    allowedOperations: ['ARABLE'],
+  },
+  'app/hygiene': {
     allowedOperations: ['ARABLE'],
   },
 

@@ -146,6 +146,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   POST_HARVEST: 'warehouse-storage',
   SALES: 'receipt-dollar',
   WATER: 'organic-flask',
+  HYGIENE: 'cleanser-scrubing-1',
 
   // Farmers Market types
   MARKET_RECEIPTS: 'farming-sell-vegetable',

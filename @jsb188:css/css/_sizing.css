@@ -1571,6 +1571,18 @@ svg.av_xl .s_dot {
 .grid.gap_4 { row-gap: 4px; column-gap: 4px; }
 .grid.gap_5 { row-gap: 5px; column-gap: 5px; }
 
+.grid.gapx_1 { column-gap: 1px; }
+.grid.gapx_2 { column-gap: 2px; }
+.grid.gapx_3 { column-gap: 3px; }
+.grid.gapx_4 { column-gap: 4px; }
+.grid.gapx_5 { column-gap: 5px; }
+
+.grid.gapy_1 { row-gap: 1px; }
+.grid.gapy_2 { row-gap: 2px; }
+.grid.gapy_3 { row-gap: 3px; }
+.grid.gapy_4 { row-gap: 4px; }
+.grid.gapy_5 { row-gap: 5px; }
+
 .grid.gap_xs { row-gap: var(--rem-xsmall); column-gap: var(--rem-xsmall); }
 .grid.gap_sm { row-gap: var(--rem-small); column-gap: var(--rem-small); }
 .grid.gap_df { row-gap: var(--rem-default); column-gap: var(--rem-default); }
@@ -1590,6 +1602,8 @@ svg.av_xl .s_dot {
 .grid.gapy_lg { row-gap: var(--rem-large); column-gap: 0; }
 
 .grid.gap_n { row-gap: 0; column-gap: 0; }
+.grid.gapx_n { column-gap: 0; }
+.grid.gapy_n { row-gap: 0; }
 
 /* Grid; column spans */
 

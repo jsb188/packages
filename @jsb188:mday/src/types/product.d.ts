@@ -1,6 +1,6 @@
-import { PRODUCT_LIVESTOCK_STATUS, PRODUCT_LIVESTOCK_TYPES, PRODUCT_TYPES } from '@jsb188/app/constants/product';
+import { PRODUCT_LIVESTOCK_STATUS, PRODUCT_LIVESTOCK_TYPES, PRODUCT_TYPES } from '../constants/product';
 import type { AccountData } from '@jsb188/app/types/account.d';
-import type { OrganizationData, OrganizationGQL } from '@jsb188/app/types/organization.d';
+import type { OrganizationData, OrganizationGQL } from './types/organization.d';
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
 
 /**

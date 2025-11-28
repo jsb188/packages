@@ -1,10 +1,10 @@
+import i18n from '@jsb188/app/i18n';
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
-import type { ProductAttendanceData, ProductCalEventData, ProductCalEventGQL } from '@jsb188/mday/types/product.d';
+import { getFullDate } from '@jsb188/app/utils/datetime';
+import { convertToMilitaryTime } from '@jsb188/app/utils/number';
+import { DEFAULT_TIMEZONE, hhmmFromDateOrTime } from '@jsb188/app/utils/timeZone';
 import { DateTime } from 'luxon';
-import i18n from '../i18n';
-import { getFullDate } from './datetime';
-import { convertToMilitaryTime } from './number';
-import { DEFAULT_TIMEZONE, hhmmFromDateOrTime } from './timeZone';
+import type { ProductAttendanceData, ProductCalEventData, ProductCalEventGQL } from '../types/product.d';
 
 /**
  * Get the address in a single line text format

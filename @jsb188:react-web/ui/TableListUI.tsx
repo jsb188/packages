@@ -1,6 +1,5 @@
-import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
-import { createElement, memo } from 'react';
+import { memo } from 'react';
 import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
@@ -40,7 +39,7 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
     className={cn(
       'lh_1',
       !doNotApplyGridToRows && !removeBorderLine ? 'bd_lt bd_t_1' : '',
-      !doNotApplyGridToRows ? 'grid gap_n' : 'trow',
+      !doNotApplyGridToRows ? 'grid gapy_n gapx_5' : 'trow',
       !__deleted && rest.onClick ? 'link bg_primary_fd_hv' : '',
       thead ? 'thead' : '',
       __deleted ? '__deleted' : '',

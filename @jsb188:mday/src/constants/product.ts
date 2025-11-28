@@ -1,0 +1,61 @@
+/**
+ * Products; all types
+ */
+
+export const PRODUCT_TYPES = [
+	'LIVESTOCK',
+	'CAL_EVENTS',
+];
+
+/**
+ * Product features
+ */
+
+export const FEATURES_BY_OPERATION = {
+  ARABLE: [
+    'LOG_FARMING', // First item is always the default
+    'LOG_HYGIENE',
+  ],
+  FARMERS_MARKET: [
+    'LOG_FARMERS_MARKET',
+    'CAL_EVENTS',
+    'CAL_EVENTS_ATTENDANCE',
+    'CAL_EVENTS_LOAD_LIST',
+  ],
+  LIVESTOCK: [
+    'LOG_LIVESTOCK',
+    'LIVESTOCK',
+  ]
+};
+
+export const PRODUCT_FEATURES = [
+  ...FEATURES_BY_OPERATION.ARABLE,
+  ...FEATURES_BY_OPERATION.FARMERS_MARKET,
+  ...FEATURES_BY_OPERATION.LIVESTOCK,
+];
+
+export const ACTIVITY_TO_FEATURE_MAP = {
+	CAL_EVENTS_ATTENDANCE: ['MARKET_ATTENDANCE'],
+	CAL_EVENTS_LOAD_LIST: ['MARKET_LOAD_LIST'],
+};
+
+/**
+ * Products; Livestock
+ */
+
+export const PRODUCT_LIVESTOCK_TYPES = [
+	'CATTLE',
+	'HORSE',
+	'GOAT',
+	'SHEEP',
+	'POULTRY',
+	'PIG',
+	'OTHER_LIVESTOCK',
+];
+
+export const PRODUCT_LIVESTOCK_STATUS = [
+	'ALIVE',
+	'SICK',
+	'SOLD',
+	'DECEASED',
+];

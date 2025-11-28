@@ -155,6 +155,7 @@ export default {
     start_time: 'Start time',
     end_time: 'End time',
     time_with_zone: 'Time (%{timeZone})',
+    time_zone_: 'Time zone: %{timeZone}',
     not_specified: 'Not specified',
     attendance: 'Attendance',
     attended_: 'Attended?',

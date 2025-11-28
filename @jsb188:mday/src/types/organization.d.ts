@@ -6,9 +6,9 @@ import {
 } from '../constants/organization.ts';
 import { PRODUCT_FEATURES } from '../constants/product.ts';
 
-import type { LogTypeEnum } from '@jsb188/mday/types/log.d';
-import type { AccountData } from './account.d.ts';
-import type { StorageData } from './other.d.ts';
+import type { AccountData } from '@jsb188/app/types/account.d';
+import type { StorageData } from '@jsb188/app/types/other.d';
+import type { LogTypeEnum } from '../types/log.d';
 
 /*
  * Enums

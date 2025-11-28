@@ -1,6 +1,6 @@
 import type { AccountObj } from '@jsb188/app/types/account.d';
 import type { ActionTaskGQL, ActionTaskObj } from '@jsb188/mday/types/action.d';
-import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import type { OrganizationOperationEnum } from '../types/organization.d';
 import {
   LOG_ACTION_STATUS_ENUMS,
   LOG_ARABLE_ACTIVITY_ENUMS,

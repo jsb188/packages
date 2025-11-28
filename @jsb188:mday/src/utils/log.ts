@@ -1,5 +1,5 @@
 import i18n from '@jsb188/app/i18n';
-import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import type { OrganizationOperationEnum } from '../types/organization.d';
 import { formatCurrency, formatDecimal } from '@jsb188/app/utils/number';
 import { formatReferenceNumber, joinReadable, textWithBrackets, ucFirst } from '@jsb188/app/utils/string';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';

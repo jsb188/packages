@@ -1,5 +1,5 @@
-import { PRODUCT_TYPES } from '@jsb188/app/constants/product';
-import type { OrganizationOperationEnum } from '@jsb188/app/types/organization.d';
+import { PRODUCT_TYPES } from '@jsb188/mday/constants/product';
+import type { OrganizationOperationEnum } from '../types/organization.d';
 import { z } from 'zod';
 import type { ProductsFilterArgs, ProductTypeEnum } from '../types/product.d';
 
