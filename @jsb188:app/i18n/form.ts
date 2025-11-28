@@ -148,6 +148,7 @@ export default {
     success: 'Success',
     success_: 'Success!',
     help: 'Help',
+    advanced: 'Advanced',
     start: 'Start',
     started: 'Started',
     end: 'End',

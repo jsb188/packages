@@ -146,7 +146,13 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   POST_HARVEST: 'warehouse-storage',
   SALES: 'receipt-dollar',
   WATER: 'organic-flask',
-  HYGIENE: 'cleanser-scrubing-1',
+
+  // Arable - Food Safety types
+  HYGIENE: 'locker-room-wash-hands-1',
+  SANITATION: 'cleanser-scrubing-1',
+  EQUIPMENTS: 'shipment-container',
+  BIOSECURITY: 'ecology-leaf-shield',
+  EMPLOYEES: 'avatar-farmer-man-4',
 
   // Farmers Market types
   MARKET_RECEIPTS: 'farming-sell-vegetable',

@@ -1,7 +1,7 @@
 import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '../types/organization.d';
 
 /**
- * Constants
+ * Constants; Routes
  */
 
 const ROUTES_MAP = {
@@ -16,78 +16,126 @@ const ROUTES_MAP = {
   'app/purchases': '/app/purchases',
   'app/receipts': '/app/receipts',
 
-  // Arable
+  // # Arable
   'app/seeding': '/app/seeding',
   'app/transplanting': '/app/transplanting',
   'app/field_work': '/app/field-work',
   'app/harvested': '/app/harvested',
   'app/post_harvest': '/app/post-harvest',
-  'app/hygiene': '/app/hygiene',
 
-  // Farmers Market
+  // * Arable; Food Safety
+  'app/hygiene': '/app/hygiene',
+  'app/sanitation': '/app/sanitation',
+  'app/equipments': '/app/equipments',
+  'app/biosecurity': '/app/biosecurity',
+  'app/employees': '/app/employees',
+
+  // # Farmers Market
   'app/vendors': '/app/vendors',
 
-  // Livestock
+  // # Livestock
   'app/livestock': '/app/livestock',
 
-  // Unsorted (see all)
+  // # Advanced
   'app/logs': '/app/logs',
   'app/ai_workflows': '/app/ai-workflows',
 };
 
-const PATH_TO_ROUTE_NAME = Object.entries(ROUTES_MAP).reduce((acc, [routeName, path]) => {
+type AppRouteName = keyof typeof ROUTES_MAP;
+type AppRoutePath = typeof ROUTES_MAP[AppRouteName];
+
+const PATH_TO_ROUTE_NAME: Record<AppRoutePath, AppRouteName> = Object.entries(ROUTES_MAP).reduce((acc, [routeName, path]) => {
+  // @ts-ignore
   acc[path] = routeName;
   return acc;
-}, {} as { [path: string]: string });
+}, {});
 
-const ROUTES_RULE: Record<string, {
+/**
+ * Constants; Re-usable rules
+ */
+
+const OP_FARMING = ['ARABLE', 'LIVESTOCK'];
+const FEATURE_FOOD_SAFETY = ['FOOD_SAFETY_ARABLE', 'GLOBAL_GAP_ARABLE'];
+
+/**
+ * Rules
+ */
+
+// @ts-ignore
+const ROUTES_RULE: Record<AppRouteName, {
   allowedOperations?: OrganizationOperationEnum[];
   notAllowedOperations?: OrganizationOperationEnum[];
-  requiredFeature?: OrganizationFeatureEnum;
+  requiredFeature?: OrganizationFeatureEnum[];
 }> = {
 
   // Arable
   'app/seeding': {
     allowedOperations: ['ARABLE'],
+    requiredFeature: ['LOG_ARABLE'],
   },
   'app/transplanting': {
     allowedOperations: ['ARABLE'],
+    requiredFeature: ['LOG_ARABLE'],
   },
   'app/field_work': {
     allowedOperations: ['ARABLE'],
+    requiredFeature: ['LOG_ARABLE'],
   },
   'app/harvested': {
     allowedOperations: ['ARABLE'],
+    requiredFeature: ['LOG_ARABLE'],
   },
   'app/post_harvest': {
     allowedOperations: ['ARABLE'],
+    requiredFeature: ['LOG_ARABLE'],
+  },
+  'app/purchases': {
+    allowedOperations: OP_FARMING,
+    requiredFeature: ['LOG_ARABLE', 'LOG_LIVESTOCK'],
+  },
+  'app/orders': {
+    allowedOperations: OP_FARMING,
+    requiredFeature: ['LOG_ARABLE'],
   },
   'app/hygiene': {
-    allowedOperations: ['ARABLE'],
+    allowedOperations: OP_FARMING,
+    requiredFeature: FEATURE_FOOD_SAFETY,
+  },
+  'app/sanitation': {
+    allowedOperations: OP_FARMING,
+    requiredFeature: FEATURE_FOOD_SAFETY,
+  },
+  'app/equipments': {
+    allowedOperations: OP_FARMING,
+    requiredFeature: FEATURE_FOOD_SAFETY,
+  },
+  'app/biosecurity': {
+    allowedOperations: OP_FARMING,
+    requiredFeature: FEATURE_FOOD_SAFETY,
+  },
+  'app/employees': {
+    allowedOperations: OP_FARMING,
+    requiredFeature: FEATURE_FOOD_SAFETY,
   },
 
   // Farmers Market
-  'app/markets': {
-    allowedOperations: ['FARMERS_MARKET'],
-    requiredFeature: 'CAL_EVENTS',
-  },
   'app/vendors': {
     allowedOperations: ['FARMERS_MARKET'],
+    requiredFeature: ['LOG_FARMERS_MARKET']
   },
-  'app/purchases': {
-    notAllowedOperations: ['FARMERS_MARKET'],
-  },
-  'app/orders': {
-    allowedOperations: ['ARABLE', 'LIVESTOCK'],
+  'app/markets': {
+    allowedOperations: ['FARMERS_MARKET'],
+    requiredFeature: ['CAL_EVENTS'],
   },
   'app/receipts': {
     allowedOperations: ['FARMERS_MARKET'],
+    requiredFeature: ['LOG_FARMERS_MARKET']
   },
 
   // Livestock
   'app/livestock': {
     allowedOperations: ['LIVESTOCK'],
-    // requiredFeature: 'LIVESTOCK_ANIMALS', ??
+    requiredFeature: ['LOG_LIVESTOCK']
   },
 };
 
@@ -183,6 +231,6 @@ export function isRouteAllowed(
     (!routeRules.allowedOperations || routeRules.allowedOperations.includes(operation || '')) &&
     (!routeRules.notAllowedOperations || !routeRules.notAllowedOperations.includes(operation || '')) &&
     // If {orgFeature} is null, assume data is not finished loading yet, and allow "benefit of doubt" access
-    (!orgFeatures || !routeRules.requiredFeature || orgFeatures.includes(routeRules.requiredFeature))
+    (!orgFeatures || !routeRules.requiredFeature || routeRules.requiredFeature.some((feature) => orgFeatures.includes(feature)))
   );
 }

@@ -2,7 +2,7 @@ import { cn } from '@jsb188/app/utils/string';
 import { MockAvatar, MockText } from '@jsb188/react-web/ui/Loading';
 import { getAvatarLetters } from '@jsb188/react-web/ui/Avatar';
 import { EmojiWrapper } from '@jsb188/react-web/ui/Markdown';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import { SmartLink } from './Button';
 
@@ -12,7 +12,7 @@ import { SmartLink } from './Button';
 
 export function SidebarHeaderArea(p: any) {
   const { children, ...rest } = p;
-  return <div className='shadow_float ft_sm' {...rest}>
+  return <div className='shadow_float ft_sm hv_area' {...rest}>
     {children}
 
     <div className='p_2 rel mt_sm bd_t_1 bd_b_1 bd_lt bg_alt'>
@@ -39,7 +39,7 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
       <div className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
         <MockAvatar
           size='xxs'
-          roundedClassName='r_sm'
+          roundedClassName='r_xs'
           className='bg_active'
         />
       </div>
@@ -50,7 +50,7 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
     </>
     : <>
       <div className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
-        <span className='av_xs v_center r_sm bg_lighter_3 bd_2 bd_lt'>
+        <span className='av_xs v_center r_xs bg_lighter_3 bd_2 bd_lt'>
           <span className='shift_down ft_df'>
             <EmojiWrapper>
               {emoji || getAvatarLetters(title!) || '🌟'}
@@ -59,14 +59,16 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
         </span>
       </div>
 
-      <div className='ft_df shift_down f ellip'>
+      <div className='ft_df shift_down ellip'>
         {title}
       </div>
 
-      <span className='ml_xs h_center ft_df cl_md'>
-        <Icon name='chevron-down' />
+      <span className='ml_xs h_center ic_xs cl_md'>
+        <Icon name='chevron-right-filled' />
       </span>
     </>}
+
+    {/* When you are ready, add "collapse sidebar" button here */}
   </div>;
 });
 
@@ -76,28 +78,39 @@ SidebarHeaderNav.displayName = 'SidebarHeaderNav';
  * Sidebar subtitle
  */
 
-interface SidebarSubtitleProps {
+export const SidebarSubtitle = memo((p: {
+  paddingClassName?: string;
+  marginClassName?: string;
   text: string;
   iconName?: string;
   rightIconName?: string;
-}
+  rightIconClassName?: string;
+  onClick?: (e: any) => void;
+}) => {
+  const { text, iconName, rightIconName, rightIconClassName, onClick, paddingClassName, marginClassName } = p;
 
-export const SidebarSubtitle = memo((p: SidebarSubtitleProps) => {
-  const { text, iconName, rightIconName } = p;
-
-  return <div className='mx_xs px_sm pt_df mt_xs pb_5 cl_md ft_xs h_spread lh_1'>
+  return <div
+    role={onClick ? 'button' : undefined}
+    onClick={onClick}
+    className={cn(
+      'cl_md ft_xs h_item lh_1 r_xs',
+      paddingClassName ?? 'px_sm py_5',
+      marginClassName ?? 'mx_xs',
+      onClick && 'bg_active_hv link'
+    )}
+  >
     {iconName && (
       <span className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
         <Icon name={iconName} />
       </span>
     )}
 
-    <strong className={cn('ft_medium f ellip', !iconName && 'shift_left')}>
+    <strong className={cn('ft_medium ellip', !iconName && 'shift_left')}>
       {text}
     </strong>
 
     {rightIconName && (
-      <span className='pl_xs shift_up'>
+      <span className={cn('pl_4 ic_sm', rightIconClassName)}>
         <Icon name={rightIconName} />
       </span>
     )}
@@ -107,10 +120,49 @@ export const SidebarSubtitle = memo((p: SidebarSubtitleProps) => {
 SidebarSubtitle.displayName = 'SidebarSubtitle';
 
 /**
+ * Sidebar collapsible nav
+ */
+
+export const SidebarNestedNavItem = memo((p: {
+  text: string;
+  navList: (SidebarItemProps & { break?: boolean })[];
+  initialExpanded?: boolean;
+}) => {
+  const { text, navList, initialExpanded } = p;
+  const [expanded, setExpanded] = useState(initialExpanded !== false);
+
+  return <>
+    <SidebarSubtitle
+      // rightIconClassName={cn('trans_op spd_1 target op_0', !expanded && 'shift_left')}
+      rightIconClassName={cn('trans_op spd_1', expanded ? 'target op_0' : 'shift_left')}
+      // paddingClassName=''
+      marginClassName='mx_xs my_2'
+      text={text}
+      rightIconName={expanded ? 'chevron-down-filled' : 'chevron-right-filled'}
+      onClick={() => setExpanded(!expanded)}
+    />
+
+    {expanded &&
+    <div className='mb_10'>
+      {navList.map((item, i) => (
+        item.break
+        ? <SidebarBreak key={i} />
+        : <SidebarItem
+          key={i}
+          {...item}
+        />
+      ))}
+    </div>}
+  </>;
+});
+
+SidebarNestedNavItem.displayName = 'SidebarNestedNavItem';
+
+/**
  * Sidebar item
  */
 
-export const SidebarItem = memo((p: {
+interface SidebarItemProps {
   className?: string;
   selected?: boolean;
   to?: string;
@@ -118,12 +170,14 @@ export const SidebarItem = memo((p: {
   text: string;
   iconName?: string;
   rightIconName?: string;
-}) => {
+}
+
+export const SidebarItem = memo((p: SidebarItemProps) => {
   const { text, iconName, rightIconName, to, selected, onClick, className } = p;
 
   return <SmartLink
     className={cn(
-      'mx_xs my_2 py_3 r_sm bl cl_df',
+      'mx_xs my_2 py_3 r_xs bl cl_df',
       selected ? 'bg_active disabled' : 'bg_active_hv',
       className
     )}
@@ -159,7 +213,7 @@ SidebarItem.displayName = 'SidebarItem';
  */
 
 export const SidebarBreak = memo(() => {
-  return <div className='pt_3 pb_4 mx_df'>
+  return <div className='py_8 mx_df'>
     <div className='h_4 rel pattern_texture secondary_bf' />
   </div>;
 });

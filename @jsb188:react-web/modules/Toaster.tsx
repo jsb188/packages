@@ -47,7 +47,7 @@ const ToasterPreview = memo((p: {
       return <div
         key={ix}
         className={cn(
-          'v_center trans_opacity',
+          'v_center trans_op',
           ix <= 1 || toast?.message ? 'h_toolbar' : '',
           ix === 1 || animatingId ? 'op_100' : 'op_0'
         )}

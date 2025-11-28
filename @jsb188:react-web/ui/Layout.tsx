@@ -142,7 +142,7 @@ export function ModalCover(p: ModalCoverProps) {
       className={cn(
         // 'fixed_full',
         // visible === 2 ? 'visible' : '',
-        'fixed_full bg_modal trans_opacity',
+        'fixed_full bg_modal trans_op',
         visible === 2 ? visibleCn : notVisibleCn,
         animationName ? `target ${animationName}` : '',
         onCloseModal ? 'cs_back' : '',
@@ -154,7 +154,7 @@ export function ModalCover(p: ModalCoverProps) {
       }}
       {...other}
     >
-      {/* <div className={cn('bg_modal abs_full trans_opacity spd_2', visible === 2 ? 'op_100' : 'op_0')} /> */}
+      {/* <div className={cn('bg_modal abs_full trans_op spd_2', visible === 2 ? 'op_100' : 'op_0')} /> */}
       {children}
     </div>
   );

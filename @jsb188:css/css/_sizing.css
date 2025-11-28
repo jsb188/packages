@@ -1294,6 +1294,16 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .rl { border-top-left-radius: 100vmax; border-bottom-left-radius: 100vmax; }
 .rr { border-top-right-radius: 100vmax; border-bottom-right-radius: 100vmax; }
 
+.r_xs { border-radius: var(--radius-xsmall); }
+.rtl_xs { border-top-left-radius: var(--radius-xsmall); }
+.rbl_xs { border-bottom-left-radius: var(--radius-xsmall); }
+.rtr_xs { border-top-right-radius: var(--radius-xsmall); }
+.rbr_xs { border-bottom-right-radius: var(--radius-xsmall); }
+.rt_xs { border-top-left-radius: var(--radius-xsmall); border-top-right-radius: var(--radius-xsmall); }
+.rb_xs { border-bottom-left-radius: var(--radius-xsmall); border-bottom-right-radius: var(--radius-xsmall); }
+.rl_xs { border-top-left-radius: var(--radius-xsmall); border-bottom-left-radius: var(--radius-xsmall); }
+.rr_xs { border-top-right-radius: var(--radius-xsmall); border-bottom-right-radius: var(--radius-xsmall); }
+
 .r_sm { border-radius: var(--radius-small); }
 .rtl_sm { border-top-left-radius: var(--radius-small); }
 .rbl_sm { border-bottom-left-radius: var(--radius-small); }

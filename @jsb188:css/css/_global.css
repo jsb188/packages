@@ -330,7 +330,7 @@ p:last-child {
 
 /* Opacity */
 
-.op_100 { opacity: 1; }
+.hv_area:hover .target, .op_100 { opacity: 1; }
 .op_90 { opacity: .9; }
 .op_80 { opacity: .8; }
 .op_70 { opacity: .7; }
@@ -1098,7 +1098,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .trans_transform { transition: transform .1s ease-in-out; }
 .trans_none, .trans_none *, .trans_none_inner * { transition: none !important; }
 
-.trans_opacity {
+.trans_op {
   transition-property: opacity;
   transition-duration: 0.25s;
   transition-timing-function: ease-in-out;
