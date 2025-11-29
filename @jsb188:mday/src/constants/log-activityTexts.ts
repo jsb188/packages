@@ -62,6 +62,37 @@ export const ARABLE_ACTIVITIES_TO_TEXT = {
 	...WATER_TESTING_ACTIVITY_TO_TEXT,
 };
 
+// Food Safety is separate from arable farming
+
+export const ARABLE_FOOD_SAFETY_TO_TEXT = {
+  // # Hygiene
+  HYGIENE_PROCEDURE: 'hygiene procedures',
+  BODILY_FLUID_CONTAMINATION: 'vomitting/bodily fluid decontamination',
+  SMOKING_EATING_DRINKING_CONTROL: 'smoking, eating, and drinking control actions',
+  PPE_USAGE: 'personal protective equipment (PPE) usage',
+
+  // # Sanitation
+  SANITATION_RISK: 'sanitation risk',
+  SANITATION_CONSTRUCTION_MAINTENANCE: 'sanitation facilities construction, repairs, or maintenance',
+  SANITATION_CLEANING: 'sanitation facilities cleaning activities',
+  SANITATION_PEST_CONTROL: 'pest control in sanitation facilities',
+
+  // # Equpiments & Materials
+  EQUIPMENTS_MATERIALS_RISK: 'equipments and materials food safety risk',
+  EQUIPMENTS_MATERIALS_CLEANING: 'equipments and materials cleaning activities',
+
+  // # Environment & Biosecurity
+  ENVIRONMENT_RISK: 'environmental food safety risk',
+  ENVIRONMENT_HAZARD_MITIGATION: 'environmental hazard mitigation',
+
+  // # Employees
+  EMPLOYEE_ORIENTATION: 'new employee orientation',
+  EMPLOYEE_TRAINING: 'employee training',
+  SICK_EMPLOYEE: 'employee sick report',
+  EMPLOYEE_INJURED: 'employee injury report',
+  OTHER_EMPLOYEE_NOTES: 'other notes on employee',
+};
+
 /**
  * #### #### #### ####
  * Farmers Market
@@ -73,8 +104,8 @@ export const FARMERS_MARKET_RECEIPT_TO_TEXT = {
 };
 
 export const FARMERS_MARKET_OPERATION_TO_TEXT = {
-  MARKET_ATTENDANCE: 'attendance for vendor',
-  MARKET_LOAD_LIST: 'vendor load list',
+	MARKET_ATTENDANCE: 'attendance for vendor',
+	MARKET_LOAD_LIST: 'vendor load list',
 	VENDOR_NOTES: 'notes about a vendor',
 	EMPLOYEE_NOTES: 'notes about an employee',
 	FARMERS_MARKET_NOTES: 'notes about farmers market',

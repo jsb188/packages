@@ -3,7 +3,7 @@ import type { OrganizationOperationEnum } from '../types/organization.d';
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';
-import { LOG_ANY_ACTIVITY_ENUMS, LOG_TYPE_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
+import { LOG_ANY_ACTIVITY_ENUMS, LOG_ANY_TYPE_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
 import type { FilterLogEntriesArgs, LogTypeEnum } from '../types/log.d';
 
 /**
@@ -14,7 +14,7 @@ export const FilterLogEntriesSchema = z.object({
   preset: z.string()
     .optional()
     .nullable(),
-	types: z.array(z.enum(LOG_TYPE_ENUMS as [string]))
+	types: z.array(z.enum(LOG_ANY_TYPE_ENUMS as [string]))
 		.nullable(),
   activities: z.array(z.enum(LOG_ANY_ACTIVITY_ENUMS as [string]))
     .optional()

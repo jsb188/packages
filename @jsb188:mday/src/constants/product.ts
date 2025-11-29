@@ -15,7 +15,7 @@ export const PRODUCT_TYPES = [
 
 export const FEATURES_BY_OPERATION = {
 	ARABLE: [
-		'LOG_FARMING', // First item is always the default
+		'LOG_ARABLE', // First item is always the default
     'FOOD_SAFETY_ARABLE',
     'GLOBAL_GAP_ARABLE',
 	],

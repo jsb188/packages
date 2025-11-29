@@ -46,7 +46,7 @@ export type LogLivestockActivityEnum = typeof LOG_LIVESTOCK_ACTIVITY_ENUMS[numbe
  * All log types/activities Union
  */
 
-export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogLivestockTypeEnum | 'AI_TASK';
+export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogLivestockTypeEnum | 'EVERYTHING' | 'AI_TASK';
 export type LogActivityEnum = LogArableActivityEnum | LogFarmersMarketActivityEnum | LogLivestockActivityEnum;
 
 /**
@@ -136,7 +136,7 @@ export interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
 	__table: 'logs_farmers_market';
 	id: number | bigint;
 	childOrg: {
-    id: number | bigint;
+		id: number | bigint;
 		name: string;
 	};
 }

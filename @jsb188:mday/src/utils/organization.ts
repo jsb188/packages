@@ -2,8 +2,8 @@ import { COLORS } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
 import { intersection } from '@jsb188/app/utils/object';
 import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone';
-import type { OrganizationData, OrganizationFeatureEnum, OrganizationGQL, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
 import { FEATURES_BY_OPERATION } from '../constants/product';
+import type { OrganizationFeatureEnum, OrganizationGQL, OrganizationOperationEnum, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
@@ -215,13 +215,11 @@ export function getDefaultOrganizationSettings(
  */
 
 export function getOrganizationFeatures(
-  org: OrganizationGQL | OrganizationData
+	operation: OrganizationOperationEnum,
+  enabledFeatures?: OrganizationFeatureEnum[] | null
 ): OrganizationFeatureEnum[] {
-  const operation = org?.operation;
-  const orgFeatures = org?.settings?.features || [];
-  // @ts-expect-error - Allow opereation as string
-  const allowedFeatures = FEATURES_BY_OPERATION[operation] || [];
-
-  const filteredFeatures = intersection(orgFeatures, allowedFeatures);
-  return filteredFeatures.length ? filteredFeatures : allowedFeatures[0] ? [allowedFeatures[0]] : [];
+	// @ts-expect-error - Allow operation as string
+	const allowedFeatures = FEATURES_BY_OPERATION[operation] || [];
+	const filteredFeatures = intersection(enabledFeatures || [], allowedFeatures);
+	return filteredFeatures.length ? filteredFeatures : allowedFeatures[0] ? [allowedFeatures[0]] : [];
 }

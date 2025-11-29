@@ -114,6 +114,48 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'OTHER_WATER_TESTING_ACTIVITY',
 		],
 	],
+  [
+    'HYGIENE',
+    [
+      'HYGIENE_PROCEDURE',
+      'BODILY_FLUID_CONTAMINATION',
+      'SMOKING_EATING_DRINKING_CONTROL',
+      'PPE_USAGE',
+    ],
+  ],
+  [
+    'SANITATION',
+    [
+      'SANITATION_RISK',
+      'SANITATION_CONSTRUCTION_MAINTENANCE',
+      'SANITATION_CLEANING',
+      'SANITATION_PEST_CONTROL',
+    ],
+  ],
+  [
+    'EQUIPMENTS',
+    [
+      'EQUIPMENTS_MATERIALS_RISK',
+      'EQUIPMENTS_MATERIALS_CLEANING',
+    ],
+  ],
+  [
+    'BIOSECURITY',
+    [
+      'ENVIRONMENT_RISK',
+      'ENVIRONMENT_HAZARD_MITIGATION',
+    ],
+  ],
+  [
+    'EMPLOYEES',
+    [
+      'EMPLOYEE_ORIENTATION',
+      'EMPLOYEE_TRAINING',
+      'SICK_EMPLOYEE',
+      'EMPLOYEE_INJURED',
+      'OTHER_EMPLOYEE_NOTES',
+    ],
+  ],
 ];
 
 export const LOG_ARABLE_TYPE_ENUMS = ARABLE_ACTIVITIES_GROUPED.map(([type]) => type);
@@ -123,15 +165,20 @@ export const ARABLE_TYPES_TO_TEXT = {
 	PLANTING: 'seeding & transplanting',
 	FIELD: 'field work',
 	HARVEST: 'harvest activities',
-	POST_HARVEST: 'post-harvest activities such as cleaning, storage, maintenance, packaging produce and cold storage',
+	POST_HARVEST: 'post-harvest (cleaning, storage, maintenance, packaging produce, cold storage)',
 	SALES: 'sales & purchase orders',
 	WATER: 'water testing activities',
-	EVERYTHING: 'all activities', // Not part of enums
+	EVERYTHING: 'all farming activities', // Not part of enums
 };
 
-export const TEXT_TO_ARABLE_TYPES = Object.fromEntries(
-	Object.entries(ARABLE_TYPES_TO_TEXT).map(([key, value]) => [value, key]),
-);
+export const FOOD_SAFETY_TYPES_TO_TEXT = {
+  HYGIENE: 'hygiene procdedures',
+  SANITATION: 'sanitation infrastructure & practices',
+  EQUIPMENTS: 'equipments & materials sanitation',
+  BIOSECURITY: 'environment & biosecurity measures',
+  EMPLOYEES: 'employee incidents & training',
+	EVERYTHING: 'all food safety logs', // Not part of enums
+};
 
 export const LOG_ARABLE_ACTIVITY_ENUMS = ARABLE_ACTIVITIES_GROUPED.reduce(
 	(acc, a) => acc.concat(a[1]),
@@ -150,7 +197,7 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 		'MARKET_RECEIPTS',
 		[
 			'MARKET_CREDIT_RECEIPT',
-		]
+		],
 	],
 	[
 		'MARKET_OPERATIONS',
@@ -160,7 +207,7 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'VENDOR_NOTES',
 			'EMPLOYEE_NOTES',
 			'FARMERS_MARKET_NOTES',
-		]
+		],
 	],
 ];
 
@@ -169,12 +216,8 @@ export const LOG_FARMERS_MARKET_TYPE_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUPED.m
 export const FARMERS_MARKET_TYPES_TO_TEXT = {
 	MARKET_RECEIPTS: 'market credit receipts and coins redemption',
 	MARKET_OPERATIONS: 'notes about farmers and markets',
-	EVERYTHING: 'all activities', // Not part of enums
+	EVERYTHING: 'all market activities', // Not part of enums
 };
-
-export const TEXT_TO_FARMERS_MARKET_TYPES = Object.fromEntries(
-	Object.entries(FARMERS_MARKET_TYPES_TO_TEXT).map(([key, value]) => [value, key]),
-);
 
 export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUPED.reduce(
 	(acc, a) => acc.concat(a[1]),
@@ -253,12 +296,8 @@ export const LIVESTOCK_TYPES_TO_TEXT = {
 	PASTURE_LAND_MANAGEMENT: 'pasture and land management',
 	LIVESTOCK_HEALTHCARE: 'livestock healthcare',
 	LIVESTOCK_SALE: 'livestock sale',
-	EVERYTHING: 'all activities', // Not part of enums
+	EVERYTHING: 'all ranching activities', // Not part of enums
 };
-
-export const TEXT_TO_LIVESTOCK_TYPES = Object.fromEntries(
-	Object.entries(LIVESTOCK_TYPES_TO_TEXT).map(([key, value]) => [value, key]),
-);
 
 export const LOG_LIVESTOCK_ACTIVITY_ENUMS = LIVESTOCK_ACTIVITIES_GROUPED.reduce(
 	(acc, a) => acc.concat(a[1]),
@@ -271,7 +310,7 @@ export const LOG_LIVESTOCK_ACTIVITY_ENUMS = LIVESTOCK_ACTIVITIES_GROUPED.reduce(
  * #### #### #### ####
  */
 
-export const LOG_TYPE_ENUMS = [
+export const LOG_ANY_TYPE_ENUMS = [
 	...LOG_ARABLE_TYPE_ENUMS,
 	...LOG_FARMERS_MARKET_TYPE_ENUMS,
 	...LOG_LIVESTOCK_TYPE_ENUMS,
@@ -289,8 +328,17 @@ export const LOG_ACTIVITIES_BY_OPERATION: Record<OrganizationOperationEnum, any>
 	LIVESTOCK: LIVESTOCK_ACTIVITIES_GROUPED,
 };
 
-export const LOG_TYPES_BY_OPERATION: Record<OrganizationOperationEnum, (typeof LOG_TYPE_ENUMS)[number][]> = {
+export const LOG_TYPES_BY_OPERATION: Record<OrganizationOperationEnum, (typeof LOG_ANY_TYPE_ENUMS)[number][]> = {
 	ARABLE: LOG_ARABLE_TYPE_ENUMS,
 	FARMERS_MARKET: LOG_FARMERS_MARKET_TYPE_ENUMS,
 	LIVESTOCK: LOG_LIVESTOCK_TYPE_ENUMS,
+};
+
+export const ALL_TEXT_TO_TYPES = {
+  // Each Object has to be fromEntries() one by one to avoid key conflicts
+  // (Because, for example: "EVERYTHING" exists in multiple objects)
+  ...Object.fromEntries(Object.entries(ARABLE_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+  ...Object.fromEntries(Object.entries(FOOD_SAFETY_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+  ...Object.fromEntries(Object.entries(FARMERS_MARKET_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+  ...Object.fromEntries(Object.entries(LIVESTOCK_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 };
