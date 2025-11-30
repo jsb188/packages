@@ -250,10 +250,25 @@ export function isInvisibleString(str: string) {
  * NOTE: Userful for building AI prompts
  */
 
-export function buildSingleText(lines: (string | undefined | false | null)[], delemiter: string = '\n') {
+type AnyLineItem = string | undefined | false | null;
+
+export function buildSingleText(
+  lines: (AnyLineItem | Record<string, AnyLineItem[]>)[],
+  delemiter: string = '\n',
+  features: string[] = [],
+) {
 	return lines
 		.reduce((acc, line_) => {
 			const line = line_ || '';
+      if (line && typeof line === 'object') {
+        for (const key in line) {
+          const lineItem = line[key];
+          if (features.includes(key)) {
+            acc.push(buildSingleText(lineItem, delemiter, features));
+          }
+        }
+        return acc;
+      }
 			if (line || acc[acc.length - 1] !== '') {
 				acc.push(line);
 			}
@@ -422,16 +437,16 @@ export function formatReferenceNumber(idStr: string) {
  */
 
 export function getNthString(num: number): string {
-  const mod10 = num % 10;
-  const mod100 = num % 100;
+	const mod10 = num % 10;
+	const mod100 = num % 100;
 
-  if (mod10 === 1 && mod100 !== 11) {
-    return `${num}st`;
-  } else if (mod10 === 2 && mod100 !== 12) {
-    return `${num}nd`;
-  } else if (mod10 === 3 && mod100 !== 13) {
-    return `${num}rd`;
-  } else {
-    return `${num}th`;
-  }
+	if (mod10 === 1 && mod100 !== 11) {
+		return `${num}st`;
+	} else if (mod10 === 2 && mod100 !== 12) {
+		return `${num}nd`;
+	} else if (mod10 === 3 && mod100 !== 13) {
+		return `${num}rd`;
+	} else {
+		return `${num}th`;
+	}
 }

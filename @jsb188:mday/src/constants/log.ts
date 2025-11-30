@@ -114,48 +114,49 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'OTHER_WATER_TESTING_ACTIVITY',
 		],
 	],
-  [
-    'HYGIENE',
-    [
-      'HYGIENE_PROCEDURE',
-      'BODILY_FLUID_CONTAMINATION',
-      'SMOKING_EATING_DRINKING_CONTROL',
-      'PPE_USAGE',
-    ],
-  ],
-  [
-    'SANITATION',
-    [
-      'SANITATION_RISK',
-      'SANITATION_CONSTRUCTION_MAINTENANCE',
-      'SANITATION_CLEANING',
-      'SANITATION_PEST_CONTROL',
-    ],
-  ],
-  [
-    'EQUIPMENTS',
-    [
-      'EQUIPMENTS_MATERIALS_RISK',
-      'EQUIPMENTS_MATERIALS_CLEANING',
-    ],
-  ],
-  [
-    'BIOSECURITY',
-    [
-      'ENVIRONMENT_RISK',
-      'ENVIRONMENT_HAZARD_MITIGATION',
-    ],
-  ],
-  [
-    'EMPLOYEES',
-    [
-      'EMPLOYEE_ORIENTATION',
-      'EMPLOYEE_TRAINING',
-      'SICK_EMPLOYEE',
-      'EMPLOYEE_INJURED',
-      'OTHER_EMPLOYEE_NOTES',
-    ],
-  ],
+	[
+		'HYGIENE',
+		[
+			'HYGIENE_PROCEDURE',
+      'CONTAMINANT_RISK',
+			'BODILY_FLUID_CONTAMINATION',
+			'SMOKING_EATING_DRINKING_CONTROL',
+			'PPE_USAGE',
+		],
+	],
+	[
+		'SANITATION',
+		[
+			'SANITATION_RISK',
+			'SANITATION_CONSTRUCTION_MAINTENANCE',
+			'SANITATION_CLEANING',
+			'SANITATION_PEST_CONTROL',
+		],
+	],
+	[
+		'EQUIPMENTS',
+		[
+			'EQUIPMENTS_MATERIALS_RISK',
+			'EQUIPMENTS_MATERIALS_CLEANING',
+		],
+	],
+	[
+		'BIOSECURITY',
+		[
+			'ENVIRONMENT_RISK',
+			'ENVIRONMENT_HAZARD_MITIGATION',
+		],
+	],
+	[
+		'EMPLOYEES',
+		[
+			'EMPLOYEE_ORIENTATION',
+			'EMPLOYEE_TRAINING',
+			'SICK_EMPLOYEE',
+			'EMPLOYEE_INJURED',
+			'OTHER_EMPLOYEE_NOTES',
+		],
+	],
 ];
 
 export const LOG_ARABLE_TYPE_ENUMS = ARABLE_ACTIVITIES_GROUPED.map(([type]) => type);
@@ -172,11 +173,11 @@ export const ARABLE_TYPES_TO_TEXT = {
 };
 
 export const FOOD_SAFETY_TYPES_TO_TEXT = {
-  HYGIENE: 'hygiene procdedures',
-  SANITATION: 'sanitation infrastructure & practices',
-  EQUIPMENTS: 'equipments & materials sanitation',
-  BIOSECURITY: 'environment & biosecurity measures',
-  EMPLOYEES: 'employee incidents & training',
+	HYGIENE: 'hygiene procdedures',
+	SANITATION: 'sanitation infrastructure & practices',
+	EQUIPMENTS: 'equipments & materials sanitation',
+	BIOSECURITY: 'environment & biosecurity measures',
+	EMPLOYEES: 'employee incidents & training',
 	EVERYTHING: 'all food safety logs', // Not part of enums
 };
 
@@ -335,10 +336,10 @@ export const LOG_TYPES_BY_OPERATION: Record<OrganizationOperationEnum, (typeof L
 };
 
 export const ALL_TEXT_TO_TYPES = {
-  // Each Object has to be fromEntries() one by one to avoid key conflicts
-  // (Because, for example: "EVERYTHING" exists in multiple objects)
-  ...Object.fromEntries(Object.entries(ARABLE_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
-  ...Object.fromEntries(Object.entries(FOOD_SAFETY_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
-  ...Object.fromEntries(Object.entries(FARMERS_MARKET_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
-  ...Object.fromEntries(Object.entries(LIVESTOCK_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+	// Each Object has to be fromEntries() one by one to avoid key conflicts
+	// (Because, for example: "EVERYTHING" exists in multiple objects)
+	...Object.fromEntries(Object.entries(ARABLE_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+	...Object.fromEntries(Object.entries(FOOD_SAFETY_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+	...Object.fromEntries(Object.entries(FARMERS_MARKET_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+	...Object.fromEntries(Object.entries(LIVESTOCK_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 };

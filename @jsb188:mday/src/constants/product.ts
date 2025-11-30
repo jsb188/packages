@@ -5,8 +5,8 @@
 export const PRODUCT_TYPES = [
 	'LIVESTOCK',
 	'CAL_EVENTS',
-  'FOOD_SAFETY_ARABLE',
-  'GLOBAL_GAP_ARABLE',
+	'FOOD_SAFETY',
+	'GLOBAL_GAP',
 ];
 
 /**
@@ -15,18 +15,18 @@ export const PRODUCT_TYPES = [
 
 export const FEATURES_BY_OPERATION = {
 	ARABLE: [
-		'LOG_ARABLE', // First item is always the default
-    'FOOD_SAFETY_ARABLE',
-    'GLOBAL_GAP_ARABLE',
+		'NORMAL_LOGGING', // First item is always the default
+		'FOOD_SAFETY',
+		'GLOBAL_GAP',
 	],
 	FARMERS_MARKET: [
-		'LOG_FARMERS_MARKET',
+		'NORMAL_LOGGING',
 		'CAL_EVENTS',
 		'CAL_EVENTS_ATTENDANCE',
 		'CAL_EVENTS_LOAD_LIST',
 	],
 	LIVESTOCK: [
-		'LOG_LIVESTOCK',
+		'NORMAL_LOGGING',
 		'LIVESTOCK',
 	],
 };
@@ -35,7 +35,7 @@ export const PRODUCT_FEATURES = [
 	...FEATURES_BY_OPERATION.ARABLE,
 	...FEATURES_BY_OPERATION.FARMERS_MARKET,
 	...FEATURES_BY_OPERATION.LIVESTOCK,
-];
+].filter((value, index, self) => self.indexOf(value) === index);
 
 export const ACTIVITY_TO_FEATURE_MAP = {
 	CAL_EVENTS_ATTENDANCE: ['MARKET_ATTENDANCE'],

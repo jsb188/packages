@@ -55,7 +55,7 @@ export const ARABLE_TRANSACTIONS_TO_TEXT = {
 	OTHER_SALE_ORDER: 'purchase order (other)',
 };
 
-export const ARABLE_ACTIVITIES_TO_TEXT = {
+export const ARABLE_SEED_TO_SALE_TO_TEXT = {
 	COLD_STORAGE_TEMPERATURE: 'checking or changing temperature (cold storage)',
 	...ARABLE_TRANSACTIONS_TO_TEXT,
 	...ARABLE_FARMING_TO_TEXT,
@@ -65,32 +65,38 @@ export const ARABLE_ACTIVITIES_TO_TEXT = {
 // Food Safety is separate from arable farming
 
 export const ARABLE_FOOD_SAFETY_TO_TEXT = {
-  // # Hygiene
-  HYGIENE_PROCEDURE: 'hygiene procedures',
-  BODILY_FLUID_CONTAMINATION: 'vomitting/bodily fluid decontamination',
-  SMOKING_EATING_DRINKING_CONTROL: 'smoking, eating, and drinking control actions',
-  PPE_USAGE: 'personal protective equipment (PPE) usage',
+	// # Hygiene
+	HYGIENE_PROCEDURE: 'hygiene procedures',
+  CONTAMINANT_RISK: 'contaminant risk assessment and mitigation (physical, chemical, microbial)',
+	BODILY_FLUID_CONTAMINATION: 'vomitting/bodily fluid decontamination',
+	SMOKING_EATING_DRINKING_CONTROL: 'smoking, eating, and drinking control actions',
+	PPE_USAGE: 'personal protective equipment (PPE) usage',
 
-  // # Sanitation
-  SANITATION_RISK: 'sanitation risk',
-  SANITATION_CONSTRUCTION_MAINTENANCE: 'sanitation facilities construction, repairs, or maintenance',
-  SANITATION_CLEANING: 'sanitation facilities cleaning activities',
-  SANITATION_PEST_CONTROL: 'pest control in sanitation facilities',
+	// # Sanitation
+	SANITATION_RISK: 'sanitation risk assessment and mitigation',
+	SANITATION_CONSTRUCTION_MAINTENANCE: 'sanitation facilities construction, repairs, or maintenance',
+	SANITATION_CLEANING: 'sanitation facilities cleaning activities',
+	SANITATION_PEST_CONTROL: 'pest control in sanitation facilities',
 
-  // # Equpiments & Materials
-  EQUIPMENTS_MATERIALS_RISK: 'equipments and materials food safety risk',
-  EQUIPMENTS_MATERIALS_CLEANING: 'equipments and materials cleaning activities',
+	// # Equpiments & Materials
+	EQUIPMENTS_MATERIALS_RISK: 'equipments/materials food safety assessment and mitigation',
+	EQUIPMENTS_MATERIALS_CLEANING: 'equipments/materials cleaning activities',
 
-  // # Environment & Biosecurity
-  ENVIRONMENT_RISK: 'environmental food safety risk',
-  ENVIRONMENT_HAZARD_MITIGATION: 'environmental hazard mitigation',
+	// # Environment & Biosecurity
+	ENVIRONMENT_RISK: 'environmental food safety risk assessment and mitigation',
+	ENVIRONMENT_HAZARD_MITIGATION: 'environmental hazard mitigation',
 
-  // # Employees
-  EMPLOYEE_ORIENTATION: 'new employee orientation',
-  EMPLOYEE_TRAINING: 'employee training',
-  SICK_EMPLOYEE: 'employee sick report',
-  EMPLOYEE_INJURED: 'employee injury report',
-  OTHER_EMPLOYEE_NOTES: 'other notes on employee',
+	// # Employees
+	EMPLOYEE_ORIENTATION: 'new employee orientation',
+	EMPLOYEE_TRAINING: 'employee training',
+	SICK_EMPLOYEE: 'employee sick report',
+	EMPLOYEE_INJURED: 'employee injury report',
+	OTHER_EMPLOYEE_NOTES: 'other notes on employee',
+};
+
+export const ARABLE_ACTIVITIES_TO_TEXT = {
+  ...ARABLE_SEED_TO_SALE_TO_TEXT,
+  ...ARABLE_FOOD_SAFETY_TO_TEXT,
 };
 
 /**
