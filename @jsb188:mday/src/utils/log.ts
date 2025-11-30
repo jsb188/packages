@@ -16,15 +16,15 @@ import type { LogEntryData, LogTypeEnum, LogContentName } from '../types/log.d';
  */
 
 export function getLogContentName(activity: string): LogContentName {
-  const value = {
-    'SALE_PRODUCE_ORDER': 'invoice',
-    'OTHER_SALE_ORDER': 'invoice',
-    'FEED_PURCHASE': 'invoice',
-    'OTHER_SUPPLY_PURCHASE_ACTIVITY': 'invoice',
-    'MARKET_CREDIT_RECEIPT': 'receipt',
-  }[activity as string] || 'log';
+	const value = {
+		'SALE_PRODUCE_ORDER': 'invoice',
+		'OTHER_SALE_ORDER': 'invoice',
+		'FEED_PURCHASE': 'invoice',
+		'OTHER_SUPPLY_PURCHASE_ACTIVITY': 'invoice',
+		'MARKET_CREDIT_RECEIPT': 'receipt',
+	}[activity as string] || 'log';
 
-  return value as LogContentName;
+	return value as LogContentName;
 }
 
 /**
@@ -58,6 +58,13 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 		WATER: 'violet',
 		DELETED: 'medium',
 
+    // #### ARABLE - Food Safety
+    HYGIENE: 'teal',
+    SANITATION: 'sky',
+    EQUIPMENTS: 'indigo',
+    BIOSECURITY: 'green',
+    EMPLOYEES: 'yellow',
+
 		// #### FARMERS_MARKET
 		MARKET_RECEIPTS: 'blue',
 		MARKET_OPERATIONS: 'rose',
@@ -86,11 +93,11 @@ export function getLogCategoryColor(type: LogTypeEnum) {
  */
 
 export function getLogTypesForOperation(operation: OrganizationOperationEnum, includeAITask: boolean): LogTypeEnum[] {
-  const logTypes = (LOG_TYPES_BY_OPERATION[operation] || []) as LogTypeEnum[];
-  if (includeAITask) {
-    return logTypes;
-  }
-  return logTypes.filter((type) => type !== 'AI_TASK');
+	const logTypes = (LOG_TYPES_BY_OPERATION[operation] || []) as LogTypeEnum[];
+	if (includeAITask) {
+		return logTypes;
+	}
+	return logTypes.filter((type) => type !== 'AI_TASK');
 }
 
 /**
@@ -787,7 +794,6 @@ export function getIconNameForFarmersMarket(
 	return defaultIcon || 'farmers-market-kiosk';
 }
 
-
 /**
  * Get icon name for any operation using regex
  * @param details - GraphQL log details object
@@ -796,30 +802,30 @@ export function getIconNameForFarmersMarket(
  */
 
 export function getIconNameForLog(
-  details: any,
-  preferActivityText?: boolean,
-  defaultIcon_?: string,
+	details: any,
+	preferActivityText?: boolean,
+	defaultIcon_?: string,
 ) {
-  // "crop" is deprecation support -- it should be "item" going forward
-  const text1 = preferActivityText ? details.activity : (details.item || details.crop);
-  const text2 = preferActivityText ? (details.title + ' ' + details.notes) : details.notes;
-  const defaultIcon = (preferActivityText && COMMON_ICON_NAMES[details.activity]) || defaultIcon_;
+	// "crop" is deprecation support -- it should be "item" going forward
+	const text1 = preferActivityText ? details.activity : (details.item || details.crop);
+	const text2 = preferActivityText ? (details.title + ' ' + details.notes) : details.notes;
+  // @ts-ignore - allow dynamic key access
+	const defaultIcon = (preferActivityText && COMMON_ICON_NAMES[details.activity]) || defaultIcon_;
 
-  // console.log('defaultIcon', preferActivityText, details.activity, defaultIcon);
+	// console.log('defaultIcon', preferActivityText, details.activity, defaultIcon);
 
+	switch (details.__typename) {
+		case 'LogArable':
+			return getIconNameForArable(text1, text2, defaultIcon);
+		case 'LogLivestock':
+			return getIconNameForLivestock(text1, text2, defaultIcon);
+		case 'LogFarmersMarket':
+			return getIconNameForFarmersMarket(text1, text2, defaultIcon);
+		default:
+			// titleIconName = COMMON_ICON_NAMES.document;
+	}
 
-  switch (details.__typename) {
-    case 'LogArable':
-      return getIconNameForArable(text1, text2, defaultIcon);
-    case 'LogLivestock':
-      return getIconNameForLivestock(text1, text2, defaultIcon);
-    case 'LogFarmersMarket':
-      return getIconNameForFarmersMarket(text1, text2, defaultIcon);
-    default:
-      // titleIconName = COMMON_ICON_NAMES.document;
-  }
-
-  return 'circle';
+	return 'circle';
 }
 
 /**
@@ -827,18 +833,18 @@ export function getIconNameForLog(
  */
 
 export function getTitleForLog(details: any): string {
-  switch (details.__typename) {
-    case 'LogArable':
-      return details.crop;
-    case 'LogFarmersMarket': {
-      // Check if text from values is short, else rely on the AI summary
-      const valuesText = (details.values || []).map((item: any) => item.label).join(', ');
-      if (valuesText.length <= 32) {
-        return valuesText;
-      }
-      return details.item;
-    }
-    default:
-  }
-  return details.item;
+	switch (details.__typename) {
+		case 'LogArable':
+			return details.crop;
+		case 'LogFarmersMarket': {
+			// Check if text from values is short, else rely on the AI summary
+			const valuesText = (details.values || []).map((item: any) => item.label).join(', ');
+			if (valuesText.length <= 32) {
+				return valuesText;
+			}
+			return details.item;
+		}
+		default:
+	}
+	return details.item;
 }

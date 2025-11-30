@@ -47,14 +47,14 @@ export const AI_TASK_ACTIVITIES = AI_TASKS_GROUP[1];
  * #### #### #### ####
  */
 
-export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
+export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 	AI_TASKS_GROUP,
 	[
 		'SEED',
 		[
 			'SEED_PURCHASE_INFO',
 			'OTHER_SUPPLY_PURCHASE_ACTIVITY',
-		],
+		]
 	],
 	[
 		'PLANTING',
@@ -123,6 +123,10 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'SMOKING_EATING_DRINKING_CONTROL',
 			'PPE_USAGE',
 		],
+    [
+      'FOOD_SAFETY',
+      'GLOBAL_GAP'
+    ]
 	],
 	[
 		'SANITATION',
@@ -132,6 +136,10 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'SANITATION_CLEANING',
 			'SANITATION_PEST_CONTROL',
 		],
+    [
+      'FOOD_SAFETY',
+      'GLOBAL_GAP'
+    ]
 	],
 	[
 		'EQUIPMENTS',
@@ -139,6 +147,10 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'EQUIPMENTS_MATERIALS_RISK',
 			'EQUIPMENTS_MATERIALS_CLEANING',
 		],
+    [
+      'FOOD_SAFETY',
+      'GLOBAL_GAP'
+    ]
 	],
 	[
 		'BIOSECURITY',
@@ -146,6 +158,10 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'ENVIRONMENT_RISK',
 			'ENVIRONMENT_HAZARD_MITIGATION',
 		],
+    [
+      'FOOD_SAFETY',
+      'GLOBAL_GAP'
+    ]
 	],
 	[
 		'EMPLOYEES',
@@ -154,8 +170,12 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[]][] = [
 			'EMPLOYEE_TRAINING',
 			'SICK_EMPLOYEE',
 			'EMPLOYEE_INJURED',
-			'OTHER_EMPLOYEE_NOTES',
+			'EMPLOYEE_NOTES',
 		],
+    [
+      'FOOD_SAFETY',
+      'GLOBAL_GAP'
+    ]
 	],
 ];
 

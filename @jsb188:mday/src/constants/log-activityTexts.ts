@@ -67,7 +67,7 @@ export const ARABLE_SEED_TO_SALE_TO_TEXT = {
 export const ARABLE_FOOD_SAFETY_TO_TEXT = {
 	// # Hygiene
 	HYGIENE_PROCEDURE: 'hygiene procedures',
-  CONTAMINANT_RISK: 'contaminant risk assessment and mitigation (physical, chemical, microbial)',
+	CONTAMINANT_RISK: 'contaminant risk assessment and mitigation (physical, chemical, microbial)',
 	BODILY_FLUID_CONTAMINATION: 'vomitting/bodily fluid decontamination',
 	SMOKING_EATING_DRINKING_CONTROL: 'smoking, eating, and drinking control actions',
 	PPE_USAGE: 'personal protective equipment (PPE) usage',
@@ -79,8 +79,8 @@ export const ARABLE_FOOD_SAFETY_TO_TEXT = {
 	SANITATION_PEST_CONTROL: 'pest control in sanitation facilities',
 
 	// # Equpiments & Materials
-	EQUIPMENTS_MATERIALS_RISK: 'equipments/materials food safety assessment and mitigation',
-	EQUIPMENTS_MATERIALS_CLEANING: 'equipments/materials cleaning activities',
+	EQUIPMENTS_MATERIALS_RISK: 'Materials, food containers/equipments - safety assessment and mitigation',
+	EQUIPMENTS_MATERIALS_CLEANING: 'Materials, food containers/equipments - cleaning activities',
 
 	// # Environment & Biosecurity
 	ENVIRONMENT_RISK: 'environmental food safety risk assessment and mitigation',
@@ -91,12 +91,12 @@ export const ARABLE_FOOD_SAFETY_TO_TEXT = {
 	EMPLOYEE_TRAINING: 'employee training',
 	SICK_EMPLOYEE: 'employee sick report',
 	EMPLOYEE_INJURED: 'employee injury report',
-	OTHER_EMPLOYEE_NOTES: 'other notes on employee',
+	EMPLOYEE_NOTES: 'other notes on employee',
 };
 
 export const ARABLE_ACTIVITIES_TO_TEXT = {
-  ...ARABLE_SEED_TO_SALE_TO_TEXT,
-  ...ARABLE_FOOD_SAFETY_TO_TEXT,
+	...ARABLE_SEED_TO_SALE_TO_TEXT,
+	...ARABLE_FOOD_SAFETY_TO_TEXT,
 };
 
 /**

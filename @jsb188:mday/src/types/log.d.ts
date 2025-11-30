@@ -19,7 +19,19 @@ export type LogContentName = 'log' | 'ai_task' | 'invoice' | 'receipt'; // For U
  * Arable
  */
 
-export type LogArableTypeEnum = 'SEED' | 'PLANTING' | 'FIELD' | 'HARVEST' | 'POST_HARVEST' | 'SALES' | 'WATER';
+export type LogArableTypeEnum =
+	| 'SEED'
+	| 'PLANTING'
+	| 'FIELD'
+	| 'HARVEST'
+	| 'POST_HARVEST'
+	| 'SALES'
+	| 'WATER'
+  | 'HYGIENE'
+	| 'SANITATION'
+	| 'EQUIPMENTS'
+	| 'BIOSECURITY'
+  | 'EMPLOYEES';
 export type LogArableActivityEnum = typeof LOG_ARABLE_ACTIVITY_ENUMS[number];
 
 /**
@@ -46,7 +58,7 @@ export type LogLivestockActivityEnum = typeof LOG_LIVESTOCK_ACTIVITY_ENUMS[numbe
  * All log types/activities Union
  */
 
-export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogLivestockTypeEnum | 'EVERYTHING' | 'AI_TASK';
+export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogLivestockTypeEnum | 'AI_TASK';
 export type LogActivityEnum = LogArableActivityEnum | LogFarmersMarketActivityEnum | LogLivestockActivityEnum;
 
 /**

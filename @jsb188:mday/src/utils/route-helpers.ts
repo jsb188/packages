@@ -56,7 +56,7 @@ const PATH_TO_ROUTE_NAME: Record<AppRoutePath, AppRouteName> = Object.entries(RO
 
 const OP_FARMING = ['ARABLE', 'LIVESTOCK'];
 
-const FEATURES = {
+const F = {
   normal_logging: ['NORMAL_LOGGING'],
   food_safety: ['FOOD_SAFETY', 'GLOBAL_GAP'],
 };
@@ -75,57 +75,57 @@ const ROUTES_RULE: Record<AppRouteName, {
   // Arable
   'app/seeding': {
     allowedOperations: ['ARABLE'],
-    requiredFeature: FEATURES.normal_logging,
+    requiredFeature: F.normal_logging,
   },
   'app/transplanting': {
     allowedOperations: ['ARABLE'],
-    requiredFeature: FEATURES.normal_logging,
+    requiredFeature: F.normal_logging,
   },
   'app/field_work': {
     allowedOperations: ['ARABLE'],
-    requiredFeature: FEATURES.normal_logging,
+    requiredFeature: F.normal_logging,
   },
   'app/harvested': {
     allowedOperations: ['ARABLE'],
-    requiredFeature: FEATURES.normal_logging,
+    requiredFeature: F.normal_logging,
   },
   'app/post_harvest': {
     allowedOperations: ['ARABLE'],
-    requiredFeature: FEATURES.normal_logging,
+    requiredFeature: F.normal_logging,
   },
   'app/purchases': {
     allowedOperations: OP_FARMING,
-    requiredFeature: FEATURES.normal_logging,
+    requiredFeature: F.normal_logging,
   },
   'app/orders': {
     allowedOperations: OP_FARMING,
-    requiredFeature: FEATURES.normal_logging,
+    requiredFeature: F.normal_logging,
   },
   'app/hygiene': {
     allowedOperations: OP_FARMING,
-    requiredFeature: FEATURES.food_safety,
+    requiredFeature: F.food_safety,
   },
   'app/sanitation': {
     allowedOperations: OP_FARMING,
-    requiredFeature: FEATURES.food_safety,
+    requiredFeature: F.food_safety,
   },
   'app/equipments': {
     allowedOperations: OP_FARMING,
-    requiredFeature: FEATURES.food_safety,
+    requiredFeature: F.food_safety,
   },
   'app/biosecurity': {
     allowedOperations: OP_FARMING,
-    requiredFeature: FEATURES.food_safety,
+    requiredFeature: F.food_safety,
   },
   'app/employees': {
     allowedOperations: OP_FARMING,
-    requiredFeature: FEATURES.food_safety,
+    requiredFeature: F.food_safety,
   },
 
   // Farmers Market
   'app/vendors': {
     allowedOperations: ['FARMERS_MARKET'],
-    requiredFeature: FEATURES.normal_logging
+    requiredFeature: F.normal_logging
   },
   'app/markets': {
     allowedOperations: ['FARMERS_MARKET'],
@@ -133,13 +133,13 @@ const ROUTES_RULE: Record<AppRouteName, {
   },
   'app/receipts': {
     allowedOperations: ['FARMERS_MARKET'],
-    requiredFeature: FEATURES.normal_logging
+    requiredFeature: F.normal_logging
   },
 
   // Livestock
   'app/livestock': {
     allowedOperations: ['LIVESTOCK'],
-    requiredFeature: FEATURES.normal_logging
+    requiredFeature: F.normal_logging
   },
 };
 
