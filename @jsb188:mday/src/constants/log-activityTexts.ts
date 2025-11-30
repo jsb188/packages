@@ -91,7 +91,10 @@ export const ARABLE_FOOD_SAFETY_TO_TEXT = {
 	EMPLOYEE_TRAINING: 'employee training',
 	SICK_EMPLOYEE: 'employee sick report',
 	EMPLOYEE_INJURED: 'employee injury report',
-	EMPLOYEE_NOTES: 'other notes on employee',
+  // All texts for same activity names must be same across all operations
+  // ie. ARABLE vs FARMERS_MARKET
+	EMPLOYEE_NOTES: 'notes about an employee',
+  OPERATION_NOTES: 'general operation notes',
 };
 
 export const ARABLE_ACTIVITIES_TO_TEXT = {
@@ -113,6 +116,8 @@ export const FARMERS_MARKET_OPERATION_TO_TEXT = {
 	MARKET_ATTENDANCE: 'attendance for vendor',
 	MARKET_LOAD_LIST: 'vendor load list',
 	VENDOR_NOTES: 'notes about a vendor',
+  // All texts for same activity names must be same across all operations
+  // ie. ARABLE vs FARMERS_MARKET
 	EMPLOYEE_NOTES: 'notes about an employee',
 	FARMERS_MARKET_NOTES: 'notes about farmers market',
 };

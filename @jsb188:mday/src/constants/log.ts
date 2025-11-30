@@ -54,7 +54,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 		[
 			'SEED_PURCHASE_INFO',
 			'OTHER_SUPPLY_PURCHASE_ACTIVITY',
-		]
+		],
 	],
 	[
 		'PLANTING',
@@ -118,15 +118,15 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 		'HYGIENE',
 		[
 			'HYGIENE_PROCEDURE',
-      'CONTAMINANT_RISK',
+			'CONTAMINANT_RISK',
 			'BODILY_FLUID_CONTAMINATION',
 			'SMOKING_EATING_DRINKING_CONTROL',
 			'PPE_USAGE',
 		],
-    [
-      'FOOD_SAFETY',
-      'GLOBAL_GAP'
-    ]
+		[
+			'FOOD_SAFETY',
+			'GLOBAL_GAP',
+		],
 	],
 	[
 		'SANITATION',
@@ -136,10 +136,10 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 			'SANITATION_CLEANING',
 			'SANITATION_PEST_CONTROL',
 		],
-    [
-      'FOOD_SAFETY',
-      'GLOBAL_GAP'
-    ]
+		[
+			'FOOD_SAFETY',
+			'GLOBAL_GAP',
+		],
 	],
 	[
 		'EQUIPMENTS',
@@ -147,10 +147,10 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 			'EQUIPMENTS_MATERIALS_RISK',
 			'EQUIPMENTS_MATERIALS_CLEANING',
 		],
-    [
-      'FOOD_SAFETY',
-      'GLOBAL_GAP'
-    ]
+		[
+			'FOOD_SAFETY',
+			'GLOBAL_GAP',
+		],
 	],
 	[
 		'BIOSECURITY',
@@ -158,10 +158,10 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 			'ENVIRONMENT_RISK',
 			'ENVIRONMENT_HAZARD_MITIGATION',
 		],
-    [
-      'FOOD_SAFETY',
-      'GLOBAL_GAP'
-    ]
+		[
+			'FOOD_SAFETY',
+			'GLOBAL_GAP',
+		],
 	],
 	[
 		'EMPLOYEES',
@@ -171,11 +171,12 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 			'SICK_EMPLOYEE',
 			'EMPLOYEE_INJURED',
 			'EMPLOYEE_NOTES',
+			'OPERATION_NOTES',
 		],
-    [
-      'FOOD_SAFETY',
-      'GLOBAL_GAP'
-    ]
+		[
+			'FOOD_SAFETY',
+			'GLOBAL_GAP',
+		],
 	],
 ];
 
@@ -192,12 +193,12 @@ export const ARABLE_TYPES_TO_TEXT = {
 	EVERYTHING: 'all farming activities', // Not part of enums
 };
 
-export const FOOD_SAFETY_TYPES_TO_TEXT = {
+export const ARABLE_FOOD_SAFETY_TYPES_TO_TEXT = {
 	HYGIENE: 'hygiene procdedures',
 	SANITATION: 'sanitation infrastructure & practices',
 	EQUIPMENTS: 'equipments & materials sanitation',
 	BIOSECURITY: 'environment & biosecurity measures',
-	EMPLOYEES: 'employee incidents & training',
+	EMPLOYEES: 'employee & operation notes',
 	EVERYTHING: 'all food safety logs', // Not part of enums
 };
 
@@ -359,7 +360,7 @@ export const ALL_TEXT_TO_TYPES = {
 	// Each Object has to be fromEntries() one by one to avoid key conflicts
 	// (Because, for example: "EVERYTHING" exists in multiple objects)
 	...Object.fromEntries(Object.entries(ARABLE_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
-	...Object.fromEntries(Object.entries(FOOD_SAFETY_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+	...Object.fromEntries(Object.entries(ARABLE_FOOD_SAFETY_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 	...Object.fromEntries(Object.entries(FARMERS_MARKET_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 	...Object.fromEntries(Object.entries(LIVESTOCK_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 };
