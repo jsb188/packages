@@ -18,8 +18,7 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   activity
   concentration
   concentrationUnit
-
-  item
+  crop
   quantity
   unit
   location
