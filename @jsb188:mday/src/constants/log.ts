@@ -156,7 +156,6 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 		'BIOSECURITY',
 		[
 			'ENVIRONMENT_RISK',
-			'ENVIRONMENT_HAZARD_MITIGATION',
 		],
 		[
 			'FOOD_SAFETY',

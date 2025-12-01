@@ -149,7 +149,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
 
   // Arable - Food Safety types
   HYGIENE: 'locker-room-wash-hands-1',
-  SANITATION: 'cleanser-scrubing-1',
+  SANITATION: 'cleanser-scrubbing-1',
   EQUIPMENTS: 'shipment-container',
   BIOSECURITY: 'ecology-leaf-shield',
   EMPLOYEES: 'avatar-farmer-man-4',
@@ -202,13 +202,30 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   OTHER_SALE_ORDER: 'receipt-dollar',
   WATER_TESTING: 'organic-flask',
   OTHER_WATER_TESTING_ACTIVITY: 'organic-flask',
+  HYGIENE_PROCEDURE: 'locker-room-wash-hands-1',
+  CONTAMINANT_RISK: 'petri-dish-2',
+  BODILY_FLUID_CONTAMINATION: 'cleaning-bucket-cloth',
+  SMOKING_EATING_DRINKING_CONTROL: 'allowances-no-smoking',
+  PPE_USAGE: 'soccer-goalkeeper-glove-1',
+  SANITATION_RISK: 'bacteria-toilet',
+	SANITATION_CONSTRUCTION_MAINTENANCE: 'home-improvement-14',
+  SANITATION_CLEANING: 'cleanser-scrubbing-1',
+  SANITATION_PEST_CONTROL: 'pets-tick-free',
+  EQUIPMENTS_MATERIALS_RISK: 'shipment-container',
+  EQUIPMENTS_MATERIALS_CLEANING: 'anti-bacterial-1',
+  ENVIRONMENT_RISK: 'outdoors-tree-valley',
+  EMPLOYEE_ORIENTATION: 'recruiting-employee-selection',
+  EMPLOYEE_TRAINING: 'single-man-statics-3',
+  SICK_EMPLOYEE: 'medical-condition-flu',
+  EMPLOYEE_INJURED: 'bandage-shoulder-head',
+  EMPLOYEE_NOTES: 'notes-tasks',
+  OPERATION_NOTES: 'notes-tasks',
 
   // FARMERS MARKET - Icon Names for each log activity
   MARKET_CREDIT_RECEIPT: 'farming-sell-vegetable',
   MARKET_ATTENDANCE: 'notes-tasks',
   MARKET_LOAD_LIST: 'notes-tasks',
   VENDOR_NOTES: 'notes-tasks',
-  EMPLOYEE_NOTES: 'notes-tasks',
   FARMERS_MARKET_NOTES: 'notes-tasks',
 
   // LIVESTOCK - Icon Names for each log activity
