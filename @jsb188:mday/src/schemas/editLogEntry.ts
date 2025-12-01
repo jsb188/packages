@@ -35,7 +35,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
       formValues.arableDetails = {
         activity: details.activity,
         quantity: details.quantity,
-        crop: details.crop,
+        item: details.item,
         unit: details.unit,
         concentration: details.concentration,
         concentrationUnit: details.concentrationUnit,
@@ -84,7 +84,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
 
   // input LogArableInput {
   //   activity: LogArableActivity
-  //   crop: String
+  //   item: String
   //   quantity: Float
   //   unit: String
   //   concentration: Float
@@ -336,7 +336,7 @@ function makeMetadataSchema(
           __type: 'input',
           label: i18n.t('form.crop'),
           item: {
-            name: `${namespace}.crop`,
+            name: `${namespace}.item`,
             placeholder: isCreateNew ? i18n.t('log.crop_ph') : '',
           }
         };
@@ -345,7 +345,7 @@ function makeMetadataSchema(
           __type: 'input',
           label: i18n.t('form.purchase_summary'),
           item: {
-            name: `${namespace}.crop`,
+            name: `${namespace}.item`,
             placeholder: isCreateNew ? i18n.t('log.crop_ph') : '',
           }
         };

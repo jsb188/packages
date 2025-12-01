@@ -58,12 +58,12 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 		WATER: 'violet',
 		DELETED: 'medium',
 
-    // #### ARABLE - Food Safety
-    HYGIENE: 'teal',
-    SANITATION: 'sky',
-    EQUIPMENTS: 'indigo',
-    BIOSECURITY: 'green',
-    EMPLOYEES: 'yellow',
+		// #### ARABLE - Food Safety
+		HYGIENE: 'teal',
+		SANITATION: 'sky',
+		EQUIPMENTS: 'indigo',
+		BIOSECURITY: 'green',
+		EMPLOYEES: 'yellow',
 
 		// #### FARMERS_MARKET
 		MARKET_RECEIPTS: 'blue',
@@ -163,21 +163,24 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'LogArable': {
 			const quantityText = joinReadable([formatDecimal(md.quantity, true, true), md.unit], ' ', ' ');
 
-			let cropName = ucFirst(md.crop);
+			let titleItem = ucFirst(md.item);
 			let logSpecificText = '';
 
 			if (logType === 'WATER') {
 				logSpecificText = joinReadable([md.concentration, md.concentration && md.concentrationUnit], ' ', ' ');
 			} else if (['SEED', 'SALES'].includes(logType)) {
-				if (!cropName) {
-					cropName = i18n.t('log.unknown_crop');
+				if (!titleItem) {
+					titleItem = i18n.t('log.unknown_crop');
 				}
 				const totalPrice = (md?.values || []).reduce((sum: number, item: any) => sum + Number(item.value || 0), 0);
 				logSpecificText = formatCurrency(totalPrice, false);
 			}
 
+      // console.log(md);
+      // console.log('titleItem', titleItem);
+
 			return textWithBrackets(
-				cropName,
+				titleItem,
 				[
 					logSpecificText + (logSpecificText && quantityText ? ',' : ''),
 					quantityText,
@@ -807,9 +810,9 @@ export function getIconNameForLog(
 	defaultIcon_?: string,
 ) {
 	// "crop" is deprecation support -- it should be "item" going forward
-	const text1 = preferActivityText ? details.activity : (details.item || details.crop);
+	const text1 = preferActivityText ? details.activity : details.item;
 	const text2 = preferActivityText ? (details.title + ' ' + details.notes) : details.notes;
-  // @ts-ignore - allow dynamic key access
+	// @ts-ignore - allow dynamic key access
 	const defaultIcon = (preferActivityText && COMMON_ICON_NAMES[details.activity]) || defaultIcon_;
 
 	// console.log('defaultIcon', preferActivityText, details.activity, defaultIcon);
@@ -834,16 +837,13 @@ export function getIconNameForLog(
 
 export function getTitleForLog(details: any): string {
 	switch (details.__typename) {
-		case 'LogArable':
-			return details.crop;
 		case 'LogFarmersMarket': {
 			// Check if text from values is short, else rely on the AI summary
 			const valuesText = (details.values || []).map((item: any) => item.label).join(', ');
 			if (valuesText.length <= 32) {
 				return valuesText;
 			}
-			return details.item;
-		}
+    } break;
 		default:
 	}
 	return details.item;
