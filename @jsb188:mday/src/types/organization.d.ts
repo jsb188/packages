@@ -1,5 +1,6 @@
 import {
   COMPLIANCE_DOCUMENT_TYPE_ENUMS,
+  ORG_DEPARTMENTS,
   OPERATION_ENUMS,
   ROLE_CATEGORY_ENUMS,
   ROLE_ENUMS
@@ -17,6 +18,7 @@ import type { LogTypeEnum } from '../types/log.d';
 export type OrganizationFeatureEnum = typeof PRODUCT_FEATURES[number];
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
+export type OrganizationDepartmentEnum = typeof ORG_DEPARTMENTS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
 export type OrganizationComplianceType = typeof COMPLIANCE_DOCUMENT_TYPE_ENUMS[number];
 
@@ -71,12 +73,20 @@ export interface OrganizationData {
 	activated: boolean;
 }
 
+export interface OrganizationContact {
+	department: OrganizationDepartmentEnum;
+	name?: string | null;
+	phoneNumber?: string | null;
+	emailAddress?: string | null;
+}
+
 export interface OrganizationSettingsObj {
 	timeZone: string | null;
 	language: string | null;
 	color: string | null;
 	priorityService: boolean;
 	features: OrganizationFeatureEnum[];
+	directory?: OrganizationContact[];
 }
 
 export interface OrganizationChildData {
@@ -84,14 +94,10 @@ export interface OrganizationChildData {
 	parentId: number | bigint | null;
 	childId: number | bigint;
 	organization: OrganizationData;
-	primaryContact: {
-		__table: 'account_organization_rels';
-		id: number;
-		account: AccountData;
-	};
 	anyContact?: {
 		__table: 'account_organization_rels';
 		id: number;
+		role: OrganizationRoleEnum;
 		account: AccountData;
 	};
 	addedAt: Date;
@@ -114,7 +120,7 @@ export interface OrganizationRelData {
  */
 
 export interface OrganizationComplianceGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
 	id: string;
 	number: string;
@@ -142,6 +148,7 @@ export interface OrganizationGQL {
 	operation: OrganizationOperationEnum;
 	compliance: OrganizationComplianceGQL[] | null;
 	settings?: OrganizationSettingsObj | null;
+	directory: OrganizationContact[];
 	activated: boolean;
 	membersCount: number;
 }
@@ -157,12 +164,6 @@ export interface OrganizationRelGQL {
 export interface OrganizationChildGQL {
 	id: string;
 	organization: OrganizationGQL;
-	primaryContact: AccountData;
-  metadata?: Partial<{
-    primaryContactName: string;
-    primaryPhoneNumber: string;
-    primaryEmailAddress: string;
-  }>;
 	addedAt: Date;
 }
 

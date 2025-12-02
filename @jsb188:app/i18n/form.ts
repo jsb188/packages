@@ -125,6 +125,7 @@ export default {
     use_default: 'Use default',
     use_personal: 'Use personal',
     learn_more: 'Learn more',
+    department: 'Department',
     email: 'E-mail',
     phone: 'Phone',
     phone_number: 'Phone number',

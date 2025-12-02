@@ -13,6 +13,13 @@ export const organizationFragment = `fragment organizationFragment on Organizati
     color
     features
   }
+
+  directory {
+    department
+    name
+    emailAddress
+    phoneNumber
+  }
 }`;
 
 export const organizationComplianceFragment = `fragment organizationComplianceFragment on OrganizationCompliance {
@@ -59,11 +66,6 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
 export const organizationChildFragment = `fragment organizationChildFragment on OrganizationChild {
   id
   addedAt
-  metadata {
-    primaryContactName
-    primaryPhoneNumber
-    primaryEmailAddress
-  }
 }`;
 
 export const organizationInstructionsFragment = `fragment organizationInstructionsFragment on OrganizationInstructions {

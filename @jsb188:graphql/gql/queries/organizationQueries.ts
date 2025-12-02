@@ -1,7 +1,5 @@
 import { gql } from 'graphql-tag';
-import { accountFragment } from '../fragments/accountFragments';
-import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationInstructionsFragment } from '../fragments/organizationFragments';
-import { emailFragment, phoneFragment } from '../fragments/otherFragments';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationInstructionsFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
 
 // Always use organizationRelationship() instead
 
@@ -88,27 +86,12 @@ query childOrganizations (
         ...organizationComplianceFragment
       }
     }
-
-    primaryContact {
-      ...accountFragment
-
-      email {
-        ...emailFragment
-      }
-
-      phone {
-        ...phoneFragment
-      }
-    }
   }
 }
 
 ${organizationChildFragment}
 ${organizationFragment}
 ${organizationComplianceFragment}
-${accountFragment}
-${emailFragment}
-${phoneFragment}
 `;
 
 export const organizationWorkflowsQry = gql`

@@ -327,7 +327,7 @@ export interface InlineBlockLabelProps {
   text?: React.ReactNode;
   fillTextColor?: boolean;
   outline?: boolean;
-  colorIndicator?: ColorEnum;
+  colorIndicator?: ColorEnum | null;
 }
 
 export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {

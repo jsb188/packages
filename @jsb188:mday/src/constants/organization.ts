@@ -22,6 +22,17 @@ export const ROLE_ENUMS = ['MEMBER', 'MANAGER', 'ADMIN', 'OWNER', 'GUEST']; // f
 
 export const ROLE_CATEGORY_ENUMS = ['EMPLOYEES_ONLY', 'MANAGERS_ONLY'];
 
+// Org departments
+
+export const ORG_DEPARTMENTS = [
+  'PRIMARY_CONTACT',
+  'ACCOUNTS_RECEIVABLE',
+  'SALES',
+  'CUSTOMER_SERVICE',
+  'SHIPPING_RECEIVING',
+  'OTHER'
+];
+
 // Compliance
 
 export const COMPLIANCE_DOCUMENT_TYPE_MAP = {

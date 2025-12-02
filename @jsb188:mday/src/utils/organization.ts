@@ -3,7 +3,7 @@ import i18n from '@jsb188/app/i18n';
 import { intersection } from '@jsb188/app/utils/object';
 import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone';
 import { FEATURES_BY_OPERATION } from '../constants/product';
-import type { OrganizationFeatureEnum, OrganizationGQL, OrganizationOperationEnum, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
+import type { OrganizationContact, OrganizationFeatureEnum, OrganizationGQL, OrganizationOperationEnum, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
@@ -201,12 +201,24 @@ export function getTitleIconsForOrganization(
 
 export function getDefaultOrganizationSettings(
 	timeZone: string | null,
+	contacts?: OrganizationContact[],
 	// do params here for priority service + manage roles
 ): Partial<OrganizationSettingsObj> {
-	return {
+	const orgSettings: Record<string, any> = {
 		timeZone: timeZone || DEFAULT_TIMEZONE,
 		color: COLORS[Math.floor(Math.random() * COLORS.length)],
 	};
+
+	if (contacts?.length) {
+		orgSettings.directory = contacts.map((contact) => {
+			return {
+				...contact,
+				department: contact.department || 'OTHER',
+			};
+		}).filter((contact) => contact.emailAddress || contact.phoneNumber);
+	}
+
+	return orgSettings;
 }
 
 /**
@@ -216,7 +228,7 @@ export function getDefaultOrganizationSettings(
 
 export function getOrganizationFeatures(
 	operation: OrganizationOperationEnum,
-  enabledFeatures?: OrganizationFeatureEnum[] | null
+	enabledFeatures?: OrganizationFeatureEnum[] | null,
 ): OrganizationFeatureEnum[] {
 	// @ts-expect-error - Allow operation as string
 	const allowedFeatures = FEATURES_BY_OPERATION[operation] || [];

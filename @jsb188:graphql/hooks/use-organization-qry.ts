@@ -6,26 +6,6 @@ import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.
 const ORG_CHILDREN_LIMIT = 100;
 
 /**
- * Fetch organization relationship
- * // NOTE: This is deprecated in favor of useMyOrganizations()
- */
-
-// export function useOrganizationRelationship(organizationId?: string | null, params: UseQueryParams = {}) {
-//   const { data, ...rest } = useQuery(organizationRelationshipQry, {
-//     variables: {
-//       organizationId
-//     },
-//     skip: !organizationId,
-//     ...params,
-//   });
-
-//   return {
-//     organizationRelationship: data?.organizationRelationship,
-//     ...rest
-//   };
-// }
-
-/**
  * Fetch my organizations
  */
 
