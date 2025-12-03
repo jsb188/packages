@@ -455,7 +455,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
   // const naturalBottomLimit = (itemIds?.length || 0) > limit ? limit * 2 : limit;
   // const naturalBottomLimit = limit;
   // const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? naturalBottomLimit <= listData.length : false;
-  const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? listData.some(d => d.id == eolId) : false;
+  const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? !!eolId &&listData.some(d => d.id == eolId) : false;
   // console.log('naturalBottomLimit:', naturalBottomLimit, 'listData:', listData?.length, '??', itemIds?.length);
 
   // if (listData) {
@@ -500,12 +500,13 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
   // fetchMore() logic for infinite scroll
 
   const fetchMoreList = useCallback(async(after: boolean) => {
+
     if (fetchMore && !referenceObj.current.loading) {
       const position = after ? referenceObj.current.topCursor : referenceObj.current.bottomCursor;
 
       if (
         position &&
-        ((after && hasMoreBottom) || (!after || hasMoreTop))
+        ((after && hasMoreBottom) || (!after && hasMoreTop))
       ) {
 
         // Check if there's enough (limit) data from memory in itemIds array
@@ -775,7 +776,7 @@ export function VirtualizedList(p: VirtualizedListProps) {
       onClickItem={onClickItem}
       {...vzItem}
     />;
-  }
+  };
 
   return <>
     <div ref={topRef}>

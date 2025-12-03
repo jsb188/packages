@@ -653,7 +653,7 @@ export const BreakLine = memo((p: {
       lineClassName = 'h_6 bd_t_1 bd_b_1 bd_lt';
       break;
     case 'texture':
-      lineClassName = 'h_6 pattern_texture texture_bf rel';
+      lineClassName = 'h_6 pattern_texture darker_bf_2 rel';
       break;
     default:
       return null;
