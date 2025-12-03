@@ -414,12 +414,10 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
 
   // Keep track of certain props so it can referenced inside memoized functions
 
-  let nextEndOfListItemId: string | null | undefined = undefined;
+  let nextEndOfListItemId: string | null | undefined = referenceObj.current.endOfListItemId;
   if (listData) {
-    if (referenceObj.current.endOfListItemId === undefined) {
-      referenceObj.current.endOfListItemId = listData.length > limit ? listData[limit - 1]?.item?.id : null;
-    } else {
-      nextEndOfListItemId = null;
+    if (nextEndOfListItemId === undefined) {
+      referenceObj.current.endOfListItemId = listData.length > limit * 2 ? listData[limit - 1]?.item?.id : null;
     }
   }
 
@@ -430,7 +428,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
     referenceObj.current = {
       ...referenceObj.current,
       loading,
-      endOfListItemId: nextEndOfListItemId,
+      endOfListItemId: nextEndOfListItemId || null,
       topCursor: top ? [top.id, top.cursor] : null,
       bottomCursor: bottom ? [bottom.id, bottom.cursor] : null
     };
@@ -455,7 +453,19 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
   // const naturalBottomLimit = (itemIds?.length || 0) > limit ? limit * 2 : limit;
   // const naturalBottomLimit = limit;
   // const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? naturalBottomLimit <= listData.length : false;
-  const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? !!eolId &&listData.some(d => d.id == eolId) : false;
+
+  let hasMoreBottom;
+  if (listData && !isTopOfList) {
+    if (eolId) {
+      hasMoreBottom = (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? listData.some(d => d.id == eolId) : false;
+      // console.log('/// 1', eolId, endOfListItemId, nextEndOfListItemId);
+    } else {
+      hasMoreBottom = (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? limit <= listData.length : false;
+      // console.log('/// 2', limit, listData.length, '?', maxFetchLimit, itemIds!?.length, '=', hasMoreBottom);
+    }
+  } else {
+    hasMoreBottom = false;
+  }
   // console.log('naturalBottomLimit:', naturalBottomLimit, 'listData:', listData?.length, '??', itemIds?.length);
 
   // if (listData) {
@@ -503,10 +513,11 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
 
     if (fetchMore && !referenceObj.current.loading) {
       const position = after ? referenceObj.current.topCursor : referenceObj.current.bottomCursor;
+      // console.log('fetch more?:' , ((after && hasMoreBottom) || (!after || hasMoreTop)));
 
       if (
         position &&
-        ((after && hasMoreBottom) || (!after && hasMoreTop))
+        ((after && hasMoreBottom) || (!after || hasMoreTop))
       ) {
 
         // Check if there's enough (limit) data from memory in itemIds array
@@ -536,8 +547,14 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
 
           if (Array.isArray(data)) {
             if (!after && limit > data.length) {
+
               // If the list ends at exactly 0 items, then the next end of list item should be the last item in the current listData
               const nextEndOfListItemId = data[data.length - 1]?.id || listData?.[listData.length - 1]?.item?.id;
+
+              // console.log('next eol', listData);
+              // console.log('END?:', limit > data.length, limit, data.length);
+              // console.log('next eol', nextEndOfListItemId);
+
               if (nextEndOfListItemId) {
                 referenceObj.current.endOfListItemId = nextEndOfListItemId;
               }
@@ -545,7 +562,6 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
 
             if (data.length) {
               referenceObj.current.itemIds = mergeItemIds(referenceObj.current, data, false, after, p);
-              // endOfListItemId
               if (!after && data.length < limit) {
                 referenceObj.current.startOfListItemId = referenceObj.current.itemIds[0];
               }
@@ -718,7 +734,7 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
     }
 
     // fetchMoreList contains more dependencies such as [hasMoreTop, hasMoreBottom]
-  }, [fetchMoreList, !!cursorPosition, referenceObj.current.startOfListItemId]);
+  }, [fetchMoreList, !!cursorPosition, referenceObj.current.startOfListItemId, hasMoreBottom]);
 
   return [listRef, topRef, bottomRef];
 }
