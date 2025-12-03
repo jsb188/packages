@@ -296,6 +296,7 @@ export function groupCollections(
 	innerCollectionNames: string[],
 	innerCollectionDefaultValues: Record<string, any> = {},
 	primaryKey: string | ((o: any) => string) = 'id',
+  isTest?: boolean
 ): any[] {
 	let hasHash = false;
 	let primaryKeyName;
@@ -332,6 +333,13 @@ export function groupCollections(
 				}
 
 				const ref = getObject(obj, name);
+
+        // if (isTest) {
+        //   console.log('name', name);
+        //   console.log('ref', ref);
+        //   console.log('ref', obj);
+        // }
+
 				if (ref) {
 					let isNull = true;
 					for (const key in ref) {

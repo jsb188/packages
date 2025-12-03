@@ -7,7 +7,10 @@ import type { PaginationArgs, UseQueryParams } from '../types';
  * Constants
  */
 
-const LOG_ENTRIES_LIMIT = 100;
+// I tried 100, but that was way too small.
+// Having less data is better for performance for iPads and low-end devices, because it might reduce brief rendering mishaps,
+// But a decent amount of visual load size is needed for Virtualized List to work well.
+const LOG_ENTRIES_LIMIT = 250;
 
 /**
  * Helper; use this to get/use same filter for logEntries() query everywhere

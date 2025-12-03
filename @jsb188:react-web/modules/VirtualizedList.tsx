@@ -74,6 +74,7 @@ interface VZReferenceObj {
   loading?: boolean;
   itemIds: string[] | null;
   startOfListItemId: string | null;
+  endOfListItemId: string | null | undefined;
   lastItemIdOnMount: string | null;
   topCursor: [string, string] | null; // [id, cursor]
   bottomCursor: [string, string] | null; // [id, cursor]
@@ -198,7 +199,8 @@ function getCursorPosition(
   id: string | null,
   after: boolean,
   listElement: HTMLDivElement | null,
-  p: VirtualizedListProps | VirtualizedListOmit
+  p: VirtualizedListProps | VirtualizedListOmit,
+  nextRefreshCount: number = 0,
 ): CursorPositionObj | null {
 
   if (id === null) {
@@ -224,11 +226,12 @@ function getCursorPosition(
     const itemDomId = msgEl?.id;
 
     if (rect && rect.top >= 0) {
-      return [id, itemDomId!, rect.top + rootTop, after, 0];
+      // console.log('1> ??????????????????', nextRefreshCount, '/', rect?.top, '+', rootTop, '=', rect.top + rootTop);
+      return [id, itemDomId!, rect.top + rootTop, after, nextRefreshCount];
     }
   }
 
-  return [id, null, 0, after, 0];
+  return [id, null, 0, after, nextRefreshCount];
 }
 
 /**
@@ -292,7 +295,8 @@ function scrollToTop(rootElementQuery_: string, instant = false) {
 function repositionList(
   cursorPosition: CursorPositionObj,
   listElement: HTMLDivElement | null,
-  p: VirtualizedListProps | VirtualizedListOmit
+  p: VirtualizedListProps | VirtualizedListOmit,
+  backupScrollRef?: React.Ref<HTMLDivElement>,
 ) {
 
   const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
@@ -305,6 +309,7 @@ function repositionList(
   const itemElement = itemDomId ? globalThis?.document.getElementById(itemDomId) : listElement;
   if (!itemElement) {
     if (process.env.NODE_ENV === 'development') {
+      console.log('REPOSITIONING:', cursorPosition);
       console.error('Item not found in DOM during Virtualized list repositioning:', cursorPosition[0]);
     }
     return;
@@ -316,6 +321,14 @@ function repositionList(
     } else {
       console.dev('Could not scroll into view! Unless this was intentional, this is a bug and probably will cause an unintentional scrol to top!');
       console.dev('To fix this, add a proper DOM ID (id="..") prop to the entire list item Component.');
+
+      // @ts-expect-error - React Ref
+      const backupScrollEl = backupScrollRef?.current;
+      if (backupScrollEl) {
+        rootElement.scrollTo({ top: rootElement.scrollHeight - (backupScrollEl.clientHeight || 0) * 2, behavior: 'instant' });
+      }
+
+      return;
     }
 
     itemElement.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
@@ -345,18 +358,22 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
   const { otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
   const [cursorPosition, setCursorPosition] = useState<CursorPositionObj | null>(null);
   // const [, forceUpdate] = useReducer(x => x + 1, 0);
-  const referenceObj = useRef<VZReferenceObj>({ loading, startOfListItemId: null, lastItemIdOnMount: null, mounted: true, itemIds: null, topCursor: null, bottomCursor: null });
+  const referenceObj = useRef<VZReferenceObj>({ loading, startOfListItemId: null, endOfListItemId: undefined, lastItemIdOnMount: null, mounted: true, itemIds: null, topCursor: null, bottomCursor: null });
+  const itemIds = referenceObj.current.itemIds;
 
   // List data
 
-  const itemIds = referenceObj.current.itemIds;
   const listData = useMemo(() => {
 
     if (itemIds && limit > 0) {
+
+      const size = limit * 2;
+
       let viewing: string[];
       if (cursorPosition === null || cursorPosition[0] === null) {
-        // console.log(':::::1', itemIds.length, '||', cursorPosition, limit);
-        viewing = itemIds.slice(0, limit);
+        // console.log(':::::1', itemIds.length, '||', cursorPosition, size);
+        // viewing = itemIds.slice(0, size);
+        viewing = itemIds.slice(0, size);
       } else {
         let cursorIndex = itemIds.indexOf(cursorPosition[0]);
         if (cursorIndex === -1) {
@@ -367,14 +384,14 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
           cursorIndex++;
         }
 
-        const start = Math.max(0, cursorIndex - limit);
-        const end = Math.min(itemIds.length, cursorIndex + limit);
-        // console.log(':::::2', itemIds.length, '||', cursorIndex, limit, cursorPosition, start, end);
+        const start = Math.max(0, cursorIndex - size);
+        const end = Math.min(itemIds.length, cursorIndex + size);
+        // console.log(':::::2', itemIds.length, '||', cursorIndex, size, cursorPosition, start, end);
         viewing = itemIds.slice(start, end);
 
-        if (process.env.NODE_ENV === 'development') {
-          console.dev('start to end:', cursorPosition[3], start, end, '->', viewing.length);
-        }
+        // if (process.env.NODE_ENV === 'development') {
+        //   console.dev('start to end:', cursorPosition[3], start, end, '->', viewing.length);
+        // }
       }
 
       return viewing.map((id) => {
@@ -393,9 +410,18 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
     }
 
     return null;
-  }, [itemIds, cursorPosition?.[0], limit]);
+  }, [itemIds, cursorPosition?.[0], cursorPosition?.[4], limit]);
 
   // Keep track of certain props so it can referenced inside memoized functions
+
+  let nextEndOfListItemId: string | null | undefined = undefined;
+  if (listData) {
+    if (referenceObj.current.endOfListItemId === undefined) {
+      referenceObj.current.endOfListItemId = listData.length > limit ? listData[limit - 1]?.item?.id : null;
+    } else {
+      nextEndOfListItemId = null;
+    }
+  }
 
   useEffect(() => {
     const top = listData?.[0]?.item;
@@ -404,6 +430,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
     referenceObj.current = {
       ...referenceObj.current,
       loading,
+      endOfListItemId: nextEndOfListItemId,
       topCursor: top ? [top.id, top.cursor] : null,
       bottomCursor: bottom ? [bottom.id, bottom.cursor] : null
     };
@@ -420,14 +447,22 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
     };
   }, []);
 
-  const { startOfListItemId } = referenceObj.current;
+  const { startOfListItemId, endOfListItemId } = referenceObj.current;
+  const eolId = endOfListItemId || nextEndOfListItemId; // This is necessary because refs are not reactive
   const isTopOfList = startOfListItemId ? startOfListItemId === listData?.[0]?.item?.id : false;
   const hasMoreTop = !!cursorPosition?.[0] && !!itemIds && !!listData && limit <= itemIds.length && itemIds[0] !== listData[0]?.item?.id;
   // NOTE: Natural bottom limit is limit * 2 because of listData viewing area doubles the limit
-  const naturalBottomLimit = (itemIds?.length || 0) > limit ? limit * 2 : limit;
-  const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? naturalBottomLimit <= listData.length : false;
+  // const naturalBottomLimit = (itemIds?.length || 0) > limit ? limit * 2 : limit;
+  // const naturalBottomLimit = limit;
+  // const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? naturalBottomLimit <= listData.length : false;
+  const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? listData.some(d => d.id == eolId) : false;
   // console.log('naturalBottomLimit:', naturalBottomLimit, 'listData:', listData?.length, '??', itemIds?.length);
-  // console.log('hasMoreBottom:', hasMoreBottom, '||', isTopOfList, '||', (!maxFetchLimit || maxFetchLimit >= itemIds!?.length), '>>', limit, listData?.length);
+
+  // if (listData) {
+  //   console.log('hasMoreBottom', hasMoreBottom, eolId, listData);
+  //   console.log('limit', limit, 'isTopOfList', isTopOfList, 'endOfListItemId', endOfListItemId, 'maxFetchLimit', maxFetchLimit, 'itemIds.length', itemIds!?.length);
+  //   console.log('value is decided by', naturalBottomLimit, listData.length, naturalBottomLimit <= listData.length, listData.some(d => d.id == endOfListItemId));
+  // }
 
   return {
     cursorPosition,
@@ -479,12 +514,12 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
         if (typeof ix === 'number' && ix >= 0) {
           const listLen = referenceObj.current.itemIds!.length;
           if (after && (ix - limit) >= limit) {
-            console.dev('REPOSITIONING AFTER', ix, limit, listLen);
+            console.dev('REPOSITION AFTER', ix, limit, listLen);
             setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
             return;
           // } else if (!after && ((ix + limit) < listLen || listLen === (ix + 1))) {
           } else if (!after && (ix + limit) < listLen) {
-            console.dev('REPOSITIONING BEFORE', ix, limit, listLen);
+            console.dev('REPOSITION BEFORE', ix, limit, listLen);
             setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
             return;
           } else {
@@ -496,18 +531,27 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
 
         if (referenceObj.current.mounted) {
 
-          if (process.env.NODE_ENV === 'development') {
-            console.dev(`FETCHED: ${limit} ${after ? 'ABOVE' : 'BELOW'} ${position[1] || "no cursor"}`, 'em', data);
-          }
+          console.dev(`FETCHED: ${limit} ${after ? 'ABOVE' : 'BELOW'} ${position[1] || "no cursor"}`, 'em', data);
 
-          if (Array.isArray(data) && data.length) {
-
-            referenceObj.current.itemIds = mergeItemIds(referenceObj.current, data, false, after, p);
-            if (!after && data.length < limit) {
-              referenceObj.current.startOfListItemId = referenceObj.current.itemIds[0];
+          if (Array.isArray(data)) {
+            if (!after && limit > data.length) {
+              // If the list ends at exactly 0 items, then the next end of list item should be the last item in the current listData
+              const nextEndOfListItemId = data[data.length - 1]?.id || listData?.[listData.length - 1]?.item?.id;
+              if (nextEndOfListItemId) {
+                referenceObj.current.endOfListItemId = nextEndOfListItemId;
+              }
             }
 
-            setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
+            if (data.length) {
+              referenceObj.current.itemIds = mergeItemIds(referenceObj.current, data, false, after, p);
+              // endOfListItemId
+              if (!after && data.length < limit) {
+                referenceObj.current.startOfListItemId = referenceObj.current.itemIds[0];
+              }
+
+              console.dev('REPOSITION ON FETCH');
+              setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
+            }
           }
 
           if (error) {
@@ -581,9 +625,50 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
 
   useLayoutEffect(() => {
     if (cursorPosition?.[0] && listData) {
-      repositionList(cursorPosition, listRef.current, p);
+      const [cPosId, cDomId,, cAfter, cRefresh] = cursorPosition;
+      if (cDomId) {
+        repositionList(cursorPosition, listRef.current, p);
+      } else {
+
+        // Try to find the DOM again, because DOM wasn't ready in time
+        console.dev(`cursorPosition?.[1] is null, for id "${cPosId}"`, 'em');
+
+        if (cPosId && cRefresh === 0) {
+          setCursorPosition( getCursorPosition(cPosId, cAfter, listRef.current, p, 1) );
+        } else if (cPosId && cRefresh === 1) {
+        //   setCursorPosition( getCursorPosition(cPosId, cAfter, listRef.current, p, 2) );
+        // } else if (cPosId && cRefresh === 2) {
+          // repositionList(cursorPosition, listRef.current, p);
+        // } else if (cPosId && cRefresh === 3) {
+
+          const timer = setTimeout(() => {
+            repositionList(cursorPosition, listRef.current, p, cAfter ? topRef : bottomRef);
+
+            // if (listData.length > 0) {
+            //   // const position = after ? referenceObj.current.topCursor : referenceObj.current.bottomCursor;
+            //   const newCursorId = cAfter ? listData[0].item.id : listData[listData.length - 1].item.id;
+            //   const nextCursorPos = getCursorPosition(newCursorId, cAfter, listRef.current, p, 2);
+            //   // const nextCursorPos = getCursorPosition(newCursorId, cAfter, listRef.current, p, 2, true);
+
+            //   console.dev('Retrying reposition for id "' + cPosId + '", using new cursor id "' + newCursorId + '"', 'em');
+            //   console.dev('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ' + cPosId, 'em');
+            //   // console.log(listData.map(d => d.item.id));
+            //   // console.dev('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' + cPosId, 'em');
+            //   // console.log(referenceObj.current.itemIds);
+            //   setCursorPosition(nextCursorPos);
+            // }
+          }, 750);
+
+          return () => {
+            clearTimeout(timer);
+          };
+        }
+
+      }
     }
-  }, [cursorPosition?.[0], cursorPosition?.[4]]);
+  }, [cursorPosition?.[0], cursorPosition?.[1], cursorPosition?.[4], cursorPosition?.[4] !== 1]);
+
+  // console.log(cursorPosition);
 
 
   // Use IntersectionObserver to detect when the topRef and bottomRef are in view

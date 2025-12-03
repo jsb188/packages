@@ -3,7 +3,7 @@ import { childOrganizationsQry, myOrganizationsQry, organizationWorkflowsQry } f
 import type { PaginationArgs, UseQueryParams } from '../types.d';
 import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d';
 
-const ORG_CHILDREN_LIMIT = 100;
+const ORG_CHILDREN_LIMIT = 250;
 
 /**
  * Fetch my organizations

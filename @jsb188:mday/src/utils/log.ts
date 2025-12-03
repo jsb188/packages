@@ -839,8 +839,11 @@ export function getTitleForLog(details: any): string {
 	switch (details.__typename) {
 		case 'LogFarmersMarket': {
 			// Check if text from values is short, else rely on the AI summary
-			const valuesText = (details.values || []).map((item: any) => item.label).join(', ');
-			if (valuesText.length <= 32) {
+			const valuesText = (details.values || []).map((item: any) => {
+        return `${item.label} ${item.value ? formatCurrency(item.value, false) : ''}`.trim();
+      }).join(', ');
+
+			if (valuesText.length <= 40) {
 				return valuesText;
 			}
     } break;
