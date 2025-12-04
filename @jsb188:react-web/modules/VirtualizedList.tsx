@@ -136,7 +136,8 @@ type TableListProps = {
   reactiveFragmentFn?: ReactiveFragmentFn;
   gridLayoutStyle?: string;
   cellClassNames?: (string | undefined)[];
-  removeHorizontalPadding?: boolean;
+  removeLeftPadding?: boolean;
+  removeRightPadding?: boolean;
   doNotApplyGridToRows?: boolean;
   headers?: Partial<TableHeaderObj>[] | null;
   listData: VZListItemObj[] | null;
@@ -832,19 +833,33 @@ const TableListItem = (p: TableListProps & {
   i: number;
   list: VZListItemObj[];
 }) => {
-  const { item, i, list, gridLayoutStyle, mapListData, cellClassNames, doNotApplyGridToRows, removeHorizontalPadding, onClickRow } = p;
+  const { item, i, list, gridLayoutStyle, mapListData, cellClassNames, doNotApplyGridToRows, removeLeftPadding, removeRightPadding, onClickRow } = p;
   const rowData = mapListData(item, i, list);
   if (!rowData) {
     return null;
   }
 
   const renderCell = (cell: TableColumnElement, j: number) => {
+
+    let removeLeftPaddingCell, removeRightPaddingCell, cellObj;
+    if (cell && !isValidElement(cell) && typeof cell === 'object') {
+      const { removeLeftPadding: rlp, removeRightPadding: rrp, ...rest } = cell as any;
+      removeLeftPaddingCell = rlp;
+      removeRightPaddingCell = rrp;
+      cellObj = rest;
+    } else {
+      removeLeftPaddingCell = removeLeftPadding;
+      removeRightPaddingCell = removeRightPadding;
+    }
+
     return <TDCol
       key={j}
       className={cellClassNames?.[i]}
       doNotApplyGridToRows={doNotApplyGridToRows}
+      removeLeftPadding={removeLeftPaddingCell}
+      removeRightPadding={removeRightPaddingCell}
     >
-      {cell && isValidElement(cell) ? cell : cell && typeof cell === 'object' ? <span {...cell as ReactSpanElement} /> : cell}
+      {cellObj ? <span {...cellObj as ReactSpanElement} /> : cell && isValidElement(cell) ? cell : cell ? String(cell) : null}
     </TDCol>;
   };
 
@@ -853,7 +868,8 @@ const TableListItem = (p: TableListProps & {
 
     {rowData.rowHeaders && (
       <THead
-        removeHorizontalPadding={removeHorizontalPadding}
+        removeLeftPadding={removeLeftPadding}
+        removeRightPadding={removeRightPadding}
         doNotApplyGridToRows={doNotApplyGridToRows}
         gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
         headers={rowData.rowHeaders}
@@ -912,11 +928,12 @@ const ReactiveTableListItem = (p: any) => {
  */
 
 export const VZTable = memo((p: TableListProps) => {
-  const { reactiveFragmentFn, gridLayoutStyle, headers, listData, cellClassNames, doNotApplyGridToRows, removeHorizontalPadding } = p;
+  const { reactiveFragmentFn, gridLayoutStyle, headers, listData, cellClassNames, doNotApplyGridToRows, removeLeftPadding, removeRightPadding } = p;
   return <>
     {headers && (
       <THead
-        removeHorizontalPadding={removeHorizontalPadding}
+        removeLeftPadding={removeLeftPadding}
+        removeRightPadding={removeRightPadding}
         doNotApplyGridToRows={doNotApplyGridToRows}
         gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
         headers={headers}

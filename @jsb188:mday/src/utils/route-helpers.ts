@@ -26,9 +26,12 @@ const ROUTES_MAP = {
   // * Arable; Food Safety
   'app/hygiene': '/app/hygiene',
   'app/sanitation': '/app/sanitation',
-  'app/equipments': '/app/equipments',
+  'app/materials': '/app/materials',
   'app/biosecurity': '/app/biosecurity',
   'app/employees': '/app/employees',
+
+  // * Arable; Modules for Food Safety
+  'app/globalgap': '/app/globalgap',
 
   // # Farmers Market
   'app/vendors': '/app/vendors',
@@ -109,7 +112,7 @@ const ROUTES_RULE: Record<AppRouteName, {
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
   },
-  'app/equipments': {
+  'app/materials': {
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
   },
@@ -120,6 +123,10 @@ const ROUTES_RULE: Record<AppRouteName, {
   'app/employees': {
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
+  },
+  'app/globalgap': {
+    allowedOperations: OP_FARMING,
+    requiredFeature: ['GLOBAL_GAP'],
   },
 
   // Farmers Market

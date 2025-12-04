@@ -29,6 +29,7 @@ export default {
     apply_filters: 'Apply filters',
     content_missing: 'Content missing',
     content_not_found_msg: 'The content you are looking for could not be found.',
+    reports: 'Reports',
     hide: 'Hide',
     show: 'Show',
     deleted: 'Deleted',

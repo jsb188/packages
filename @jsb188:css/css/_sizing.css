@@ -77,8 +77,8 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: normal;
   font-size: 2em; /* This is em (not rem) on purpose */
   line-height: 1.3;
-  letter-spacing: -.04em;
-  text-indent: -.04em;
+  letter-spacing: -.0375em;
+  text-indent: -.0375em;
 
   padding: .5em 0 .25em;
   margin: 0;
