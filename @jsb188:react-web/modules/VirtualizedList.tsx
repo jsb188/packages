@@ -840,7 +840,6 @@ const TableListItem = (p: TableListProps & {
   }
 
   const renderCell = (cell: TableColumnElement, j: number) => {
-
     let removeLeftPaddingCell, removeRightPaddingCell, cellObj;
     if (cell && !isValidElement(cell) && typeof cell === 'object') {
       const { removeLeftPadding: rlp, removeRightPadding: rrp, ...rest } = cell as any;
@@ -854,7 +853,7 @@ const TableListItem = (p: TableListProps & {
 
     return <TDCol
       key={j}
-      className={cellClassNames?.[i]}
+      className={cellClassNames?.[j]}
       doNotApplyGridToRows={doNotApplyGridToRows}
       removeLeftPadding={removeLeftPaddingCell}
       removeRightPadding={removeRightPaddingCell}
@@ -887,7 +886,7 @@ const TableListItem = (p: TableListProps & {
     </TRow>
 
     {rowData.subRows &&
-    <div className='rel pattern_texture medium_bf -ml_4'>
+    <div className='rel pattern_texture main_bf'>
       {Array.isArray(rowData.subRows)
       ? rowData.subRows.map((subRowItem: any, k: number) => {
         return <TRow

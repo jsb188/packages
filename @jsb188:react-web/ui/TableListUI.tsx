@@ -67,12 +67,12 @@ export const TDCol = memo((p: ReactDivElement & {
 
   return <div
     className={cn(
-      'tdcol py_sm min_h_50',
+      'tdcol',
+      className ?? 'py_sm min_h_50',
       !removeLeftPadding && !removeRightPadding ? 'px_xs' : removeLeftPadding ? 'pr_xs' : removeRightPadding ? 'pl_xs' : '',
       flexClassName || 'h_item',
       doNotApplyGridToRows ? 'bd_lt bd_t_1' : '',
       !children ? 'cl_darker_2' : '',
-      className
     )}
     {...rest}
   >
@@ -109,7 +109,7 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
         doNotApplyGridToRows={doNotApplyGridToRows}
-        className={cn('ft_medium cl_lt', cellClassNames?.[i], className)}
+        className={cn('py_sm min_h_50 ft_medium cl_lt', cellClassNames?.[i], className)}
         {...rest}
       >
         {iconName && <Icon name={iconName} />}

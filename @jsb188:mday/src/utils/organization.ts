@@ -125,7 +125,7 @@ export type PermissionCheckFor = keyof ReturnType<typeof getDefaultPermissionsBy
 export type ACLPermissionCheck = 'READ' | 'WRITE' | 'MANAGE';
 
 export function checkACLPermission(
-	orgRel: OrganizationRelGQL | OrganizationRelData | ViewerOrganization,
+	orgRel: OrganizationRelGQL | OrganizationRelData | ViewerOrganization | null | undefined,
 	check: PermissionCheckFor,
 	requiredPermission: ACLPermissionCheck,
 ): boolean | null {

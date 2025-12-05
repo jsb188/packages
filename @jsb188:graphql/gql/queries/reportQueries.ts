@@ -1,20 +1,23 @@
 import { gql } from 'graphql-tag';
-import { reportFragment } from '../fragments/reportFragments';
+import { reportFragment, reportSectionFragment } from '../fragments/reportFragments';
 
 export const reportsQry = gql`
 query reports (
   $organizationId: GenericID!
-  $type: ReportType!
-  $period: String!
+  $filter: ReportsFilter!
 ) {
   reports (
     organizationId: $organizationId
-    type: $type
-    period: $period
+    filter: $filter
   ) {
     ...reportFragment
+
+    sections {
+      ...reportSectionFragment
+    }
   }
 }
 
 ${reportFragment}
+${reportSectionFragment}
 `;

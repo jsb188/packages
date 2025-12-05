@@ -88,6 +88,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   info: 'info-circle',
   invoice: 'accounting-invoice-dollar',
   link_chevron: 'chevron-right',
+  expanded_chevron: 'chevron-down',
   livestock: 'livestock-cow-body',
   livestock_life_cycle: 'monitor-heart-beat',
   livestock_tracking: 'tags',
@@ -151,7 +152,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   // Arable - Food Safety types
   HYGIENE: 'locker-room-wash-hands-1',
   SANITATION: 'cleanser-scrubbing-1',
-  EQUIPMENTS: 'shipment-container',
+  MATERIALS: 'shipment-container',
   BIOSECURITY: 'ecology-leaf-shield',
   EMPLOYEES: 'avatar-farmer-man-4',
 

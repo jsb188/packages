@@ -6,7 +6,7 @@ import type { UseQueryParams } from '../types';
  * Get reactive log fragment
  */
 
-export function useReactiveProductFragment(reportId: string, currentData?: any, queryCount?: number) {
+export function useReactiveReportFragment(reportId: string, currentData?: any, queryCount?: number) {
   return useReactiveFragment(
     currentData,
     [
@@ -30,6 +30,7 @@ export function useReports(
 ) {
 
   const { organizationId } = variables;
+
   const { data, ...rest } = useQuery(reportsQry, {
     variables,
     skip: !organizationId,

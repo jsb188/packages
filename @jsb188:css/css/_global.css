@@ -121,11 +121,11 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
 }
 
 .bg_primary_fd, .bg_primary_fd_hv:hover {
-  background-color: rgba(var(--color-primary), .064) !important;
+  background-color: var(--color-primary-faded) !important;
 }
 
 .bg_secondary_fd, .bg_secondary_fd_hv:hover {
-  background-color: rgba(var(--color-secondary), .1) !important;
+  background-color: var(--color-secondary-faded) !important;
 }
 
 .bg_main_fd, .bg_main_fd_hv:hover {
