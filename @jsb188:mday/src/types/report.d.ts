@@ -1,10 +1,11 @@
-import { REPORT_TYPES } from '../constants/report';
+import { REPORT_TYPES, REPORT_ROW_PRESETS } from '../constants/report';
 
 /**
  * Enums
  */
 
 type ReportTypeEnum = typeof REPORT_TYPES[number];
+type ReportRowPresetEnum = typeof REPORT_ROW_PRESETS[number];
 
 /**
  * Filters
@@ -13,24 +14,40 @@ type ReportTypeEnum = typeof REPORT_TYPES[number];
 export interface ReportsFilterArgs {
 	preset?: '?' | null;
 	reportType: ReportTypeEnum;
-  period: number;
+	period: string; // YYYY-MM-DD
 	query?: string | null;
 }
 
 /**
- * Report; sections
+ * Report; fields
  */
 
-interface ReportFieldsSectionData {
-  key: string; // Every section must have a unique string UID
-  isGroupTitle?: boolean;
-  title: string;
-  description: string;
+interface ReportFieldsObj {
+  sections?: ReportFieldsSection[];
+  tables?: ReportFieldsTable[];
 }
 
-// interface ReportSectionGQL extends Omit<ReportFieldsData, 'id'> {
-interface ReportSectionGQL extends ReportFieldsSectionData {
-  // .. put answers here
+interface ReportFieldsSection {
+  id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	key: string; // Every section must have a unique string UID
+	isGroupTitle?: boolean;
+	title: string;
+	description: string;
+}
+
+interface ReportFieldsTable {
+  headers: ReportFieldsRow;
+  rows: ReportFieldsRow[];
+}
+
+interface ReportFieldsRow {
+  preset?: ReportRowPresetEnum;
+  columns: {
+    id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+    text: string;
+    value?: string | null;
+    width?: string;
+  }[];
 }
 
 /**
@@ -38,29 +55,41 @@ interface ReportSectionGQL extends ReportFieldsSectionData {
  */
 
 export interface ReportData {
-  __table: 'reports';
+	__table: 'reports';
 
-  id: number;
-  type: ReportTypeEnum;
-  title: string;
-  description: string;
-  order: number;
+	id: number;
+	type: ReportTypeEnum;
+	title: string;
+	description: string;
+	order: number;
 
-  fields: {
-    sections: ReportFieldsSectionData[];
-  };
+	fields: ReportFieldsObj;
+  submission?: ReportSubmissionData | null;
+
+  template?: {
+    __table: 'report_templates';
+    id: number;
+    fields: ReportFieldsObj;
+    description: string | null;
+  }
 }
 
 export interface ReportGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
-  id: string;
-  organizationId: string;
-  title: string;
-  description: string;
-  type: ReportTypeEnum;
-  period: number;
-  activityAt: string | null; // ISO date string
+	id: string;
+	organizationId: string;
+	title: string;
+	description: string;
+	type: ReportTypeEnum;
+	period: string; // YYYY-MM-DD
+	activityAt: string | null; // ISO date string
 
-  sections: ReportSectionGQL[];
+	sections?: ReportFieldsSection[];
+  tables?:
+}
+
+export interface ReportSubmissionData {
+  __table: 'report_submissions';
+  id: number;
 }

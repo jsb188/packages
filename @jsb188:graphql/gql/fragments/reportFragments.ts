@@ -16,3 +16,10 @@ export const reportSectionFragment = `fragment reportSectionFragment on ReportSe
   title
   description
 }`;
+
+export const reportColumnDataFragment = `fragment reportColumnDataFragment on ReportColumnData {
+  id
+  text
+  value
+  width
+}`;

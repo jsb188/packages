@@ -236,7 +236,7 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       const innerData = data?.[inner.name.value];
       const innerSelections = inner.selectionSet.selections?.filter((sel: any) => sel.kind === 'FragmentSpread');
 
-      if (Array.isArray(innerSelections)) {
+      if (innerData && Array.isArray(innerSelections)) {
         if (Array.isArray(innerData)) {
           for (const item of innerData) {
             mapSelections(item, inner.selectionSet.selections, updatedKeys);
