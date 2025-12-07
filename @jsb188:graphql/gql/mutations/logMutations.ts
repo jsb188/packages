@@ -3,6 +3,7 @@ import { logEntryFragment, logArableFragment, logLivestockFragment, logFarmersMa
 
 export const editLogEntryMtn = gql`
 mutation editLogEntry (
+  $organizationId: GenericID!
   $logEntryId: GenericID!
   $accountId: GenericID
   $date: DateTime
@@ -12,6 +13,7 @@ mutation editLogEntry (
   $farmersMarketDetails: LogFarmersMarketInput
 ) {
   editLogEntry (
+    organizationId: $organizationId
     logEntryId: $logEntryId
     accountId: $accountId
     date: $date

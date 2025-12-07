@@ -1612,7 +1612,24 @@ export const LockerRoomWashHands1 = <svg xmlns="http://www.w3.org/2000/svg" clas
 <path d="M17.39999962,2.30000114l.60000038,1.20000005"/>
 <path d="M19.10000038,5.90000105l.60000038,1.20000029"/>
 <path d="M20.79999924,9.50000095l.20000076.5"/>
-</svg>
+</svg>;
+
+export const LockerRoomWashHands1Color = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-locker-room-wash-hands-1-color">
+<path fill="#66e1ff" d="m12.25 0.5 -1.258 6.377L15.75 11l5.629 0.292L19.25 0.5h-7Z" strokeWidth="1"></path>
+<path fill="#ffdda1" d="M21.75 17.25c0 -0.3315 -0.1317 -0.6495 -0.3661 -0.8839C21.1495 16.1317 20.8315 16 20.5 16h-1c0.3315 0 0.6495 -0.1317 0.8839 -0.3661 0.2344 -0.2344 0.3661 -0.5524 0.3661 -0.8839s-0.1317 -0.6495 -0.3661 -0.8839c-0.2344 -0.2344 -0.5524 -0.3661 -0.8839 -0.3661h-7.75l0.946 -0.946c0.301 -0.3043 0.4732 -0.7128 0.4809 -1.1407 0.0077 -0.4279 -0.1496 -0.8424 -0.4394 -1.1574 -0.2897 -0.31493 -0.6896 -0.50623 -1.1167 -0.53415 -0.4271 -0.02792 -0.8485 0.10969 -1.1768 0.38425L5.53 14.264c-0.18052 0.1529 -0.40941 0.2369 -0.646 0.237H2.25v7h3.338c0.10706 -0.0001 0.21343 0.0172 0.315 0.051l5.385 1.793c0.3057 0.1019 0.6258 0.1539 0.948 0.154H18.5c0.3315 0 0.6495 -0.1317 0.8839 -0.3661 0.2344 -0.2344 0.3661 -0.5524 0.3661 -0.8839s-0.1317 -0.6495 -0.3661 -0.8839c-0.2344 -0.2344 -0.5524 -0.3661 -0.8839 -0.3661h1c0.3315 0 0.6495 -0.1317 0.8839 -0.3661 0.2344 -0.2344 0.3661 -0.5524 0.3661 -0.8839s-0.1317 -0.6495 -0.3661 -0.8839c-0.2344 -0.2344 -0.5524 -0.3661 -0.8839 -0.3661h1c0.3313 0 0.6491 -0.1315 0.8835 -0.3658 0.2344 -0.2342 0.3662 -0.5518 0.3665 -0.8832Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M2.25 14.5h2.634c0.23659 -0.0001 0.46548 -0.0841 0.646 -0.237l4.914 -4.158c0.3258 -0.29265 0.7538 -0.44513 1.1913 -0.42442 0.4374 0.0207 0.8491 0.21293 1.1459 0.53502 0.2967 0.3221 0.4545 0.7482 0.4394 1.1859 -0.0152 0.4376 -0.2023 0.8517 -0.5206 1.1525l-0.946 0.946H19.5c0.3315 0 0.6495 0.1317 0.8839 0.3661 0.2344 0.2344 0.3661 0.5524 0.3661 0.8839s-0.1317 0.6495 -0.3661 0.8839c-0.2344 0.2344 -0.5524 0.3661 -0.8839 0.3661" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.25 21h4.25c0.3315 0 0.6495 0.1317 0.8839 0.3661 0.2344 0.2344 0.3661 0.5524 0.3661 0.8839s-0.1317 0.6495 -0.3661 0.8839c-0.2344 0.2344 -0.5524 0.3661 -0.8839 0.3661h-6.264c-0.3222 -0.0001 -0.6423 -0.0521 -0.948 -0.154l-5.38801 -1.793c-0.10156 -0.0339 -0.20793 -0.0511 -0.315 -0.051h-3.338" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.251 16H20.5c0.3315 0 0.6495 0.1317 0.8839 0.3661 0.2344 0.2344 0.3661 0.5524 0.3661 0.8839s-0.1317 0.6495 -0.3661 0.8839c-0.2344 0.2344 -0.5524 0.3661 -0.8839 0.3661h-5.25" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18.5 21h1c0.3315 0 0.6495 -0.1317 0.8839 -0.3661 0.2344 -0.2344 0.3661 -0.5524 0.3661 -0.8839s-0.1317 -0.6495 -0.3661 -0.8839c-0.2344 -0.2344 -0.5524 -0.3661 -0.8839 -0.3661" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.75 0.5v2" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.75 5v2" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.75 9.5V11" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m19.25 0.5 0.387 1.962" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m20.121 4.91501 0.387 1.962" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m20.992 9.32999 0.387 1.96201" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m12.25 0.5 -0.387 1.962" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m11.379 4.91501 -0.387 1.962" strokeWidth="1"></path>
+</svg>;
 
 export const Login2 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="icon icon-login-2">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>

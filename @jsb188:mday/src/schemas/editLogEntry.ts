@@ -25,6 +25,7 @@ export const LOG_TYPENAME_TO_DETAILS_INPUT_NAME = {
 export function makeFormValuesFromData(logEntry: LogEntryGQL) {
   const formValues = {
     logEntryId: logEntry.id,
+    organizationId: logEntry.organizationId,
     accountId: logEntry.accountId,
     date: logEntry.date,
   } as Record<string, any>;
@@ -51,7 +52,6 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
       const details = logEntry.details as LogFarmersMarketMetadataGQL;
       formValues.farmersMarketDetails = {
         activity: details.activity,
-        childOrgId: details.childOrgId,
         referenceNumber: details.referenceNumber,
         voided: details.voided,
         values: details.values,
@@ -131,6 +131,7 @@ export function formatFormValuesForMutation(formValues: Record<string, any>) {
       }
     }
   }
+
   return formValues;
 }
 
@@ -157,7 +158,7 @@ export type ValidMetadataFieldName =
 
   // FARMERS_MARKET
   | 'receiptNumber'
-  | 'childOrgId'
+  // | 'childOrgId' // Not editable
   | 'void'
   | 'marketCredits'
 
@@ -391,6 +392,7 @@ function makeMetadataSchema(
           __type: 'input',
           label: i18n.t('log.invoice_number'),
           item: {
+            editable: false,
             name: `${namespace}.referenceNumber`,
           }
         };
@@ -399,23 +401,26 @@ function makeMetadataSchema(
           __type: 'input',
           label: i18n.t('log.receipt_number'),
           item: {
+            editable: false,
             name: `${namespace}.referenceNumber`,
             // placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
             // getter: (value: string[]) => value ? value.join(',') : '',
             // setter: (value: string) => value.split(',')
           }
         };
-      case 'childOrgId':
-        return {
-          __type: 'input',
-          label: i18n.t('log.receipt_for'),
-          item: {
-            name: `${namespace}.childOrgId`,
-            // placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
-            // getter: (value: string[]) => value ? value.join(',') : '',
-            // setter: (value: string) => value.split(',')
-          }
-        };
+
+      // Not allowed to edit
+      // case 'childOrgId':
+      //   return {
+      //     __type: 'input',
+      //     label: i18n.t('log.receipt_for'),
+      //     item: {
+      //       name: `${namespace}.childOrgId`,
+      //       // placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
+      //       // getter: (value: string[]) => value ? value.join(',') : '',
+      //       // setter: (value: string) => value.split(',')
+      //     }
+      //   };
       case 'void':
         return {
           __type: 'input_click',
@@ -572,7 +577,7 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
       schemaFields = [
         'activity',
         isReceipt ? 'receiptNumber' : null,
-        'childOrgId',
+        // 'childOrgId', // not editable
         isReceipt ? 'void' : null,
         isReceipt ? 'marketCredits' : null,
       ];

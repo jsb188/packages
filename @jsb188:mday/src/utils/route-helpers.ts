@@ -25,15 +25,16 @@ const ROUTES_MAP = {
   'app/harvested': '/app/harvested',
   'app/post_harvest': '/app/post-harvest',
 
+  // * Arable; Modules for Food Safety
+  'app/globalgap': '/app/globalgap',
+  'app/cleaning': '/app/cleaning',
+
   // * Arable; Food Safety
   'app/hygiene': '/app/hygiene',
   'app/sanitation': '/app/sanitation',
   'app/materials': '/app/materials',
   'app/biosecurity': '/app/biosecurity',
   'app/employees': '/app/employees',
-
-  // * Arable; Modules for Food Safety
-  'app/globalgap': '/app/globalgap',
 
   // # Farmers Market
   'app/vendors': '/app/vendors',
@@ -95,6 +96,7 @@ const ROUTES_DICT: Record<AppRouteName, {
   },
 
   // Arable
+
   'app/seeding': {
     to: ROUTES_MAP['app/seeding'],
     text: i18n.t('log.seeding'),
@@ -151,6 +153,28 @@ const ROUTES_DICT: Record<AppRouteName, {
     allowedOperations: OP_FARMING,
     requiredFeature: F.normal_logging,
   },
+
+  // Arable; Reports
+
+  'app/globalgap': {
+    to: makePathname('app/globalgap'),
+    text: i18n.t('product.globalgap'),
+    iconName: COMMON_ICON_NAMES.global_gap,
+
+    allowedOperations: OP_FARMING,
+    requiredFeature: ['GLOBAL_GAP'],
+  },
+  'app/cleaning': {
+    to: makePathname('app/cleaning'),
+    text: i18n.t('log.cleaning_logs'),
+    iconName: COMMON_ICON_NAMES.HYGIENE,
+
+    allowedOperations: OP_FARMING,
+    requiredFeature: F.food_safety,
+  },
+
+  // Arable; Food Safety
+
   'app/hygiene': {
     to: ROUTES_MAP['app/hygiene'],
     text: i18n.t('log.hygiene'),
@@ -190,14 +214,6 @@ const ROUTES_DICT: Record<AppRouteName, {
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
-  },
-  'app/globalgap': {
-    to: makePathname('app/globalgap'),
-    text: i18n.t('product.globalgap'),
-    iconName: COMMON_ICON_NAMES.global_gap,
-
-    allowedOperations: OP_FARMING,
-    requiredFeature: ['GLOBAL_GAP'],
   },
 
   // Farmers Market
@@ -361,6 +377,13 @@ export function getNavigationList(
     case 'ARABLE':
       navListArr = [
         {
+          text: i18n.t('form.reports'),
+          navList: [
+            ROUTES_DICT['app/globalgap'],
+            ROUTES_DICT['app/cleaning'],
+          ]
+        },
+        {
           text: i18n.t('log.food_safety'),
           navList: [
             ROUTES_DICT['app/hygiene'],
@@ -368,12 +391,6 @@ export function getNavigationList(
             ROUTES_DICT['app/materials'],
             ROUTES_DICT['app/biosecurity'],
             ROUTES_DICT['app/employees'],
-          ]
-        },
-        {
-          text: i18n.t('form.reports'),
-          navList: [
-            ROUTES_DICT['app/globalgap'],
           ]
         },
         {

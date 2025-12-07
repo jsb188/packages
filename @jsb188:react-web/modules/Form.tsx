@@ -35,6 +35,7 @@ interface InputType {
   allowClearIfLocked?: boolean;
   locked?: boolean;
   disabled?: boolean;
+  editable?: boolean;
   focused?: boolean;
   error?: boolean;
   fullWidth?: boolean;
@@ -223,6 +224,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
     fullWidth,
     locked,
     disabled,
+    editable,
     focused,
     error,
     RightIconComponent,
@@ -293,7 +295,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
             // but we're combining "Edit" and "Create" forms together now,
             // So I prefer if everything is not-faded.
             // disabled ? 'disabled cl_md' : '',
-            disabled ? 'disabled' : '',
+            editable === false ? 'cl_lt' : disabled ? 'disabled' : '',
           )}
           id={htmlFor}
           name={name}
@@ -303,7 +305,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
           max={max}
           placeholder={placeholder || ''}
           value={(getter ? getter(value) : value) || ''}
-          disabled={disabled || locked}
+          disabled={disabled || locked || editable === false}
           autoFocus={autoFocus}
           autoComplete={autoComplete || 'off'}
           spellCheck={spellCheck}

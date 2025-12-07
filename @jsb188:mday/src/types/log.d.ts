@@ -27,11 +27,11 @@ export type LogArableTypeEnum =
 	| 'POST_HARVEST'
 	| 'SALES'
 	| 'WATER'
-  | 'HYGIENE'
+	| 'HYGIENE'
 	| 'SANITATION'
 	| 'EQUIPMENTS'
 	| 'BIOSECURITY'
-  | 'EMPLOYEES';
+	| 'EMPLOYEES';
 export type LogArableActivityEnum = typeof LOG_ARABLE_ACTIVITY_ENUMS[number];
 
 /**
@@ -95,7 +95,7 @@ interface LabelValueObj {
  */
 
 export type LogArableMetadata = LogMetadataBase & {
-	crop: string;
+	item: string;
 	quantity: number;
 	unit: string;
 	concentration: number;

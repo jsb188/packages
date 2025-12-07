@@ -886,11 +886,12 @@ const TableListItem = (p: TableListProps & {
     </TRow>
 
     {rowData.subRows &&
-    <div className='rel pattern_texture main_bf'>
+    <div className='rel bd_2 r_xs of -mx_2'>
       {Array.isArray(rowData.subRows)
       ? rowData.subRows.map((subRowItem: any, k: number) => {
         return <TRow
           key={k}
+          removeBorderLine={!k}
           className='rel z1'
           onClick={onClickRow ? () => onClickRow(item, subRowItem.value, subRowItem.onClickProps) : undefined}
           doNotApplyGridToRows={doNotApplyGridToRows}

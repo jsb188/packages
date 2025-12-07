@@ -363,6 +363,9 @@ export function POLabelsAndValues(p: {
         const item = inputs[i];
         return inputList.map((key, j) => {
           const aVal = item?.[key] || '';
+          if (!includeQuantity && key === 'quantity') {
+            return null;
+          }
 
           return <div
             key={j}
