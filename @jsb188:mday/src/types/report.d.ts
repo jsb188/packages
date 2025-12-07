@@ -28,7 +28,7 @@ interface ReportFieldsObj {
 }
 
 interface ReportFieldsSection {
-  id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+  id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Every section must have a unique string UID
 	isGroupTitle?: boolean;
 	title: string;
@@ -42,12 +42,14 @@ interface ReportFieldsTable {
 
 interface ReportFieldsRow {
   preset?: ReportRowPresetEnum;
-  columns: {
-    id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
-    text: string;
-    value?: string | null;
-    width?: string;
-  }[];
+  columns: ReportFieldsColumn[];
+}
+
+interface ReportFieldsColumn {
+  id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+  text: string;
+  value?: string | null;
+  width?: string;
 }
 
 /**
@@ -86,7 +88,7 @@ export interface ReportGQL {
 	activityAt: string | null; // ISO date string
 
 	sections?: ReportFieldsSection[];
-  tables?:
+  tables?: ReportFieldsTable[];
 }
 
 export interface ReportSubmissionData {
