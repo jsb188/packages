@@ -77,6 +77,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   edit_off: 'edit-off',
   email: 'mail', // Tabler version
   empty: 'square-forbid-2',
+  failed: 'circle-x',
   favorites: 'stars',
   field_work: 'farming-field-sun',
   file: 'file-description',

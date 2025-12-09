@@ -1,0 +1,24 @@
+
+/* Table column */
+
+.tdcol:not(.h_center) {
+  display: flex; justify-content: flex-start; align-items: center;
+}
+
+.tdcol.sticky_left {
+  z-index: 10;
+  background-color: rgb(var(--color-bg));
+}
+
+.tdcol.sticky_left:before {
+  content: '';
+  width: 20px;
+  /* Gradient using --color-bg variable from left to right */
+  background: linear-gradient(to right, rgba(var(--color-bg), 1), rgba(var(--color-bg), 0));
+  /* background: linear-gradient(to right, red, rgba(var(--color-bg), 0)); */
+  position: absolute;
+  right: -20px;
+  top: 0;
+  bottom: 0;
+  border-left: solid 1px var(--color-darker-light);
+}

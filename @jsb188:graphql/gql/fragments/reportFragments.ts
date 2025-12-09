@@ -7,6 +7,8 @@ export const reportFragment = `fragment reportFragment on Report {
   description
   type
   period
+  gridLayoutStyle
+
   activityAt
 }`;
 
@@ -17,9 +19,17 @@ export const reportSectionFragment = `fragment reportSectionFragment on ReportSe
   description
 }`;
 
+export const reportRowDataFragment = `fragment reportRowDataFragment on ReportRowData {
+  id
+  preset
+  isHeader
+}`;
+
 export const reportColumnDataFragment = `fragment reportColumnDataFragment on ReportColumnData {
   id
+  className
+  label
   text
-  value
-  width
+  placeholder
+  checked
 }`;

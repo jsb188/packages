@@ -1,14 +1,16 @@
 import { gql } from 'graphql-tag';
-import { reportFragment, reportSectionFragment, reportColumnDataFragment } from '../fragments/reportFragments';
+import { reportFragment, reportSectionFragment, reportRowDataFragment, reportColumnDataFragment } from '../fragments/reportFragments';
 
 export const reportsQry = gql`
 query reports (
   $organizationId: GenericID!
   $filter: ReportsFilter!
+  $sort: ReportsSort
 ) {
   reports (
     organizationId: $organizationId
     filter: $filter
+    sort: $sort
   ) {
     ...reportFragment
 
@@ -16,18 +18,11 @@ query reports (
       ...reportSectionFragment
     }
 
-    tables {
-      headers {
-        preset
-        columns {
-          ...reportColumnDataFragment
-        }
-      }
-      rows {
-        preset
-        columns {
-          ...reportColumnDataFragment
-        }
+    rows {
+      ...reportRowDataFragment
+
+      columns {
+        ...reportColumnDataFragment
       }
     }
   }
@@ -35,5 +30,6 @@ query reports (
 
 ${reportFragment}
 ${reportSectionFragment}
+${reportRowDataFragment}
 ${reportColumnDataFragment}
 `;

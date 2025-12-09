@@ -167,7 +167,7 @@ const ROUTES_DICT: Record<AppRouteName, {
   'app/cleaning': {
     to: makePathname('app/cleaning'),
     text: i18n.t('log.cleaning_logs'),
-    iconName: COMMON_ICON_NAMES.HYGIENE,
+    iconName: COMMON_ICON_NAMES.SANITATION,
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
@@ -383,16 +383,16 @@ export function getNavigationList(
             ROUTES_DICT['app/cleaning'],
           ]
         },
-        {
-          text: i18n.t('log.food_safety'),
-          navList: [
-            ROUTES_DICT['app/hygiene'],
-            ROUTES_DICT['app/sanitation'],
-            ROUTES_DICT['app/materials'],
-            ROUTES_DICT['app/biosecurity'],
-            ROUTES_DICT['app/employees'],
-          ]
-        },
+        // {
+        //   text: i18n.t('log.food_safety'),
+        //   navList: [
+        //     ROUTES_DICT['app/hygiene'],
+        //     ROUTES_DICT['app/sanitation'],
+        //     ROUTES_DICT['app/materials'],
+        //     ROUTES_DICT['app/biosecurity'],
+        //     ROUTES_DICT['app/employees'],
+        //   ]
+        // },
         {
           text: i18n.t(`organization.type_active.${operation}`),
           navList: [

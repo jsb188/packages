@@ -1,10 +1,11 @@
 import { cn } from '@jsb188/app/utils/string';
-import { memo } from 'react';
+import { isValidElement, memo } from 'react';
 import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { useWaitForClientRender } from '../utils/dom';
 import { AvatarImg } from './Avatar';
+import './TableListUI.css';
 
 /**
  * Types
@@ -59,10 +60,12 @@ export const TDCol = memo((p: ReactDivElement & {
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
   doNotApplyGridToRows?: boolean;
-  flexClassName?: string;
+  // flexClassName?: string;
   placeholderText?: string;
+  iconName?: string;
+  iconClassName?: string;
 }) => {
-  const { className, flexClassName, doNotApplyGridToRows, removeLeftPadding, removeRightPadding, children, ...rest } = p;
+  const { className, doNotApplyGridToRows, removeLeftPadding, removeRightPadding, iconName, iconClassName, children, ...rest } = p;
   const placeholderText = p.placeholderText ?? '-';
 
   return <div
@@ -70,13 +73,21 @@ export const TDCol = memo((p: ReactDivElement & {
       'tdcol',
       className ?? 'py_sm min_h_50',
       !removeLeftPadding && !removeRightPadding ? 'px_xs' : removeLeftPadding ? 'pr_xs' : removeRightPadding ? 'pl_xs' : '',
-      flexClassName || 'h_item',
+      // flexClassName || 'h_item',
       doNotApplyGridToRows ? 'bd_lt bd_t_1' : '',
       !children ? 'cl_darker_2' : '',
     )}
     {...rest}
   >
-    {children && typeof children !== 'string' ? children
+    {!iconName ? null
+    : <span className={cn(iconClassName, children ? 'mr_4' : '')}>
+      <Icon name={iconName} />
+    </span>}
+
+    {iconName && !children
+    ? null
+    : children && typeof children !== 'string'
+    ? children
     : <span className='shift_down ellip'>
       {children || placeholderText}
     </span>}
@@ -92,7 +103,7 @@ TDCol.displayName = 'TDCol';
 export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
-  cellClassNames?: (string | undefined)[];
+  cellClassNames?: string | (string | undefined)[];
   headers: TableHeaderObj[];
 }) => {
   const { removeLeftPadding, removeRightPadding, doNotApplyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
@@ -109,11 +120,11 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
         doNotApplyGridToRows={doNotApplyGridToRows}
-        className={cn('py_sm min_h_50 ft_medium cl_lt', cellClassNames?.[i], className)}
+        className={cn('py_sm min_h_50 ft_medium cl_lt', typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[i], className)}
         {...rest}
       >
         {iconName && <Icon name={iconName} />}
-        <span className={cn('ellip shift_down', mock ? 'mock alt ft_md' : 'f')}>
+        <span className={cn('ellip shift_down', mock ? 'mock alt ft_md' : '')}>
           {text}
         </span>
       </TDCol>
@@ -184,17 +195,20 @@ TDColMain.displayName = 'TDColMain';
 
 export function TableListItemMock(p: Partial<TableRowProps> & {
   index?: number;
+  className?: string;
 }) {
-  const { index, ...rest } = p;
+  const { removeBorderLine, index, className, ...rest } = p;
   const colCount = (rest.gridLayoutStyle?.split(' ') || []).length || 3;
   const modulus = index !== undefined ? (index % 4) * 10 : 0;
 
   return <TRow
     {...rest}
+    removeBorderLine={removeBorderLine}
   >
     {[...Array(colCount)].map((_, colIx) => (
       <TDCol
         key={colIx}
+        className={className}
         // className={cellClassNames?.[i]}
       >
         {
@@ -223,11 +237,13 @@ export function TableListItemMock(p: Partial<TableRowProps> & {
  */
 
 interface TableListMockProps extends Partial<TableRowProps> {
+  isInnerContent?: boolean;
+  cellClassNames?: string | (string | undefined)[];
   browserHeightRatio?: number;
 }
 
 export const TableListMockClient = memo((p: TableListMockProps) => {
-  const { browserHeightRatio, ...rest } = p;
+  const { browserHeightRatio, cellClassNames, isInnerContent, ...rest } = p;
   const browserHeight = globalThis?.window?.innerHeight || 800; // Fallback to 800 if window is not available
   const hasRatio = browserHeightRatio && browserHeightRatio > 0;
 
@@ -236,12 +252,14 @@ export const TableListMockClient = memo((p: TableListMockProps) => {
   // Without <AvatarImg>, item height is 51px
   const mockCount = Math.floor(browserHeight * (hasRatio ? browserHeightRatio : 1) / 57);
 
-  return <div className='-mx_xs py_md'>
+  return <div className={isInnerContent ? undefined : '-mx_xs py_md'}>
     <div className='w_f rel table'>
       {[...Array(mockCount)].map((_, i) => (
         <TableListItemMock
           key={i}
           index={i}
+          className={typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[i]}
+          removeBorderLine={!isInnerContent && i === 0}
           {...rest}
         />
       ))}
@@ -269,8 +287,12 @@ TableListMockSSR.displayName = 'TableListMockSSR';
  * Table page mock
  */
 
-export const TablePageMock = memo((p: { gridLayoutStyle: string }) => {
-  const { gridLayoutStyle } = p;
+export const TablePageMock = memo((p: {
+  gridLayoutStyle: string,
+  cellClassNames?: string | (string | undefined)[]
+  browserHeightRatio?: number;
+}) => {
+  const { gridLayoutStyle, browserHeightRatio, cellClassNames } = p;
   return <>
     <div className='pb_xs h_item gap_5'>
       <span className='r h_item py_3 rel pill_xs ft_sm bg_alt'>
@@ -289,8 +311,9 @@ export const TablePageMock = memo((p: { gridLayoutStyle: string }) => {
     {/* <CondensedGroupTitleMock /> */}
 
     <TableListMockSSR
+      cellClassNames={cellClassNames}
       gridLayoutStyle={gridLayoutStyle}
-      browserHeightRatio={.85}
+      browserHeightRatio={browserHeightRatio || .85}
     />
   </>;
 });

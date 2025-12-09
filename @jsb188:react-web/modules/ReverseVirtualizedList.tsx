@@ -182,7 +182,7 @@ function getCursorPosition(
  * Scroll to bottom
  */
 
-function scrollToBottom(rootElementQuery_: string, instant = false) {
+function scrollToBottom(rootElementQuery_: string, instant: boolean) {
   const rootElementQuery = rootElementQuery_ || `#${DOM_IDS.mainBodyScrollArea}`;
 
   // requestAnimationFrame() is necessary to prevent a slight difference in scroll position calculation
@@ -216,7 +216,7 @@ function scrollToBottom(rootElementQuery_: string, instant = false) {
   // It scrolls half way, delays and scrolls again (using this timeout).
   // It's possible to fix this UI issue, but its not worth the investment.
 
-  setTimeout(() => {
+  return setTimeout(() => {
     const rootElement = globalThis?.document.querySelector(rootElementQuery);
     const currentViewHeight = rootElement?.clientHeight || 0;
     const currentScrollPos = (rootElement?.scrollHeight || 0) - (rootElement?.scrollTop || 0) - currentViewHeight;
@@ -452,7 +452,8 @@ function useVirtualizedDOM(p: ReverseVZListProps, vzState: VirtualizedState) {
   useLayoutEffect(() => {
     if (listData) {
       console.dev('SCROLLING TO BOTTOM (1)', 'em');
-      scrollToBottom(rootElementQuery, true);
+      const scrollTimer = scrollToBottom(rootElementQuery, true);
+      return () => clearTimeout(scrollTimer);
     }
   }, [!!listData, rootElementQuery]);
 
@@ -494,10 +495,10 @@ function useVirtualizedDOM(p: ReverseVZListProps, vzState: VirtualizedState) {
     if (cursorPosition && listData) {
       if (cursorPosition[0] === null) {
         console.dev('SCROLLING TO BOTTOM (2)', 'em');
-        scrollToBottom(rootElementQuery, false);
+        const scrollTimer = scrollToBottom(rootElementQuery, false);
+        return () => clearTimeout(scrollTimer);
       } else {
         console.dev('REPOSITION LIST');
-
         repositionList(cursorPosition, listRef.current, p);
       }
     }

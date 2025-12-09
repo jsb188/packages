@@ -5,6 +5,8 @@
 .sticky { position: sticky; }
 .sticky_top { position: sticky; top: 0; left: 0; right: 0; }
 .sticky_bottom { position: sticky; bottom: 0; left: 0; right: 0; }
+.sticky_left { position: sticky; top: 0; left: 0; bottom: 0; }
+.sticky_right { position: sticky; top: 0; right: 0; bottom: 0; }
 
 .abs_l_center, .abs_r_center,
 .abs, .abs_l, .abs_r, .abs_t, .abs_b, .abs_full,
@@ -1061,6 +1063,7 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .h_1000 { height: 1000px; }
 
 .w_sidebar { width: var(--sidebar-wt); }
+.w_max_content { width: max-content; }
 
 .w_f { width: 100%; }
 .w_10_pc { width: 10%; }

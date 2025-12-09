@@ -243,7 +243,7 @@ export function CondensedArticleItemMock(p: {
             textColorClassName='cl_primary'
             colorIndicator='active'
             text={
-              <span className='mock active strong mr_2'>
+              <span className='mock active mr_2'>
                 ....... .......
               </span>
             }

@@ -121,11 +121,11 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
 }
 
 .bg_primary_fd, .bg_primary_fd_hv:hover {
-  background-color: var(--color-primary-faded) !important;
+  background-color: rgba(var(--color-primary), 0.064) !important;
 }
 
 .bg_secondary_fd, .bg_secondary_fd_hv:hover {
-  background-color: var(--color-secondary-faded) !important;
+  background-color: rgba(var(--color-secondary), 0.1) !important;
 }
 
 .bg_main_fd, .bg_main_fd_hv:hover {
@@ -1181,6 +1181,19 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .y_scr.flat::-webkit-scrollbar-thumb {
   background-color: rgba(0,0,0,.25);
   box-shadow: none;
+}
+
+/* X-axis scroller */
+
+.x_scr {
+  overflow-y: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* After a recent update, this no longer works in Chrome */
+  /* overflow-x: overlay; */
+  scrollbar-gutter: auto;
+  /* In "new" Google Chrome, this will make the scrollbar invisible, so we must turn it off. */
+  /* scrollbar-width: thin; */
 }
 
 /* Hidden scroller */
