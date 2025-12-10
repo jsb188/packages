@@ -22,6 +22,7 @@ export const reportSectionFragment = `fragment reportSectionFragment on ReportSe
 export const reportRowDataFragment = `fragment reportRowDataFragment on ReportRowData {
   id
   preset
+  className
   isHeader
 }`;
 

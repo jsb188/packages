@@ -902,10 +902,9 @@ const TableListItem = (p: TableListProps & {
       </TRow>
     }
 
-    {rowData.subRows &&
-    <div className='rel bd_2 r_xs of -mx_2'>
-      {Array.isArray(rowData.subRows)
-      ? rowData.subRows.map((subRowItem: any, k: number) => {
+    {rowData.subRows && Array.isArray(rowData.subRows)
+    ? <div className='rel bd_2 r_xs of -mx_2'>
+      {rowData.subRows.map((subRowItem: any, k: number) => {
         return <TRow
           key={k}
           removeBorderLine={!k}
@@ -916,9 +915,9 @@ const TableListItem = (p: TableListProps & {
         >
           {subRowItem.columns.map(renderCell)}
         </TRow>;
-      })
-      : rowData.subRows}
-    </div>}
+      })}
+    </div>
+    : rowData.subRows}
   </div>;
 };
 

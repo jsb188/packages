@@ -51,9 +51,10 @@ export function createReportsFilterFromURL(
 
   const filter: ReportsFilterArgs = {
     reportType: convertDigitToProductType(urlParams.get('t'))!,
+    period: urlParams.get('p') || '',
     // startDate,
     // endDate,
-    // timeZone: indexToTimeZone(urlParams.get('z')),
+    groupByOrgs: urlParams.get('g') === '1',
     query: urlParams.get('q') || '',
     ...otherFiltersObj?.withoutPreset,
   };
@@ -93,7 +94,7 @@ export function reportsSearchQueryIsValid(
   // const accountId = urlParams.get('a');
   // const startDate = urlParams.get('sd');
   // const endDate = urlParams.get('ed');
-  // const timeZone = urlParams.get('z');
+  const groupByOrgs = urlParams.get('g');
   const query = urlParams.get('q');
 
   return (
@@ -103,7 +104,7 @@ export function reportsSearchQueryIsValid(
     // !!filter.accountId === !!accountId &&
     // !!filter.startDate === !!startDate &&
     // !!filter.endDate === !!endDate &&
-    // !!filter.timeZone === !!timeZone &&
+    !!filter.groupByOrgs === !!groupByOrgs &&
     !!filter.query === !!query
   );
 }

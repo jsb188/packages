@@ -158,6 +158,7 @@ export function createLogFiltersFromURL(
 		endDate,
 		timeZone: indexToTimeZone(urlParams.get('z')),
 		query: urlParams.get('q') || '',
+		groupByOrgs: urlParams.get('g') === '1' ? true : urlParams.get('g') === '0' ? false : undefined,
     ...otherFiltersObj?.withoutPreset,
 	};
 
@@ -187,20 +188,31 @@ export function logsSearchQueryIsValid(
 
   const urlParams = new URLSearchParams(searchQuery);
   // const operation = urlParams.get('o');
-  const types = urlParams.get('t');
+  // const types = urlParams.get('t');
   const accountId = urlParams.get('a');
   const startDate = urlParams.get('sd');
   const endDate = urlParams.get('ed');
+  const groupByOrgs = urlParams.get('g');
   const timeZone = urlParams.get('z');
   const query = urlParams.get('q');
+
+  // console.log(
+  //   'a', !!filter.accountId === !!accountId,
+  //   'sd', !!filter.startDate === !!startDate,
+  //   'ed', !!filter.endDate === !!endDate,
+  //   'g', !!filter.groupByOrgs === (groupByOrgs === '1'), filter.groupByOrgs, groupByOrgs,
+  //   'z', !!filter.timeZone === !!timeZone,
+  //   'q', !!filter.query === !!query
+  // );
 
   return (
     // operation is allowed to pass through
     // !!filter.operation === !!operation &&
-    !!filter.types?.length === !!types &&
+    // !!filter.types?.length === !!types && // Allow this to pass because of forced filters from page
     !!filter.accountId === !!accountId &&
     !!filter.startDate === !!startDate &&
     !!filter.endDate === !!endDate &&
+    !!filter.groupByOrgs === (groupByOrgs === '1') &&
     !!filter.timeZone === !!timeZone &&
     !!filter.query === !!query
   );
@@ -228,6 +240,7 @@ export function createLogsFileNameFromURL(
   const a = urlParams.get('a');
   const sd = urlParams.get('sd');
   const ed = urlParams.get('ed');
+  const g = urlParams.get('g');
   const z = urlParams.get('z');
   const q = urlParams.get('q');
 
@@ -269,6 +282,13 @@ export function createLogsFileNameFromURL(
     checkStr += '0';
   }
 
+  if (g === '1') {
+    checkStr += '1';
+    paramStr += `_${g}`;
+  } else {
+    checkStr += '0';
+  }
+
   if (z) {
     checkStr += '1';
     paramStr += `_${z}`;
@@ -297,7 +317,10 @@ export function createLogsFileNameFromURL(
  * @returns URLSearchParams - The search params object
  */
 
-export function createSearchParamsFromFilter(filter: FilterLogEntriesArgs, skipOperation?: boolean): URLSearchParams {
+export function createSearchParamsFromFilter(
+  filter: FilterLogEntriesArgs,
+  skipOperation?: boolean,
+): URLSearchParams {
 	const params = new URLSearchParams();
 	const { operation } = filter;
 
@@ -321,6 +344,9 @@ export function createSearchParamsFromFilter(filter: FilterLogEntriesArgs, skipO
 	if (filter.endDate) {
 		params.set('ed', filter.endDate);
 	}
+  if (filter.groupByOrgs) {
+    params.set('g', '1');
+  }
 	if (filter.timeZone) {
 		params.set('z', filter.timeZone);
 	}

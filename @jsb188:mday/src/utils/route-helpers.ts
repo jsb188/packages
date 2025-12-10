@@ -234,7 +234,7 @@ const ROUTES_DICT: Record<AppRouteName, {
     requiredFeature: ['CAL_EVENTS'],
   },
   'app/receipts': {
-    to: makePathname('app/receipts'),
+    to: makePathname('app/receipts') + '?g=1',
     text: i18n.t('form.market_receipts'),
     iconName: COMMON_ICON_NAMES.market_receipt,
 

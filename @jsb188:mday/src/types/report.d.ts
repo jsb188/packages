@@ -16,6 +16,7 @@ export interface ReportsFilterArgs {
 	preset?: '?' | null;
 	reportType: ReportTypeEnum;
 	period: string; // YYYY-MM-DD
+  groupByOrgs?: boolean;
 	query?: string | null;
 }
 
@@ -45,6 +46,7 @@ interface ReportFieldsSection {
 interface ReportFieldsRow {
 	key: string; // Key is used to map row/columns to answers
 	preset?: ReportRowPresetEnum;
+  className?: string;
   isHeader?: boolean;
 	columns: Partial<ReportFieldsColumn>[];
 }
