@@ -226,7 +226,7 @@ export function PopOverList(p: PopOverHandlerProps & {
 
   const divRef = useRef<HTMLDivElement>(null);
   const dismissFn = closePopOver ? () => closePopOver() : undefined;
-  const [formValues, setFormValues] = useState(initialState || {});
+  const [formValues, setFormValues] = useState(initialState === null ? null : (initialState || {}));
 
   useOnClickOutside(divRef, true, false, 'ignore_outside_click', dismissFn);
 
@@ -265,7 +265,8 @@ export function PopOverList(p: PopOverHandlerProps & {
           const itemName = item.name || i.toString();
           // @ts-expect-error - Not all interfaces have "value" property
           const itemValue = item.value;
-          const currentValue = formValues[itemName];
+          const currentValue = formValues && typeof formValues === 'object' ? formValues[itemName] : formValues;
+          // console.log(itemName, initialState, formValues, currentValue, itemValue);
 
           return <PONavItemIface
             key={i}
@@ -273,6 +274,7 @@ export function PopOverList(p: PopOverHandlerProps & {
             item={item}
             value={currentValue}
             onClickItem={onClickItem}
+            checked={currentValue !== undefined && currentValue === itemValue}
             saving={savingValue !== undefined && savingValue === itemValue}
             // selected={selectedValue !== undefined && selectedValue === itemValue}
           />;

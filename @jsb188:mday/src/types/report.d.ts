@@ -16,7 +16,6 @@ export interface ReportsFilterArgs {
 	preset?: '?' | null;
 	reportType: ReportTypeEnum;
 	period: string; // YYYY-MM-DD
-  groupByOrgs?: boolean;
 	query?: string | null;
 }
 

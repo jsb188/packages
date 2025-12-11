@@ -91,7 +91,7 @@ const DocumentViewer = memo((p: {
 
     <aside className='w_375 f_shrink bg f_stretch'>
       {/* <ModalAsideToolbar
-        title={i18n.t('organization.compliance_title')}
+        title={i18n.t('org.compliance_title')}
         onCloseModal={onCloseModal}
       /> */}
       <ModalToolbar

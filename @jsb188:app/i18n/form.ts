@@ -25,6 +25,8 @@ export default {
     primary: 'Primary',
     id: 'ID',
     for: 'For',
+    sort_by: 'Sort by',
+    sort_list: 'Sort list',
     apply: 'Apply',
     apply_filters: 'Apply filters',
     content_missing: 'Content missing',

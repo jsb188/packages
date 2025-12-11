@@ -25,7 +25,7 @@ export const ReportsFilterSchema = z.object({
  * @returns ReportsFilterArgs - The filter object to be used in the productsList() query
  */
 
-export function createReportsFilterFromURL(
+export function getReportsFilterFromURL(
   _operationType: OrganizationOperationEnum | null,
   searchQuery: string,
   otherFiltersObj?: {
@@ -54,7 +54,6 @@ export function createReportsFilterFromURL(
     period: urlParams.get('p') || '',
     // startDate,
     // endDate,
-    groupByOrgs: urlParams.get('g') === '1',
     query: urlParams.get('q') || '',
     ...otherFiltersObj?.withoutPreset,
   };
@@ -94,7 +93,6 @@ export function reportsSearchQueryIsValid(
   // const accountId = urlParams.get('a');
   // const startDate = urlParams.get('sd');
   // const endDate = urlParams.get('ed');
-  const groupByOrgs = urlParams.get('g');
   const query = urlParams.get('q');
 
   return (
@@ -104,7 +102,6 @@ export function reportsSearchQueryIsValid(
     // !!filter.accountId === !!accountId &&
     // !!filter.startDate === !!startDate &&
     // !!filter.endDate === !!endDate &&
-    !!filter.groupByOrgs === !!groupByOrgs &&
     !!filter.query === !!query
   );
 }

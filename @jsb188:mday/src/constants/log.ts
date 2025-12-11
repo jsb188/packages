@@ -4,6 +4,11 @@ import type { OrganizationOperationEnum } from '../types/organization.d';
  * Constants
  */
 
+export const LOG_SORT_ENUMS = [
+  'GROUP_BY_VENDORS',
+  'DATE_AND_VENDOR_DESC',
+]
+
 export const LOG_ACTION_STATUS_ENUMS = [
 	'STARTED',
 	'COMPLETED',

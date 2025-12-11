@@ -53,17 +53,6 @@ export function useLogEntries(
     ...params,
   });
 
-  // This done on server now
-  // const logEntries = useMemo(() => {
-  //   if (data?.logEntries) {
-  //     const groupByOrgs = rest.variables?.filter?.groupByOrgs;
-  //     console.log('/////groupByArgs', rest.variables?.filter?.groupByOrgs);
-  //     console.log(data?.logEntries);
-  //     return data?.logEntries;
-  //   }
-  //   return null;
-  // }, [data?.logEntries]);
-
   return {
     logEntries: data?.logEntries,
     ...rest

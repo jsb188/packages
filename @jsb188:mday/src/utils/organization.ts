@@ -173,7 +173,7 @@ export function getTitleIconsForOrganization(
 	if (operation && showIconsRule.operation !== false) {
 		titleIcons.push({
 			iconName: getOperationIconName(operation),
-			tooltipText: i18n.t(`organization.type.${operation}`),
+			tooltipText: i18n.t(`org.type.${operation}`),
 		});
 	}
 

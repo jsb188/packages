@@ -7,6 +7,7 @@ export const logEntriesQry = gql`
 query logEntries (
   $organizationId: GenericID!
   $filter: LogEntriesFilter!
+  $sort: LogEntriesSort
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!
@@ -14,6 +15,7 @@ query logEntries (
   logEntries (
     organizationId: $organizationId
     filter: $filter
+    sort: $sort
     cursor: $cursor
     after: $after
     limit: $limit

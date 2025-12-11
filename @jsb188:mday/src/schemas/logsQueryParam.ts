@@ -3,8 +3,8 @@ import type { OrganizationOperationEnum } from '../types/organization.d';
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';
-import { LOG_ANY_ACTIVITY_ENUMS, LOG_ANY_TYPE_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
-import type { FilterLogEntriesArgs, LogTypeEnum } from '../types/log.d';
+import { LOG_ANY_ACTIVITY_ENUMS, LOG_ANY_TYPE_ENUMS, LOG_SORT_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
+import type { FilterLogEntriesArgs, LogSortEnum, LogTypeEnum } from '../types/log.d';
 
 /**
  * Zod schema for query params to filter
@@ -110,7 +110,7 @@ export function convertLogTypesToDigits(
  * @returns FilterLogEntriesArgs - The filter object to be used in the logEntries() query
  */
 
-export function createLogFiltersFromURL(
+export function getLogFiltersFromURL(
 	operationType: OrganizationOperationEnum | null,
 	searchQuery: string,
   otherFiltersObj?: {
@@ -158,7 +158,6 @@ export function createLogFiltersFromURL(
 		endDate,
 		timeZone: indexToTimeZone(urlParams.get('z')),
 		query: urlParams.get('q') || '',
-		groupByOrgs: urlParams.get('g') === '1' ? true : urlParams.get('g') === '0' ? false : undefined,
     ...otherFiltersObj?.withoutPreset,
 	};
 
@@ -170,6 +169,18 @@ export function createLogFiltersFromURL(
 	}
 
 	return filter;
+}
+
+/**
+ * Get Sort enum value from URL
+ */
+
+export function getLogSorValueFromURL(
+  searchQuery: string,
+) {
+  const urlParams = new URLSearchParams(searchQuery);
+  const sortIndex = urlParams.get('s');
+  return LOG_SORT_ENUMS[Number(sortIndex) - 1] || null;
 }
 
 /**
@@ -192,7 +203,6 @@ export function logsSearchQueryIsValid(
   const accountId = urlParams.get('a');
   const startDate = urlParams.get('sd');
   const endDate = urlParams.get('ed');
-  const groupByOrgs = urlParams.get('g');
   const timeZone = urlParams.get('z');
   const query = urlParams.get('q');
 
@@ -200,7 +210,6 @@ export function logsSearchQueryIsValid(
   //   'a', !!filter.accountId === !!accountId,
   //   'sd', !!filter.startDate === !!startDate,
   //   'ed', !!filter.endDate === !!endDate,
-  //   'g', !!filter.groupByOrgs === (groupByOrgs === '1'), filter.groupByOrgs, groupByOrgs,
   //   'z', !!filter.timeZone === !!timeZone,
   //   'q', !!filter.query === !!query
   // );
@@ -212,7 +221,6 @@ export function logsSearchQueryIsValid(
     !!filter.accountId === !!accountId &&
     !!filter.startDate === !!startDate &&
     !!filter.endDate === !!endDate &&
-    !!filter.groupByOrgs === (groupByOrgs === '1') &&
     !!filter.timeZone === !!timeZone &&
     !!filter.query === !!query
   );
@@ -313,12 +321,14 @@ export function createLogsFileNameFromURL(
 /**
  * Create URL search params from a filter object
  * @param filter - The filter object to convert to URL search params
+ * @param sort - Optional sort enum value
  * @param skipOperation - Whether to skip including the operation in the params
  * @returns URLSearchParams - The search params object
  */
 
 export function createSearchParamsFromFilter(
   filter: FilterLogEntriesArgs,
+  sort?: LogSortEnum | null,
   skipOperation?: boolean,
 ): URLSearchParams {
 	const params = new URLSearchParams();
@@ -344,15 +354,15 @@ export function createSearchParamsFromFilter(
 	if (filter.endDate) {
 		params.set('ed', filter.endDate);
 	}
-  if (filter.groupByOrgs) {
-    params.set('g', '1');
-  }
 	if (filter.timeZone) {
 		params.set('z', filter.timeZone);
 	}
 	if (filter.query) {
 		params.set('q', filter.query);
 	}
+  if (sort) {
+    params.set('s', String(LOG_SORT_ENUMS.indexOf(sort) + 1));
+  }
   if (!params.size && filter.preset === null) {
     params.set('preset', 'none');
   }

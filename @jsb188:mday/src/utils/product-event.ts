@@ -121,7 +121,7 @@ export function getEventLabelIcons(eventDetails: ProductCalEventGQL) {
 	//   labelIcons.push({
 	//     text: 'Canceled',
 	//     color: 'red_light',
-	//     // tooltipText: i18n.t('organization.event_canceled'),
+	//     // tooltipText: i18n.t('org.event_canceled'),
 	//   });
 	// }
 
@@ -129,13 +129,13 @@ export function getEventLabelIcons(eventDetails: ProductCalEventGQL) {
 	//   labelIcons.push({
 	//     iconName: 'library-filled',
 	//     color: 'darker_2', // should really be "lt" but because the icon is "filled", it looks more like texts written in "lt"
-	//     tooltipText: recurringSchedule || i18n.t('organization.no_recurring_schedule'),
+	//     tooltipText: recurringSchedule || i18n.t('org.no_recurring_schedule'),
 	//   });
 	// } else {
 	//   labelIcons.push({
 	//     iconName: 'circle-number-1-filled',
 	//     color: 'emerald',
-	//     tooltipText: i18n.t('organization.single_event_msg'),
+	//     tooltipText: i18n.t('org.single_event_msg'),
 	//   });
 	// }
 
@@ -157,7 +157,7 @@ export function getScheduleIcons(eventDetails: ProductCalEventGQL, alwaysFillIco
 		return [{
 			iconName: 'circle-number-1-filled',
 			color: 'amber',
-			tooltipText: i18n.t('organization.single_event_msg'),
+			tooltipText: i18n.t('org.single_event_msg'),
 		}];
 	}
 

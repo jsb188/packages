@@ -234,7 +234,7 @@ const ROUTES_DICT: Record<AppRouteName, {
     requiredFeature: ['CAL_EVENTS'],
   },
   'app/receipts': {
-    to: makePathname('app/receipts') + '?g=1',
+    to: makePathname('app/receipts') + '?s=1',
     text: i18n.t('form.market_receipts'),
     iconName: COMMON_ICON_NAMES.market_receipt,
 
@@ -394,7 +394,7 @@ export function getNavigationList(
         //   ]
         // },
         {
-          text: i18n.t(`organization.type_active.${operation}`),
+          text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['app/seeding'],
             ROUTES_DICT['app/transplanting'],
@@ -412,7 +412,7 @@ export function getNavigationList(
     case 'LIVESTOCK':
       navListArr = [
         {
-          text: i18n.t(`organization.type_active.${operation}`),
+          text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['app/livestock'],
             { ...ROUTES_DICT['app/purchases'], text: i18n.t('log.supply_purchases') },
@@ -423,7 +423,7 @@ export function getNavigationList(
     case 'FARMERS_MARKET':
       navListArr = [
         {
-          text: i18n.t(`organization.type_active.${operation}`),
+          text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['app/vendors'],
             ROUTES_DICT['app/markets'],

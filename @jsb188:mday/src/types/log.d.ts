@@ -6,6 +6,7 @@ import {
   LOG_ARABLE_ACTIVITY_ENUMS,
   LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
   LOG_LIVESTOCK_ACTIVITY_ENUMS,
+  LOG_SORT_ENUMS
 } from '../constants/log';
 
 /**
@@ -14,6 +15,7 @@ import {
 
 export type LogActionStatusEnum = (typeof LOG_ACTION_STATUS_ENUMS)[number];
 export type LogContentName = 'log' | 'ai_task' | 'invoice' | 'receipt'; // For UI visuals, client-side only
+export type LogSortEnum = typeof LOG_SORT_ENUMS[number];
 
 /**
  * Arable
@@ -262,6 +264,5 @@ export interface FilterLogEntriesArgs {
 	startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
 	endDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
 	timeZone?: string | null; // Timezone string, e.g., 'America/New_York'
-  groupByOrgs?: boolean;
 	query?: string | null;
 }

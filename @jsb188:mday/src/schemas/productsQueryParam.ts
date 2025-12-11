@@ -61,7 +61,7 @@ export function convertDigitToProductType(digit?: string | null): ProductTypeEnu
  * @returns ProductsFilterArgs - The filter object to be used in the productsList() query
  */
 
-export function createProductsFilterFromURL(
+export function getProductsFilterFromURL(
   _operationType: OrganizationOperationEnum | null,
 	searchQuery: string,
   otherFiltersObj?: {
