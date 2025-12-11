@@ -248,7 +248,6 @@ export function createLogsFileNameFromURL(
   const a = urlParams.get('a');
   const sd = urlParams.get('sd');
   const ed = urlParams.get('ed');
-  const g = urlParams.get('g');
   const z = urlParams.get('z');
   const q = urlParams.get('q');
 
@@ -286,13 +285,6 @@ export function createLogsFileNameFromURL(
   if (ed) {
     checkStr += '1';
     paramStr += `_${ed}`;
-  } else {
-    checkStr += '0';
-  }
-
-  if (g === '1') {
-    checkStr += '1';
-    paramStr += `_${g}`;
   } else {
     checkStr += '0';
   }
