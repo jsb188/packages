@@ -2,8 +2,18 @@ import { COLORS } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
 import { intersection } from '@jsb188/app/utils/object';
 import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone';
+import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { FEATURES_BY_OPERATION } from '../constants/product';
-import type { OrganizationContact, OrganizationFeatureEnum, OrganizationGQL, OrganizationOperationEnum, OrganizationRelData, OrganizationRelGQL, OrganizationRoleEnum, OrganizationSettingsObj } from '../types/organization.d';
+import type {
+  OrganizationContact,
+  OrganizationFeatureEnum,
+  OrganizationGQL,
+  OrganizationOperationEnum,
+  OrganizationRelData,
+  OrganizationRelGQL,
+  OrganizationRoleEnum,
+  OrganizationSettingsObj
+} from '../types/organization.d';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
@@ -143,20 +153,6 @@ export function checkACLPermission(
 }
 
 /**
- * Get Icon name for organization operation
- * @param operation - Organization operation string
- * @returns Icon name as string
- */
-
-export function getOperationIconName(operation: string | null | undefined): string {
-	return {
-		ARABLE: 'farming-barn-silo',
-		FARMERS_MARKET: 'farmers-market-kiosk', // when you replace this, delete the icon too
-		LIVESTOCK: 'livestock-cow-body',
-	}[operation || ''] || 'info-circle';
-}
-
-/**
  * Get all title icons for organization/vendor
  * @param org - Organization GQL data
  * @param showIconsRule - Rules for which icons to show/not-show
@@ -172,7 +168,7 @@ export function getTitleIconsForOrganization(
 
 	if (operation && showIconsRule.operation !== false) {
 		titleIcons.push({
-			iconName: getOperationIconName(operation),
+			iconName: COMMON_ICON_NAMES[operation] || 'info-circle',
 			tooltipText: i18n.t(`org.type.${operation}`),
 		});
 	}

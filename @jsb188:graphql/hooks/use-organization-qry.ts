@@ -100,12 +100,12 @@ export function useChildOrganizations(variables: PaginationArgs & {
  * Get reactive organization fragment
  */
 
-export function useReactiveOrganizationChildFragment(organizationId: string, currentData?: any, queryCount?: number) {
+export function useReactiveOrganizationChildFragment(childId: string, currentData?: any, queryCount?: number) {
   return useReactiveFragment(
     currentData,
     [
-      `$organizationChildFragment:${organizationId}`,
-      // [`$organizationChildArableFragment:${organizationId}`, null],
+      `$organizationChildFragment:${childId}`,
+      // [`$organizationChildArableFragment:${childId}`, null],
       // By having the second paramter as null, we only observe the reactive changes without setting the data
       // [`$logArableFragment:${logEntryId}`, null],
     ],

@@ -22,7 +22,6 @@ export type TableHeaderObj = Partial<{
 
 export type TableRowProps = {
   removeBorderLine: boolean;
-  doNotApplyGridToRows: boolean;
   gridLayoutStyle: string;
 };
 
@@ -31,8 +30,9 @@ export type TableRowProps = {
  */
 
 export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
-  thead?: boolean;
   __deleted?: boolean;
+  thead?: boolean;
+  doNotApplyGridToRows?: boolean;
 }) {
   const { thead, removeBorderLine, doNotApplyGridToRows, gridLayoutStyle, className, __deleted, ...rest } = p;
 
@@ -56,14 +56,17 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
  * Table cell
  */
 
-export const TDCol = memo((p: ReactDivElement & {
+interface TDColProps extends ReactDivElement {
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
-  doNotApplyGridToRows?: boolean;
   // flexClassName?: string;
   placeholderText?: string;
   iconName?: string;
   iconClassName?: string;
+}
+
+export const TDCol = memo((p: TDColProps & {
+  doNotApplyGridToRows?: boolean;
 }) => {
   const { className, doNotApplyGridToRows, removeLeftPadding, removeRightPadding, iconName, iconClassName, children, ...rest } = p;
   const placeholderText = p.placeholderText ?? '-';
@@ -104,6 +107,7 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
   cellClassNames?: string | (string | undefined)[];
+  doNotApplyGridToRows?: boolean;
   headers: TableHeaderObj[];
 }) => {
   const { removeLeftPadding, removeRightPadding, doNotApplyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
@@ -319,3 +323,55 @@ export const TablePageMock = memo((p: {
 });
 
 TablePageMock.displayName = 'TablePageMock';
+
+/**
+ * Simpler, staic table list without any mapping or reactivity;
+ * If either is desired, use <VZTable />
+ */
+
+export const TableList = memo((p: {
+  gridLayoutStyle: string;
+  headers?: TableHeaderObj[];
+  removeLeftPadding?: boolean;
+  removeRightPadding?: boolean;
+  rows: Partial<Omit<TableRowProps, 'removeLeftPadding' | 'removeRightPadding'>> & {
+    __deleted?: boolean;
+    columns: Omit<TDColProps, 'removeLeftPadding' | 'removeRightPadding'>[];
+  }[];
+}) => {
+  const { headers, rows, gridLayoutStyle, removeLeftPadding, removeRightPadding } = p;
+
+  return <>
+    {headers && (
+      <THead
+        removeLeftPadding={removeLeftPadding}
+        removeRightPadding={removeRightPadding}
+        gridLayoutStyle={gridLayoutStyle}
+        headers={headers}
+        // cellClassNames={cellClassNames}
+      />
+    )}
+
+    {rows.map((row, i) => {
+      const { columns, ...rest } = row;
+      return <TRow
+        key={i}
+        gridLayoutStyle={gridLayoutStyle}
+        // removeBorderLine={i !== 0}
+        {...rest}
+      >
+        {columns.map((col, ii) => {
+          return <TDCol
+            key={ii}
+            removeLeftPadding={removeLeftPadding}
+            removeRightPadding={removeRightPadding}
+            // className='h_45 py_xs'
+            {...col}
+          />;
+        })}
+      </TRow>;
+    })}
+  </>;
+});
+
+TableList.displayName = 'TableList';

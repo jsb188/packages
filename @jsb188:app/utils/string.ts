@@ -1,3 +1,6 @@
+import i18n from '@jsb188/app/i18n';
+import type { AddressObj } from '../types/other.d';
+
 /**
  * Combine list of class names
  */
@@ -253,22 +256,22 @@ export function isInvisibleString(str: string) {
 type AnyLineItem = string | undefined | false | null;
 
 export function buildSingleText(
-  lines: (AnyLineItem | Record<string, AnyLineItem[]>)[],
-  delemiter: string = '\n',
-  features: string[] = [],
+	lines: (AnyLineItem | Record<string, AnyLineItem[]>)[],
+	delemiter: string = '\n',
+	features: string[] = [],
 ) {
 	return lines
 		.reduce((acc, line_) => {
 			const line = line_ || '';
-      if (line && typeof line === 'object') {
-        for (const key in line) {
-          const lineItem = line[key];
-          if (features.includes(key)) {
-            acc.push(buildSingleText(lineItem, delemiter, features));
-          }
-        }
-        return acc;
-      }
+			if (line && typeof line === 'object') {
+				for (const key in line) {
+					const lineItem = line[key];
+					if (features.includes(key)) {
+						acc.push(buildSingleText(lineItem, delemiter, features));
+					}
+				}
+				return acc;
+			}
 			if (line || acc[acc.length - 1] !== '') {
 				acc.push(line);
 			}
@@ -449,4 +452,43 @@ export function getNthString(num: number): string {
 	} else {
 		return `${num}th`;
 	}
+}
+
+/**
+ * Make address text
+ * @param address - Address object
+ * @param useFullCountryName - Whether to use full country name instead of code
+ * @param regionOnly - Whether to return only region (city, state, country)
+ * @returns Formatted address string
+ */
+
+export function makeAddressText(
+  address: AddressObj,
+  useFullCountryName: boolean = false,
+  regionOnly: boolean = false,
+) {
+  if (!address) {
+    return null;
+  }
+
+  const countryName = useFullCountryName && i18n.has(`country.from_code.${address.country}`)
+    ? i18n.t(`country.from_code.${address.country}`)
+    : address.country;
+
+  if (regionOnly) {
+    return [
+      address.city,
+      address.state,
+      countryName,
+    ].filter(Boolean).join(', ');
+  }
+
+  return [
+    address.line1,
+    address.line2,
+    address.city,
+    address.state,
+    address.postalCode,
+    countryName,
+  ].filter(Boolean).join(', ');
 }

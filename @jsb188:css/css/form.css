@@ -458,7 +458,7 @@ fieldset input[type="radio"] {
 
 /* Color indicators */
 
-.indicator {
+.ib_label .indicator, .color_indicator {
   width: 10px;
   /*
   height: 1em;

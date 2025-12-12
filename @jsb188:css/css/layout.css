@@ -17,6 +17,11 @@ body.p_auth {
   max-height: calc(100vh - var(--rem-medium) - var(--rem-medium));
 }
 
+.mw .scr_area {
+  /* 45px is the height of modal header toolbar */
+  max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) - 45px);
+}
+
 .mw_adjust_center {
   padding-top: calc(var(--rem-medium) * 2);
 }

@@ -3,9 +3,20 @@ export const organizationFragment = `fragment organizationFragment on Organizati
   id
   stripeCustomerId
   name
+  commodities
   operation
+
   dailyDigestTime
   activated
+
+  address {
+    line1
+    line2
+    city
+    state
+    postalCode
+    country
+  }
 
   settings {
     timeZone

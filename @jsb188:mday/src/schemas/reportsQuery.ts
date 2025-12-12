@@ -1,7 +1,7 @@
 import z from 'zod';
 import type { OrganizationOperationEnum } from '../types/organization';
 import type { ReportsFilterArgs } from '../types/report';
-import { convertDigitToProductType } from './productsQueryParam';
+import { convertDigitToProductType } from './productsQuery';
 import { REPORT_TYPES } from '../constants/report';
 
 /**

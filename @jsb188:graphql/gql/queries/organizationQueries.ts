@@ -66,12 +66,14 @@ ${organizationRelationshipFragment}
 export const childOrganizationsQry = gql`
 query childOrganizations (
   $organizationId: GenericID!
+  $filter: ChildOrgsFilter
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!
 ) {
   childOrganizations (
     organizationId: $organizationId
+    filter: $filter
     cursor: $cursor
     after: $after
     limit: $limit

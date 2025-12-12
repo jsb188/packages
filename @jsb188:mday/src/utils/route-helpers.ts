@@ -42,6 +42,10 @@ const ROUTES_MAP = {
   // # Livestock
   'app/livestock': '/app/livestock',
 
+  // # Grower Network
+  'app/growers': '/app/growers',
+  'app/foreign_growers': '/app/foreign-growers',
+
   // # Advanced
   'app/logs': '/app/logs',
   'app/ai_workflows': '/app/ai-workflows',
@@ -93,6 +97,7 @@ const ROUTES_DICT: Record<AppRouteName, {
     to: makePathname('app/logs'),
     text: i18n.t('log.all_logs'),
     iconName: COMMON_ICON_NAMES.logs,
+    notAllowedOperations: ['GROWER_NETWORK'], // Temporary for now
   },
 
   // Arable
@@ -250,6 +255,22 @@ const ROUTES_DICT: Record<AppRouteName, {
 
     allowedOperations: ['LIVESTOCK'],
     requiredFeature: F.normal_logging
+  },
+
+  // Grower Network
+  'app/growers': {
+    to: makePathname('app/growers'),
+    text: i18n.t('form.domestic_growers'),
+    iconName: COMMON_ICON_NAMES.growers,
+
+    allowedOperations: ['GROWER_NETWORK'],
+  },
+  'app/foreign_growers': {
+    to: makePathname('app/foreign_growers'),
+    text: i18n.t('form.foreign_growers'),
+    iconName: COMMON_ICON_NAMES.foreign_growers,
+
+    allowedOperations: ['GROWER_NETWORK'],
   },
 };
 
@@ -432,6 +453,17 @@ export function getNavigationList(
         },
       ];
       break;
+    case 'GROWER_NETWORK':
+      navListArr = [
+        {
+          text: i18n.t(`org.type_active.${operation}`),
+          navList: [
+            ROUTES_DICT['app/growers'],
+            ROUTES_DICT['app/foreign_growers'],
+          ]
+        }
+      ];
+      break;
     default:
       navListArr = [];
   }
@@ -440,11 +472,7 @@ export function getNavigationList(
     to: makePathname('app'),
     text: i18n.t('app.home'),
     // className: 'mb_df',
-    iconName: {
-      ARABLE: 'farming-barn',
-      LIVESTOCK: 'farming-barn',
-      FARMERS_MARKET: 'building-1',
-    }[operation!] || 'home',
+    iconName: COMMON_ICON_NAMES[operation!] || 'home',
   },
     breakItem,
   ].concat(navListArr).concat([{

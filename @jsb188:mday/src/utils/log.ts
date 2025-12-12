@@ -176,8 +176,8 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 				logSpecificText = formatCurrency(totalPrice, false);
 			}
 
-      // console.log(md);
-      // console.log('titleItem', titleItem);
+			// console.log(md);
+			// console.log('titleItem', titleItem);
 
 			return textWithBrackets(
 				titleItem,
@@ -507,15 +507,16 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'peach':
 				case 'plum':
 					return 'fruit-apricot';
+				case 'raspberr':
+          return 'raspberry';
+				case 'blackberr':
+				case 'cloudberr':
+				case 'cloud berr':
+					return 'fruit-cloud-berry';
 				case 'blueberr':
 				case 'billberr':
 				case 'berry':
 					return 'fruit-billberry-blackberry-blueberry';
-				case 'blackberr':
-				case 'raspberr':
-				case 'cloudberr':
-				case 'cloud berr':
-					return 'fruit-cloud-berry';
 				case 'asparagus':
 					return 'vegetable-asparagus';
 				case 'sunshine kabocha':
@@ -798,6 +799,32 @@ export function getIconNameForFarmersMarket(
 }
 
 /**
+ * Get any icon name for any word
+ */
+
+export function getIconNameForWord(
+  decidingWord: any,
+  text1: string,
+  text2?: string | null,
+  defaultIcon?: string,
+) {
+  switch (decidingWord) {
+    case 'ARABLE':
+		case 'LogArable':
+			return getIconNameForArable(text1, text2, defaultIcon);
+    case 'LIVESTOCK':
+		case 'LogLivestock':
+			return getIconNameForLivestock(text1, text2, defaultIcon);
+    case 'FARMERS_MARKET':
+		case 'LogFarmersMarket':
+			return getIconNameForFarmersMarket(text1, text2, defaultIcon);
+		default:
+			// titleIconName = COMMON_ICON_NAMES.document;
+	}
+	return 'circle';
+}
+
+/**
  * Get icon name for any operation using regex
  * @param details - GraphQL log details object
  * @param defaultIcon - The default icon to return if no match is found
@@ -817,18 +844,7 @@ export function getIconNameForLog(
 
 	// console.log('defaultIcon', preferActivityText, details.activity, defaultIcon);
 
-	switch (details.__typename) {
-		case 'LogArable':
-			return getIconNameForArable(text1, text2, defaultIcon);
-		case 'LogLivestock':
-			return getIconNameForLivestock(text1, text2, defaultIcon);
-		case 'LogFarmersMarket':
-			return getIconNameForFarmersMarket(text1, text2, defaultIcon);
-		default:
-			// titleIconName = COMMON_ICON_NAMES.document;
-	}
-
-	return 'circle';
+  return getIconNameForWord(details.__typename, text1, text2, defaultIcon);
 }
 
 /**
@@ -837,16 +853,18 @@ export function getIconNameForLog(
 
 export function getTitleForLog(details: any): string {
 	switch (details.__typename) {
-		case 'LogFarmersMarket': {
-			// Check if text from values is short, else rely on the AI summary
-			const valuesText = (details.values || []).map((item: any) => {
-        return `${item.label} ${item.value ? formatCurrency(item.value, false) : ''}`.trim();
-      }).join(', ');
+		case 'LogFarmersMarket':
+			{
+				// Check if text from values is short, else rely on the AI summary
+				const valuesText = (details.values || []).map((item: any) => {
+					return `${item.label} ${item.value ? formatCurrency(item.value, false) : ''}`.trim();
+				}).join(', ');
 
-			if (valuesText.length <= 40) {
-				return valuesText;
+				if (valuesText.length <= 40) {
+					return valuesText;
+				}
 			}
-    } break;
+			break;
 		default:
 	}
 	return details.item;

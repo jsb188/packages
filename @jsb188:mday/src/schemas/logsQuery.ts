@@ -1,10 +1,10 @@
 import { OPERATION_ENUMS } from '../constants/organization';
-import type { OrganizationOperationEnum } from '../types/organization.d';
+import type { OrganizationOperationEnum } from '../types/organization';
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';
 import { LOG_ANY_ACTIVITY_ENUMS, LOG_ANY_TYPE_ENUMS, LOG_SORT_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
-import type { FilterLogEntriesArgs, LogSortEnum, LogTypeEnum } from '../types/log.d';
+import type { FilterLogEntriesArgs, LogSortEnum, LogTypeEnum } from '../types/log';
 
 /**
  * Zod schema for query params to filter

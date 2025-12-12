@@ -7,6 +7,7 @@ import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
 import Markdown, { EmojiWrapper, TextWithLinks } from './Markdown';
 import { ShortcutKey } from './OtherUI';
+import { memo } from 'react';
 
 /**
  * Types
@@ -521,3 +522,45 @@ export function ModalToolbar(p: {
     </nav>
   </div>;
 }
+
+/**
+ * Modal tabs navigation
+ */
+
+export const ModalTabsNav = memo((p: {
+  switchCase: string;
+  setSwitchCase: (value: string) => void;
+  tabs: {
+    value: string;
+    text: string;
+    hidden?: boolean;
+    disabled?: boolean;
+  }[];
+}) => {
+  const { switchCase, tabs, setSwitchCase } = p;
+
+  return (
+    <nav className='mw_tabs_nav px_xs h_item h_45 bd_b_1 bd_lt bg_zinc_fd gap_xs sticky_top z2'>
+      {tabs.map((tab) => {
+        if (tab.hidden) {
+          return null;
+        }
+
+        const selected = switchCase === tab.value;
+        return <button
+          key={tab.value}
+          disabled={tab.disabled}
+          className={cn('tab_item px_xs v_item f_stretch link', selected ? '' : 'cl_lt')}
+          onClick={() => setSwitchCase(tab.value)}
+        >
+          <span className='f h_item pt_3'>
+            {tab.text}
+          </span>
+          <div className={cn('h_3 -mb_1 f_stretch indicator trans_color spd_1', selected ? 'bg_primary' : 'bg_')} />
+        </button>;
+      })}
+    </nav>
+  );
+});
+
+ModalTabsNav.displayName = 'ModalTabsNav';

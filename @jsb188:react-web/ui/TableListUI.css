@@ -1,7 +1,7 @@
 
 /* Table column */
 
-.tdcol:not(.h_center) {
+.tdcol:not(.h_center):not(.h_right) {
   display: flex; justify-content: flex-start; align-items: center;
 }
 

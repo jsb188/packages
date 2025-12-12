@@ -123,7 +123,7 @@ export const POListSubtitle = memo((p: POListSubtitleProps) => {
     <div className='po_subtitle bd_b_1 bd_lt ft_xs h_item bg z2 shadow_bg rel'>
       {/* This <div> makes sticky position work with proper padding */}
       <div className='po_subtitle_cover bg' />
-      {colorIndicator && <span className={`indicator f_shrink mr_5 shift_up bg_${colorIndicator}`} />}
+      {colorIndicator && <span className={`color_indicator f_shrink mr_5 shift_up bg_${colorIndicator}`} />}
       <strong className={cn('ft_medium', textClassName)}>{text}</strong>
     </div>
   );
@@ -208,7 +208,7 @@ export const POListItem = memo((p: PONavItemBase & {
         </span>
       )}
 
-      {colorIndicator && <span className={`indicator f_shrink bg_${colorIndicator}`} />}
+      {colorIndicator && <span className={`color_indicator f_shrink bg_${colorIndicator}`} />}
 
       <span className={cn('f', textClassName || 'shift_down', !hasRightComponent && 'pr_xs')}>
         {text}

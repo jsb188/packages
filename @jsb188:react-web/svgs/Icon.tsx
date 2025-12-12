@@ -137,6 +137,14 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   user_deleted: 'user-off',
   your_account: 'user-circle',
   certificate: 'document-license',
+  foreign_growers: 'shipment-international',
+  growers: 'indoor-plant-house',
+
+  // Operation types
+  ARABLE: 'farming-barn-silo',
+  FARMERS_MARKET: 'farmers-market-kiosk',
+  LIVESTOCK: 'livestock-cow-body',
+  GROWER_NETWORK: 'wine-grapes',
 
   // AI Task types
   AI_TASK: 'task-list-check-2',

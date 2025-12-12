@@ -6,8 +6,9 @@ export const OPERATION_ENUMS = [
 	'ARABLE',
 	'LIVESTOCK',
 
-	// Organizations
+	// Umbrella orgs
 	'FARMERS_MARKET',
+  'GROWER_NETWORK',
 ];
 
 export const PARENT_ORG_OPERATIONS = [
@@ -25,12 +26,12 @@ export const ROLE_CATEGORY_ENUMS = ['EMPLOYEES_ONLY', 'MANAGERS_ONLY'];
 // Org departments
 
 export const ORG_DEPARTMENTS = [
-  'PRIMARY_CONTACT',
-  'ACCOUNTS_RECEIVABLE',
-  'SALES',
-  'CUSTOMER_SERVICE',
-  'SHIPPING_RECEIVING',
-  'OTHER'
+	'PRIMARY_CONTACT',
+	'ACCOUNTS_RECEIVABLE',
+	'SALES',
+	'CUSTOMER_SERVICE',
+	'SHIPPING_RECEIVING',
+	'OTHER',
 ];
 
 // Compliance

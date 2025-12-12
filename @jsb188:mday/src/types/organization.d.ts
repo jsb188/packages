@@ -1,14 +1,14 @@
 import {
   COMPLIANCE_DOCUMENT_TYPE_ENUMS,
-  ORG_DEPARTMENTS,
   OPERATION_ENUMS,
+  ORG_DEPARTMENTS,
   ROLE_CATEGORY_ENUMS,
   ROLE_ENUMS
 } from '../constants/organization.ts';
 import { PRODUCT_FEATURES } from '../constants/product.ts';
 
 import type { AccountData } from '@jsb188/app/types/account.d';
-import type { StorageData } from '@jsb188/app/types/other.d';
+import type { AddressObj, StorageData } from '@jsb188/app/types/other.d';
 import type { LogTypeEnum } from '../types/log.d';
 
 /*
@@ -21,6 +21,14 @@ export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
 export type OrganizationDepartmentEnum = typeof ORG_DEPARTMENTS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
 export type OrganizationComplianceType = typeof COMPLIANCE_DOCUMENT_TYPE_ENUMS[number];
+
+/**
+ * Query filters
+ */
+
+export interface ChildOrgsFilterArgs {
+  internationalOnly?: boolean;
+}
 
 /*
  * ACL
@@ -67,6 +75,7 @@ export interface OrganizationData {
 	id: number;
 	stripeCustomerId: string | null;
 	name: string;
+  commodities: string[] | null;
 	operation: OrganizationOperationEnum;
 	dailyDigestTime: string | null;
 	settings?: OrganizationSettingsObj | null;
@@ -145,6 +154,8 @@ export interface OrganizationGQL {
 	id: string;
 	stripeCustomerId: string | null;
 	name: string;
+  commodities: string[] | null;
+  address: AddressObj;
 	operation: OrganizationOperationEnum;
 	compliance: OrganizationComplianceGQL[] | null;
 	settings?: OrganizationSettingsObj | null;

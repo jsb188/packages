@@ -643,9 +643,9 @@ LabeledContentLine.displayName = 'LabeledContentLine';
 
 export const BreakLine = memo((p: {
   preset: 'double_line' | 'texture';
-  yPaddingClassName?: string;
+  marginClassName?: string;
 }) => {
-  const { preset, yPaddingClassName } = p;
+  const { preset, marginClassName } = p;
 
   let lineClassName;
   switch (preset) {
@@ -659,7 +659,7 @@ export const BreakLine = memo((p: {
       return null;
   }
 
-  return <div className={cn(lineClassName, yPaddingClassName ?? 'my_sm')} />;
+  return <div className={cn(lineClassName, marginClassName ?? 'my_sm')} />;
 });
 
 BreakLine.displayName = 'BreakLine';

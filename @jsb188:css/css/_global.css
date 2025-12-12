@@ -419,6 +419,11 @@ a.bg_err:active, button.bg_err:active, .bg_err_av { background-color: rgb(var(--
 .bg_err_hv:hover { background-color: rgb(var(--color-error-active)) !important; }
 .bg_err_faded_hv:hover { background-color: rgb(var(--color-error-faded), .1) !important; }
 
+.bg_warn { background-color: rgb(var(--color-warn)) !important; color: #FFF; }
+a.bg_warn:active, button.bg_warn:active, .bg_warn_av { background-color: rgb(var(--color-warn-active)) !important; color: rgba(255, 255, 255, .64); }
+.bg_warn_hv:hover { background-color: rgb(var(--color-warn-active)) !important; }
+.bg_warn_faded_hv:hover { background-color: rgb(var(--color-warn-faded), .1) !important; }
+
 .bg_pass { background-color: rgb(var(--color-pass)) !important; color: #FFF; }
 a.bg_pass:active, button.bg_pass:active { background-color: rgb(var(--color-pass-active)) !important; }
 
@@ -1407,3 +1412,13 @@ rect.s_dot_away {
 
 .stone_light_bf:before { background-color: var(--color-stone-light); }
 .stone_light_bf { color: var(--color-stone-default) !important; }
+
+
+
+/* Temporary for demo */
+
+.doc_tag {
+  position: absolute;
+  top: 1rem;
+  right: 0;
+}

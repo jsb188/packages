@@ -849,14 +849,15 @@ const TableListItem = (p: TableListProps & {
 
   const cellClassNames = rowData.cellClassNames || p.cellClassNames;
   const renderCell = (cell: TableColumnElement, j: number) => {
-    let removeLeftPaddingCell, removeRightPaddingCell, cellObj, iconName, iconClassName;
+    let removeLeftPaddingCell, removeRightPaddingCell, cellObj, iconName, iconClassName, onClick;
     if (cell && !isValidElement(cell) && typeof cell === 'object') {
-      const { removeLeftPadding: rlp, removeRightPadding: rrp, iconName: cin, iconClassName: ccn, ...rest } = cell as any;
+      const { removeLeftPadding: rlp, removeRightPadding: rrp, iconName: cin, iconClassName: ccn, onClick: ccc, ...rest } = cell as any;
       removeLeftPaddingCell = rlp;
       removeRightPaddingCell = rrp;
       cellObj = rest;
       iconName = cin;
       iconClassName = ccn;
+      onClick = ccc;
     } else {
       removeLeftPaddingCell = removeLeftPadding;
       removeRightPaddingCell = removeRightPadding;
@@ -870,6 +871,7 @@ const TableListItem = (p: TableListProps & {
       removeRightPadding={removeRightPaddingCell}
       iconName={iconName}
       iconClassName={iconClassName}
+      onClick={onClick}
     >
       {cellObj ? <span {...cellObj as ReactSpanElement} /> : cell && isValidElement(cell) ? cell : cell ? String(cell) : null}
     </TDCol>;
