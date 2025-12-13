@@ -99,7 +99,7 @@ export function useContentEditable(
   const onSubmit = () => {
     const submitText = textRef.current.trim();
     if (submitText) {
-      handlersRef.current.submit?.(submitText);
+      handlersRef.current.submit?.(submitText.replace(/\r\n|\r|\u2028|\u2029/g, '\n'));
     }
   };
 
