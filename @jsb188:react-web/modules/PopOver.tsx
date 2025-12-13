@@ -55,6 +55,7 @@ export function PopOverButton(p: PopOverButtonProps) {
   const active = popOver?.id === unique.current;
 
   const onClick = (e: React.MouseEvent) => {
+
     // Allow non-trusted clicks to work,
     // This is necessary to allow clicks to be controlled by JS from outside of this Component
     // if (e.isTrusted) {

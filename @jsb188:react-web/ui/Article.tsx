@@ -45,6 +45,7 @@ export function CondensedGroupTitleMock() {
 
 export const CondensedArticleItem = memo((p: {
   __deleted?: boolean;
+  voided?: boolean;
   domIdPrefix?: string;
   id?: string;
   preset?: 'modal' | 'card' | 'default' | 'default_spaced';
@@ -64,7 +65,7 @@ export const CondensedArticleItem = memo((p: {
   avatarColor?: string | null;
   labelIcons?: LabelsAndIconsItemProps[];
 }) => {
-  const { __deleted, hideSeparator, preset, domIdPrefix, id, onClick, labelIcons, RightComponent, labelsClassName, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
+  const { __deleted, voided, hideSeparator, preset, domIdPrefix, id, onClick, labelIcons, RightComponent, labelsClassName, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
   const useAltLabelColors = !['modal','card'].includes(preset!);
@@ -169,13 +170,13 @@ export const CondensedArticleItem = memo((p: {
           {hasDescription ? (
             <span className='shift_down ib ellip'>
               {title && (
-                <span className='mr_xs cl_df'>
+                <span className={cn('mr_xs cl_df', voided ? 'strikethrough' : undefined)}>
                   {title}
                 </span>
               )}
 
               {/* Need a double strikethrough here because of CSS color mismatch */}
-              <span className={__deleted ? 'strikethrough' : undefined}>
+              <span className={__deleted || voided ? 'strikethrough' : undefined}>
                 {description || descriptionPlaceholder}
               </span>
             </span>
@@ -236,18 +237,18 @@ export function CondensedArticleItemMock(p: {
 
     <div className='h_item gap_xs'>
       <div className='h_item f_shrink mr_3 py_sm'>
-          <InlineBlockLabel
-            as='span'
-            outline
-            color='alt'
-            textColorClassName='cl_primary'
-            colorIndicator='active'
-            text={
-              <span className='mock active mr_2'>
-                ....... .......
-              </span>
-            }
-          />
+        <InlineBlockLabel
+          as='span'
+          outline
+          color='alt'
+          textColorClassName='cl_primary'
+          colorIndicator='active'
+          text={
+            <span className='mock active mr_2'>
+              ....... .......
+            </span>
+          }
+        />
       </div>
 
       <span className='f_shrink py_sm shift_down'>

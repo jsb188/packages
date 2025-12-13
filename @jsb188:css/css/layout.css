@@ -14,21 +14,25 @@ body.p_auth {
 }
 
 .mw {
-  max-height: calc(100vh - var(--rem-medium) - var(--rem-medium));
+  max-height: calc(100vh - 25px - 25px);
+  /* max-height: calc(100vh - var(--rem-medium) - var(--rem-medium)); */
 }
 
 .mw .scr_area {
   /* 45px is the height of modal header toolbar */
-  max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) - 45px);
+  max-height: calc(100vh - 25px - 25px - 45px);
+  /* max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) - 45px); */
 }
 
 .mw_adjust_center {
-  padding-top: calc(var(--rem-medium) * 2);
+  padding-top: calc(25px * 2);
+  /* padding-top: calc(var(--rem-medium) * 2); */
 }
 
 .mw_adjust_center .mw {
   /* This hides the bottom rounded corners */
-  max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) + 14px);
+  max-height: calc(100vh - 25px - 25px + 14px);
+  /* max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) + 14px); */
 }
 
 .cw.tn, .mw.tn {

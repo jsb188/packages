@@ -46,8 +46,6 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
   activity
 
   childOrgId
-  childOrganizationName
-
   item
 
   otherParty

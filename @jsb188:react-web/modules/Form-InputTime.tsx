@@ -311,7 +311,7 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
           <span>
             {timeFormValues.AMPM || 'AM'}
           </span>
-          <span className='cl_md form_el_r pr_6'>
+          <span className='cl_lt form_el_r pr_6'>
             <Icon name='caret-down' />
           </span>
         </PopOverButton>

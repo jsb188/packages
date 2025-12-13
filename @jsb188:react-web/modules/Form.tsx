@@ -255,6 +255,8 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
   } else if (p.rightIconName) {
     rightIconName = p.rightIconName;
     onClickRight = p.onClickRight;
+  } else if (locked) {
+    rightIconName = 'locked';
   }
 
   const hasRight = !!(rightIconName || RightIconComponent);
@@ -295,7 +297,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
             // but we're combining "Edit" and "Create" forms together now,
             // So I prefer if everything is not-faded.
             // disabled ? 'disabled cl_md' : '',
-            editable === false ? 'cl_lt' : disabled ? 'disabled' : '',
+            editable === false ? 'cl_md' : disabled ? 'disabled' : '',
           )}
           id={htmlFor}
           name={name}
@@ -324,7 +326,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
         {!rightIconName ? RightIconComponent :
         createElement(onClickRight ? 'button' : 'span', {
           className: cn(
-            'form_el_r cl_md v_center',
+            'form_el_r cl_lt v_center',
             borderRadiusClassName ?? 'r_sm',
             onClickRight ? 'btn' : '',
             isLarge ? 'ic_df' : onClick ? 'pointer' : '',
@@ -388,24 +390,25 @@ export function InputWithButton(p: FormInputProps & {
  */
 
 function InputClick(p: InputType & Omit<LabelType, 'children'> & { popOverProps: any }) {
-  const { formValues, name, className, inputClassName, disabled } = p;
+  const { formValues, name, className, inputClassName, disabled, locked } = p;
   const { popOverProps, ...rest } = p;
+  const isDisabled = disabled || locked;
 
   return <Input
     {...rest}
     // as={popOverProps ? PopOverButton : undefined}
     locked
     value={getObject(formValues, name)}
-    inputClassName={disabled ? inputClassName : cn('pointer', inputClassName)}
-    rightIconName='caret-down'
+    inputClassName={isDisabled ? inputClassName : cn('pointer', inputClassName)}
+    rightIconName={locked ? 'locked' : 'caret-down'}
     className={cn(className, popOverProps ? 'link' : '')}
   >
     {popOverProps ? (
       <PopOverButton
+        {...popOverProps}
         domId={'input_click_' + name}
         className='abs_full'
-        disabled={disabled}
-        {...popOverProps}
+        disabled={isDisabled}
       />
     ) : undefined}
   </Input>;
@@ -426,7 +429,7 @@ function FVPasswordInput(p: InputType & Omit<LabelType, 'children'>) {
     >
       <p>
         <button
-          className='btn ft_xs cl_md mt_3 h_item non_link'
+          className='btn ft_xs cl_lt mt_3 h_item non_link'
           onClick={(e: React.MouseEvent) => {
             // Must preventDefault() to prevent HTML <form> submission
             e.preventDefault();

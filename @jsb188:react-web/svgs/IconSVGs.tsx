@@ -1614,6 +1614,13 @@ export const LivestockCowBodyColor = <svg xmlns="http://www.w3.org/2000/svg" fil
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19 7.5c0 0.0663 0.0263 0.12989 0.0732 0.17678 0.0469 0.04688 0.1105 0.07322 0.1768 0.07322" />
 </svg>;
 
+// Same as Lock but smaller for input fields
+export const Locked = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-locked" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M6,12.85714286c0-.9467738.76751191-1.71428571,1.71428571-1.71428571h8.57142857c.94677462,0,1.71428571.76751191,1.71428571,1.71428571v5.14285714c0,.94677462-.7675111,1.71428571-1.71428571,1.71428571H7.71428571c-.9467738,0-1.71428571-.7675111-1.71428571-1.71428571v-5.14285714Z"/>
+<path fill="currentColor" stroke="none" d="M10.68,15.4286c0,.7290152.59098354,1.32,1.32,1.32s1.32-.5909848,1.32-1.32c0-.72901646-.59098354-1.32-1.32-1.32s-1.32.59098354-1.32,1.32"/>
+<path d="M8.57142857,11.14285714v-3.42857143c0-1.8935476,1.53502383-3.42857143,3.42857143-3.42857143s3.42857143,1.53502383,3.42857143,3.42857143v3.42857143"/>
+</svg>;
+
 export const Lock = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-lock" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" stroke="currentColor" />

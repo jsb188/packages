@@ -190,7 +190,8 @@ function makeMetadataSchema(
           forceClickId: `input_click_${namespace}.activity`,
           label: i18n.t('form.activity'),
           item: {
-            locked: () => true,
+            // editable: false,
+            locked: () => true, // Conditional lock is possible
             focused: focusedName === (formId + '_activity'),
             name: `${namespace}.activity`,
             placeholder: isCreateNew ? i18n.t(`form.activity_ph`) : '',
@@ -392,7 +393,8 @@ function makeMetadataSchema(
           __type: 'input',
           label: i18n.t('log.invoice_number'),
           item: {
-            editable: false,
+            // editable: false,
+            locked: true,
             name: `${namespace}.referenceNumber`,
           }
         };
@@ -401,7 +403,8 @@ function makeMetadataSchema(
           __type: 'input',
           label: i18n.t('log.receipt_number'),
           item: {
-            editable: false,
+            // editable: false,
+            locked: true,
             name: `${namespace}.referenceNumber`,
             // placeholder: isCreateNew ? i18n.t('log.group_ph') : '',
             // getter: (value: string[]) => value ? value.join(',') : '',
