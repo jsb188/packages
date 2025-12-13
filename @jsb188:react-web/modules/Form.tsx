@@ -274,7 +274,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
         className,
         error ? 'error' : '',
         focused ? 'focused' : '',
-        disabled ? 'disabled' : '',
+        disabled || locked ? 'disabled' : '',
       )}
     >
       {!label ? null : (
