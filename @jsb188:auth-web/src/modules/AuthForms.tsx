@@ -1,4 +1,4 @@
-import { SUPPORT_EMAILS } from '@jsb188/app/constants/app';
+import { APP_EMAILS } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
 import { useCheckUsernameOrEmail, useConfirmPhoneVerificationCode, useRequestTokenizedEmail, useSendPhoneVerificationCode, useSignUpWithEmail } from '@jsb188/graphql/hooks/use-auth-mtn';
 import { FormBreak } from '@jsb188/react-web/modules/Form';
@@ -301,9 +301,9 @@ function RequestTokenizedEmail(p: RequestTokenizedEmailProps) {
  */
 
 function ResetPasswordCompleted(p: AuthFormProps) {
-  const { appNamespace, initialFormData } = p;
+  const { initialFormData } = p;
   const emailAddress = initialFormData?.identifier;
-  const supportEmail = SUPPORT_EMAILS[appNamespace];
+  const supportEmail = APP_EMAILS.support;
 
   // Because this screen is opened by a client-side fetch, emailAddress will not always be present;
   // Only way to have the used e-mail address here is if we used POST form request.
@@ -586,8 +586,7 @@ function SignUpMain(p: SignUpMainProps) {
  */
 
 function SignUpInviteRequired(p: Omit<AuthFormProps, 'setAuthIface'>) {
-  const { appNamespace } = p;
-  const supportEmail = SUPPORT_EMAILS[appNamespace];
+  const supportEmail = APP_EMAILS.support;
 
   return <ModalSimpleContent
     title={i18n.t('auth.invite_required')}

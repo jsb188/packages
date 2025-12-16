@@ -273,16 +273,16 @@ export function getCalDate(d: Date, timeZone_?: string | null) {
  */
 
 export function getReadableCalDate(d_: string | Date, timeZone?: string | null) {
-  let d;
-  if (typeof d_ === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d_)) {
-    // Assume YYYY-MM-DD format
-    const [year, month, day] = d_.split('-').map(Number);
-    d = new Date(year, month - 1, day);
-  } else if (d_ instanceof Date) {
-    d = d_;
-  } else {
-    d = d && new Date(d_)
-  }
+	let d;
+	if (typeof d_ === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d_)) {
+		// Assume YYYY-MM-DD format
+		const [year, month, day] = d_.split('-').map(Number);
+		d = new Date(year, month - 1, day);
+	} else if (d_ instanceof Date) {
+		d = d_;
+	} else {
+		d = d && new Date(d_);
+	}
 
 	if (!d || isNaN(d.getTime())) {
 		return null;
@@ -579,12 +579,12 @@ export function getFullDate(
 		case 'NUMERIC_TIME':
 			// Expected output: "9/1/2024, 8:30 PM"
 			return new Intl.DateTimeFormat(locales, {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
+				month: '2-digit',
+				day: '2-digit',
+				year: 'numeric',
+				hour: 'numeric',
+				minute: '2-digit',
+				hour12: true,
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
 		case 'MINIMAL':
@@ -594,6 +594,7 @@ export function getFullDate(
 				timeStyle: 'short', // 'full', 'long', 'medium', 'short'
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
+      // return DateTime.fromJSDate(d, timeZone ? { zone: timeZone } : undefined).toFormat('MMM d yyyy, h:mm a');
 		case 'DATE_ONLY_SHORT': {
 			// Expected output: "Sep 1" (or "Sep 1, 25" if not current year)
 			const dateYear = d.getFullYear();
@@ -616,14 +617,14 @@ export function getFullDate(
 			}
 
 			return new Intl.DateTimeFormat(locales, {
-        // Use this if you want 4 digit years
+				// Use this if you want 4 digit years
 				// dateStyle: 'medium',
-        // Use this if you want 2 digit years
-        year: '2-digit',
-        month: 'short',
-        day: 'numeric',
+				// Use this if you want 2 digit years
+				year: '2-digit',
+				month: 'short',
+				day: 'numeric',
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
-			}).format(d).replace(', ', ', \'');
+			}).format(d).replace(', ', ", '");
 		}
 		case 'DATE_TEXT':
 			// Expected output: "September 1, 2024"
@@ -861,7 +862,7 @@ export function getHHMMIncrements(
 
 export function getExpirationColor(
 	expirationDate: string | Date, // YYYY-MM-DD format or Date object
-  validColor: 'green' | null = null,
+	validColor: 'green' | null = null,
 ): 'red' | 'yellow' | 'green' | null {
 	let expDate: Date;
 	if (expirationDate instanceof Date) {
@@ -884,7 +885,7 @@ export function getExpirationColor(
 		return 'yellow'; // Expiring soon
 	}
 
-  return validColor; // Valid
+	return validColor; // Valid
 }
 
 /**
@@ -892,9 +893,9 @@ export function getExpirationColor(
  */
 
 export function timeToHHMM(timeStr: string): string {
-  const [hh, mm] = timeStr.split(':');
-  if (hh && mm) {
-    return `${hh.padStart(2, '0')}${mm.padStart(2, '0')}`;
-  }
-  return timeStr.padStart(4, '0');
+	const [hh, mm] = timeStr.split(':');
+	if (hh && mm) {
+		return `${hh.padStart(2, '0')}${mm.padStart(2, '0')}`;
+	}
+	return timeStr.padStart(4, '0');
 }

@@ -27,7 +27,7 @@ export type OrganizationComplianceType = typeof COMPLIANCE_DOCUMENT_TYPE_ENUMS[n
  */
 
 export interface ChildOrgsFilterArgs {
-  internationalOnly?: boolean;
+	internationalOnly?: boolean;
 }
 
 /*
@@ -72,13 +72,18 @@ export interface OrganizationShortData {
 
 export interface OrganizationData {
 	__table: 'organizations';
-	id: number;
+	id: bigint;
 	stripeCustomerId: string | null;
 	name: string;
-  commodities: string[] | null;
+	commodities: string[] | null;
 	operation: OrganizationOperationEnum;
 	dailyDigestTime: string | null;
 	settings?: OrganizationSettingsObj | null;
+  address?: null | AddressObj & {
+    __table: 'organization_addresses';
+    id: bigint;
+    organizationId: bigint;
+  };
 	activated: boolean;
 }
 
@@ -154,8 +159,8 @@ export interface OrganizationGQL {
 	id: string;
 	stripeCustomerId: string | null;
 	name: string;
-  commodities: string[] | null;
-  address: AddressObj;
+	commodities: string[] | null;
+	address: AddressObj;
 	operation: OrganizationOperationEnum;
 	compliance: OrganizationComplianceGQL[] | null;
 	settings?: OrganizationSettingsObj | null;

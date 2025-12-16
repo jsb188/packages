@@ -143,7 +143,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   // Operation types
   ARABLE: 'farming-barn-silo',
   FARMERS_MARKET: 'farmers-market-kiosk',
-  LIVESTOCK: 'livestock-cow-body',
+  LIVESTOCK: 'outdoors-horse',
   GROWER_NETWORK: 'wine-grapes',
 
   // AI Task types

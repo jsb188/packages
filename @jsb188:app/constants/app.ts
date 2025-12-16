@@ -3,10 +3,10 @@ type IDDocumentType = any; // Server <-> Client match
 // DOM element names (ids)
 
 export const DOM_IDS = {
-  sidebarInput: 'sidebar_input',
-  mainFocusTextarea: 'main_tx',
-  mainBodyScrollArea: 'main_scr',
-  popOverScrollArea: 'pop_over_scr',
+	sidebarInput: 'sidebar_input',
+	mainFocusTextarea: 'main_tx',
+	mainBodyScrollArea: 'main_scr',
+	popOverScrollArea: 'pop_over_scr',
 };
 
 // Common style variables
@@ -17,85 +17,96 @@ export const DATE_AND_BUTTON_WIDTH = '100px ' + END_BUTTON_WIDTH;
 // Common, repeatable classnames
 
 export const COMMON_CLASSNAMES = {
-  listContainer: 'cw lg responsive px_lg pt_md pb_lg',
-  listContainerFlushRight: 'cw lg responsive pl_lg pr_10 pt_md pb_lg',
-  // listContainer: 'cw lg responsive px_lg py_lg',
-  modalScreenSplitForm: 'h_top px_lg pb_md gap_lg',
-  modalScreenSplitContent: 'h_top px_md pb_md gap_lg',
-  modalScreenHeading: 'pt_lg pb_df ft_normal ft_xs cl_darker_2 ls_2',
+	listContainer: 'cw lg responsive px_lg pt_md pb_lg',
+	listContainerFlushRight: 'cw lg responsive pl_lg pr_10 pt_md pb_lg',
+	// listContainer: 'cw lg responsive px_lg py_lg',
+	modalScreenSplitForm: 'h_top px_lg pb_md gap_lg',
+	modalScreenSplitContent: 'h_top px_md pb_md gap_lg',
+	modalScreenHeading: 'pt_lg pb_df ft_normal ft_xs cl_darker_2 ls_2',
 };
 
 // Encryption
 
 export const DOCUMENT_TYPE_TO_PREFIX: Record<string, IDDocumentType | IDDocumentType[]> = {
-  'activity log or note': 'log',
-  'invoice': ['log', 'inv'],
-  'purchase order': ['log', 'inv'],
-  'user account': 'acc',
-  'ai task': 'task',
-  'event': 'event',
-  'farmers market day': 'event',
+	'activity log or note': 'log',
+	'invoice': ['log', 'inv'],
+	'purchase order': ['log', 'inv'],
+	'user account': 'acc',
+	'ai task': 'task',
+	'event': 'event',
+	'farmers market day': 'event',
 };
 
 // Local storage
 
 export const STORAGE_KEYS = {
-  // Authentication
-  AUTH_TOKEN: 'AT', // There's no ":", so this is used as-is
-  LAST_VERSION: 'LV:', // ":" at end means it's a prefix
-  CURRENT_ACCOUNT_ID: 'CU:',
+	// Authentication
+	AUTH_TOKEN: 'AT', // There's no ":", so this is used as-is
+	LAST_VERSION: 'LV:', // ":" at end means it's a prefix
+	CURRENT_ACCOUNT_ID: 'CU:',
 
-  // Settings
-  LIGHT_MODE: 'LM:',
+	// Settings
+	LIGHT_MODE: 'LM:',
 } as Record<string, string>;
+
+// Company address
+
+export const COMPANY_ADDRESS = {
+	line1: '3053 Fillmore St.',
+	line2: '#231',
+	city: 'San Francisco',
+	state: 'CA',
+	postalCode: '94123',
+	country: 'US',
+};
 
 // Support e-mails
 
-export const SUPPORT_EMAILS = {
-  MARKETDAY: 'hello@marketday.ai'
+export const APP_EMAILS = {
+	support: 'hello@marketday.ai',
 } as Record<string, string>;
 
 // Social media
 
 export const SOCIAL_URLS = {
-  MARKETDAY: {
-    x: 'https://x.com/?',
-    x_username: '?',
-  }
+	MARKETDAY: {
+		x: 'https://x.com/?',
+		x_username: '?',
+	},
 } as Record<string, {
-  x: string;
-  x_username: string;
+	x: string;
+	x_username: string;
 }>;
 
 // Languages
 
 export const SUPPORTED_LANGUAGES = [
-  'en',
-  'es',
+	'en',
+	'es',
 ];
 
 // Colors
 
 export const COLORS = [
-  'red',
-  'orange',
-  'brown',
-  'amber',
-  'yellow',
-  'lime',
-  'green',
-  'emerald',
-  'teal',
-  'cyan',
-  'sky',
-  'blue',
-  'indigo',
-  'violet',
-  'purple',
-  'fuchsia',
-  'pink',
-  'rose',
-  'slate',
-  'zinc',
-  'stone'
+	'red',
+	'orange',
+	'brown',
+	'amber',
+	'yellow',
+	'lime',
+	'green',
+	'emerald',
+	'teal',
+	'cyan',
+	'sky',
+	'blue',
+	'indigo',
+	'violet',
+	'purple',
+	'fuchsia',
+	'pink',
+	'rose',
+	'slate',
+	'zinc',
+	'stone',
 ];

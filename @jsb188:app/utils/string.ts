@@ -463,32 +463,44 @@ export function getNthString(num: number): string {
  */
 
 export function makeAddressText(
-  address: AddressObj,
-  useFullCountryName: boolean = false,
-  regionOnly: boolean = false,
+	address: Partial<AddressObj>,
+	format: 'REGION_ONLY' | 'SINGLE_LINE' | 'NORMAL' = 'NORMAL',
+	useFullCountryName: boolean = false,
+	delimiter: string = ', ',
 ) {
-  if (!address) {
-    return null;
-  }
+	if (!address) {
+		return null;
+	}
 
-  const countryName = useFullCountryName && i18n.has(`country.from_code.${address.country}`)
-    ? i18n.t(`country.from_code.${address.country}`)
-    : address.country;
+	const countryName = useFullCountryName && i18n.has(`country.from_code.${address.country}`)
+		? i18n.t(`country.from_code.${address.country}`)
+		: address.country;
 
-  if (regionOnly) {
+	if (format === 'REGION_ONLY') {
+		return [
+			address.city,
+			address.state,
+			countryName,
+		].filter(Boolean).join(delimiter);
+	} else if (format === 'SINGLE_LINE') {
     return [
+      address.line1,
+      address.line2,
       address.city,
       address.state,
+      address.postalCode,
       countryName,
-    ].filter(Boolean).join(', ');
+    ].filter(Boolean).join(delimiter);
   }
 
+  // NORMAL format
   return [
     address.line1,
     address.line2,
-    address.city,
-    address.state,
-    address.postalCode,
+    [
+      [address.city, address.state].filter(Boolean).join(', '),
+      address.postalCode,
+    ].filter(Boolean).join(' '),
     countryName,
-  ].filter(Boolean).join(', ');
+  ].filter(Boolean).join('\n');
 }

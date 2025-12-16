@@ -408,7 +408,7 @@ export function AlertPopUp(p: AlertDataProps) {
   return (
     <>
       {iconName !== null
-      ? <div className={cn('pt_lg pb_df ic_xxl', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
+      ? <div className={cn('pt_lg pb_sm ic_xxl', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
         <Icon
           tryColor
           name={iconName || 'alert-circle'}
