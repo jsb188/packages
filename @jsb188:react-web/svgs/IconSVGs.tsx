@@ -1956,6 +1956,17 @@ export const Oat2 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon
 <path d="M21.9,8.9c-3.1-.7-3.4,10.2-2.3,12.7,1.9-2,5.4-12.2,2.3-12.7Z"/>
 </svg>;
 
+export const OfficeBuildingDouble = <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="icon icon-office-building-double">
+<path d="M22,22H2"/>
+<path d="M2,22V2.88888889c0-.53333335.35555553-.88888889.88888889-.88888889h12.44444444c.53333367,0,.88888889.35555553.88888889.88888889v19.11111111"/>
+<path d="M16.22222222,10.44444444h4.88888889c.53333367,0,.88888889.35555522.88888889.88888889v10.66666667"/>
+<path d="M7.55555556,4.66666667h-2.66666667v3.55555556h2.66666667v-3.55555556Z"/>
+<path d="M13.33333333,4.66666667h-2.66666667v3.55555556h2.66666667v-3.55555556Z"/>
+<path d="M7.55555556,11.33333333h-2.66666667v3.55555556h2.66666667v-3.55555556Z"/>
+<path d="M13.33333333,11.33333333h-2.66666667v3.55555556h2.66666667v-3.55555556Z"/>
+<path d="M7.51106686,21.99991184v-2.93333266c0-.88888889.71111128-1.59999932,1.60000017-1.59999932s1.60004425.71111043,1.60004425,1.59999932v2.93333266"/>
+</svg>;
+
 export const OrganicBagLeaf = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-organic-bag-leaf" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M8.8,13.9s1.1,2.3,3.1,2.2c3.9-.4,3.6-5.5,5-7.3-2.4-1.2-5.3-1.2-7.7,0-2,1.1-2.2,3.1-.4,5.1Z"/>
 <path d="M11.6,11.5s-2.5.3-4.3,4.7"/>

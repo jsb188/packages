@@ -1,8 +1,7 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
-// import { useNavigate } from 'react-router';
 import { updateFragment } from '../cache/index';
-import { deleteComplianceDocumentMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
+import { deleteComplianceDocumentMtn, editOrganizationMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
 import { useMutation } from './index';
 
 /**
@@ -67,6 +66,38 @@ export function useDeleteComplianceDocument(params: UseMutationParams = {}, open
 
   return {
     deleteComplianceDocument,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Edit logged in user's organization (if allowed)
+ */
+
+export function useEditOrganization(
+  params?: UseMutationParams | null,
+  openModalPopUp?: OpenModalPopUpFn
+) {
+
+  console.log(' gotta do org data fetch here');
+  console.log(' gotta do org data fetch here');
+  console.log(' gotta do org data fetch here');
+  console.log(' gotta do org data fetch here');
+  console.log(' gotta do org data fetch here');
+
+
+  const { account, settings, dispatchApp } = useCurrentAccount();
+  const [editAccount, mtnValues, mtnHandlers] = useMutation(editOrganizationMtn, {
+    // checkMountedBeforeCallback: true,
+    openModalPopUp,
+    ...params,
+  });
+
+  return {
+    account,
+    settings,
+    editAccount,
     ...mtnValues,
     ...mtnHandlers,
   };

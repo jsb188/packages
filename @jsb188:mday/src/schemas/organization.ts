@@ -1,6 +1,6 @@
 import { SUPPORTED_LANGUAGES } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
-import type { AccountData, AccountSettings } from '@jsb188/app/types/auth.d';
+import type { OrganizationGQL } from '@jsb188/mday/types/organization.d';
 import { formatPhoneNumber } from '@jsb188/app/utils/string';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 
@@ -20,11 +20,10 @@ const MIN_LEN_VALUES = {
  * Schema; Edit account
  */
 
-export function makeEditAccountSchema(
+export function makeEditOrganizationSchema(
   formId: string,
   focusedName: string,
-  account: AccountData | null,
-  settings: AccountSettings | null,
+  org: OrganizationGQL | null,
   openModalPopUp: OpenModalPopUpFn
 ) {
 
@@ -45,25 +44,11 @@ export function makeEditAccountSchema(
     // }, {
       __type: 'group',
       item: {
-        items: [{
-          __type: 'input',
-          item: {
-            name: 'profile.firstName',
-            maxLength: MIN_LEN_VALUES.firstName,
-            label: i18n.t('account.fName'),
-            placeholder: account?.profile?.firstName,
-            autoComplete: 'off',
-          },
-        }, {
-          __type: 'input',
-          item: {
-            name: 'profile.lastName',
-            maxLength: MIN_LEN_VALUES.lastName,
-            label: i18n.t('account.lName'),
-            placeholder: account?.profile?.lastName,
-            autoComplete: 'off',
-          },
-        }],
+        name: 'profile.firstName',
+        maxLength: MIN_LEN_VALUES.firstName,
+        label: i18n.t('org.name'),
+        placeholder: account?.profile?.firstName,
+        autoComplete: 'off',
       }
     }, {
       __type: 'input_click',

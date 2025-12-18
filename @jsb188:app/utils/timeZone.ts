@@ -2544,3 +2544,44 @@ export function hhmmFromDateOrTime(
 
 	return '';
 }
+
+/**
+ * Get date in time zone
+ */
+
+export function formatCalDateInTimeZone(date: Date, timeZone: string | null): string {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timeZone ?? 'UTC',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  return formatter.format(date); // YYYY-MM-DD
+}
+
+/**
+ * Get day of week in time zone
+ * @param date
+ * @param timeZone
+ * @returns
+ */
+
+export function getDayOfWeekInTimeZone(date: Date, timeZone: string | null): number {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timeZone ?? 'UTC',
+    weekday: 'short',
+  });
+
+  const day = formatter.format(date);
+
+  return {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  }[day as 'Sun'];
+}

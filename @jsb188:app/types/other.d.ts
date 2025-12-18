@@ -50,3 +50,12 @@ export interface ScheduleObj {
 		string?, // End time "hhmm" format (optional)
 	];
 }
+
+/**
+ * File object
+ */
+
+export interface FileObj {
+  buffer: Uint8Array;
+  contentType: string;
+}

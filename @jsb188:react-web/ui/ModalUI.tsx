@@ -211,7 +211,7 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
 
 export function ModalSideNavItem(p: ModalSideNavIface) {
   const { __type, text } = p;
-  const itemCn = 'px_xs py_3';
+  const itemCn = 'px_xs py_4';
 
   switch (__type) {
     case 'LIST_SUBTITLE':
@@ -237,11 +237,11 @@ export function ModalSideNavItem(p: ModalSideNavIface) {
       onClick={onClick ? () => onClick(value!) : undefined}
     >
       {!iconName ? null
-      : <span className='w_25 h_center ic_abs shift_left mr_4'>
+      : <span className='w_25 h_center shift_left mr_4'>
         <Icon name={iconName} />
       </span>}
 
-      <span className='ellip pt_1'>
+      <span className='ellip pb_1 shift_down lh_1'>
         {text}
       </span>
 
@@ -263,7 +263,7 @@ export function ModalSideNav(p: ModalSideNavProps) {
   return (
     <nav className='mw_snav y_scr always'>
       {options?.map((list, i) => (
-        <ul className='px_df py_sm' key={i}>
+        <ul className='px_df py_10' key={i}>
           {list.map((item, i) => (
             <ModalSideNavItem
               key={i}

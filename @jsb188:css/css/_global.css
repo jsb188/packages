@@ -132,6 +132,10 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
   background-color: rgba(var(--color-main), .064) !important;
 }
 
+.bg_primary_fd_hv:hover .bg_active, .bg_secondary_fd_hv:hover .bg_active {
+  box-shadow: 0 0 0 1px rgba(var(--color-darker-rgb), .075);
+}
+
 .bg_lighter_hv_1:hover { background-color: rgba(var(--color-lighter-rgb),.125) !important; }
 .bg_lighter_hv_2:hover { background-color: rgba(var(--color-lighter-rgb),.25) !important; }
 .bg_lighter_hv_3:hover { background-color: rgba(var(--color-lighter-rgb),.4) !important; }
@@ -1121,7 +1125,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
   transition-timing-function: ease-in-out;
 }
 
-.spd_0 { transition-duration: 55ms !important; animation-duration: 55ms !important; }
+.spd_0 { transition-duration: 70ms !important; animation-duration: 70ms !important; }
 .spd_1 { transition-duration: 150ms !important; animation-duration: 150ms !important; }
 .spd_2 { transition-duration: 250ms !important; animation-duration: 250ms !important; }
 .spd_3 { transition-duration: 500ms !important; animation-duration: 500ms !important; }

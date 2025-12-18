@@ -103,6 +103,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   moderator: 'gavel',
   network_error: 'wifi-off',
   not_pinned: 'pinned-off',
+  org_info: 'office-building-double',
   owner: 'crown',
   pensive: 'mood-sad-filled',
   pinned: 'pinned',

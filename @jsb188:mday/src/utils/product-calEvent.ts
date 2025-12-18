@@ -2,7 +2,7 @@ import i18n from '@jsb188/app/i18n';
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
 import { getFullDate } from '@jsb188/app/utils/datetime';
 import { convertToMilitaryTime } from '@jsb188/app/utils/number';
-import { DEFAULT_TIMEZONE, hhmmFromDateOrTime } from '@jsb188/app/utils/timeZone';
+import { DEFAULT_TIMEZONE, formatCalDateInTimeZone, getDayOfWeekInTimeZone, hhmmFromDateOrTime, parseBoundaryDateInTimezone } from '@jsb188/app/utils/timeZone';
 import { DateTime } from 'luxon';
 import type { ProductAttendanceData, ProductCalEventData, ProductCalEventGQL } from '../types/product.d';
 
@@ -394,10 +394,13 @@ export function getTimeFromSchedule(
  */
 
 export function filterEventAttendance(
-	attendance: ProductAttendanceData[],
+	attendance_: ProductAttendanceData[],
 	calDate: string,
 ): ProductAttendanceData[] {
 	const targetJSDate = new Date(calDate);
+  const targetTimestamp = targetJSDate.getTime();
+  const attendance = attendance_.filter((item) => !item.calDate || new Date(item.calDate).getTime() === targetTimestamp);
+
 	const checkedAttendance = new Set<number | bigint>();
 	for (const item of attendance) {
 		if (item.attended !== null) {
@@ -434,4 +437,72 @@ export function filterEventAttendance(
 
 	// Sort by organization.name
 	return filteredList.sort((a, b) => a.organization.name.localeCompare(b.organization.name));
+}
+
+/**
+ * Get all date this event happens between 2 calendar dates
+ * @param calEvent
+ * @param fromDate
+ * @param toDate
+ * @returns
+ */
+
+export function getAllEventDates(
+  calEvent: ProductCalEventData,
+  fromDate: string, // "YYYY-MM-DD"
+  toDate: string,   // "YYYY-MM-DD"
+  timeZone: string | null = null,
+): string[] {
+  const results: string[] = [];
+
+  const from = parseBoundaryDateInTimezone(fromDate, timeZone);
+  const to = parseBoundaryDateInTimezone(toDate, timeZone, true);
+
+  const eventStart = new Date(calEvent.startAt);
+  const eventEnd = calEvent.endAt ? new Date(calEvent.endAt) : null;
+
+  const rangeStart = new Date(Math.max(from.getTime(), eventStart.getTime()));
+  const rangeEnd = eventEnd
+    ? new Date(Math.min(to.getTime(), eventEnd.getTime()))
+    : to;
+
+  // @ts-ignore – product events only
+  const { frequency, daysOfWeek } = calEvent.metadata?.schedule || {};
+
+  switch (frequency) {
+    case 'ONCE': {
+      if (eventStart >= from && eventStart <= to) {
+        results.push(formatCalDateInTimeZone(eventStart, timeZone));
+      }
+      return results;
+    }
+
+    case 'WEEKLY': {
+      if (!Array.isArray(daysOfWeek) || !daysOfWeek.length) {
+        return results;
+      }
+
+      const allowedDays = new Set<number>(daysOfWeek);
+      const cursor = new Date(rangeStart);
+
+      while (cursor <= rangeEnd) {
+        const dow = getDayOfWeekInTimeZone(cursor, timeZone);
+
+        if (allowedDays.has(dow)) {
+          const dateStr = formatCalDateInTimeZone(cursor, timeZone);
+
+          // Final safety clamp (prevents Jan 1 bleed)
+          if (dateStr >= fromDate && dateStr <= toDate) {
+            results.push(dateStr);
+          }
+        }
+
+        // Move forward ONE LOCAL DAY safely
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      break;
+    }
+  }
+
+  return results;
 }
