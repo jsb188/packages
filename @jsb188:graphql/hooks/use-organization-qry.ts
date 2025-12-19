@@ -36,6 +36,7 @@ export function useOrganizationWorkflows(organizationId: string | null, operatio
     ...rest
   };
 }
+
 /**
  * Get reactive organization fragment
  */
@@ -43,16 +44,22 @@ export function useOrganizationWorkflows(organizationId: string | null, operatio
 export function useReactiveOrganizationWorkflowFragment(workflowId: string, currentData?: any, queryCount?: number) {
   return useReactiveFragment(
     currentData,
-    [
-      `$organizationInstructionsFragment:${workflowId}`,
-      // [`$organizationChildArableFragment:${organizationId}`, null],
-      // By having the second paramter as null, we only observe the reactive changes without setting the data
-      // [`$logArableFragment:${logEntryId}`, null],
-    ],
+    [`$organizationInstructionsFragment:${workflowId}`],
     queryCount,
   );
 }
 
+/**
+ * Get reactive organization fragment
+ */
+
+export function useReactiveOrganization(orgId: string, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    [`$organizationFragment:${orgId}`],
+    queryCount,
+  );
+}
 
 /**
  * Fetch my organizations and then get one by ID
@@ -63,9 +70,12 @@ export function useOrgRelFromMyOrganizations(organizationId: string | null) {
     skip: !organizationId,
   });
 
-  const organizationRelationship = myOrganizations?.find((orgRel: any) => orgRel.organization?.id === organizationId) || null;
+  const orgRel = myOrganizations?.find((orgRel: any) => orgRel.organization?.id === organizationId) || null;
+  const organization = useReactiveOrganization(orgRel?.organization?.id, orgRel?.organization);
+
   return {
-    organizationRelationship,
+    organizationRelationship: orgRel,
+    organization,
     myOrganizations,
     ...rest
   };

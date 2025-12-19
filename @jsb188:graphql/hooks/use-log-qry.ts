@@ -2,7 +2,6 @@ import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d';
 import { useQuery, useReactiveFragment } from '../client';
 import { logEntriesQry } from '../gql/queries/logQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';
-import { useMemo } from 'react';
 
 /**
  * Constants
@@ -42,6 +41,7 @@ export function useLogEntries(
 ) {
 
   const { data, ...rest } = useQuery(logEntriesQry, {
+    ...params,
     variables: {
       ...variables,
       cursor: null,
@@ -50,7 +50,6 @@ export function useLogEntries(
     },
     // If this query is used for virtualized list pagination, set {params.skip=true}
     skip: !variables.organizationId || !variables.filter?.operation,
-    ...params,
   });
 
   return {

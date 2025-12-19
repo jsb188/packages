@@ -399,19 +399,30 @@ export function InputWithButton(p: FormInputProps & {
  */
 
 function InputClick(p: InputType & Omit<LabelType, 'children'> & { popOverProps: any }) {
-  const { formValues, name, className, inputClassName, disabled, locked } = p;
+  const { formValues, setFormValues, name, className, inputClassName, disabled, locked } = p;
   const { popOverProps, ...rest } = p;
+  const isErrored = formValues.__errorFields?.includes(name);
   const isDisabled = disabled || locked;
+  const value = getObject(formValues, name);
+
+  useEffect(() => {
+    if (isErrored && value) {
+      setFormValues?.({
+        ...formValues,
+        __errorFields: formValues.__errorFields.filter((f: string) => f !== name),
+      });
+    }
+  }, [isErrored, value]);
 
   return <Input
     {...rest}
     // as={popOverProps ? PopOverButton : undefined}
     // locked
     disabled
-    value={getObject(formValues, name)}
+    value={value}
     inputClassName={isDisabled ? inputClassName : cn('pointer', inputClassName)}
     rightIconName={locked ? 'locked' : 'caret-down'}
-    className={cn(className, popOverProps ? 'link' : '')}
+    className={cn(className, popOverProps ? 'link' : '', isErrored ? 'error' : '')}
   >
     {popOverProps ? (
       <PopOverButton
@@ -878,7 +889,3 @@ export const ContentEditable = memo(forwardRef((
 // If you *do* see issues, use checkPropsDiff() to figure out which prop is triggering re-render.
 // }), globalThis.checkPropsDiff);
 }));
-
-// Exports from other files
-
-export { InputTime };

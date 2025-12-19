@@ -61,6 +61,13 @@ const RULES = function() {
         message: i18n.t('error.msg_value_required', { value: i18n.t('form.state') }),
       }),
     },
+    'address.country': {
+      for: 'address.country',
+      rule: (v: any, fv: any) => addressRule(v, fv, 'country'),
+      error: () => ({
+        message: i18n.t('error.msg_value_required', { value: i18n.t('form.country') }),
+      }),
+    },
   };
 }();
 
@@ -202,6 +209,7 @@ export function makeEditOrganizationSchema(
       RULES['address.postalCode'],
       RULES['address.city'],
       RULES['address.state'],
+      RULES['address.country'],
     ],
   };
 }

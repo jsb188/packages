@@ -275,17 +275,18 @@ export function useReactiveFragment(
   }
 
   useEffect(() => {
+
     // NOTE: I tried this with Preact's effect()
     // But that caused the render to happen 3 times more, I don't know why.
     // I only solved it by using useEffect()
     const idsChanged = (
       !dataId ||
-      changedData.data.id !== dataId ||
+      changedData.data?.id !== dataId ||
       (
         // This is absolutely needed for the chat clientId system to work properly;
         // Otherwise messages will be stuck in "not sent" state.
-        changedData.data.clientId &&
-        changedData.data.clientId !== data.clientId
+        changedData.data?.clientId &&
+        changedData.data?.clientId !== data.clientId
       )
     );
 
@@ -377,7 +378,7 @@ export function useReactiveFragment(
   //   }
   // }, [updateQueryCount]);
 
-  return changedData.data;
+  return changedData.data ?? null;
 }
 
 /**
@@ -893,7 +894,7 @@ export function useQuery(
     }
 
     return result;
-  }, [doQuery]);
+  }, [doQuery, skip]);
 
   const queryData = loadDataFromCache(
     qryValues.data,
