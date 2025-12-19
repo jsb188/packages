@@ -1,7 +1,6 @@
-import { SUPPORTED_LANGUAGES } from '@jsb188/app/constants/app';
+import { SUPPORTED_COUNTRIES } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
-import type { OrganizationGQL } from '@jsb188/mday/types/organization.d';
-import { formatPhoneNumber } from '@jsb188/app/utils/string';
+import type { OrganizationGQL } from '../types/organization.d';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 
 /**
@@ -9,12 +8,61 @@ import type { OpenModalPopUpFn } from '@jsb188/react/states';
  */
 
 const MIN_LEN_VALUES = {
-  password: 8,
-  firstName: 32,
-  lastName: 32,
-  description: 750,
-  email: 80,
+  name: 40,
+  address_city: 100,
+  address_state: 32,
+  address_postalCode: 20,
 };
+
+/**
+ * Rules for each field
+ */
+
+
+const RULES = function() {
+
+  const addressRule = (_value: string, fv: any, k: string) => {
+    const addr = fv.address;
+    const hasAddressFV = Object.values(addr).some((v: any) => v?.trim()?.length > 0);
+
+    if (hasAddressFV) {
+      return !!addr?.[k]?.trim().length;
+    }
+
+    return true;
+  }
+
+  return {
+    'address.line1': {
+      for: 'address.line1',
+      rule: (v: any, fv: any) => addressRule(v, fv, 'line1'),
+      error: () => ({
+        message: i18n.t('error.msg_value_required', { value: i18n.t('form.line1') }),
+      }),
+    },
+    'address.postalCode': {
+      for: 'address.postalCode',
+      rule: (v: any, fv: any) => addressRule(v, fv, 'postalCode'),
+      error: () => ({
+        message: i18n.t('error.msg_value_required', { value: i18n.t('form.postalCode') }),
+      }),
+    },
+    'address.city': {
+      for: 'address.city',
+      rule: (v: any, fv: any) => addressRule(v, fv, 'city'),
+      error: () => ({
+        message: i18n.t('error.msg_value_required', { value: i18n.t('form.city') }),
+      }),
+    },
+    'address.state': {
+      for: 'address.state',
+      rule: (v: any, fv: any) => addressRule(v, fv, 'state'),
+      error: () => ({
+        message: i18n.t('error.msg_value_required', { value: i18n.t('form.state') }),
+      }),
+    },
+  };
+}();
 
 /**
  * Schema; Edit account
@@ -23,7 +71,7 @@ const MIN_LEN_VALUES = {
 export function makeEditOrganizationSchema(
   formId: string,
   focusedName: string,
-  org: OrganizationGQL | null,
+  org: OrganizationGQL,
   openModalPopUp: OpenModalPopUpFn
 ) {
 
@@ -42,105 +90,118 @@ export function makeEditOrganizationSchema(
     //     text: i18n.t('account.profile'),
     //   },
     // }, {
-      __type: 'group',
+      __type: 'input',
       item: {
-        name: 'profile.firstName',
-        maxLength: MIN_LEN_VALUES.firstName,
-        label: i18n.t('org.name'),
-        placeholder: account?.profile?.firstName,
+        name: 'name',
+        maxLength: MIN_LEN_VALUES.name,
+        label: i18n.t('org.name_of'),
+        placeholder: org.name,
         autoComplete: 'off',
       }
     }, {
-      __type: 'input_click',
-      forceClickId: 'input_click_settings.language',
-      label: i18n.t('form.activity'),
+      __type: 'input',
+      locked: true,
       item: {
-        label: i18n.t('account.ai_language'),
+        name: 'operation',
+        label: i18n.t('org.type_of'),
+        placeholder: i18n.t(`org.type.${org.operation}`),
+        getter: (value: string) => i18n.t(`org.type.${value}`),
+        autoComplete: 'off',
+        info: i18n.t('org.contact_to_change'),
+      }
+    }, {
+      __type: 'section_title',
+      item: {
+        title: i18n.t('form.address'),
+        description: 'This information will appear on your invoices.'
+      }
+    }, {
+      __type: 'input',
+      item: {
+        name: 'address.line1',
+        label: i18n.t('form.line1'),
+        placeholder: i18n.t('form.line1_ph'),
+        // autoComplete: 'off',
+      }
+    }, {
+      __type: 'input',
+      item: {
+        name: 'address.line2',
+        label: i18n.t('form.line2_optional'),
+        placeholder: i18n.t('form.line2_ph'),
+        // autoComplete: 'off',
+      }
+    }, {
+      __type: 'input',
+      item: {
+        name: 'address.postalCode',
+        label: i18n.t('form.postalCode'),
+        placeholder: org?.address?.postalCode || i18n.t('form.postalCode_ph'),
+        // autoComplete: 'off',
+      }
+    }, {
+      __type: 'group',
+      item: {
+        items: [{
+          __type: 'input',
+          item: {
+            name: 'address.city',
+            maxLength: MIN_LEN_VALUES.address_city,
+            label: i18n.t('form.city'),
+            placeholder: org?.address?.city || i18n.t('form.city_ph'),
+          },
+        }, {
+          __type: 'input',
+          item: {
+            name: 'address.state',
+            maxLength: MIN_LEN_VALUES.address_state,
+            label: i18n.t('form.state'),
+            placeholder: org?.address?.state,
+          },
+        }],
+      }
+    }, {
+      __type: 'input_click',
+      forceClickId: 'input_click_address.country',
+      label: i18n.t('form.country'),
+      item: {
+        label: i18n.t('form.country'),
         locked: true,
-        focused: focusedName === (formId + '_settings.language'),
-        name: 'settings.language',
-        placeholder: i18n.t(`form.activity_ph`),
-        getter: (value: string) => i18n.t(`form.lang.${value || 'en'}`),
+        focused: focusedName === (formId + '_address.country'),
+        name: 'address.country',
+        getter: (value: string) => value ? i18n.t(`country.from_code.${value}`) : '',
+        placeholder: org?.address?.country || i18n.t('form.country_ph'),
 
         popOverProps: {
-          id: formId + '_settings.language',
           ...poProps,
+
+          id: formId + '_address.country',
+          doNotFixToBottom: true,
           iface: {
             name: 'PO_LIST',
+
             variables: {
               designClassName: 'w_400',
-              className: 'max_h_40vh',
-              options: SUPPORTED_LANGUAGES.map(lang => ({
+              className: 'max_h_50vh',
+              options: SUPPORTED_COUNTRIES.map(countryCode => ({
                 __type: 'LIST_ITEM' as const,
-                text: i18n.t(`form.lang.${lang}`),
+                text: i18n.t(`country.from_code.${countryCode}`),
                 // textClassName: 'ft_xs',
                 // rightIconClassName: 'ft_xs mb_2',
-                name: 'settings.language',
-                value: lang,
-                selected: (settings?.language || 'en') === lang,
+                name: 'address.country',
+                value: countryCode,
+                selected: org?.address?.country === countryCode,
               }))
             }
           }
         }
       },
-    }, {
-      __type: 'input_w_button',
-      item: {
-        name: 'change_phoneNumber',
-        maxLength: MIN_LEN_VALUES.email,
-        setter: (data: any) => formatPhoneNumber(data?.phone?.number || ''),
-        label: i18n.t('form.phone_number'),
-        autoComplete: 'off',
-        disabled: true,
-        buttonText: i18n.t('form.change'),
-        onClickButton: () => openModalPopUp({
-          preset: 'CHANGE_PHONE',
-          name: 'edit_account_phone'
-        }),
-      },
-    }, {
-      __type: 'input_w_button',
-      item: {
-        name: 'change_emailAddress',
-        maxLength: MIN_LEN_VALUES.email,
-        setter: (data: any) => data?.email?.address,
-        label: i18n.t('account.email'),
-        autoComplete: 'off',
-        disabled: true,
-        buttonText: i18n.t('form.change'),
-        onClickButton: () => openModalPopUp({
-          preset: 'CHANGE_EMAIL',
-          name: 'edit_account_email'
-        })
-      },
-    }, {
-      __type: 'input_w_button',
-      item: {
-        name: 'change_password',
-        minLength: MIN_LEN_VALUES.password,
-        label: i18n.t('account.password'),
-        setter: () => '.....',
-        autoComplete: 'off',
-        type: 'password',
-        disabled: true,
-        buttonText: i18n.t('form.change'),
-        onClickButton: () => openModalPopUp({
-          preset: 'CHANGE_PASSWORD',
-          name: 'edit_account_password'
-        }),
-      },
-    //   __type: 'textarea',
-    //   item: {
-    //     name: 'description',
-    //     maxLength: MIN_LEN_VALUES.description,
-    //     setter: (data: any) => data?.profile?.description,
-    //     label: i18n.t('account.about'),
-    //     placeholder: i18n.t('account.about_ph'),
-    //     autoComplete: 'off',
-    //   },
     }],
     rules: [
-      // RULES.password,
+      RULES['address.line1'],
+      RULES['address.postalCode'],
+      RULES['address.city'],
+      RULES['address.state'],
     ],
   };
 }

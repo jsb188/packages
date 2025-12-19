@@ -163,14 +163,16 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
         handler(e, formValues, setFormValues);
       }
 
-      if (formValues.__errorFields?.includes(inputName)) {
-        // If the input is in the error fields, remove it
-        const newErrorFields = formValues.__errorFields.filter((f: string) => f !== inputName);
-        setFormValues((fv: any) => ({
-          ...fv,
-          __errorFields: newErrorFields,
-        }));
-      }
+      // This is done inside FVInput composer, so there's no need to do this here
+      // (this update will become void and nothing will happen)
+      // if (formValues.__errorFields?.includes(inputName)) {
+      //   // If the input is in the error fields, remove it
+      //   const newErrorFields = formValues.__errorFields.filter((f: string) => f !== inputName);
+      //   setFormValues((fv: any) => ({
+      //     ...fv,
+      //     __errorFields: newErrorFields,
+      //   }));
+      // }
     }
   }
 

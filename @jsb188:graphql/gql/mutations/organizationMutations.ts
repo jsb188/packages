@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationInstructionsFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
+import { organizationFragment } from '../fragments/organizationFragments';
 
 export const switchOrganizationMtn = gql`
 mutation switchOrganization (
@@ -27,10 +27,12 @@ export const editOrganizationMtn = gql`
 mutation editOrganization (
   $organizationId: GenericID!
   $name: String
+  $address: AddressInput
 ) {
   editOrganization (
     organizationId: $organizationId
     name: $name
+    address: $address
   ) {
     ...organizationFragment
   }

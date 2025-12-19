@@ -1,7 +1,7 @@
 import { ModalContentContainer, ModalFloatingSaveButton, ModalSideNav, ModalSideNavIface } from '@jsb188/react-web/ui/ModalUI';
 import type { ModalHandlerProps, OpenModalPopUpFn } from '@jsb188/react/states';
-import { useKeyDown } from '@jsb188/react/states';
-import { useEffect, useState } from 'react';
+import { useClosePopOver, useKeyDown } from '@jsb188/react/states';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * Types
@@ -33,6 +33,8 @@ export function AppSettingsLayout(p: ModalHandlerProps & {
 }) {
   const { SwitchCaseComponent, openModalPopUp, options } = p;
   const [keyDown, setKeyDown] = useKeyDown();
+  const closePopOver = useClosePopOver();
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
   // const setKeyDown = (value: any) => {
   //   dispatchApp({
@@ -95,6 +97,26 @@ export function AppSettingsLayout(p: ModalHandlerProps & {
     }
   }, [keyDown.pressed]);
 
+  useEffect(() => {
+    // Listen to scroll events inside scrollAreaRef
+
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) {
+      return;
+    }
+
+    const onScroll = () => {
+      // Close pop over on scroll
+      closePopOver();
+    };
+
+    scrollArea.addEventListener('scroll', onScroll);
+
+    return () => {
+      scrollArea.removeEventListener('scroll', onScroll);
+    };
+  }, [closePopOver]);
+
   return (
     <div className='cw md h_top f rel of'>
       <ModalSideNav
@@ -103,7 +125,11 @@ export function AppSettingsLayout(p: ModalHandlerProps & {
         onClickItem={onClickNavItem}
       />
 
-      <ModalContentContainer addFooterPadding addYOverflow>
+      <ModalContentContainer
+        ref={scrollAreaRef}
+        addFooterPadding
+        addYOverflow
+      >
         <div className='f py_md px_lg'>
           <SwitchCaseComponent
             key={`switch_case_${controller.resetCounter}`}

@@ -233,6 +233,17 @@ export function usePopOverState() {
 }
 
 /**
+ * Use close pop over function
+ */
+
+export function useClosePopOver(): ClosePopOverFn {
+  const [popOver, setPopOver] = useAtom<PopOverProps | null>(popOverClass.state);
+  const setPopOverIsHover = useSetAtom(popOverIsHoverState);
+
+  return useCallback( composeClosePopOverFn(setPopOver, setPopOverIsHover, popOver), [popOver]);
+}
+
+/**
  * Create handlers functions for tooltips
  */
 

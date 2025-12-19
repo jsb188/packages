@@ -3,6 +3,7 @@ import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
 import { updateFragment } from '../cache/index';
 import { deleteComplianceDocumentMtn, editOrganizationMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
 import { useMutation } from './index';
+import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 
 /**
  * Fetch a single log entry,
@@ -79,25 +80,18 @@ export function useEditOrganization(
   params?: UseMutationParams | null,
   openModalPopUp?: OpenModalPopUpFn
 ) {
+  const { primaryOrganizationId } = useCurrentAccount();
+  const { organizationRelationship } = useOrgRelFromMyOrganizations(primaryOrganizationId);
 
-  console.log(' gotta do org data fetch here');
-  console.log(' gotta do org data fetch here');
-  console.log(' gotta do org data fetch here');
-  console.log(' gotta do org data fetch here');
-  console.log(' gotta do org data fetch here');
-
-
-  const { account, settings, dispatchApp } = useCurrentAccount();
-  const [editAccount, mtnValues, mtnHandlers] = useMutation(editOrganizationMtn, {
+  const [editOrganization, mtnValues, mtnHandlers] = useMutation(editOrganizationMtn, {
     // checkMountedBeforeCallback: true,
     openModalPopUp,
     ...params,
   });
 
   return {
-    account,
-    settings,
-    editAccount,
+    organizationRelationship,
+    editOrganization,
     ...mtnValues,
     ...mtnHandlers,
   };

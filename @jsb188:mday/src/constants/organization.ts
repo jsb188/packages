@@ -25,7 +25,7 @@ export const ROLE_CATEGORY_ENUMS = ['EMPLOYEES_ONLY', 'MANAGERS_ONLY'];
 
 // Org departments
 
-export const ORG_DEPARTMENTS = [
+export const ORG_CONTACTS = [
 	'PRIMARY_CONTACT',
 	'ACCOUNTS_RECEIVABLE',
 	'SALES',

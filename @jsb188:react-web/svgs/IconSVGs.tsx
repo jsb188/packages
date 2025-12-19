@@ -1487,16 +1487,16 @@ export const IndoorPlantHouseColor = <svg xmlns="http://www.w3.org/2000/svg" fil
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16 12.277H8v11h8v-11Z" strokeWidth="1" />
 </svg>;
 
-export const InfoCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-info-circle" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" stroke="currentColor" />
-<path d="M12 9h.01" stroke="currentColor" />
-<path d="M11 12h1v4h1" stroke="currentColor" />
+export const InfoCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-information-circle" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M11.94772258,16.73843192v-5.45741273c0-.2067968-.08211348-.40513331-.22834969-.55128119-.14623621-.14623621-.34448354-.22834969-.55128119-.22834969h-.77963003"/>
+<path d="M11.55790714,8.19618057c-.21534712,0-.38981544-.17453074-.38981544-.38981501,0-.21529361.17446832-.38981501.38981544-.38981501"/>
+<path d="M11.55790714,8.19618057c.21534712,0,.38981544-.17453074.38981544-.38981501,0-.21529361-.17446832-.38981501-.38981544-.38981501"/>
+<path d="M12.00000039,22.0000018c5.52287147,0,10.00000321-4.47713004,10.00000321-10.00000236-.0000017-5.52284429-4.47713174-9.99999594-10.00000321-9.99999594C6.47715525,2.0000035,2.00000361,6.47715515,2.00000361,12.00000029c0,5.52287147,4.47715164,10.00000151,9.99999679,10.00000151Z"/>
+<path d="M10.38846168,16.73834359h3.22307743"/>
 </svg>;
 
-export const InfoCircleFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-info-circle">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M12 2c5.523 0 10 4.477 10 10a10 10 0 0 1 -19.995 .324l-.005 -.324l.004 -.28c.148 -5.393 4.566 -9.72 9.996 -9.72zm0 9h-1l-.117 .007a1 1 0 0 0 0 1.986l.117 .007v3l.007 .117a1 1 0 0 0 .876 .876l.117 .007h1l.117 -.007a1 1 0 0 0 .876 -.876l.007 -.117l-.007 -.117a1 1 0 0 0 -.764 -.857l-.112 -.02l-.117 -.006v-3l-.007 -.117a1 1 0 0 0 -.876 -.876l-.117 -.007zm.01 -3l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z" />
+export const InfoCircleFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-information-circle-filled">
+<path d="M12,1.5C6.20101005,1.5,1.5,6.20101005,1.5,12c0,5.79898953,4.70101005,10.5,10.5,10.5,5.79898953,0,10.5-4.70101047,10.5-10.5,0-5.79898995-4.70101047-10.5-10.5-10.5ZM12.21875,5.875c.7248739,0,1.3125.5876261,1.3125,1.3125s-.5876261,1.3125-1.3125,1.3125-1.3125-.5876261-1.3125-1.3125.5876261-1.3125,1.3125-1.3125ZM14.1875,17.6875h-3.5c-.48324955,0-.875-.39175129-.875-.875s.39175045-.875.875-.875h.65625c.12081218,0,.21875-.09793782.21875-.21875v-3.9375c0-.12081218-.09793782-.21875-.21875-.21875h-.65625c-.48324955,0-.875-.39175045-.875-.875s.39175045-.875.875-.875h.875c.96649826,0,1.75.78350174,1.75,1.75v4.15625c0,.12081218.09793782.21875.21875.21875h.65625c.48324955,0,.875.39175129.875.875s-.39175045.875-.875.875Z"/>
 </svg>;
 
 export const InnerShadowBottom = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-inner-shadow-bottom-filled" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

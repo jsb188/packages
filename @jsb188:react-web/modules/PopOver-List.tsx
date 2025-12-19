@@ -209,6 +209,7 @@ export function PONavItemIface(p: PONavItemBase & {
  */
 
 export function PopOverList(p: PopOverHandlerProps & {
+  doNotFixToBottom?: boolean;
   variables: POListIface['variables'];
 }) {
   const { closePopOver, setPopOverState, variables } = p;
@@ -221,7 +222,8 @@ export function PopOverList(p: PopOverHandlerProps & {
     savingValue,
     addFooterButton,
     footerButtonText,
-    initialState
+    initialState,
+    remainingHeight
   } = variables;
 
   const divRef = useRef<HTMLDivElement>(null);
@@ -255,7 +257,7 @@ export function PopOverList(p: PopOverHandlerProps & {
       ref={divRef}
       className={designClassName}
     >
-      <div className={cn('inside y_scr_hidden gap_2', className)}>
+      <div className={cn('inside y_scr_hidden gap_2', className)} style={remainingHeight ? { maxHeight: remainingHeight } : undefined}>
         {notReady
         ? <div className='p_md'>
           <ActivityDots />

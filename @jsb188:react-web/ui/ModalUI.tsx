@@ -1,13 +1,13 @@
 import i18n from '@jsb188/app/i18n';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
+import { forwardRef, memo } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
 import Markdown, { EmojiWrapper, TextWithLinks } from './Markdown';
 import { ShortcutKey } from './OtherUI';
-import { memo } from 'react';
 
 /**
  * Types
@@ -80,17 +80,20 @@ interface ModalContentContainerProps extends ReactDivElement {
  * Modal content container
  */
 
-export function ModalContentContainer(p: ModalContentContainerProps) {
+export const ModalContentContainer = forwardRef<HTMLDivElement, ModalContentContainerProps>((p, ref) => {
   const { notReady, addFooterPadding, addYOverflow, className, ...other } = p;
   return (
     <div
+      ref={ref}
       className={cn('mw_content r_df', addYOverflow ? 'scr_area' : '', addFooterPadding ? 'w_pad' : '', className, notReady ? 'v_center' : '')}
       {...other}
     >
       {notReady ? <BigLoading color='alt' /> : other.children}
     </div>
   );
-}
+});
+
+ModalContentContainer.displayName = 'ModalContentContainer';
 
 /**
  * Modal error message notice
@@ -233,8 +236,8 @@ export function ModalSideNavItem(p: ModalSideNavIface) {
     <li
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role
       role='button'
-      className={cn('r_sm h_item mb_2', itemCn, hasLink ? 'link' : '', selected ? 'bg_alt cl_df' : 'bg_alt_hv cl_df')}
-      onClick={onClick ? () => onClick(value!) : undefined}
+      className={cn('r_sm h_item mb_2', itemCn, hasLink ? 'link' : '', selected ? 'bg_active disabled cl_df' : 'bg_active_hv cl_df')}
+      onClick={onClick && !selected ? () => onClick(value!) : undefined}
     >
       {!iconName ? null
       : <span className='w_25 h_center shift_left mr_4'>
@@ -289,7 +292,7 @@ export function ModalFloatingSaveButton(p: ModalFloatingSaveButtonProps) {
   // const saving = true;
 
   return (
-    <div className={cn('mfs_cnt bg_alt h_spread rt_df z_10', hasChanges ? 'active' : '')}>
+    <div className={cn('mfs_cnt bg_active h_spread rt_df z_10', hasChanges ? 'active' : '')}>
       <div className='h_item px_xs'>
         {i18n.t('form.unsaved_changes_msg')}
       </div>

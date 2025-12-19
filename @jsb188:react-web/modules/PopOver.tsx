@@ -2,7 +2,7 @@ import { DOM_IDS } from '@jsb188/app/constants/app';
 import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { usePopOver, useSetPopOverIsHover, useTooltip } from '@jsb188/react/states';
-import type { ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps } from '@jsb188/react/types/PopOver.d';
+import type { ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps, UpdatePopOverFn } from '@jsb188/react/types/PopOver.d';
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { guessTooltipSize, TooltipText } from '../ui/PopOverUI';
 import { PopOverCheckList, PopOverLabelsAndValues, PopOverList } from './PopOver-List';
@@ -26,6 +26,7 @@ interface PopOverButtonProps {
   notActiveClassName?: string;
   animationClassName?: string;
   popOverClassName?: string;
+  doNotFixToBottom?: boolean;
   doNotTrackHover?: boolean;
   doNotRemoveOnPageEvents?: boolean;
   scrollAreaDOMId?: string | null;
@@ -44,7 +45,7 @@ interface PopOverButtonProps {
  */
 
 export function PopOverButton(p: PopOverButtonProps) {
-  const { domId, id, disabled, iface, children, className, zClassName, activeClassName, notActiveClassName, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
+  const { domId, id, disabled, iface, children, className, zClassName, activeClassName, notActiveClassName, animationClassName, popOverClassName, position, offsetX, offsetY, leftEdgeThreshold, rightEdgeThreshold, leftEdgePosition, rightEdgePosition, doNotFixToBottom, doNotTrackHover, doNotRemoveOnPageEvents, scrollAreaDOMId } = p;
   const { name, variables } = iface;
   const { popOver, openPopOver, closePopOver } = usePopOver();
   const DomEl = p.as || 'div';
@@ -83,6 +84,7 @@ export function PopOverButton(p: PopOverButtonProps) {
         position,
         offsetX,
         offsetY,
+        doNotFixToBottom,
         leftEdgeThreshold,
         rightEdgeThreshold,
         leftEdgePosition,
@@ -164,14 +166,13 @@ function PopOverMoreButton(p: {
  * Always render pop over using this wrapper
  */
 
-interface PopOverWrapperProps extends PopOverProps {
+export function PopOverWrapper(p: PopOverProps & {
   children: React.ReactNode;
   zClassName?: string;
   pathname: string;
+  updatePopOver: UpdatePopOverFn;
   closePopOver: ClosePopOverFn;
-}
-
-export function PopOverWrapper(p: PopOverWrapperProps) {
+}) {
   const {
     id,
     // name,
@@ -185,8 +186,10 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
     animationClassName,
     doNotTrackHover,
     doNotRemoveOnPageEvents,
+    doNotFixToBottom,
     scrollAreaDOMId,
     closing,
+    updatePopOver,
     closePopOver
   } = p;
 
@@ -209,6 +212,7 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
 
   const notReady = (contentDimensions[1] || -1) < 0;
   const windowWidth = globalThis.window.innerWidth;
+  const windowHeight = globalThis.window.innerHeight;
 
   // let left: number | string = rect.x + rect.width + (offsetX ?? 0);
   let left: number | string;
@@ -279,12 +283,20 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
   // console.log(leftOffset);
   // console.log(left + leftOffset);
 
+  let remainingHeight: number | undefined;
   if (!notReady && contentDimensions[1]) {
 
-    if (bottom === 'auto') {
+    if (doNotFixToBottom) {
+      const nextRemainingHeight = windowHeight - (typeof top === 'number' ? top : 0) - 10;
+      if (contentDimensions[1] > 200 && contentDimensions[1] > nextRemainingHeight) {
+        remainingHeight = Math.max(200, nextRemainingHeight);
+      }
+
+
+    } else if (bottom === 'auto') {
       const domBottomPos = contentDimensions[1] + rect.top;
       // console.log('domBottomPos', domBottomPos, contentHeight, '::', (globalThis?.window.innerHeight - domBottomPos));
-      if ((globalThis?.window.innerHeight - domBottomPos) < 10) {
+      if ((windowHeight - domBottomPos) < 10) {
         bottom = 10;
         top = 'auto';
       }
@@ -354,7 +366,15 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
   // Observe popover size changes for proper positioning
 
   useEffect(() => {
-    if (popOverRef.current) {
+    if (remainingHeight) {
+      // If height is forced, we have to stop the observer, to prevent infinite loop
+      // Update pop over with new remaining height, and let the children Component handle the rest
+      updatePopOver({
+        ...p.variables,
+        name: p.name,
+        remainingHeight
+      });
+    } else if (popOverRef.current) {
       const resizeObserver = new ResizeObserver((observed) => {
         const contentRect = observed[0]?.contentRect;
         setContentDimensions([contentRect?.width || 0, contentRect?.height || 0]);
@@ -363,7 +383,7 @@ export function PopOverWrapper(p: PopOverWrapperProps) {
       resizeObserver.observe(popOverRef.current);
       return () => resizeObserver.disconnect();
     }
-  }, [id]);
+  }, [id, remainingHeight]);
 
   // Hoever state event handlers, in case you need it
 

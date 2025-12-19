@@ -136,6 +136,7 @@ export interface POListIface {
     addFooterButton?: boolean;
     footerButtonText?: string;
     LinkComponent?: any;
+    remainingHeight?: number; // Auto calc'd from <PopOverWrapper />
   };
 }
 
@@ -222,6 +223,7 @@ export interface PopOverProps extends Partial<FixedElementProps> {
   zClassName?: string; // Class name for z-index, e.g. 'z6', 'z7', etc.
   animationClassName?: string;
   doNotTrackHover?: boolean;
+  doNotFixToBottom?: boolean; // If true, popover will not adjust position to fit in viewport
   doNotRemoveOnPageEvents?: boolean; // If true, popover will be removed when the user scrolls or navigation events
   scrollAreaDOMId?: string | null; // Some pages have different parts as the main body, this is the scroll element that need to be tracked
   globalState?: Record<string, any> | null; // Use this to listen to state changes from outside the popover

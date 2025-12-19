@@ -1,7 +1,7 @@
 import {
   COMPLIANCE_DOCUMENT_TYPE_ENUMS,
   OPERATION_ENUMS,
-  ORG_DEPARTMENTS,
+  ORG_CONTACTS,
   ROLE_CATEGORY_ENUMS,
   ROLE_ENUMS
 } from '../constants/organization.ts';
@@ -18,7 +18,7 @@ import type { LogTypeEnum } from '../types/log.d';
 export type OrganizationFeatureEnum = typeof PRODUCT_FEATURES[number];
 export type OrganizationRoleEnum = typeof ROLE_ENUMS[number];
 export type OrganizationOperationEnum = typeof OPERATION_ENUMS[number];
-export type OrganizationDepartmentEnum = typeof ORG_DEPARTMENTS[number];
+export type OrganizationDepartmentEnum = typeof ORG_CONTACTS[number];
 export type OrganizationRoleCategoryEnum = typeof ROLE_CATEGORY_ENUMS[number];
 export type OrganizationComplianceType = typeof COMPLIANCE_DOCUMENT_TYPE_ENUMS[number];
 
@@ -81,7 +81,6 @@ export interface OrganizationData {
 	settings?: OrganizationSettingsObj | null;
   address?: null | AddressObj & {
     __table: 'organization_addresses';
-    id: bigint;
     organizationId: bigint;
   };
 	activated: boolean;

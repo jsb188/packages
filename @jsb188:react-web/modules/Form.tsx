@@ -8,7 +8,7 @@ import { Button, InlineBlockLabel } from '@jsb188/react-web/ui/Button';
 import { createElement, forwardRef, memo, useEffect, useRef, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { InputFocusStyle, InputPresetName, LabelType } from '../ui/FormUI';
-import { Label, getHtmlFor } from '../ui/FormUI';
+import { FormSectionTitle, Label, getHtmlFor } from '../ui/FormUI';
 import { InputTimeFromDate } from './Form-InputTime';
 import { PopOverButton } from './PopOver';
 
@@ -251,7 +251,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
   if (locked && allowClearIfLocked && setFormValues) {
     onClickRight = () => setFormValues({ ...setObject(formValues, String(name), '') });
     rightIconName = 'circle-x';
-    labelIconName = 'lock';
+    labelIconName = 'locked';
   } else if (p.rightIconName) {
     rightIconName = p.rightIconName;
     onClickRight = p.onClickRight;
@@ -287,10 +287,17 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
           {label}
         </Label>
       )}
-      <div className={cn('rel', onClick ? 'link' : '')} onClick={onClickItem}>
+      <div
+        onClick={onClickItem}
+        className={cn(
+          'rel',
+          onClick ? 'link' : '',
+          locked ? 'strong_bf pattern_stripes' : ''
+        )}
+      >
         <input
           className={cn(
-            'w_f form_input',
+            'w_f form_input rel',
             borderRadiusClassName ?? 'r_sm',
             inputClassName,
             // Use .cl_md for faded color for "disabled" status,
@@ -298,6 +305,8 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
             // So I prefer if everything is not-faded.
             // disabled ? 'disabled cl_md' : '',
             editable === false ? 'cl_md' : disabled ? 'disabled' : '',
+            // Need .error on both container + input
+            error ? 'error' : '',
           )}
           id={htmlFor}
           name={name}
@@ -397,7 +406,8 @@ function InputClick(p: InputType & Omit<LabelType, 'children'> & { popOverProps:
   return <Input
     {...rest}
     // as={popOverProps ? PopOverButton : undefined}
-    locked
+    // locked
+    disabled
     value={getObject(formValues, name)}
     inputClassName={isDisabled ? inputClassName : cn('pointer', inputClassName)}
     rightIconName={locked ? 'locked' : 'caret-down'}
@@ -493,7 +503,7 @@ export function Textarea(p: TextareaType & LabelType) {
 
   let labelIconName;
   if (locked && allowClearIfLocked && formValues) {
-    labelIconName = 'lock';
+    labelIconName = 'locked';
   }
 
   useEffect(() => {
@@ -602,7 +612,6 @@ const FormOptionItem = memo((p: OptionType) => {
       {!rightLabel ? null
         : <InlineBlockLabel
           as='span'
-          // @ts-expect-error assume the color is one of the correct enums
           color={rightLabelColor}
           text={rightLabel}
         />}
@@ -624,7 +633,7 @@ export function FormOptions(p: OptionsType) {
 
   let labelIconName;
   if (locked) {
-    labelIconName = 'lock';
+    labelIconName = 'locked';
   }
 
   return (
@@ -702,6 +711,8 @@ export function FormItem(p: any) {
       return <InputClick disabled={disabled} {...item} {...other} />;
     case 'input_time_from_date':
       return <InputTimeFromDate disabled={disabled} {...item} {...other} />;
+    case 'section_title':
+      return <FormSectionTitle {...item} />;
     case 'password':
       return <FVPasswordInput disabled={disabled} {...item} {...other} />;
     case 'textarea':
@@ -747,6 +758,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
     } = p;
 
     const platform = getPlatform();
+    const isError = formValues.__errorFields?.includes(name)
 
     let onKeyDown;
     if (platform !== 'MOBILE' && (onSubmit || onKeyDown)) {
@@ -795,7 +807,13 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
           if (onChange) {
             onChange(e, name_);
           }
-          setFormValues({ ...setObject(formValues, String(name_), setter ? setter(e.target?.value) : e.target?.value) });
+
+          const newValues = { ...setObject(formValues, String(name_), setter ? setter(e.target?.value) : e.target?.value) };
+          if (newValues.__errorFields && newValues.__errorFields?.includes(name)) {
+            newValues.__errorFields = newValues.__errorFields.filter((field: string) => field !== name);
+          }
+
+          setFormValues(newValues);
         },
       };
     }
@@ -805,7 +823,7 @@ export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean)
         {...p}
         {...platformAgnosticProps}
         value={getObject(formValues, name)}
-        error={formValues.__errorFields?.includes(name)}
+        error={isError}
       />
     );
   };

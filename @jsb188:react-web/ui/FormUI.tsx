@@ -72,12 +72,12 @@ export function Label(p: LabelType) {
   const { htmlFor, paddingClassName, labelClassName, iconName, info, children } = p;
   return (
     <label
-      className={cn('ft_sm ic_sm h_spread', paddingClassName ?? 'pt_sm pb_3', labelClassName)}
+      className={cn('ft_sm ic_sm h_item', paddingClassName ?? 'pt_sm pb_3', labelClassName)}
       htmlFor={htmlFor}
     >
       {children}
       {!iconName && !info ? null : (
-        <TooltipButton message={info} className='pl_df label_r' position='right'>
+        <TooltipButton message={info} className='pl_5 shift_up label_r' position='right' offsetY={-9}>
           <Icon name={iconName || 'info-circle'} />
         </TooltipButton>
       )}
@@ -104,4 +104,25 @@ export function ColorItems(p: {
       ))}
     </div>
   );
+}
+
+/**
+ * Form section title
+ */
+
+export function FormSectionTitle(p: {
+  title?: string;
+  description?: string;
+}) {
+  const { title, description } = p;
+  return <div className='mt_md cl_lt'>
+    {title &&
+    <p className='ft_xl ls_4'>
+      {title}
+    </p>}
+    {description &&
+    <p className='-mt_5 pb_10 ft_xs lh_3'>
+      {description}
+    </p>}
+  </div>;
 }
