@@ -21,13 +21,14 @@ const ROUTES_MAP = {
   // # Arable
   'app/seeding': '/app/seeding',
   'app/transplanting': '/app/transplanting',
-  'app/field_work': '/app/field-work',
+  'app/field-work': '/app/field-work',
   'app/harvested': '/app/harvested',
-  'app/post_harvest': '/app/post-harvest',
+  'app/post-harvest': '/app/post-harvest',
 
-  // * Arable; Modules for Food Safety
+  // * Arable; Modules
   'app/globalgap': '/app/globalgap',
   'app/cleaning': '/app/cleaning',
+  'app/organic': '/app/organic',
 
   // * Arable; Food Safety
   'app/hygiene': '/app/hygiene',
@@ -44,11 +45,11 @@ const ROUTES_MAP = {
 
   // # Grower Network
   'app/growers': '/app/growers',
-  'app/foreign_growers': '/app/foreign-growers',
+  'app/foreign-growers': '/app/foreign-growers',
 
   // # Advanced
   'app/logs': '/app/logs',
-  'app/ai_workflows': '/app/ai-workflows',
+  'app/ai-workflows': '/app/ai-workflows',
 };
 
 type AppRouteName = keyof typeof ROUTES_MAP;
@@ -87,8 +88,8 @@ const ROUTES_DICT: Record<AppRouteName, {
 
   // Advanced
 
-  'app/ai_workflows': {
-    to: makePathname('app/ai_workflows'),
+  'app/ai-workflows': {
+    to: makePathname('app/ai-workflows'),
     text: i18n.t('form.ai_workflows'),
     iconName: COMMON_ICON_NAMES.ai_workflow,
   },
@@ -118,8 +119,8 @@ const ROUTES_DICT: Record<AppRouteName, {
     allowedOperations: ['ARABLE'],
     requiredFeature: F.normal_logging,
   },
-  'app/field_work': {
-    to: makePathname('app/field_work'),
+  'app/field-work': {
+    to: makePathname('app/field-work'),
     text: i18n.t('log.field_work'),
     iconName: COMMON_ICON_NAMES.field_work,
 
@@ -134,8 +135,8 @@ const ROUTES_DICT: Record<AppRouteName, {
     allowedOperations: ['ARABLE'],
     requiredFeature: F.normal_logging,
   },
-  'app/post_harvest': {
-    to: makePathname('app/post_harvest'),
+  'app/post-harvest': {
+    to: makePathname('app/post-harvest'),
     text: i18n.t('log.post_harvest'),
     iconName: COMMON_ICON_NAMES.post_harvest,
 
@@ -163,19 +164,27 @@ const ROUTES_DICT: Record<AppRouteName, {
 
   'app/globalgap': {
     to: makePathname('app/globalgap'),
-    text: i18n.t('product.globalgap'),
-    iconName: COMMON_ICON_NAMES.global_gap,
+    text: i18n.t('product.report.GLOBAL_GAP'),
+    iconName: COMMON_ICON_NAMES.generic_report,
 
     allowedOperations: OP_FARMING,
     requiredFeature: ['GLOBAL_GAP'],
   },
   'app/cleaning': {
     to: makePathname('app/cleaning'),
-    text: i18n.t('log.cleaning_logs'),
+    text: i18n.t('product.report.CLEANING'),
     iconName: COMMON_ICON_NAMES.SANITATION,
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
+  },
+  'app/organic': {
+    to: makePathname('app/organic'),
+    text: i18n.t('product.report.ORGANIC_CERTIFICATION'),
+    iconName: COMMON_ICON_NAMES.generic_report,
+
+    allowedOperations: OP_FARMING,
+    requiredFeature: ['ORGANIC_CERTIFICATION'],
   },
 
   // Arable; Food Safety
@@ -265,8 +274,8 @@ const ROUTES_DICT: Record<AppRouteName, {
 
     allowedOperations: ['GROWER_NETWORK'],
   },
-  'app/foreign_growers': {
-    to: makePathname('app/foreign_growers'),
+  'app/foreign-growers': {
+    to: makePathname('app/foreign-growers'),
     text: i18n.t('form.foreign_growers'),
     iconName: COMMON_ICON_NAMES.foreign_growers,
 
@@ -400,28 +409,29 @@ export function getNavigationList(
         {
           text: i18n.t('form.reports'),
           navList: [
+            ROUTES_DICT['app/organic'],
             ROUTES_DICT['app/globalgap'],
-            ROUTES_DICT['app/cleaning'],
           ]
         },
-        // {
-        //   text: i18n.t('log.food_safety'),
-        //   navList: [
-        //     ROUTES_DICT['app/hygiene'],
-        //     ROUTES_DICT['app/sanitation'],
-        //     ROUTES_DICT['app/materials'],
-        //     ROUTES_DICT['app/biosecurity'],
-        //     ROUTES_DICT['app/employees'],
-        //   ]
-        // },
+        {
+          text: i18n.t('log.food_safety'),
+          navList: [
+            ROUTES_DICT['app/cleaning'],
+            // ROUTES_DICT['app/hygiene'],
+            // ROUTES_DICT['app/sanitation'],
+            // ROUTES_DICT['app/materials'],
+            // ROUTES_DICT['app/biosecurity'],
+            // ROUTES_DICT['app/employees'],
+          ]
+        },
         {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['app/seeding'],
             ROUTES_DICT['app/transplanting'],
-            ROUTES_DICT['app/field_work'],
+            ROUTES_DICT['app/field-work'],
             ROUTES_DICT['app/harvested'],
-            ROUTES_DICT['app/post_harvest'],
+            ROUTES_DICT['app/post-harvest'],
             breakItem,
 
             ROUTES_DICT['app/purchases'],
@@ -459,7 +469,7 @@ export function getNavigationList(
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['app/growers'],
-            ROUTES_DICT['app/foreign_growers'],
+            ROUTES_DICT['app/foreign-growers'],
           ]
         }
       ];
@@ -479,7 +489,7 @@ export function getNavigationList(
     text: i18n.t('form.advanced'),
     initialExpanded: false,
     navList: [
-      ROUTES_DICT['app/ai_workflows'],
+      ROUTES_DICT['app/ai-workflows'],
       ROUTES_DICT['app/logs']
     ]
   }] as any);

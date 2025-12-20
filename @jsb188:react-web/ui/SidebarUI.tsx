@@ -63,7 +63,7 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
         {title}
       </div>
 
-      <span className='ml_xs h_center ic_xs cl_md'>
+      <span className='ml_xs h_center ic_xs cl_md f_shrink'>
         <Icon name='chevron-right-filled' />
       </span>
     </>}

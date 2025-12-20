@@ -81,7 +81,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   favorites: 'stars',
   field_work: 'farming-field-sun',
   file: 'file-description',
-  global_gap: 'ui-webpage-check',
+  generic_report: 'ui-webpage-check',
   group: 'users-group',
   harvest: 'vegetable-corn',
   image: 'photo',

@@ -97,7 +97,7 @@ export default {
     20058: 'You do not have permissions to edit this log. Please contact your administrator.',
     20059: 'This log was not found.\nIt may have been deleted.',
     20060: 'You do not have permissions to delete this log. Please contact your administrator.',
-    20061: 'You do not have the required permissions for this feature. Please contact your administrator.',
+    20061: 'You do not have permissions to perform this action. Please contact your administrator.',
 
     '29999_title': 'Not ready',
     29999: 'AI chat is not ready right now.',
