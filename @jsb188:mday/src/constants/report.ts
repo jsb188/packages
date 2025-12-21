@@ -15,4 +15,5 @@ export const REPORT_TYPES = [
 export const REPORT_ROW_PRESETS = [
   'LABELS',
   'MONTH',
+  'BREAK',
 ];

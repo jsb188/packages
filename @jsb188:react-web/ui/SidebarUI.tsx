@@ -126,9 +126,10 @@ SidebarSubtitle.displayName = 'SidebarSubtitle';
 export const SidebarNestedNavItem = memo((p: {
   text: string;
   navList: (SidebarItemProps & { break?: boolean })[];
+  currentPath?: string;
   initialExpanded?: boolean;
 }) => {
-  const { text, navList, initialExpanded } = p;
+  const { text, navList, currentPath, initialExpanded } = p;
   const [expanded, setExpanded] = useState(initialExpanded !== false);
 
   return <>
@@ -149,6 +150,7 @@ export const SidebarNestedNavItem = memo((p: {
         ? <SidebarBreak key={i} />
         : <SidebarItem
           key={i}
+          selected={currentPath === item.to}
           {...item}
         />
       ))}

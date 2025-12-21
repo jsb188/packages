@@ -1061,6 +1061,10 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .h_900 { height: 900px; }
 .h_950 { height: 950px; }
 .h_1000 { height: 1000px; }
+.h_1050 { height: 1050px; }
+.h_1100 { height: 1100px; }
+.h_1150 { height: 1150px; }
+.h_1200 { height: 1200px; }
 
 .w_sidebar { width: var(--sidebar-wt); }
 .w_max_content { width: max-content; }
@@ -1138,6 +1142,10 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .w_900 { width: 900px; }
 .w_950 { width: 950px; }
 .w_1000 { width: 1000px; }
+.w_1050 { width: 1050px; }
+.w_1100 { width: 1100px; }
+.w_1150 { width: 1150px; }
+.w_1200 { width: 1200px; }
 
 .min_h_f { min-height: 100%; }
 .min_h_10 { min-height: 10px; }
@@ -1185,6 +1193,10 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .min_h_900 { min-height: 900px; }
 .min_h_950 { min-height: 950px; }
 .min_h_1000 { min-height: 1000px; }
+.min_h_1050 { min-height: 1050px; }
+.min_h_1100 { min-height: 1100px; }
+.min_h_1150 { min-height: 1150px; }
+.min_h_1200 { min-height: 1200px; }
 
 .max_h_f { max-height: 100%; }
 .max_h_10 { max-height: 10px; }
@@ -1232,6 +1244,10 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .max_h_900 { max-height: 900px; }
 .max_h_950 { max-height: 950px; }
 .max_h_1000 { max-height: 1000px; }
+.max_h_1050 { max-height: 1050px; }
+.max_h_1100 { max-height: 1100px; }
+.max_h_1150 { max-height: 1150px; }
+.max_h_1200 { max-height: 1200px; }
 
 .min_w_f { min-width: 100%; }
 .min_w_10 { min-width: 10px; }
@@ -1270,6 +1286,10 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .min_w_900 { min-width: 900px; }
 .min_w_950 { min-width: 950px; }
 .min_w_1000 { min-width: 1000px; }
+.min_w_1050 { min-width: 1050px; }
+.min_w_1100 { min-width: 1100px; }
+.min_w_1150 { min-width: 1150px; }
+.min_w_1200 { min-width: 1200px; }
 
 .max_w_f { max-width: 100%; }
 .max_w_10 { max-width: 10px; }
@@ -1317,6 +1337,10 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .max_w_900 { max-width: 900px; }
 .max_w_950 { max-width: 950px; }
 .max_w_1000 { max-width: 1000px; }
+.max_w_1050 { max-width: 1050px; }
+.max_w_1100 { max-width: 1100px; }
+.max_w_1150 { max-width: 1150px; }
+.max_w_1200 { max-width: 1200px; }
 
 /* Special sizing for mobile */
 
