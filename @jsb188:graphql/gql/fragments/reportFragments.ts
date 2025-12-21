@@ -3,6 +3,7 @@ export const reportFragment = `fragment reportFragment on Report {
   id
   organizationId
 
+  sectionName
   title
   description
   type
@@ -17,6 +18,7 @@ export const reportSubmissionFragment = `fragment reportSubmissionFragment on Re
   reportId
   organizationId
 
+  sectionName
   title
   period
   activityAt
@@ -26,6 +28,7 @@ export const reportSubmissionFragment = `fragment reportSubmissionFragment on Re
 export const reportSectionFragment = `fragment reportSectionFragment on ReportSection {
   id
   isGroupTitle
+  sectionName
   title
   description
 }`;

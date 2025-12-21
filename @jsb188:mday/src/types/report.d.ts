@@ -24,7 +24,7 @@ export interface ReportsFilterArgs {
  */
 
 interface ReportFieldsObj {
-  allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
+	allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
 	gridLayoutStyle?: string;
 	sections?: ReportFieldsSection[];
 	rows?: ReportFieldsRow[];
@@ -39,9 +39,10 @@ interface ReportFieldsSection {
 	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Every section must have a unique string UID
 	isGroupTitle?: boolean;
+  sectionName: string;
 	title: string;
 	description: string;
-  rows?: ReportFieldsRow[];
+	rows?: ReportFieldsRow[];
 }
 
 interface ReportFieldsRow {
@@ -51,6 +52,10 @@ interface ReportFieldsRow {
 	isHeader?: boolean;
 	columns: Partial<ReportFieldsColumn>[];
 }
+
+type ReportRowGQL = Omit<ReportFieldsRow, 'key'> & {
+	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+};
 
 interface ReportFieldsColumn {
 	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
@@ -72,6 +77,7 @@ export interface ReportData {
 
 	id: number;
 	type: ReportTypeEnum;
+  sectionName: string;
 	title: string;
 	description: string;
 	order: number;
@@ -92,6 +98,7 @@ export interface ReportGQL {
 
 	id: string;
 	organizationId: string;
+  sectionName: string;
 	title: string;
 	description: string;
 	type: ReportTypeEnum;
@@ -99,19 +106,20 @@ export interface ReportGQL {
 	activityAt: string | null; // ISO date string
 
 	sections?: ReportFieldsSection[];
-	rows?: ReportFieldsRow[];
+	rows?: ReportRowGQL[];
 }
 
 export interface ReportSubmissionGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
-  id: string;
-  reportId: string;
-  organizationId: string;
-  title: string;
-  period: string; // YYYY-MM-DD
-  activityAt: string | null; // ISO date string
-  rows: ReportFieldsRow[];
+	id: string;
+	reportId: string;
+	organizationId: string;
+  sectionName: string;
+	title: string;
+	period: string; // YYYY-MM-DD
+	activityAt: string | null; // ISO date string
+	rows: ReportRowGQL[];
 }
 
 export interface ReportSubmissionData {
