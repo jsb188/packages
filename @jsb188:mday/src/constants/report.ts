@@ -3,17 +3,18 @@
  */
 
 export const REPORT_SORT_OPTS = [
-  'PERIOD_HAPPENED'
+	'PERIOD_HAPPENED',
 ];
 
 export const REPORT_TYPES = [
 	'GLOBAL_GAP',
-  'CLEANING',
-  'ORGANIC_CERTIFICATION',
+	'CLEANING',
+	'ORGANIC_CERTIFICATION',
 ];
 
 export const REPORT_ROW_PRESETS = [
-  'LABELS',
-  'MONTH',
-  'BREAK',
+	'LABELS',
+	'MONTH',
+	'BREAK',
+  'Q_AND_A',
 ];

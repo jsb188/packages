@@ -24,14 +24,15 @@ export interface ReportsFilterArgs {
  */
 
 interface ReportFieldsObj {
-  gridLayoutStyle?: string;
+  allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
+	gridLayoutStyle?: string;
 	sections?: ReportFieldsSection[];
 	rows?: ReportFieldsRow[];
-  metadata?: ReportFieldsRow[];
-  variables: {
-    month?: number; // Used for MONTH presets (required for all preset="MONTH" rows)
-    [key: string]: any;
-  };
+	metadata?: ReportFieldsRow[];
+	variables: {
+		month?: number; // Used for MONTH presets (required for all preset="MONTH" rows)
+		[key: string]: any;
+	};
 }
 
 interface ReportFieldsSection {
@@ -40,25 +41,26 @@ interface ReportFieldsSection {
 	isGroupTitle?: boolean;
 	title: string;
 	description: string;
+  rows?: ReportFieldsRow[];
 }
 
 interface ReportFieldsRow {
 	key: string; // Key is used to map row/columns to answers
 	preset?: ReportRowPresetEnum;
-  className?: string;
-  isHeader?: boolean;
+	className?: string;
+	isHeader?: boolean;
 	columns: Partial<ReportFieldsColumn>[];
 }
 
 interface ReportFieldsColumn {
 	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
-  key: string; // Key is used to map column to answers
-  className: string;
-  label: string;
+	key: string; // Key is used to map column to answers
+	className: string;
+	label: string;
 	text: string;
 	placeholder: string | null;
-  value: string | null; // Available only in server; this value has the indexes to map answers to directly without keys
-  checked: boolean | null;
+	value: string | null; // Available only in server; this value has the indexes to map answers to directly without keys
+	checked: boolean | null;
 }
 
 /**
@@ -100,12 +102,24 @@ export interface ReportGQL {
 	rows?: ReportFieldsRow[];
 }
 
+export interface ReportSubmissionGQL {
+  __deleted?: boolean;
+
+  id: string;
+  reportId: string;
+  organizationId: string;
+  title: string;
+  period: string; // YYYY-MM-DD
+  activityAt: string | null; // ISO date string
+  rows: ReportFieldsRow[];
+}
+
 export interface ReportSubmissionData {
 	__table: 'report_submissions';
 	id: number;
-  organizationId: number;
-  reportId: number;
-  period: string; // YYYY-MM-DD
-  answers: Record<string, any>; // key-value pairs of answers
-  activityAt: Date;
+	organizationId: number;
+	reportId: number;
+	period: Date; // YYYY-MM-DD in database, Date object in server via ORM
+	answers: Record<string, any>; // key-value pairs of answers
+	activityAt: Date;
 }

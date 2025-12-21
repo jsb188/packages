@@ -12,6 +12,17 @@ export const reportFragment = `fragment reportFragment on Report {
   activityAt
 }`;
 
+export const reportSubmissionFragment = `fragment reportSubmissionFragment on ReportSubmission {
+  id
+  reportId
+  organizationId
+
+  title
+  period
+  activityAt
+}`;
+
+
 export const reportSectionFragment = `fragment reportSectionFragment on ReportSection {
   id
   isGroupTitle

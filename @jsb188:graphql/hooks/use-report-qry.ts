@@ -1,6 +1,6 @@
 import type { ReportsFilterArgs, ReportsSortEnum } from '@jsb188/mday/types/report.d';
 import { useQuery, useReactiveFragment } from '../client';
-import { reportsQry, reportSubmissionsQry } from '../gql/queries/reportQueries';
+import { reportsQry, reportSubmissionQry } from '../gql/queries/reportQueries';
 import type { UseQueryParams } from '../types';
 
 /**
@@ -52,25 +52,27 @@ export function useReports(
  * Fetch report submissions for a single page in the report
  */
 
-export function useReportSubmissions(
+export function useReportSubmission(
   organizationId: string,
   reportId: string,
   sectionKey: string,
+  period: string,
 ) {
-  const { data, ...rest } = useQuery(reportSubmissionsQry, {
+  const { data, ...rest } = useQuery(reportSubmissionQry, {
     variables: {
       organizationId,
       reportId,
       sectionKey,
+      period,
     },
-    skip: !organizationId || !reportId || !sectionKey,
+    skip: !organizationId || !reportId || !sectionKey || !period,
   });
 
-  const submissions = data?.reportSubmissions;
-  const notReady = !submissions;
+  const reportSubmission = data?.reportSubmission;
+  const notReady = !reportSubmission;
 
   return {
-    submissions,
+    reportSubmission,
     notReady,
     ...rest
   };
