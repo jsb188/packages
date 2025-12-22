@@ -78,11 +78,14 @@ export interface OrganizationData {
 	commodities: string[] | null;
 	operation: OrganizationOperationEnum;
 	dailyDigestTime: string | null;
+	features: OrganizationFeatureEnum[];
 	settings?: OrganizationSettingsObj | null;
-  address?: null | AddressObj & {
-    __table: 'organization_addresses';
-    organizationId: bigint;
-  };
+	address?:
+		| null
+		| AddressObj & {
+			__table: 'organization_addresses';
+			organizationId: bigint;
+		};
 	activated: boolean;
 }
 
@@ -98,7 +101,6 @@ export interface OrganizationSettingsObj {
 	language: string | null;
 	color: string | null;
 	priorityService: boolean;
-	features: OrganizationFeatureEnum[];
 	directory?: OrganizationContact[];
 }
 
@@ -162,6 +164,7 @@ export interface OrganizationGQL {
 	address: AddressObj;
 	operation: OrganizationOperationEnum;
 	compliance: OrganizationComplianceGQL[] | null;
+	features: OrganizationFeatureEnum[];
 	settings?: OrganizationSettingsObj | null;
 	directory: OrganizationContact[];
 	activated: boolean;

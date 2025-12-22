@@ -18,11 +18,11 @@ export const organizationFragment = `fragment organizationFragment on Organizati
     country
   }
 
+  features
   settings {
     timeZone
     language
     color
-    features
   }
 
   directory {
