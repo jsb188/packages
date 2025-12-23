@@ -25,6 +25,7 @@ export interface ReportsFilterArgs {
 
 interface ReportFieldsObj {
 	allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
+  notAutomated?: boolean; // If true, report is not skipped during automation
 	gridLayoutStyle?: string;
 	sections?: ReportFieldsSection[];
 	rows?: ReportFieldsRow[];
@@ -39,7 +40,7 @@ interface ReportFieldsSection {
 	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Every section must have a unique string UID
 	isGroupTitle?: boolean;
-  sectionName: string;
+	sectionName: string;
 	title: string;
 	description: string;
 	rows?: ReportFieldsRow[];
@@ -77,7 +78,7 @@ export interface ReportData {
 
 	id: number;
 	type: ReportTypeEnum;
-  sectionName: string;
+	sectionName: string;
 	title: string;
 	description: string;
 	order: number;
@@ -98,7 +99,7 @@ export interface ReportGQL {
 
 	id: string;
 	organizationId: string;
-  sectionName: string;
+	sectionName: string;
 	title: string;
 	description: string;
 	type: ReportTypeEnum;
@@ -115,7 +116,7 @@ export interface ReportSubmissionGQL {
 	id: string;
 	reportId: string;
 	organizationId: string;
-  sectionName: string;
+	sectionName: string;
 	title: string;
 	period: string; // YYYY-MM-DD
 	activityAt: string | null; // ISO date string
