@@ -25,7 +25,7 @@ export interface ReportsFilterArgs {
 
 interface ReportFieldsObj {
 	allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
-  notAutomated?: boolean; // If true, report is not skipped during automation
+	notAutomated?: boolean; // If true, report is not skipped during automation
 	gridLayoutStyle?: string;
 	sections?: ReportFieldsSection[];
 	rows?: ReportFieldsRow[];

@@ -906,7 +906,8 @@ const TableListItem = (p: TableListProps & {
     }
 
     {rowData.subRows && Array.isArray(rowData.subRows)
-    ? <div className={rowData.subRowsContainerClassName ?? 'rel bd_2 r_xs of -mx_2'}>
+    ? <div className={rowData.subRowsContainerClassName ?? 'rel bd_2 mb_20 r_xs of -mx_2'}>
+    {/* ? <div className={rowData.subRowsContainerClassName ?? 'rel of bg_alt p_5 -mx_5 r_xs'}> */}
       {rowData.subRows.map((subRowItem: any, k: number) => {
         return <TRow
           key={k}
