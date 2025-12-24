@@ -62,6 +62,7 @@ interface MapTableListOutput {
     onClickProps?: any;
     columns: TableColumnElement[]
   }[];
+  subRowsContainerClassName?: string;
 }
 
 export type MapTableListDataFn = (
@@ -905,7 +906,7 @@ const TableListItem = (p: TableListProps & {
     }
 
     {rowData.subRows && Array.isArray(rowData.subRows)
-    ? <div className='rel bd_2 r_xs of -mx_2'>
+    ? <div className={rowData.subRowsContainerClassName ?? 'rel bd_2 r_xs of -mx_2'}>
       {rowData.subRows.map((subRowItem: any, k: number) => {
         return <TRow
           key={k}
