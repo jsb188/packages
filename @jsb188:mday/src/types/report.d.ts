@@ -40,6 +40,7 @@ interface ReportFieldsSection {
 	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Every section must have a unique string UID
 	isGroupTitle?: boolean;
+  sectionKey: string;
 	sectionName: string;
 	title: string;
 	description: string;
@@ -64,6 +65,7 @@ interface ReportFieldsColumn {
 	className: string;
 	label: string;
 	text: string;
+  prompt: string; // Server-only
 	placeholder: string | null;
 	value: string | null; // Available only in server; this value has the indexes to map answers to directly without keys
 	checked: boolean | null;
@@ -78,7 +80,7 @@ export interface ReportData {
 
 	id: number;
 	type: ReportTypeEnum;
-	sectionName: string;
+	documentName: string;
 	title: string;
 	description: string;
 	order: number;
@@ -99,7 +101,7 @@ export interface ReportGQL {
 
 	id: string;
 	organizationId: string;
-	sectionName: string;
+	documentName: string;
 	title: string;
 	description: string;
 	type: ReportTypeEnum;
@@ -116,7 +118,9 @@ export interface ReportSubmissionGQL {
 	id: string;
 	reportId: string;
 	organizationId: string;
-	sectionName: string;
+  sectionKey: string;
+	documentName: string;
+  sectionName: string;
 	title: string;
 	period: string; // YYYY-MM-DD
 	activityAt: string | null; // ISO date string

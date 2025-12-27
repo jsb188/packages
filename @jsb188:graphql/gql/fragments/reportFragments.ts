@@ -3,7 +3,7 @@ export const reportFragment = `fragment reportFragment on Report {
   id
   organizationId
 
-  sectionName
+  documentName
   title
   description
   type
@@ -18,6 +18,8 @@ export const reportSubmissionFragment = `fragment reportSubmissionFragment on Re
   reportId
   organizationId
 
+  sectionKey
+  documentName
   sectionName
   title
   period
@@ -28,6 +30,7 @@ export const reportSubmissionFragment = `fragment reportSubmissionFragment on Re
 export const reportSectionFragment = `fragment reportSectionFragment on ReportSection {
   id
   isGroupTitle
+  sectionKey
   sectionName
   title
   description

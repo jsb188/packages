@@ -34,17 +34,15 @@ ${reportRowDataFragment}
 ${reportColumnDataFragment}
 `;
 
-export const reportSubmissionQry = gql`
-query reportSubmission (
+export const reportSubmissionsQry = gql`
+query reportSubmissions (
   $organizationId: GenericID!
   $reportId: GenericID!
-  $sectionKey: String!
   $period: CalDateString!
 ) {
-  reportSubmission (
+  reportSubmissions (
     organizationId: $organizationId
     reportId: $reportId
-    sectionKey: $sectionKey
     period: $period
   ) {
     ...reportSubmissionFragment
