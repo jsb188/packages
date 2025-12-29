@@ -518,7 +518,7 @@ export function getNavigationList(
       if (!item.navList.length) {
         return null;
       }
-    } else if (!isRouteAllowed(item.to, operation, orgFeatures)) {
+    } else if (item?.to && !isRouteAllowed(item.to, operation, orgFeatures)) {
       return null;
     }
     return item;
