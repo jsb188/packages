@@ -296,7 +296,7 @@ export function groupCollections(
 	innerCollectionNames: string[],
 	innerCollectionDefaultValues: Record<string, any> = {},
 	primaryKey: string | ((o: any) => string) = 'id',
-  isTest?: boolean
+	isTest?: boolean,
 ): any[] {
 	let hasHash = false;
 	let primaryKeyName;
@@ -334,11 +334,11 @@ export function groupCollections(
 
 				const ref = getObject(obj, name);
 
-        // if (isTest) {
-        //   console.log('name', name);
-        //   console.log('ref', ref);
-        //   console.log('ref', obj);
-        // }
+				// if (isTest) {
+				//   console.log('name', name);
+				//   console.log('ref', ref);
+				//   console.log('ref', obj);
+				// }
 
 				if (ref) {
 					let isNull = true;
@@ -387,7 +387,13 @@ export function groupCollections(
 
 				if (!ref) {
 					setObject(acc[i], name, innerObj && Array.isArray(innerObj) ? [innerObj] : (innerObj || defaultValue));
-				} else if (innerObj && !ref.find((o: any) => o.id === innerObj.id)) {
+				} else if (
+          innerObj &&
+          !ref.find((o: any) =>
+            (o.id && o.id === innerObj.id) ||
+            (!o.id && Object.entries(o).flat().join('|') === Object.entries(innerObj).flat().join('|'))
+          )
+        ) {
 					setObject(acc[i], name, Array.isArray(ref) ? ref.concat(innerObj) : innerObj);
 				}
 

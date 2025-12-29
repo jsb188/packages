@@ -3,6 +3,32 @@ import { accountFragment } from '../fragments/accountFragments';
 import { logEntryFragment, logArableFragment, logLivestockFragment, logFarmersMarketFragment } from '../fragments/logFragments';
 import { actionTaskFragment } from '../fragments/actionFragments';
 
+export const logEntryFragmentStatement = `...logEntryFragment
+
+    details {
+      ...on LogArable {
+        ...logArableFragment
+      }
+      ...on LogFarmersMarket {
+        ...logFarmersMarketFragment
+      }
+      ...on LogLivestock {
+        ...logLivestockFragment
+      }
+    }
+
+    account {
+      ...accountFragment
+    }`;
+
+export const logEntryFragmentImports = `
+${accountFragment}
+${logEntryFragment}
+${logArableFragment}
+${logFarmersMarketFragment}
+${logLivestockFragment}
+`;
+
 export const logEntriesQry = gql`
 query logEntries (
   $organizationId: GenericID!
@@ -20,34 +46,14 @@ query logEntries (
     after: $after
     limit: $limit
   ) {
-    ...logEntryFragment
-
-    details {
-      ...on LogArable {
-        ...logArableFragment
-      }
-      ...on LogFarmersMarket {
-        ...logFarmersMarketFragment
-      }
-      ...on LogLivestock {
-        ...logLivestockFragment
-      }
-    }
+    ${logEntryFragmentStatement}
 
     actions {
       ...actionTaskFragment
     }
-
-    account {
-      ...accountFragment
-    }
   }
 }
 
-${accountFragment}
 ${actionTaskFragment}
-${logEntryFragment}
-${logArableFragment}
-${logFarmersMarketFragment}
-${logLivestockFragment}
+${logEntryFragmentImports}
 `;

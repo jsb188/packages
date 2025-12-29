@@ -39,7 +39,6 @@ export function useLogEntries(
   },
   params: UseQueryParams = {}
 ) {
-
   const { data, ...rest } = useQuery(logEntriesQry, {
     ...params,
     variables: {

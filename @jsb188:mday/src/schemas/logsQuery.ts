@@ -1,10 +1,10 @@
-import { OPERATION_ENUMS } from '../constants/organization';
-import type { OrganizationOperationEnum } from '../types/organization';
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
 import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
 import { z } from 'zod';
 import { LOG_ANY_ACTIVITY_ENUMS, LOG_ANY_TYPE_ENUMS, LOG_SORT_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
+import { OPERATION_ENUMS } from '../constants/organization';
 import type { FilterLogEntriesArgs, LogSortEnum, LogTypeEnum } from '../types/log';
+import type { OrganizationOperationEnum } from '../types/organization';
 
 /**
  * Zod schema for query params to filter
@@ -104,14 +104,14 @@ export function convertLogTypesToDigits(
 
 /**
  * Create a filter object for logEntries() query from the URL search query.
- * @param operationType - The type of operation for organization
+ * @param operation - The type of operation for organization
  * @param searchQuery - The search query string from the URL
  * @param otherFiltersObj - Additional filter properties to merge into the result
  * @returns FilterLogEntriesArgs - The filter object to be used in the logEntries() query
  */
 
 export function getLogFiltersFromURL(
-	operationType: OrganizationOperationEnum | null,
+	operation: OrganizationOperationEnum | null,
 	searchQuery: string,
   otherFiltersObj?: {
     withoutPreset?: Partial<FilterLogEntriesArgs>,
@@ -120,12 +120,12 @@ export function getLogFiltersFromURL(
 ) {
   if (!searchQuery && otherFiltersObj?.withPreset) {
     return {
-      operation: operationType!,
+      operation: operation!,
       ...otherFiltersObj.withPreset
     };
   } else if (searchQuery === '?preset=none' && otherFiltersObj?.withoutPreset) {
     return {
-      operation: operationType!,
+      operation: operation!,
       ...otherFiltersObj.withoutPreset
     };
   }
@@ -139,17 +139,6 @@ export function getLogFiltersFromURL(
 	} else if (endDate && !startDate) {
 		startDate = endDate;
 	}
-
-	let operation = urlParams.get('o');
-	if (operation) {
-		operation = OPERATION_ENUMS[Number(operation) - 1] || operationType;
-	} else {
-		operation = operationType;
-	}
-
-  if (!operation) {
-    operation = OPERATION_ENUMS[0]; // Default to first operation if none provided
-  }
 
 	const filter: FilterLogEntriesArgs = {
 		operation: operation!,

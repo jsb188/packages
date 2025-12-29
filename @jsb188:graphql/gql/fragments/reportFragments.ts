@@ -23,9 +23,9 @@ export const reportSubmissionFragment = `fragment reportSubmissionFragment on Re
   sectionName
   title
   period
+
   activityAt
 }`;
-
 
 export const reportSectionFragment = `fragment reportSectionFragment on ReportSection {
   id

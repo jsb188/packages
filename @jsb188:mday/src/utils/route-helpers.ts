@@ -1,4 +1,5 @@
 import i18n from '@jsb188/app/i18n';
+import { getENVVariable } from '@jsb188/app';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '../types/organization.d';
 
@@ -409,7 +410,7 @@ export function getNavigationList(
         {
           text: i18n.t('form.reports'),
           navList: [
-            // ROUTES_DICT['app/organic'],
+            getENVVariable('NODE_ENV') === 'development' ? ROUTES_DICT['app/organic'] : null,
             ROUTES_DICT['app/globalgap'],
           ]
         },
