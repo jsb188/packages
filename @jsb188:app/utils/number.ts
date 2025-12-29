@@ -1,3 +1,27 @@
+
+/**
+ * Convert string value to BigInt safely
+ */
+
+export function toBigInt(value: string | number | bigint): bigint | null {
+  try {
+    if (typeof value === 'bigint') {
+      return value;
+    } else if (typeof value === 'number') {
+      return BigInt(value);
+    } else if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed === '') {
+        return null;
+      }
+      return BigInt(trimmed);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Check if number
  */
@@ -6,8 +30,8 @@ export function isNumber(input: unknown): input is number | string {
 	switch (typeof input) {
 		case 'number':
 			return input - input === 0;
-    case 'bigint':
-      return true;
+		case 'bigint':
+			return true;
 		case 'string':
 			return input.trim() !== '' && !Number.isNaN(Number(input));
 	}
@@ -158,14 +182,14 @@ export function formatDecimal(
  */
 
 export function getQuantityText(
-  quantity: string | number,
-  unit?: string,
+	quantity: string | number,
+	unit?: string,
 ): string {
-  const value = formatDecimal(quantity, true, true);
-  return [
-    value + (value && unit && /^[0-9]/.test(unit) ? ', ' : ''),
-    unit
-  ].filter(Boolean).join(' ');
+	const value = formatDecimal(quantity, true, true);
+	return [
+		value + (value && unit && /^[0-9]/.test(unit) ? ', ' : ''),
+		unit,
+	].filter(Boolean).join(' ');
 }
 
 /**
@@ -244,11 +268,11 @@ export function kFormat(
  */
 
 export function convertToMilitaryTime(time?: number | string | null): string | null {
-  if (time) {
-    const timeString = String(time).padStart(4, '0');
-    return `${timeString.slice(0, 2)}:${timeString.slice(2)}`;
-  }
-  return null;
+	if (time) {
+		const timeString = String(time).padStart(4, '0');
+		return `${timeString.slice(0, 2)}:${timeString.slice(2)}`;
+	}
+	return null;
 }
 
 /**
