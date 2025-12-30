@@ -16,8 +16,18 @@ query reports (
 
     sections {
       ...reportSectionFragment
+
+      rows {
+        ...reportRowDataFragment
+
+        columns {
+          ...reportColumnDataFragment
+        }
+      }
     }
 
+    # This needs to be deprecated and merged to sections
+    # Its used for cleaning logs only right now
     rows {
       ...reportRowDataFragment
 

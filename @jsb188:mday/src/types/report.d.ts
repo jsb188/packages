@@ -49,6 +49,7 @@ interface ReportFieldsSection {
 }
 
 interface ReportFieldsRow {
+  id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Key is used to map row/columns to answers
 	preset?: ReportRowPresetEnum;
 	className?: string;

@@ -17,5 +17,6 @@ export const REPORT_ROW_PRESETS = [
 	'MONTH',
 	'BREAK',
 	'Q_AND_A',
-  'TEXTS',
+	'TEXTS',
+  'REPORT_STATEMENTS_OVERVIEW',
 ];

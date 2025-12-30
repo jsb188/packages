@@ -437,7 +437,7 @@ export function PageContent(p: PageContentProps) {
       {HeaderComponent}
 
       {AsideComponent
-      ? <div className='gap_md h_top' {...other}>
+      ? <div className='gap_lg h_top' {...other}>
         {AsideComponent && (
           <aside className={cn('pg_aside sticky', asideClassName)}>
             {AsideComponent}
