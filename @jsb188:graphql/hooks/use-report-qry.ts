@@ -30,12 +30,13 @@ export function useReports(
   params: UseQueryParams = {},
 ) {
 
-  const { organizationId } = variables;
+  const { organizationId, filter } = variables;
+  const { skip, ...restParams } = params;
 
   const { data, ...rest } = useQuery(reportsQry, {
     variables,
-    skip: !organizationId,
-    ...params,
+    skip: skip || !organizationId || !filter,
+    ...restParams,
   });
 
   const reports = data?.reports;

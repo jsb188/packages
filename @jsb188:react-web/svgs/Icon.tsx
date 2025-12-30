@@ -117,7 +117,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   progress_error: 'progress-x',
   read: 'checklist',
   receipt: 'receipt-dollar',
-  report: 'exclamation-circle',
   seeding: 'organic-seedling-grow',
   smile: 'confetti',
   settings: 'settings',

@@ -419,12 +419,13 @@ interface PageContentProps extends ReactDivElement {
   AsideComponent?: React.ReactNode;
   children: React.ReactNode;
   asideClassName?: string;
+  bodyClassName?: string;
   loading?: boolean;
   error?: ServerErrorObj | null;
 }
 
 export function PageContent(p: PageContentProps) {
-  const { children, HeaderComponent, AsideComponent, loading, error, className, asideClassName, ...other } = p;
+  const { children, HeaderComponent, AsideComponent, loading, error, className, asideClassName, bodyClassName, ...other } = p;
 
   // This triggers a "50% opacity" state. I used to use this effect for all loading,
   // but data loads so fast, that it creates an opacity flicker, and that isn't a
@@ -437,17 +438,17 @@ export function PageContent(p: PageContentProps) {
 
       {AsideComponent
       ? <div className='gap_md h_top' {...other}>
-        <div className={cn('f', errored && 'op_50')}>
-          {children}
-        </div>
-
         {AsideComponent && (
           <aside className={cn('pg_aside sticky', asideClassName)}>
             {AsideComponent}
           </aside>
         )}
+
+        <div className={cn('f', bodyClassName, errored && 'op_50')}>
+          {children}
+        </div>
       </div>
-      : <div className={errored ? 'op_50' : ''}>
+      : <div className={cn(bodyClassName, errored && 'op_50')}>
         {children}
       </div>}
     </div>
@@ -539,3 +540,54 @@ export const FloatingMessage = memo((p: FloatingMessageProps) => {
 });
 
 FloatingMessage.displayName = 'FloatingMessage';
+
+/**
+ * Aside component; table of contents
+ */
+
+export const AsideScrollIndicator = memo((p: {
+  title: string;
+  titleIconName: string;
+  selected: string | null;
+  navList: {
+    text: string;
+    anchor: string;
+  }[];
+}) => {
+  const { title, titleIconName, selected, navList } = p;
+
+  return <nav className='my_lg ft_sm lh_1'>
+    {title && (
+      <div className='h_item rel bd_b_2 bd_lt pb_25 mb_25'>
+        {titleIconName &&
+          <span className='ft_lg shift_up w_30 h_center mr_15 f_shrink'>
+            <Icon tryColor name={titleIconName} />
+          </span>
+        }
+        <span className='ft_medium'>
+          {title}
+        </span>
+      </div>
+    )}
+
+    {/* <div className='h_40' /> */}
+    {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
+    {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
+
+    {navList.map((navItem, i) => {
+      const { text, anchor } = navItem;
+      const isSelected = selected === anchor;
+      return <button
+        key={i}
+        className={cn('bl mb_df h_left', isSelected ? '' : 'cl_lt')}
+      >
+        <div className={cn('w_30 h_2 mt_6 mr_15 f_shrink trans_color spd_2', isSelected ? 'bg_primary' : 'bg_active')} />
+        <span>
+          {text}
+        </span>
+      </button>;
+    })}
+  </nav>;
+});
+
+AsideScrollIndicator.displayName = 'AsideScrollIndicator';

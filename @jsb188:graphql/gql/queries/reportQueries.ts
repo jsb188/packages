@@ -1,6 +1,5 @@
 import { gql } from 'graphql-tag';
 import { reportColumnDataFragment, reportFragment, reportRowDataFragment, reportSectionFragment, reportSubmissionFragment } from '../fragments/reportFragments';
-import { logEntryFragmentImports, logEntryFragmentStatement } from './logQueries';
 
 export const reportsQry = gql`
 query reports (
@@ -48,16 +47,6 @@ query reportSubmissions (
   ) {
     ...reportSubmissionFragment
 
-    evidences {
-      id
-      reportSubmissionId
-      sectionKey
-
-      log {
-        ${logEntryFragmentStatement}
-      }
-    }
-
     rows {
       ...reportRowDataFragment
 
@@ -68,7 +57,6 @@ query reportSubmissions (
   }
 }
 
-${logEntryFragmentImports}
 ${reportSubmissionFragment}
 ${reportRowDataFragment}
 ${reportColumnDataFragment}

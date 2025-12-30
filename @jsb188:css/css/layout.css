@@ -82,14 +82,14 @@ body.p_auth {
 /* Sidebar */
 
 .w_lsidebar {
-  padding-right:  var(--sidebar-wt);
+  padding-right: var(--sidebar-wt);
 }
 
 /* Content with right <aside /> sticky sidebar */
 
 .pg_aside {
   width: var(--aside-wt);
-  top: var(--rem-medium);
+  top: 0;
 }
 
 /* Floating message */
