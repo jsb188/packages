@@ -3,6 +3,7 @@ import { cn } from '@jsb188/app/utils/string';
 import { memo } from 'react';
 import { TooltipButton } from '../modules/PopOver';
 import { Icon } from '../svgs/Icon';
+import { Button } from './Button';
 
 /**
  * Types
@@ -126,3 +127,48 @@ export function FormSectionTitle(p: {
     </p>}
   </div>;
 }
+
+/**
+ * Form break
+ */
+
+export const FormBreak = memo((p: {
+  children?: string;
+  className?: string;
+  heightClassName?: string;
+  colorClassName?: string;
+}) => {
+  const { children, className, heightClassName, colorClassName } = p;
+  return (
+    <div
+      className={cn(
+        'pattern_texture rel h_center',
+        colorClassName ?? 'secondary_bf',
+        heightClassName ?? 'h_10',
+        className,
+      )}
+    >
+      {children ? <span className='text ft_sm bg rel z2 px_xs lh_1 cl_bd'>{children}</span> : null}
+    </div>
+  );
+});
+
+FormBreak.displayName = 'FormBreak';
+
+/**
+ * Form toolbar
+ */
+
+// export const FormToolbar = memo((p: {
+
+// }) => {
+//   return <nav className='pattern_texture rel texture_bf p_sm'>
+//     <Button
+//       className='rel bg'
+//       preset='outline_subtle'
+//       text='Submit'
+//     />
+//   </nav>;
+// });
+
+// FormToolbar.displayName = 'FormToolbar';

@@ -62,11 +62,6 @@ interface InputType {
   children?: React.ReactNode;
 }
 
-type FormBreakType = {
-  children?: string;
-  className?: string;
-};
-
 type OptionType = {
   disabled?: boolean;
   checked?: boolean;
@@ -137,19 +132,6 @@ type SideInputButtonProps = {
   selected?: boolean;
   onClick?: (e: any) => void;
 };
-
-/**
- * Form; break
- */
-
-export function FormBreak(p: FormBreakType) {
-  const { children, className } = p;
-  return (
-    <div className={cn('pattern_texture secondary_bf rel h_10 h_center', className)}>
-      {children ? <span className='text ft_sm bg rel z2 px_xs lh_1 cl_bd'>{children}</span> : null}
-    </div>
-  );
-}
 
 /**
  * Side button meant to be placed next to an input (e.g. search bar)

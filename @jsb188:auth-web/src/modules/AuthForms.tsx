@@ -1,7 +1,7 @@
 import { APP_EMAILS } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
 import { useCheckUsernameOrEmail, useConfirmPhoneVerificationCode, useRequestTokenizedEmail, useSendPhoneVerificationCode, useSignUpWithEmail } from '@jsb188/graphql/hooks/use-auth-mtn';
-import { FormBreak } from '@jsb188/react-web/modules/Form';
+import { FormBreak } from '@jsb188/react-web/ui/Form';
 import SchemaForm from '@jsb188/react-web/modules/SchemaForm';
 import { FullWidthButton } from '@jsb188/react-web/ui/Button';
 import { TextWithLinks } from '@jsb188/react-web/ui/Markdown';
