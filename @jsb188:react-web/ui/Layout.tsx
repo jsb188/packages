@@ -437,9 +437,9 @@ export function PageContent(p: PageContentProps) {
       {HeaderComponent}
 
       {AsideComponent
-      ? <div className='gap_lg h_top' {...other}>
+      ? <div className='gap_70 h_top' {...other}>
         {AsideComponent && (
-          <aside className={cn('pg_aside sticky', asideClassName)}>
+          <aside className={cn('pg_aside z4 sticky', asideClassName)}>
             {AsideComponent}
           </aside>
         )}
@@ -546,33 +546,22 @@ FloatingMessage.displayName = 'FloatingMessage';
  */
 
 export const AsideScrollIndicator = memo((p: {
-  title: string;
-  titleIconName: string;
   selected: string | null;
   navList: {
     text: string;
     anchor: string;
   }[];
 }) => {
-  const { title, titleIconName, selected, navList } = p;
+  const { selected, navList } = p;
 
-  return <nav className='my_lg ft_sm lh_1'>
-    {title && (
-      <div className='h_item rel bd_b_2 bd_lt pb_25 mb_25'>
-        {titleIconName &&
-          <span className='ft_lg shift_up w_30 h_center mr_15 f_shrink'>
-            <Icon tryColor name={titleIconName} />
-          </span>
-        }
-        <span className='ft_medium'>
-          {title}
-        </span>
-      </div>
-    )}
-
+  return <nav className='my_md ft_sm lh_1'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
+
+    <p className='ft_semibold cl_md px_sm py_df'>
+      {i18n.t('form.table_of_contents')}
+    </p>
 
     {navList.map((navItem, i) => {
       const { text, anchor } = navItem;
@@ -581,7 +570,7 @@ export const AsideScrollIndicator = memo((p: {
         key={i}
         className={cn('bl mb_df h_left', isSelected ? '' : 'cl_lt')}
       >
-        <div className={cn('w_30 h_2 mt_6 mr_15 f_shrink trans_color spd_2', isSelected ? 'bg_primary' : 'bg_active')} />
+        <div className={cn('w_25 h_2 mt_6 mr_10 f_shrink trans_color spd_2', isSelected ? 'bg_primary' : 'bg_active')} />
         <span>
           {text}
         </span>

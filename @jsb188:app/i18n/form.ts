@@ -64,6 +64,7 @@ export default {
     undo_changes: 'Undo changes',
     save_changes: 'Save changes',
     unsaved_changes_msg: 'You have unsaved changes.',
+    table_of_contents: 'Table of contents',
     ai: 'AI',
     you: 'You',
     copied_: 'Copied!',

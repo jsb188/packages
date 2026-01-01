@@ -20,13 +20,14 @@ const PRESET_REGEX = {
   // message: /\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gi, // I'm not sure what the difference is between "message" and "chat"
   // chat: /\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gi,
 
-  article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gmi,
+  // article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gmi,
+  article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
   content_description: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
   message: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gi, // I'm not sure what the difference is between "message" and "chat"
   chat: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gi,
 
   // NOTE: Next time you do mobile, check if this regex works in mobile
-  // I added ":discord_emoji_style:" tags to the regex
+  // I added ":emoji_style:" tags to the regex
   prompt: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gi,
 } as Record<string, RegExp>;
 
@@ -164,10 +165,10 @@ const getMarkdownEl = (
   codesMap?: [string, string][],
   MappedCodeComponent?: RenderMappedCodeFn,
 ) => {
+
   const letter = matchedStr.charAt(0);
   switch (letter) {
     case '#':
-
       // eslint-disable-next-line no-case-declarations
       const [prefix, ...headingTextArr] = matchedStr.split(' ');
 
@@ -225,6 +226,11 @@ const getMarkdownEl = (
       break;
     }
     case '[': {
+      const spanMatch = matchedStr.match(/\[(.*?)##(.*?)\]/);
+      if (spanMatch) {
+        return [spanMatch[2], spanMatch[1]];
+      }
+
       const str3 = matchedStr.substring(1, matchedStr.length - 1);
       return [str3];
       // } case '{': {
