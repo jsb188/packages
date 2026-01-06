@@ -125,7 +125,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   sms: 'device-mobile-message',
   snooze: 'zzz',
   success: 'circle-check',
-  switch_organizations_title: 'face-id-10',
+  login_related: 'face-id-10',
   switch_organizations: 'switch-account-1',
   timeout: 'clock-cancel',
   timeout_unban: 'clock-check',

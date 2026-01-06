@@ -3,10 +3,11 @@ import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
 import { Pill } from '@jsb188/react-web/ui/Button';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
-import { memo } from 'react';
-import { Icon } from '../svgs/Icon';
+import { memo, useEffect, useState } from 'react';
+import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { BigLoading } from './Loading';
+import { DOM_IDS } from '@jsb188/app/constants/app';
 
 // const cssPaths = ['/css/layout.css', '/css/alert.css'];
 
@@ -308,6 +309,7 @@ export interface ErrorMessageProps {
   iconName?: string;
   title?: string;
   message?: string;
+  authHref?: string;
   buttonText?: string;
   buttonHref?: string;
   loading?: boolean;
@@ -316,7 +318,8 @@ export interface ErrorMessageProps {
 }
 
 export function ErrorMessage(p: ErrorMessageProps) {
-  const { errorCode, statusCode, doNotRefreshIfNotLoggedIn, hideButtonIfNotRetriable, preset, iconName, buttonHref, buttonText, loading, containerSize, onClickButton } = p;
+  const { authHref, errorCode, statusCode, doNotRefreshIfNotLoggedIn, hideButtonIfNotRetriable, preset, iconName, buttonHref, buttonText, loading, containerSize, onClickButton } = p;
+  const isAuthError = errorCode == '20019';
 
   let title;
   if (p.title) {
@@ -359,7 +362,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
     // If "30000" error, this could be an outdated GraphQL fragment error,
     // so we need to refresh the browser.
     errorCode === '30000' ||
-    (!doNotRefreshIfNotLoggedIn && errorCode == '20019')
+    (!doNotRefreshIfNotLoggedIn && isAuthError)
   ) {
     buttonHandler = () => globalThis.location.reload();
   } else if (
@@ -371,16 +374,18 @@ export function ErrorMessage(p: ErrorMessageProps) {
     buttonHandler = onClickButton;
   }
 
-  let titleIconName;
-  if (errorCode == '20019') {
-    titleIconName = 'circle-key';
+  let titleIconName, iconSizeClassName;
+  if (isAuthError) {
+    titleIconName = COMMON_ICON_NAMES.login_related;
+    iconSizeClassName = 'ft_xxl';
   } else {
     titleIconName = iconName || 'alert-circle';
+    iconSizeClassName = 'ft_lg';
   }
 
   return (
     <div className={cn('p_md v_center cw', containerSize || 'max_w_550', containerClassName)}>
-      <span className='cl_secondary ft_lg'>
+      <span className={cn('cl_secondary', iconSizeClassName)}>
         <Icon
           tryColor
           name={titleIconName}
@@ -393,7 +398,18 @@ export function ErrorMessage(p: ErrorMessageProps) {
         {message}
       </p>
 
-      {!buttonHandler ? null : (
+      {isAuthError
+      ? <Pill
+        // No need t o use "from" url param because we're using referrer
+        // href={authHref ?? '/auth/check?from=' + encodeURIComponent(globalThis.location.pathname)}
+        href={authHref ?? '/auth/check'}
+        className={buttonClassName}
+        preset={buttonPreset}
+        size={buttonSize}
+      >
+        {i18n.t('auth.log_in_again')}
+      </Pill>
+      : buttonHandler ? (
         <Pill
           addLoadingIndicator
           href={buttonHref}
@@ -405,7 +421,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
         >
           {buttonText || i18n.t('form.try_again')}
         </Pill>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -546,13 +562,44 @@ FloatingMessage.displayName = 'FloatingMessage';
  */
 
 export const AsideScrollIndicator = memo((p: {
-  selected: string | null;
   navList: {
     text: string;
     anchor: string;
   }[];
 }) => {
-  const { selected, navList } = p;
+  const { navList } = p;
+  const [selected, setSelected] = useState(null);
+  const anchors = navList.map(n => n.anchor);
+
+  const scrollToContent = (anchor: string) => {
+    const el = document.getElementById(anchor);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  useEffect(() => {
+    // Observe each anchor element to see if it's in viewport
+    const handleScroll = () => {
+      let closestAnchor = null;
+      let closestDistance = Infinity;
+
+      anchors.forEach(anchor => {
+        const el = document.getElementById(anchor);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const distance = Math.abs(rect.top);
+          if (distance < closestDistance && rect.top <= window.innerHeight) {
+            closestDistance = distance;
+            closestAnchor = anchor;
+          }
+        }
+      });
+
+      setSelected(closestAnchor);
+    }
+
+  }, [anchors.join('|')]);
 
   return <nav className='my_md ft_sm lh_1'>
     {/* <div className='h_40' /> */}
@@ -569,6 +616,7 @@ export const AsideScrollIndicator = memo((p: {
       return <button
         key={i}
         className={cn('bl mb_df h_left', isSelected ? '' : 'cl_lt')}
+        onClick={() => scrollToContent(anchor)}
       >
         <div className={cn('w_25 h_2 mt_6 mr_10 f_shrink trans_color spd_2', isSelected ? 'bg_primary' : 'bg_active')} />
         <span>

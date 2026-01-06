@@ -3,6 +3,7 @@ export default {
     // Login
     welcome_back: 'Welcome back',
     log_in: 'Log in',
+    log_in_again: 'Log in again',
     log_in_sign_up: 'Log in / Sign up',
     open_app: 'Open app',
     continue_with_google: 'Continue with Google',

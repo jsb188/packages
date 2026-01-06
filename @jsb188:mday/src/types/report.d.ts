@@ -64,7 +64,8 @@ type ReportRowGQL = Omit<ReportFieldsRow, 'key'> & {
 interface ReportFieldsColumn {
 	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Key is used to map column to answers
-	className: string;
+	className?: string;
+  labelClassName?: string;
 	label: string;
 	text: string;
 	placeholder: string | null;
