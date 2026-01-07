@@ -1,4 +1,81 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { DOM_IDS } from '@jsb188/app/constants/app';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+
+/**
+ * Observes multiple sections and reports the single "active" one
+ * based on intersection with the viewport.
+ */
+
+export function useViewportSections(
+  options: {
+    rootElementId?: string | null;
+  } = {}
+) {
+  const { rootElementId = DOM_IDS.mainBodyScrollArea } = options;
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const elementsRef = useRef<Map<string, HTMLElement>>(new Map());
+  const [viewingElementId, setViewingElementId] = useState<string | null>(null);
+
+  /** Callback ref factory */
+  const registerViewportRef = useCallback((id: string) => {
+    return (el: HTMLElement | null) => {
+      if (!observerRef.current) return;
+
+      if (el) {
+        elementsRef.current.set(id, el);
+        observerRef.current.observe(el);
+      } else {
+        const prev = elementsRef.current.get(id);
+        if (prev) observerRef.current.unobserve(prev);
+        elementsRef.current.delete(id);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = rootElementId ? document.getElementById(rootElementId) : null;
+    observerRef.current = new IntersectionObserver((entries) => {
+      let mostVisibleId: string | null = null;
+      let maxVisiblePixels = 0;
+
+      const viewportTop = 0;
+      const viewportBottom = root instanceof Element
+        ? root.getBoundingClientRect().height
+        : window.innerHeight;
+
+      for (const entry of entries) {
+        if (!entry.isIntersecting) {
+          continue;
+        }
+
+        const rect = entry.boundingClientRect;
+        const visiblePixels = Math.min(rect.bottom, viewportBottom) - Math.max(rect.top, viewportTop);
+
+        if (visiblePixels > maxVisiblePixels) {
+          maxVisiblePixels = visiblePixels;
+          mostVisibleId = (entry.target as HTMLElement).id;
+        }
+      }
+
+      if (mostVisibleId) {
+        setViewingElementId(mostVisibleId);
+      }
+    }, {
+      root,
+      // use generous margins so all nearby sections are reported
+      rootMargin: "0px",
+      threshold: Array.from({ length: 21 }, (_, i) => i / 20),
+    });
+
+    return () => observerRef.current?.disconnect();
+  }, [rootElementId]);
+
+  return {
+    registerViewportRef,
+    viewingElementId,
+  };
+}
 
 /**
  * Check if parent has class name

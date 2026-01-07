@@ -562,44 +562,19 @@ FloatingMessage.displayName = 'FloatingMessage';
  */
 
 export const AsideScrollIndicator = memo((p: {
+  selected: string | null;
   navList: {
     text: string;
     anchor: string;
   }[];
 }) => {
-  const { navList } = p;
-  const [selected, setSelected] = useState(null);
-  const anchors = navList.map(n => n.anchor);
-
+  const { selected, navList } = p;
   const scrollToContent = (anchor: string) => {
     const el = document.getElementById(anchor);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
-
-  useEffect(() => {
-    // Observe each anchor element to see if it's in viewport
-    const handleScroll = () => {
-      let closestAnchor = null;
-      let closestDistance = Infinity;
-
-      anchors.forEach(anchor => {
-        const el = document.getElementById(anchor);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          const distance = Math.abs(rect.top);
-          if (distance < closestDistance && rect.top <= window.innerHeight) {
-            closestDistance = distance;
-            closestAnchor = anchor;
-          }
-        }
-      });
-
-      setSelected(closestAnchor);
-    }
-
-  }, [anchors.join('|')]);
 
   return <nav className='my_md ft_sm lh_1'>
     {/* <div className='h_40' /> */}
