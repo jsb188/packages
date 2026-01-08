@@ -57,3 +57,30 @@ query logEntries (
 ${actionTaskFragment}
 ${logEntryFragmentImports}
 `;
+
+export const logEvidencesQry = gql`
+query logEvidences (
+  $organizationId: GenericID!
+  $reportId: GenericID!
+  $cursor: Cursor
+  $after: Boolean!
+  $limit: Int!
+) {
+  logEvidences (
+    organizationId: $organizationId
+    reportId: $reportId
+    cursor: $cursor
+    after: $after
+    limit: $limit
+  ) {
+    ${logEntryFragmentStatement}
+
+    actions {
+      ...actionTaskFragment
+    }
+  }
+}
+
+${actionTaskFragment}
+${logEntryFragmentImports}
+`;

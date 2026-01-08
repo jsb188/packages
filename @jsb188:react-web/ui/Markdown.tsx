@@ -195,7 +195,7 @@ const getMarkdownEl = (
       if (/^\*\*(.*?)\*\*$/.test(matchedStr)) {
         const str1 = matchedStr.substring(2, matchedStr.length - 2);
         // add class names here (in second[2] element)
-        return [str1, '', 'strong'];
+        return [str1, 'ft_semibold', 'span'];
       }
       return [matchedStr, 'cl_primary'];
     case '_': {

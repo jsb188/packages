@@ -78,6 +78,48 @@ export function useViewportSections(
 }
 
 /**
+ * Observe div ref for intersection with boundaries
+ */
+
+export function useIntersectionObserver(
+  callback: (isIntersecting: boolean, entry: IntersectionObserverEntry) => void,
+  options: IntersectionObserverInit = {},
+  rootElementId: string | null = DOM_IDS.mainBodyScrollArea,
+) {
+  const divRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const element = divRef.current;
+    if (!element) return;
+
+    let observerOptions;
+    if (rootElementId && !options.root) {
+      observerOptions = {
+        ...options,
+        root: document.getElementById(rootElementId) || undefined,
+      };
+    } else {
+      observerOptions = options;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        callback(entry.isIntersecting, entry);
+      });
+    }, observerOptions);
+
+    observer.observe(element);
+
+    return () => {
+      observer.unobserve(element);
+      observer.disconnect();
+    };
+  }, [divRef.current, rootElementId, options.root, options.rootMargin, options.threshold]);
+
+  return divRef;
+}
+
+/**
  * Check if parent has class name
  */
 

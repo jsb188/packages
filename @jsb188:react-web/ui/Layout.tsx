@@ -562,17 +562,18 @@ FloatingMessage.displayName = 'FloatingMessage';
  */
 
 export const AsideScrollIndicator = memo((p: {
+  scrollBehavior: 'smooth' | 'instant';
   selected: string | null;
   navList: {
     text: string;
     anchor: string;
   }[];
 }) => {
-  const { selected, navList } = p;
+  const { selected, navList, scrollBehavior } = p;
   const scrollToContent = (anchor: string) => {
     const el = document.getElementById(anchor);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.scrollIntoView({ behavior: scrollBehavior ?? 'smooth', block: 'start' });
     }
   };
 

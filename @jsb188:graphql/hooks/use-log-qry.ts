@@ -1,6 +1,6 @@
 import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d';
 import { useQuery, useReactiveFragment } from '../client';
-import { logEntriesQry } from '../gql/queries/logQueries';
+import { logEntriesQry, logEvidencesQry } from '../gql/queries/logQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';
 
 /**
@@ -48,11 +48,41 @@ export function useLogEntries(
       limit: LOG_ENTRIES_LIMIT
     },
     // If this query is used for virtualized list pagination, set {params.skip=true}
-    skip: !variables.organizationId || !variables.filter?.operation,
+    skip: !variables.organizationId || !variables.filter?.operation || params.skip,
   });
 
   return {
     logEntries: data?.logEntries,
+    ...rest
+  };
+}
+
+/**
+ * Fetch logs as evidences for a specific report
+ */
+
+export function useLogEvidences(
+  variables: {
+    organizationId: string,
+    reportId: string,
+    cursor?: string | null,
+    after?: boolean,
+    limit?: number,
+  },
+  params: UseQueryParams = {}
+) {
+  const { data, ...rest } = useQuery(logEvidencesQry, {
+    ...params,
+    variables: {
+      ...variables,
+      after: variables.after ?? true,
+      limit: variables.limit ?? 1000, // Change this when we have pagination support
+    },
+    skip: !variables.organizationId || !variables.reportId || params.skip,
+  });
+
+  return {
+    logEvidences: data?.logEvidences,
     ...rest
   };
 }
