@@ -217,10 +217,12 @@ CondensedArticleItem.displayName = 'CondensedArticleItem';
  */
 
 export function CondensedArticleItemMock(p: {
+  addColorIndicator?: boolean;
   addSeparator?: boolean;
   index?: number;
 }) {
   const { addSeparator, index } = p;
+  const addColorIndicator = p.addColorIndicator !== false;
   const modulus = index !== undefined ? index % 3 : 0;
 
   const description = (
@@ -244,10 +246,9 @@ export function CondensedArticleItemMock(p: {
           as='span'
           outline
           color='alt'
-          textColorClassName='cl_primary'
-          colorIndicator='active'
+          colorIndicator={addColorIndicator ? 'active' : undefined}
           text={
-            <span className='mock active mr_2'>
+            <span className={cn('mock active', addColorIndicator ? 'mr_2' : 'mx_2')}>
               ....... .......
             </span>
           }
@@ -345,30 +346,56 @@ export function ArticleCard(p: {
  */
 
 export const ArticlePagination = memo((p: {
+  notReady?: boolean;
   className?: string;
   text: string;
   pageNumber: number;
   pageTotal: number;
+  onChangePageNumber: (pageNumber: number) => void;
 }) => {
-  const { className, text, pageNumber, pageTotal } = p;
+  const { notReady, className, text, pageNumber, pageTotal, onChangePageNumber } = p;
+  const prevDisabled = pageNumber <= 1;
+  const nextDisabled = pageNumber >= pageTotal;
 
   return <nav className={cn('p_sm h_spread gap_10 rel of pattern_texture texture_bf -mx_xs', className)}>
-    <span className='rel'>
-      {text}
+    {notReady
+    ? <span className='rel mock'>
+      ....................................
     </span>
+    : <span className='rel'>
+      {text}
+    </span>}
 
     <div className='h_right gap_sm'>
-      <button className='av av_xs bg rel r bd_1 bd_lt v_center'>
-        <Icon name='arrow-left' />
-      </button>
-
-      <span className='rel'>
-        {i18n.t('form.page_of', { number: pageNumber, total: pageTotal })}
-      </span>
-
-      <button className='av av_xs bg rel r bd_1 bd_lt v_center'>
-        <Icon name='arrow-right' />
-      </button>
+      {notReady
+      ? <>
+        <span className='rel mock'>
+          ......................
+        </span>
+        <span className='av av_xs bg rel r' />
+      </>
+      : <>
+        {!prevDisabled &&
+        <button
+          className='av av_xs bg rel r bd_1 bd_lt v_center'
+          disabled={pageNumber <= 1}
+          onClick={() => onChangePageNumber(pageNumber - 1)}
+        >
+          <Icon name='arrow-left' />
+        </button>}
+        <span className='rel'>
+          {i18n.t('form.page_of', { number: pageNumber, total: pageTotal })}
+        </span>
+        {nextDisabled
+        ? <span />
+        : <button
+          className='av av_xs bg rel r bd_1 bd_lt v_center'
+          disabled={pageNumber >= pageTotal}
+          onClick={() => onChangePageNumber(pageNumber + 1)}
+        >
+          <Icon name='arrow-right' />
+        </button>}
+      </>}
     </div>
   </nav>;
 });
