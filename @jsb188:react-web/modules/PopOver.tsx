@@ -3,10 +3,12 @@ import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { usePopOver, useSetPopOverIsHover, useTooltip } from '@jsb188/react/states';
 import type { ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps, UpdatePopOverFn } from '@jsb188/react/types/PopOver.d';
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useReducer, useRef, useState } from 'react';
 import { guessTooltipSize, TooltipText } from '../ui/PopOverUI';
 import { PopOverCheckList, PopOverLabelsAndValues, PopOverList } from './PopOver-List';
 import PopOverImage from './PopOver-ViewImage';
+import i18n from '@jsb188/app/i18n';
+import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 
 /**
  * Types; Pop over
@@ -126,7 +128,6 @@ export function PopOverButton(p: PopOverButtonProps) {
     </DomEl>
   );
 }
-
 
 /**
  * Re-usable "more" button for pop over
@@ -448,6 +449,7 @@ type TooltipButtonProps = {
   position?: POPosition;
   title?: string;
   message?: string;
+  messageAfterClick?: string;
   leftIconName?: string;
   rightIconName?: string;
   tooltipClassName?: string;
@@ -466,10 +468,10 @@ type TooltipButtonProps = {
  */
 
 export const TooltipButton = memo((p: TooltipButtonProps) => {
-  const { leftIconName, rightIconName, disabled, children, title, message, position, offsetX, offsetY, onClick, as, tooltipClassName, ...rest } = p;
+  const { leftIconName, rightIconName, disabled, children, title, message, messageAfterClick, position, offsetX, offsetY, onClick, as, tooltipClassName, ...rest } = p;
   const Element = as || 'button';
   const tooltipDisabled = disabled || !message;
-  const { tooltip, openTooltip, closeTooltip } = useTooltip();
+  const { tooltip, openTooltip, closeTooltip, updateTooltip } = useTooltip();
 
   const unique = useRef<string>(getTimeBasedUnique());
   const el = useRef<HTMLDivElement>(null);
@@ -514,7 +516,15 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
   const props = {
     onClick: (e: React.MouseEvent) => {
       if (hasTooltip) {
-        onCloseTooltip(e);
+        if (messageAfterClick) {
+          unique.current = getTimeBasedUnique();
+          updateTooltip({
+            id: unique.current,
+            message: messageAfterClick,
+          });
+        } else {
+          onCloseTooltip(e);
+        }
       } else {
         onOpenTooltip(e);
       }
@@ -557,6 +567,30 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
 TooltipButton.displayName = 'TooltipButton';
 
 /**
+ * Tooltip, click-to-copy button
+ */
+
+export const TooltipClickToCopy = memo((p: Omit<TooltipButtonProps, 'message' | 'onClick'> & {
+  textToCopy: string;
+}) => {
+
+  const { textToCopy, ...rest } = p;
+  const onClickToCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    copyTextToClipboard(textToCopy);
+  };
+
+  return <TooltipButton
+    {...rest}
+    message={i18n.t('form.copy_to_clipboard')}
+    messageAfterClick={i18n.t('form.copied_')}
+    onClick={onClickToCopy}
+  />;
+});
+
+TooltipClickToCopy.displayName = 'TooltipClickToCopy';
+
+/**
  * Render tooltip
  */
 
@@ -581,6 +615,7 @@ function TooltipWrapper(p: TooltipWrapperProps) {
   const rightEdgePosition = 10;
 
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
   const notReady = (popOverHeight || -1) < 0 || tooltipRef.current?.offsetWidth === undefined;
   const windowWidth = globalThis.window.innerWidth;
   const size = guessTooltipSize(message || '');
@@ -668,6 +703,8 @@ function TooltipWrapper(p: TooltipWrapperProps) {
           id,
           popOverHeight: value,
         });
+      } else {
+        forceUpdate();
       }
     }
   }, [id]);

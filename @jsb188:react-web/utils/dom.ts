@@ -231,6 +231,35 @@ export function platformShortcut(key: string) {
 }
 
 /**
+ * Copy text to clipboard
+ */
+
+export async function copyTextToClipboard(text: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  // Fallback for older browsers
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed'; // prevent scrolling
+  textarea.style.opacity = '0';
+
+  globalThis.document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    // execCommand() is deprecated but for new browser that supports it, navigator.clipboard API (above);
+    // will handle it and the code will never reach this far down.
+    globalThis.document.execCommand('copy');
+  } finally {
+    globalThis.document.body.removeChild(textarea);
+  }
+}
+
+/**
  * Quick helper for copying a text to clipboard
  */
 
@@ -247,12 +276,13 @@ export function useCopyToClipboard(textToCopy: string, resetTimeMS: number = 225
   }, [copied]);
 
   const onClickCopy = () => {
-    const el = document.createElement('textarea');
-    el.value = textToCopy;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
+    copyTextToClipboard(textToCopy);
+    // const el = document.createElement('textarea');
+    // el.value = textToCopy;
+    // document.body.appendChild(el);
+    // el.select();
+    // document.execCommand('copy');
+    // document.body.removeChild(el);
     setCopied(true);
   };
 

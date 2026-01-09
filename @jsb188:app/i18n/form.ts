@@ -65,6 +65,7 @@ export default {
     save_changes: 'Save changes',
     unsaved_changes_msg: 'You have unsaved changes.',
     table_of_contents: 'Table of contents',
+    copy_to_clipboard: 'Copy to clipboard',
     ai: 'AI',
     you: 'You',
     copied_: 'Copied!',
