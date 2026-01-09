@@ -12,15 +12,17 @@ export function useViewportSections(
   } = {}
 ) {
   const { rootElementId = DOM_IDS.mainBodyScrollArea } = options;
-
   const observerRef = useRef<IntersectionObserver | null>(null);
   const elementsRef = useRef<Map<string, HTMLElement>>(new Map());
+  const [ready, setReady] = useState<boolean>(false);
   const [viewingElementId, setViewingElementId] = useState<string | null>(null);
 
   /** Callback ref factory */
   const registerViewportRef = useCallback((id: string) => {
     return (el: HTMLElement | null) => {
-      if (!observerRef.current) return;
+      if (!observerRef.current) {
+        return;
+      }
 
       if (el) {
         elementsRef.current.set(id, el);
@@ -42,7 +44,7 @@ export function useViewportSections(
       const viewportTop = 0;
       const viewportBottom = root instanceof Element
         ? root.getBoundingClientRect().height
-        : window.innerHeight;
+        : globalThis.innerHeight;
 
       for (const entry of entries) {
         if (!entry.isIntersecting) {
@@ -68,7 +70,13 @@ export function useViewportSections(
       threshold: Array.from({ length: 21 }, (_, i) => i / 20),
     });
 
-    return () => observerRef.current?.disconnect();
+    // This makes it work when you navigate away and back to the page;
+    // This is *required*.
+    setReady(true);
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
   }, [rootElementId]);
 
   return {

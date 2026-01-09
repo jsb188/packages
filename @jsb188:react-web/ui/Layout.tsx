@@ -3,11 +3,10 @@ import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
 import { Pill } from '@jsb188/react-web/ui/Button';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
-import { memo, useEffect, useState } from 'react';
+import { memo } from 'react';
 import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { BigLoading } from './Loading';
-import { DOM_IDS } from '@jsb188/app/constants/app';
 
 // const cssPaths = ['/css/layout.css', '/css/alert.css'];
 
@@ -453,7 +452,7 @@ export function PageContent(p: PageContentProps) {
       {HeaderComponent}
 
       {AsideComponent
-      ? <div className='gap_70 h_top' {...other}>
+      ? <div className='gap_50 h_top' {...other}>
         {AsideComponent && (
           <aside className={cn('pg_aside z4 sticky', asideClassName)}>
             {AsideComponent}
@@ -564,12 +563,13 @@ FloatingMessage.displayName = 'FloatingMessage';
 export const AsideScrollIndicator = memo((p: {
   scrollBehavior: 'smooth' | 'instant';
   selected: string | null;
+  title?: string | null;
   navList: {
     text: string;
     anchor: string;
   }[];
 }) => {
-  const { selected, navList, scrollBehavior } = p;
+  const { title, selected, navList, scrollBehavior } = p;
   const scrollToContent = (anchor: string) => {
     const el = document.getElementById(anchor);
     if (el) {
@@ -582,9 +582,10 @@ export const AsideScrollIndicator = memo((p: {
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
 
-    <p className='ft_semibold cl_md px_sm py_df'>
-      {i18n.t('form.table_of_contents')}
-    </p>
+    {(title || title === undefined) &&
+    <p className='ft_semibold cl_md pl_40 py_df'>
+      {title ?? i18n.t('form.table_of_contents')}
+    </p>}
 
     {navList.map((navItem, i) => {
       const { text, anchor } = navItem;
@@ -594,7 +595,7 @@ export const AsideScrollIndicator = memo((p: {
         className={cn('bl mb_df h_left', isSelected ? '' : 'cl_lt')}
         onClick={() => scrollToContent(anchor)}
       >
-        <div className={cn('w_25 h_2 mt_6 mr_10 f_shrink trans_color spd_2', isSelected ? 'bg_primary' : 'bg_active')} />
+        <div className={cn('w_30 h_2 mt_6 mr_10 f_shrink trans_color spd_2', isSelected ? 'bg_primary' : 'bg_active')} />
         <span>
           {text}
         </span>
@@ -604,3 +605,33 @@ export const AsideScrollIndicator = memo((p: {
 });
 
 AsideScrollIndicator.displayName = 'AsideScrollIndicator';
+
+/**
+ * Mock Component; for aside scroll indicator
+ */
+
+export function AsideScrollIndicatorMock() {
+
+  return <nav className='my_md ft_sm lh_1'>
+    {/* <div className='h_40' /> */}
+    {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
+    {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
+
+    <p className='ft_semibold cl_md pl_40 py_df'>
+      <span className='mock active'>
+        .... .... .... .... ... ...
+      </span>
+    </p>
+    {[...Array(6)].map((_, i) => {
+      return <span
+        key={i}
+        className={cn('bl mb_df h_left cl_lt')}
+      >
+        <div className={cn('w_30 h_2 mt_6 mr_10 f_shrink bg_active')} />
+        <span className='mock alt h_20 -mt_3'>
+          {i % 2 ? '.... .... .... ....' : '.... .... .... .... .... .... ....'}
+        </span>
+      </span>;
+    })}
+  </nav>;
+}

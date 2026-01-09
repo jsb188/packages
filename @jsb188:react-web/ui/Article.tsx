@@ -59,18 +59,19 @@ export const CondensedArticleItem = memo((p: {
   description?: string | null;
   descriptionPlaceholder?: string;
   labelsClassName?: string;
+  rightIconsClassName?: string;
   labels?: Partial<InlineBlockLabelProps>[]
   avatarDisplayName?: string | null;
   avatarPhotoUri?: string | null;
   avatarColor?: string | null;
-  labelIcons?: LabelsAndIconsItemProps[];
+  rightIcons?: LabelsAndIconsItemProps[];
 }) => {
-  const { __deleted, voided, hideSeparator, preset, domIdPrefix, id, onClick, labelIcons, RightComponent, labelsClassName, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
+  const { __deleted, voided, hideSeparator, preset, domIdPrefix, id, onClick, rightIcons, RightComponent, labelsClassName, rightIconsClassName, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
   const useAltLabelColors = !['modal','card'].includes(preset!);
   const hasDescription = !!(description || descriptionPlaceholder);
-  const hasDescriptionOrLabelIcons = hasDescription || (labelIcons && labelIcons?.length > 0);
+  const hasDescriptionOrRightIcons = hasDescription || (rightIcons && rightIcons?.length > 0);
 
   // paddingClassName='px_df -mx_5'
 
@@ -136,7 +137,7 @@ export const CondensedArticleItem = memo((p: {
       }
 
       {labels?.length && (
-        <div className={'h_item f_shrink mr_3 ' + yPaddingClassName}>
+        <div className={cn('h_item f_shrink mr_3', yPaddingClassName, labelsClassName)}>
           {labels.map((label, i) => (
             <InlineBlockLabel
               key={i}
@@ -151,19 +152,19 @@ export const CondensedArticleItem = memo((p: {
         </div>
       )}
 
-      {title && !hasDescriptionOrLabelIcons && <span className={cn('f f_shrink shift_down', yPaddingClassName)}>
+      {title && !hasDescriptionOrRightIcons && <span className={cn('f f_shrink shift_down', yPaddingClassName)}>
         <span className='ellip'>
           {title}
         </span>
       </span>}
 
-      {hasDescriptionOrLabelIcons
+      {hasDescriptionOrRightIcons
       ? (
         <span
           className={cn(
             'f',
             yPaddingClassName,
-            labelIcons && 'h_item',
+            rightIcons && 'h_item',
             description ? 'cl_lt' : 'cl_darker_2'
           )}
         >
@@ -186,10 +187,10 @@ export const CondensedArticleItem = memo((p: {
             </span>
           ) : null}
 
-          {labelIcons && (
-            <span className={cn('h_item gap_2 cl_lt', labelsClassName, hasDescription ? 'ml_10' : 'ml_5')}>
+          {rightIcons && (
+            <span className={cn('h_item gap_2 cl_lt', rightIconsClassName, hasDescription ? 'ml_10' : 'ml_5')}>
               <LabelsAndIcons
-                items={labelIcons}
+                items={rightIcons}
               />
             </span>
           )}
