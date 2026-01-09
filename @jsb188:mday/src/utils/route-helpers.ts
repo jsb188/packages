@@ -410,7 +410,7 @@ export function getNavigationList(
         {
           text: i18n.t('form.reports'),
           navList: [
-            getENVVariable('NODE_ENV') === 'development' ? ROUTES_DICT['app/organic'] : null,
+            ROUTES_DICT['app/organic'],
             ROUTES_DICT['app/globalgap'],
           ]
         },
