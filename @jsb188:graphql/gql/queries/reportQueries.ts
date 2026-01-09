@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { reportColumnDataFragment, reportFragment, reportRowDataFragment, reportSectionFragment, reportSubmissionFragment } from '../fragments/reportFragments';
+import { reportColumnDataFragment, reportFragment, reportRowDataFragment, reportSectionFragment } from '../fragments/reportFragments';
 
 export const reportsQry = gql`
 query reports (
@@ -40,34 +40,6 @@ query reports (
 
 ${reportFragment}
 ${reportSectionFragment}
-${reportRowDataFragment}
-${reportColumnDataFragment}
-`;
-
-export const reportSubmissionsQry = gql`
-query reportSubmissions (
-  $organizationId: GenericID!
-  $reportId: GenericID!
-  $period: CalDateString!
-) {
-  reportSubmissions (
-    organizationId: $organizationId
-    reportId: $reportId
-    period: $period
-  ) {
-    ...reportSubmissionFragment
-
-    rows {
-      ...reportRowDataFragment
-
-      columns {
-        ...reportColumnDataFragment
-      }
-    }
-  }
-}
-
-${reportSubmissionFragment}
 ${reportRowDataFragment}
 ${reportColumnDataFragment}
 `;

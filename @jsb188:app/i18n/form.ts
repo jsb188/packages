@@ -50,6 +50,7 @@ export default {
     untitled_document: 'Untitled document',
     try_again: 'Try again',
     refresh_page: 'Refresh page',
+    page_of: 'Page %{number} of %{total}',
     subtotal: 'Subtotal',
     total: 'Total',
     receipts: 'Receipts',

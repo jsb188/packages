@@ -108,6 +108,7 @@ export interface ReportGQL {
 	description: string;
 	type: ReportTypeEnum;
 	period: string; // YYYY-MM-DD
+  evidencesCount: number;
 	activityAt: string | null; // ISO date string
 
 	sections?: ReportFieldsSection[];

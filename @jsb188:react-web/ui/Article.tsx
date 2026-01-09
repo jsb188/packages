@@ -5,6 +5,8 @@ import { LabelsAndIcons } from '../modules/ListFeatures';
 import { AvatarImg } from './Avatar';
 import type { InlineBlockLabelProps } from './Button';
 import { InlineBlockLabel } from './Button';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
+import i18n from '@jsb188/app/i18n';
 
 /**
  * Condensed group title
@@ -337,3 +339,38 @@ export function ArticleCard(p: {
     </div>
   </div>;
 }
+
+/**
+ * Article pagination block
+ */
+
+export const ArticlePagination = memo((p: {
+  className?: string;
+  text: string;
+  pageNumber: number;
+  pageTotal: number;
+}) => {
+  const { className, text, pageNumber, pageTotal } = p;
+
+  return <nav className={cn('p_sm h_spread gap_10 rel of pattern_texture texture_bf -mx_xs', className)}>
+    <span className='rel'>
+      {text}
+    </span>
+
+    <div className='h_right gap_sm'>
+      <button className='av av_xs bg rel r bd_1 bd_lt v_center'>
+        <Icon name='arrow-left' />
+      </button>
+
+      <span className='rel'>
+        {i18n.t('form.page_of', { number: pageNumber, total: pageTotal })}
+      </span>
+
+      <button className='av av_xs bg rel r bd_1 bd_lt v_center'>
+        <Icon name='arrow-right' />
+      </button>
+    </div>
+  </nav>;
+});
+
+ArticlePagination.displayName = 'ArticlePagination';

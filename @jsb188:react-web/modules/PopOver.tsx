@@ -1,14 +1,14 @@
 import { DOM_IDS } from '@jsb188/app/constants/app';
+import i18n from '@jsb188/app/i18n';
 import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
+import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { usePopOver, useSetPopOverIsHover, useTooltip } from '@jsb188/react/states';
 import type { ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps, UpdatePopOverFn } from '@jsb188/react/types/PopOver.d';
 import React, { memo, useEffect, useReducer, useRef, useState } from 'react';
 import { guessTooltipSize, TooltipText } from '../ui/PopOverUI';
 import { PopOverCheckList, PopOverLabelsAndValues, PopOverList } from './PopOver-List';
 import PopOverImage from './PopOver-ViewImage';
-import i18n from '@jsb188/app/i18n';
-import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 
 /**
  * Types; Pop over

@@ -8,21 +8,8 @@ export const reportFragment = `fragment reportFragment on Report {
   description
   type
   period
+  evidencesCount
   gridLayoutStyle
-
-  activityAt
-}`;
-
-export const reportSubmissionFragment = `fragment reportSubmissionFragment on ReportSubmission {
-  id
-  reportId
-  organizationId
-
-  sectionKey
-  documentName
-  sectionName
-  title
-  period
 
   activityAt
 }`;
