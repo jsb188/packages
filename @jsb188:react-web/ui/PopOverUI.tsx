@@ -46,6 +46,7 @@ export const TooltipText = memo((p: TooltipProps) => {
   const { title, message, tooltipClassName, leftIconName, rightIconName } = p;
   return (
     <div
+      // key={title + ':' + message}
       className={cn(
         'tooltip ft_xs lh_3 bg_contrast r_sm',
         tooltipClassName && /\bmax_w_/.test(tooltipClassName) && 'w_override',

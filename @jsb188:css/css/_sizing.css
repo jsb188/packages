@@ -97,12 +97,12 @@ h1.ft_normal, h2.ft_normal, h3.ft_normal, h4.ft_normal, h5.ft_normal, h6.ft_norm
   text-indent: -.0375em;
 }
 
-h1, h2, h3, h4, h5, h6, strong, .ft_bold {
+h1, h2, h3, h4, h5, h6, .ft_bold {
   font-family: var(--font-sans-bold);
   font-weight: normal;
 }
 
-.ft_semibold {
+strong, .ft_semibold {
   font-family: var(--font-sans-semibold);
   font-weight: normal;
 }

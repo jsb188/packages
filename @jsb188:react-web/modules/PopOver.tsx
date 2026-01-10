@@ -741,9 +741,20 @@ function TooltipWrapper(p: TooltipWrapperProps) {
  * Tooltip module
  */
 
-export function TooltipModule() {
+export function TooltipModule(p: {
+  hasModalScreen: boolean;
+  hasPopOver: boolean;
+}) {
   const tooltipHookProps = useTooltip();
-  const { tooltip } = tooltipHookProps;
+  const { tooltip, closeTooltip } = tooltipHookProps;
+  const { hasModalScreen, hasPopOver } = p;
+  const hasOverlay = hasModalScreen || hasPopOver;
+
+  useEffect(() => {
+    if (hasOverlay && tooltip?.id) {
+      closeTooltip(tooltip.id);
+    }
+  }, [hasOverlay]);
 
   if (!tooltip?.id) {
     return null;
