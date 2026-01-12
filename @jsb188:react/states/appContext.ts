@@ -352,7 +352,8 @@ export const appReducer = (state: AppContextData, action: AppContextAction) => {
       };
     }
     default:
-      throw new Error('App Reducer Error: [' + __type + ']');
+      console.dev('Unknown app reducer action type:', __type);
+      return state;
   }
 };
 

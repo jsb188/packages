@@ -858,14 +858,6 @@ export const Confetti = <svg xmlns="http://www.w3.org/2000/svg" className="icon 
 <path d="M14 16.518l-6.518 -6.518l-4.39 9.58a1 1 0 0 0 1.329 1.329l9.579 -4.39z" stroke="currentColor" />
 </svg>;
 
-export const ColorSwatch = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-color-swatch" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M19 3h-4a2 2 0 0 0 -2 2v12a4 4 0 0 0 8 0v-12a2 2 0 0 0 -2 -2" stroke="currentColor" />
-<path d="M13 7.35l-2 -2a2 2 0 0 0 -2.828 0l-2.828 2.828a2 2 0 0 0 0 2.828l9 9" stroke="currentColor" />
-<path d="M7.3 13h-2.3a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h12" stroke="currentColor" />
-<path d="M17 17l0 .01" stroke="currentColor" />
-</svg>;
-
 export const Copy = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-copy" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z" stroke="currentColor" />

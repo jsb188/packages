@@ -70,13 +70,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   click: 'click',
   close: 'x',
   close_small: 'x-filled',
-  _colors: 'color-swatch',
-  get colors() {
-    return this._colors;
-  },
-  set colors(value) {
-    this._colors = value;
-  },
   copied: 'copy-check',
   daily: 'clock-share',
   description: 'notes',

@@ -263,7 +263,7 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       // Because partials might have data that's not in the main fragment
       const currentData = loadFragment(fragmentKey);
 
-      // if (fragmentKey.startsWith('$organizationComplianceFragment:')) {
+      // if (fragmentKey.startsWith('$accountFragment:')) {
       //   console.log('>>>>', fragmentKey);
       //   console.log(data);
       //   console.log(extractFragment(data, innerSelections));
@@ -400,8 +400,9 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
     }
 
     if (spreads) {
-      // if (spreads?.organization?.[2]?.[1]?.length) {
+      // if (spreadsFragmentKey.startsWith('$emailFragment:')) {
       //   console.log('>>>>', spreadsFragmentKey);
+      //   console.log(data);
       //   console.log(spreads);
       // }
 
@@ -988,8 +989,6 @@ export function updateFragment(
   otherUpdatedFragmentKeys?: string[],
 ) {
   const cache = loadFragment(updateFragmentKey);
-
-  console.log('UPDATING:', updateFragmentKey, !!cache);
 
   if (cache && update) {
     let updateObj;

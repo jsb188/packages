@@ -66,3 +66,8 @@ export interface WSDataUpdateObj {
     data: any;
   } | null)[];
 }
+
+export interface WSAppContextUpdateObj {
+  accountId: string;
+  updates: [any, any][];
+}
