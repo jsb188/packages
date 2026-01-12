@@ -1,6 +1,6 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
-import { editAccountMtn } from '../gql/mutations/accountMutations';
+import { requestChangeEmailMtn, editAccountMtn } from '../gql/mutations/accountMutations';
 import { useMutation } from './index';
 
 /**
@@ -37,6 +37,31 @@ export function useEditAccount(
     account,
     settings,
     editAccount,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Change logged in user's e-mail address
+ */
+
+export function useRequestChangeEmail(
+  params?: UseMutationParams | null,
+  openModalPopUp?: OpenModalPopUpFn
+) {
+
+  const [requestChangeEmail, mtnValues, mtnHandlers] = useMutation(
+    requestChangeEmailMtn,
+    {
+      // checkMountedBeforeCallback: true,
+      openModalPopUp,
+      ...params,
+    },
+  );
+
+  return {
+    requestChangeEmail,
     ...mtnValues,
     ...mtnHandlers,
   };

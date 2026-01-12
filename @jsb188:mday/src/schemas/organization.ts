@@ -78,7 +78,7 @@ const RULES = function() {
 export function makeEditOrganizationSchema(
   formId: string,
   focusedName: string,
-  org: OrganizationGQL,
+  formValues: OrganizationGQL, // always append with "|| nodeData"
   openModalPopUp: OpenModalPopUpFn
 ) {
 
@@ -102,7 +102,7 @@ export function makeEditOrganizationSchema(
         name: 'name',
         maxLength: MIN_LEN_VALUES.name,
         label: i18n.t('org.name_of'),
-        placeholder: org.name,
+        placeholder: formValues.name,
         autoComplete: 'off',
       }
     }, {
@@ -111,7 +111,7 @@ export function makeEditOrganizationSchema(
       item: {
         name: 'operation',
         label: i18n.t('org.type_of'),
-        placeholder: i18n.t(`org.type.${org.operation}`),
+        placeholder: i18n.t(`org.type.${formValues.operation}`),
         getter: (value: string) => i18n.t(`org.type.${value}`),
         autoComplete: 'off',
         info: i18n.t('org.contact_to_change'),
@@ -120,7 +120,7 @@ export function makeEditOrganizationSchema(
       __type: 'section_title',
       item: {
         title: i18n.t('form.address'),
-        description: 'This information will appear on your invoices.'
+        description: i18n.t('org.address_notice_msg')
       }
     }, {
       __type: 'input',
@@ -143,7 +143,7 @@ export function makeEditOrganizationSchema(
       item: {
         name: 'address.postalCode',
         label: i18n.t('form.postalCode'),
-        placeholder: org?.address?.postalCode || i18n.t('form.postalCode_ph'),
+        placeholder: formValues?.address?.postalCode || i18n.t('form.postalCode_ph'),
         // autoComplete: 'off',
       }
     }, {
@@ -155,7 +155,7 @@ export function makeEditOrganizationSchema(
             name: 'address.city',
             maxLength: MIN_LEN_VALUES.address_city,
             label: i18n.t('form.city'),
-            placeholder: org?.address?.city || i18n.t('form.city_ph'),
+            placeholder: formValues?.address?.city || i18n.t('form.city_ph'),
           },
         }, {
           __type: 'input',
@@ -163,7 +163,7 @@ export function makeEditOrganizationSchema(
             name: 'address.state',
             maxLength: MIN_LEN_VALUES.address_state,
             label: i18n.t('form.state'),
-            placeholder: org?.address?.state,
+            placeholder: formValues?.address?.state,
           },
         }],
       }
@@ -177,7 +177,7 @@ export function makeEditOrganizationSchema(
         focused: focusedName === (formId + '_address.country'),
         name: 'address.country',
         getter: (value: string) => value ? i18n.t(`country.from_code.${value}`) : '',
-        placeholder: org?.address?.country || i18n.t('form.country_ph'),
+        placeholder: formValues?.address?.country || i18n.t('form.country_ph'),
 
         popOverProps: {
           ...poProps,
@@ -190,15 +190,28 @@ export function makeEditOrganizationSchema(
             variables: {
               designClassName: 'w_400',
               className: 'max_h_50vh',
-              options: SUPPORTED_COUNTRIES.map(countryCode => ({
+							initialState: {
+								'address.country': formValues?.address?.country,
+							},
+              options: ['US','MX','CA'].map(cCode => ({
+                __type: 'LIST_ITEM' as const,
+                text: i18n.t(`country.from_code.${cCode}`),
+                // textClassName: 'ft_xs',
+                // rightIconClassName: 'ft_xs mb_2',
+                name: 'address.country',
+                value: cCode,
+                selected: formValues?.address?.country === cCode,
+              })).concat({
+								__type: 'BREAK' as const
+							}).concat(SUPPORTED_COUNTRIES.map(countryCode => ({
                 __type: 'LIST_ITEM' as const,
                 text: i18n.t(`country.from_code.${countryCode}`),
                 // textClassName: 'ft_xs',
                 // rightIconClassName: 'ft_xs mb_2',
                 name: 'address.country',
                 value: countryCode,
-                selected: org?.address?.country === countryCode,
-              }))
+                selected: formValues?.address?.country === countryCode,
+              })))
             }
           }
         }

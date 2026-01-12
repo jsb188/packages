@@ -115,9 +115,6 @@ export const SUPPORTED_LANGUAGES = [
 // Countries
 
 export const SUPPORTED_COUNTRIES = [
-	'US',
-	'CA',
-	'FR',
 	'AF',
 	'AX',
 	'AL',
@@ -156,6 +153,7 @@ export const SUPPORTED_COUNTRIES = [
 	'BI',
 	'KH',
 	'CM',
+	'CA',
 	'CV',
 	'KY',
 	'CF',
@@ -190,6 +188,7 @@ export const SUPPORTED_COUNTRIES = [
 	'FO',
 	'FJ',
 	'FI',
+	'FR',
 	'GF',
 	'PF',
 	'TF',
@@ -345,6 +344,7 @@ export const SUPPORTED_COUNTRIES = [
 	'UA',
 	'AE',
 	'GB',
+	'US',
 	'UM',
 	'UY',
 	'UZ',

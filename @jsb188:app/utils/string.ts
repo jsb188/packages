@@ -71,7 +71,7 @@ export function isEmail(str: string) {
 	// return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 	const emailRegex =
 		/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
-	return emailRegex.test(str.trim());
+	return !!str && emailRegex.test(str.trim());
 }
 
 /**
@@ -483,24 +483,24 @@ export function makeAddressText(
 			countryName,
 		].filter(Boolean).join(delimiter);
 	} else if (format === 'SINGLE_LINE') {
-    return [
-      address.line1,
-      address.line2,
-      address.city,
-      address.state,
-      address.postalCode,
-      countryName,
-    ].filter(Boolean).join(delimiter);
-  }
+		return [
+			address.line1,
+			address.line2,
+			address.city,
+			address.state,
+			address.postalCode,
+			countryName,
+		].filter(Boolean).join(delimiter);
+	}
 
-  // NORMAL format
-  return [
-    address.line1,
-    address.line2,
-    [
-      [address.city, address.state].filter(Boolean).join(', '),
-      address.postalCode,
-    ].filter(Boolean).join(' '),
-    countryName,
-  ].filter(Boolean).join('\n');
+	// NORMAL format
+	return [
+		address.line1,
+		address.line2,
+		[
+			[address.city, address.state].filter(Boolean).join(', '),
+			address.postalCode,
+		].filter(Boolean).join(' '),
+		countryName,
+	].filter(Boolean).join('\n');
 }

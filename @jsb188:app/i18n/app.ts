@@ -9,6 +9,7 @@ export default {
     // Routes
     route_: 'App | %{text}',
     route_auth: 'Log in or sign up',
+    route_auth_change_email: 'Change e-mail address',
     route_auth_signup: 'Create an account',
     route_not_found: 'Page Not Found',
     route_not_found_desc: 'The page you are looking for does not exist.',

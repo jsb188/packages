@@ -112,9 +112,9 @@ export function ModalErrorMessage(p: ModalErrorProps) {
       </button>
 
       <div className='h_item mb_xs ic_sm cl_err'>
-        <span className='mr_xs'>
+        <span className='mr_5'>
           <Icon
-            name={iconName || 'alert-circle'}
+            name={iconName || 'alert-circle-filled'}
           />
         </span>
         <strong className='shift_down'>
@@ -153,10 +153,10 @@ export function ModalHeader(p: Partial<ModalHeaderProps>) {
   }
 
   return (
-    <header className='bg rt_df mw_header h_center a_c'>
+    <header className='bg rt_df mw_header h_center a_c -mt_lg -mx_md mb_25'>
       {!backProps ? null : (
         <div className='abs_l v_center px_sm'>
-          <a {...backProps} role='button' className='av_df v_center r bg_alt back cl_df'>
+          <a {...backProps} role='button' className='av_df v_center r bg_alt bg_active_hv back cl_df'>
             <Icon name='arrow-left' />
           </a>
         </div>
@@ -182,17 +182,20 @@ interface ModalSimpleContentProps {
   iconName: string;
   className?: string;
   children?: React.ReactNode;
+  buttonText?: string;
+  buttonTo?: string;
+  onSubmit?: () => void;
 }
 
 export function ModalSimpleContent(p: ModalSimpleContentProps) {
-  const { title, message, iconName, className, children } = p;
+  const { title, message, iconName, className, children, buttonText, buttonTo, onSubmit } = p;
 
   return <div className={cn('v_center a_c', className ?? 'py_md px_df')}>
     <span className='ic_xxxl cl_secondary'>
-      <Icon name={iconName} />
+      <Icon name={iconName} tryColor />
     </span>
 
-    <h1 className='ft_sm ft_semibold ls_2 mb_4'>
+    <h1 className='ft_sm ft_semibold ls_2 mt_sm'>
       {title}
     </h1>
 
@@ -200,11 +203,21 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
       {children}
 
       {message && (
-        <p>
+        <Markdown as='p'>
           {message}
-        </p>
+        </Markdown>
       )}
     </div>
+
+    {buttonText &&
+    <FullWidthButton
+      preset='bg_primary'
+      className='mt_lg -mb_md'
+      to={buttonTo}
+      onClick={onSubmit}
+    >
+      {buttonText}
+    </FullWidthButton>}
   </div>;
 }
 
@@ -355,6 +368,7 @@ interface AlertDataProps {
   onCancel?: () => void;
   onCloseModal?: () => void;
   doNotExitOnConfirm?: boolean;
+  disabledConfirm?: boolean;
   loading?: boolean;
   children?: React.ReactNode;
 }
@@ -373,6 +387,7 @@ export function AlertPopUp(p: AlertDataProps) {
     onCancel,
     onCloseModal,
     doNotExitOnConfirm,
+    disabledConfirm,
     url,
     loading,
     children,
@@ -402,7 +417,7 @@ export function AlertPopUp(p: AlertDataProps) {
   let confirmPreset;
   if (isWarning) {
     confirmPreset = 'bg_err';
-  } else if (cancelText) {
+  } else if (cancelText && !disabledConfirm) {
     confirmPreset = 'bg_secondary';
   } else {
     confirmPreset = 'subtle';
@@ -411,7 +426,7 @@ export function AlertPopUp(p: AlertDataProps) {
   return (
     <>
       {iconName !== null
-      ? <div className={cn('pt_lg pb_sm ic_xxl', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
+      ? <div className={cn('pt_lg pb_xs ic_xxl', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
         <Icon
           tryColor
           name={iconName || 'alert-circle'}
@@ -454,6 +469,7 @@ export function AlertPopUp(p: AlertDataProps) {
             className={url ? undefined : 'mt_md'}
             onClick={onClickConfirm}
             loading={loading}
+            disabled={disabledConfirm}
           >
             {confirmText || i18n.t('form.ok')}
           </FullWidthButton>

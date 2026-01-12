@@ -1,17 +1,17 @@
 import { APP_EMAILS } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
 import { useCheckUsernameOrEmail, useConfirmPhoneVerificationCode, useRequestTokenizedEmail, useSendPhoneVerificationCode, useSignUpWithEmail } from '@jsb188/graphql/hooks/use-auth-mtn';
-import { FormBreak } from '@jsb188/react-web/ui/Form';
 import SchemaForm from '@jsb188/react-web/modules/SchemaForm';
 import { FullWidthButton } from '@jsb188/react-web/ui/Button';
-import { TextWithLinks } from '@jsb188/react-web/ui/Markdown';
+import { FormBreak } from '@jsb188/react-web/ui/Form';
+import Markdown, { TextWithLinks } from '@jsb188/react-web/ui/Markdown';
 import { ModalErrorMessage, ModalSimpleContent } from '@jsb188/react-web/ui/ModalUI';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import type { AuthPageName } from './_helpers';
 import { getAuthRoute } from './_helpers';
 import { VerificationCodeInput } from './AuthFormUI';
-import { ContinueWithApple, ContinueWithGoogle, ContinueWithPhone } from './OtherAuthButtons';
+import { ContinueWithGoogle, ContinueWithPhone } from './OtherAuthButtons';
 import { makeRequestTokenizedEmailSchema, makeSendPhoneVerificationSchema, makeSignInSchema, makeSignUpSchema } from './schemas';
 
 /**
@@ -192,7 +192,7 @@ function SignInMain(p: AuthFormProps) {
         </Link>
         : <button
           className='text ft_sm cl_md link'
-          onClick={() => setAuthIface('VERIFY_EMAIL')}
+          onClick={() => setAuthIface('REQUEST_PASSWORD_RESET')}
         >
           {i18n.t('auth.forgot_password_')}
         </button>}
@@ -289,9 +289,9 @@ function RequestTokenizedEmail(p: RequestTokenizedEmailProps) {
         />
       )}
 
-      <p className={error ? 'py_xs a_c' : '-mt_5 pb_xs a_c'}>
+      <Markdown as='p' className={error ? 'py_xs a_c' : '-mt_5 pb_xs a_c'}>
         {instructionText}
-      </p>
+      </Markdown>
     </SchemaForm>
   );
 }
@@ -310,7 +310,7 @@ function ResetPasswordCompleted(p: AuthFormProps) {
 
   return <ModalSimpleContent
     title={i18n.t('auth.email_sent')}
-    iconName='circle-check-filled'
+    iconName='circle-check'
   >
     <TextWithLinks as='p'>
       {i18n.t(emailAddress
@@ -457,7 +457,7 @@ function ConfirmPhoneVerificationCode(p: ConfirmPhoneVerificationCodeProps) {
  * Sign in form
  */
 
-type SignInIface = 'VERIFY_PHONE' | 'VERIFY_EMAIL' | 'EMAIL_SENT' | 'VERIFY_PHONE_SENT' | ['VERIFY_PHONE_SENT', string];
+type SignInIface = 'REQUEST_PASSWORD_RESET' | 'VERIFY_PHONE' | 'VERIFY_EMAIL' | 'EMAIL_SENT' | 'VERIFY_PHONE_SENT' | ['VERIFY_PHONE_SENT', string];
 
 export function SignInForm(p: Omit<AuthFormProps, 'setAuthIface'>) {
   const { initialError } = p;
@@ -485,6 +485,12 @@ export function SignInForm(p: Omit<AuthFormProps, 'setAuthIface'>) {
       return <RequestTokenizedEmail
         {...p}
         requestType='EMAIL_VERIFICATION'
+        setAuthIface={setAuthIface}
+      />;
+    case 'REQUEST_PASSWORD_RESET':
+      return <RequestTokenizedEmail
+        {...p}
+        requestType='PASSWORD_RESET'
         setAuthIface={setAuthIface}
       />;
     case 'EMAIL_SENT':
@@ -611,7 +617,7 @@ function SignUpSuccess(p: SignUpSuccessProps) {
 
   return <ModalSimpleContent
     title={i18n.t('auth.account_created')}
-    iconName='circle-check-filled'
+    iconName='circle-check'
     className='px_df pt_md'
   >
     <TextWithLinks as='p'>

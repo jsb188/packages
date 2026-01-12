@@ -216,7 +216,7 @@ SidebarItem.displayName = 'SidebarItem';
 
 export const SidebarBreak = memo(() => {
   return <div className='py_8 mx_df'>
-    <div className='h_4 rel pattern_texture secondary_bf' />
+    <div className='h_4 rel pattern_texture texture_bf' />
   </div>;
 });
 

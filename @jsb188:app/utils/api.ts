@@ -72,7 +72,7 @@ export function normalizeServerError(error?: any): ServerErrorObj {
 
   if (!message) {
     if (i18nErrCodeExists(errorCode)) {
-      message = i18n.t(`error.${errorCode}`, { value: errorValue });
+      message = i18n.t(`error.${errorCode}`, { value: errorValue, smart_count: Number(errorValue) });
     } else {
       message = i18n.t('error.unknown_error');
     }

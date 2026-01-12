@@ -432,7 +432,7 @@ export function AvatarImg(p: AvatarProps & {
           src={avatarUrl}
         />
       )}
-      {hasImg || typeof displayName !== 'string' ? null : (
+      {hasImg || typeof displayName !== 'string' || !displayName ? null : (
         <AvatarLetter
           as={letterAs}
           displayName={displayName}

@@ -19,3 +19,13 @@ mutation editAccount (
 }
 ${accountFragment}
 `;
+
+export const requestChangeEmailMtn = gql`
+mutation requestChangeEmail (
+  $emailAddress: String!
+) {
+  requestChangeEmail (
+    emailAddress: $emailAddress
+  )
+}
+`;

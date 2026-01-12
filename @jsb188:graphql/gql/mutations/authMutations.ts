@@ -24,6 +24,17 @@ ${emailFragment}
 ${phoneFragment}
 `;
 
+export const confirmPasswordMtn = gql`
+mutation confirmPassword (
+  $password: String!
+) {
+  confirmPassword (
+    password: $password
+  )
+}
+`;
+
+
 export const authenticateWithPasswordMtn = gql`
 mutation authenticateWithPassword (
   $identifier: String!

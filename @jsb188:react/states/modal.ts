@@ -19,6 +19,13 @@ export interface ModalProps {
   [key: string]: any;
 }
 
+export interface ModalPopUpComponentProps {
+  // Can't extend ModalProps because [key: string]: any; nullifies the type checking
+  name: string;
+  preset: string | null;
+	onCloseModal: () => void;
+}
+
 type ModalPropsFn = (prev: ModalProps | null) => ModalProps | null;
 
 export type OpenModalScreenFn = (data: ModalRequestParams) => void;
@@ -64,7 +71,7 @@ export const POPUP_DEFAULT_VALUES = {
   },
   not_verified_email: {
     iconName: 'mailbox',
-    title: 'auth.check_email',
+    title: 'form.check_email',
     message: 'auth.not_verified_yet',
   },
   not_allowed_permission: {

@@ -76,6 +76,10 @@ input.invis_input::-webkit-inner-spin-button {
   box-shadow: 0 0 40px rgba(var(--color-main),.15), 0 0 1px rgba(0,0,0,.32);
 } */
 
+.form_not_allowed input, .form_not_allowed textarea, .form_not_allowed [role="button"] {
+	cursor: not-allowed !important;
+}
+
 .form_el:hover .form_input:not(.disabled):not(.error) {
   background-color: rgba(var(--color-main), .04) !important;
 }

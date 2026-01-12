@@ -1,6 +1,6 @@
 import { SUPPORTED_LANGUAGES } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
-import type { AccountData, AccountSettings } from '@jsb188/app/types/auth.d';
+import type { AccountData } from '@jsb188/app/types/auth.d';
 import { formatPhoneNumber } from '@jsb188/app/utils/string';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 
@@ -14,6 +14,7 @@ const MIN_LEN_VALUES = {
   lastName: 32,
   description: 750,
   email: 80,
+	phone: 15,
 };
 
 /**
@@ -23,8 +24,8 @@ const MIN_LEN_VALUES = {
 export function makeEditAccountSchema(
   formId: string,
   focusedName: string,
+	formValues: any,
   account: AccountData | null,
-  settings: AccountSettings | null,
   openModalPopUp: OpenModalPopUpFn
 ) {
 
@@ -92,7 +93,7 @@ export function makeEditAccountSchema(
                 // rightIconClassName: 'ft_xs mb_2',
                 name: 'settings.language',
                 value: lang,
-                selected: (settings?.language || 'en') === lang,
+                selected: (formValues?.settings?.language || 'en') === lang,
               }))
             }
           }
@@ -102,8 +103,8 @@ export function makeEditAccountSchema(
       __type: 'input_w_button',
       item: {
         name: 'change_phoneNumber',
-        maxLength: MIN_LEN_VALUES.email,
-        setter: (data: any) => formatPhoneNumber(data?.phone?.number || ''),
+        maxLength: MIN_LEN_VALUES.phone,
+        setter: (data: any) => formatPhoneNumber(data?.change_phoneNumber || data?.phone?.number || ''),
         label: i18n.t('form.phone_number'),
         autoComplete: 'off',
         disabled: true,
@@ -118,7 +119,7 @@ export function makeEditAccountSchema(
       item: {
         name: 'change_emailAddress',
         maxLength: MIN_LEN_VALUES.email,
-        setter: (data: any) => data?.email?.address,
+        setter: (data: any) => data?.change_emailAddress || data?.email?.address,
         label: i18n.t('account.email'),
         autoComplete: 'off',
         disabled: true,
@@ -134,7 +135,7 @@ export function makeEditAccountSchema(
         name: 'change_password',
         minLength: MIN_LEN_VALUES.password,
         label: i18n.t('account.password'),
-        setter: () => '.....',
+        setter: () => '....',
         autoComplete: 'off',
         type: 'password',
         disabled: true,

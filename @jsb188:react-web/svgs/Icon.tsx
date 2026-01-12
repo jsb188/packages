@@ -57,17 +57,26 @@ interface SpecialIconProps extends IconProps {
  */
 
 export const COMMON_ICON_NAMES: Record<string, string> = {
-  ai_magic: 'sparkles',
+  ai_avatar: 'reward-stars-4',
+  ai_magic: 'reward-stars-3',
   ai_workflow: 'document-ai',
   address_book: 'address-book',
+  alert_error: 'alert-circle',
   alert_warning_filled: 'alert-circle-filled',
   billing: 'credit-card',
   broken_file: 'file-broken',
+  broken_link: 'link-broken-2',
   chat: 'message',
   click: 'click',
   close: 'x',
   close_small: 'x-filled',
-  colors: 'color-swatch',
+  _colors: 'color-swatch',
+  get colors() {
+    return this._colors;
+  },
+  set colors(value) {
+    this._colors = value;
+  },
   copied: 'copy-check',
   daily: 'clock-share',
   description: 'notes',
@@ -75,7 +84,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   delete_filled: 'trash-x-filled',
   edit: 'edit',
   edit_off: 'edit-off',
-  email: 'mail', // Tabler version
+  email_address: 'read-email-at',
   empty: 'square-forbid-2',
   failed: 'circle-x',
   favorites: 'stars',
@@ -127,6 +136,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   success: 'circle-check',
   login_related: 'face-id-10',
   switch_organizations: 'switch-account-1',
+  time_ran_out: 'time-stopwatch-quarter',
   timeout: 'clock-cancel',
   timeout_unban: 'clock-check',
   transplanting: 'organic-plant-grow',
@@ -135,6 +145,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   user_add: 'user-plus',
   user_blocked: 'user-x',
   user_deleted: 'user-off',
+  verified: 'check-badge',
   your_account: 'user-circle',
   certificate: 'document-license',
   foreign_growers: 'shipment-international',

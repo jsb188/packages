@@ -4,6 +4,8 @@ import { updateFragment } from '../cache/index';
 import { deleteComplianceDocumentMtn, editOrganizationMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
 import { useMutation } from './index';
 import { useOrgRelFromMyOrganizations } from './use-organization-qry';
+import { useMemo } from 'react';
+import { checkACLPermission } from '@jsb188/mday/utils/organization';
 
 /**
  * Fetch a single log entry,
@@ -82,6 +84,10 @@ export function useEditOrganization(
 ) {
   const { primaryOrganizationId } = useCurrentAccount();
   const { organizationRelationship } = useOrgRelFromMyOrganizations(primaryOrganizationId);
+	const allowEdit = useMemo(() =>
+		checkACLPermission(organizationRelationship, 'orgManagement', 'MANAGE'),
+		[organizationRelationship?.acl, organizationRelationship?.role]
+	);
 
   const [editOrganization, mtnValues, mtnHandlers] = useMutation(editOrganizationMtn, {
     // checkMountedBeforeCallback: true,
@@ -90,6 +96,7 @@ export function useEditOrganization(
   });
 
   return {
+    allowEdit,
     organizationRelationship,
     editOrganization,
     ...mtnValues,

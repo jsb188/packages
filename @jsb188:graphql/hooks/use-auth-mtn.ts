@@ -4,7 +4,7 @@ import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 import { AppContext, onGuestInit, useOpenModalPopUp } from '@jsb188/react/states';
 import React, { useContext, useEffect, useState } from 'react';
-import { changeAccountPasswordMtn, checkUsernameOrEmailMtn, confirmPhoneVerificationCodeMtn, requestTokenizedEmailMtn, sendPhoneVerificationCodeMtn, signUpWithEmailMtn } from '../gql/mutations/authMutations';
+import { changeAccountPasswordMtn, checkUsernameOrEmailMtn, confirmPasswordMtn, confirmPhoneVerificationCodeMtn, requestTokenizedEmailMtn, sendPhoneVerificationCodeMtn, signUpWithEmailMtn } from '../gql/mutations/authMutations';
 import { signOutMtn } from '../gql/mutations/userAuthMutations';
 import { useMutation } from './index';
 
@@ -251,6 +251,28 @@ export function useSignUpWithEmail(params: AuthHookParams = {}, openModalPopUp?:
     ...mtnValues,
     ...mtnHandlers,
     signUpWithEmail,
+  };
+}
+
+/**
+ * Confirm password
+ * NOTE: *must* be signed in already
+ */
+
+export function useConfirmPassword(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+  const [confirmPassword, mtnValues, mtnHandlers] = useMutation(
+    confirmPasswordMtn,
+    {
+      checkMountedBeforeCallback: true,
+      openModalPopUp,
+      ...params,
+    },
+  );
+
+  return {
+    confirmPassword,
+    ...mtnValues,
+    ...mtnHandlers,
   };
 }
 

@@ -3,7 +3,6 @@ import { cn } from '@jsb188/app/utils/string';
 import { memo } from 'react';
 import { TooltipButton } from '../modules/PopOver';
 import { Icon } from '../svgs/Icon';
-import { Button } from './Button';
 
 /**
  * Types
@@ -122,7 +121,7 @@ export function FormSectionTitle(p: {
       {title}
     </p>}
     {description &&
-    <p className='-mt_5 pb_10 ft_xs lh_3'>
+    <p className='-mt_5 pb_10 lh_3'>
       {description}
     </p>}
   </div>;
@@ -143,7 +142,7 @@ export const FormBreak = memo((p: {
     <div
       className={cn(
         'pattern_texture rel h_center',
-        colorClassName ?? 'secondary_bf',
+        colorClassName ?? 'strong_bf',
         heightClassName ?? 'h_10',
         className,
       )}

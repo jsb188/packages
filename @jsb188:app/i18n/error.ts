@@ -12,8 +12,9 @@ export default {
     not_allowed_perms: 'You do not have permission to do that.',
     login_changed: 'Login changed',
     link_expired: 'Link expired',
-    link_expired_msg: 'This link expired. Please try again by requesting another link.',
-    invalid_link_msg: 'This link is invalid. Please try again by requesting another link.',
+    invalid_link: 'Invalid link',
+    link_expired_msg: 'This link expired. Please try again by\n requesting another link.',
+    invalid_link_msg: 'This link is invalid. Please try again by\n requesting another link.',
 
     // 1x
     '10000_title': 'App updated!',
@@ -30,6 +31,7 @@ export default {
     10010: 'Your Apple login token was invalid.',
     10011: 'Apple API failed to respond.',
     10012: 'This browser tab will reload because you changed your login.',
+    10013: 'Our e-mail service is experiencing an outage. Please try again in a moment.',
 
     // 2x
 
@@ -43,7 +45,7 @@ export default {
     20005: 'Could not find the account with that username (@%{value})',
     20006: 'Could not find the account with that e-mail. (%{value})',
     20007: 'Could not find the account with that ID. (%{value})',
-    20008: 'Your password is incorrect. You have %{value} try(s) remaining.',
+    20008: 'Your password is incorrect. You have %{value} try remaining.||||Your password is incorrect. You have %{value} tries remaining.',
     20009: 'Please wait 10 minutes before trying to log in again.',
     20010: 'This account could not be found.',
     20011: 'Your token expired, please request a new link.',
@@ -99,6 +101,8 @@ export default {
     20059: 'This log was not found.\nIt may have been deleted.',
     20060: 'You do not have permissions to delete this log. Please contact your administrator.',
     20061: 'You do not have permissions to perform this action. Please contact your administrator.',
+    20062: '"%{value}" is not a valid e-mail address.',
+    20063: 'You cannot change your e-mail to the same e-mail address.',
 
     '29999_title': 'Not ready',
     29999: 'AI chat is not ready right now.',

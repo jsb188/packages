@@ -32,6 +32,7 @@ interface SchemaFormProps {
   saveCounter?: number;
   autoComplete?: boolean;
   saving?: boolean;
+	notAllowed?: boolean; // This disables the entire form and puts a cursor: not-allowed on it
   disabled?: boolean;
   disabledButton?: boolean;
   hideButton?: boolean;
@@ -71,7 +72,8 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     actionUrl,
     httpMethod,
     saving,
-    disabled,
+    disabled: disabled_,
+		notAllowed,
     children,
     FooterComponent,
     hideButton,
@@ -79,6 +81,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     buttonClassName,
   } = p;
 
+	const disabled = disabled_ || notAllowed;
   const formRef = useRef<HTMLFormElement>(null);
   const autoComplete = p.autoComplete || true;
   const buttonPreset = p.buttonPreset || 'bg_primary';
@@ -94,8 +97,9 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
 
   useImperativeHandle(ref, () => ({
     reset: () => setFormValues(makeFormValues(schema, dataForSchema, currentData)),
+		getFormValues: () => formValues,
     updateFormValues: (fn: (prev: any) => any) => setFormValues((fv: any) => fn(fv)),
-  }), [setFormValues]);
+  }), [formValues, setFormValues]);
 
   // Error handler
 
@@ -211,7 +215,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
       ref={formRef}
       method={httpMethod || (actionUrl ? 'post' : 'get')}
       action={actionUrl}
-      className={cn('schema_form', className)}
+      className={cn('schema_form', notAllowed && 'form_not_allowed', className)}
       name={name || 'schema_form'}
       autoComplete={autoComplete ? 'on' : 'off'}
       onSubmit={onSubmitForm}

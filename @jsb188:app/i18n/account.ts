@@ -45,7 +45,18 @@ export default {
     badge_desc: 'Change the badge that appear next to your name in chat.',
     badge_instr: 'This badge will be displayed next to your name:',
 
-    // Change password
+    // Change sensitive account settings/info
+    enter_password: 'Enter password',
+		enter_password_msg: 'Confirm your identity before continuing.',
+    new_email: 'New e-mail address',
+    email_updated: 'E-mail updated',
+    email_updated_msg: 'Your e-mail address has been updated to:\n %{emailAddress}.',
+    change_email: 'Change e-mail',
+    change_email_msg: 'You will receive a confirmation e-mail\n to your new address.',
+    change_email_pw_confirm_msg: 'Confirm your identity to change\n your e-mail address.',
+    change_email_verify_msg: 'Follow the instructions in the e-mail we sent\n to change your e-mail address.',
+    change_phone: 'Change phone number',
+    change_phone_msg: 'Confirm your identity to change\n your phone number.',
     currentPassword: 'Current password',
     newPassword: 'New password',
     newPasswordRepeat: 'New password (repeat)',
@@ -71,10 +82,5 @@ export default {
     report_user: 'Report user',
     profile_deactivated_desc: 'This account has been deactivated.',
     phone_numbers: 'Phone numbers',
-
-    // Search instructions
-    search_instr_1: 'Search by user ID',
-    search_instr_2: 'Search by @username',
-    search_instr_3: 'Search by display name',
   },
 };
