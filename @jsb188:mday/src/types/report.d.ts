@@ -26,6 +26,7 @@ export interface ReportsFilterArgs {
 interface ReportFieldsObj {
 	__allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
 	__notAutomated?: boolean; // If true, report is not skipped during automation
+	__prompt: string; // Server-only, this prompt used on the entire report as a whole (ie. OSP generation)
 	gridLayoutStyle?: string;
 	sections?: ReportFieldsSection[];
 	rows?: ReportFieldsRow[];
@@ -49,7 +50,7 @@ interface ReportFieldsSection {
 }
 
 interface ReportFieldsRow {
-  id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Key is used to map row/columns to answers
 	preset?: ReportRowPresetEnum;
 	className?: string;
@@ -65,7 +66,7 @@ interface ReportFieldsColumn {
 	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Key is used to map column to answers
 	className?: string;
-  labelClassName?: string;
+	labelClassName?: string;
 	label: string;
 	text: string;
 	placeholder: string | null;
@@ -108,7 +109,7 @@ export interface ReportGQL {
 	description: string;
 	type: ReportTypeEnum;
 	period: string; // YYYY-MM-DD
-  evidencesCount: number;
+	evidencesCount: number;
 	activityAt: string | null; // ISO date string
 
 	sections?: ReportFieldsSection[];
@@ -120,12 +121,12 @@ export interface ReportGQL {
  */
 
 export interface ReportEvidenceGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
-  id: string; // GraphQL Cursor
-  reportSubmissionId: string;
-  sectionKey: string;
-  log: any; // LogEntryGQL
+	id: string; // GraphQL Cursor
+	reportSubmissionId: string;
+	sectionKey: string;
+	log: any; // LogEntryGQL
 }
 
 export interface ReportSubmissionGQL {
@@ -141,14 +142,14 @@ export interface ReportSubmissionGQL {
 	period: string; // YYYY-MM-DD
 	activityAt: string | null; // ISO date string
 	rows: ReportRowGQL[];
-  evidences: string[];
+	evidences: string[];
 }
 
 export interface ReportLogRelData {
-  __table: 'report_log_rels';
-  reportSubmissionId: number | bigint;
-  logId: number | bigint;
-  sectionKey: string;
+	__table: 'report_log_rels';
+	reportSubmissionId: number | bigint;
+	logId: number | bigint;
+	sectionKey: string;
 }
 
 export interface ReportSubmissionData {
@@ -158,6 +159,6 @@ export interface ReportSubmissionData {
 	reportId: number;
 	period: Date; // YYYY-MM-DD in database, Date object in server via ORM
 	answers: Record<string, any>; // key-value pairs of answers
-  logRels?: ReportLogRelData[];
+	logRels?: ReportLogRelData[];
 	activityAt: Date;
 }

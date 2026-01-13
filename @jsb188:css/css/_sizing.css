@@ -121,6 +121,10 @@ strong, .ft_bold, .ft_semibold {
   font-family: var(--font-sans);
 }
 
+.ft_italic {
+  font-style: italic;
+}
+
 p {
   padding: 0;
   margin: 0 0 .5em;
