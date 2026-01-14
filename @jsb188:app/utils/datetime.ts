@@ -594,7 +594,7 @@ export function getFullDate(
 				timeStyle: 'short', // 'full', 'long', 'medium', 'short'
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
-      // return DateTime.fromJSDate(d, timeZone ? { zone: timeZone } : undefined).toFormat('MMM d yyyy, h:mm a');
+			// return DateTime.fromJSDate(d, timeZone ? { zone: timeZone } : undefined).toFormat('MMM d yyyy, h:mm a');
 		case 'DATE_ONLY_SHORT': {
 			// Expected output: "Sep 1" (or "Sep 1, 25" if not current year)
 			const dateYear = d.getFullYear();
@@ -898,4 +898,46 @@ export function timeToHHMM(timeStr: string): string {
 		return `${hh.padStart(2, '0')}${mm.padStart(2, '0')}`;
 	}
 	return timeStr.padStart(4, '0');
+}
+
+/**
+ * Sort & group by date/month
+ */
+
+export function groupByDateMonth<T extends { date: Date }>(
+  items: T[],
+  timeZone: string
+): {
+  byDate: Record<string, T[]>;
+  byMonth: Record<string, T[]>;
+} {
+  // 1. Sort by absolute time
+  const sorted = [...items].sort(
+    (a, b) => a.date.getTime() - b.date.getTime()
+  );
+
+  const byDate: Record<string, T[]> = {};
+  const byMonth: Record<string, T[]> = {};
+
+  for (const item of sorted) {
+    const dt = DateTime
+      .fromJSDate(item.date, { zone: timeZone });
+
+    const dateKey = dt.toFormat('yyyy-MM-dd');
+    const monthKey = dt.toFormat('yyyy-MM');
+
+    // Group by day
+    if (!byDate[dateKey]) {
+      byDate[dateKey] = [];
+    }
+    byDate[dateKey].push(item);
+
+    // Group by month
+    if (!byMonth[monthKey]) {
+      byMonth[monthKey] = [];
+    }
+    byMonth[monthKey].push(item);
+  }
+
+  return { byDate, byMonth };
 }
