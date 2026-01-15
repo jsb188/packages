@@ -135,20 +135,18 @@ export function EmojiWrapper(p: EmojiWrapperProps) {
     } else if (Array.isArray(chunk)) {
       const [, , text] = chunk as string[];
 
-      return (
-        <span
-          className={cn(
-            'noto_emoji',
-            // 'emoji',
-            emojiClassName,
-            allowBigEmojis && isEmojiOnly ? 'big-emoji' : '',
-          )}
-          key={i}
-        >
-          {text}
-          {/* <Emoji url={url} text={text} /> */}
-        </span>
-      );
+      return <span
+        className={cn(
+          'noto_emoji',
+          // 'emoji',
+          emojiClassName,
+          allowBigEmojis && isEmojiOnly ? 'big-emoji' : '',
+        )}
+        key={i}
+      >
+        {text}
+        {/* <Emoji url={url} text={text} /> */}
+      </span>;
     }
 
     return null;

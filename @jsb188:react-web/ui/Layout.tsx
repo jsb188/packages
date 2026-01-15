@@ -7,6 +7,7 @@ import { memo } from 'react';
 import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { BigLoading } from './Loading';
+import Markdown from './Markdown';
 
 // const cssPaths = ['/css/layout.css', '/css/alert.css'];
 
@@ -393,9 +394,13 @@ export function ErrorMessage(p: ErrorMessageProps) {
       <h1 className={cn('ft_semibold ls_2 cl_secondary', titleClassName)}>
         {title}
       </h1>
-      <p className={cn('op_70 a_c mb_md cl_bd', messageClassName)}>
+      <Markdown
+        as='p'
+        preset='article'
+        className={cn('op_70 a_c mb_md cl_bd', messageClassName)}
+      >
         {message}
-      </p>
+      </Markdown>
 
       {isAuthError
       ? <Pill

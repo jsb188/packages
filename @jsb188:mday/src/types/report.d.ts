@@ -45,8 +45,10 @@ interface ReportFieldsSection {
 	sectionName: string;
 	title: string;
 	description: string;
-	__prompt: string; // Server-only
 	rows?: ReportFieldsRow[];
+
+  __prompt_examples?: string; // Server-only; for examples of what the output should be
+  __prompt_topics?: string; // Server-only; for topics this section should cover
 }
 
 interface ReportFieldsRow {
