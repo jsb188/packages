@@ -7,7 +7,6 @@ import {
 } from '../constants/organization.ts';
 import { PRODUCT_FEATURES } from '../constants/product.ts';
 
-import type { AccountData } from '@jsb188/app/types/account.d';
 import type { AddressObj, StorageData } from '@jsb188/app/types/other.d';
 import type { LogTypeEnum } from '../types/log.d';
 
@@ -109,12 +108,13 @@ export interface OrganizationChildData {
 	parentId: number | bigint | null;
 	childId: number | bigint;
 	organization: OrganizationData;
-	anyContact?: {
-		__table: 'account_organization_rels';
-		id: number;
-		role: OrganizationRoleEnum;
-		account: AccountData;
-	};
+  preferredContacts?: {
+    [key: OrganizationDepartmentEnum]: Partial<{
+      name: string | null;
+      phoneNumber: string | null;
+      emailAddress: string | null;
+    }>;
+  };
 	addedAt: Date;
 }
 

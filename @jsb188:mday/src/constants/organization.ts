@@ -8,11 +8,15 @@ export const OPERATION_ENUMS = [
 
 	// Umbrella orgs
 	'FARMERS_MARKET',
-  'GROWER_NETWORK',
+	'GROWER_NETWORK',
+
+  // External orgs
+  'VENDOR',
 ];
 
 export const PARENT_ORG_OPERATIONS = [
 	'FARMERS_MARKET',
+	'GROWER_NETWORK',
 ];
 
 // Employee ACL
