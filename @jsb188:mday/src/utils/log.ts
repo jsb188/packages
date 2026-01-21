@@ -136,8 +136,8 @@ export function getLogTypeFromActivity(operation: OrganizationOperationEnum | st
  * @returns i18n text for activity
  */
 
-export function getShorterActivityText(activity: any): string {
-	if (i18n.has(`log.activity_short.${activity}`)) {
+export function getActivityText(activity: any, tryShortForm?: boolean): string {
+	if (tryShortForm && i18n.has(`log.activity_short.${activity}`)) {
 		return i18n.t(`log.activity_short.${activity}`);
 	}
 	return i18n.t(`log.activity.${activity}`);
