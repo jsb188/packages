@@ -108,3 +108,91 @@ body.p_auth {
 .floating_msg {
   margin: 0 -1rem;
 }
+
+/* App layout; toolbar title */
+
+#app_toolbar_title {
+  height: var(--toolbar-ht);
+  flex-shrink: 0;
+}
+
+/* App layout; account nav */
+
+#app_toolbar_right {
+  position: absolute;
+  top: 0; right: 0; z-index: 50;
+  height: var(--toolbar-ht);
+}
+
+/* App layout; sidebar */
+
+#app_sidebar {
+  position: relative;
+  width: var(--sidebar-wt);
+  transition: width ease .2s;
+}
+
+.app_sidebar_inside {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-wt);
+  transition: left ease .2s;
+}
+
+.mday_sidebar_inside_width {
+  width: calc(var(--sidebar-wt) - 27px);
+}
+
+/* App layout; sidebar mobile responsive design */
+
+@media (max-width: 1024px) {
+  #app_sidebar {
+    width: 0;
+  }
+}
+
+/* App layout; main content (scroll area) */
+
+.app_scr {
+  /* position: relative; */
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  /* scroll-behavior: smooth; */
+  /* After a recent update, this no longer works in Chrome */
+  /* overflow-y: overlay; */
+  scrollbar-gutter: auto;
+  /* In "new" Google Chrome, this will make the scrollbar invisible, so we must turn it off. */
+  /* scrollbar-width: thin; */
+
+  /* This is for bottom-up chat style virtualized list */
+  overflow-anchor: none;
+}
+
+.app_scr::-webkit-scrollbar {
+  width: 18px;
+  /* background-color: rgb(var(--color-bg-alt)); */
+}
+
+.app_scr::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 0 5px rgb(var(--color-bg));
+  border-radius: 9px;
+}
+
+.app_scr::-webkit-scrollbar-thumb {
+  z-index: -1;
+  /* Use this for invisible style */
+  /* background-color: rgb(var(--color-bg-active)); */
+  background-color: transparent;
+  box-shadow: inset 0 0 0 5px rgb(var(--color-bg));
+  /* transform: scale(.5); */
+  border-radius: 9px;
+  min-height: 100px;
+}
+
+.app_scr:hover::-webkit-scrollbar-thumb {
+  /* background-color: rgb(var(--color-bg-medium)); */
+  background-color: rgb(var(--color-bg-active));
+}

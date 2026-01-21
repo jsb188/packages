@@ -878,6 +878,9 @@ const TableListItem = (p: TableListProps & {
     </TDCol>;
   };
 
+  console.log('rowData', rowData);
+
+
   return <div id={`tlist_item_${item.item.id}`} key={item.item.id}>
     {rowData.RowHeaderComponent}
 

@@ -14,11 +14,6 @@ export default {
     route_not_found: 'Page Not Found',
     route_not_found_desc: 'The page you are looking for does not exist.',
 
-    // Toolbar titles
-    // NOTE: If i18n.has(routeName) -> /app/ routes will show the title in the toolbar
-    toolbar_title_logs: 'Logs',
-    toolbar_title_ai_chat: 'AI',
-
     // General
     open_app: 'Open app',
     home: 'Home',

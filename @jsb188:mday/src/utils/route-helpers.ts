@@ -27,7 +27,7 @@ const ROUTES_MAP = {
   'app/post-harvest': '/app/post-harvest',
 
   // * Arable; Modules
-  'app/globalgap': '/app/globalgap',
+  'app/globalgap': '/app/globalgap/',
   'app/cleaning': '/app/cleaning',
   'app/organic': '/app/organic',
 

@@ -2,7 +2,7 @@ import i18n from '@jsb188/app/i18n';
 import { useChangeAccountPassword } from '@jsb188/graphql/hooks/use-auth-mtn';
 import SchemaForm from '@jsb188/react-web/modules/SchemaForm';
 import { FullWidthButton } from '@jsb188/react-web/ui/Button';
-import { FullPageLayout } from '@jsb188/react-web/ui/Layout';
+import { FullPageLayout } from '@jsb188/react-web/modules/Layout';
 import { TextWithLinks } from '@jsb188/react-web/ui/Markdown';
 import { ModalErrorMessage, ModalSimpleContent } from '@jsb188/react-web/ui/ModalUI';
 import { useMemo, useState } from 'react';

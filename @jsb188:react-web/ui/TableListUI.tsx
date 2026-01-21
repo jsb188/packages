@@ -166,14 +166,16 @@ export const TDColMain = memo((p: Partial<{
       <AvatarImg
         className='mr_sm'
         // letterBackgroundClassName='bg_primary_fd'
+        displayName={iconName ? undefined : avatarDisplayName}
         letterBackgroundClassName={'bg' + (avatarColor ? '_' + avatarColor : '')}
         square outline
         size='tiny'
         // urlPath={photoUri}
       >
+        {iconName &&
         <span className='v_center f p_n r av av_xs ft_xs ft_bold'>
-          {iconName && <Icon name={iconName} />}
-        </span>
+          {<Icon name={iconName} />}
+        </span>}
       </AvatarImg>
     )}
 

@@ -1,8 +1,8 @@
-import React, { createElement, useState } from 'react';
-import { ActivityDots } from './Loading';
-import { Icon } from '../svgs/Icon';
 import { cn } from '@jsb188/app/utils/string';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
+import React, { createElement, useState } from 'react';
+import { Icon } from '../svgs/Icon';
+import { ActivityDots } from './Loading';
 
 /**
  * Types
@@ -110,10 +110,11 @@ interface AvatarLetterProps {
   size?: AvatarSize | null;
   className?: string;
   as?: React.ElementType;
+  removeTypographyAdjustment?: boolean;
 };
 
 function AvatarLetter(p: AvatarLetterProps) {
-  const { displayName, className, as } = p;
+  const { displayName, className, as, removeTypographyAdjustment } = p;
   const size = p.size!;
   const isLarge = ['large', 'xlarge'].includes(size);
   const sizeClass = getSizeClassName('av', size);
@@ -155,7 +156,7 @@ function AvatarLetter(p: AvatarLetterProps) {
   return createElement(
     as || domElement,
     { className: cn('v_center f p_n r av', sizeClass, fontSize, className) },
-    <span className='shift_down unsel'>
+    <span className={cn('unsel', !removeTypographyAdjustment && 'shift_down')}>
       {letters}
     </span>
   );
@@ -278,6 +279,7 @@ interface AvatarProps {
   letterClassName?: string;
   children?: any;
   letterAs?: React.ElementType;
+  removeTypographyAdjustment?: boolean;
 }
 
 export function Avatar(p: AvatarProps) {
@@ -291,7 +293,8 @@ export function Avatar(p: AvatarProps) {
     containerClassName,
     className,
     animateGifs,
-    letterAs
+    letterAs,
+    removeTypographyAdjustment
   } = p;
 
   // IMPORTANT NOTE:
@@ -336,7 +339,7 @@ export function Avatar(p: AvatarProps) {
           <div className={cn('av', sizeClass)} style={{ maskImage: mask }}>
             {!hasImg ? null : (
               <img
-                alt={displayName}
+                alt={displayName || undefined}
                 className={cn('img_auto', imageClassName)}
                 src={avatarUrl}
               />
@@ -346,6 +349,7 @@ export function Avatar(p: AvatarProps) {
                 as={letterAs}
                 displayName={displayName}
                 size={size}
+                removeTypographyAdjustment={removeTypographyAdjustment}
               />
             )}
           </div>
@@ -383,6 +387,7 @@ export function AvatarImg(p: AvatarProps & {
     imageClassName,
     animateGifs,
     square,
+    removeTypographyAdjustment,
     outline,
     letterAs
   } = p;
@@ -438,6 +443,7 @@ export function AvatarImg(p: AvatarProps & {
           displayName={displayName}
           size={size}
           className={letterClassName}
+          removeTypographyAdjustment={removeTypographyAdjustment}
         />
       )}
       {children}

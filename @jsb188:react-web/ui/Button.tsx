@@ -340,7 +340,8 @@ export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
       className={cn(
         'rel z2 h_item ft_xs',
         textColorClassName ?? (fillTextColor && color ? `cl_${color.charAt(0)}` : color ? isLightBackground ? 'cl_df' : 'cl_solid' : ''),
-        iconSizeClassName
+        iconSizeClassName,
+        !colorIndicator && 'px_1'
       )}
     >
       {colorIndicator && <span className={`indicator f_shrink bg_${colorIndicator}`} />}
@@ -356,7 +357,7 @@ InlineBlockLabel.displayName = 'InlineBlockLabel';
  * Link/button/span helper Component
  */
 
-interface SmartLinkProps {
+export function SmartLink(p: {
   Component?: React.ElementType;
   buttonElement?: React.ElementType;
   fallbackElement?: React.ElementType;
@@ -364,9 +365,7 @@ interface SmartLinkProps {
   replace?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   [key: string]: any;
-}
-
-export function SmartLink(p: SmartLinkProps) {
+}) {
   const { Component, buttonElement, fallbackElement, className, replace, ...other } = p;
   const { to, onClick, disabled } = p;
   const cnStr = cn(className, to || onClick ? 'link trans_link' : '');
