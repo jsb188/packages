@@ -104,15 +104,17 @@ TDCol.displayName = 'TDCol';
  */
 
 export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
+  addHeaderBorder?: boolean;
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
   cellClassNames?: string | (string | undefined)[];
   doNotApplyGridToRows?: boolean;
   headers: TableHeaderObj[];
 }) => {
-  const { removeLeftPadding, removeRightPadding, doNotApplyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
+  const { addHeaderBorder, removeLeftPadding, removeRightPadding, doNotApplyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
+
   return <TRow
-    className={className}
+    className={cn(addHeaderBorder && 'bd_b_1 bd_lt mb_6', className)}
     removeBorderLine
     doNotApplyGridToRows={doNotApplyGridToRows}
     gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}

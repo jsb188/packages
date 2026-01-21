@@ -866,7 +866,7 @@ const TableListItem = (p: TableListProps & {
 
     return <TDCol
       key={j}
-      className={typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[j]}
+      className={(typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[j]) ?? 'py_6 min_h_40'}
       doNotApplyGridToRows={doNotApplyGridToRows}
       removeLeftPadding={removeLeftPaddingCell}
       removeRightPadding={removeRightPaddingCell}
@@ -883,6 +883,7 @@ const TableListItem = (p: TableListProps & {
 
     {rowData.rowHeaders && (
       <THead
+        addHeaderBorder
         className={trowClassName}
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
@@ -897,6 +898,7 @@ const TableListItem = (p: TableListProps & {
       <TRow
         __deleted={rowData.__deleted}
         onClick={rowData.__deleted || !onClickRow || disableOnClickRow ? undefined : () => onClickRow(item, null, rowData.onClickProps)}
+        removeBorderLine
         className={trowClassName}
         doNotApplyGridToRows={doNotApplyGridToRows}
         gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
@@ -952,6 +954,7 @@ export const VZTable = memo((p: TableListProps) => {
   return <>
     {headers && (
       <THead
+        addHeaderBorder
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
         doNotApplyGridToRows={doNotApplyGridToRows}

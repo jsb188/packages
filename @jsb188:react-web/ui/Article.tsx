@@ -9,6 +9,12 @@ import { Icon } from '@jsb188/react-web/svgs/Icon';
 import i18n from '@jsb188/app/i18n';
 
 /**
+ * Constants
+ */
+
+const NO_SEPARATOR_Y_PADDING = 'py_11';
+
+/**
  * Condensed group title
  */
 
@@ -83,7 +89,7 @@ export const CondensedArticleItem = memo((p: {
       addDivSeparator = true;
       linkHoverClassName = 'bg_lighter_hv_4';
       xPaddingClassName = 'px_md -mx_5';
-      yPaddingClassName = 'py_sm';
+      yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
       break;
     case 'card':
       addDivSeparator = false;
@@ -95,13 +101,13 @@ export const CondensedArticleItem = memo((p: {
       addDivSeparator = false;
       linkHoverClassName = 'bg_primary_fd_hv';
       xPaddingClassName = 'px_20 -mx_20';
-      yPaddingClassName = 'py_sm';
+      yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
       break;
     default:
       addDivSeparator = false;
       linkHoverClassName = 'bg_primary_fd_hv';
       xPaddingClassName = 'px_xs -mx_xs';
-      yPaddingClassName = 'py_sm';
+      yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
       break;
   }
 
@@ -218,30 +224,31 @@ CondensedArticleItem.displayName = 'CondensedArticleItem';
 
 export function CondensedArticleItemMock(p: {
   addColorIndicator?: boolean;
-  addSeparator?: boolean;
+  separatorStyle?: 'none' | 'element' | 'border'; // defaults to "none"
   index?: number;
 }) {
-  const { addSeparator, index } = p;
+  const { index, separatorStyle } = p;
+  const separatorHidden = !separatorStyle || separatorStyle === 'none';
   const addColorIndicator = p.addColorIndicator !== false;
   const modulus = index !== undefined ? index % 3 : 0;
 
   const description = (
     '.... .... .... .... .... .... .... .... .... .... .... .... .... ....' +
     [...Array(3 - modulus)].map(_ => ' ..').join('')
-  )
+  );
 
   return <article
     className={cn(
       'article_item rel',
-      !addSeparator ? 'bd_lt bd_t_1' : undefined,
+      separatorStyle === 'border' ? 'bd_lt bd_t_1' : undefined,
     )}
   >
-    {addSeparator && (
+    {separatorStyle === 'element' && (
       <div className='bd_t_1 bd_lt' />
     )}
 
     <div className='h_item gap_xs'>
-      <div className='h_item f_shrink mr_3 py_sm'>
+      <div className={cn('h_item f_shrink mr_3', separatorHidden ? NO_SEPARATOR_Y_PADDING : 'py_sm')}>
         <InlineBlockLabel
           as='span'
           outline
@@ -255,13 +262,13 @@ export function CondensedArticleItemMock(p: {
         />
       </div>
 
-      <span className='f_shrink py_sm shift_down'>
+      <span className={cn('f_shrink shift_down', separatorHidden ? NO_SEPARATOR_Y_PADDING : 'py_sm')}>
         <span className='mock alt'>
           ...... ...... ......
         </span>
       </span>
 
-      <span className='ellip py_sm f shift_down'>
+      <span className={cn('ellip f shift_down', separatorHidden ? NO_SEPARATOR_Y_PADDING : 'py_sm')}>
         <span className='mock alt'>
           {description}
         </span>
