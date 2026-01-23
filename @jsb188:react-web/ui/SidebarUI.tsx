@@ -1,6 +1,6 @@
 import { cn } from '@jsb188/app/utils/string';
-import { MockAvatar, MockText } from '@jsb188/react-web/ui/Loading';
 import { getAvatarLetters } from '@jsb188/react-web/ui/Avatar';
+import { MockAvatar, MockText } from '@jsb188/react-web/ui/Loading';
 import { EmojiWrapper } from '@jsb188/react-web/ui/Markdown';
 import { memo, useState } from 'react';
 import { Icon } from '../svgs/Icon';
@@ -127,9 +127,10 @@ export const SidebarNestedNavItem = memo((p: {
   text: string;
   navList: (SidebarItemProps & { break?: boolean })[];
   currentPath?: string;
+  currentPathPrefix?: string;
   initialExpanded?: boolean;
 }) => {
-  const { text, navList, currentPath, initialExpanded } = p;
+  const { text, navList, currentPath, currentPathPrefix, initialExpanded } = p;
   const [expanded, setExpanded] = useState(initialExpanded !== false);
 
   return <>
@@ -150,7 +151,7 @@ export const SidebarNestedNavItem = memo((p: {
         ? <SidebarBreak key={i} />
         : <SidebarItem
           key={i}
-          selected={currentPath === item.to}
+          selected={item.to === currentPath || (!!currentPathPrefix && item.to?.startsWith(currentPathPrefix + '/'))}
           {...item}
         />
       ))}

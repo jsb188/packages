@@ -1,5 +1,4 @@
 import i18n from '@jsb188/app/i18n';
-import { getENVVariable } from '@jsb188/app';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '../types/organization.d';
 
@@ -52,6 +51,9 @@ const ROUTES_MAP = {
   'app/logs': '/app/logs',
   'app/ai-workflows': '/app/ai-workflows',
 };
+
+// Use this for report periods, etc
+const CURRENT_YEAR = String(new Date().getFullYear());
 
 type AppRouteName = keyof typeof ROUTES_MAP;
 type AppRoutePath = typeof ROUTES_MAP[AppRouteName];
@@ -164,7 +166,7 @@ const ROUTES_DICT: Record<AppRouteName, {
   // Arable; Reports
 
   'app/globalgap': {
-    to: makePathname('app/globalgap'),
+    to: makePathname('app/globalgap', CURRENT_YEAR),
     text: i18n.t('product.report.GLOBAL_GAP'),
     iconName: COMMON_ICON_NAMES.generic_report,
 

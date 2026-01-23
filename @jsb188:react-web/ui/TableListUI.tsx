@@ -299,10 +299,11 @@ export const TablePageMock = memo((p: {
   gridLayoutStyle: string,
   cellClassNames?: string | (string | undefined)[]
   browserHeightRatio?: number;
+  HeaderComponent?: React.ReactNode;
 }) => {
-  const { gridLayoutStyle, browserHeightRatio, cellClassNames } = p;
+  const { HeaderComponent, gridLayoutStyle, browserHeightRatio, cellClassNames } = p;
   return <>
-    <div className='pb_xs h_item gap_5'>
+    {HeaderComponent || <div className='pb_xs h_item gap_5'>
       <span className='r h_item py_3 rel pill_xs ft_sm bg_alt'>
         <span className='mock alt ft_tn'>
           ... ... ... ... ... ... ... ... .
@@ -314,7 +315,7 @@ export const TablePageMock = memo((p: {
           ... ... ... ... ... ... ... ... .
         </span>
       </span>
-    </div>
+    </div>}
 
     {/* <CondensedGroupTitleMock /> */}
 

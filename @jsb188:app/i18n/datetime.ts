@@ -1,5 +1,8 @@
 export default {
 	en: {
+    // General
+    year_: 'Year: %{year}',
+
 		// Times count
 		weeks_ct: '%{smart_count} week||||%{smart_count} weeks',
 		days_ct: '%{smart_count} day||||%{smart_count} days',
