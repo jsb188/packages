@@ -61,7 +61,7 @@ ${logEntryFragmentImports}
 export const logEvidencesQry = gql`
 query logEvidences (
   $organizationId: GenericID!
-  $reportId: GenericID!
+  $reportId: CursorToID!
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!
