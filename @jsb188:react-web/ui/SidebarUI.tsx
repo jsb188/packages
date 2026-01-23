@@ -151,6 +151,7 @@ export const SidebarNestedNavItem = memo((p: {
         ? <SidebarBreak key={i} />
         : <SidebarItem
           key={i}
+          currentPath={currentPath}
           selected={item.to === currentPath || (!!currentPathPrefix && item.to?.startsWith(currentPathPrefix + '/'))}
           {...item}
         />
@@ -168,6 +169,7 @@ SidebarNestedNavItem.displayName = 'SidebarNestedNavItem';
 interface SidebarItemProps {
   className?: string;
   selected?: boolean;
+  currentPath?: string;
   to?: string;
   onClick?: (e: any) => void;
   text: string;
@@ -176,15 +178,14 @@ interface SidebarItemProps {
 }
 
 export const SidebarItem = memo((p: SidebarItemProps) => {
-  const { text, iconName, rightIconName, to, selected, onClick, className } = p;
-
+  const { text, iconName, rightIconName, currentPath, to, selected, onClick, className } = p;
   return <SmartLink
     className={cn(
       'mx_xs my_2 py_3 r_xs bl cl_df',
       selected ? 'bg_active disabled' : 'bg_active_hv',
       className
     )}
-    disabled={selected}
+    disabled={currentPath === to}
     to={to}
     onClick={onClick}
   >

@@ -141,9 +141,18 @@ export function timeoutPromise<T>(
 export function makeVariablesKey(
 	variables: Record<string, any> | null | undefined,
 	doNotLowerCaseCacheKey?: boolean,
+  // gqlDefinitions?: any[],
 ): string {
 	if (variables) {
+
+    // const gqlOperation = gqlDefinitions?.find((def: any) => def.kind === 'OperationDefinition');
 		const key = Object.keys(variables).sort().reduce((acc, key) => {
+      // I *could* loop and make sure the variables match those defined in the GQL operation,
+      // But instead of wasting compute, I rather make sure the variables are passed in identical manner from the app.
+      // if (gqlOperation) {
+      //   console.log(key);
+      //   ..
+      // }
 			const value = variables[key];
 			if (value || value === 0 || value === false) {
 				return `${acc}$${key}:${typeof value === 'object' ? stringifyJSON(value) : value}`;
