@@ -358,7 +358,19 @@ export function isRouteAllowed(
   orgFeatures?: OrganizationOperationEnum[] | null,
 ): boolean {
 
-  const routeName = PATH_TO_ROUTE_NAME[routePath];
+  let routeName = PATH_TO_ROUTE_NAME[routePath]; // || PATH_TO_ROUTE_NAME[routePath.split('/')];
+  if (!routeName) {
+    const parts = routePath.split('/');
+    for (let i = parts.length; i > 0; i--) {
+      const subPath = parts.slice(0, i).join('/');
+
+      routeName = PATH_TO_ROUTE_NAME[subPath] || PATH_TO_ROUTE_NAME[subPath + '/'];
+      if (routeName || i <= 3) {
+        break;
+      }
+    }
+  }
+
   if (!routeName) {
     return true;
   }
