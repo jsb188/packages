@@ -7,6 +7,7 @@ import type { TableHeaderObj } from '@jsb188/react-web/ui/TableListUI';
 import { TDCol, THead, TRow } from '@jsb188/react-web/ui/TableListUI';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 import { Fragment, isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router';
 import type { ReactDivElement, ReactSpanElement } from '../types/dom.d';
 
 /**
@@ -53,6 +54,7 @@ interface MapTableListOutput {
   __deleted: boolean;
   RowHeaderComponent?: React.ReactNode;
   rowHeaders?: Partial<TableHeaderObj>[] | null;
+  to?: string;
   onClickProps?: any;
   cellClassNames?: string | (string | undefined)[];
   columns: TableColumnElement[];
@@ -848,6 +850,7 @@ const TableListItem = (p: TableListProps & {
     return null;
   }
 
+  const Container = rowData.to ? Link : 'div';
   const cellClassNames = rowData.cellClassNames || p.cellClassNames;
   const renderCell = (cell: TableColumnElement, j: number) => {
     let removeLeftPaddingCell, removeRightPaddingCell, cellObj, iconName, iconClassName, onClick;
@@ -878,10 +881,12 @@ const TableListItem = (p: TableListProps & {
     </TDCol>;
   };
 
-  console.log('rowData', rowData);
-
-
-  return <div id={`tlist_item_${item.item.id}`} key={item.item.id}>
+  return <Container
+    key={item.item.id}
+    id={`tlist_item_${item.item.id}`}
+    to={rowData.to!}
+    className={rowData.to ? 'cl_df' : undefined}
+  >
     {rowData.RowHeaderComponent}
 
     {rowData.rowHeaders && (
@@ -927,7 +932,7 @@ const TableListItem = (p: TableListProps & {
       })}
     </div>
     : rowData.subRows}
-  </div>;
+  </Container>;
 };
 
 TableListItem.displayName = 'TableListItem';

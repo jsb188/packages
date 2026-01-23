@@ -38,3 +38,10 @@ export const reportColumnDataFragment = `fragment reportColumnDataFragment on Re
   placeholder
   checked
 }`;
+
+export const reportAvailabilityFragment = `fragment reportAvailabilityFragment on ReportAvailability {
+  id
+  organizationId
+  type
+  periods
+}`;

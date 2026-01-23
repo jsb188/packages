@@ -47,8 +47,9 @@ interface ReportFieldsSection {
 	description: string;
 	rows?: ReportFieldsRow[];
 
-  __prompt_examples?: string; // Server-only; for examples of what the output should be
-  __prompt_topics?: string; // Server-only; for topics this section should cover
+	__prompt_section?: string; // Server-only; full prompt for this section - this is the only prompt that allows {{variable}} regex
+	__prompt_examples?: string; // Server-only; for examples of what the output should be
+	__prompt_topics?: string; // Server-only; for topics this section should cover
 }
 
 interface ReportFieldsRow {
@@ -163,4 +164,14 @@ export interface ReportSubmissionData {
 	answers: Record<string, any>; // key-value pairs of answers
 	logRels?: ReportLogRelData[];
 	activityAt: Date;
+}
+
+/**
+ * Available reports
+ */
+
+export interface ReportAvailabilityGQL {
+  id: string;
+  type: ReportTypeEnum;
+  periods: string[]; // YYYY-MM-DD
 }

@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { reportColumnDataFragment, reportFragment, reportRowDataFragment, reportSectionFragment } from '../fragments/reportFragments';
+import { reportColumnDataFragment, reportFragment, reportAvailabilityFragment, reportRowDataFragment, reportSectionFragment } from '../fragments/reportFragments';
 
 export const reportsQry = gql`
 query reports (
@@ -27,7 +27,8 @@ query reports (
     }
 
     # This needs to be deprecated and merged to sections
-    # Its used for cleaning logs only right now
+    # Its only used for cleaning logs right now
+
     rows {
       ...reportRowDataFragment
 
@@ -42,4 +43,18 @@ ${reportFragment}
 ${reportSectionFragment}
 ${reportRowDataFragment}
 ${reportColumnDataFragment}
+`;
+
+export const availableReportsQry = gql`
+query availableReports (
+  $organizationId: GenericID!
+) {
+  availableReports (
+    organizationId: $organizationId
+  ) {
+    ...reportAvailabilityFragment
+  }
+}
+
+${reportAvailabilityFragment}
 `;

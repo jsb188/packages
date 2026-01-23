@@ -1,6 +1,6 @@
 import type { ReportsFilterArgs, ReportsSortEnum } from '@jsb188/mday/types/report.d';
 import { useQuery, useReactiveFragment } from '../client';
-import { reportsQry } from '../gql/queries/reportQueries';
+import { availableReportsQry, reportsQry } from '../gql/queries/reportQueries';
 import type { UseQueryParams } from '../types';
 
 /**
@@ -32,19 +32,38 @@ export function useReports(
 
   const { organizationId, filter } = variables;
   const { skip, ...restParams } = params;
-
   const { data, ...rest } = useQuery(reportsQry, {
     variables,
     skip: skip || !organizationId || !filter,
     ...restParams,
   });
 
-  const reports = data?.reports;
-  const notReady = !reports;
+  return {
+    reports: data?.reports,
+    ...rest
+  };
+}
+
+/**
+ * Fetch list of available reports statuses
+ */
+
+export function useAvailableReports(
+  organizationId: string | null,
+  params: UseQueryParams = {},
+) {
+
+  const { skip, ...restParams } = params;
+  const { data, ...rest } = useQuery(availableReportsQry, {
+    variables: {
+      organizationId,
+    },
+    skip: skip || !organizationId,
+    ...restParams,
+  });
 
   return {
-    reports,
-    notReady,
+    availableReports: data?.availableReports,
     ...rest
   };
 }

@@ -38,6 +38,7 @@ export const RULES = {
   productAttendanceList: true,
   productsList: true,
   reports: true,
+  availableReports: true,
   searchUsers: true,
   updateNote: true,
   userIdToChatId: true,

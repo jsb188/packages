@@ -185,11 +185,15 @@ export function PONavItemIface(p: PONavItemBase & {
       return <POPopUpListItem {...other} item={item as POModalItemObj} />;
     case 'LIST_ITEM_MODAL':
       return <POModalScreenListItem {...other} item={item as POModalItemObj} />;
-    case 'CHECK_LIST_ITEM':
+    case 'CHECK_LIST_ITEM': {
       const rightIconName = checked ? 'circle-check' : 'circle';
       const rightIconClassName = checked ? 'cl_bd' : 'cl_lt';
       return <POListItem {...other} item={{ ...item, rightIconName, rightIconClassName } as POListItemObj} />;
-    case 'AVATAR_ITEM':
+    } case 'SINGLE_OPTION_LIST_ITEM': {
+      const rightIconName = checked && 'check';
+      const rightIconClassName = 'cl_df';
+      return <POListItem {...other} item={{ ...item, rightIconName, rightIconClassName } as POListItemObj} />;
+    } case 'AVATAR_ITEM':
       return <PONavAvatarItem {...other} item={item as PONavAvatarItemObj} />;
     case 'DATE_RANGE':
       return <PODateRange {...other} item={item as PODateRangeObj} />;

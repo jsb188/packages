@@ -361,7 +361,7 @@ export function SmartLink(p: {
   Component?: React.ElementType;
   buttonElement?: React.ElementType;
   fallbackElement?: React.ElementType;
-  to?: To | string | null;
+  to?: To | string;
   replace?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   [key: string]: any;

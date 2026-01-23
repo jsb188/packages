@@ -33,7 +33,7 @@ export interface POListBreakObj {
 }
 
 export interface POListItemObj {
-  __type: 'LIST_ITEM' | 'CHECK_LIST_ITEM' | 'LIST_ITEM_POPUP';
+  __type: 'LIST_ITEM' | 'CHECK_LIST_ITEM' | 'SINGLE_OPTION_LIST_ITEM' | 'LIST_ITEM_POPUP';
   name?: string; // Name for form, for formValues object; if not set, index will be used
   value?: string | boolean | null;
   text: string;
@@ -68,7 +68,7 @@ export interface POModalItemObj extends POListItemObj {
 }
 
 export interface POCheckListItemObj extends POListItemObj {
-  __type: 'CHECK_LIST_ITEM';
+  __type: 'CHECK_LIST_ITEM' | 'SINGLE_OPTION_LIST_ITEM';
   name?: string; // Name for form, for formValues object; if not set, index will be used
   hidden?: boolean;
 }
