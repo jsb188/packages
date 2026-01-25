@@ -2,67 +2,8 @@ import i18n from '@jsb188/app/i18n';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '../types/organization.d';
 
-/**
- * Constants; Routes
- */
-
-const ROUTES_MAP = {
-  // If path ends with a slash, "$some_param_id" path segment is expected.
-  // Keep these at top
-  'app/ai_chat': '/app/c/',
-
-  // Keep non "/.." paths (paths with "$some_param_id") at bottom
-  'app': '/app',
-  'app/markets': '/app/markets',
-  'app/orders': '/app/orders',
-  'app/purchases': '/app/purchases',
-  'app/receipts': '/app/receipts',
-
-  // # Arable
-  'app/seeding': '/app/seeding',
-  'app/transplanting': '/app/transplanting',
-  'app/field-work': '/app/field-work',
-  'app/harvested': '/app/harvested',
-  'app/post-harvest': '/app/post-harvest',
-
-  // * Arable; Modules
-  'app/globalgap': '/app/globalgap/',
-  'app/cleaning': '/app/cleaning',
-  'app/organic': '/app/organic',
-
-  // * Arable; Food Safety
-  'app/hygiene': '/app/hygiene',
-  'app/sanitation': '/app/sanitation',
-  'app/materials': '/app/materials',
-  'app/biosecurity': '/app/biosecurity',
-  'app/employees': '/app/employees',
-
-  // # Farmers Market
-  'app/vendors': '/app/vendors',
-
-  // # Livestock
-  'app/livestock': '/app/livestock',
-
-  // # Grower Network
-  'app/growers': '/app/growers',
-  'app/foreign-growers': '/app/foreign-growers',
-
-  // # Advanced
-  'app/logs': '/app/logs',
-  'app/ai-workflows': '/app/ai-workflows',
-};
-
 // Use this for report periods, etc
 const CURRENT_YEAR = String(new Date().getFullYear());
-
-type AppRouteName = keyof typeof ROUTES_MAP;
-type AppRoutePath = typeof ROUTES_MAP[AppRouteName];
-
-const PATH_TO_ROUTE_NAME: Record<AppRoutePath, AppRouteName> = Object.entries(ROUTES_MAP).reduce((acc, [routeName, path]) => {
-  // @ts-ignore
-  acc[path] = routeName;
-  return acc;
-}, {});
 
 /**
  * Constants; Re-usable rules
@@ -79,26 +20,74 @@ const F = {
  * Rules
  */
 
-// @ts-ignore
-const ROUTES_DICT: Record<AppRouteName, {
-  to: string;
+type ValidRoutePath =
+  '/app'
+  | '/app/c/'
+  | '/app/ai-workflows'
+  | '/app/logs'
+  | '/app/seeding'
+  | '/app/transplanting'
+  | '/app/field-work'
+  | '/app/harvested'
+  | '/app/post-harvest'
+  | '/app/orders'
+  | '/app/globalgap/'
+  | '/app/cleaning'
+  | '/app/purchases'
+  | '/app/organic'
+  | '/app/hygiene'
+  | '/app/sanitation'
+  | '/app/materials'
+  | '/app/biosecurity'
+  | '/app/employees'
+  | '/app/vendors'
+  | '/app/markets'
+  | '/app/receipts'
+  | '/app/livestock'
+  | '/app/growers'
+  | '/app/foreign-growers';
+
+interface RouteDictObj {
+  to: ValidRoutePath;
   text: string;
-  iconName: string;
+  iconName?: string;
   allowedOperations?: OrganizationOperationEnum[];
   notAllowedOperations?: OrganizationOperationEnum[];
   requiredFeature?: OrganizationFeatureEnum[];
-}> = {
+
+  // These values prevent rendering flickers when calculating TOC/breadcrumbs between page renders
+  hasPhysicalToolbar?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
+  hasAsideNav?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
+}
+
+const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
+
+  // Main /app/ routes
+
+  '/app': {
+    to: '/app',
+    text: i18n.t('app.home'),
+  },
+
+  '/app/c/': {
+    to: '/app/c/',
+    text: i18n.t('app.route_ai_chat'),
+    iconName: COMMON_ICON_NAMES.chat,
+
+    hasPhysicalToolbar: 'ALWAYS',
+    hasAsideNav: 'NEVER',
+  },
 
   // Advanced
 
-  'app/ai-workflows': {
-    to: makePathname('app/ai-workflows'),
+  '/app/ai-workflows': {
+    to: '/app/ai-workflows',
     text: i18n.t('form.ai_workflows'),
     iconName: COMMON_ICON_NAMES.ai_workflow,
   },
 
-  'app/logs': {
-    to: makePathname('app/logs'),
+  '/app/logs': {
+    to: '/app/logs',
     text: i18n.t('log.all_logs'),
     iconName: COMMON_ICON_NAMES.logs,
     notAllowedOperations: ['GROWER_NETWORK'], // Temporary for now
@@ -106,56 +95,56 @@ const ROUTES_DICT: Record<AppRouteName, {
 
   // Arable
 
-  'app/seeding': {
-    to: ROUTES_MAP['app/seeding'],
+  '/app/seeding': {
+    to: '/app/seeding',
     text: i18n.t('log.seeding'),
     iconName: COMMON_ICON_NAMES.seeding,
 
     allowedOperations: ['ARABLE'],
     requiredFeature: F.normal_logging,
   },
-  'app/transplanting': {
-    to: makePathname('app/transplanting'),
+  '/app/transplanting': {
+    to: '/app/transplanting',
     text: i18n.t('log.transplanting'),
     iconName: COMMON_ICON_NAMES.transplanting,
 
     allowedOperations: ['ARABLE'],
     requiredFeature: F.normal_logging,
   },
-  'app/field-work': {
-    to: makePathname('app/field-work'),
+  '/app/field-work': {
+    to: '/app/field-work',
     text: i18n.t('log.field_work'),
     iconName: COMMON_ICON_NAMES.field_work,
 
     allowedOperations: ['ARABLE'],
     requiredFeature: F.normal_logging,
   },
-  'app/harvested': {
-    to: makePathname('app/harvested'),
+  '/app/harvested': {
+    to: '/app/harvested',
     text: i18n.t('log.harvested'),
     iconName: COMMON_ICON_NAMES.harvest,
 
     allowedOperations: ['ARABLE'],
     requiredFeature: F.normal_logging,
   },
-  'app/post-harvest': {
-    to: makePathname('app/post-harvest'),
+  '/app/post-harvest': {
+    to: '/app/post-harvest',
     text: i18n.t('log.post_harvest'),
     iconName: COMMON_ICON_NAMES.post_harvest,
 
     allowedOperations: ['ARABLE'],
     requiredFeature: F.normal_logging,
   },
-  'app/purchases': {
-    to: makePathname('app/purchases'),
+  '/app/purchases': {
+    to: '/app/purchases',
     text: i18n.t('log.purchases'),
     iconName: COMMON_ICON_NAMES.invoice,
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.normal_logging,
   },
-  'app/orders': {
-    to: makePathname('app/orders'),
+  '/app/orders': {
+    to: '/app/orders',
     text: i18n.t('form.sales_orders'),
     iconName: COMMON_ICON_NAMES.receipt,
 
@@ -165,67 +154,74 @@ const ROUTES_DICT: Record<AppRouteName, {
 
   // Arable; Reports
 
-  'app/globalgap': {
-    to: makePathname('app/globalgap', CURRENT_YEAR),
+  '/app/globalgap/': {
+    to: ('/app/globalgap/' + CURRENT_YEAR) as ValidRoutePath,
     text: i18n.t('product.report.GLOBAL_GAP'),
     iconName: COMMON_ICON_NAMES.generic_report,
 
     allowedOperations: OP_FARMING,
     requiredFeature: ['GLOBAL_GAP'],
+
+    hasPhysicalToolbar: (parts: string[]) => parts.length > 4,
+    hasAsideNav: (parts: string[]) => parts.length > 4,
   },
-  'app/cleaning': {
-    to: makePathname('app/cleaning'),
+  '/app/cleaning': {
+    to: '/app/cleaning',
     text: i18n.t('product.report.CLEANING'),
     iconName: COMMON_ICON_NAMES.SANITATION,
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
   },
-  'app/organic': {
-    to: makePathname('app/organic'),
+  '/app/organic': {
+    to: '/app/organic',
     text: i18n.t('product.report.ORGANIC_CERTIFICATION'),
     iconName: COMMON_ICON_NAMES.generic_report,
 
     allowedOperations: OP_FARMING,
     requiredFeature: ['ORGANIC_CERTIFICATION'],
+
+    // This will need to change later if we're introducing "period" table of contents page selection
+    hasPhysicalToolbar: 'ALWAYS',
+    hasAsideNav: 'ALWAYS',
   },
 
   // Arable; Food Safety
 
-  'app/hygiene': {
-    to: ROUTES_MAP['app/hygiene'],
+  '/app/hygiene': {
+    to: '/app/hygiene',
     text: i18n.t('log.hygiene'),
     iconName: COMMON_ICON_NAMES.HYGIENE,
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
   },
-  'app/sanitation': {
-    to: ROUTES_MAP['app/sanitation'],
+  '/app/sanitation': {
+    to: '/app/sanitation',
     text: i18n.t('log.sanitation'),
     iconName: COMMON_ICON_NAMES.SANITATION,
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
   },
-  'app/materials': {
-    to: makePathname('app/materials'),
+  '/app/materials': {
+    to: '/app/materials',
     text: i18n.t('log.materials'),
     iconName: COMMON_ICON_NAMES.MATERIALS,
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
   },
-  'app/biosecurity': {
-    to: makePathname('app/biosecurity'),
+  '/app/biosecurity': {
+    to: '/app/biosecurity',
     text: i18n.t('log.biosecurity'),
     iconName: COMMON_ICON_NAMES.BIOSECURITY,
 
     allowedOperations: OP_FARMING,
     requiredFeature: F.food_safety,
   },
-  'app/employees': {
-    to: makePathname('app/employees'),
+  '/app/employees': {
+    to: '/app/employees',
     text: i18n.t('log.employees'),
     iconName: COMMON_ICON_NAMES.EMPLOYEES,
 
@@ -234,24 +230,24 @@ const ROUTES_DICT: Record<AppRouteName, {
   },
 
   // Farmers Market
-  'app/vendors': {
-    to: makePathname('app/vendors'),
+  '/app/vendors': {
+    to: '/app/vendors',
     text: i18n.t('form.vendors'),
     iconName: COMMON_ICON_NAMES.shop_vendor,
 
     allowedOperations: ['FARMERS_MARKET'],
     requiredFeature: F.normal_logging
   },
-  'app/markets': {
-    to: makePathname('app/markets'),
+  '/app/markets': {
+    to: '/app/markets',
     text: i18n.t('form.markets'),
     iconName: COMMON_ICON_NAMES.shop_market,
 
     allowedOperations: ['FARMERS_MARKET'],
     requiredFeature: ['CAL_EVENTS'],
   },
-  'app/receipts': {
-    to: makePathname('app/receipts') + '?s=1',
+  '/app/receipts': {
+    to: ('/app/receipts?s=1') as ValidRoutePath,
     text: i18n.t('form.market_receipts'),
     iconName: COMMON_ICON_NAMES.market_receipt,
 
@@ -260,8 +256,8 @@ const ROUTES_DICT: Record<AppRouteName, {
   },
 
   // Livestock
-  'app/livestock': {
-    to: makePathname('app/livestock'),
+  '/app/livestock': {
+    to: '/app/livestock',
     text: i18n.t('form.livestock'),
     iconName: COMMON_ICON_NAMES.livestock,
 
@@ -270,15 +266,15 @@ const ROUTES_DICT: Record<AppRouteName, {
   },
 
   // Grower Network
-  'app/growers': {
-    to: makePathname('app/growers'),
+  '/app/growers': {
+    to: '/app/growers',
     text: i18n.t('form.domestic_growers'),
     iconName: COMMON_ICON_NAMES.growers,
 
     allowedOperations: ['GROWER_NETWORK'],
   },
-  'app/foreign-growers': {
-    to: makePathname('app/foreign-growers'),
+  '/app/foreign-growers': {
+    to: '/app/foreign-growers',
     text: i18n.t('form.foreign_growers'),
     iconName: COMMON_ICON_NAMES.foreign_growers,
 
@@ -293,12 +289,12 @@ const ROUTES_DICT: Record<AppRouteName, {
  * @returns The full pathname for the route.
  */
 
-export function makePathname(routeName: AppRouteName, pathSegment?: string | null): string {
-  const routePath = ROUTES_MAP[routeName] ?? ROUTES_MAP.app;
-  if (routePath.endsWith('/')) {
-    return pathSegment ? `${routePath}${pathSegment}` : routePath.substring(0, routePath.length - 1);
+export function makePathname(routePath: ValidRoutePath, pathSegment?: string | null): ValidRoutePath {
+  const pathExists = !!ROUTES_DICT[routePath];
+  if (pathExists && routePath.endsWith('/')) {
+    return (pathSegment ? `${routePath}${pathSegment}` : routePath.substring(0, routePath.length - 1)) as ValidRoutePath;
   }
-  return routePath;
+  return pathExists ? routePath : '/app';
 }
 
 /**
@@ -308,83 +304,122 @@ export function makePathname(routeName: AppRouteName, pathSegment?: string | nul
  * @returns The full pathname for the route.
  */
 
-export function isRouteValid(routeName: string, pathSegment?: string | null): boolean {
-  const routePath = ROUTES_MAP[routeName as AppRouteName];
+export function isRouteValid(routePath: ValidRoutePath, pathSegment?: string | null): boolean {
+  const routeDict = !!ROUTES_DICT[routePath];
   return (
-    !!routePath &&
+    !!routeDict &&
     (!routePath.endsWith('/') || !!pathSegment)
   );
 }
 
 /**
- * Get route name from pathname.
+ * Get route config from pathname.
+ * NOTE: This is the best way to prevent page flickers due to breadcrumbs/TOC calculations/resets/etc.
  * @param pathname - The pathname to check.
  * @returns The route name if found.
  */
 
-export function getRouteName(pathname: string): AppRouteName | '' {
-  for (const routeName in ROUTES_MAP) {
-    if (pathname.startsWith(ROUTES_MAP[routeName as AppRouteName])) {
-      return routeName as AppRouteName;
-    }
-  }
-  return '';
+const ROUTES_DICT_ORDERED = Object.keys(ROUTES_DICT).sort((a, b) => b.length - a.length);
+
+interface RouteConfigObj extends Omit<RouteDictObj, 'hasPhysicalToolbar' | 'hasAsideNav'> {
+  routeName: ValidRoutePath;
+  scrollResetKey: string;
+  allowed: boolean;
+  hasPhysicalToolbar: boolean;
+  hasAsideNav: boolean;
 }
 
-/**
- * Check if route exists
- * @param routePath - Route path to check.
- */
+export function getRouteConfigs(
+  pathname: ValidRoutePath | string,
+  operation?: OrganizationOperationEnum | null,
+  orgFeatures?: OrganizationFeatureEnum[] | null,
+): RouteConfigObj {
 
-export function doesRouteExist(routePath: string): boolean {
-  return Object.values(ROUTES_MAP).some((path) => {
-    if (path.endsWith('/')) {
-      return routePath.startsWith(path);
+  for (const routeName of ROUTES_DICT_ORDERED) {
+    if (pathname.startsWith(routeName)) {
+
+      // Scroll position fix + breadcrumb / TOC cleanup on unmount
+      // This will retain scroll position for deeper links,
+      // ie. "/app/globalgap/2023/.." will be retained
+
+      const routeDict = ROUTES_DICT[routeName as ValidRoutePath];
+      const pathParts = pathname.split('/');
+
+      let scrollResetKey: string;
+      if (pathParts.length >= 3) {
+        // scroll reset key here is full path minus last part
+        scrollResetKey = pathParts.slice(0, pathParts.length - 1).join('/');
+      } else {
+        scrollResetKey = pathParts.slice(0, 3).join('/');
+      }
+
+      const hasAsideNav = !!routeDict.hasAsideNav && routeDict.hasAsideNav !== 'NEVER' && (
+        routeDict.hasAsideNav === 'ALWAYS' ||
+        (typeof routeDict.hasAsideNav === 'function' && routeDict.hasAsideNav(pathParts))
+      );
+
+      const hasPhysicalToolbar = !!routeDict.hasPhysicalToolbar && routeDict.hasPhysicalToolbar !== 'NEVER' && (
+        routeDict.hasPhysicalToolbar === 'ALWAYS' ||
+        (typeof routeDict.hasPhysicalToolbar === 'function' && routeDict.hasPhysicalToolbar(pathParts))
+      );
+
+      return {
+        ...routeDict,
+        routeName: routeName as ValidRoutePath,
+        scrollResetKey,
+        allowed: isRouteAllowed(pathname, operation, orgFeatures),
+        hasPhysicalToolbar,
+        hasAsideNav,
+      };
     }
-    return routePath === path;
-  });
+  }
+
+  return {
+    routeName: '/__unknown',
+    scrollResetKey: '',
+    allowed: false,
+    hasPhysicalToolbar: false,
+    hasAsideNav: false,
+  } as any;
 }
 
 /**
  * Check if this organization's operation allows access to this route path
- * @param routePath - Route path to check.
+ * @param pathname - pathname to check.
  * @param operation - Organization operation.
  * @param orgFeatures - Enabled features for organization.
  */
 
 export function isRouteAllowed(
-  routePath: string,
+  pathname: ValidRoutePath | string,
   operation?: OrganizationOperationEnum | null,
-  orgFeatures?: OrganizationOperationEnum[] | null,
+  orgFeatures?: OrganizationFeatureEnum[] | null,
 ): boolean {
 
-  let routeName = PATH_TO_ROUTE_NAME[routePath]; // || PATH_TO_ROUTE_NAME[routePath.split('/')];
-  if (!routeName) {
-    const parts = routePath.split('/');
+  let routeDict = ROUTES_DICT[pathname as ValidRoutePath];
+  if (!routeDict) {
+    const parts = pathname.split('/');
     for (let i = parts.length; i > 0; i--) {
       const subPath = parts.slice(0, i).join('/');
 
-      routeName = PATH_TO_ROUTE_NAME[subPath] || PATH_TO_ROUTE_NAME[subPath + '/'];
-      if (routeName || i <= 3) {
+      // @ts-ignore - sub paths may not be valid route paths
+      routeDict = ROUTES_DICT[subPath] || ROUTES_DICT[subPath + '/'];
+      if (routeDict || i <= 3) {
         break;
       }
     }
   }
 
-  if (!routeName) {
-    return true;
-  }
-
-  const routeRules = ROUTES_DICT[routeName];
-  if (!routeRules) {
+  if (!routeDict) {
+    // Assume true if there are no rules set
     return true;
   }
 
   return (
-    (!routeRules.allowedOperations || routeRules.allowedOperations.includes(operation || '')) &&
-    (!routeRules.notAllowedOperations || !routeRules.notAllowedOperations.includes(operation || '')) &&
+    (!routeDict.allowedOperations || routeDict.allowedOperations.includes(operation || '')) &&
+    (!routeDict.notAllowedOperations || !routeDict.notAllowedOperations.includes(operation || '')) &&
     // If {orgFeature} is null, assume data is not finished loading yet, and allow "benefit of doubt" access
-    (!orgFeatures || !routeRules.requiredFeature || routeRules.requiredFeature.some((feature) => orgFeatures.includes(feature)))
+    (!orgFeatures || !routeDict.requiredFeature || routeDict.requiredFeature.some((feature) => orgFeatures.includes(feature)))
   );
 }
 
@@ -417,40 +452,46 @@ export function getNavigationList(
     break: true,
   };
 
-  let navListArr: any[] = [];
+  let navListArr: {
+    text: string;
+    initialExpanded?: boolean;
+    navList: (RouteDictObj | { break: boolean })[];
+  }[] = [];
+
   switch (operation) {
     case 'ARABLE':
       navListArr = [
         {
           text: i18n.t('form.reports'),
           navList: [
-            ROUTES_DICT['app/organic'],
-            ROUTES_DICT['app/globalgap'],
+            ROUTES_DICT['/app/organic'],
+            ROUTES_DICT['/app/globalgap/'],
           ]
         },
         {
           text: i18n.t('log.food_safety'),
           navList: [
-            ROUTES_DICT['app/cleaning'],
-            // ROUTES_DICT['app/hygiene'],
-            // ROUTES_DICT['app/sanitation'],
-            // ROUTES_DICT['app/materials'],
-            // ROUTES_DICT['app/biosecurity'],
-            // ROUTES_DICT['app/employees'],
+            ROUTES_DICT['/app/cleaning'],
+            // ROUTES_DICT['/app/hygiene'],
+            // ROUTES_DICT['/app/sanitation'],
+            // ROUTES_DICT['/app/materials'],
+            // ROUTES_DICT['/app/biosecurity'],
+            // ROUTES_DICT['/app/employees'],
           ]
         },
         {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
-            ROUTES_DICT['app/seeding'],
-            ROUTES_DICT['app/transplanting'],
-            ROUTES_DICT['app/field-work'],
-            ROUTES_DICT['app/harvested'],
-            ROUTES_DICT['app/post-harvest'],
+            ROUTES_DICT['/app/seeding'],
+            ROUTES_DICT['/app/transplanting'],
+            ROUTES_DICT['/app/field-work'],
+            ROUTES_DICT['/app/harvested'],
+            ROUTES_DICT['/app/post-harvest'],
+
             breakItem,
 
-            ROUTES_DICT['app/purchases'],
-            ROUTES_DICT['app/orders'],
+            ROUTES_DICT['/app/purchases'],
+            ROUTES_DICT['/app/orders'],
           ]
         },
       ];
@@ -460,8 +501,8 @@ export function getNavigationList(
         {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
-            ROUTES_DICT['app/livestock'],
-            { ...ROUTES_DICT['app/purchases'], text: i18n.t('log.supply_purchases') },
+            ROUTES_DICT['/app/livestock'],
+            { ...ROUTES_DICT['/app/purchases'], text: i18n.t('log.supply_purchases') },
           ]
         },
       ];
@@ -471,9 +512,9 @@ export function getNavigationList(
         {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
-            ROUTES_DICT['app/vendors'],
-            ROUTES_DICT['app/markets'],
-            ROUTES_DICT['app/receipts'],
+            ROUTES_DICT['/app/vendors'],
+            ROUTES_DICT['/app/markets'],
+            ROUTES_DICT['/app/receipts'],
           ]
         },
       ];
@@ -483,8 +524,8 @@ export function getNavigationList(
         {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
-            ROUTES_DICT['app/growers'],
-            ROUTES_DICT['app/foreign-growers'],
+            ROUTES_DICT['/app/growers'],
+            ROUTES_DICT['/app/foreign-growers'],
           ]
         }
       ];
@@ -493,19 +534,19 @@ export function getNavigationList(
       navListArr = [];
   }
 
+  // @ts-ignore
   navListArr = [{
-    to: makePathname('app'),
-    text: i18n.t('app.home'),
-    // className: 'mb_df',
+    ...ROUTES_DICT['/app'],
     iconName: COMMON_ICON_NAMES[operation!] || 'home',
   },
     breakItem,
+  // @ts-ignore
   ].concat(navListArr).concat([{
     text: i18n.t('form.advanced'),
     initialExpanded: false,
     navList: [
-      ROUTES_DICT['app/ai-workflows'],
-      ROUTES_DICT['app/logs']
+      ROUTES_DICT['/app/ai-workflows'],
+      ROUTES_DICT['/app/logs']
     ]
   }] as any);
 
@@ -528,13 +569,13 @@ export function getNavigationList(
         return acc;
       }, []);
 
-      // if (!item?.navList.find((item: any) => item.to)) {
       if (!item.navList.length) {
         return null;
       }
     } else if (item?.to && !isRouteAllowed(item.to, operation, orgFeatures)) {
       return null;
     }
+
     return item;
   };
 

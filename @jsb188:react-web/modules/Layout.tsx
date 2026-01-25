@@ -22,15 +22,16 @@ export type ContainerSizeEnum = 'tn' | 'xxs' | 'xs' | 'sm' | 'df' | 'md' | 'lg' 
  * Main app area layout
  */
 
-export const AppLayout = memo((p: ReactDivElement & {
+export function AppLayout(p: ReactDivElement & {
   open: boolean;
-  pathname: string;
+  scrollResetKey: string;
   routeName: string;
   contentFlexClassName?: string;
+  AsideComponent?: React.ReactNode;
   SidebarComponent?: React.ReactNode;
   ToolbarComponent?: React.ReactNode;
-}) => {
-  const { pathname, routeName, children, open, className, contentFlexClassName, SidebarComponent, ToolbarComponent, ...other } = p;
+}) {
+  const { scrollResetKey, routeName, children, open, className, contentFlexClassName, AsideComponent, SidebarComponent, ToolbarComponent, ...other } = p;
 
   // This is not necessary because key={pathname} handles the scroll
   // const contentAreaRef = useRef<HTMLDivElement>(null);
@@ -61,19 +62,31 @@ export const AppLayout = memo((p: ReactDivElement & {
 
         <main
           // {key} fixes the scroll position problem when switching routes
-          key={pathname}
+          key={scrollResetKey}
           // ref={contentAreaRef}
           id={DOM_IDS.mainBodyScrollArea}
           className={cn('app_scr bg h_f', contentFlexClassName ?? 'v_top')}
         >
-          {children}
+          {AsideComponent
+          ? <div className='cw lg pr_md'>
+            <div className='gap_50 h_top'>
+              {AsideComponent && (
+                <aside className={cn('app_aside z3 sticky y_scr_hidden max_h_toolbar_screen')}>
+                  {AsideComponent}
+                </aside>
+              )}
+
+              <div className='f max_w_850 cw'>
+                {children}
+              </div>
+            </div>
+          </div>
+          : children}
         </main>
       </div>
     </div>
   </div>;
-});
-
-AppLayout.displayName = 'AppLayout';
+}
 
 /**
  * App layout toolbar title
@@ -108,14 +121,14 @@ const BreadcrumbItem = memo((p: BreadcrumbItemObj & {
       </span>
     )}
     <SmartLink
-      to={isLastItem ? undefined : to}
+      to={isLastItem ? undefined : to!}
       className={cn('h_item', isFirstItem ? 'ft_medium cl_df' : 'cl_md')}
     >
       {iconName && (
         <span className='ft_lg shift_up mr_10'>
           <Icon
             name={iconName}
-            tryColor={tryColoredIcon}
+            tryColor={tryColoredIcon !== false}
           />
         </span>
       )}
@@ -317,18 +330,18 @@ export function ModalCover(p: ModalCoverProps) {
  */
 
 export function ModalCoverAnimation(p: ModalCoverProps & {
-  bacgroundClassName?: string;
+  backgroundClassName?: string;
   containerClassName?: string;
   containerAnimationName?: string;
   closePopOver?: () => void;
 }) {
-  const { children, bacgroundClassName, containerAnimationName, containerClassName, ...other } = p;
+  const { children, backgroundClassName, containerAnimationName, containerClassName, ...other } = p;
   const { visible } = p;
 
   return <ModalCover {...other}>
     <>
-      {bacgroundClassName && (
-        <div className={cn('abs_full', bacgroundClassName)} />
+      {backgroundClassName && (
+        <div className={cn('abs_full', backgroundClassName)} />
       )}
       <div
         className={cn(
@@ -381,7 +394,7 @@ export function FixedAnimationLayout(p: ModalCoverProps) {
  * Modal wrapper; for sizing and page view height scrolling
  */
 
-type ModalWrapperProps = {
+interface ModalWrapperProps {
   domId?: string;
   className?: string;
   containerClassName?: string;
@@ -393,7 +406,7 @@ type ModalWrapperProps = {
   children: React.ReactNode;
   closeText?: string;
   closePopOver?: () => void;
-};
+}
 
 export function ModalWrapper(p: ModalWrapperProps) {
   const { ToolbarComponent, domId, className, containerClassName, outlineColor, children, closePopOver, onCloseModal, addScrollArea, ...other } = p;
@@ -586,8 +599,8 @@ export function ErrorMessage(p: ErrorMessageProps) {
  */
 
 interface PageContentProps extends ReactDivElement {
+  withAsideComponent?: boolean;
   HeaderComponent?: React.ReactNode;
-  AsideComponent?: React.ReactNode;
   children: React.ReactNode;
   asideClassName?: string;
   bodyClassName?: string;
@@ -596,12 +609,18 @@ interface PageContentProps extends ReactDivElement {
 }
 
 export function PageContent(p: PageContentProps) {
-  const { children, HeaderComponent, AsideComponent, loading, error, className, asideClassName, bodyClassName, ...other } = p;
+  const { withAsideComponent, children, HeaderComponent, AsideComponent, loading, error, className, asideClassName, bodyClassName, ...other } = p;
 
   // This triggers a "50% opacity" state. I used to use this effect for all loading,
   // but data loads so fast, that it creates an opacity flicker, and that isn't a
   // wanted effect. However, when there's an error, this effect fits nicely.
   const errored = !!error && !loading;
+
+  if (withAsideComponent) {
+    return <div className={cn(bodyClassName, errored && 'op_50')}>
+      {children}
+    </div>;
+  }
 
   return (
     <div className={className}>
@@ -610,7 +629,7 @@ export function PageContent(p: PageContentProps) {
       {AsideComponent
       ? <div className='gap_50 h_top' {...other}>
         {AsideComponent && (
-          <aside className={cn('pg_aside z4 sticky', asideClassName)}>
+          <aside className={cn('app_aside z4 sticky', asideClassName)}>
             {AsideComponent}
           </aside>
         )}
@@ -713,25 +732,11 @@ export const FloatingMessage = memo((p: FloatingMessageProps) => {
 FloatingMessage.displayName = 'FloatingMessage';
 
 /**
- * Aside component; table of contents
+ * Aside component; nav list
  */
 
-export const AsideScrollIndicator = memo((p: {
-  scrollBehavior: 'smooth' | 'instant';
-  selected: string | null;
-  title?: string | null;
-  navList: {
-    text: string;
-    anchor: string;
-  }[];
-}) => {
-  const { title, selected, navList, scrollBehavior } = p;
-  const scrollToContent = (anchor: string) => {
-    const el = document.getElementById(anchor);
-    if (el) {
-      el.scrollIntoView({ behavior: scrollBehavior ?? 'smooth', block: 'start' });
-    }
-  };
+export const AsideNavList = memo((p: AsideNavProps) => {
+  const { pathname, autoSelectFirstItem, addPageNumbers, addEllipsis, title, isSinglePage, viewportAnchor, navList, onClickItem } = p;
 
   return <nav className='my_md ft_sm lh_1'>
     {/* <div className='h_40' /> */}
@@ -739,41 +744,118 @@ export const AsideScrollIndicator = memo((p: {
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
 
     {(title || title === undefined) &&
-    <p className='ft_semibold cl_md pl_40 py_df'>
+    <p className='ft_semibold cl_md pl_40 pt_df pb_xs'>
       {title ?? i18n.t('form.table_of_contents')}
     </p>}
 
-    {navList.map((navItem, i) => {
-      const { text, anchor } = navItem;
-      const isSelected = selected === anchor || (!selected && i === 0);
-      return <button
+    {navList?.map((navItem, i) => {
+      const { text, to, anchor } = navItem;
+      const pageNumber = addPageNumbers ? i + 1 : null;
+
+      let selected;
+      if (isSinglePage) {
+        selected = viewportAnchor === anchor || (!viewportAnchor && autoSelectFirstItem && i === 0);
+      } else {
+        selected = (!pathname && autoSelectFirstItem && i === 0) || (pathname && pathname === to);
+      }
+
+      return <SmartLink
         key={i}
-        className={cn('bl mb_df h_left', isSelected ? '' : 'cl_lt')}
-        onClick={() => scrollToContent(anchor)}
+        // className={cn('bl mb_df h_left', selected ? 'cl_df' : 'cl_lt')}
+        className={cn('bl py_xs h_left', selected ? 'cl_df' : 'cl_lt')}
+        to={to}
+        onClick={onClickItem ? () => onClickItem(navItem) : undefined}
+        buttonElement='div'
+        role='button'
       >
-        <div className={cn('w_30 h_2 mt_6 mr_10 f_shrink trans_color spd_2', isSelected ? 'bg_primary' : 'bg_active')} />
-        <span>
+        <div className={cn('rel w_30 h_2 mt_6 mr_10 f_shrink trans_color spd_2', selected ? 'bg_primary cl_primary' : 'bg_active')}>
+          {pageNumber &&
+          <span
+            className='ft_semibold ft_tn bg a_r abs_r -mt_5'
+            // style={{position: 'absolute', top: -2, left: 10}}
+          >
+            {String(pageNumber).padStart(2, '0')}
+          </span>}
+        </div>
+        <div className={addEllipsis ? 'ellip' : undefined}>
           {text}
-        </span>
-      </button>;
+        </div>
+      </SmartLink>;
     })}
   </nav>;
+});
+
+AsideNavList.displayName = 'AsideNavList';
+
+/**
+ * Aside component; nav used for scroll position indicator
+ */
+
+export const AsideScrollIndicator = memo((p: AsideNavProps) => {
+  const { scrollBehavior } = p;
+  const scrollToContent = (anchor: string) => {
+    const el = document.getElementById(anchor);
+    if (el) {
+      el.scrollIntoView({ behavior: scrollBehavior ?? 'smooth', block: 'start' });
+    }
+  };
+
+  return <AsideNavList
+    {...p}
+    autoSelectFirstItem
+    onClickItem={(item: any) => scrollToContent(item.anchor)}
+  />;
 });
 
 AsideScrollIndicator.displayName = 'AsideScrollIndicator';
 
 /**
+ * Switch case interface for <AsideNav />
+ */
+
+export interface AsideNavItemObj {
+  text: string;
+  to?: string;
+  anchor?: string;
+}
+
+interface AsideNavProps {
+  pathname?: string;
+  autoSelectFirstItem?: boolean;
+  addPageNumbers?: boolean;
+  addEllipsis?: boolean;
+  viewportAnchor?: string | null;
+  title?: string | null;
+  onClickItem?: (item: AsideNavItemObj) => void;
+  navList: AsideNavItemObj[] | null;
+
+  // Required for scroll indicator nav only
+  isSinglePage?: boolean;
+  scrollBehavior?: 'smooth' | 'instant';
+}
+
+export function AsideNav(p: AsideNavProps) {
+  const { navList, isSinglePage } = p;
+  if (!navList) {
+    return <AsideNavMock />;
+  } else if (isSinglePage) {
+    return <AsideScrollIndicator {...p} />;
+  }
+  return <AsideNavList {...p} />;
+}
+
+/**
  * Mock Component; for aside scroll indicator
  */
 
-export function AsideScrollIndicatorMock() {
+export function AsideNavMock() {
 
   return <nav className='my_md ft_sm lh_1'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
 
-    <p className='ft_semibold cl_md pl_40 py_df'>
+    <p className='ft_semibold cl_md pl_40 pt_df pb_xs'>
       <span className='mock active'>
         .... .... .... .... ... ...
       </span>
@@ -781,7 +863,7 @@ export function AsideScrollIndicatorMock() {
     {[...Array(6)].map((_, i) => {
       return <span
         key={i}
-        className={cn('bl mb_df h_left cl_lt')}
+        className={cn('bl py_xs h_left cl_lt')}
       >
         <div className={cn('w_30 h_2 mt_6 mr_10 f_shrink bg_active')} />
         <span className='mock alt h_20 -mt_3'>

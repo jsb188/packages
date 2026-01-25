@@ -885,7 +885,7 @@ const TableListItem = (p: TableListProps & {
     key={item.item.id}
     id={`tlist_item_${item.item.id}`}
     to={rowData.to!}
-    className={rowData.to ? 'cl_df' : undefined}
+    className={rowData.to ? 'cl_df link bl bg_primary_fd_hv' : undefined}
   >
     {rowData.RowHeaderComponent}
 

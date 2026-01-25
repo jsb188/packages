@@ -1354,6 +1354,73 @@ rect.s_dot_away {
   background-color: rgb(var(--color-secondary));
 }
 
+/* Colors fade */
+
+.red_fade_bf:before { background-color: var(--color-red-fade); }
+.red_fade_bf { color: var(--color-red-default) !important; }
+
+.orange_fade_bf:before { background-color: var(--color-orange-fade); }
+.orange_fade_bf { color: var(--color-orange-default) !important; }
+
+.brown_fade_bf:before { background-color: var(--color-brown-fade); }
+.brown_fade_bf { color: var(--color-brown-default) !important; }
+
+.amber_fade_bf:before { background-color: var(--color-amber-fade); }
+.amber_fade_bf { color: var(--color-amber-default) !important; }
+
+.yellow_fade_bf:before { background-color: var(--color-yellow-fade); }
+.yellow_fade_bf { color: var(--color-yellow-default) !important; }
+
+.lime_fade_bf:before { background-color: var(--color-lime-fade); }
+.lime_fade_bf { color: var(--color-lime-default) !important; }
+
+.green_fade_bf:before { background-color: var(--color-green-fade); }
+.green_fade_bf { color: var(--color-green-default) !important; }
+
+.emerald_fade_bf:before { background-color: var(--color-emerald-fade); }
+.emerald_fade_bf { color: var(--color-emerald-default) !important; }
+
+.teal_fade_bf:before { background-color: var(--color-teal-fade); }
+.teal_fade_bf { color: var(--color-teal-default) !important; }
+
+.cyan_fade_bf:before { background-color: var(--color-cyan-fade); }
+.cyan_fade_bf { color: var(--color-cyan-default) !important; }
+
+.sky_fade_bf:before { background-color: var(--color-sky-fade); }
+.sky_fade_bf { color: var(--color-sky-default) !important; }
+
+.blue_fade_bf:before { background-color: var(--color-blue-fade); }
+.blue_fade_bf { color: var(--color-blue-default) !important; }
+
+.indigo_fade_bf:before { background-color: var(--color-indigo-fade); }
+.indigo_fade_bf { color: var(--color-indigo-default) !important; }
+
+.violet_fade_bf:before { background-color: var(--color-violet-fade); }
+.violet_fade_bf { color: var(--color-violet-default) !important; }
+
+.purple_fade_bf:before { background-color: var(--color-purple-fade); }
+.purple_fade_bf { color: var(--color-purple-default) !important; }
+
+.fuchsia_fade_bf:before { background-color: var(--color-fuchsia-fade); }
+.fuchsia_fade_bf { color: var(--color-fuchsia-default) !important; }
+
+.pink_fade_bf:before { background-color: var(--color-pink-fade); }
+.pink_fade_bf { color: var(--color-pink-default) !important; }
+
+.rose_fade_bf:before { background-color: var(--color-rose-fade); }
+.rose_fade_bf { color: var(--color-rose-default) !important; }
+
+.slate_fade_bf:before { background-color: var(--color-slate-fade); }
+.slate_fade_bf { color: var(--color-slate-default) !important; }
+
+.zinc_fade_bf:before { background-color: var(--color-zinc-fade); }
+.zinc_fade_bf { color: var(--color-zinc-default) !important; }
+
+.stone_fade_bf:before { background-color: var(--color-stone-fade); }
+.stone_fade_bf { color: var(--color-stone-default) !important; }
+
+/* Colors light */
+
 .red_light_bf:before { background-color: var(--color-red-light); }
 .red_light_bf { color: var(--color-red-default) !important; }
 
@@ -1416,8 +1483,6 @@ rect.s_dot_away {
 
 .stone_light_bf:before { background-color: var(--color-stone-light); }
 .stone_light_bf { color: var(--color-stone-default) !important; }
-
-
 
 /* Temporary for demo */
 

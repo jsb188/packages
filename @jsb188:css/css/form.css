@@ -429,8 +429,8 @@ fieldset input[type="radio"] {
 }
 
 .ib_label .icon {
-  margin: -5px -4px -3px;
-  font-size: 1.6em;
+  font-size: 1rem;
+  margin: -4px -2px;
 }
 
 .ib_label .indicator {

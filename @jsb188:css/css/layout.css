@@ -87,7 +87,7 @@ body.p_auth {
 
 /* Content with right <aside /> sticky sidebar */
 
-.pg_aside {
+.app_aside {
   width: var(--aside-wt);
   top: 0;
 }
@@ -107,6 +107,16 @@ body.p_auth {
 
 .floating_msg {
   margin: 0 -1rem;
+}
+
+/* Helpers, to work with layout variables */
+
+.min_h_toolbar_screen {
+  min-height: calc(100vh - var(--toolbar-ht));
+}
+
+.max_h_toolbar_screen {
+  max-height: calc(100vh - var(--toolbar-ht));
 }
 
 /* App layout; toolbar title */
@@ -141,7 +151,7 @@ body.p_auth {
   transition: left ease .2s;
 }
 
-.mday_sidebar_inside_width {
+.app_sidebar_inside_width {
   width: calc(var(--sidebar-wt) - 27px);
 }
 

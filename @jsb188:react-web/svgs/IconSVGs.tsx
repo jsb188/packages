@@ -54,11 +54,11 @@ export const AgricultureMachineSeeder = <svg xmlns="http://www.w3.org/2000/svg" 
 <path d="M19.3,17.1v5.1"/>
 </svg>;
 
-export const AlertCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-alert-circle" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path d="M12,16.9c-.2,0-.4-.2-.4-.4s.2-.3.4-.3"/>
-<path d="M12,16.9c.2,0,.4-.2.4-.4s-.2-.3-.4-.3"/>
-<path d="M12,13.4v-7.7"/>
-<path d="M12,22.5c5.8,0,10.5-4.7,10.5-10.5S17.8,1.5,12,1.5,1.5,6.2,1.5,12s4.7,10.5,10.5,10.5Z"/>
+export const AlertCircle = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-alert-circle">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+<path d="M12,8v4" strokeWidth="2.5" />
+<path d="M12,16.2h0" strokeWidth="2.5" />
 </svg>;
 
 export const AlertCircleFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-alert-circle-filled" fill="currentColor">
@@ -1812,6 +1812,39 @@ export const Message = <svg xmlns="http://www.w3.org/2000/svg" className="icon i
 <path d="M8 13h6" stroke="currentColor" />
 <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z" stroke="currentColor" />
 </svg>;
+
+// This version has green box to it, but I found it to be "not subtle enough" for Toolbar use
+// export const MessageColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-message-color">
+// <path fill="#78eb7b" d="M19.5 0.5h-15a4 4 0 0 0 -4 4v15a4 4 0 0 0 4 4h15a4 4 0 0 0 4 -4v-15a4 4 0 0 0 -4 -4Z" strokeWidth="1"/>
+// <path fill="#c9f7ca" d="M19.5 0.5h-15a4 4 0 0 0 -4 4v15a3.974 3.974 0 0 0 1.421 3.034L22.535 1.921A3.973 3.973 0 0 0 19.5 0.5Z" strokeWidth="1"/>
+// <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.5 0.5h-15a4 4 0 0 0 -4 4v15a4 4 0 0 0 4 4h15a4 4 0 0 0 4 -4v-15a4 4 0 0 0 -4 -4Z" strokeWidth="1"/>
+// <path fill="#ffffff" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.5 11.375c0 3.379 -3.358 6.119 -7.5 6.119a9.026 9.026 0 0 1 -2.628 -0.386l-4.31 2.006 1.688 -3.369a5.62 5.62 0 0 1 -2.25 -4.37C4.5 8 7.858 5.256 12 5.256c4.142 0 7.5 2.744 7.5 6.119Z" strokeWidth="1"/>
+// <path stroke="#191919" d="M8.75 12a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
+// <path stroke="#191919" d="M8.75 12a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+// <path stroke="#191919" d="M12.25 12a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
+// <path stroke="#191919" d="M12.25 12a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+// <g>
+// <path stroke="#191919" d="M15.749 12a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
+// <path stroke="#191919" d="M15.749 12a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+// </g>
+// </svg>;
+
+// This version has no lines inside the bubble
+export const MessageColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-message">
+<path fill="#c2f3ff" d="M12 2.5c-5.523 0 -10 3.575 -10 7.985A7.282 7.282 0 0 0 5.019 16.2a2.755 2.755 0 0 1 -2.028 3.432s-0.319 0.408 0.475 0.56c3.192 0.582 5.775 -1.98 5.775 -1.98v-0.051c0.905 0.206 1.83 0.31 2.759 0.309 5.522 0 10 -3.576 10 -7.985C22 6.076 17.522 2.5 12 2.5Z" strokeWidth="1"/>
+<path fill="#66e1ff" d="M11.685 14.746c-4.39 0 -8.13 -2.14 -9.619 -5.152a6.422 6.422 0 0 0 -0.066 0.891A7.282 7.282 0 0 0 5.019 16.2a2.755 2.755 0 0 1 -2.028 3.432s-0.319 0.408 0.475 0.56c3.192 0.582 5.775 -1.98 5.775 -1.98v-0.051c0.905 0.206 1.83 0.31 2.759 0.309 5.523 0 10 -3.576 10 -7.985a6.461 6.461 0 0 0 -0.3 -1.9c-1.083 3.534 -5.151 6.161 -10.015 6.161Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 2.5c-5.523 0 -10 3.575 -10 7.985A7.282 7.282 0 0 0 5.019 16.2a2.755 2.755 0 0 1 -2.028 3.432s-0.319 0.408 0.475 0.56c3.192 0.582 5.775 -1.98 5.775 -1.98v-0.051c0.905 0.206 1.83 0.31 2.759 0.309 5.522 0 10 -3.576 10 -7.985C22 6.076 17.522 2.5 12 2.5Z" strokeWidth="1"/>
+</svg>;
+
+// This version has lines inside the bubble
+// export const MessageColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-message">
+// <path fill="#66e1ff" d="M12 1C5.649 1 0.5 5.253 0.5 10.5c0.026674 1.3063 0.345968 2.59 0.93438 3.7567 0.58841 1.1666 1.43096 2.1864 2.46562 2.9843L1.5 23l6.372 -3.641c1.33481 0.4249 2.7272 0.6411 4.128 0.641 6.351 0 11.5 -4.253 11.5 -9.5S18.351 1 12 1Z" strokeWidth="1"/>
+// <path fill="#c2f3ff" d="M12 5c2.1915 -0.05768 4.3671 0.38678 6.3604 1.29935 1.9932 0.91256 3.7513 2.26905 5.1396 3.96565C23.346 5.127 18.256 1 12 1S0.654 5.127 0.5 10.265c1.38832 -1.6966 3.14639 -3.05309 5.13965 -3.96565C7.63291 5.38678 9.80853 4.94232 12 5Z" strokeWidth="1"/>
+// <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 1C5.649 1 0.5 5.253 0.5 10.5c0.026674 1.3063 0.345968 2.59 0.93438 3.7567 0.58841 1.1666 1.43096 2.1864 2.46562 2.9843L1.5 23l6.372 -3.641c1.33481 0.4249 2.7272 0.6411 4.128 0.641 6.351 0 11.5 -4.253 11.5 -9.5S18.351 1 12 1Z" strokeWidth="1"/>
+// <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.5 7h8" strokeWidth="1"/>
+// <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.5 10h11" strokeWidth="1"/>
+// <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.5 13h11" strokeWidth="1"/>
+// </svg>;
 
 export const MessageFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-message">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>

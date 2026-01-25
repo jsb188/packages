@@ -320,7 +320,6 @@ export function InlineButtonLink(p: NormalButtonLinkProps) {
 export interface InlineBlockLabelProps {
   as?: React.ElementType;
   color?: 'bg' | 'alt' | 'active' | 'primary' | 'secondary' | string;
-  iconSizeClassName?: string;
   className?: string;
   textColorClassName?: string;
   iconName?: string;
@@ -331,7 +330,7 @@ export interface InlineBlockLabelProps {
 }
 
 export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
-  const { color, iconSizeClassName, iconName, text, className, fillTextColor, textColorClassName, colorIndicator, outline } = p;
+  const { color, iconName, text, className, fillTextColor, textColorClassName, colorIndicator, outline } = p;
   const El = p.as || 'span';
   const isLightBackground = ['bg', 'alt', 'active'].includes(String(color));
 
@@ -340,12 +339,14 @@ export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
       className={cn(
         'rel z2 h_item ft_xs',
         textColorClassName ?? (fillTextColor && color ? `cl_${color.charAt(0)}` : color ? isLightBackground ? 'cl_df' : 'cl_solid' : ''),
-        iconSizeClassName,
         !colorIndicator && 'px_1'
       )}
     >
       {colorIndicator && <span className={`indicator f_shrink bg_${colorIndicator}`} />}
-      {iconName ? <Icon name={iconName} /> : null}
+      {iconName &&
+      <span className={cn(text ? 'mr_5' : '')}>
+        <Icon name={iconName} />
+      </span>}
       {text}
     </span>
   </El>;
