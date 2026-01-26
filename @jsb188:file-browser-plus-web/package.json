@@ -1,19 +1,16 @@
 {
-  "name": "@jsb188/auth-web",
+  "name": "@jsb188/file-browser-plus-web",
   "version": "1.1.6",
-  "description": "Authentication module for web.",
+  "description": "Flexible file browser module with options for file/page content browsing, for web.",
   "license": "ISC",
   "author": "jsb188",
   "type": "module",
   "exports": {
-    ".": "./src/main.ts",
-    "./schemas": "./src/schemas/index.ts"
+    ".": "./src/main.ts"
   },
   "peerDependencies": {
     "@jsb188/app": "1.1.6",
     "@jsb188/react-web": "1.1.6",
-    "@jsb188/graphql": "1.1.6",
-    "@jsb188/react": "1.1.6",
     "react-router": "^7.8.2",
     "jotai": "^2.13.1",
     "react": "^19.1.1"

@@ -574,13 +574,14 @@ export const TooltipClickToCopy = memo((p: Omit<TooltipButtonProps, 'message' | 
   textToCopy: string;
 }) => {
 
-  const { textToCopy, ...rest } = p;
+  const { textToCopy, className, ...rest } = p;
   const onClickToCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
     copyTextToClipboard(textToCopy);
   };
 
   return <TooltipButton
+    className={cn('pointer', className)}
     {...rest}
     message={i18n.t('form.copy_to_clipboard')}
     messageAfterClick={i18n.t('form.copied_')}

@@ -281,7 +281,7 @@ export function getReadableCalDate(d_: string | Date, timeZone?: string | null) 
 	} else if (d_ instanceof Date) {
 		d = d_;
 	} else {
-		d = d && new Date(d_);
+		d = d_ && new Date(d_);
 	}
 
 	if (!d || isNaN(d.getTime())) {

@@ -84,7 +84,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 			return {
 				billing: acl.billing || 'READ',
 				compliance: acl.compliance || 'WRITE',
-				digests: acl.digests || 'WRITE', // 2/3 = receive digests, 1 = only see from web app
+				digests: acl.digests || 'READ', // 2/3 = receive digests, 1 = only see from web app
 				finances: acl.finances || 'READ',
 				integrations: acl.integrations || 'NONE',
 				logs: acl.logs || 'MANAGE', // "READ" for logs does nothing

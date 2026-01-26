@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/css",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Re-usable, base CSS styles for any app (NOTE: Bring your own variables).",
   "license": "ISC",
   "author": "jsb188",
