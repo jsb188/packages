@@ -282,6 +282,10 @@ export const appReducer = (state: AppContextData, action: AppContextAction) => {
         return {
           ...state,
           hasPassword: typeof data.hasPassword === 'boolean' ? data.hasPassword : state.hasPassword,
+          account: !data.email ? state.account : {
+            ...state.account,
+            email: data.email
+          },
         };
       }
       return state;

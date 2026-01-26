@@ -2433,21 +2433,6 @@ export const PasswordLock1Color = <svg xmlns="http://www.w3.org/2000/svg" fill="
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 14a2.5 2.5 0 0 0 -5 0v1.5h5V14Z" strokeWidth="1"/>
 </svg>;
 
-export const PasswordUser = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-password-user">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M12 17v4" />
-<path d="M10 20l4 -2" />
-<path d="M10 18l4 2" />
-<path d="M5 17v4" />
-<path d="M3 20l4 -2" />
-<path d="M3 18l4 2" />
-<path d="M19 17v4" />
-<path d="M17 20l4 -2" />
-<path d="M17 18l4 2" />
-<path d="M9 6a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
-<path d="M7 14a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2" />
-</svg>;
-
 export const PetsHospital = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-pets-hospital" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M9 3.75H6.75V1.5A0.75 0.75 0 0 0 6 0.75H4.5a0.75 0.75 0 0 0 -0.75 0.75v2.25H1.5a0.75 0.75 0 0 0 -0.75 0.75V6a0.75 0.75 0 0 0 0.75 0.75h2.25V9a0.75 0.75 0 0 0 0.75 0.75H6A0.75 0.75 0 0 0 6.75 9V6.75H9A0.75 0.75 0 0 0 9.75 6V4.5A0.75 0.75 0 0 0 9 3.75Z" />
 <path d="M14.25 20.25h-9a3 3 0 0 1 -3 -3v-1.5a3 3 0 0 1 3 -3h7.65a3.007 3.007 0 0 0 2.555 -1.424 6.067 6.067 0 0 0 0.457 -0.917A2.25 2.25 0 0 1 18 9a2.1 2.1 0 0 1 2.25 2.25 1.5 1.5 0 0 0 1.5 1.5 1.5 1.5 0 0 1 0 3H19.5l-2.136 2.988a3 3 0 0 1 -2.605 1.512h-0.509" />

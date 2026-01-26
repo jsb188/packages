@@ -177,7 +177,7 @@ export function ModalHeader(p: Partial<ModalHeaderProps>) {
  */
 
 interface ModalSimpleContentProps {
-  title: string;
+  title?: string;
   message?: string;
   iconName: string;
   className?: string;
@@ -195,11 +195,12 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
       <Icon name={iconName} tryColor />
     </span>
 
+    {title &&
     <h1 className='ft_sm ft_semibold ls_2 mt_sm'>
       {title}
-    </h1>
+    </h1>}
 
-    <div className='pb_df'>
+    <div className={cn('pb_df', !title && 'pt_40')}>
       {children}
 
       {message && (

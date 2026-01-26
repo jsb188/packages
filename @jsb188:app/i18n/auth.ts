@@ -47,8 +47,12 @@ export default {
     account_secured_: 'Account secured!',
     one_last_step_: 'One last step!',
     add_password: 'Add password',
-    add_password_log_in_msg: 'Please add a password to your account (%{identifier}) for security. You will be logged in afterwards.',
-    add_password_fin_msg: 'Your account has been secured with a password. From now on, you may use your password to log in.',
+    add_password_log_in_msg: 'Please add a password to your account (%{identifier}) for security.',
+    add_email: 'Add e-mail address',
+    add_email_to_login_msg: 'Please add an e-mail address to your account (%{identifier}) for security.',
+    required_auth_fin_msg: 'Your account has been secured. From now on, you may use your password to log in.',
+    check_email: 'Check your e-mail',
+    check_email_to_login_msg: 'Please check your e-mail for verification instructions. You will be logged in  after you verify your e-mail address.',
 
     // Auth - check fails
     no_account_with_phone: 'No account was found with that phone number.',

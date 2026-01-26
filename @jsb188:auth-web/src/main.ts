@@ -1,4 +1,4 @@
-export * from './modules/AssignPassword';
+export * from './modules/AssignRequiredAuth';
 export * from './modules/AuthForms';
 export * from './modules/AuthFormUI';
 export * from './modules/AuthGate';

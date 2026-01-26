@@ -135,7 +135,7 @@ export function useChangeAccountPasswordForm(params: UseMutationParams = {}) {
 
 export function useRequestTokenizedEmail(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
   const { onCompleted, onError } = params;
-  const [requestTokenizedEmail, mtnValues] = useMutation(
+  const [requestTokenizedEmail, mtnValues, mtnHandlers] = useMutation(
     requestTokenizedEmailMtn,
     {
       checkMountedBeforeCallback: true,
@@ -148,6 +148,7 @@ export function useRequestTokenizedEmail(params: UseMutationParams = {}, openMod
   return {
     requestTokenizedEmail,
     ...mtnValues,
+    ...mtnHandlers,
   };
 }
 
