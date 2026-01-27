@@ -243,6 +243,9 @@ export default {
     water_unit: 'Unit (water)',
     water_unit_ph: 'gallons, litres',
 
+    // File Browser Plus module
+    fbp_upload_instructions: 'Click here to upload files, or drag and drop\n your files anywhere on the screen.',
+
     // Day periods
     greet_MORNING: 'Good morning, %{name}.',
     greet_AFTERNOON: 'Good afternoon, %{name}.',
