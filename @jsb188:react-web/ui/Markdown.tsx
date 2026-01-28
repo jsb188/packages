@@ -21,10 +21,9 @@ const PRESET_REGEX = {
   // chat: /\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gi,
 
   // article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gmi,
-  article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
+  article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^- .+$|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
   content_description: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
-  message: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gi, // I'm not sure what the difference is between "message" and "chat"
-  chat: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gi,
+  message: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^- .+$|:([^:\n ])+:/gi,
 
   // NOTE: Next time you do mobile, check if this regex works in mobile
   // I added ":emoji_style:" tags to the regex
@@ -162,6 +161,7 @@ const getMarkdownEl = (
   fullText: string,
   codesMap?: [string, string][],
   MappedCodeComponent?: RenderMappedCodeFn,
+  as?: React.ElementType,
 ) => {
 
   const letter = matchedStr.charAt(0);
@@ -182,6 +182,14 @@ const getMarkdownEl = (
         return [headingTextArr.join(' '), '', null, dom]; // [3] = Block dom (replaces <p>)
       }
       break;
+    case '-':
+      return [
+        matchedStr.substring(2, matchedStr.length),
+        'ul_li',
+        'span',
+        as || 'div',
+        true
+      ];
     case '*':
       // Currently not supporting bold + italic; but maybe later.
       // if (/^\*\*\*(.*?)\*\*\*$/.test(matchedStr)) {
@@ -191,11 +199,17 @@ const getMarkdownEl = (
       }
 
       if (/^\*\*(.*?)\*\*$/.test(matchedStr)) {
-        const str1 = matchedStr.substring(2, matchedStr.length - 2);
         // add class names here (in second[2] element)
-        return [str1, 'ft_semibold', 'span'];
+        return [
+          matchedStr.substring(2, matchedStr.length - 2),
+          'ft_semibold',
+          'span'
+        ];
       }
-      return [matchedStr, 'cl_primary'];
+      return [
+        matchedStr.substring(1, matchedStr.length - 1),
+        'cl_primary'
+      ];
     case '_': {
       const str2 = matchedStr.substring(1, matchedStr.length - 1);
       return [str2, null, 'i'];
@@ -224,6 +238,7 @@ const getMarkdownEl = (
       break;
     }
     case '[': {
+      // [spanClassName, text]
       const spanMatch = matchedStr.match(/\[(.*?)##(.*?)\]/);
       if (spanMatch) {
         return [spanMatch[2], spanMatch[1]];
@@ -453,7 +468,8 @@ function MarkdownCmp(p: MarkdownProps) {
     if (noWrap) {
       paragraphTexts = [mdText];
     } else {
-      paragraphTexts = (mdText?.split('\n\n') || []).filter(Boolean);
+      // paragraphTexts = (mdText?.split('\n\n') || []).filter(Boolean);
+      paragraphTexts = (mdText?.split(/\n{2,}|(?=^- )/gm) || []).filter(Boolean);
       if (preset === 'article') {
         paragraphTexts = paragraphTexts.reduce((acc: string[], str: string) => {
           const isHeading = /^#.* /.test(str);
@@ -490,7 +506,7 @@ function MarkdownCmp(p: MarkdownProps) {
             const str1 = s.substring(strPos, start);
             arr.push([str1]);
           }
-          arr.push(getMarkdownEl(matchedStr, mdText!, codesMap, MappedCodeComponent));
+          arr.push(getMarkdownEl(matchedStr, mdText!, codesMap, MappedCodeComponent, as));
 
           // if (doLog) {
           //   console.log(arr);
@@ -527,16 +543,31 @@ function MarkdownCmp(p: MarkdownProps) {
   // console.log(paragraphs);
   // console.log(paragraphs[endOfListPos]);
 
-  return paragraphs.map((mds: any, n: number) => {
+  return paragraphs.map((
+    mds: any,
+    n: number
+  ) => {
+
+    // Lazy typing:
+    // mds = [
+    //   string?, // [0] text
+    //   string?, // [1] className
+    //   React.ElementType?, // [2] as
+    //   React.ElementType?, // [3] Block element
+    //   boolean? // [4] isBlock - this is a blocked markdown syntax, setting it to "true" will prevent double wrapping
+    // ][];
+
     const isParts = Array.isArray(mds);
     const lastMdPos = isParts && (mds.length - 1);
-    const Block = (isParts && mds[0][3]) || Element;
+    const isBlockedMD = isParts && mds[0][4];
+    const Block = ((isParts || isBlockedMD) && mds[0][3]) || Element;
     const isEndOfList = n === endOfListPos;
 
     return (
       <Block
         key={n}
         {...other}
+        className={isBlockedMD ? mds[0][1] : other.className}
       >
         {typeof mds === 'string'
           ? (
@@ -563,7 +594,7 @@ function MarkdownCmp(p: MarkdownProps) {
                 key={i}
                 noWrap={noWrap}
                 // doLog={doLog}
-                className={md[1]}
+                className={isBlockedMD ? undefined : md[1]}
                 as={md[2] as React.ElementType || NewLineElement}
               >
                 {fragmentText}

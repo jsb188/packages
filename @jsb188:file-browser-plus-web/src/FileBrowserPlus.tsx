@@ -1,46 +1,90 @@
-import { memo } from 'react';
-import { FileBrowserMessageArea } from './FileBrowserUI';
-import { cn } from '@jsb188/app/utils/string';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
 import i18n from '@jsb188/app/i18n';
+import { cn } from '@jsb188/app/utils/string';
+import { COMMON_ICON_NAMES, Icon } from '@jsb188/react-web/svgs/Icon';
+import { memo, useState } from 'react';
+import { FileBrowserFooter, FileBrowserPlaceholder, type FBPPlaceholderObj } from './FileBrowserUI';
 
 /**
  * Types
  */
 
-interface FileBrowserItemObj {
+interface FBPFolderObj {
   title: string;
   iconName?: string;
   files?: any[];
+  placeholder?: FBPPlaceholderObj | null;
 }
 
 /**
- * File Browser; Item component
+ * File Browser; item inside folders
  */
 
-const FileBrowserItem = memo((p: FileBrowserItemObj) => {
+const FileBrowserItem = memo((p: {
 
-  const { title, files } = p;
-  const hasFiles = !!files?.length;
-  const iconName = p.iconName ?? (hasFiles ? 'folder-open' : 'folder-empty');
+}) => {
 
-  return <>
-    <div className='bg px_10 py_8 rel bd_b_1 bd_active h_item'>
-      {iconName &&
-      <span className='mr_xs'>
-        <Icon name={iconName} />
-      </span>}
-      <span className='shift_down'>
-        {title}
-      </span>
-    </div>
-    {/* <div className='h_10 bg_alt rel'>
+  return <div>
 
-    </div> */}
-  </>;
+  </div>;
 });
 
 FileBrowserItem.displayName = 'FileBrowserItem';
+
+/**
+ * File Browser; folder
+ */
+
+const FileBrowserFolder = memo((p: FBPFolderObj & {
+  isFirst?: boolean;
+  isLast?: boolean;
+}) => {
+
+  const { isFirst, isLast, title, files, placeholder } = p;
+  // const [expanded, setExpanded] = useState(!!isFirst);
+  const [expanded, setExpanded] = useState(true);
+  const hasFiles = !!files?.length;
+  const iconName = p.iconName ?? (!expanded ? 'folder' : hasFiles ? 'folder-open' : 'folder-empty');
+
+  return <div
+    // className={cn('rel bg', isFirst && 'rt_sm', isLast && 'rb_sm')}
+    className={cn('rel bg bd_active', isFirst && 'rt_sm', isLast ? 'rb_sm bd_b_4' : 'bd_b_1')}
+  >
+    <div
+      role='button'
+      onClick={() => setExpanded(!expanded)}
+      // className={cn('px_10 py_8 bd_active h_spread link bg_primary_fd_hv', isFirst && 'rt_sm', isLast ? 'rb_sm bd_b_4' : 'bd_b_1')}
+      className={cn('px_10 py_8 h_spread link bg_primary_fd_hv', isFirst && 'rt_sm', isLast ? 'rb_sm' : '')}
+    >
+      <div className='h_item'>
+        {iconName &&
+        <span className='mr_xs'>
+          <Icon name={iconName} />
+        </span>}
+        <span className='shift_down'>
+          {title}
+        </span>
+      </div>
+
+      <div className='h_right cl_darker_2'>
+        <Icon name={expanded ? COMMON_ICON_NAMES.expanded_chevron : COMMON_ICON_NAMES.link_chevron} />
+      </div>
+    </div>
+
+    {expanded && files
+    ? files.map((file: any, i: number) => {
+      return <FileBrowserItem
+        title={i18n.t('form.fbp_no_files_in_folder')}
+      />
+    })
+    : expanded && placeholder
+    ? <FileBrowserPlaceholder
+        {...placeholder}
+      />
+    : null}
+  </div>;
+});
+
+FileBrowserFolder.displayName = 'FileBrowserFolder';
 
 /**
  * File Browser Plus
@@ -51,12 +95,14 @@ export function FileBrowserPlus(p: {
   headerDescription?: string;
   headerDescriptionClassName?: string;
   footerMessage?: string;
-  requiredFiles?: FileBrowserItemObj[];
+  folders?: FBPFolderObj[];
 }) {
 
-  const { requiredFiles, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
+  const { folders, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
+  // const { folders: folders_, foldersX:folders, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
+  const lastIndex = folders ? folders.length - 1 : -1;
 
-  return <div className="p_10 rel of pattern_texture texture_bf">
+  return <div className="p_10 rel of pattern_texture texture_bf r_sm">
 
     {(headerTitle || headerDescription) &&
     <div className='h_spread gap_10 rel px_12 py_10'>
@@ -76,15 +122,17 @@ export function FileBrowserPlus(p: {
       id: '3',
       title: 'FV-GFS 19.03'
     }]} */}
-    {requiredFiles?.map((item: any) => {
-      // return null;
-      return <FileBrowserItem
-        key={item.id}
+    {folders?.map((item: FBPFolderObj, i: number) => {
+      return <FileBrowserFolder
+        key={i}
         {...item}
+        isFirst={i === 0}
+        isLast={i === lastIndex}
       />;
     })}
 
-    <FileBrowserMessageArea
+    <FileBrowserFooter
+      isEmpty={lastIndex < 0}
       iconName='upload-square-2'
       text={footerMessage ?? i18n.t('form.fbp_upload_instructions')}
     />

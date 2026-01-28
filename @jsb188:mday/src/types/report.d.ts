@@ -46,6 +46,7 @@ interface ReportFieldsSection {
 	title: string;
 	description: string;
 	rows?: ReportFieldsRow[];
+  requireFileUploads?: boolean;
 
 	__prompt_section?: string; // Server-only; full prompt for this section - this is the only prompt that allows {{variable}} regex
 	__prompt_examples?: string; // Server-only; for examples of what the output should be
@@ -146,6 +147,7 @@ export interface ReportSubmissionGQL {
 	activityAt: string | null; // ISO date string
 	rows: ReportRowGQL[];
 	evidences: string[];
+  requireFileUploads: boolean;
 }
 
 export interface ReportLogRelData {

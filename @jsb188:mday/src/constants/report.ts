@@ -18,6 +18,7 @@ export const REPORT_ROW_PRESETS = [
 	'BREAK',
 	'Q_AND_A',
 	'TEXTS',
+  'LONG_TEXTS', // Same as "TEXTS" but has a different function in <FileBrowserPlus>
 	'HEADINGS',
 	'REPORT_STATEMENTS_OVERVIEW',
   'EVIDENCES',

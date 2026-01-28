@@ -21,6 +21,7 @@ export const reportSectionFragment = `fragment reportSectionFragment on ReportSe
   sectionName
   title
   description
+  requireFileUploads
 }`;
 
 export const reportRowDataFragment = `fragment reportRowDataFragment on ReportRowData {

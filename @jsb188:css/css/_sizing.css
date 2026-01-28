@@ -167,6 +167,19 @@ h1.ft_md, h2.ft_md, h3.ft_md, h4.ft_md, h5.ft_md, h6.ft_md, .ft_heading_md { fon
 h1.ft_lg, h2.ft_lg, h3.ft_lg, h4.ft_lg, h5.ft_lg, h6.ft_lg, .ft_heading_lg { font-size: var(--heading-large); }
 h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { font-size: var(--heading-xlarge); }
 
+/* Unsorted list items for <Markdown> */
+
+.ul_li {
+  display: block;
+  margin-left: .9em;
+}
+
+.ul_li:before {
+  content: '•';
+  position: absolute;
+  margin-left: -.9em;
+}
+
 /* Icon */
 
 .icon_cnt { display: flex; justify-content: center; align-items: center; }

@@ -83,6 +83,7 @@ export default {
     join: 'Join',
     change_img: 'Change image',
     upload_img: 'Upload image',
+    upload_files: 'Upload files',
     keep_current_img: 'Keep current image',
     select_file: 'Select file',
     task_: 'Task – %{text}',
