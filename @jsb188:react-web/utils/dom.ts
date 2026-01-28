@@ -2,6 +2,31 @@ import { DOM_IDS } from '@jsb188/app/constants/app';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**
+ * Check if browser is connected to internet
+ */
+
+export function useOnlineStatus() {
+  const [isOnline, setIsOnline] = useState(
+    typeof globalThis?.navigator !== 'undefined' ? globalThis.navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return isOnline;
+}
+
+/**
  * Observes multiple sections and reports the single "active" one
  * based on intersection with the viewport.
  */

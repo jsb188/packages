@@ -104,6 +104,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   mobile: 'device-mobile',
   moderator: 'gavel',
   network_error: 'wifi-off',
+  server_outage: 'server-remove-1',
   not_pinned: 'pinned-off',
   org_info: 'office-building-double',
   owner: 'crown',

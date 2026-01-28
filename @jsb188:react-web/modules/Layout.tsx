@@ -3,6 +3,7 @@ import i18n from '@jsb188/app/i18n';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d';
 import { cn } from '@jsb188/app/utils/string';
 import { Pill, SmartLink } from '@jsb188/react-web/ui/Button';
+import { useOnlineStatus } from '@jsb188/react-web/utils/dom';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
 import { memo } from 'react';
 import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
@@ -484,6 +485,7 @@ export interface ErrorMessageProps {
 export function ErrorMessage(p: ErrorMessageProps) {
   const { authHref, errorCode, statusCode, doNotRefreshIfNotLoggedIn, hideButtonIfNotRetriable, preset, iconName, buttonHref, buttonText, loading, containerSize, onClickButton } = p;
   const isAuthError = errorCode == '20019';
+  const onlineStatus = useOnlineStatus();
 
   let title;
   if (p.title) {
@@ -545,6 +547,24 @@ export function ErrorMessage(p: ErrorMessageProps) {
   } else {
     titleIconName = iconName || 'alert-circle';
     iconSizeClassName = 'ft_lg';
+
+    const isNetworkError = ['network_error', 'app_error'].includes(errorCode!);
+    if (
+      onlineStatus && (
+        isNetworkError ||
+        (statusCode === 500 && !iconName)
+      )
+    ) {
+      titleIconName = COMMON_ICON_NAMES.server_outage;
+
+      if (title === i18n.t('error.network_error_title')) {
+        title = i18n.t('error.server_outage_title');
+      }
+
+      if (message === i18n.t('error.network_error_msg')) {
+        message = i18n.t('error.server_outage_msg');
+      }
+    }
   }
 
   return (

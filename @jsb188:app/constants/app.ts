@@ -29,9 +29,11 @@ export const COMMON_CLASSNAMES = {
 // Encryption
 
 export const DOCUMENT_TYPE_TO_PREFIX: Record<string, IDDocumentType | IDDocumentType[]> = {
-	'activity log or note': ['log', 'inv'], // I've seen AI mistakenly use "activity log or note" for invoices, so we have to comebine it
-	'invoice': ['log', 'inv'],
-	'purchase order': ['log', 'inv'],
+	'activity log or note': ['log', 'inv', 'rec'], // I've seen AI mistakenly use "activity log or note" for invoices, so we have to comebine it
+	'invoice': ['log', 'inv', 'rec'],
+	'purchase order': ['log', 'inv', 'rec'],
+	'sales rerceipt': ['log', 'inv', 'rec'],
+	'market credit rerceipt': ['log', 'inv', 'rec'],
 	'user account': 'acc',
 	'ai task': 'task',
 	'event': 'event',

@@ -50,9 +50,6 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
   const hasFiles = !!files?.length;
   const iconName = p.iconName ?? (!expanded ? 'folder' : hasFiles ? 'folder-open' : 'folder-empty');
 
-  console.log(p);
-
-
   return <div
     // className={cn('rel bg', isFirst && 'rt_sm', isLast && 'rb_sm')}
     className={cn('rel bg bd_active', isFirst && 'rt_sm', isLast ? 'rb_sm bd_b_4' : 'bd_b_1')}
@@ -78,7 +75,7 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
       </div>
     </div>
 
-    {expanded && files
+    {expanded && hasFiles
     ? files.map((file: any, i: number) => {
       return <FileBrowserItem
         {...file}

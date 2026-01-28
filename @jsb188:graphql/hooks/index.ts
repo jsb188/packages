@@ -863,7 +863,7 @@ export function useQuery(
         timeThresh = QUERY_EXPIRE_TIMES[queryName] || QUERY_EXPIRE_TIMES.__default;
       }
 
-      // console.log('>>', queryName, timeDiff, timeThresh);
+      // console.log('>>', queryName, timeDiff, timeThresh, timeDiff > timeThresh);
 
       if (
         tracker.current.init &&

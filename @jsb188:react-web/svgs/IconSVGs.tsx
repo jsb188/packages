@@ -2342,6 +2342,49 @@ export const SeedlingFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0
 <path d="M6 3a7 7 0 0 1 6.95 6.155a6.97 6.97 0 0 1 5.05 -2.155h3a1 1 0 0 1 1 1v1a7 7 0 0 1 -7 7h-2v4a1 1 0 0 1 -2 0v-7h-2a7 7 0 0 1 -7 -7v-2a1 1 0 0 1 1 -1z" />
 </svg>;
 
+export const ServerRemove1 = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-server-remove-1">
+<path fill="#e3e3e3" d="M17.5 13a2.5 2.5 0 0 0 -2.5 -2.5H3a2.5 2.5 0 0 0 0 5h12a2.5 2.5 0 0 0 2.5 -2.5Z" strokeWidth="1"/>
+<path fill="#ffffff" d="M17.5 13a2.5 2.5 0 0 0 -2.5 -2.5H3A2.5 2.5 0 0 0 0.5 13h17Z" strokeWidth="1"/>
+<path fill="#e3e3e3" d="M17.5 8A2.5 2.5 0 0 0 15 5.5H3a2.5 2.5 0 1 0 0 5h12A2.5 2.5 0 0 0 17.5 8Z" strokeWidth="1"/>
+<path fill="#ffffff" d="M17.5 8A2.5 2.5 0 0 0 15 5.5H3A2.5 2.5 0 0 0 0.5 8h17Z" strokeWidth="1"/>
+<path fill="#e3e3e3" d="M17.5 3A2.5 2.5 0 0 0 15 0.5H3a2.5 2.5 0 0 0 0 5h12A2.5 2.5 0 0 0 17.5 3Z" strokeWidth="1"/>
+<path fill="#ffffff" d="M17.5 3A2.5 2.5 0 0 0 15 0.5H3A2.5 2.5 0 0 0 0.5 3h17Z" strokeWidth="1"/>
+<path fill="#ff808c" d="M17.5 23.5a6 6 0 1 0 0 -12 6 6 0 0 0 0 12Z" strokeWidth="1"/>
+<path fill="#ffccd1" d="M21.743 13.257a6 6 0 0 0 -8.486 8.486l8.486 -8.486Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5 23.5a6 6 0 1 0 0 -12 6 6 0 0 0 0 12Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m19.621 15.379 -4.242 4.242" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m19.621 19.621 -4.242 -4.242" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M5.5 20.5h3" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8.501 15.5v5" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.5 10.5H3a2.5 2.5 0 0 0 0 5h6.5" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5 8A2.5 2.5 0 0 0 15 5.5H3a2.5 2.5 0 1 0 0 5h9.5" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5 3A2.5 2.5 0 0 0 15 0.5H3a2.5 2.5 0 0 0 0 5h12A2.5 2.5 0 0 0 17.5 3v0Z" strokeWidth="1"/>
+<path stroke="#191919" d="M4.25 3.25a0.25 0.25 0 0 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M4.25 3.25a0.25 0.25 0 0 0 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M4.25 8.25a0.25 0.25 0 0 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M4.25 8.25a0.25 0.25 0 0 0 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M4.25 13.25a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M4.25 13.25a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M0.75 20.5a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M0.75 20.5a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+<g>
+<path stroke="#191919" d="M6.75 3.25a0.25 0.25 0 0 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M6.75 3.25a0.25 0.25 0 0 0 0 -0.5" strokeWidth="1"/>
+</g>
+<g>
+<path stroke="#191919" d="M6.75 8.25a0.25 0.25 0 0 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M6.75 8.25a0.25 0.25 0 0 0 0 -0.5" strokeWidth="1"/>
+</g>
+<g>
+<path stroke="#191919" d="M6.75 13.25a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M6.75 13.25a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+</g>
+<g>
+<path stroke="#191919" d="M3.25 20.5a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M3.25 20.5a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+</g>
+</svg>;
+
 export const SoccerGoalkeeperGlove1 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-soccer-goal-keeper-glove-1" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
 <path d="M3.82637653,13.28894529l-2.55081153,2.64073686c-.20088063.21128034-.20088063.54294057,0,.75422092l5.8336035,6.03762932c.19126267.2013303.50952216.20949136.71085199.01822731.00623054-.00591839.01230846-.01199723.01822777-.01822731l2.59239015-2.6823168"/>
 <path d="M12.21272589,6.11901818l2.18820523-2.26459466c.60227476-.63435882.60227476-1.62926885,0-2.26362778-.57583198-.60425647-1.53248332-.6272988-2.13673979-.05146648-.01756612.01673987-.03472649.03390024-.05146636.05146648l-6.5626824,6.79184977c-1.85170738,1.91649334-2.26362778,3.3040647-1.82366604,4.90629979l6.19911055,6.41473885c1.45815952,1.50940825,4.2951871.50281394,6.56268378,0,1.35824131-.30481078,2.69935084-.68148322,4.01767209-1.12842935,1.09361987-.37710954,2.00835284-1.09652097,1.93389808-2.27426345-.05349971-1.15280098-1.03140026-2.04395999-2.18420031-1.99046027-.00326996.00015216-.00653808.00031169-.00980619.0004786l-3.38432165.48830938,5.46132704-5.66148712c.60288615-.63448838.60288615-1.63010674,0-2.26459466-.57660659-.60425647-1.53388407-.62667128-2.13814054-.05006515-.01707646.01629539-.0337693.03298823-.05006561.05006515"/>
