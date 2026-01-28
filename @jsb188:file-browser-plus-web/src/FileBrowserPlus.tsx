@@ -20,11 +20,16 @@ interface FBPFolderObj {
  */
 
 const FileBrowserItem = memo((p: {
-
+  name: string;
+  contentType: string;
+  iconName?: string;
 }) => {
+  const { name, contentType, iconName } = p;
 
   return <div>
-
+    {iconName && <Icon name={iconName} />}
+    {name}
+    {contentType}
   </div>;
 });
 
@@ -40,10 +45,13 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
 }) => {
 
   const { isFirst, isLast, title, files, placeholder } = p;
-  // const [expanded, setExpanded] = useState(!!isFirst);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(!!isFirst);
+  // const [expanded, setExpanded] = useState(true);
   const hasFiles = !!files?.length;
   const iconName = p.iconName ?? (!expanded ? 'folder' : hasFiles ? 'folder-open' : 'folder-empty');
+
+  console.log(p);
+
 
   return <div
     // className={cn('rel bg', isFirst && 'rt_sm', isLast && 'rb_sm')}
@@ -73,7 +81,7 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
     {expanded && files
     ? files.map((file: any, i: number) => {
       return <FileBrowserItem
-        title={i18n.t('form.fbp_no_files_in_folder')}
+        {...file}
       />
     })
     : expanded && placeholder
@@ -102,7 +110,7 @@ export function FileBrowserPlus(p: {
   // const { folders: folders_, foldersX:folders, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
   const lastIndex = folders ? folders.length - 1 : -1;
 
-  return <div className="p_10 rel of pattern_texture texture_bf r_sm">
+  return <div className="p_10 rel of pattern_texture texture_bf -mx_10 r_sm">
 
     {(headerTitle || headerDescription) &&
     <div className='h_spread gap_10 rel px_12 py_10'>
@@ -111,17 +119,6 @@ export function FileBrowserPlus(p: {
       <span className={cn('rel', headerDescriptionClassName ?? 'cl_lt')}>{headerDescription}</span>
     </div>}
 
-    {/* {[{
-      id: '1',
-      title: 'FV-GFS 19.01',
-
-    }, {
-      id: '2',
-      title: 'FV-GFS 19.02'
-    }, {
-      id: '3',
-      title: 'FV-GFS 19.03'
-    }]} */}
     {folders?.map((item: FBPFolderObj, i: number) => {
       return <FileBrowserFolder
         key={i}

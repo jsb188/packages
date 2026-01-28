@@ -1,5 +1,6 @@
 import { gql } from 'graphql-tag';
 import { reportColumnDataFragment, reportFragment, reportAvailabilityFragment, reportRowDataFragment, reportSectionFragment } from '../fragments/reportFragments';
+import { storageFileFragment } from '../fragments/otherFragments';
 
 export const reportsQry = gql`
 query reports (
@@ -16,6 +17,10 @@ query reports (
 
     sections {
       ...reportSectionFragment
+
+      files {
+        ...storageFileFragment
+      }
 
       rows {
         ...reportRowDataFragment
@@ -41,6 +46,7 @@ query reports (
 
 ${reportFragment}
 ${reportSectionFragment}
+${storageFileFragment}
 ${reportRowDataFragment}
 ${reportColumnDataFragment}
 `;

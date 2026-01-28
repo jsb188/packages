@@ -599,48 +599,27 @@ export function ErrorMessage(p: ErrorMessageProps) {
  */
 
 interface PageContentProps extends ReactDivElement {
-  withAsideComponent?: boolean;
   HeaderComponent?: React.ReactNode;
   children: React.ReactNode;
-  asideClassName?: string;
   bodyClassName?: string;
   loading?: boolean;
   error?: ServerErrorObj | null;
 }
 
 export function PageContent(p: PageContentProps) {
-  const { withAsideComponent, children, HeaderComponent, AsideComponent, loading, error, className, asideClassName, bodyClassName, ...other } = p;
+  const { children, HeaderComponent, loading, error, className, bodyClassName, ...other } = p;
 
   // This triggers a "50% opacity" state. I used to use this effect for all loading,
   // but data loads so fast, that it creates an opacity flicker, and that isn't a
   // wanted effect. However, when there's an error, this effect fits nicely.
   const errored = !!error && !loading;
 
-  if (withAsideComponent) {
-    return <div className={cn(bodyClassName, errored && 'op_50')}>
-      {children}
-    </div>;
-  }
-
   return (
     <div className={className}>
       {HeaderComponent}
-
-      {AsideComponent
-      ? <div className='gap_50 h_top' {...other}>
-        {AsideComponent && (
-          <aside className={cn('app_aside z4 sticky', asideClassName)}>
-            {AsideComponent}
-          </aside>
-        )}
-
-        <div className={cn('f', bodyClassName, errored && 'op_50')}>
-          {children}
-        </div>
-      </div>
-      : <div className={cn(bodyClassName, errored && 'op_50')}>
+      <div className={cn(bodyClassName, errored && 'op_50')}>
         {children}
-      </div>}
+      </div>
     </div>
   );
 }

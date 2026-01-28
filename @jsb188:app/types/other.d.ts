@@ -21,7 +21,23 @@ export interface StorageData {
 	checked: boolean;
 	at: Date;
 	contentType: string;
-	values: string[] | null;
+	values: Record<string, any> | null;
+}
+
+export interface StorageGQL {
+	id: string;
+	organizationId: string | null;
+	accountId: string | null;
+	uri: string;
+	size: number;
+	checked: boolean;
+	at: Date;
+	contentType: string;
+
+  // metadata
+  name: string | null;
+  description: string | null;
+  aiNote: string | null;
 }
 
 /**
@@ -56,6 +72,6 @@ export interface ScheduleObj {
  */
 
 export interface FileObj {
-  buffer: Uint8Array;
-  contentType: string;
+	buffer: Uint8Array;
+	contentType: string;
 }

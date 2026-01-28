@@ -1,4 +1,5 @@
 import { REPORT_SORT_OPTS, REPORT_TYPES, REPORT_ROW_PRESETS } from '../constants/report';
+import type { StorageData, StorageGQL } from '@jsb188/app/types/other.d';
 
 /**
  * Enums
@@ -47,6 +48,7 @@ interface ReportFieldsSection {
 	description: string;
 	rows?: ReportFieldsRow[];
   requireFileUploads?: boolean;
+  files?: (StorageData | StorageGQL)[]; // GQL in client, otherwise it will be server data type
 
 	__prompt_section?: string; // Server-only; full prompt for this section - this is the only prompt that allows {{variable}} regex
 	__prompt_examples?: string; // Server-only; for examples of what the output should be
@@ -157,6 +159,15 @@ export interface ReportLogRelData {
 	sectionKey: string;
 }
 
+export interface ReportStorageRelData {
+  __table: 'report_storage_rels';
+  reportSubmissionId: number | bigint;
+  storageId: number | bigint;
+  sectionKey: string;
+  order: number;
+  file: StorageData;
+}
+
 export interface ReportSubmissionData {
 	__table: 'report_submissions';
 	id: number;
@@ -165,6 +176,7 @@ export interface ReportSubmissionData {
 	period: Date; // YYYY-MM-DD in database, Date object in server via ORM
 	answers: Record<string, any>; // key-value pairs of answers
 	logRels?: ReportLogRelData[];
+  storageRels?: ReportStorageRelData[];
 	activityAt: Date;
 }
 
