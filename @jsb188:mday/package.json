@@ -1,7 +1,7 @@
 {
   "name": "@jsb188/mday",
   "version": "1.1.6",
-  "description": "Mday specific functions and constants.",
+  "description": "Functions and constants for Marketday app only.",
   "license": "ISC",
   "author": "jsb188",
   "type": "module",
