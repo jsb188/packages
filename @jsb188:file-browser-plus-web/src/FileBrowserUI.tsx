@@ -9,15 +9,15 @@ import { memo } from 'react';
  * Types
  */
 
-export interface FBPPlaceholderItemObj {
+export interface FBPInstructionsItemObj {
   preset?: 'UPLOAD_BUTTON' | null;
   label?: string;
   text?: string;
 }
 
-export interface FBPPlaceholderObj {
-  leftItems: FBPPlaceholderItemObj[],
-  rightItems: FBPPlaceholderItemObj[]
+export interface FBPInstructionsObj {
+  leftItems: FBPInstructionsItemObj[],
+  rightItems: FBPInstructionsItemObj[]
 }
 
 /**
@@ -32,10 +32,10 @@ export const FileBrowserFooter = memo((p: {
   const { isEmpty, iconName, text } = p;
 
   return <div className={cn('rel p_lg v_center cl_lt a_c', isEmpty ? 'bg r_sm' : '')}>
-    <div className='py_df ft_xs ic_xxl'>
+    <div className='pb_df ft_xs ic_xxl'>
       <Icon name={iconName} />
     </div>
-    <Markdown as='p' className='pb_smx'>
+    <Markdown as='div'>
       {text}
     </Markdown>
   </div>;
@@ -44,17 +44,24 @@ export const FileBrowserFooter = memo((p: {
 FileBrowserFooter.displayName = 'FileBrowserFooter';
 
 /**
- * Placeholder content item
+ * Instructions content item
  */
 
-const FBPPlaceholderContent = memo((p: FBPPlaceholderItemObj & { isLast?: boolean }) => {
-  const { preset, isLast } = p;
+const FBPInstructionsContent = memo((p: FBPInstructionsItemObj & {
+  isLast?: boolean,
+  uploadDisabled: boolean,
+  uploadText?: string
+}) => {
+  const { preset, isLast, uploadDisabled, uploadText } = p;
+
   switch (preset) {
     case 'UPLOAD_BUTTON':
       return <Button
         preset='outline'
         size='sm'
-        text={i18n.t('form.upload_files')}
+        className={uploadDisabled ? 'not_allowed cl_md' : undefined}
+        disabled={uploadDisabled}
+        text={uploadText ?? i18n.t('form.upload_files')}
       />;
     default:
   }
@@ -67,27 +74,30 @@ const FBPPlaceholderContent = memo((p: FBPPlaceholderItemObj & { isLast?: boolea
   </div>;
 });
 
-FBPPlaceholderContent.displayName = 'FBPPlaceholderContent';
+FBPInstructionsContent.displayName = 'FBPInstructionsContent';
 
 /**
- * Placeholder item for empty folders
+ * Instructions item for empty folders
  */
 
-export function FileBrowserPlaceholder(p: FBPPlaceholderObj) {
-  const { leftItems, rightItems } = p;
+export function FileBrowserInstructions(p: FBPInstructionsObj & {
+  uploadDisabled: boolean,
+  uploadText?: string
+}) {
+  const { leftItems, rightItems, uploadDisabled, uploadText } = p;
   const lLastIx = leftItems.length - 1;
   const rLastIx = rightItems.length - 1;
 
   return <div className='bd_t_1 bd_lt ft_xs grid size_2 gap_n p_15'>
     <div className='p_10'>
       {leftItems.map((item, index) => {
-        return <FBPPlaceholderContent key={index} {...item} isLast={index === lLastIx} />;
+        return <FBPInstructionsContent key={index} {...item} isLast={index === lLastIx} uploadDisabled={uploadDisabled} uploadText={uploadText} />;
       })}
     </div>
 
     <div className='p_10'>
       {rightItems.map((item, index) => {
-        return <FBPPlaceholderContent key={index} {...item} isLast={index === rLastIx} />;
+        return <FBPInstructionsContent key={index} {...item} isLast={index === rLastIx} uploadDisabled={uploadDisabled} uploadText={uploadText} />;
       })}
     </div>
   </div>

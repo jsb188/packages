@@ -291,6 +291,76 @@ export const Icon = memo((p: IconProps & {
 Icon.displayName = 'Icon';
 
 /**
+ * Icon representing each file type
+ */
+
+export const FileTypeIcon = memo((p: {
+  iconName?: string;
+  contentType: string;
+  fileName?: string; // extension may also be used
+}) => {
+  const { iconName, contentType, fileName } = p;
+
+  if (iconName) {
+    return <Icon name={iconName} />;
+  }
+
+  switch (contentType) {
+    case 'text/plain':
+    case 'application/pdf':
+    case 'application/msword':
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+      return <Icon name='file-document' />;
+    case 'application/vnd.rar':
+    case 'application/zip':
+    case 'application/x-zip-compressed':
+    case 'multipart/x-zip':
+      return <Icon name='file-zip' />;
+    case 'text/css':
+    case 'text/csv':
+    case 'application/vnd.ms-excel':
+    case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return <Icon name='file-sheets' />;
+    case 'image/jpeg':
+    case 'image/jpg':
+    case 'image/gif':
+    case 'image/avif':
+    case 'image/tiff':
+    case 'image/webp':
+    case 'image/png':
+      return <Icon name='file-image' />;
+    default:
+  }
+
+  switch (fileName?.toLowerCase().split('.').pop()) {
+    case 'xls':
+    case 'xlsx':
+    case 'csv':
+    case 'css':
+      return <Icon name='file-sheets' />;
+    case 'jpeg':
+    case 'jpg':
+    case 'gif':
+    case 'avif':
+    case 'tiff':
+    case 'webp':
+    case 'png':
+      return <Icon name='file-image' />;
+    case 'rar':
+    case 'zip':
+      return <Icon name='file-zip' />;
+    case 'pdf':
+    case 'doc':
+    case 'docx':
+    case 'txt':
+    default:
+      return <Icon name='file-document' />;
+  }
+});
+
+FileTypeIcon.displayName = 'FileTypeIcon';
+
+/**
  * Special icons that aren't included in FA
  */
 

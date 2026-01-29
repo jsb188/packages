@@ -170,7 +170,7 @@ button {
 }
 
 .not_allowed {
-  cursor: not-allowed;
+  cursor: not-allowed !important;
 }
 
 button, .link[role="button"] {

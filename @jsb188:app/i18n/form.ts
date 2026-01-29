@@ -114,6 +114,7 @@ export default {
     country_ph: 'United States, Canada, etc.',
     postalCode: 'Zip code', // USA uses zip code
     postalCode_ph: '12345',
+    guide: 'Guide',
     workflows: 'Workflows',
     information: 'Information',
     instructions: 'Instructions',
@@ -128,6 +129,7 @@ export default {
     pin_to_top: 'Pin to top',
     create_new: 'Create new',
     upload: 'Upload',
+    uploaded_ct: 'Uploaded %{count}/%{max}',
     create: 'Create',
     invite: 'Invite',
     invited: 'Invited',
