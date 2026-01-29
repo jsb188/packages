@@ -6,11 +6,18 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
  */
 
 export function useOnlineStatus() {
-  const [isOnline, setIsOnline] = useState(
-    typeof globalThis?.navigator !== 'undefined' ? globalThis.navigator.onLine : true
-  );
+  const [isOnline, setIsOnline] = useState(true);
+
+  useLayoutEffect(() => {
+    const nextValue = typeof globalThis?.navigator !== 'undefined' ? globalThis.navigator.onLine : true;
+    if (nextValue !== isOnline) {
+      // This fixes the SSR vs Client DOM mismatch warning
+      setIsOnline(nextValue);
+    }
+  }, []);
 
   useEffect(() => {
+
     if (!isServerRender()) {
       const handleOnline = () => setIsOnline(true);
       const handleOffline = () => setIsOnline(false);
