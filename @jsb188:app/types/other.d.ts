@@ -34,11 +34,18 @@ export interface StorageGQL {
 	at: Date;
 	contentType: string;
 
-  // metadata
-  name: string | null;
-  description: string | null;
-  aiNote: string | null;
+	// metadata
+	name: string | null;
+	description: string | null;
+	aiNote: string | null;
 }
+
+export type StorageUploadMetadata = Partial<{
+  uploaderAccountId: number; // This value is removed from the jsonb Object and saved in {accountId} column
+  name: string;
+  description: string;
+  aiNote: string;
+}>
 
 /**
  * Address

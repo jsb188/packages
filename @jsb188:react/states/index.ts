@@ -5,3 +5,4 @@ export * from './keyDown';
 export * from './modal';
 export * from './popOver';
 export * from './toasts';
+export * from './uploads';

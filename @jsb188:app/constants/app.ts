@@ -32,8 +32,8 @@ export const DOCUMENT_TYPE_TO_PREFIX: Record<string, IDDocumentType | IDDocument
 	'activity log or note': ['log', 'inv', 'rec'], // I've seen AI mistakenly use "activity log or note" for invoices, so we have to comebine it
 	'invoice': ['log', 'inv', 'rec'],
 	'purchase order': ['log', 'inv', 'rec'],
-	'sales rerceipt': ['log', 'inv', 'rec'],
-	'market credit rerceipt': ['log', 'inv', 'rec'],
+	'sales receipt': ['log', 'inv', 'rec'],
+	'market credit receipt': ['log', 'inv', 'rec'],
 	'user account': 'acc',
 	'ai task': 'task',
 	'event': 'event',

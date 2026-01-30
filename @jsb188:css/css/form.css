@@ -338,6 +338,10 @@ fieldset input[type="radio"] {
   background-color: rgb(var(--color-bg-alt));
 }
 
+.btn.outline.bg {
+  background-color: rgb(var(--color-bg));
+}
+
 .btn.outline:not(:disabled):not(.disabled):hover {
   background-color: rgb(var(--color-bg-active));
 }

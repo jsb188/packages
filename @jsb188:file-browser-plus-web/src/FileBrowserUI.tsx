@@ -3,7 +3,7 @@ import { cn } from '@jsb188/app/utils/string';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { Button } from '@jsb188/react-web/ui/Button';
 import Markdown from '@jsb188/react-web/ui/Markdown';
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 
 /**
  * Types
@@ -44,30 +44,86 @@ export const FileBrowserFooter = memo((p: {
 FileBrowserFooter.displayName = 'FileBrowserFooter';
 
 /**
+ * Upload button with .hidden <input>
+ */
+
+export const FBPUploadButton = memo((p: {
+  text?: string;
+  className?: string;
+  disabled?: boolean;
+  filesCountText?: string;
+  folderIndex: number;
+  onPickFile: (file: File, folderIndex: number) => void;
+  acceptedFileTypes?: string;
+}) => {
+  const { text, className, disabled, filesCountText, folderIndex, onPickFile, acceptedFileTypes } = p;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onPickFile(file, folderIndex);
+    }
+    e.target.value = '';
+  };
+
+  return <>
+    <input
+      ref={fileInputRef}
+      type='file'
+      accept={acceptedFileTypes}
+      className='hidden'
+      onChange={handleFileChange}
+    />
+    <Button
+      preset='outline'
+      size='sm'
+      className={cn(className, disabled ? 'not_allowed cl_md' : undefined)}
+      disabled={disabled}
+      text={(text ?? i18n.t('form.upload_file')) + (filesCountText ?? '')}
+      onClick={handleButtonClick}
+    />
+  </>;
+});
+
+FBPUploadButton.displayName = 'FBPUploadButton';
+
+/**
  * Instructions content item
  */
 
 const FBPInstructionsContent = memo((p: FBPInstructionsItemObj & {
   isLast?: boolean,
   uploadDisabled: boolean,
-  uploadText?: string
+  filesCount?: number,
+  uploadLimit?: number,
+  folderIndex: number,
+  acceptedFileTypes?: string,
+  onPickFile: (file: File, folderIndex: number) => void;
 }) => {
-  const { preset, isLast, uploadDisabled, uploadText } = p;
+  const { preset, isLast, uploadDisabled, filesCount, uploadLimit, folderIndex, acceptedFileTypes, onPickFile } = p;
+  const filesCountText = filesCount && filesCount >= uploadLimit! ? ` (${filesCount}/${uploadLimit})` : '';
 
   switch (preset) {
     case 'UPLOAD_BUTTON':
-      return <Button
-        preset='outline'
-        size='sm'
-        className={uploadDisabled ? 'not_allowed cl_md' : undefined}
+      return <FBPUploadButton
         disabled={uploadDisabled}
-        text={uploadText ?? i18n.t('form.upload_files')}
+        filesCountText={filesCountText}
+        folderIndex={folderIndex}
+        acceptedFileTypes={acceptedFileTypes}
+        onPickFile={onPickFile}
       />;
     default:
   }
 
   return <div className={isLast ? undefined : 'mb_20'}>
-    <p className='ft_medium'>{p.label}</p>
+    <p className='ft_semibold'>
+      {p.label}
+    </p>
     <Markdown as='p' preset='article'>
       {p.text}
     </Markdown>
@@ -82,22 +138,45 @@ FBPInstructionsContent.displayName = 'FBPInstructionsContent';
 
 export function FileBrowserInstructions(p: FBPInstructionsObj & {
   uploadDisabled: boolean,
-  uploadText?: string
+  filesCount?: number,
+  uploadLimit?: number,
+  folderIndex: number,
+  acceptedFileTypes?: string,
+  onPickFile: (file: File, folderIndex: number) => void;
 }) {
-  const { leftItems, rightItems, uploadDisabled, uploadText } = p;
+  const { leftItems, rightItems, uploadDisabled, filesCount, uploadLimit, folderIndex, acceptedFileTypes, onPickFile } = p;
   const lLastIx = leftItems.length - 1;
   const rLastIx = rightItems.length - 1;
+
+  const itemProps = {
+    acceptedFileTypes,
+    uploadDisabled,
+    filesCount,
+    uploadLimit,
+    folderIndex,
+    onPickFile,
+  };
 
   return <div className='bd_t_1 bd_lt ft_xs grid size_2 gap_n p_15'>
     <div className='p_10'>
       {leftItems.map((item, index) => {
-        return <FBPInstructionsContent key={index} {...item} isLast={index === lLastIx} uploadDisabled={uploadDisabled} uploadText={uploadText} />;
+        return <FBPInstructionsContent
+          key={index}
+          {...item}
+          {...itemProps}
+          isLast={index === lLastIx}
+        />;
       })}
     </div>
 
     <div className='p_10'>
       {rightItems.map((item, index) => {
-        return <FBPInstructionsContent key={index} {...item} isLast={index === rLastIx} uploadDisabled={uploadDisabled} uploadText={uploadText} />;
+        return <FBPInstructionsContent
+          key={index}
+          {...item}
+          {...itemProps}
+          isLast={index === rLastIx}
+        />;
       })}
     </div>
   </div>

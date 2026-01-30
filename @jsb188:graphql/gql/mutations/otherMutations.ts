@@ -1,29 +1,15 @@
 import { gql } from 'graphql-tag';
 
-export const prepareFileUploadMtn = gql`
-mutation prepareFileUpload (
-  $files: [FilePrepareInput]!
+export const getSignedUploadUrlMtn = gql`
+mutation getSignedUploadUrl (
+  $organizationId: GenericID!
+  $fileName: String!
+  $contentType: String!
 ) {
-  prepareFileUpload (
-    files: $files
-  ) {
-    id
-    fileName
-    uri
-    token
-  }
-}
-`;
-
-export const finishFileUploadMtn = gql`
-mutation finishFileUpload (
-  $fileIds: [GenericID]!
-) {
-  finishFileUpload (
-    fileIds: $fileIds
-  ) {
-    id
-    uri
-  }
+  getSignedUploadUrl (
+    organizationId: $organizationId
+    fileName: $fileName
+    contentType: $contentType
+  )
 }
 `;
