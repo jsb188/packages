@@ -1,0 +1,4 @@
+
+export const STORAGE_INTENT_ENUMS = [
+  'REPORT_SUBMISSION_FILE'
+];

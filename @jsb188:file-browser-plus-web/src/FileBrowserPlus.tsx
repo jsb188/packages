@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
-import { useGetSignedUploadUrl } from '@jsb188/graphql/hooks/use-other-mtn';
+import { useGetSignedUploadUrl } from '@jsb188/graphql/hooks/use-storage-mtn';
 import { useUploadActions } from '@jsb188/react/states';
 import { COMMON_ICON_NAMES, FileTypeIcon, Icon } from '@jsb188/react-web/svgs/Icon';
 import { memo, useState } from 'react';

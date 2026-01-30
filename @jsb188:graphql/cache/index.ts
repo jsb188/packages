@@ -227,6 +227,7 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       // These are fragment spreads
       const frgName = inner.name.value;
       const frgMap = PARTIALS_MAP[frgName];
+
       fragmentKey = `$${frgMap || frgName}:${data.id || 'none'}`;
 
     } else if (inner.kind === 'Field' && inner.selectionSet && inner.selectionSet.selections?.length) {

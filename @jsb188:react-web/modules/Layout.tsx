@@ -69,15 +69,15 @@ export function AppLayout(p: ReactDivElement & {
           className={cn('app_scr bg h_f', contentFlexClassName ?? 'v_top')}
         >
           {AsideComponent
-          ? <div className='cw lg pr_md'>
-            <div className='gap_50 h_top'>
+          ? <div className='cw lg pr_md h_f'>
+            <div className='gap_50 h_top h_f'>
               {AsideComponent && (
                 <aside className={cn('app_aside z3 sticky y_scr_hidden max_h_toolbar_screen')}>
                   {AsideComponent}
                 </aside>
               )}
 
-              <div className='f max_w_850 cw'>
+              <div className='f max_w_850 cw h_f'>
                 {children}
               </div>
             </div>

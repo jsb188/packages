@@ -26,7 +26,7 @@ export const COMMON_CLASSNAMES = {
 	modalScreenHeading: 'pt_lg pb_df ft_normal ft_xs cl_darker_2 ls_2',
 };
 
-// Encryption
+// Encryption & code words used to make IDs more readable for human users
 
 export const DOCUMENT_TYPE_TO_PREFIX: Record<string, IDDocumentType | IDDocumentType[]> = {
 	'activity log or note': ['log', 'inv', 'rec'], // I've seen AI mistakenly use "activity log or note" for invoices, so we have to comebine it

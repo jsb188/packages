@@ -29,7 +29,7 @@
     "./hooks/use-auth-mtn": "./hooks/use-auth-mtn.ts",
     "./hooks/use-log-mtn": "./hooks/use-log-mtn.ts",
     "./hooks/use-organization-mtn": "./hooks/use-organization-mtn.ts",
-    "./hooks/use-other-mtn": "./hooks/use-other-mtn.ts",
+    "./hooks/use-storage-mtn": "./hooks/use-storage-mtn.ts",
     "./mutations": "./gql/mutations/index.ts",
     "./queries": "./gql/queries/index.ts",
     "./cache": "./cache/index.ts",
