@@ -149,6 +149,7 @@ export function useWatchQuery(
 
         if (qryTriggerTime) {
           clearQueryResetStatus(queryName, variablesKey);
+          console.dev(`... (1) Query [${queryName}:${variablesKey}] is being force refetched via observer.`);
           return [lastUpdatedCount + 1, true, qryTriggerTime];
         }
       }
@@ -170,6 +171,10 @@ export function useWatchQuery(
       let newUpdatedCount = qryObserver.name === matchedQueryId || forceRefetch ? qryObserver.count : 0;
       if (forceRefetch) {
         newUpdatedCount += 1;
+      }
+
+      if (forceRefetch) {
+        console.dev(`... (2) Query [${matchedQueryId}] is being force refetched via observer.`);
       }
 
       return [newUpdatedCount, forceRefetch, ''];

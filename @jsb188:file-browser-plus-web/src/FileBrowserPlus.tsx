@@ -13,6 +13,7 @@ import { uploadFileToGCS } from './googleStorage';
  */
 
 interface FBPFolderObj {
+  id: string;
   isSubtitle?: boolean;
   title: string;
   iconName?: string;
@@ -123,6 +124,7 @@ FBPFolderOptions.displayName = 'FBPFolderOptions';
  */
 
 const FileBrowserFolder = memo((p: FBPFolderObj & {
+  reactiveFragmentFn: (folderId: string) => any;
   uploadInProgress?: UploadInProgressObj | null;
   folderIndex: number;
   everythingIsEmpty: boolean;
@@ -257,17 +259,33 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
 FileBrowserFolder.displayName = 'FileBrowserFolder';
 
 /**
+ * File browser folder; reactive fragment wrapper
+ */
+
+function ReactiveFileBrowserFolder(p: any) {
+  const { item, reactiveFragmentFn, mapFolderData } = p;
+  const reactiveData = reactiveFragmentFn(item.id, item);
+
+  return <FileBrowserFolder
+    {...p}
+    {...mapFolderData(reactiveData)}
+  />;
+}
+
+/**
  * File Browser Plus
  */
 
 interface FileBrowserPlusProps {
+  reactiveFragmentFn: (folderId: string) => any;
   folderUploadInProgress?: FolderUploadInProgressObj;
   showInstructionsOnMount?: boolean;
   headerTitle?: string;
   headerDescription?: string;
   headerDescriptionClassName?: string;
   footerMessage?: string;
-  folders?: FBPFolderObj[];
+  folders?: any[];
+  mapFolderData: (folder: any) => FBPFolderObj;
   folderUploadLimit?: number;
   acceptedFileTypes?: string;
 }
@@ -276,8 +294,7 @@ export function FileBrowserPlus(p: FileBrowserPlusProps & {
   onPickFile: (file: File, folderIndex: number) => void;
 }) {
 
-  const { folderUploadInProgress, onPickFile, folderUploadLimit, acceptedFileTypes, showInstructionsOnMount, folders, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
-  // const { folders: folders_, foldersX:folders, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
+  const { reactiveFragmentFn, mapFolderData, folderUploadInProgress, onPickFile, folderUploadLimit, acceptedFileTypes, showInstructionsOnMount, folders, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
   const lastIndex = folders ? folders.length - 1 : -1;
   const uploadLimit = folderUploadLimit ?? 5;
   const everythingIsEmpty = !!folders?.every(f => !f.files?.length);
@@ -291,12 +308,14 @@ export function FileBrowserPlus(p: FileBrowserPlusProps & {
       <span className={cn('rel', headerDescriptionClassName ?? 'cl_lt')}>{headerDescription}</span>
     </div>}
 
-    {folders?.map((item: FBPFolderObj, i: number) => {
-      return <FileBrowserFolder
+    {folders?.map((item: any, i: number) => {
+      return <ReactiveFileBrowserFolder
         key={i}
-        {...item}
-        uploadInProgress={folderUploadInProgress?.[i]}
+        item={item}
         folderIndex={i}
+        reactiveFragmentFn={reactiveFragmentFn}
+        mapFolderData={mapFolderData}
+        uploadInProgress={folderUploadInProgress?.[i]}
         everythingIsEmpty={everythingIsEmpty}
         showInstructionsOnMount={i === firstExpandedIx}
         isFirst={i === 0}
@@ -305,6 +324,19 @@ export function FileBrowserPlus(p: FileBrowserPlusProps & {
         acceptedFileTypes={acceptedFileTypes}
         onPickFile={onPickFile}
       />;
+      // return <FileBrowserFolder
+      //   key={i}
+      //   {...item}
+      //   uploadInProgress={folderUploadInProgress?.[i]}
+      //   folderIndex={i}
+      //   everythingIsEmpty={everythingIsEmpty}
+      //   showInstructionsOnMount={i === firstExpandedIx}
+      //   isFirst={i === 0}
+      //   isLast={i === lastIndex}
+      //   uploadLimit={uploadLimit}
+      //   acceptedFileTypes={acceptedFileTypes}
+      //   onPickFile={onPickFile}
+      // />;
     })}
 
     <FileBrowserFooter
@@ -327,7 +359,7 @@ interface UploadInProgressObj {
 
 interface UploadIntentObj {
   intent: string;
-  entries: [string, string][];
+  entries: string[][];
 }
 
 interface FolderUploadInProgressObj {

@@ -4,7 +4,7 @@ import { availableReportsQry, reportsQry } from '../gql/queries/reportQueries';
 import type { UseQueryParams } from '../types';
 
 /**
- * Get reactive log fragment
+ * Get reactive report fragment
  */
 
 export function useReactiveReportFragment(reportId: string, currentData?: any, queryCount?: number) {
@@ -12,6 +12,20 @@ export function useReactiveReportFragment(reportId: string, currentData?: any, q
     currentData,
     [
       `$reportFragment:${reportId}`,
+    ],
+    queryCount,
+  );
+}
+
+/**
+ * Get reactive report section fragment
+ */
+
+export function useReactiveReportSectionFragment(reportSectionId: string, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    [
+      `$reportSectionFragment:${reportSectionId}`,
     ],
     queryCount,
   );

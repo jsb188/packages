@@ -1,5 +1,5 @@
 import { makeVariablesKey } from '@jsb188/app/utils/logic';
-import { cloneArrayLike, mapArrayLikeObjects } from '@jsb188/app/utils/object';
+import { cloneArrayLike, mapArrayLikeObjects, uniq } from '@jsb188/app/utils/object';
 import type { UpdateObserversFn } from '../types.d';
 import { PARTIALS_MAP, RULES } from './config';
 
@@ -1001,6 +1001,7 @@ export function updateFragment(
 
     const updatedObj = { ...cache, ...updateObj };
     FRAGMENTS.set(updateFragmentKey, updatedObj);
+    console.dev('✅ FRAGMENT UPDATED ->', updateFragmentKey, updatedObj);
 
     if (replaceId && replaceId !== updateFragmentKey) {
       FRAGMENTS.set(replaceId, updatedObj);
@@ -1009,7 +1010,7 @@ export function updateFragment(
     if (!doNotTriggerObserver && updateObservers) {
       let observingFragmentIds = [updateFragmentKey];
       if (Array.isArray(otherUpdatedFragmentKeys)) {
-        observingFragmentIds = observingFragmentIds.concat(otherUpdatedFragmentKeys);
+        observingFragmentIds = uniq(observingFragmentIds.concat(otherUpdatedFragmentKeys));
       }
 
       updateObservers({

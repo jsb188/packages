@@ -46,8 +46,19 @@ export type StorageUploadObj = Partial<{
 		description: string;
 		aiNote: string;
 	}>;
-  uploadIntent: {
-    intent: StorageIntentEnum;
-    entries: [string, string][];
-  }
+	uploadIntent: {
+		intent: StorageIntentEnum;
+		entries: [string, string][];
+	};
+	upsertQuery?: RelatedDocumentUpsertQuery;
 }>;
+
+/**
+ * Post-upload related document query execution object
+ */
+
+export interface RelatedDocumentUpsertQuery {
+	__table: string;
+	conflictKeys: string[];
+	data: Record<string, any>;
+}
