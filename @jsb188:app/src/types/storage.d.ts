@@ -1,3 +1,11 @@
+import { STORAGE_INTENT_ENUMS } from '../constants/storage';
+
+/**
+ * Enums
+ */
+
+export type StorageIntentEnum = typeof STORAGE_INTENT_ENUMS[number];
+
 /**
  * Storage
  */
@@ -31,11 +39,15 @@ export interface StorageGQL {
 	aiNote: string | null;
 }
 
-export type StorageUploadValues = Partial<{
+export type StorageUploadObj = Partial<{
 	uploaderAccountId: number;
 	values: Partial<{
 		name: string;
 		description: string;
 		aiNote: string;
 	}>;
+  uploadIntent: {
+    intent: StorageIntentEnum;
+    entries: [string, string][];
+  }
 }>;

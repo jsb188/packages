@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
 import { useGetSignedUploadUrl } from '@jsb188/graphql/hooks/use-storage-mtn';
-import { useUploadActions } from '@jsb188/react/states';
+import { useOpenModalPopUp, useUploadActions } from '@jsb188/react/states';
 import { COMMON_ICON_NAMES, FileTypeIcon, Icon } from '@jsb188/react-web/svgs/Icon';
 import { memo, useState } from 'react';
 import { FBPUploadButton, FileBrowserFooter, FileBrowserInstructions, type FBPInstructionsObj } from './FileBrowserUI';
@@ -325,17 +325,24 @@ interface UploadInProgressObj {
   signedUrl?: string;
 }
 
+interface UploadIntentObj {
+  intent: string;
+  entries: [string, string][];
+}
+
 interface FolderUploadInProgressObj {
   [folderIndex: number]: UploadInProgressObj | null;
 }
 
 export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
   organizationId: string;
+  getUploadIntent?: (folderIndex: any) => UploadIntentObj;
 }) {
-  const { acceptedFileTypes, organizationId } = p;
+  const { acceptedFileTypes, organizationId, getUploadIntent, folders } = p;
   const mounted = useMounted();
   const [folderUploadInProgress, setFolderUploadInProgress] = useState<FolderUploadInProgressObj>({});
-  const { getSignedUploadUrl, saving: fetchingSignedUrl } = useGetSignedUploadUrl();
+  const openModalPopUp = useOpenModalPopUp();
+  const { getSignedUploadUrl, saving: fetchingSignedUrl } = useGetSignedUploadUrl({ openModalPopUp });
   const { uploads, startUploadProgress, updateUploadProgress, removeUploadProgress } = useUploadActions();
   const uploading = fetchingSignedUrl;
 
@@ -357,11 +364,13 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
       contentType: file.type,
     });
 
+    const uploadIntent = getUploadIntent?.(folders?.[folderIndex]!);
     const { getSignedUploadUrl: signedUrlResult } = await getSignedUploadUrl({
       variables: {
         organizationId,
         fileName: file.name,
         contentType: file.type,
+        uploadIntent,
       },
     });
 

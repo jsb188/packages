@@ -131,6 +131,7 @@ export default {
     30024: 'Stripe customer and payment method was mismatched.',
     30025: 'E-mail server is experiencing an outage. Please try again in a moment.',
     30028: 'You cannot send an empty message.',
+    30031: 'There was an issue while uploading your file.',
 
     // Form errors
 
