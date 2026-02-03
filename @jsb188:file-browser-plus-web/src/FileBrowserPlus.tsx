@@ -1,6 +1,8 @@
+import { MAX_FILE_SIZE_CLIENT } from '@jsb188/app/constants/app';
 import i18n from '@jsb188/app/i18n';
 import type { StorageGQL } from '@jsb188/app/types/storage.d';
 import { getFullDate } from '@jsb188/app/utils/datetime';
+import { formatBytes } from '@jsb188/app/utils/number';
 import { cn } from '@jsb188/app/utils/string';
 import { addFragmentToCache, loadFragment, updateFragment } from '@jsb188/graphql/cache';
 import { useReactiveFragment } from '@jsb188/graphql/client';
@@ -10,10 +12,8 @@ import { COMMON_ICON_NAMES, Icon } from '@jsb188/react-web/svgs/Icon';
 import { useMounted } from '@jsb188/react/hooks';
 import { useOpenModalPopUp, useUploadActions } from '@jsb188/react/states';
 import { memo, useMemo, useState } from 'react';
-import { FBPUploadButton, FileBrowserFooter, FileBrowserInstructions, FileBrowserItemUI, type FBPInstructionsObj } from './FileBrowserUI';
+import { FBPUploadButton, FileBrowserInstructions, FileBrowserItemUI, type FBPInstructionsObj } from './FileBrowserUI';
 import { uploadFileToGCS } from './googleStorage';
-import { MAX_FILE_SIZE_CLIENT } from '@jsb188/app/constants/app';
-import { formatBytes } from '@jsb188/app/utils/number';
 
 /**
  * Types
@@ -340,12 +340,6 @@ export function FileBrowserPlus(p: FileBrowserPlusProps & {
         onClickDeleteFile={onClickDeleteFile}
       />;
     })}
-
-    <FileBrowserFooter
-      isEmpty={lastIndex < 0}
-      iconName='upload-square-2'
-      text={footerMessage ?? i18n.t('form.fbp_upload_instructions')}
-    />
   </div>
 }
 

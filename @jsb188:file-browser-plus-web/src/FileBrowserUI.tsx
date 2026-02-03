@@ -84,29 +84,6 @@ export const FileBrowserItemUI = memo((p: {
 FileBrowserItemUI.displayName = 'FileBrowserItemUI';
 
 /**
- * Message area; to be placed inside the <FileBrowserPlus> component
- */
-
-export const FileBrowserFooter = memo((p: {
-  isEmpty: boolean;
-  iconName: string;
-  text: string;
-}) => {
-  const { isEmpty, iconName, text } = p;
-
-  return <div className={cn('rel p_lg v_center cl_lt a_c', isEmpty ? 'bg r_sm' : '')}>
-    <div className='pb_df ft_xs ic_xxl'>
-      <Icon name={iconName} />
-    </div>
-    <Markdown as='div'>
-      {text}
-    </Markdown>
-  </div>;
-});
-
-FileBrowserFooter.displayName = 'FileBrowserFooter';
-
-/**
  * Upload button with .hidden <input>
  */
 
