@@ -12,6 +12,8 @@ import { useOpenModalPopUp, useUploadActions } from '@jsb188/react/states';
 import { memo, useMemo, useState } from 'react';
 import { FBPUploadButton, FileBrowserFooter, FileBrowserInstructions, FileBrowserItemUI, type FBPInstructionsObj } from './FileBrowserUI';
 import { uploadFileToGCS } from './googleStorage';
+import { MAX_FILE_SIZE_CLIENT } from '@jsb188/app/constants/app';
+import { formatBytes } from '@jsb188/app/utils/number';
 
 /**
  * Types
@@ -366,6 +368,7 @@ interface UploadIntentObj {
 }
 
 export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
+  maxFileSize?: number;
   organizationId: string;
   getUploadIntent?: (folderIndex: any) => UploadIntentObj;
   removeProgressAfterUpload?: boolean;
@@ -376,6 +379,7 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
   const openModalPopUp = useOpenModalPopUp();
   const { createSignedUploadUrl, saving: creatingSignedUrl, updateObservers } = useCreateSignedUploadUrl({}, openModalPopUp);
   const { uploads, startUploadProgress, updateUploadProgress, removeUploadProgress } = useUploadActions();
+  const maxFileSize = p.maxFileSize || MAX_FILE_SIZE_CLIENT;
   // const uploading = creatingSignedUrl;
 
   // For uploading test
@@ -389,6 +393,16 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
   // console.log('>> uploadInProgress:', uploadInProgress);
 
   const onPickFile = async (file: File, folderIndex: number) => {
+
+    if (file.size > maxFileSize) {
+      openModalPopUp(null, {
+        statusCode: 400,
+        errorCode: '20064',
+        title: i18n.t('error.file_too_large'),
+        message: i18n.t('error.file_too_large_msg', { maxFileSize: formatBytes(maxFileSize) }),
+      });
+      return;
+    }
 
     const uploadFolder = folders?.[folderIndex];
     const temporaryId = `uploading-${Date.now()}-${Math.round(Math.random() * 1000)}`;
@@ -411,6 +425,7 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
         organizationId,
         fileName: file.name,
         contentType: file.type,
+        fileSize: file.size,
         uploadIntent: getUploadIntent?.(uploadFolder!),
       },
     });

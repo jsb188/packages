@@ -105,6 +105,7 @@ export default {
     20061: 'You do not have permissions to perform this action. Please contact your administrator.',
     20062: '"%{value}" is not a valid e-mail address.',
     20063: 'You cannot change your e-mail to the same e-mail address.',
+    20064: 'Your file is too large. Please try again with a smaller file.',
 
     '29999_title': 'Not ready',
     29999: 'AI chat is not ready right now.',
@@ -153,8 +154,8 @@ export default {
 
     // File errors
 
-    upload_failed: 'File upload failed.',
-    file_too_large: 'Your file is too large. It must be less than %{maxFileSize}.',
+    file_too_large: 'File too large',
+    file_too_large_msg: 'Your file is too large.\n It must be less than %{maxFileSize}.',
     // file_must_be_photo: 'That is an invalid file. It must be a picture.',
     img_processing_failed: "Your file couldn't be processed. Please upload a valid image file.",
     // audio_processing_failed: 'Your file couldn\'t be processed. Please upload a valid audio file.',

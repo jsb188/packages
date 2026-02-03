@@ -6,6 +6,7 @@ mutation createSignedUploadUrl (
   $organizationId: GenericID!
   $fileName: String!
   $contentType: String!
+  $fileSize: Int!
   $uploadIntent: StorageIntentObject!
 ) {
   createSignedUploadUrl (
@@ -13,6 +14,7 @@ mutation createSignedUploadUrl (
     organizationId: $organizationId
     fileName: $fileName
     contentType: $contentType
+    fileSize: $fileSize
     uploadIntent: $uploadIntent
   ) {
     signedUrl

@@ -1,5 +1,9 @@
 type IDDocumentType = any; // Server <-> Client match
 
+// Max file size (client)
+
+export const MAX_FILE_SIZE_CLIENT = 10 * 1024 * 1024; // 10 MB
+
 // DOM element names (ids)
 
 export const DOM_IDS = {
