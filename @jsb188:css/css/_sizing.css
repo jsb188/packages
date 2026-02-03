@@ -361,6 +361,22 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .py_15 { padding-top: 15px; padding-bottom: 15px; }
 .px_15 { padding-left: 15px; padding-right: 15px; }
 
+.p_16 { padding: 16px; }
+.py_16 { padding-top: 16px; padding-bottom: 16px; }
+.px_16 { padding-left: 16px; padding-right: 16px; }
+
+.p_17 { padding: 17px; }
+.py_17 { padding-top: 17px; padding-bottom: 17px; }
+.px_17 { padding-left: 17px; padding-right: 17px; }
+
+.p_18 { padding: 18px; }
+.py_18 { padding-top: 18px; padding-bottom: 18px; }
+.px_18 { padding-left: 18px; padding-right: 18px; }
+
+.p_19 { padding: 19px; }
+.py_19 { padding-top: 19px; padding-bottom: 19px; }
+.px_19 { padding-left: 19px; padding-right: 19px; }
+
 .p_20 { padding: 20px; }
 .py_20 { padding-top: 20px; padding-bottom: 20px; }
 .px_20 { padding-left: 20px; padding-right: 20px; }
@@ -480,6 +496,26 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .pr_15 { padding-right: 15px; }
 .pb_15 { padding-bottom: 15px; }
 .pl_15 { padding-left: 15px; }
+
+.pt_16 { padding-top: 16px; }
+.pr_16 { padding-right: 16px; }
+.pb_16 { padding-bottom: 16px; }
+.pl_16 { padding-left: 16px; }
+
+.pt_17 { padding-top: 17px; }
+.pr_17 { padding-right: 17px; }
+.pb_17 { padding-bottom: 17px; }
+.pl_17 { padding-left: 17px; }
+
+.pt_18 { padding-top: 18px; }
+.pr_18 { padding-right: 18px; }
+.pb_18 { padding-bottom: 18px; }
+.pl_18 { padding-left: 18px; }
+
+.pt_19 { padding-top: 19px; }
+.pr_19 { padding-right: 19px; }
+.pb_19 { padding-bottom: 19px; }
+.pl_19 { padding-left: 19px; }
 
 .pt_20 { padding-top: 20px; }
 .pr_20 { padding-right: 20px; }
@@ -613,6 +649,22 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .my_15 { margin-top: 15px; margin-bottom: 15px; }
 .mx_15 { margin-left: 15px; margin-right: 15px; }
 
+.m_16 { margin: 16px; }
+.my_16 { margin-top: 16px; margin-bottom: 16px; }
+.mx_16 { margin-left: 16px; margin-right: 16px; }
+
+.m_17 { margin: 17px; }
+.my_17 { margin-top: 17px; margin-bottom: 17px; }
+.mx_17 { margin-left: 17px; margin-right: 17px; }
+
+.m_18 { margin: 18px; }
+.my_18 { margin-top: 18px; margin-bottom: 18px; }
+.mx_18 { margin-left: 18px; margin-right: 18px; }
+
+.m_19 { margin: 19px; }
+.my_19 { margin-top: 19px; margin-bottom: 19px; }
+.mx_19 { margin-left: 19px; margin-right: 19px; }
+
 .m_20 { margin: 20px; }
 .my_20 { margin-top: 20px; margin-bottom: 20px; }
 .mx_20 { margin-left: 20px; margin-right: 20px; }
@@ -732,6 +784,26 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .mr_15 { margin-right: 15px; }
 .mb_15 { margin-bottom: 15px; }
 .ml_15 { margin-left: 15px; }
+
+.mt_16 { margin-top: 16px; }
+.mr_16 { margin-right: 16px; }
+.mb_16 { margin-bottom: 16px; }
+.ml_16 { margin-left: 16px; }
+
+.mt_17 { margin-top: 17px; }
+.mr_17 { margin-right: 17px; }
+.mb_17 { margin-bottom: 17px; }
+.ml_17 { margin-left: 17px; }
+
+.mt_18 { margin-top: 18px; }
+.mr_18 { margin-right: 18px; }
+.mb_18 { margin-bottom: 18px; }
+.ml_18 { margin-left: 18px; }
+
+.mt_19 { margin-top: 19px; }
+.mr_19 { margin-right: 19px; }
+.mb_19 { margin-bottom: 19px; }
+.ml_19 { margin-left: 19px; }
 
 .mt_20 { margin-top: 20px; }
 .mr_20 { margin-right: 20px; }

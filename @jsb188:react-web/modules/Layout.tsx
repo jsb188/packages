@@ -748,7 +748,7 @@ export const AsideNavList = memo((p: AsideNavProps) => {
     </p>}
 
     {navList?.map((navItem, i) => {
-      const { text, to, anchor } = navItem;
+      const { text, to, anchor, rightIconName } = navItem;
       const pageNumber = addPageNumbers ? i + 1 : null;
 
       let selected;
@@ -776,9 +776,18 @@ export const AsideNavList = memo((p: AsideNavProps) => {
             {String(pageNumber).padStart(2, '0')}
           </span>}
         </div>
-        <div className={addEllipsis ? 'ellip' : undefined}>
-          {text}
+        {rightIconName
+        ? <div className={cn('h_item pr_20')}>
+          <span className={addEllipsis ? 'ellip' : undefined}>
+            {text}
+          </span>
+          <span className='-mr_2 abs_r_center'>
+            <Icon name={rightIconName} />
+          </span>
         </div>
+        : <div className='ellip'>
+          {text}
+        </div>}
       </SmartLink>;
     })}
   </nav>;
@@ -814,6 +823,7 @@ AsideScrollIndicator.displayName = 'AsideScrollIndicator';
 
 export interface AsideNavItemObj {
   text: string;
+  rightIconName?: string;
   to?: string;
   anchor?: string;
 }

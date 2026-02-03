@@ -35,6 +35,9 @@ export interface StorageGQL {
 	at: Date;
 	contentType: string;
 
+  // client-side only
+  uploadStatus?: 'ERROR' | 'UPLOADING' | null;
+
 	// metadata
 	name: string | null;
 	description: string | null;

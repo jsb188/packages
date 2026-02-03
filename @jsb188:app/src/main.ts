@@ -1,11 +1,4 @@
-import i18n from './i18n/';
-import app from './i18n/app';
-import auth from './i18n/auth';
-import billing from './i18n/billing';
-import datetime from './i18n/datetime';
-import error from './i18n/error';
-import form from './i18n/form';
-import account from './i18n/account';
+import i18n, { i18nTranslations } from './i18n/';
 
 // Get the correct type for ENV
 let ENV: Map<string, string | boolean | number> = new Map();
@@ -14,31 +7,29 @@ let ENV: Map<string, string | boolean | number> = new Map();
  * Extend i18n with app specific texts
  */
 
-export function configI18n(texts: Record<string, any>) {
+export function configI18n(texts?: Record<string, any>) {
 
   // Locale support for later
   const locale = 'en';
 
-  const extendedObj = {
-    app: app[locale],
-    auth: auth[locale],
-    billing: billing[locale],
-    datetime: datetime[locale],
-    error: error[locale],
-    form: form[locale],
-    account: account[locale],
-  } as Record<string, any>;
+  const extendedObj: Record<string, any> = {};
 
-  for (const key in texts) {
-    const obj = texts[key][locale];
+  for (const key in i18nTranslations) {
+    extendedObj[key] = i18nTranslations[key][locale];
+  }
 
-    if (extendedObj[key]) {
-      extendedObj[key] = {
-        ...extendedObj[key],
-        ...obj
-      };
-    } else {
-      extendedObj[key] = obj;
+  if (texts) {
+    for (const key in texts) {
+      const obj = texts[key][locale];
+
+      if (extendedObj[key]) {
+        extendedObj[key] = {
+          ...extendedObj[key],
+          ...obj
+        };
+      } else {
+        extendedObj[key] = obj;
+      }
     }
   }
 

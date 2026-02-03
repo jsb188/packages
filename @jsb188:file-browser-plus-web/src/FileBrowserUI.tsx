@@ -35,9 +35,10 @@ export const FileBrowserItemUI = memo((p: {
   rightText?: string;
   rightTextClassName?: string;
   dateText?: string;
+  onClick?: () => void;
   onClickDelete?: () => void;
 }) => {
-  const { domId, name, contentType, deleted, disabled, uploading, iconName, rightText, rightTextClassName, dateText, onClickDelete } = p;
+  const { domId, name, contentType, deleted, disabled, uploading, iconName, rightText, rightTextClassName, dateText, onClick, onClickDelete } = p;
 
   const onDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -47,7 +48,7 @@ export const FileBrowserItemUI = memo((p: {
   return <div
     id={domId}
     role={disabled ? undefined : 'button'}
-    onClick={disabled ? undefined : () => {}}
+    onClick={disabled ? undefined : onClick}
     className={cn(
       'h_spread rel pl_7 pr_5 py_8 bd_t_1 bd_lt',
       !disabled && 'link bg_secondary_fd_hv'

@@ -74,5 +74,8 @@ export default {
 
     // Subscription related
     sub_needed: 'You need a subscription to use this feature.',
+
+    // SMS
+    verification_code_sms: 'Your verification code is: %{verificationCode}',
   },
 };

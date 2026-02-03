@@ -34,13 +34,14 @@ interface FBPFolderObj {
 
 const FileBrowserItem = memo((p: {
   file: StorageGQL;
+  onClickFile?: (file: StorageGQL) => void;
   onClickDelete?: (id: string, name: string) => void;
   rightText?: string;
   iconName?: string;
   timeZone: string | null;
   uploads?: FileBrowserPlusProps['uploads'];
 }) => {
-  const { onClickDelete, file, rightText, iconName, timeZone, uploads } = p;
+  const { onClickFile, onClickDelete, file, rightText, iconName, timeZone, uploads } = p;
   const { __deleted, id, uri, name, contentType, at, uploadStatus } = useReactiveStorageFragment(file.id, file);
   const uploading = !!uploadStatus; // If uploadStatus is "COMPLETED", we still have to wait for WS to update from the server side (with correct ID)
   const disabled = !!uploading || !!__deleted;
@@ -57,6 +58,7 @@ const FileBrowserItem = memo((p: {
     rightText={uploading ? (progress ? `${progress}%` : i18n.t('form.uploading_')) : rightText}
     rightTextClassName={uploading ? 'cl_pass' : undefined}
     dateText={getFullDate(at, 'NUMERIC', timeZone)}
+    onClick={onClickFile ? () => onClickFile(file) : undefined}
     onClickDelete={onClickDelete ? () => onClickDelete(id, name!) : undefined}
   />;
 });
@@ -119,6 +121,7 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
   showInstructionsOnMount?: boolean;
   uploadLimit?: number;
   acceptedFileTypes?: string;
+  onClickFile?: (file: StorageGQL) => void;
   onClickDeleteFile?: (id: string, name: string) => void;
   onPickFile: (file: File, folderIndex: number) => void;
   timeZone: string | null;
@@ -126,7 +129,7 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
   reactiveUploading?: boolean;
 }) => {
 
-  const { timeZone, onClickDeleteFile, uploads, folderIndex, onPickFile, everythingIsEmpty, isSubtitle, uploadLimit, acceptedFileTypes, showInstructionsOnMount, isFirst, isLast, title, files, instructions } = p;
+  const { timeZone, onClickFile, onClickDeleteFile, uploads, folderIndex, onPickFile, everythingIsEmpty, isSubtitle, uploadLimit, acceptedFileTypes, showInstructionsOnMount, isFirst, isLast, title, files, instructions } = p;
   const fLen = p.reactiveFileCount ?? files?.filter(file => !file.__deleted).length;
   const hasFiles = !!fLen;
   const uploadDisabled = (fLen || 0) >= (uploadLimit || 1);
@@ -209,6 +212,7 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
           key={i}
           file={file}
           timeZone={timeZone}
+          onClickFile={onClickFile}
           onClickDelete={onClickDeleteFile}
           uploads={uploads}
         />
@@ -280,6 +284,7 @@ function ReactiveFileBrowserFolder(p: any) {
 
 interface FileBrowserPlusProps {
   timeZone: string | null;
+  onClickFile?: (file: StorageGQL) => void;
   onClickDeleteFile?: (id: string, name: string) => void;
   folderFragmentName: string;
   showInstructionsOnMount?: boolean;
@@ -302,7 +307,7 @@ export function FileBrowserPlus(p: FileBrowserPlusProps & {
   onPickFile: (file: File, folderIndex: number) => void;
 }) {
 
-  const { timeZone, onClickDeleteFile, folderFragmentName, mapFolderData, uploads, onPickFile, folderUploadLimit, acceptedFileTypes, showInstructionsOnMount, folders, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
+  const { timeZone, onClickFile, onClickDeleteFile, folderFragmentName, mapFolderData, uploads, onPickFile, folderUploadLimit, acceptedFileTypes, showInstructionsOnMount, folders, headerTitle, headerDescription, footerMessage, headerDescriptionClassName } = p;
   const lastIndex = folders ? folders.length - 1 : -1;
   const uploadLimit = folderUploadLimit ?? 5;
   const everythingIsEmpty = !!folders?.every(f => !f.files?.length);
@@ -337,6 +342,7 @@ export function FileBrowserPlus(p: FileBrowserPlusProps & {
         uploadLimit={uploadLimit}
         acceptedFileTypes={acceptedFileTypes}
         onPickFile={onPickFile}
+        onClickFile={onClickFile}
         onClickDeleteFile={onClickDeleteFile}
       />;
     })}

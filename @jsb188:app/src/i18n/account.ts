@@ -82,5 +82,13 @@ export default {
     report_user: 'Report user',
     profile_deactivated_desc: 'This account has been deactivated.',
     phone_numbers: 'Phone numbers',
+
+    // Roles
+    role: {
+      MEMBER: 'Employee',
+      MANAGER: 'Manager',
+      ADMIN: 'Admin',
+      OWNER: 'Owner',
+    },
   },
 };
