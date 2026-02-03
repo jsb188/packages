@@ -15,7 +15,6 @@ export const AccountingInvoiceDollar = <svg xmlns="http://www.w3.org/2000/svg" c
 <path d="M13.9,15.6v4.2"/>
 </svg>;
 
-
 export const AccountingInvoiceDollarColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-accounting-invoice-dollar-color">
 <path fill="#e3e3e3" d="M20.5 22.5a1 1 0 0 1 -1 1h-15a1 1 0 0 1 -1 -1v-21a1 1 0 0 1 1 -1h9l7 7v15Z" strokeWidth="1"/>
 <path fill="#ffffff" d="M17.011 4.007 13.5 0.5h-9a1 1 0 0 0 -1 1v16.015L17.011 4.007Z" strokeWidth="1"/>
@@ -1217,6 +1216,23 @@ export const FileZip = <svg className="icon icon-file-zip" xmlns="http://www.w3.
 <path d="M9.94999992,10.63333333c.18870059,0,.34166667-.15297563.34166667-.34166667,0-.18870059-.15296608-.34166667-.34166667-.34166667"/>
 </g>
 <path d="M19.51666658,22.25H4.48333325c-.36245822,0-.71008361-.14395642-.96637901-.4002516-.25629562-.25629518-.40028766-.60397466-.40028766-.96641507V3.11666667c0-.36245822.14399204-.71008361.40028766-.96637912.2562954-.25630012.60392079-.40028755.96637901-.40028755h12.41753307c.36216583.00007744.70957247.14393915.96577729.39997779l2.61671087,2.61671098c.25602235.25620438.39988666.60356541.39997703.96577773v15.15086684c0,.36244041-.14395642.71011988-.4002516.96641507s-.6039764.4002516-.96641333.4002516Z"/>
+</svg>;
+
+export const FileCodeRemove = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-file-code-remove">
+<path fill="#e3e3e3" d="M19.174 4.532c0.187 0.187 0.292 0.44 0.292 0.704V22.45a0.996 0.996 0 0 1 -0.995 0.995H1.547a0.995 0.995 0 0 1 -0.995 -0.995V1.546A0.995 0.995 0 0 1 1.547 0.55H14.78a0.995 0.995 0 0 1 0.704 0.299l3.69 3.683Z" strokeWidth="1"></path>
+<path fill="#ffffff" d="M17.328 2.688 15.484 0.848A0.996 0.996 0 0 0 14.78 0.55H1.547a0.995 0.995 0 0 0 -0.995 0.996v17.918L17.328 2.688Z" strokeWidth="1"></path>
+<path fill="#ff808c" d="M17.475 23.45a5.973 5.973 0 1 0 0 -11.946 5.973 5.973 0 0 0 0 11.946Z" strokeWidth="1"></path>
+<path fill="#ffbfc5" d="M13.252 21.7a5.973 5.973 0 0 1 8.446 -8.447L13.252 21.7Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.475 23.45a5.973 5.973 0 1 0 0 -11.946 5.973 5.973 0 0 0 0 11.946Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m19.587 15.366 -4.223 4.223" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m19.587 19.589 -4.223 -4.223" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10.507 23.446h-8.96a0.995 0.995 0 0 1 -0.995 -0.995V1.546A0.995 0.995 0 0 1 1.547 0.55H14.78a0.995 0.995 0 0 1 0.704 0.299l3.69 3.683c0.187 0.187 0.292 0.44 0.292 0.704v4.273" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M3.538 5.531v3.982" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.498 5.531v3.982" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.511 12.5v3.982" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.484 5.531v3.982" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8.018 5.527a1.493 1.493 0 0 1 1.493 1.494v0.995a1.493 1.493 0 1 1 -2.986 0v-0.995a1.493 1.493 0 0 1 1.493 -1.494v0Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M5.032 12.496a1.493 1.493 0 0 1 1.493 1.493v0.996a1.493 1.493 0 1 1 -2.987 0v-0.996a1.493 1.493 0 0 1 1.494 -1.493v0Z" strokeWidth="1"></path>
 </svg>;
 
 export const FileDocument = <svg className="icon icon-file-document" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">

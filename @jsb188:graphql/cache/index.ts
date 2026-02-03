@@ -40,7 +40,7 @@ function enforceArrayType(obj: any): any {
  * Merge nested objects together
  */
 
-export function mergeNestedObjects(obj1: any, obj2: any) {
+function mergeNestedObjects(obj1: any, obj2: any) {
   if (!obj1) {
     return { ...obj2 };
   }
@@ -63,7 +63,7 @@ export function mergeNestedObjects(obj1: any, obj2: any) {
  * Make Object for fragment, omitting what you don't need
  */
 
-function extractFragment(dataObj: any, innerSelection: any[]) {
+function extractFragment(dataObj: any, innerSelection: any[], isTest?: boolean) {
   if (innerSelection.length <= 1) {
     return dataObj;
   }
@@ -270,7 +270,8 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       //   console.log(extractFragment(data, innerSelections));
       // }
 
-      FRAGMENTS.set(fragmentKey, mergeNestedObjects(currentData, extractFragment(data, innerSelections)));
+      const fragmentFromData = extractFragment(data, innerSelections);
+      FRAGMENTS.set(fragmentKey, mergeNestedObjects(currentData, fragmentFromData));
       updatedKeys.push(fragmentKey);
 
       return fragmentKey;
@@ -406,7 +407,6 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
       //   console.log(data);
       //   console.log(spreads);
       // }
-
       FRAGMENTS.set(spreadsFragmentKey, spreads);
     }
   }

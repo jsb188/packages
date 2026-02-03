@@ -297,7 +297,7 @@ Icon.displayName = 'Icon';
 export const FileTypeIcon = memo((p: {
   iconName?: string;
   contentType: string;
-  fileName?: string; // extension may also be used
+  fileName?: string | null; // extension may also be used
 }) => {
   const { iconName, contentType, fileName } = p;
 

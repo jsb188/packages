@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n';
 import { cn } from '@jsb188/app/utils/string';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
+import { COMMON_ICON_NAMES, FileTypeIcon, Icon } from '@jsb188/react-web/svgs/Icon';
 import { Button } from '@jsb188/react-web/ui/Button';
 import Markdown from '@jsb188/react-web/ui/Markdown';
 import { memo, useRef } from 'react';
@@ -19,6 +19,67 @@ export interface FBPInstructionsObj {
   leftItems: FBPInstructionsItemObj[],
   rightItems: FBPInstructionsItemObj[]
 }
+
+/**
+ * File Browser item; presentational component
+ */
+
+export const FileBrowserItemUI = memo((p: {
+  name: string;
+  contentType: string;
+  deleted?: boolean;
+  disabled?: boolean;
+  uploading?: boolean;
+  iconName?: string;
+  rightText?: string;
+  rightTextClassName?: string;
+  dateText?: string;
+  onClickDelete?: () => void;
+}) => {
+  const { name, contentType, deleted, disabled, uploading, iconName, rightText, rightTextClassName, dateText, onClickDelete } = p;
+
+  const onDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClickDelete?.();
+  };
+
+  return <div
+    role={disabled ? undefined : 'button'}
+    onClick={disabled ? undefined : () => {}}
+    className={cn(
+      'h_spread rel pl_7 pr_5 py_8 bd_t_1 bd_lt',
+      !disabled && 'link bg_secondary_fd_hv'
+    )}
+  >
+    <div className={cn('h_item', disabled ? 'cl_md' : '')}>
+      <span className='mr_10'>
+        <FileTypeIcon
+          iconName={iconName}
+          contentType={contentType}
+          fileName={name}
+        />
+      </span>
+      <span className={cn('shift_down', deleted && 'strikethrough')}>
+        {name}
+      </span>
+    </div>
+
+    <div className={cn('h_right gap_5', deleted ? 'cl_lt' : 'cl_md')}>
+			<span className={cn('ft_xs', rightTextClassName)}>
+				{deleted ? i18n.t('form.deleted') : (rightText || dateText)}
+			</span>
+      <button
+        disabled={deleted || uploading}
+        className={cn('px_5 non_link', !deleted && !uploading && 'link cl_err_hv')}
+        onClick={deleted || uploading ? undefined : onDelete}
+      >
+        <Icon name={uploading ? COMMON_ICON_NAMES.progress : COMMON_ICON_NAMES.delete} />
+      </button>
+    </div>
+  </div>;
+});
+
+FileBrowserItemUI.displayName = 'FileBrowserItemUI';
 
 /**
  * Message area; to be placed inside the <FileBrowserPlus> component

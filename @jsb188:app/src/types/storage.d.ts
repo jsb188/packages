@@ -24,6 +24,8 @@ export interface StorageData {
 }
 
 export interface StorageGQL {
+  __deleted?: boolean;
+
 	id: string;
 	organizationId: string | null;
 	accountId: string | null;
@@ -51,6 +53,7 @@ export type StorageUploadObj = Partial<{
 		entries: [string, string][];
 	};
 	upsertQuery?: RelatedDocumentUpsertQuery;
+  realTimeUpdate?: string; // JSON.stringified object; "{{storageId}}" will be replaced with actual storage ID after upload
 }>;
 
 /**

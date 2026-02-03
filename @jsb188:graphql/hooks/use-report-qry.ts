@@ -18,20 +18,6 @@ export function useReactiveReportFragment(reportId: string, currentData?: any, q
 }
 
 /**
- * Get reactive report section fragment
- */
-
-export function useReactiveReportSectionFragment(reportSectionId: string, currentData?: any, queryCount?: number) {
-  return useReactiveFragment(
-    currentData,
-    [
-      `$reportSectionFragment:${reportSectionId}`,
-    ],
-    queryCount,
-  );
-}
-
-/**
  * Fetch list of reports by type and period
  */
 

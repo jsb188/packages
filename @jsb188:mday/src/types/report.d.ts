@@ -47,8 +47,8 @@ interface ReportFieldsSection {
 	title: string;
 	description: string;
 	rows?: ReportFieldsRow[];
-  requireFileUploads?: boolean;
-  files?: (StorageData | StorageGQL)[]; // GQL in client, otherwise it will be server data type
+	requireFileUploads?: boolean;
+	files?: StorageData[];
 
 	__prompt_section?: string; // Server-only; full prompt for this section - this is the only prompt that allows {{variable}} regex
 	__prompt_examples?: string; // Server-only; for examples of what the output should be
@@ -118,8 +118,20 @@ export interface ReportGQL {
 	evidencesCount: number;
 	activityAt: string | null; // ISO date string
 
-	sections?: ReportFieldsSection[];
+	sections?: ReportSectionGQL[];
 	rows?: ReportRowGQL[];
+}
+
+interface ReportSectionGQL {
+	id: string;
+	isGroupTitle?: boolean;
+	sectionKey: string;
+	sectionName: string;
+	title: string;
+	description: string;
+	rows?: ReportRowGQL[];
+	requireFileUploads?: boolean;
+	files?: StorageGQL[];
 }
 
 /**
@@ -149,7 +161,7 @@ export interface ReportSubmissionGQL {
 	activityAt: string | null; // ISO date string
 	rows: ReportRowGQL[];
 	evidences: string[];
-  requireFileUploads: boolean;
+	requireFileUploads: boolean;
 }
 
 export interface ReportLogRelData {
@@ -160,12 +172,12 @@ export interface ReportLogRelData {
 }
 
 export interface ReportStorageRelData {
-  __table: 'report_storage_rels';
-  reportSubmissionId: number | bigint;
-  storageId: number | bigint;
-  sectionKey: string;
-  order: number;
-  file: StorageData;
+	__table: 'report_storage_rels';
+	reportSubmissionId: number | bigint;
+	storageId: number | bigint;
+	sectionKey: string;
+	order: number;
+	file: StorageData;
 }
 
 export interface ReportSubmissionData {
@@ -176,7 +188,7 @@ export interface ReportSubmissionData {
 	period: Date; // YYYY-MM-DD in database, Date object in server via ORM
 	answers: Record<string, any>; // key-value pairs of answers
 	logRels?: ReportLogRelData[];
-  storageRels?: ReportStorageRelData[];
+	storageRels?: ReportStorageRelData[];
 	activityAt: Date;
 }
 
@@ -185,7 +197,7 @@ export interface ReportSubmissionData {
  */
 
 export interface ReportAvailabilityGQL {
-  id: string;
-  type: ReportTypeEnum;
-  periods: string[]; // YYYY-MM-DD
+	id: string;
+	type: ReportTypeEnum;
+	periods: string[]; // YYYY-MM-DD
 }

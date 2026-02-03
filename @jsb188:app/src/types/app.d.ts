@@ -63,6 +63,7 @@ export interface WSDataUpdateObj {
   fragments?: null | ({
     name: string;
     dataId: string;
+    replaceId?: string; // Use this where client has a temporary ID that will be replaced by the server-side ID later
     data: any;
   } | null)[];
 }

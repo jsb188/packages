@@ -225,7 +225,7 @@ export function useReactiveFragment(
   qryObsCount?: number | boolean,
   otherCheck?: (latestData: any, updatedKeys: any[]) => boolean,
   ignoreIDWarning?: boolean,
-  // doTest?: boolean
+  isTest?: boolean
 ) {
 
   const fragmentObserver = useFragmentObserverValue();
@@ -337,8 +337,11 @@ export function useReactiveFragment(
             }
 
             const fragmentData = loadFragment(isMapped ? key[0] : key);
-            // console.log('fragmentKey', key);
-            // console.log('fragmentData', fragmentData);
+
+            // if (isTest) {
+            //   console.log('fragmentKey', key);
+            //   console.log('fragmentData', fragmentData);
+            // }
 
             if (fragmentData) {
               if (isMapped) {
@@ -382,6 +385,12 @@ export function useReactiveFragment(
   //     });
   //   }
   // }, [updateQueryCount]);
+
+  // if (isTest) {
+  //   console.log('dataId', dataId);
+  //   console.log('1', changedData);
+  //   console.log('2', data);
+  // }
 
   return changedData.data ?? null;
 }
