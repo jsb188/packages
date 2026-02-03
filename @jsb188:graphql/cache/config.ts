@@ -5,7 +5,7 @@
  */
 
 export const QUERY_EXPIRE_TIMES = {
-  __default: 3.6e+6, // 1 hour
+  __default: 5.4e+6, // 1.5 hours
   // 6.48e+7, // 18 hours
 } as {
   [key: string]: number;

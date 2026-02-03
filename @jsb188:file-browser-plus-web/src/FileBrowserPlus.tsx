@@ -314,7 +314,7 @@ export function FileBrowserPlus(p: FileBrowserPlusProps & {
     return -1;
   }, [showInstructionsOnMount, folders]);
 
-  return <div className='p_10 rel of pattern_texture texture_bf -mx_10 r_sm'>
+  return <div className='pt_10 px_10 pb_20 rel of pattern_texture texture_bf -mx_10 r_sm'>
     {(headerTitle || headerDescription) &&
     <div className='h_spread gap_10 rel px_12 py_15 ft_xs'>
       <span className='ft_semibold'>{headerTitle}</span>
