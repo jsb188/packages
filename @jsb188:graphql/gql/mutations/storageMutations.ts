@@ -2,12 +2,14 @@ import { gql } from 'graphql-tag';
 
 export const createSignedUploadUrlMtn = gql`
 mutation createSignedUploadUrl (
+  $temporaryId: String!
   $organizationId: GenericID!
   $fileName: String!
   $contentType: String!
   $uploadIntent: StorageIntentObject!
 ) {
   createSignedUploadUrl (
+    temporaryId: $temporaryId
     organizationId: $organizationId
     fileName: $fileName
     contentType: $contentType
@@ -22,11 +24,11 @@ mutation createSignedUploadUrl (
 export const deleteStorageFileMtn = gql`
 mutation deleteStorageFile (
   $organizationId: GenericID!
-  $storageId: GenericID!
+  $fileUri: String!
 ) {
   deleteStorageFile (
     organizationId: $organizationId
-    storageId: $storageId
+    fileUri: $fileUri
   )
 }
 `;

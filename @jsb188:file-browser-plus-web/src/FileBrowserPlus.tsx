@@ -2,14 +2,14 @@ import i18n from '@jsb188/app/i18n';
 import type { StorageGQL } from '@jsb188/app/types/storage.d';
 import { getFullDate } from '@jsb188/app/utils/datetime';
 import { cn } from '@jsb188/app/utils/string';
-import { addFragmentToCache, updateFragment } from '@jsb188/graphql/cache';
+import { addFragmentToCache, loadFragment, updateFragment } from '@jsb188/graphql/cache';
 import { useReactiveFragment } from '@jsb188/graphql/client';
 import { useCreateSignedUploadUrl } from '@jsb188/graphql/hooks/use-storage-mtn';
 import { useReactiveStorageFragment } from '@jsb188/graphql/hooks/use-storage-qry';
 import { COMMON_ICON_NAMES, Icon } from '@jsb188/react-web/svgs/Icon';
 import { useMounted } from '@jsb188/react/hooks';
 import { useOpenModalPopUp, useUploadActions } from '@jsb188/react/states';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { FBPUploadButton, FileBrowserFooter, FileBrowserInstructions, FileBrowserItemUI, type FBPInstructionsObj } from './FileBrowserUI';
 import { uploadFileToGCS } from './googleStorage';
 
@@ -32,24 +32,20 @@ interface FBPFolderObj {
 
 const FileBrowserItem = memo((p: {
   file: StorageGQL;
-  setDeletedStatus: (id: string, deleted: boolean) => void;
   onClickDelete?: (id: string, name: string) => void;
   rightText?: string;
   iconName?: string;
   timeZone: string | null;
   uploads?: FileBrowserPlusProps['uploads'];
 }) => {
-  const { setDeletedStatus, onClickDelete, file, rightText, iconName, timeZone, uploads } = p;
+  const { onClickDelete, file, rightText, iconName, timeZone, uploads } = p;
   const { __deleted, id, uri, name, contentType, at, uploadStatus } = useReactiveStorageFragment(file.id, file);
   const uploading = !!uploadStatus; // If uploadStatus is "COMPLETED", we still have to wait for WS to update from the server side (with correct ID)
   const disabled = !!uploading || !!__deleted;
   const progress = uri ? uploads?.[uri]?.progress : undefined;
 
-  useEffect(() => {
-    setDeletedStatus(id, !!__deleted);
-  }, [__deleted]);
-
   return <FileBrowserItemUI
+    domId={`file_${id}`}
     name={name}
     contentType={contentType}
     deleted={__deleted}
@@ -124,18 +120,18 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
   onClickDeleteFile?: (id: string, name: string) => void;
   onPickFile: (file: File, folderIndex: number) => void;
   timeZone: string | null;
+  reactiveFileCount?: number;
+  reactiveUploading?: boolean;
 }) => {
 
-  const [deletedFilesMap, setDeletedFilesMap] = useState<{ [id: string]: boolean }>({});
   const { timeZone, onClickDeleteFile, uploads, folderIndex, onPickFile, everythingIsEmpty, isSubtitle, uploadLimit, acceptedFileTypes, showInstructionsOnMount, isFirst, isLast, title, files, instructions } = p;
-  const fLen = files?.filter(file => !file.__deleted && !deletedFilesMap[file.id]).length;
+  const fLen = p.reactiveFileCount ?? files?.filter(file => !file.__deleted).length;
   const hasFiles = !!fLen;
   const uploadDisabled = (fLen || 0) >= (uploadLimit || 1);
   const [expanded, setExpanded] = useState(!!showInstructionsOnMount || hasFiles);
   const [showInstructions, setShowInstructions] = useState(false);
   const isToggleable = !!(instructions || hasFiles);
-  const uploading = !!files?.some(file => !!file.uploadStatus);
-  // const [expanded, setExpanded] = useState(true);
+  const uploading = p.reactiveUploading ?? !!files?.some(file => file.uploadStatus);
 
   let iconName;
   if (p.iconName) {
@@ -161,13 +157,6 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
     if (!nextVal && expanded && !hasFiles) {
       setExpanded(nextVal);
     }
-  };
-
-  const setDeletedStatus = (id: string, deleted: boolean) => {
-    setDeletedFilesMap((prev) => ({
-      ...prev,
-      [id]: deleted,
-    }));
   };
 
   return <div
@@ -217,7 +206,6 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
         return <FileBrowserItem
           key={i}
           file={file}
-          setDeletedStatus={setDeletedStatus}
           timeZone={timeZone}
           onClickDelete={onClickDeleteFile}
           uploads={uploads}
@@ -258,17 +246,29 @@ FileBrowserFolder.displayName = 'FileBrowserFolder';
 
 function ReactiveFileBrowserFolder(p: any) {
   const { item, folderFragmentName, mapFolderData } = p;
-  // const isTest = item.id === '378910582488:902722327515:2026-01-01:V0NP';
   const reactiveData = useReactiveFragment(item, [`${folderFragmentName}:${item.id}`]);
+  const folderData = mapFolderData(reactiveData);
 
-  // if (isTest) {
-  //   console.log(reactiveData);
-  //   console.log(item);
-  // }
+  // Read latest file states from fragment cache (this component already
+  // re-renders on every fragment change via useReactiveFragment)
+  const files = folderData.files;
+  let reactiveFileCount = 0;
+  let reactiveUploading = false;
+  if (files?.length) {
+    for (const file of files) {
+      const fragment = loadFragment(`$storageFileFragment:${file.id}`);
+      const data = fragment ?? file;
+      if (!data.__deleted) reactiveFileCount++;
+      if (data.uploadStatus) reactiveUploading = true;
+    }
+  }
 
   return <FileBrowserFolder
+    key={reactiveData.id}
     {...p}
-    {...mapFolderData(reactiveData)}
+    {...folderData}
+    reactiveFileCount={reactiveFileCount}
+    reactiveUploading={reactiveUploading}
   />;
 }
 
@@ -321,7 +321,7 @@ export function FileBrowserPlus(p: FileBrowserPlusProps & {
 
     {folders?.map((item: any, i: number) => {
       return <ReactiveFileBrowserFolder
-        key={`${i}_${item?.files?.length}`}
+        key={`${i}_${item?.files?.map((f: any) => f.id).join('_')}`}
         timeZone={timeZone}
         item={item}
         folderIndex={i}
@@ -355,7 +355,7 @@ interface UploadInProgressObj {
   id: string; // Updated via WS real time reactive fragment
   name: string;
   contentType: string;
-  fileUri?: string;
+  uri?: string;
   at: string; // ISO string
   uploadStatus?: 'ERROR' | 'UPLOADING' | null; // null means completed (matches Server)
 }
@@ -369,7 +369,7 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
   organizationId: string;
   getUploadIntent?: (folderIndex: any) => UploadIntentObj;
   removeProgressAfterUpload?: boolean;
-  updateDataAfterUpload: (folder: any, uploadingFile: UploadInProgressObj, updateObservers: any) => void;
+  updateDataAfterUpload: (folder: any, uploadingFile: UploadInProgressObj, updateObservers: any, temporaryId?: string) => void;
 }) {
   const { updateDataAfterUpload, removeProgressAfterUpload, acceptedFileTypes, organizationId, getUploadIntent, folders } = p;
   const mounted = useMounted();
@@ -391,9 +391,12 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
   const onPickFile = async (file: File, folderIndex: number) => {
 
     const uploadFolder = folders?.[folderIndex];
-    const uploadObj = {
-      id: `uploading-${Date.now()}-${Math.round(Math.random() * 1000)}`, // Temporary, and will be updated via WS later
+    const temporaryId = `uploading-${Date.now()}-${Math.round(Math.random() * 1000)}`;
+
+    let uploadObj = {
+      id: temporaryId, // Temporary, and will be updated via WS later
       name: file.name,
+      uri: undefined,
       contentType: file.type,
       uploadStatus: 'UPLOADING' as const,
       at: (new Date()).toISOString(),
@@ -404,6 +407,7 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
 
     const { createSignedUploadUrl: signedUrlResult } = await createSignedUploadUrl({
       variables: {
+        temporaryId,
         organizationId,
         fileName: file.name,
         contentType: file.type,
@@ -417,12 +421,23 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
 
     const { signedUrl, fileUri } = signedUrlResult || {};
     if (!signedUrl || !fileUri) {
-      updateFragment(`$storageFileFragment:${uploadObj.id}`, {...uploadObj, uploadStatus: 'ERROR' }, null, false, updateObservers);
+      updateFragment(`$storageFileFragment:${uploadObj.id}`, {...uploadObj, uploadStatus: 'ERROR' }, fileUri, false, updateObservers);
       return;
     }
 
+    uploadObj = {
+      ...uploadObj,
+      id: fileUri,
+      uri: fileUri,
+    };
+
+    // Replace temporary ID with actual fileUri after getting signed URL
+    updateDataAfterUpload(uploadFolder, uploadObj, updateObservers, temporaryId);
+
     startUploadProgress(fileUri);
-    updateFragment(`$storageFileFragment:${uploadObj.id}`, {...uploadObj, uri: fileUri }, null, false, updateObservers);
+
+    const replacementKey = `$storageFileFragment:${uploadObj.id}`;
+    updateFragment(`$storageFileFragment:${temporaryId}`, uploadObj, replacementKey, false, updateObservers);
 
     try {
       await uploadFileToGCS(signedUrl, file, (progress) => {

@@ -25,6 +25,7 @@ export interface FBPInstructionsObj {
  */
 
 export const FileBrowserItemUI = memo((p: {
+  domId?: string;
   name: string;
   contentType: string;
   deleted?: boolean;
@@ -36,7 +37,7 @@ export const FileBrowserItemUI = memo((p: {
   dateText?: string;
   onClickDelete?: () => void;
 }) => {
-  const { name, contentType, deleted, disabled, uploading, iconName, rightText, rightTextClassName, dateText, onClickDelete } = p;
+  const { domId, name, contentType, deleted, disabled, uploading, iconName, rightText, rightTextClassName, dateText, onClickDelete } = p;
 
   const onDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -44,6 +45,7 @@ export const FileBrowserItemUI = memo((p: {
   };
 
   return <div
+    id={domId}
     role={disabled ? undefined : 'button'}
     onClick={disabled ? undefined : () => {}}
     className={cn(

@@ -39,7 +39,7 @@ export function useDeleteStorageFile(params: UseMutationParams = {}, openModalPo
       openModalPopUp,
       onCompleted: (data, dataMtnValues, variables) => {
         if (data?.deleteStorageFile) {
-          updateFragment(`$storageFileFragment:${variables.storageId}`, { __deleted: true }, null, false, updateObservers);
+          updateFragment(`$storageFileFragment:${variables.fileUri}`, { __deleted: true }, null, false, updateObservers);
         }
         onCompleted?.(data, dataMtnValues, variables);
       },

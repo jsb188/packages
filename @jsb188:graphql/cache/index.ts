@@ -984,7 +984,7 @@ export function resetQuery(queryId: string, forceRefetch?: boolean, updateObserv
 export function updateFragment(
   updateFragmentKey: string,
   update: any | ((cache: any) => any),
-  replaceId?: string | null,
+  replacementFragmentKey?: string | null,
   doNotTriggerObserver?: boolean,
   updateObservers?: UpdateObserversFn,
   otherUpdatedFragmentKeys?: string[],
@@ -1000,11 +1000,12 @@ export function updateFragment(
     }
 
     const updatedObj = { ...cache, ...updateObj };
+
     FRAGMENTS.set(updateFragmentKey, updatedObj);
     console.dev('✅ FRAGMENT UPDATED ->', updateFragmentKey, updatedObj);
 
-    if (replaceId && replaceId !== updateFragmentKey) {
-      FRAGMENTS.set(replaceId, updatedObj);
+    if (replacementFragmentKey && replacementFragmentKey !== updateFragmentKey) {
+      FRAGMENTS.set(replacementFragmentKey, updatedObj);
     }
 
     if (!doNotTriggerObserver && updateObservers) {
