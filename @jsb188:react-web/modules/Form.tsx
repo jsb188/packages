@@ -1,9 +1,9 @@
-import i18n from '@jsb188/app/i18n';
+import i18n from '@jsb188/app/i18n/index.ts';
 
-import { getPlatform } from '@jsb188/app/platform';
-import type { FormItemIfaceObj } from '@jsb188/app/types/form.d';
-import { getObject, setObject } from '@jsb188/app/utils/object';
-import { cn } from '@jsb188/app/utils/string';
+import { getPlatform } from '@jsb188/app/platform.ts';
+import type { FormItemIfaceObj } from '@jsb188/app/types/form.d.ts';
+import { getObject, setObject } from '@jsb188/app/utils/object.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { Button, InlineBlockLabel } from '@jsb188/react-web/ui/Button';
 import { createElement, forwardRef, memo, useEffect, useRef, useState } from 'react';
 import { Icon } from '../svgs/Icon';

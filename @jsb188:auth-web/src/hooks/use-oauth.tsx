@@ -1,5 +1,5 @@
 import { getENVVariable } from '@jsb188/app';
-import { getTimeBasedUnique } from '@jsb188/app/utils/string';
+import { getTimeBasedUnique } from '@jsb188/app/utils/string.ts';
 import { useMutation } from '@jsb188/graphql/client';
 import { continueWithGoogleMtn } from '@jsb188/graphql/mutations';
 import type { OnErrorGQLFn } from '@jsb188/graphql/types.d';

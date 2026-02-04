@@ -1,4 +1,4 @@
-import type { ServerErrorObj, SimpleErrorType } from '@jsb188/app/types/app.d';
+import type { ServerErrorObj, SimpleErrorType } from '@jsb188/app/types/app.d.ts';
 
 /**
  * GraphQL API requests

@@ -1,7 +1,7 @@
-import { DOM_IDS } from '@jsb188/app/constants/app';
-import type { ServerErrorObj } from '@jsb188/app/types/app.d';
-import { uniq } from '@jsb188/app/utils/object';
-import { cn } from '@jsb188/app/utils/string';
+import { DOM_IDS } from '@jsb188/app/constants/app.ts';
+import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
+import { uniq } from '@jsb188/app/utils/object.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { loadFragment } from '@jsb188/graphql/cache';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';

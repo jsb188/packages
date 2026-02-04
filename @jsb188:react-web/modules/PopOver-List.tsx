@@ -1,5 +1,5 @@
-import i18n from '@jsb188/app/i18n';
-import { cn } from '@jsb188/app/utils/string';
+import i18n from '@jsb188/app/i18n/index.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POLabelsAndValuesIface, POListIface, POListIfaceItem, POListItemObj, POModalItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';

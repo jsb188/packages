@@ -1,4 +1,4 @@
-import { cn } from '@jsb188/app/utils/string';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { COMMON_ICON_NAMES, Icon } from '@jsb188/react-web/svgs/Icon';
 import { memo } from 'react';
 import type { TimelineItem } from '../ui/TimelineUI';

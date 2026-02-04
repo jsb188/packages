@@ -1,4 +1,4 @@
-import i18n from '@jsb188/app/i18n';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { useConfirmPassword } from '@jsb188/graphql/hooks/use-auth-mtn';
 import { Input } from '@jsb188/react-web/modules/Form';
 import { AlertPopUp, ModalErrorMessage } from '@jsb188/react-web/ui/ModalUI';

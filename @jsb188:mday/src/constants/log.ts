@@ -1,4 +1,4 @@
-import type { OrganizationOperationEnum } from '../types/organization.d';
+import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 
 /**
  * Constants

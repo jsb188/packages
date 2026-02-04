@@ -1,5 +1,5 @@
-import { setObject } from '@jsb188/app/utils/object';
-import { cn } from '@jsb188/app/utils/string';
+import { setObject } from '@jsb188/app/utils/object.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { usePopOverState } from '@jsb188/react/states';
 import { DateTime } from 'luxon';
 import { useEffect, useState } from 'react';

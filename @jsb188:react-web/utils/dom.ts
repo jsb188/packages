@@ -1,4 +1,4 @@
-import { DOM_IDS } from '@jsb188/app/constants/app';
+import { DOM_IDS } from '@jsb188/app/constants/app.ts';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**

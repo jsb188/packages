@@ -1,4 +1,4 @@
-import i18n from '@jsb188/app/i18n';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { useRequestChangeEmail } from '@jsb188/graphql/hooks/use-account-mtn';
 import { useChangeAccountPassword } from '@jsb188/graphql/hooks/use-auth-mtn';
 import { FullPageLayout } from '@jsb188/react-web/modules/Layout';

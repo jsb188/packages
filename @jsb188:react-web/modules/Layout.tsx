@@ -1,7 +1,7 @@
-import { DOM_IDS } from '@jsb188/app/constants/app';
-import i18n from '@jsb188/app/i18n';
-import type { ServerErrorObj } from '@jsb188/app/types/app.d';
-import { cn } from '@jsb188/app/utils/string';
+import { DOM_IDS } from '@jsb188/app/constants/app.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
+import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { Pill, SmartLink } from '@jsb188/react-web/ui/Button';
 import { useOnlineStatus } from '@jsb188/react-web/utils/dom';
 import { useAnimationVisibility } from '@jsb188/react/hooks';

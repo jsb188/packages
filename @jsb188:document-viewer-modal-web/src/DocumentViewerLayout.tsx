@@ -1,7 +1,7 @@
-import i18n from '@jsb188/app/i18n';
-import type { StorageGQL } from '@jsb188/app/types/storage.d';
-import { cn } from '@jsb188/app/utils/string';
-import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
+import i18n from '@jsb188/app/i18n/index.ts';
+import type { StorageGQL } from '@jsb188/app/types/storage.d.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
+import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import { COMMON_ICON_NAMES, FileTypeIcon, Icon } from '@jsb188/react-web/svgs/Icon';
 import { useKeyDown } from '@jsb188/react/states';
 import { memo, useEffect, useRef, useState } from 'react';

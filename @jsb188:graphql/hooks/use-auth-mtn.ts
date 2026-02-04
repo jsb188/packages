@@ -1,5 +1,5 @@
-import i18n from '@jsb188/app/i18n';
-import { deleteAuthToken } from '@jsb188/app/platform';
+import i18n from '@jsb188/app/i18n/index.ts';
+import { deleteAuthToken } from '@jsb188/app/platform.ts';
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 import { AppContext, onGuestInit, useOpenModalPopUp } from '@jsb188/react/states';

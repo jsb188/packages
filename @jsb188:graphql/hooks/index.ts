@@ -1,7 +1,7 @@
 import { getENVVariable } from '@jsb188/app';
-import type { ServerErrorObj, SimpleErrorType } from '@jsb188/app/types/app.d';
-import { normalizeServerError } from '@jsb188/app/utils/api';
-import { delay, makeVariablesKey } from '@jsb188/app/utils/logic';
+import type { ServerErrorObj, SimpleErrorType } from '@jsb188/app/types/app.d.ts';
+import { normalizeServerError } from '@jsb188/app/utils/api.ts';
+import { delay, makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import { isServerErrorGQL } from '@jsb188/graphql/utils';
 import { useConnectedToServerValue, useFragmentObserverValue, useQueryObserverValue, useScreenIsFocusedValue, useSetFragmentObserver, useSetQueryObserver } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';

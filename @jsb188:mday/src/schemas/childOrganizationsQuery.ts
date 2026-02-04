@@ -1,4 +1,4 @@
-import type { ChildOrgsFilterArgs, OrganizationOperationEnum } from '../types/organization.d';
+import type { ChildOrgsFilterArgs, OrganizationOperationEnum } from '../types/organization.d.ts';
 
 /**
  * Create a filter object for productsList() query from the URL search query.

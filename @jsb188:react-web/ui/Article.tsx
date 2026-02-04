@@ -1,4 +1,4 @@
-import { cn } from '@jsb188/app/utils/string';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { memo } from 'react';
 import type { LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { LabelsAndIcons } from '../modules/ListFeatures';
@@ -6,7 +6,7 @@ import { AvatarImg } from './Avatar';
 import type { InlineBlockLabelProps } from './Button';
 import { InlineBlockLabel } from './Button';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
-import i18n from '@jsb188/app/i18n';
+import i18n from '@jsb188/app/i18n/index.ts';
 
 /**
  * Constants

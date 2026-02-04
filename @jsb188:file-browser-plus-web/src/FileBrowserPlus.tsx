@@ -1,9 +1,9 @@
-import { MAX_FILE_SIZE_CLIENT } from '@jsb188/app/constants/app';
-import i18n from '@jsb188/app/i18n';
-import type { StorageGQL } from '@jsb188/app/types/storage.d';
-import { getFullDate } from '@jsb188/app/utils/datetime';
-import { formatBytes } from '@jsb188/app/utils/number';
-import { cn } from '@jsb188/app/utils/string';
+import { MAX_FILE_SIZE_CLIENT } from '@jsb188/app/constants/app.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
+import type { StorageGQL } from '@jsb188/app/types/storage.d.ts';
+import { getFullDate } from '@jsb188/app/utils/datetime.ts';
+import { formatBytes } from '@jsb188/app/utils/number.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { addFragmentToCache, loadFragment, updateFragment } from '@jsb188/graphql/cache';
 import { useReactiveFragment } from '@jsb188/graphql/client';
 import { useCreateSignedUploadUrl } from '@jsb188/graphql/hooks/use-storage-mtn';

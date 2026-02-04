@@ -1,5 +1,5 @@
-import i18n from '@jsb188/app/i18n';
-import { cn } from '@jsb188/app/utils/string';
+import i18n from '@jsb188/app/i18n/index.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { COMMON_ICON_NAMES, FileTypeIcon, Icon } from '@jsb188/react-web/svgs/Icon';
 import { Button } from '@jsb188/react-web/ui/Button';
 import Markdown from '@jsb188/react-web/ui/Markdown';

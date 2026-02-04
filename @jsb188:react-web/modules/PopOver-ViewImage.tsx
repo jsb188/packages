@@ -1,5 +1,5 @@
-import { cn } from '@jsb188/app/utils/string';
-import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
+import { cn } from '@jsb188/app/utils/string.ts';
+import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import type { POImageIface, PopOverHandlerProps } from '@jsb188/react/types/PopOver.d';
 import { useEffect, useRef, useState } from 'react';

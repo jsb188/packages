@@ -1,4 +1,4 @@
-import { cn } from '@jsb188/app/utils/string';
+import { cn } from '@jsb188/app/utils/string.ts';
 import type { ClosePopOverFn, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POTextObj, TooltipProps } from '@jsb188/react/types/PopOver.d';
 import { forwardRef, memo, useRef } from 'react';
 import { Icon } from '../svgs/Icon';

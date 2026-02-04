@@ -1,0 +1,23 @@
+{
+  "name": "@jsb188/mday-web",
+  "version": "1.1.8",
+  "description": "Web components and utilities for Marketday app.",
+  "license": "ISC",
+  "author": "jsb188",
+  "type": "module",
+  "exports": {
+    "./utils/route": "./src/utils/route-helpers.ts",
+    "./utils/log-web": "./src/utils/log-web.ts",
+    "./utils/org-web": "./src/utils/org-web.ts"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "@jsb188/app": "1.1.8",
+    "@jsb188/mday": "1.1.8",
+    "@jsb188/react": "1.1.8",
+    "@jsb188/react-web": "1.1.8"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

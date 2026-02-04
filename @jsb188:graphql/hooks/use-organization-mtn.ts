@@ -5,7 +5,7 @@ import { deleteComplianceDocumentMtn, editOrganizationMtn, switchOrganizationMtn
 import { useMutation } from './index';
 import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 import { useMemo } from 'react';
-import { checkACLPermission } from '@jsb188/mday/utils/organization';
+import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
 
 /**
  * Fetch a single log entry,

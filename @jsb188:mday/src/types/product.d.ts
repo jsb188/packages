@@ -1,7 +1,7 @@
-import { PRODUCT_LIVESTOCK_STATUS, PRODUCT_LIVESTOCK_TYPES, PRODUCT_TYPES } from '../constants/product';
-import type { AccountData } from '@jsb188/app/types/account.d';
+import { PRODUCT_LIVESTOCK_STATUS, PRODUCT_LIVESTOCK_TYPES, PRODUCT_TYPES } from '../constants/product.ts';
+import type { AccountData } from '@jsb188/app/types/account.d.ts';
 import type { OrganizationData, OrganizationGQL } from './types/organization.d';
-import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d';
+import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d.ts';
 
 /**
  * Enums

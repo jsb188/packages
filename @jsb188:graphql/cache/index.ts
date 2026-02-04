@@ -1,5 +1,5 @@
-import { makeVariablesKey } from '@jsb188/app/utils/logic';
-import { cloneArrayLike, mapArrayLikeObjects, uniq } from '@jsb188/app/utils/object';
+import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
+import { cloneArrayLike, mapArrayLikeObjects, uniq } from '@jsb188/app/utils/object.ts';
 import type { UpdateObserversFn } from '../types.d';
 import { PARTIALS_MAP, RULES } from './config';
 

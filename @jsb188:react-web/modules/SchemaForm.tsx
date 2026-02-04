@@ -1,6 +1,6 @@
-import i18n from '@jsb188/app/i18n';
-import type { FormSchemaObj } from '@jsb188/app/types/form.d';
-import { cn } from '@jsb188/app/utils/string';
+import i18n from '@jsb188/app/i18n/index.ts';
+import type { FormSchemaObj } from '@jsb188/app/types/form.d.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { FormItem } from '@jsb188/react-web/modules/Form';
 import { type ButtonPresetEnum, FullWidthButton } from '@jsb188/react-web/ui/Button';
 import { StickyFooterArea } from '@jsb188/react-web/ui/ListUI';

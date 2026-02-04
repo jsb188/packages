@@ -1,6 +1,6 @@
-import { DOM_IDS } from '@jsb188/app/constants/app';
-import i18n from '@jsb188/app/i18n';
-import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string';
+import { DOM_IDS } from '@jsb188/app/constants/app.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
+import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string.ts';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { usePopOver, useSetPopOverIsHover, useTooltip } from '@jsb188/react/states';

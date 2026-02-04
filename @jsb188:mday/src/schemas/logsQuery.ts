@@ -1,10 +1,10 @@
-import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime';
-import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone';
+import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime.ts';
+import { indexToTimeZone, isValidTimeZone } from '@jsb188/app/utils/timeZone.ts';
 import { z } from 'zod';
-import { LOG_ANY_ACTIVITY_ENUMS, LOG_ANY_TYPE_ENUMS, LOG_SORT_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log';
-import { OPERATION_ENUMS } from '../constants/organization';
-import type { FilterLogEntriesArgs, LogSortEnum, LogTypeEnum } from '../types/log';
-import type { OrganizationOperationEnum } from '../types/organization';
+import { LOG_ANY_ACTIVITY_ENUMS, LOG_ANY_TYPE_ENUMS, LOG_SORT_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log.ts';
+import { OPERATION_ENUMS } from '../constants/organization.ts';
+import type { FilterLogEntriesArgs, LogSortEnum, LogTypeEnum } from '../types/log.d.ts';
+import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 
 /**
  * Zod schema for query params to filter

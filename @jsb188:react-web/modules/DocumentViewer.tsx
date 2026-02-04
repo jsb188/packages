@@ -1,5 +1,5 @@
-import { orderBy } from '@jsb188/app/utils/object';
-import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
+import { orderBy } from '@jsb188/app/utils/object.ts';
+import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import type { ModalToolbarBreadcrumb } from '@jsb188/react-web/ui/ModalUI';
 import { ModalToolbar } from '@jsb188/react-web/ui/ModalUI';
 import { memo, useMemo, useState } from 'react';

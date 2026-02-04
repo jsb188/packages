@@ -1,5 +1,5 @@
 import { getENVVariable } from '@jsb188/app';
-import type { ServerErrorObj } from '@jsb188/app/types/app.d';
+import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 
 const TIME_TRACKER = new Map();
 

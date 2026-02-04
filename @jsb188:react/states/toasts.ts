@@ -1,4 +1,4 @@
-import type { WSDataUpdateObj } from '@jsb188/app/types/app.d';
+import type { WSDataUpdateObj } from '@jsb188/app/types/app.d.ts';
 import { atom, useAtomValue, useSetAtom } from 'jotai';
 
 /**

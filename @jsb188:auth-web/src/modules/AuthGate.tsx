@@ -1,9 +1,9 @@
-import type { ServerErrorObj, SimpleErrorType } from '@jsb188/app/types/app.d';
+import type { ServerErrorObj, SimpleErrorType } from '@jsb188/app/types/app.d.ts';
 import type { ErrorMessageProps } from '@jsb188/react-web/modules/Layout';
 import { FullPageLayout, ErrorMessage } from '@jsb188/react-web/modules/Layout';
 import { BigLoading } from '@jsb188/react-web/ui/Loading';
 import { useIsLoggedIn } from '@jsb188/react/states';
-import i18n from '@jsb188/app/i18n';
+import i18n from '@jsb188/app/i18n/index.ts';
 
 /**
  * Auth gate; loading

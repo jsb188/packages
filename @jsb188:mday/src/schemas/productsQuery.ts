@@ -1,7 +1,7 @@
-import { PRODUCT_TYPES } from '@jsb188/mday/constants/product';
-import type { OrganizationOperationEnum } from '../types/organization.d';
+import { PRODUCT_TYPES } from '@jsb188/mday/constants/product.ts';
+import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 import { z } from 'zod';
-import type { ProductsFilterArgs, ProductTypeEnum } from '../types/product.d';
+import type { ProductsFilterArgs, ProductTypeEnum } from '../types/product.d.ts';
 
 /**
  * Zod schema for query params to filter

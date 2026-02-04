@@ -1,8 +1,8 @@
 import z from 'zod';
-import type { OrganizationOperationEnum } from '../types/organization';
-import type { ReportsFilterArgs } from '../types/report';
+import type { OrganizationOperationEnum } from '../types/organization.d.ts';
+import type { ReportsFilterArgs } from '../types/report.d.ts';
 import { convertDigitToProductType } from './productsQuery';
-import { REPORT_TYPES } from '../constants/report';
+import { REPORT_TYPES } from '../constants/report.ts';
 
 /**
  * Zod schema for query params to filter

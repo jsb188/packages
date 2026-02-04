@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { getTimeBasedUnique } from '@jsb188/app/utils/string';
+import { getTimeBasedUnique } from '@jsb188/app/utils/string.ts';
 import { getENVVariable } from '@jsb188/app';
 
 /**

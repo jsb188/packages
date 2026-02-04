@@ -1,4 +1,4 @@
-import { cn } from '@jsb188/app/utils/string';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, useEffect, useState } from 'react';
 
 /**

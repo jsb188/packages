@@ -1,5 +1,5 @@
-import type { ColorEnum } from '@jsb188/app/types/app.d';
-import { cn } from '@jsb188/app/utils/string';
+import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import React, { memo } from 'react';
 import { Link, type To } from 'react-router';
 import { Icon } from '../svgs/Icon';

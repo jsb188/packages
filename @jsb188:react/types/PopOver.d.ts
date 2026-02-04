@@ -1,4 +1,4 @@
-import type { ColorEnum } from '@jsb188/app/types/app.d';
+import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
 
 /**
  * Utility types

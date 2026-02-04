@@ -1,5 +1,5 @@
-import i18n from '@jsb188/app/i18n';
-import { cn } from '@jsb188/app/utils/string';
+import i18n from '@jsb188/app/i18n/index.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, useCallback, useMemo, useState } from 'react';
 import type { CalendarDayObj, CalendaryDayDesignValue, DayHoverLabel } from '../ui/CalendarUI';
 import { CalendarMonthHeader, CalendarWeekDays, WeekdayLabels } from '../ui/CalendarUI';

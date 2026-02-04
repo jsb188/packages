@@ -1,4 +1,4 @@
-import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d';
+import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d.ts';
 import { useQuery, useReactiveFragment } from '../client';
 import { logEntriesQry, logEvidencesQry } from '../gql/queries/logQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';

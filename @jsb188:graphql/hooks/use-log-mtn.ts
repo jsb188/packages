@@ -1,4 +1,4 @@
-import { checkACLPermission } from '@jsb188/mday/utils/organization';
+import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn } from '@jsb188/react/states';
 import { useMemo } from 'react';

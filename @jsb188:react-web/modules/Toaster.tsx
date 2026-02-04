@@ -2,8 +2,8 @@ import type { ToastObj } from '@jsb188/react/states';
 import { useToastValue } from '@jsb188/react/states';
 import { memo, useEffect, useState } from 'react';
 import { ToasterPreviewContainer, ToastPreviewItem } from '../ui/ToasterUI';
-import { cn } from '@jsb188/app/utils/string';
-// import '@jsb188/mday/utils/route';
+import { cn } from '@jsb188/app/utils/string.ts';
+// import '@jsb188/mday-web/utils/route';
 
 /**
  * Toaster preview

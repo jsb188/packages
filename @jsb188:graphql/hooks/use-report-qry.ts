@@ -1,4 +1,4 @@
-import type { ReportsFilterArgs, ReportsSortEnum } from '@jsb188/mday/types/report.d';
+import type { ReportsFilterArgs, ReportsSortEnum } from '@jsb188/mday/types/report.d.ts';
 import { useQuery, useReactiveFragment } from '../client';
 import { availableReportsQry, reportsQry } from '../gql/queries/reportQueries';
 import type { UseQueryParams } from '../types';

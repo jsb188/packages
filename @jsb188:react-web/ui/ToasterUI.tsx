@@ -1,6 +1,6 @@
 import type { ToastObj } from '@jsb188/react/states';
 import { memo } from 'react';
-import { cn } from '@jsb188/app/utils/string';
+import { cn } from '@jsb188/app/utils/string.ts';
 import './ToasterUI.css';
 
 /**

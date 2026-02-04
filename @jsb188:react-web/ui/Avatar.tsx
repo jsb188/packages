@@ -1,5 +1,5 @@
-import { cn } from '@jsb188/app/utils/string';
-import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
+import { cn } from '@jsb188/app/utils/string.ts';
+import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import React, { createElement, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import { ActivityDots } from './Loading';

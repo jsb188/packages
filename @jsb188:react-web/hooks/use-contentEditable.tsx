@@ -1,4 +1,4 @@
-import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
+import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import type { RefObject } from 'react';
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { getTextFromDOMElement, isTypingKey, pasteTextAtCaret, updateInnerHTMLRepositionCaret } from '../utils/dom';

@@ -1,4 +1,4 @@
-import { cn } from '@jsb188/app/utils/string';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { memo } from 'react';
 import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { Icon } from '../svgs/Icon';

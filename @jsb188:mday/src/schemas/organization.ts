@@ -1,6 +1,6 @@
-import { SUPPORTED_COUNTRIES } from '@jsb188/app/constants/app';
-import i18n from '@jsb188/app/i18n';
-import type { OrganizationGQL } from '../types/organization.d';
+import { SUPPORTED_COUNTRIES } from '@jsb188/app/constants/app.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
+import type { OrganizationGQL } from '../types/organization.d.ts';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 
 /**

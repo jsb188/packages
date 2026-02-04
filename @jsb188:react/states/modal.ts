@@ -1,5 +1,5 @@
-import i18n from '@jsb188/app/i18n';
-import type { ServerErrorObj } from '@jsb188/app/types/app.d';
+import i18n from '@jsb188/app/i18n/index.ts';
+import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { atom, useAtom, useSetAtom } from 'jotai';
 import { useCallback } from 'react';
 

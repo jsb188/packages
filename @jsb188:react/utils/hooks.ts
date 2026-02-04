@@ -1,4 +1,4 @@
-import { areObjectsEqual } from '@jsb188/app/utils/object';
+import { areObjectsEqual } from '@jsb188/app/utils/object.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 /**

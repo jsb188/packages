@@ -1,12 +1,12 @@
-import i18n from '@jsb188/app/i18n';
-import { getCalDate } from '@jsb188/app/utils/datetime';
-import { formatCurrency } from '@jsb188/app/utils/number';
-import { getObject } from '@jsb188/app/utils/object';
-import { textWithBrackets } from '@jsb188/app/utils/string';
-import { getTimeZoneCode } from '@jsb188/app/utils/timeZone';
-import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log';
-import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL, LogTypeEnum } from '../types/log.d';
-import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log';
+import i18n from '@jsb188/app/i18n/index.ts';
+import { getCalDate } from '@jsb188/app/utils/datetime.ts';
+import { formatCurrency } from '@jsb188/app/utils/number.ts';
+import { getObject } from '@jsb188/app/utils/object.ts';
+import { textWithBrackets } from '@jsb188/app/utils/string.ts';
+import { getTimeZoneCode } from '@jsb188/app/utils/timeZone.ts';
+import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log.ts';
+import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL, LogTypeEnum } from '../types/log.d.ts';
+import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log.ts';
 
 /**
  * Get editable values based on activity & type (which is also used to display UI)

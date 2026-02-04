@@ -1,5 +1,5 @@
-import { APP_EMAILS } from '@jsb188/app/constants/app';
-import i18n from '@jsb188/app/i18n';
+import { APP_EMAILS } from '@jsb188/app/constants/app.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { useCheckUsernameOrEmail, useConfirmPhoneVerificationCode, useRequestTokenizedEmail, useSendPhoneVerificationCode, useSignUpWithEmail } from '@jsb188/graphql/hooks/use-auth-mtn';
 import SchemaForm from '@jsb188/react-web/modules/SchemaForm';
 import { FullWidthButton } from '@jsb188/react-web/ui/Button';

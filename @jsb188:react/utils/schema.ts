@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import i18n from '@jsb188/app/i18n';
-import type { FormItemSchemaObj, FormSchemaObj } from '@jsb188/app/types/form.d';
-import { getObject, setObject } from '@jsb188/app/utils/object';
+import i18n from '@jsb188/app/i18n/index.ts';
+import type { FormItemSchemaObj, FormSchemaObj } from '@jsb188/app/types/form.d.ts';
+import { getObject, setObject } from '@jsb188/app/utils/object.ts';
 
 /**
  * Types

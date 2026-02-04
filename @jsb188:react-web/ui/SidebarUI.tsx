@@ -1,4 +1,4 @@
-import { cn } from '@jsb188/app/utils/string';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { getAvatarLetters } from '@jsb188/react-web/ui/Avatar';
 import { MockAvatar, MockText } from '@jsb188/react-web/ui/Loading';
 import { EmojiWrapper } from '@jsb188/react-web/ui/Markdown';

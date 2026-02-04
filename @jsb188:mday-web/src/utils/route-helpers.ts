@@ -1,4 +1,4 @@
-import i18n from '@jsb188/app/i18n';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '../types/organization.d';
 

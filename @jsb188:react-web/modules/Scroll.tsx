@@ -1,4 +1,4 @@
-import { cn } from '@jsb188/app/utils/string';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
 import { memo, useEffect, useRef, useState } from 'react';
 

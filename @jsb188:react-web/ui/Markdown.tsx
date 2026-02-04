@@ -1,11 +1,11 @@
 import { Fragment, memo, useMemo, useState } from 'react';
 
-import { nameToEmoji } from '@jsb188/app/constants/emoji';
-import i18n from '@jsb188/app/i18n';
-import parseEmojiText from '@jsb188/app/utils/emoji';
-import { randomItem } from '@jsb188/app/utils/object';
-import { cn } from '@jsb188/app/utils/string';
-import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
+import { nameToEmoji } from '@jsb188/app/constants/emoji.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
+import parseEmojiText from '@jsb188/app/utils/emoji.ts';
+import { randomItem } from '@jsb188/app/utils/object.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
+import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import type { ReactSpanElement } from '../types/dom.d';
 
 /**

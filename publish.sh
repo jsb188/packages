@@ -9,6 +9,7 @@ directories=(
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:file-browser-plus-web"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:graphql"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:mday"
+  "/Users/saeho/Documents/apps/nebula/packages/@jsb188:mday-web"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:react"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:react-web"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:sse"

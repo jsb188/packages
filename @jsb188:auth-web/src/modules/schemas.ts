@@ -1,5 +1,5 @@
-import i18n from '@jsb188/app/i18n';
-import { isPhone, isEmail, passwordStrength } from '@jsb188/app/utils/string';
+import i18n from '@jsb188/app/i18n/index.ts';
+import { isPhone, isEmail, passwordStrength } from '@jsb188/app/utils/string.ts';
 
 /**
  * Types

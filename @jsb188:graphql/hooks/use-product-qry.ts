@@ -1,5 +1,5 @@
-import { checkACLPermission } from '@jsb188/mday/utils/organization';
-import type { ProductsFilterArgs } from '@jsb188/mday/types/product.d';
+import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
+import type { ProductsFilterArgs } from '@jsb188/mday/types/product.d.ts';
 import { useMemo } from 'react';
 import { useQuery, useReactiveFragment } from '../client';
 import { productAttendanceListQry, productsListQry } from '../gql/queries/productQueries';

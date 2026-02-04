@@ -1,13 +1,13 @@
-import type { AccountObj } from '@jsb188/app/types/account.d';
-import type { ActionTaskGQL, ActionTaskObj } from '@jsb188/mday/types/action.d';
-import type { OrganizationOperationEnum } from '../types/organization.d';
+import type { AccountObj } from '@jsb188/app/types/account.d.ts';
+import type { ActionTaskGQL, ActionTaskObj } from '@jsb188/mday/types/action.d.ts';
+import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 import {
   LOG_ACTION_STATUS_ENUMS,
   LOG_ARABLE_ACTIVITY_ENUMS,
   LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
   LOG_LIVESTOCK_ACTIVITY_ENUMS,
   LOG_SORT_ENUMS
-} from '../constants/log';
+} from '../constants/log.ts';
 
 /**
  * Enums

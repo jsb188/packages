@@ -1,5 +1,5 @@
-import { COLORS } from '@jsb188/app/constants/app';
-import { cn } from '@jsb188/app/utils/string';
+import { COLORS } from '@jsb188/app/constants/app.ts';
+import { cn } from '@jsb188/app/utils/string.ts';
 import { memo } from 'react';
 import { TooltipButton } from '../modules/PopOver';
 import { Icon } from '../svgs/Icon';
