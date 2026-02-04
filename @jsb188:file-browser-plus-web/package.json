@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/file-browser-plus-web",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Flexible file browser module with options for file/page content browsing, for web.",
   "license": "ISC",
   "author": "jsb188",
@@ -9,10 +9,10 @@
     ".": "./src/main.ts"
   },
   "peerDependencies": {
-    "@jsb188/app": "1.1.7",
-    "@jsb188/graphql": "1.1.7",
-    "@jsb188/react": "1.1.7",
-    "@jsb188/react-web": "1.1.7",
+    "@jsb188/app": "1.1.8",
+    "@jsb188/graphql": "1.1.8",
+    "@jsb188/react": "1.1.8",
+    "@jsb188/react-web": "1.1.8",
     "react-router": "^7.8.2",
     "jotai": "^2.13.1",
     "react": "^19.1.1"
