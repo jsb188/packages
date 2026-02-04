@@ -5,7 +5,8 @@ import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { FEATURES_BY_OPERATION } from '../constants/product';
 import type {
-  OrganizationContact,
+  MergedOrgContact,
+  OrgContact,
   OrganizationFeatureEnum,
   OrganizationGQL,
   OrganizationOperationEnum,
@@ -197,7 +198,7 @@ export function getTitleIconsForOrganization(
 
 export function getDefaultOrganizationSettings(
 	timeZone: string | null,
-	contacts?: OrganizationContact[],
+	contacts?: OrgContact[],
 	// do params here for priority service + manage roles
 ): Partial<OrganizationSettingsObj> {
 	const orgSettings: Record<string, any> = {
@@ -230,4 +231,53 @@ export function getOrganizationFeatures(
 	const allowedFeatures = FEATURES_BY_OPERATION[operation] || [];
 	const filteredFeatures = intersection(enabledFeatures || [], allowedFeatures);
 	return filteredFeatures.length ? filteredFeatures : allowedFeatures[0] ? [allowedFeatures[0]] : [];
+}
+
+/**
+ * Merge directory with preferred contacts
+ */
+
+export function mergeOrgDirectory(directory: OrgContact[], preferredContacts?: OrgContact[]): MergedOrgContact[] {
+	if (!preferredContacts?.length) {
+		return directory || [];
+	}
+
+	// Create a map of preferredContacts by department
+	const preferredMap = new Map<string, OrgContact>();
+	for (const contact of preferredContacts) {
+		if (contact.department) {
+			preferredMap.set(contact.department, contact);
+		}
+	}
+
+	// Merge directory with preferred contacts, removing matched entries from map
+	const merged: MergedOrgContact[] = (directory || []).map((dirContact) => {
+		const preferred = preferredMap.get(dirContact.department);
+		preferredMap.delete(dirContact.department);
+
+		return {
+			department: dirContact.department,
+			name: preferred?.name ?? dirContact.name,
+			phoneNumber: preferred?.phoneNumber ?? dirContact.phoneNumber,
+			emailAddress: preferred?.emailAddress ?? dirContact.emailAddress,
+			defaultName: dirContact.name,
+			defaultPhoneNumber: dirContact.phoneNumber,
+			defaultEmailAddress: dirContact.emailAddress,
+		};
+	});
+
+	// Add remaining preferred contacts (not in directory)
+	for (const [, preferred] of preferredMap) {
+		merged.push({
+			department: preferred.department,
+			name: preferred.name,
+			phoneNumber: preferred.phoneNumber,
+			emailAddress: preferred.emailAddress,
+			defaultName: null,
+			defaultPhoneNumber: null,
+			defaultEmailAddress: null,
+		});
+	}
+
+	return merged;
 }

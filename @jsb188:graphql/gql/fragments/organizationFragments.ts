@@ -78,6 +78,13 @@ export const organizationChildFragment = `fragment organizationChildFragment on 
   id
   cursor
   addedAt
+
+  preferredContacts {
+    department
+    name
+    emailAddress
+    phoneNumber
+  }
 }`;
 
 export const organizationInstructionsFragment = `fragment organizationInstructionsFragment on OrganizationInstructions {

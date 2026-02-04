@@ -89,11 +89,18 @@ export interface OrganizationData {
 	activated: boolean;
 }
 
-export interface OrganizationContact {
+export interface OrgContact {
 	department: OrganizationDepartmentEnum;
 	name?: string | null;
 	phoneNumber?: string | null;
 	emailAddress?: string | null;
+}
+
+export interface MergedOrgContact extends OrgContact {
+	department: OrganizationDepartmentEnum;
+	defaultName?: string | null;
+	defaultPhoneNumber?: string | null;
+	defaultEmailAddress?: string | null;
 }
 
 export interface OrganizationSettingsObj {
@@ -101,7 +108,7 @@ export interface OrganizationSettingsObj {
 	language: string | null;
 	color: string | null;
 	priorityService: boolean;
-	directory?: OrganizationContact[];
+	directory?: OrgContact[];
 }
 
 export interface OrganizationChildData {
@@ -158,6 +165,8 @@ export interface OrganizationComplianceGQL {
 }
 
 export interface OrganizationGQL {
+  __deleted?: boolean;
+
 	id: string;
 	stripeCustomerId: string | null;
 	name: string;
@@ -167,12 +176,14 @@ export interface OrganizationGQL {
 	compliance: OrganizationComplianceGQL[] | null;
 	features: OrganizationFeatureEnum[];
 	settings?: OrganizationSettingsObj | null;
-	directory: OrganizationContact[];
+	directory: OrgContact[];
 	activated: boolean;
 	membersCount: number;
 }
 
 export interface OrganizationRelGQL {
+  __deleted?: boolean;
+
 	id: string;
 	primary: boolean;
 	role: OrganizationRoleEnum;
@@ -181,8 +192,12 @@ export interface OrganizationRelGQL {
 }
 
 export interface OrganizationChildGQL {
+  __deleted?: boolean;
+
 	id: string;
+  cursor: string;
 	organization: OrganizationGQL;
+  preferredContacts: OrgContact[];
 	addedAt: Date;
 }
 
