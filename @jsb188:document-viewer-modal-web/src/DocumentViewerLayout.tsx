@@ -217,6 +217,8 @@ export const DocumentViewerLayout = memo((p: {
     }
   }, [selectedFile]);
 
+  // Close modal on pathname change
+
   useEffect(() => {
     if (!firstRenderUrl.current || firstRenderUrl.current === pathname) {
       firstRenderUrl.current = pathname;
@@ -224,6 +226,8 @@ export const DocumentViewerLayout = memo((p: {
     }
     onCloseModal();
   }, [pathname]);
+
+  // Arrow controls
 
   useEffect(() => {
     const { pressed, metaKey } = keyDownValue;
@@ -242,14 +246,18 @@ export const DocumentViewerLayout = memo((p: {
         if (metaKey) {
           return fileItems[0];
         }
-        const prevIndex = currentIndex <= 0 ? fileItems.length - 1 : currentIndex - 1;
-        return fileItems[prevIndex];
+        if (currentIndex <= 0) {
+          return prev;
+        }
+        return fileItems[currentIndex - 1];
       } else {
         if (metaKey) {
           return fileItems[fileItems.length - 1];
         }
-        const nextIndex = currentIndex >= fileItems.length - 1 ? 0 : currentIndex + 1;
-        return fileItems[nextIndex];
+        if (currentIndex >= fileItems.length - 1) {
+          return prev;
+        }
+        return fileItems[currentIndex + 1];
       }
     });
 
