@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
-import i18n from '../i18n';
-import { getObject } from './object';
-import { isValidTimeZone, parseDateInTimezone } from './timeZone';
+import i18n from '../i18n/index.ts';
+import { getObject } from './object.ts';
+import { isValidTimeZone, parseDateInTimezone } from './timeZone.ts';
 
 /**
  * Types

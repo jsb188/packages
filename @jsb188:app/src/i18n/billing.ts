@@ -1,4 +1,4 @@
-import { SOCIAL_URLS } from "../constants/app";
+import { SOCIAL_URLS } from "../constants/app.ts";
 
 // NOTE: Can't use /constants/ here because this file is loaded before all else
 const PerksSubDays = 14;

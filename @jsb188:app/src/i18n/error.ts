@@ -5,7 +5,8 @@ export default {
     network_error_title: 'Network error',
     server_outage_title: 'Service disruption',
     server_outage_msg: 'Our servers are experiencing a disruption or we may be deploying an update. Please try again in a moment.',
-    unknown_error: 'An unknown error occured.',
+    unknown_error: 'Unknown error',
+    unknown_error_msg: 'An unknown error occured.',
     network_error: 'Failed to connect to server.\nPlease try again in a moment.',
     network_error_msg: 'Failed to connect to server. Please check if your\n internet connection is stable.',
     app_error_title: 'App crashed',
@@ -132,7 +133,8 @@ export default {
     30024: 'Stripe customer and payment method was mismatched.',
     30025: 'E-mail server is experiencing an outage. Please try again in a moment.',
     30028: 'You cannot send an empty message.',
-    30031: 'There was an issue while uploading your file.',
+    '30031_title': 'Upload failed',
+    30031: 'There was an issue while uploading your file.\n Please try again in a moment.',
 
     // Form errors
 

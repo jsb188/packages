@@ -1,4 +1,4 @@
-import { STORAGE_INTENT_ENUMS } from '../constants/storage';
+import { STORAGE_INTENT_ENUMS } from '../constants/storage.ts';
 
 /**
  * Enums

@@ -1,6 +1,6 @@
-import i18n from '../i18n/';
-import { getENVVariable } from '../main';
-import type { ServerErrorObj } from '../types/app.d';
+import i18n from '../i18n/index.ts';
+import { getENVVariable } from '../main.ts';
+import type { ServerErrorObj } from '../types/app.d.ts';
 
 let AUTH_TOKEN: string | null = null;
 
@@ -74,13 +74,13 @@ export function normalizeServerError(error?: any): ServerErrorObj {
     if (i18nErrCodeExists(errorCode)) {
       message = i18n.t(`error.${errorCode}`, { value: errorValue, smart_count: Number(errorValue) });
     } else {
-      message = i18n.t('error.unknown_error');
+      message = i18n.t('error.unknown_error_msg');
     }
   }
 
   if (
     getENVVariable('NODE_ENV') === 'development' &&
-    message === i18n.t('error.unknown_error')
+    message === i18n.t('error.unknown_error_msg')
   ) {
     // Log for development so I can see what went wrong
     console.warn(error);

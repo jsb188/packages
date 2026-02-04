@@ -1,5 +1,5 @@
-import i18n from '@jsb188/app/i18n';
-import type { AddressObj } from '../types/other.d';
+import i18n from '../i18n/index.ts';
+import type { AddressObj } from '../types/other.d.ts';
 
 /**
  * Combine list of class names

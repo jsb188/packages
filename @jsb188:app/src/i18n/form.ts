@@ -37,6 +37,7 @@ export default {
     title: 'Title',
     hide: 'Hide',
     show: 'Show',
+    open: 'Open',
     deleted: 'Deleted',
     delete: 'Delete',
     delete_file: 'Delete file',

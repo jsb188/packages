@@ -25,7 +25,7 @@ export function useReports(
   variables: {
     organizationId: string;
     filter: ReportsFilterArgs;
-    sort: ReportsSortEnum;
+    sort?: ReportsSortEnum;
   },
   params: UseQueryParams = {},
 ) {

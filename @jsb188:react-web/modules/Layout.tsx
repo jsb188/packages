@@ -70,12 +70,11 @@ export function AppLayout(p: ReactDivElement & {
         >
           {AsideComponent
           ? <div className='cw lg pr_md h_f'>
-            <div className='gap_50 h_top h_f'>
-              {AsideComponent && (
-                <aside className={cn('app_aside z3 sticky y_scr_hidden max_h_toolbar_screen')}>
-                  {AsideComponent}
-                </aside>
-              )}
+            <div className='w_app_side h_top h_f'>
+              {AsideComponent &&
+              <aside className='app_aside z3 y_scr_hidden'>
+                {AsideComponent}
+              </aside>}
 
               <div className='f max_w_850 cw h_f'>
                 {children}
@@ -498,7 +497,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
   if (p.message) {
     message = p.message;
   } else {
-    message = i18n.t('error.unknown_error');
+    message = i18n.t('error.unknown_error_msg');
   }
 
   let containerClassName, titleClassName, messageClassName, buttonClassName, buttonPreset;
@@ -777,7 +776,7 @@ export const AsideNavList = memo((p: AsideNavProps) => {
           </span>}
         </div>
         {rightIconName
-        ? <div className={cn('h_item pr_20')}>
+        ? <div className='h_item pr_20'>
           <span className={addEllipsis ? 'ellip' : undefined}>
             {text}
           </span>
@@ -785,7 +784,7 @@ export const AsideNavList = memo((p: AsideNavProps) => {
             <Icon name={rightIconName} />
           </span>
         </div>
-        : <div className='ellip'>
+        : <div className={addEllipsis ? 'ellip' : undefined}>
           {text}
         </div>}
       </SmartLink>;

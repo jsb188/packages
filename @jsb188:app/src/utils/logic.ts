@@ -1,4 +1,4 @@
-import { sortObjectByKeys, stringifyJSON } from './object';
+import { sortObjectByKeys, stringifyJSON } from './object.ts';
 
 /**
  * Types

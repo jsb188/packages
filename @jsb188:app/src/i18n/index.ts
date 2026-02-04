@@ -1,19 +1,19 @@
 import Polyglot from 'node-polyglot';
 import type NodePolyglot from '../types.d.ts'
 
-import account from './account';
-import ai_agent from './ai_agent';
-import app from './app';
-import auth from './auth';
-import billing from './billing';
-import country from './country';
-import datetime from './datetime';
-import error from './error';
-import form from './form';
-import log from './log';
-import message from './message';
-import org from './org';
-import product from './product';
+import account from './account.ts';
+import ai_agent from './ai_agent.ts';
+import app from './app.ts';
+import auth from './auth.ts';
+import billing from './billing.ts';
+import country from './country.ts';
+import datetime from './datetime.ts';
+import error from './error.ts';
+import form from './form.ts';
+import log from './log.ts';
+import message from './message.ts';
+import org from './org.ts';
+import product from './product.ts';
 
 export const i18nTranslations = {
   account,

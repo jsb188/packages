@@ -211,7 +211,7 @@ class ModalPopUp extends ModalScreen {
         id: `gql-${errorCode}`,
         iconName: error.iconName || defIconName,
         title: error.title || defTitle || i18n.t('error.error'),
-        message: error.message || defMessage || i18n.t('error.unknown_error'),
+        message: error.message || defMessage || i18n.t('error.unknown_error_msg'),
         ...values,
       };
     }

@@ -8,4 +8,7 @@ export const storageFileFragment = `fragment storageFileFragment on StorageFile 
   name
   description
   aiNote
+
+  # client-side required fields
+  uploadStatus
 }`;

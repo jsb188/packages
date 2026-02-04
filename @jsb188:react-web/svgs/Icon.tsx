@@ -69,7 +69,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   chat: 'message',
   click: 'click',
   close: 'x',
-  close_small: 'x-filled',
+  close_thick: 'x-filled',
   copied: 'copy-check',
   daily: 'clock-share',
   description: 'notes',

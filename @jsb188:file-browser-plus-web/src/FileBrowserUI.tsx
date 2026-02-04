@@ -28,6 +28,7 @@ export const FileBrowserItemUI = memo((p: {
   domId?: string;
   name: string;
   contentType: string;
+  errored?: boolean;
   deleted?: boolean;
   disabled?: boolean;
   uploading?: boolean;
@@ -38,7 +39,7 @@ export const FileBrowserItemUI = memo((p: {
   onClick?: () => void;
   onClickDelete?: () => void;
 }) => {
-  const { domId, name, contentType, deleted, disabled, uploading, iconName, rightText, rightTextClassName, dateText, onClick, onClickDelete } = p;
+  const { domId, name, contentType, errored, deleted, disabled, uploading, iconName, rightText, rightTextClassName, dateText, onClick, onClickDelete } = p;
 
   const onDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -55,28 +56,28 @@ export const FileBrowserItemUI = memo((p: {
     )}
   >
     <div className={cn('h_item', disabled ? 'cl_md' : '')}>
-      <span className='mr_10'>
+      <span className='mr_10 f_shrink'>
         <FileTypeIcon
           iconName={iconName}
           contentType={contentType}
           fileName={name}
         />
       </span>
-      <span className={cn('shift_down', deleted && 'strikethrough')}>
+      <span className={cn('ellip', deleted && 'strikethrough')}>
         {name}
       </span>
     </div>
 
-    <div className={cn('h_right gap_5', deleted ? 'cl_lt' : 'cl_md')}>
-			<span className={cn('ft_xs', rightTextClassName)}>
-				{deleted ? i18n.t('form.deleted') : (rightText || dateText)}
+    <div className={cn('h_right gap_5 f_shrink ml_sm', deleted ? 'cl_lt' : errored ? 'cl_err' : 'cl_md')}>
+			<span className={cn('ft_xs f_shrink', errored ? 'cl_err' : rightTextClassName)}>
+				{deleted ? i18n.t('form.deleted') : errored ? i18n.t('error.error') : (rightText || dateText)}
 			</span>
       <button
         disabled={deleted || uploading}
         className={cn('px_5 non_link', !deleted && !uploading && 'link cl_err_hv')}
         onClick={deleted || uploading ? undefined : onDelete}
       >
-        <Icon name={uploading ? COMMON_ICON_NAMES.progress : COMMON_ICON_NAMES.delete} />
+        <Icon name={errored ? COMMON_ICON_NAMES.alert_error : uploading ? COMMON_ICON_NAMES.progress : COMMON_ICON_NAMES.delete} />
       </button>
     </div>
   </div>;

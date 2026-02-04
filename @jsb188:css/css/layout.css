@@ -70,13 +70,22 @@ body.p_auth {
   max-width: 1440px;
 }
 
-.cw.full, .mw.full {
+.cw.full, .mw.full, .mw.max {
   flex: 1;
   max-height: 100%;
 }
 
-.cw.full .cw, .mw.full .cw {
+.cw.full .cw, .mw.full .cw, .mw.max .cw {
   max-height: 100%;
+}
+
+/* Max size modals */
+
+.mw.max {
+  background: radial-gradient(ellipse at center, rgba(var(--color-bg-alt), .9) 50%, rgba(var(--color-bg-alt), 0) 100%);
+  background: radial-gradient(ellipse at center, rgba(var(--color-bg-active), .9) 50%, rgba(var(--color-bg-active), 0) 100%);
+  background: radial-gradient(ellipse at center, rgba(var(--color-bg-medium), .9) 50%, rgba(var(--color-bg-medium), 0) 100%);
+  background: radial-gradient(ellipse at center, rgba(var(--color-bg-strong), .9) 50%, rgba(var(--color-bg-strong), 0) 100%);
 }
 
 /* Sidebar */
@@ -87,9 +96,16 @@ body.p_auth {
 
 /* Content with right <aside /> sticky sidebar */
 
+.w_app_side {
+  padding-left: calc(var(--aside-wt) + 30px);
+}
+
 .app_aside {
+  position: absolute;
   width: var(--aside-wt);
-  top: 0;
+  padding-right: 20px;
+  max-height: calc(100vh - var(--toolbar-ht));
+  top: var(--toolbar-ht); left: 0;
 }
 
 /* Floating message */

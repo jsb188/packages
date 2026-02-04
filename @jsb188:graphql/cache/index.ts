@@ -144,7 +144,7 @@ export function loadFragment(id: string) {
     return fragment;
   }
 
-  // const isTest = id.startsWith('$logEntryFragment:9479647167133727') && false;
+  // const isTest = id.startsWith('$reportFragment:3789505824043091-4255281447699102-3789105884863193');
   // if (isTest) {
   //   ..
   // }
@@ -155,8 +155,12 @@ export function loadFragment(id: string) {
     if (Object.prototype.hasOwnProperty.call(spreads, key)) {
       const spreadValue = spreads[key];
 
+      // if (isInnerTest) {
+      //   console.log('SPREAD:', key, '->', spreadValue, typeof spreadValue);
+      // }
+
       // if (isTest) {
-      //   console.log('SPREAD:', key, '->', spreadValue);
+      //   console.log('SPREAD:', key, '->', spreadValue, typeof spreadValue);
       // }
 
       let spreadData;
@@ -164,10 +168,16 @@ export function loadFragment(id: string) {
         spreadData = enforceArrayType(FRAGMENTS.get(spreadValue));
       } else if (Array.isArray(spreadValue)) {
         spreadData = spreadValue.reduce((acc, value) => {
+
+          // if (isTest) {
+          //   console.log('????', value);
+          // }
+
+
           if (typeof value === 'string') {
             const fragmentData = enforceArrayType(FRAGMENTS.get(value));
 
-            // if (isTest && key === 'details') {
+            // if (isTest) {
             //   console.log('1:', value, fragmentData);
             // }
 
@@ -177,8 +187,6 @@ export function loadFragment(id: string) {
             };
           } else if (Array.isArray(value)) {
             const [namespace, innerValue] = value;
-            // console.log('2:', namespace, value);
-
             return {
               ...acc,
               [namespace]: innerValue,
@@ -190,13 +198,29 @@ export function loadFragment(id: string) {
       } else if (spreadValue?.__list === true) {
         spreadData = spreadValue.data.map((val: any) => {
 
+          // if (isTest) {
+          //   console.log('>>> VAL:', val);
+          // }
+
           // NOTE: I haven't fully finished this work,
           // but it should work for most cases.
 
           if (typeof val === 'string') {
             return loadFragment(val);
           } else if (Array.isArray(val) && typeof val[0] === 'string' && val[0].startsWith('$')) {
-            return loadFragment(val[0]);
+            const [innerFragmentKey, ...restInner] = val;
+            const innerFragment = loadFragment(innerFragmentKey);
+
+            if (innerFragment) {
+              for (const ri of restInner) {
+                if (Array.isArray(ri) && ri.length === 2) {
+                  // ri[0] === 'files' && ri[1].length === 1 && console.log(ri);
+                  // innerFragment[ri[0]] = ri[1];
+                }
+              }
+            }
+
+            return innerFragment;
           }
 
           // Unfinished work
@@ -264,8 +288,13 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       // Because partials might have data that's not in the main fragment
       const currentData = loadFragment(fragmentKey);
 
-      // if (fragmentKey.startsWith('$accountFragment:')) {
-      //   console.log('>>>>', fragmentKey);
+      // console.log(fragmentKey);
+      // if (fragmentKey.startsWith('$reportFragment:3789505824043091-4255281447699102-3789105884863193')) {
+      //   console.log('>>>>');
+      //   console.log('>>>>');
+      //   console.log('>>>>');
+      //   console.log('>>>>');
+      //   console.log(currentData);
       //   console.log(data);
       //   console.log(extractFragment(data, innerSelections));
       // }
@@ -343,6 +372,15 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
             // Whether fragment is partial or not, always merge data;
             // Because partials might have data that's not in the main fragment
             const currentData = loadFragment(fragmentKey);
+
+            // if (fragmentKey.startsWith('$reportFragment:3789505824043091-4255281447699102-3789105884863193')) {
+            //   console.log('>>>>');
+            //   console.log('>>>>');
+            //   console.log('>>>>');
+            //   console.log('>>>>');
+            //   console.log(currentData);
+            //   console.log(data);
+            // }
 
             // console.log('>>>>', fragmentKey);
             FRAGMENTS.set(fragmentKey, mergeNestedObjects(currentData, extractFragment(data, selections)));
@@ -578,6 +616,21 @@ export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
               if (Array.isArray(d)) {
                 if (d.length === 1 && d?.[0]?.startsWith('$')) {
                   mapCacheId = d[0];
+                } else if (Array.isArray(d[1])) {
+                  // Use __reactiveFragmentName to make client-side data up to date
+                  item[d[0]] = d[1].map(dr => {
+                    if (dr.__reactiveFragmentName) {
+                      const crFKey = `${dr.__reactiveFragmentName}:${dr.id}`;
+                      return FRAGMENTS.get(crFKey) || dr;
+                    }
+                    return dr;
+                  });
+                  return;
+                } else if (d[1]?.__reactiveFragmentName) {
+                  // Use __reactiveFragmentName to make client-side data up to date
+                  const clientReactiveFragmentKey = `${d[1].__reactiveFragmentName}:${d[1].id}`;
+                  item[d[0]] = FRAGMENTS.get(clientReactiveFragmentKey) || d[1];
+                  return;
                 } else {
                   item[d[0]] = d[1];
                   return;
@@ -605,7 +658,6 @@ export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
               }
 
               const cachedFragment = loadFragment(fragmentKey);
-
               if (cachedFragment) {
                 item = {
                   ...item,
@@ -789,6 +841,15 @@ export function loadDataFromCache(
         } else if (eagerFragmentKeyMap?.[qryName]) {
           const fragmentKey = eagerFragmentKeyMap[qryName];
           const cachedFragment = loadFragment(fragmentKey);
+
+          // if (fragmentKey.startsWith('$reportFragment:3789505824043091-4255281447699102-3789105884863193')) {
+          //   console.log('>>>>');
+          //   console.log('>>>>');
+          //   console.log('>>>>');
+          //   console.log('>>>>');
+          //   console.log(cachedFragment);
+          //   console.log(data);
+          // }
 
           if (cachedFragment) {
             data[qryName] = cachedFragment;
@@ -999,13 +1060,13 @@ export function updateFragment(
       updateObj = update;
     }
 
-    const updatedObj = { ...cache, ...updateObj };
+    const newUpdatedObj = { ...cache, ...updateObj };
 
-    FRAGMENTS.set(updateFragmentKey, updatedObj);
-    console.dev('✅ FRAGMENT UPDATED ->', updateFragmentKey, updatedObj);
+    FRAGMENTS.set(updateFragmentKey, newUpdatedObj);
+    console.dev('✅ FRAGMENT UPDATED ->', updateFragmentKey, newUpdatedObj);
 
     if (replacementFragmentKey && replacementFragmentKey !== updateFragmentKey) {
-      FRAGMENTS.set(replacementFragmentKey, updatedObj);
+      FRAGMENTS.set(replacementFragmentKey, newUpdatedObj);
     }
 
     if (!doNotTriggerObserver && updateObservers) {
@@ -1047,10 +1108,10 @@ export function updateQuery(
       updateObj = update;
     }
 
-    const updatedObj = Array.isArray(updateObj) ? updateObj : { ...cache, ...updateObj };
+    const newUpdatedObj = Array.isArray(updateObj) ? updateObj : { ...cache, ...updateObj };
 
     // console.log('UPDATING (3):', updateObj);
-    QUERIES.set(queryId, updatedObj);
+    QUERIES.set(queryId, newUpdatedObj);
 
     if (!doNotTriggerObserver && updateObservers) {
       updateObservers({

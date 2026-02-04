@@ -1,4 +1,4 @@
-import { SUBSCRIPTION_CATALOG, SUBSCRIPTION_CATALOG_TEST } from '../constants/billing';
+import { SUBSCRIPTION_CATALOG, SUBSCRIPTION_CATALOG_TEST } from '../constants/billing.ts';
 
 /**
  * Types

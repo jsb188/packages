@@ -1,4 +1,4 @@
-import { COLORS } from '../constants/app';
+import { COLORS } from '../constants/app.ts';
 
 // Modal; App settings
 

@@ -54,6 +54,7 @@ const FileBrowserItem = memo((p: {
     deleted={__deleted}
     disabled={disabled}
     uploading={uploading}
+    errored={uploadStatus === 'ERROR'}
     iconName={iconName}
     rightText={uploading ? (progress ? `${progress}%` : i18n.t('form.uploading_')) : rightText}
     rightTextClassName={uploading ? 'cl_pass' : undefined}
@@ -187,10 +188,10 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
     >
       <div className='h_item py_8'>
         {iconName && !isSubtitle &&
-        <span className='mr_10'>
+        <span className='mr_10 f_shrink'>
           <Icon name={iconName} />
         </span>}
-        <span className={cn('shift_down', isSubtitle && 'ft_xs ft_semibold cl_lt')}>
+        <span className={cn('ellip', isSubtitle && 'ft_xs ft_semibold cl_lt')}>
           {title}
         </span>
       </div>
@@ -393,7 +394,6 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
   // console.log('>> uploadInProgress:', uploadInProgress);
 
   const onPickFile = async (file: File, folderIndex: number) => {
-
     if (file.size > maxFileSize) {
       openModalPopUp(null, {
         statusCode: 400,
@@ -408,6 +408,7 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
     const temporaryId = `uploading-${Date.now()}-${Math.round(Math.random() * 1000)}`;
 
     let uploadObj = {
+      __reactiveFragmentName: '$storageFileFragment',
       id: temporaryId, // Temporary, and will be updated via WS later
       name: file.name,
       uri: undefined,
@@ -463,14 +464,22 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
       if (removeProgressAfterUpload) {
         removeUploadProgress(fileUri);
       }
-      updateFragment(`$storageFileFragment:${uploadObj.id}`, {...uploadObj, uploadStatus: 'ERROR' }, null, false, updateObservers);
+      updateFragment(`$storageFileFragment:${uploadObj.id}`, uploadObj, null, false, updateObservers);
+      // updateFragment(`$storageFileFragment:${temporaryId}`, {...uploadObj, uploadStatus: null}, null, false, updateObservers);
     } catch (err) {
       console.error('File upload failed:', err);
       if (!mounted.current) return;
       if (removeProgressAfterUpload) {
         removeUploadProgress(fileUri);
       }
-      updateFragment(`$storageFileFragment:${uploadObj.id}`, {...uploadObj, uploadStatus: null }, null, false, updateObservers);
+      updateFragment(`$storageFileFragment:${uploadObj.id}`, {...uploadObj, uploadStatus: 'ERROR' }, null, false, updateObservers);
+
+      openModalPopUp(null, {
+        statusCode: 400,
+        errorCode: '30031',
+        title: i18n.t('error.30031_title'),
+        message: i18n.t('error.30031'),
+      });
     }
   };
 

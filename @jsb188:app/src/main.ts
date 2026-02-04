@@ -1,4 +1,4 @@
-import i18n, { i18nTranslations } from './i18n/';
+import i18n, { i18nTranslations } from './i18n/index.ts';
 
 // Get the correct type for ENV
 let ENV: Map<string, string | boolean | number> = new Map();

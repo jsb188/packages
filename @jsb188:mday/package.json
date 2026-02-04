@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/mday",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Functions and constants for Marketday app only.",
   "license": "ISC",
   "author": "jsb188",
@@ -29,7 +29,7 @@
     "zod": "^3.25.67"
   },
   "peerDependencies": {
-    "@jsb188/app": "1.1.6"
+    "@jsb188/app": "1.1.7"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

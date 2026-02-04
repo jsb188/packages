@@ -125,7 +125,7 @@ export function useSchema(
               firstError = typeof error === 'function' ? error(value) : error;
             } else {
               firstError = {
-                message: i18n.t('error.unknown_error'),
+                message: i18n.t('error.unknown_error_msg'),
               };
             }
           }

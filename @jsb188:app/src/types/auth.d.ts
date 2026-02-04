@@ -1,4 +1,4 @@
-import type { OrganizationShortData } from './organization.d';
+import type { OrganizationShortData } from './organization.d.ts';
 
 /**
  * Auth enums
