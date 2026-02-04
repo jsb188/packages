@@ -66,12 +66,12 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
   '/app': {
     to: '/app',
-    text: i18n.t('app.home'),
+    text: 'app.home',
   },
 
   '/app/c/': {
     to: '/app/c/',
-    text: i18n.t('app.route_ai_chat'),
+    text: 'app.route_ai_chat',
     iconName: COMMON_ICON_NAMES.chat,
 
     hasPhysicalToolbar: 'ALWAYS',
@@ -82,13 +82,13 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
   '/app/ai-workflows': {
     to: '/app/ai-workflows',
-    text: i18n.t('form.ai_workflows'),
+    text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
   },
 
   '/app/logs': {
     to: '/app/logs',
-    text: i18n.t('log.all_logs'),
+    text: 'log.all_logs',
     iconName: COMMON_ICON_NAMES.logs,
     notAllowedOperations: ['GROWER_NETWORK'], // Temporary for now
   },
@@ -97,7 +97,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
   '/app/seeding': {
     to: '/app/seeding',
-    text: i18n.t('log.seeding'),
+    text: 'log.seeding',
     iconName: COMMON_ICON_NAMES.seeding,
 
     allowedOperations: ['ARABLE'],
@@ -105,7 +105,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/transplanting': {
     to: '/app/transplanting',
-    text: i18n.t('log.transplanting'),
+    text: 'log.transplanting',
     iconName: COMMON_ICON_NAMES.transplanting,
 
     allowedOperations: ['ARABLE'],
@@ -113,7 +113,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/field-work': {
     to: '/app/field-work',
-    text: i18n.t('log.field_work'),
+    text: 'log.field_work',
     iconName: COMMON_ICON_NAMES.field_work,
 
     allowedOperations: ['ARABLE'],
@@ -121,7 +121,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/harvested': {
     to: '/app/harvested',
-    text: i18n.t('log.harvested'),
+    text: 'log.harvested',
     iconName: COMMON_ICON_NAMES.harvest,
 
     allowedOperations: ['ARABLE'],
@@ -129,7 +129,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/post-harvest': {
     to: '/app/post-harvest',
-    text: i18n.t('log.post_harvest'),
+    text: 'log.post_harvest',
     iconName: COMMON_ICON_NAMES.post_harvest,
 
     allowedOperations: ['ARABLE'],
@@ -137,7 +137,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/purchases': {
     to: '/app/purchases',
-    text: i18n.t('log.purchases'),
+    text: 'log.purchases',
     iconName: COMMON_ICON_NAMES.invoice,
 
     allowedOperations: OP_FARMING,
@@ -145,7 +145,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/orders': {
     to: '/app/orders',
-    text: i18n.t('form.sales_orders'),
+    text: 'form.sales_orders',
     iconName: COMMON_ICON_NAMES.receipt,
 
     allowedOperations: OP_FARMING,
@@ -156,7 +156,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
   '/app/globalgap/': {
     to: ('/app/globalgap/' + CURRENT_YEAR) as ValidRoutePath,
-    text: i18n.t('product.report.GLOBAL_GAP'),
+    text: 'product.report.GLOBAL_GAP',
     iconName: COMMON_ICON_NAMES.generic_report,
 
     allowedOperations: OP_FARMING,
@@ -167,7 +167,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/cleaning': {
     to: '/app/cleaning',
-    text: i18n.t('product.report.CLEANING'),
+    text: 'product.report.CLEANING',
     iconName: COMMON_ICON_NAMES.SANITATION,
 
     allowedOperations: OP_FARMING,
@@ -175,7 +175,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/organic': {
     to: '/app/organic',
-    text: i18n.t('product.report.ORGANIC_CERTIFICATION'),
+    text: 'product.report.ORGANIC_CERTIFICATION',
     iconName: COMMON_ICON_NAMES.generic_report,
 
     allowedOperations: OP_FARMING,
@@ -190,7 +190,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
   '/app/hygiene': {
     to: '/app/hygiene',
-    text: i18n.t('log.hygiene'),
+    text: 'log.hygiene',
     iconName: COMMON_ICON_NAMES.HYGIENE,
 
     allowedOperations: OP_FARMING,
@@ -198,7 +198,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/sanitation': {
     to: '/app/sanitation',
-    text: i18n.t('log.sanitation'),
+    text: 'log.sanitation',
     iconName: COMMON_ICON_NAMES.SANITATION,
 
     allowedOperations: OP_FARMING,
@@ -206,7 +206,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/materials': {
     to: '/app/materials',
-    text: i18n.t('log.materials'),
+    text: 'log.materials',
     iconName: COMMON_ICON_NAMES.MATERIALS,
 
     allowedOperations: OP_FARMING,
@@ -214,7 +214,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/biosecurity': {
     to: '/app/biosecurity',
-    text: i18n.t('log.biosecurity'),
+    text: 'log.biosecurity',
     iconName: COMMON_ICON_NAMES.BIOSECURITY,
 
     allowedOperations: OP_FARMING,
@@ -222,7 +222,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/employees': {
     to: '/app/employees',
-    text: i18n.t('log.employees'),
+    text: 'log.employees',
     iconName: COMMON_ICON_NAMES.EMPLOYEES,
 
     allowedOperations: OP_FARMING,
@@ -232,7 +232,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   // Farmers Market
   '/app/vendors': {
     to: '/app/vendors',
-    text: i18n.t('form.vendors'),
+    text: 'form.vendors',
     iconName: COMMON_ICON_NAMES.shop_vendor,
 
     allowedOperations: ['FARMERS_MARKET'],
@@ -240,7 +240,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/markets': {
     to: '/app/markets',
-    text: i18n.t('form.markets'),
+    text: 'form.markets',
     iconName: COMMON_ICON_NAMES.shop_market,
 
     allowedOperations: ['FARMERS_MARKET'],
@@ -248,7 +248,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/receipts': {
     to: ('/app/receipts?s=1') as ValidRoutePath,
-    text: i18n.t('form.market_receipts'),
+    text: 'form.market_receipts',
     iconName: COMMON_ICON_NAMES.market_receipt,
 
     allowedOperations: ['FARMERS_MARKET'],
@@ -258,7 +258,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   // Livestock
   '/app/livestock': {
     to: '/app/livestock',
-    text: i18n.t('form.livestock'),
+    text: 'form.livestock',
     iconName: COMMON_ICON_NAMES.livestock,
 
     allowedOperations: ['LIVESTOCK'],
@@ -268,14 +268,14 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   // Grower Network
   '/app/growers': {
     to: '/app/growers',
-    text: i18n.t('form.domestic_growers'),
+    text: 'form.domestic_growers',
     iconName: COMMON_ICON_NAMES.growers,
 
     allowedOperations: ['GROWER_NETWORK'],
   },
   '/app/foreign-growers': {
     to: '/app/foreign-growers',
-    text: i18n.t('form.foreign_growers'),
+    text: 'form.foreign_growers',
     iconName: COMMON_ICON_NAMES.foreign_growers,
 
     allowedOperations: ['GROWER_NETWORK'],
@@ -365,6 +365,7 @@ export function getRouteConfigs(
 
       return {
         ...routeDict,
+        text: i18n.t(routeDict.text),
         routeName: routeName as ValidRoutePath,
         scrollResetKey,
         allowed: isRouteAllowed(pathname, operation, orgFeatures),
@@ -421,6 +422,17 @@ export function isRouteAllowed(
     // If {orgFeature} is null, assume data is not finished loading yet, and allow "benefit of doubt" access
     (!orgFeatures || !routeDict.requiredFeature || routeDict.requiredFeature.some((feature) => orgFeatures.includes(feature)))
   );
+}
+
+/**
+ * Helper; because i18n isn't registered when this file opens, we gotta do this
+ */
+
+function routesDictI18n(routeDictObj: RouteDictObj) {
+  return {
+    ...routeDictObj,
+    text: i18n.t(routeDictObj.text),
+  };
 }
 
 /**
@@ -564,6 +576,9 @@ export function getNavigationList(
           mappedItem &&
           (mappedItem.to || (acc.length && i !== (item.navList.length - 1)))
         ) {
+          if (mappedItem.text && i18n.has(mappedItem.text)) {
+            mappedItem.text = i18n.t(mappedItem.text);
+          }
           acc.push(mappedItem);
         }
         return acc;
@@ -574,6 +589,10 @@ export function getNavigationList(
       }
     } else if (item?.to && !isRouteAllowed(item.to, operation, orgFeatures)) {
       return null;
+    }
+
+    if (item?.text && i18n.has(item.text)) {
+      item.text = i18n.t(item.text);
     }
 
     return item;
