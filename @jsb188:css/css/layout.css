@@ -82,10 +82,10 @@ body.p_auth {
 /* Max size modals */
 
 .mw.max {
-  background: radial-gradient(ellipse at center, rgba(var(--color-bg-alt), .9) 50%, rgba(var(--color-bg-alt), 0) 100%);
-  background: radial-gradient(ellipse at center, rgba(var(--color-bg-active), .9) 50%, rgba(var(--color-bg-active), 0) 100%);
-  background: radial-gradient(ellipse at center, rgba(var(--color-bg-medium), .9) 50%, rgba(var(--color-bg-medium), 0) 100%);
-  background: radial-gradient(ellipse at center, rgba(var(--color-bg-strong), .9) 50%, rgba(var(--color-bg-strong), 0) 100%);
+  background: radial-gradient(ellipse at center, rgba(var(--color-bg-alt), .7) 50%, rgba(var(--color-bg-alt), 0) 100%);
+  /* background: radial-gradient(ellipse at center, rgba(var(--color-bg-active), .9) 50%, rgba(var(--color-bg-active), 0) 100%); */
+  /* background: radial-gradient(ellipse at center, rgba(var(--color-bg-medium), .9) 50%, rgba(var(--color-bg-medium), 0) 100%); */
+  /* background: radial-gradient(ellipse at center, rgba(var(--color-bg-strong), .9) 50%, rgba(var(--color-bg-strong), 0) 100%); */
 }
 
 /* Sidebar */

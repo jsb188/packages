@@ -3,6 +3,7 @@ import type { StorageGQL } from '@jsb188/app/types/storage.d';
 import { cn } from '@jsb188/app/utils/string';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
 import { COMMON_ICON_NAMES, FileTypeIcon, Icon } from '@jsb188/react-web/svgs/Icon';
+import { useKeyDown } from '@jsb188/react/states';
 import { memo, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 
@@ -145,16 +146,20 @@ const DocumentViewerArea = memo((p: {
       );
 
     default:
-      return (
-        <div className='f_center h_100p'>
-          <span className='cl_lt'>
-            {i18n.t('form.unsupported_file_type')}
-          </span>
-        </div>
-      );
   }
 
-  return 'Unknown file type';
+  return (
+    <div className='abs_full v_center ic_xxxl'>
+      <div className='v_center bg px_md py_lg r_md'>
+        <div className='pt_sm'>
+          <FileTypeIcon contentType={contentType} fileName={fileName} />
+        </div>
+        <p className='mt_md ellip w_250 a_c pb_df ft_md'>
+          {fileName}
+        </p>
+      </div>
+    </div>
+  );
 });
 
 DocumentViewerArea.displayName = 'DocumentViewerArea';
@@ -192,6 +197,7 @@ export const DocumentViewerLayout = memo((p: {
   const { pathname } = useLocation();
   const navRef = useRef<HTMLDivElement | null>(null);
   const firstRenderUrl = useRef<string | null>(null);
+  const [keyDownValue, setKeyDown] = useKeyDown();
 
   const [selectedFile, setSelectedFile] = useState<DVItemFile | null>(() => {
     if (initialFileId) {
@@ -218,6 +224,38 @@ export const DocumentViewerLayout = memo((p: {
     }
     onCloseModal();
   }, [pathname]);
+
+  useEffect(() => {
+    const { pressed, metaKey } = keyDownValue;
+    if (!pressed) return;
+    if (pressed !== 'ArrowDown' && pressed !== 'ArrowUp') return;
+
+    const fileItems = documentsList.filter((item): item is DVItemFile => 'file' in item);
+    if (!fileItems.length) return;
+
+    setSelectedFile(prev => {
+      const currentIndex = prev
+        ? fileItems.findIndex(item => item.id === prev.id)
+        : -1;
+
+      if (pressed === 'ArrowUp') {
+        if (metaKey) {
+          return fileItems[0];
+        }
+        const prevIndex = currentIndex <= 0 ? fileItems.length - 1 : currentIndex - 1;
+        return fileItems[prevIndex];
+      } else {
+        if (metaKey) {
+          return fileItems[fileItems.length - 1];
+        }
+        const nextIndex = currentIndex >= fileItems.length - 1 ? 0 : currentIndex + 1;
+        return fileItems[nextIndex];
+      }
+    });
+
+    setKeyDown({ pressed: null });
+  }, [keyDownValue.pressed]);
+
 
   return (
     <div className='h_spread'>

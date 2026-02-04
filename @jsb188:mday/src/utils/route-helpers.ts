@@ -365,7 +365,7 @@ export function getRouteConfigs(
 
       return {
         ...routeDict,
-        text: i18n.t(routeDict.text),
+        text: i18n.has(routeDict.text) ? i18n.t(routeDict.text) : routeDict.text,
         routeName: routeName as ValidRoutePath,
         scrollResetKey,
         allowed: isRouteAllowed(pathname, operation, orgFeatures),
