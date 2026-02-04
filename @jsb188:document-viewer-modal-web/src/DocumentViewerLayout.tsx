@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n';
 import type { StorageGQL } from '@jsb188/app/types/storage.d';
 import { cn } from '@jsb188/app/utils/string';
-import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
+import { makeUploadsUrl } from '@jsb188/app/utils/url_client';
 import { COMMON_ICON_NAMES, FileTypeIcon, Icon } from '@jsb188/react-web/svgs/Icon';
 import { memo, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
@@ -59,19 +59,25 @@ const DVNavItem = memo((p: {
   item: DVItem;
   selected: boolean;
   setSelectedFile: (file: DVItemFile | null) => void;
+  onCloseModal: () => void;
 }) => {
-  const { item, selected, setSelectedFile } = p;
+  const { item, selected, setSelectedFile, onCloseModal } = p;
+  const { isSubtitle } = item as DVItemSubtitle;
 
-  if ('isSubtitle' in item) {
-    const { text, isEmpty, iconName, pathname } = item;
+  if (isSubtitle) {
+    const { text, isEmpty, iconName, pathname } = item as DVItemSubtitle;
     return (
       <div className={cn('px_10 py_4 h_spread hv_area', isEmpty ? 'cl_lt' : '')}>
-        <div className='h_item gap_xs ic_sm ft_medium'>
+        <div className='h_item gap_xs ic_sm'>
           {iconName && <Icon name={iconName} />}
           {text}
         </div>
 
-        <Link to={pathname} className='target op_0 anim_inner gap_3 h_right link cl_primary'>
+        <Link
+          to={pathname}
+          onClick={onCloseModal}
+          className='target op_0 anim_inner gap_3 h_right link cl_primary'
+        >
           {i18n.t('form.open')}
           <Icon name='external-link' />
         </Link>
@@ -79,13 +85,14 @@ const DVNavItem = memo((p: {
     );
   }
 
-  const { file } = item;
+  const { file } = item as DVItemFile;
+
   return (
     <div
       role='button'
       data-file-id={file.id}
       className={cn('px_6 py_4 h_item gap_xs ic_sm link bd_l_4', selected ? 'bd_primary' : 'bd_invis')}
-      onClick={() => setSelectedFile(item)}
+      onClick={() => setSelectedFile(item as DVItemFile)}
     >
       <span className='f_shrink'>
         <FileTypeIcon contentType={file.contentType} fileName={file.name} />
@@ -111,47 +118,43 @@ const DocumentViewerArea = memo((p: {
   }
 
   const { uri, contentType } = file;
+  const fileName = file.name || uri;
+  const fileUrl = makeUploadsUrl(uri);
 
-  const renderContent = () => {
-    switch (contentType) {
-      case 'application/pdf':
-        return (
-          <iframe
-            src={`${uri}#toolbar=0&navpanes=0&scrollbar=0`}
-            className='w_100p h_100p bd_0'
-            title='PDF Document'
-          />
-        );
+  switch (contentType) {
+    case 'application/pdf':
+      return (
+        <iframe
+          src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+          className='w_f h_f bd_0'
+          title={fileName}
+        />
+      );
 
-      case 'image/png':
-      case 'image/jpeg':
-      case 'image/jpg':
-      case 'image/gif':
-      case 'image/webp':
-        return (
-          <img
-            src={uri}
-            alt={file.name || 'Document'}
-            className='max_w_100p max_h_100p obj_contain'
-          />
-        );
+    case 'image/png':
+    case 'image/jpeg':
+    case 'image/jpg':
+    case 'image/gif':
+    case 'image/webp':
+      return (
+        <img
+          src={fileUrl}
+          alt={fileName}
+          className='w_f h_f img_contain'
+        />
+      );
 
-      default:
-        return (
-          <div className='f_center h_100p'>
-            <span className='cl_lt'>
-              {i18n.t('form.unsupported_file_type')}
-            </span>
-          </div>
-        );
-    }
-  };
+    default:
+      return (
+        <div className='f_center h_100p'>
+          <span className='cl_lt'>
+            {i18n.t('form.unsupported_file_type')}
+          </span>
+        </div>
+      );
+  }
 
-  return (
-    <div className='w_100p h_100p f_center'>
-      {renderContent()}
-    </div>
-  );
+  return 'Unknown file type';
 });
 
 DocumentViewerArea.displayName = 'DocumentViewerArea';
@@ -218,7 +221,7 @@ export const DocumentViewerLayout = memo((p: {
 
   return (
     <div className='h_spread'>
-      <div className='of fs h_100vh'>
+      <div className='of fs h_100vh rel'>
         <DocumentViewerArea
           file={selectedFile?.file}
         />
@@ -236,6 +239,7 @@ export const DocumentViewerLayout = memo((p: {
               item={item}
               selected={selectedFile?.id === item.id}
               setSelectedFile={setSelectedFile}
+              onCloseModal={onCloseModal}
             />
           ))}
         </div>
