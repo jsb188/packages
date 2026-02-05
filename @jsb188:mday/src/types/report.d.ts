@@ -122,7 +122,7 @@ export interface ReportGQL {
 	rows?: ReportRowGQL[];
 }
 
-interface ReportSectionGQL {
+export interface ReportSectionGQL {
 	id: string;
 	isGroupTitle?: boolean;
 	sectionKey: string;

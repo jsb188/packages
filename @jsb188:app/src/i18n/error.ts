@@ -22,7 +22,7 @@ export default {
     // 1x
     '10000_title': 'App updated!',
     10000: 'This browser tab will reload to update the app.',
-    10001: 'File(s) you tried to upload are too big. Try again with smaller files.',
+    10001: 'Your file is too large. Please try again with a smaller file.',
     10002: 'File meta data is missing.',
     10003: '"%{value}" file type is not supported.',
     10004: 'There was an error while uploading your file(s).',
@@ -106,10 +106,6 @@ export default {
     20061: 'You do not have permissions to perform this action. Please contact your administrator.',
     20062: '"%{value}" is not a valid e-mail address.',
     20063: 'You cannot change your e-mail to the same e-mail address.',
-    20064: 'Your file is too large. Please try again with a smaller file.',
-
-    '29999_title': 'Not ready',
-    29999: 'AI chat is not ready right now.',
 
     // 3x
 

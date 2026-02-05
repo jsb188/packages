@@ -49,6 +49,8 @@ export default {
     frequency: 'Frequency',
     expiration: 'Expiration',
     expiration_date: 'Expiration date',
+    file: 'File',
+    files: 'Files',
     document: 'Document',
     documents: 'Documents',
     document_type: 'Document type',

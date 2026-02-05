@@ -22,7 +22,8 @@
     "./types/report.d.ts": "./src/types/report.d.ts",
     "./utils/log.ts": "./src/utils/log.ts",
     "./utils/organization.ts": "./src/utils/organization.ts",
-    "./utils/product-calEvent.ts": "./src/utils/product-calEvent.ts"
+    "./utils/product-calEvent.ts": "./src/utils/product-calEvent.ts",
+    "./utils/report.ts": "./src/utils/report.ts"
   },
   "dependencies": {
     "zod": "^3.25.67"

@@ -1,8 +1,7 @@
-type IDDocumentType = any; // Server <-> Client match
 
 // Max file size (client)
 
-export const MAX_FILE_SIZE_CLIENT = 15 * 1024 * 1024; // 15 MB
+export const MAX_FILE_SIZE_CLIENT = 20 * 1024 * 1024; // 20 MB
 
 // DOM element names (ids)
 
@@ -16,7 +15,8 @@ export const DOM_IDS = {
 // Common style variables
 
 export const END_BUTTON_WIDTH = '40px';
-export const DATE_AND_BUTTON_WIDTH = '100px ' + END_BUTTON_WIDTH;
+export const DATE_WIDTH = '100px';
+export const DATE_AND_BUTTON_WIDTH = DATE_WIDTH + ' ' + END_BUTTON_WIDTH;
 
 // Common, repeatable classnames
 
@@ -28,20 +28,6 @@ export const COMMON_CLASSNAMES = {
 	modalScreenSplitForm: 'h_top px_lg pb_md gap_lg',
 	modalScreenSplitContent: 'h_top px_md pb_md gap_lg',
 	modalScreenHeading: 'pt_lg pb_df ft_normal ft_xs cl_darker_2 ls_2',
-};
-
-// Encryption & code words used to make IDs more readable for human users
-
-export const DOCUMENT_TYPE_TO_PREFIX: Record<string, IDDocumentType | IDDocumentType[]> = {
-	'activity log or note': ['log', 'inv', 'rec'], // I've seen AI mistakenly use "activity log or note" for invoices, so we have to comebine it
-	'invoice': ['log', 'inv', 'rec'],
-	'purchase order': ['log', 'inv', 'rec'],
-	'sales receipt': ['log', 'inv', 'rec'],
-	'market credit receipt': ['log', 'inv', 'rec'],
-	'user account': 'acc',
-	'ai task': 'task',
-	'event': 'event',
-	'farmers market day': 'event',
 };
 
 // Local storage

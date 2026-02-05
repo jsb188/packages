@@ -747,7 +747,7 @@ export const AsideNavList = memo((p: AsideNavProps) => {
     </p>}
 
     {navList?.map((navItem, i) => {
-      const { text, to, anchor, rightIconName } = navItem;
+      const { text, to, anchor, rightIconName, rightIconClassName, rightIconClassNameSelected } = navItem;
       const pageNumber = addPageNumbers ? i + 1 : null;
 
       let selected;
@@ -780,7 +780,7 @@ export const AsideNavList = memo((p: AsideNavProps) => {
           <span className={addEllipsis ? 'ellip' : undefined}>
             {text}
           </span>
-          <span className='-mr_2 abs_r_center'>
+          <span className={cn('-mr_2 abs_r_center', selected ? rightIconClassNameSelected : rightIconClassName)}>
             <Icon name={rightIconName} />
           </span>
         </div>
@@ -823,6 +823,8 @@ AsideScrollIndicator.displayName = 'AsideScrollIndicator';
 export interface AsideNavItemObj {
   text: string;
   rightIconName?: string;
+  rightIconClassName?: string;
+  rightIconClassNameSelected?: string;
   to?: string;
   anchor?: string;
 }
