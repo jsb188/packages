@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
 
 /**
@@ -266,10 +267,15 @@ export interface PopOverHookProps extends PopOverHandlerProps {
  * Tooltips
  */
 
+export type AbsolutePosition = Pick<CSSProperties, 'left' | 'right' | 'top' | 'bottom'>;
+
 export interface TooltipProps extends Partial<FixedElementProps> {
+  absolute?: AbsolutePosition;
+  __html?: string;
   title?: string;
   message?: string;
   tooltipClassName?: string;
+  fontClassName?: string;
   leftIconName?: string;
   rightIconName?: string;
 }

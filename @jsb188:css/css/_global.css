@@ -272,7 +272,8 @@ p:last-child {
 
 .cs_default, label { cursor: inherit; }
 .cs_back { cursor: w-resize; }
-.unsel { user-select: none; }
+.unsel, .unsel * { user-select: none; }
+.noclick, .noclick * { pointer-events: none; }
 .bl { display: block; }
 .ib { display: inline-block; }
 

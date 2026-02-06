@@ -2,9 +2,10 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import type { StorageGQL } from '@jsb188/app/types/storage.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
-import { COMMON_ICON_NAMES, FileTypeIcon, Icon } from '@jsb188/react-web/svgs/Icon';
+import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
+import { COMMON_ICON_NAMES, FileTypeIcon, getFileTypeIconName, Icon } from '@jsb188/react-web/svgs/Icon';
 import { useKeyDown } from '@jsb188/react/states';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 
 /**
@@ -71,16 +72,18 @@ const DVNavItem = memo((p: {
       <div className={cn('px_10 py_4 h_spread hv_area', isEmpty ? 'cl_lt' : '')}>
         <div className='h_item gap_xs ic_sm'>
           {iconName && <Icon name={iconName} />}
-          {text}
+          <span className='ellip'>
+            {text}
+          </span>
         </div>
 
         <Link
           to={pathname}
           onClick={onCloseModal}
-          className='target op_0 anim_inner gap_3 h_right link cl_primary'
+          className='target op_0 anim_inner gap_2 h_right link cl_primary f_shrink -mr_3'
         >
           {i18n.t('form.open')}
-          <Icon name='external-link' />
+          <Icon name='box-arrow-right' />
         </Link>
       </div>
     );
@@ -92,7 +95,7 @@ const DVNavItem = memo((p: {
     <div
       role='button'
       data-file-id={file.id}
-      className={cn('px_6 py_4 h_item gap_xs ic_sm link bd_l_4', selected ? 'bd_primary' : 'bd_invis')}
+      className={cn('px_6 py_4 h_item gap_xs ic_sm link bd_l_4 cl_primary_hv', selected ? 'bd_primary' : 'bd_lt')}
       onClick={() => setSelectedFile(item as DVItemFile)}
     >
       <span className='f_shrink'>
@@ -106,10 +109,125 @@ const DVNavItem = memo((p: {
 DVNavItem.displayName = 'DVNavItem';
 
 /**
- * Document Viewer area
+ * Toolbar above document preview
  */
 
-const DocumentViewerArea = memo((p: {
+const DocumentPreviewToolbar = memo((p: {
+  selectedFile?: DVItemFile | null;
+  backText?: string;
+  onCloseModal: () => void;
+  onSelectAdjacentFile: (direction: 'prev' | 'next') => void;
+}) => {
+  const { backText = i18n.t('form.go_back'), selectedFile, onCloseModal, onSelectAdjacentFile } = p;
+  const file = selectedFile?.file;
+  const fileTypeIconName = file ? getFileTypeIconName(file.contentType, file.name) : null;
+  const btnColor = file?.contentType === 'application/pdf' ? 'bg_contrast' : 'bg';
+  const btnClassName = `${btnColor} w_25 h_25 r v_center shadow_line rel z9 link cl_df`;
+
+  const toolbarItems = useMemo(() => [
+    ...(file ? [{
+      fontClassName: 'ft_xs lh_2',
+      tooltipClassName: 'max_w_350 ft_tn',
+      iconName: fileTypeIconName || 'file-document',
+      __html: (
+        '<div class="py_2">' +
+          '<p class="h_left pt_2">' +
+            '<span class="ib w_50 f_shrink cl_md">' +
+              i18n.t('form.name') + ':' +
+            '</span>' +
+            '<span class="ellixp">' +
+              `${file?.name || i18n.t('form.unknown')}` +
+            '</span>' +
+          '</p>' +
+          '<p class="h_left">' +
+            '<span class="ib w_50 f_shrink cl_md">' +
+              i18n.t('form.type') + ':' +
+            '</span>' +
+            '<span class="ellip">' +
+              `${file?.contentType || i18n.t('form.unknown')}` +
+            '</span>' +
+          '</p>' +
+          '<p class="h_left">' +
+            '<span class="ib w_50 f_shrink cl_md">' +
+              i18n.t('form.desc') + ':' +
+            '</span>' +
+            `<span${file.description ? '' : ' class="cl_md"'}>` +
+              (file.description || i18n.t('form.n_a')) +
+            '</span>' +
+          '</p>' +
+        '</div>'
+      )
+    }] : []),
+    ...(file ? [{
+      iconName: 'download',
+      message: i18n.t('form.download_file'),
+      as: 'a' as const,
+      href: makeUploadsUrl(file.uri),
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      download: true
+      // onClick: async () => {
+      //   const res = await fetch(makeUploadsUrl(file.uri));
+      //   const blob = await res.blob();
+      //   const url = URL.createObjectURL(blob);
+      //   const a = document.createElement('a');
+      //   a.href = url;
+      //   a.download = file.name || file.uri;
+      //   a.click();
+      //   URL.revokeObjectURL(url);
+      // },
+    }] : []),
+    {
+      iconName: 'arrow-down',
+      message: i18n.t('form.prev_doc'),
+      onClick: () => onSelectAdjacentFile('prev'),
+    }, {
+      iconName: 'arrow-up',
+      message: i18n.t('form.next_doc'),
+      onClick: () => onSelectAdjacentFile('next'),
+    },
+  ], [file, fileTypeIconName, onCloseModal, onSelectAdjacentFile]);
+
+  // Not finished
+  return <header className='abs_t h_35 h_spread ft_tn z5'>
+    <div className='h_item gap_5 px_10'>
+      <TooltipButton
+        className={btnClassName}
+        message={backText}
+        onClick={onCloseModal}
+        position='right'
+        offsetY={0}
+      >
+        <Icon name='box-arrow-left' />
+      </TooltipButton>
+    </div>
+
+    <div className='h_right gap_5 px_10'>
+      {toolbarItems.map((item) => {
+        const { iconName, ...rest } = item;
+        return <TooltipButton
+          key={iconName}
+          className={btnClassName}
+          {...rest}
+          position='bottom_right'
+          offsetX={0}
+          offsetY={9}
+          absolute={{ left: 'auto', right: 235 }}
+        >
+          <Icon name={iconName} />
+        </TooltipButton>;
+      })}
+    </div>
+  </header>;
+});
+
+DocumentPreviewToolbar.displayName = 'DocumentPreviewToolbar';
+
+/**
+ * Document preview area
+ */
+
+const DocumentPreviewArea = memo((p: {
   file?: StorageGQL;
 }) => {
   const { file } = p;
@@ -141,7 +259,7 @@ const DocumentViewerArea = memo((p: {
         <img
           src={fileUrl}
           alt={fileName}
-          className='w_f h_f img_contain'
+          className='w_f h_f img_contain noclick'
         />
       );
 
@@ -162,7 +280,7 @@ const DocumentViewerArea = memo((p: {
   );
 });
 
-DocumentViewerArea.displayName = 'DocumentViewerArea';
+DocumentPreviewArea.displayName = 'DocumentPreviewArea';
 
 /**
  * Document Viewer (Modal)
@@ -190,10 +308,11 @@ export const DocumentViewerLayout = memo((p: {
 	onCloseModal: () => void;
   documentsList: DVItem[];
   initialFileId: string | null;
+  backText?: string;
   // selectedFile: StorageGQL | null;
   // onSelectFile: (file: StorageGQL | null) => void;
 }) => {
-  const { initialFileId, documentsList, onCloseModal } = p;
+  const { initialFileId, documentsList, onCloseModal, backText } = p;
   const { pathname } = useLocation();
   const navRef = useRef<HTMLDivElement | null>(null);
   const firstRenderUrl = useRef<string | null>(null);
@@ -229,11 +348,7 @@ export const DocumentViewerLayout = memo((p: {
 
   // Arrow controls
 
-  useEffect(() => {
-    const { pressed, metaKey } = keyDownValue;
-    if (!pressed) return;
-    if (pressed !== 'ArrowDown' && pressed !== 'ArrowUp') return;
-
+  const onSelectAdjacentFile = (direction: 'prev' | 'next', jump?: boolean) => {
     const fileItems = documentsList.filter((item): item is DVItemFile => 'file' in item);
     if (!fileItems.length) return;
 
@@ -242,25 +357,24 @@ export const DocumentViewerLayout = memo((p: {
         ? fileItems.findIndex(item => item.id === prev.id)
         : -1;
 
-      if (pressed === 'ArrowUp') {
-        if (metaKey) {
-          return fileItems[0];
-        }
-        if (currentIndex <= 0) {
-          return prev;
-        }
+      if (direction === 'prev') {
+        if (jump) return fileItems[0];
+        if (currentIndex <= 0) return prev;
         return fileItems[currentIndex - 1];
       } else {
-        if (metaKey) {
-          return fileItems[fileItems.length - 1];
-        }
-        if (currentIndex >= fileItems.length - 1) {
-          return prev;
-        }
+        if (jump) return fileItems[fileItems.length - 1];
+        if (currentIndex >= fileItems.length - 1) return prev;
         return fileItems[currentIndex + 1];
       }
     });
+  };
 
+  useEffect(() => {
+    const { pressed, metaKey } = keyDownValue;
+    if (!pressed) return;
+    if (pressed !== 'ArrowDown' && pressed !== 'ArrowUp') return;
+
+    onSelectAdjacentFile(pressed === 'ArrowUp' ? 'prev' : 'next', metaKey);
     setKeyDown({ pressed: null });
   }, [keyDownValue.pressed]);
 
@@ -268,7 +382,13 @@ export const DocumentViewerLayout = memo((p: {
   return (
     <div className='h_spread'>
       <div className='of fs h_100vh rel'>
-        <DocumentViewerArea
+        <DocumentPreviewToolbar
+          selectedFile={selectedFile}
+          backText={backText}
+          onCloseModal={onCloseModal}
+          onSelectAdjacentFile={onSelectAdjacentFile}
+        />
+        <DocumentPreviewArea
           file={selectedFile?.file}
         />
       </div>

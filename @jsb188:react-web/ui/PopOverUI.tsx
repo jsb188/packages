@@ -43,12 +43,16 @@ export function guessTooltipSize(message: string): {
  */
 
 export const TooltipText = memo((p: TooltipProps) => {
-  const { title, message, tooltipClassName, leftIconName, rightIconName } = p;
+  const { title, message, __html, tooltipClassName, fontClassName, leftIconName, rightIconName } = p;
+
+  console.log('tooltipClassName', tooltipClassName);
+
   return (
     <div
       // key={title + ':' + message}
       className={cn(
-        'tooltip ft_xs lh_3 bg_contrast r_sm',
+        'tooltip bg_contrast r_sm',
+        fontClassName ?? 'ft_xs lh_3',
         tooltipClassName && /\bmax_w_/.test(tooltipClassName) && 'w_override',
         tooltipClassName
       )}
@@ -60,14 +64,17 @@ export const TooltipText = memo((p: TooltipProps) => {
           </strong>
         </p>
       )}
-      <p className={cn('shift_up', leftIconName || rightIconName && 'h_center')}>
-        {leftIconName && <span className='-ml_3'><Icon name={leftIconName} /></span>}
-        {!leftIconName && !rightIconName ? message
-        : <span className={cn(leftIconName ? 'ml_3' : '', rightIconName ? 'mr_3' : '')}>
-          {message}
-        </span>}
-        {rightIconName && <span className='-mr_3'><Icon name={rightIconName} /></span>}
-      </p>
+      {__html
+        ? <div className='shift_up' dangerouslySetInnerHTML={{ __html }} />
+        : <p className={cn('shift_up', leftIconName || rightIconName && 'h_center')}>
+          {leftIconName && <span className='-ml_3'><Icon name={leftIconName} /></span>}
+          {!leftIconName && !rightIconName ? message
+          : <span className={cn(leftIconName ? 'ml_3' : '', rightIconName ? 'mr_3' : '')}>
+            {message}
+          </span>}
+          {rightIconName && <span className='-mr_3'><Icon name={rightIconName} /></span>}
+        </p>
+      }
     </div>
   );
 });

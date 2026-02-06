@@ -294,33 +294,23 @@ Icon.displayName = 'Icon';
  * Icon representing each file type
  */
 
-export const FileTypeIcon = memo((p: {
-  iconName?: string;
-  contentType: string;
-  fileName?: string | null; // extension may also be used
-}) => {
-  const { iconName, contentType, fileName } = p;
-
-  if (iconName) {
-    return <Icon name={iconName} />;
-  }
-
+export function getFileTypeIconName(contentType: string, fileName?: string | null): string {
   switch (contentType) {
     case 'text/plain':
     case 'application/pdf':
     case 'application/msword':
     case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-      return <Icon name='file-document' />;
+      return 'file-document';
     case 'application/vnd.rar':
     case 'application/zip':
     case 'application/x-zip-compressed':
     case 'multipart/x-zip':
-      return <Icon name='file-zip' />;
+      return 'file-zip';
     case 'text/css':
     case 'text/csv':
     case 'application/vnd.ms-excel':
     case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-      return <Icon name='file-sheets' />;
+      return 'file-sheets';
     case 'image/jpeg':
     case 'image/jpg':
     case 'image/gif':
@@ -328,7 +318,7 @@ export const FileTypeIcon = memo((p: {
     case 'image/tiff':
     case 'image/webp':
     case 'image/png':
-      return <Icon name='file-image' />;
+      return 'file-image';
     default:
   }
 
@@ -337,7 +327,7 @@ export const FileTypeIcon = memo((p: {
     case 'xlsx':
     case 'csv':
     case 'css':
-      return <Icon name='file-sheets' />;
+      return 'file-sheets';
     case 'jpeg':
     case 'jpg':
     case 'gif':
@@ -345,17 +335,25 @@ export const FileTypeIcon = memo((p: {
     case 'tiff':
     case 'webp':
     case 'png':
-      return <Icon name='file-image' />;
+      return 'file-image';
     case 'rar':
     case 'zip':
-      return <Icon name='file-zip' />;
+      return 'file-zip';
     case 'pdf':
     case 'doc':
     case 'docx':
     case 'txt':
     default:
-      return <Icon name='file-document' />;
+      return 'file-document';
   }
+}
+
+export const FileTypeIcon = memo((p: {
+  iconName?: string;
+  contentType: string;
+  fileName?: string | null; // extension may also be used
+}) => {
+  return <Icon name={p.iconName || getFileTypeIconName(p.contentType, p.fileName)} />;
 });
 
 FileTypeIcon.displayName = 'FileTypeIcon';

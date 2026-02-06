@@ -183,7 +183,7 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 /* Icon */
 
 .icon_cnt { display: flex; justify-content: center; align-items: center; }
-.icon { display: block; font-size: 1.3em; }
+.icon { display: block; font-size: 1.3em; flex-shrink: 0; }
 .ic_xxxl .icon { font-size: var(--ic-xxxlarge); }
 .ic_xxl .icon { font-size: var(--ic-xxlarge); }
 .ic_xl .icon { font-size: var(--ic-xlarge); }

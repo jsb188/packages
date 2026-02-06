@@ -4,7 +4,7 @@ import { cn, getTimeBasedUnique } from '@jsb188/app/utils/string.ts';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { usePopOver, useSetPopOverIsHover, useTooltip } from '@jsb188/react/states';
-import type { ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps, UpdatePopOverFn } from '@jsb188/react/types/PopOver.d';
+import type { AbsolutePosition, ClientRectValues, ClosePopOverFn, POPosition, PopOverIface, PopOverProps, TooltipHookProps, UpdatePopOverFn } from '@jsb188/react/types/PopOver.d';
 import React, { memo, useEffect, useReducer, useRef, useState } from 'react';
 import { guessTooltipSize, TooltipText } from '../ui/PopOverUI';
 import { PopOverCheckList, PopOverLabelsAndValues, PopOverList } from './PopOver-List';
@@ -447,12 +447,15 @@ interface TooltipWrapperProps extends TooltipHookProps {
 type TooltipButtonProps = {
   as?: React.ElementType;
   position?: POPosition;
+  absolute?: AbsolutePosition;
+  __html?: string;
   title?: string;
   message?: string;
   messageAfterClick?: string;
   leftIconName?: string;
   rightIconName?: string;
   tooltipClassName?: string;
+  fontClassName?: string;
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -468,9 +471,9 @@ type TooltipButtonProps = {
  */
 
 export const TooltipButton = memo((p: TooltipButtonProps) => {
-  const { leftIconName, rightIconName, disabled, children, title, message, messageAfterClick, position, offsetX, offsetY, onClick, as, tooltipClassName, ...rest } = p;
+  const { leftIconName, rightIconName, disabled, children, title, message, __html, messageAfterClick, position, absolute, offsetX, offsetY, onClick, as, tooltipClassName, fontClassName, ...rest } = p;
   const Element = as || 'button';
-  const tooltipDisabled = disabled || !message;
+  const tooltipDisabled = disabled || (!message && !__html);
   const { tooltip, openTooltip, closeTooltip, updateTooltip } = useTooltip();
 
   const unique = useRef<string>(getTimeBasedUnique());
@@ -487,9 +490,12 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
         id: unique.current,
         title,
         message,
+        __html,
         leftIconName,
         rightIconName,
         tooltipClassName,
+        fontClassName,
+        absolute,
         position,
         offsetX,
         offsetY,
@@ -646,6 +652,18 @@ function TooltipWrapper(p: TooltipWrapperProps) {
       top = rect.y + (offsetY || 0) + rect.height;
       bottom = 'auto';
       break;
+    case 'bottom_left':
+      left = rect.x + (offsetX || 0);
+      right = 'auto';
+      top = rect.y + (offsetY || 0) + rect.height;
+      bottom = 'auto';
+      break;
+    case 'bottom_right':
+      left = rect.x + rect.width - tooltipWidth + (offsetX || 0);
+      right = 'auto';
+      top = rect.y + (offsetY || 0) + rect.height;
+      bottom = 'auto';
+      break;
     case 'left':
       left = 'auto';
       // right = rect.x + rect.width + (offsetX || 0);
@@ -687,6 +705,13 @@ function TooltipWrapper(p: TooltipWrapperProps) {
       bottom = 10;
       top = 'auto';
     }
+  }
+
+  if (tt.absolute) {
+    if (tt.absolute.left !== undefined) left = tt.absolute.left;
+    if (tt.absolute.right !== undefined) right = tt.absolute.right;
+    if (tt.absolute.top !== undefined) top = tt.absolute.top;
+    if (tt.absolute.bottom !== undefined) bottom = tt.absolute.bottom;
   }
 
   const style = {

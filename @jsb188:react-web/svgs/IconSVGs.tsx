@@ -182,6 +182,13 @@ export const ArrowRight = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 <path d="M13 6l6 6" stroke="currentColor" />
 </svg>;
 
+export const ArrowDown = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-arrow-down">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 5l0 14" />
+<path d="M18 13l-6 6" />
+<path d="M6 13l6 6" />
+</svg>;
+
 export const ArrowUp = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-arrow-up">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 5l0 14" />
@@ -297,6 +304,22 @@ export const Bell = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon
 export const BeverageFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-bottle">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M13 1a2 2 0 0 1 1.995 1.85l.005 .15v.5c0 1.317 .381 2.604 1.094 3.705l.17 .25l.05 .072a9.093 9.093 0 0 1 1.68 4.92l.006 .354v6.199a3 3 0 0 1 -2.824 2.995l-.176 .005h-6a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-6.2a9.1 9.1 0 0 1 1.486 -4.982l.2 -.292l.05 -.069a6.823 6.823 0 0 0 1.264 -3.957v-.5a2 2 0 0 1 1.85 -1.995l.15 -.005h2zm.362 5h-2.724a8.827 8.827 0 0 1 -1.08 2.334l-.194 .284l-.05 .069a7.091 7.091 0 0 0 -1.307 3.798l-.003 .125a3.33 3.33 0 0 1 1.975 -.61a3.4 3.4 0 0 1 2.833 1.417c.27 .375 .706 .593 1.209 .583a1.4 1.4 0 0 0 1.166 -.583a3.4 3.4 0 0 1 .81 -.8l.003 .183c0 -1.37 -.396 -2.707 -1.137 -3.852l-.228 -.332a8.827 8.827 0 0 1 -1.273 -2.616z" />
+</svg>;
+
+// "logout" in Tabler
+export const BoxArrowRight = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-box-arrow-right" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" stroke="currentColor" />
+<path d="M9 12h12l-3 -3" stroke="currentColor" />
+<path d="M18 15l3 -3" stroke="currentColor" />
+</svg>;
+
+// "logout-2" in Tabler
+export const BoxArrowLeft = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-box-arrow-left" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M10 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" stroke="currentColor" />
+<path d="M15 12h-12l3 -3" stroke="currentColor" />
+<path d="M6 15l-3 -3" stroke="currentColor" />
 </svg>;
 
 export const BrandAppleFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-brand-apple-filled" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -977,6 +1000,13 @@ export const DiamondFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 <path d="M18 4a1 1 0 0 1 .783 .378l.074 .108l3 5a1 1 0 0 1 -.032 1.078l-.08 .103l-8.53 9.533a1.7 1.7 0 0 1 -1.215 .51c-.4 0 -.785 -.14 -1.11 -.417l-.135 -.126l-8.5 -9.5a1 1 0 0 1 -.172 -1.067l.06 -.115l3.013 -5.022l.064 -.09a.982 .982 0 0 1 .155 -.154l.089 -.064l.088 -.05l.05 -.023l.06 -.025l.109 -.032l.112 -.02l.117 -.005h12zm-8.886 3.943a1 1 0 0 0 -1.371 .343l-.6 1l-.06 .116a1 1 0 0 0 .177 1.07l2 2.2l.09 .088a1 1 0 0 0 1.323 -.02l.087 -.09a1 1 0 0 0 -.02 -1.323l-1.501 -1.65l.218 -.363l.055 -.103a1 1 0 0 0 -.398 -1.268z" />
 </svg>;
 
+export const Download = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
+<path d="M7 11l5 5l5 -5" />
+<path d="M12 4l0 12" />
+</svg>;
+
 export const Dots = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-dots" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" stroke="currentColor" />
@@ -1062,13 +1092,6 @@ export const ExclamationCircle = <svg xmlns="http://www.w3.org/2000/svg" classNa
 <path stroke="currentColor" d="M3,12c0,4.97056198,4.02943707,9,9,9,4.97056198,0,9-4.02943802,9-9,0-4.97056293-4.02943802-9-9-9C7.02943707,3,3,7.02943707,3,12"/>
 <path stroke="currentColor" strokeWidth="2.5" d="M12,7.75v4.31046129"/>
 <path stroke="currentColor" strokeWidth="2.5" d="M12,16.24499989v.01000023"/>
-</svg>;
-
-export const ExternalLink = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-external-link" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path stroke="currentColor" d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" />
-<path stroke="currentColor" d="M11 13l9 -9" />
-<path stroke="currentColor" d="M15 4h5v5" />
 </svg>;
 
 export const Eye = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-eye" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -1602,12 +1625,21 @@ export const IndoorPlantHouseColor = <svg xmlns="http://www.w3.org/2000/svg" fil
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16 12.277H8v11h8v-11Z" strokeWidth="1" />
 </svg>;
 
-export const InfoCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-information-circle" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path d="M11.94772258,16.73843192v-5.45741273c0-.2067968-.08211348-.40513331-.22834969-.55128119-.14623621-.14623621-.34448354-.22834969-.55128119-.22834969h-.77963003"/>
-<path d="M11.55790714,8.19618057c-.21534712,0-.38981544-.17453074-.38981544-.38981501,0-.21529361.17446832-.38981501.38981544-.38981501"/>
-<path d="M11.55790714,8.19618057c.21534712,0,.38981544-.17453074.38981544-.38981501,0-.21529361-.17446832-.38981501-.38981544-.38981501"/>
-<path d="M12.00000039,22.0000018c5.52287147,0,10.00000321-4.47713004,10.00000321-10.00000236-.0000017-5.52284429-4.47713174-9.99999594-10.00000321-9.99999594C6.47715525,2.0000035,2.00000361,6.47715515,2.00000361,12.00000029c0,5.52287147,4.47715164,10.00000151,9.99999679,10.00000151Z"/>
-<path d="M10.38846168,16.73834359h3.22307743"/>
+// This is Tabler version
+// export const InfoCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-information-circle" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+// <path d="M11.94772258,16.73843192v-5.45741273c0-.2067968-.08211348-.40513331-.22834969-.55128119-.14623621-.14623621-.34448354-.22834969-.55128119-.22834969h-.77963003"/>
+// <path d="M11.55790714,8.19618057c-.21534712,0-.38981544-.17453074-.38981544-.38981501,0-.21529361.17446832-.38981501.38981544-.38981501"/>
+// <path d="M11.55790714,8.19618057c.21534712,0,.38981544-.17453074.38981544-.38981501,0-.21529361-.17446832-.38981501-.38981544-.38981501"/>
+// <path d="M12.00000039,22.0000018c5.52287147,0,10.00000321-4.47713004,10.00000321-10.00000236-.0000017-5.52284429-4.47713174-9.99999594-10.00000321-9.99999594C6.47715525,2.0000035,2.00000361,6.47715515,2.00000361,12.00000029c0,5.52287147,4.47715164,10.00000151,9.99999679,10.00000151Z"/>
+// <path d="M10.38846168,16.73834359h3.22307743"/>
+// </svg>;
+
+export const InfoCircle = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-information-circle" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+<path d="M11.9413 17.3205v-6.1278c0 -0.2322 -0.0922 -0.4549 -0.2564 -0.619 -0.1642 -0.1642 -0.3868 -0.2564 -0.619 -0.2564h-0.8754"/>
+<path d="M11.5036 7.72892c-0.2418 0 -0.4377 -0.19597 -0.4377 -0.4377 0 -0.24174 0.1959 -0.4377 0.4377 -0.4377"/>
+<path d="M11.5036 7.72892c0.2418 0 0.4377 -0.19597 0.4377 -0.4377 0 -0.24174 -0.1959 -0.4377 -0.4377 -0.4377"/>
+<path d="M12 23.2284c6.2013 0 11.2284 -5.0271 11.2284 -11.2284C23.2284 5.79873 18.2013 0.771606 12 0.771606 5.79873 0.771606 0.771606 5.79873 0.771606 12 0.771606 18.2013 5.79873 23.2284 12 23.2284Z"/>
+<path strokeMiterlimit="10" d="M10.1905 17.3204h3.619"/>
 </svg>;
 
 export const InfoCircleFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-information-circle-filled">
@@ -2946,10 +2978,10 @@ export const Timezone = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 
 
 export const TrashX = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-trash-x" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M4 7h16" stroke="currentColor" />
-<path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" stroke="currentColor" />
-<path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" stroke="currentColor" />
-<path d="M10 12l4 4m0 -4l-4 4" stroke="currentColor" />
+<path d="M4 6h16" stroke="currentColor" />
+<path d="M5 6l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" stroke="currentColor" />
+<path d="M9 6v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" stroke="currentColor" />
+<path d="M10 11l4 4m0 -4l-4 4" stroke="currentColor" />
 </svg>;
 
 export const TrashXFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-trash-x-filled" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

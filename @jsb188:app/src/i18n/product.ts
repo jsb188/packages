@@ -71,5 +71,7 @@ export default {
 			ORGANIC_CERTIFICATION: 'USDA National Organic Program (NOP)',
 			CLEANING: 'Cleaning logs',
 		},
+
+		back_to_globalgap: 'Back to GLOBALG.A.P.',
 	},
 };
