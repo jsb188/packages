@@ -45,8 +45,6 @@ export function guessTooltipSize(message: string): {
 export const TooltipText = memo((p: TooltipProps) => {
   const { title, message, __html, tooltipClassName, fontClassName, leftIconName, rightIconName } = p;
 
-  console.log('tooltipClassName', tooltipClassName);
-
   return (
     <div
       // key={title + ':' + message}

@@ -157,8 +157,7 @@ const DocumentPreviewToolbar = memo((p: {
           '</p>' +
         '</div>'
       )
-    }] : []),
-    ...(file ? [{
+    }, {
       iconName: 'download',
       message: i18n.t('form.download_file'),
       as: 'a' as const,
@@ -166,23 +165,13 @@ const DocumentPreviewToolbar = memo((p: {
       target: '_blank',
       rel: 'noopener noreferrer',
       download: true
-      // onClick: async () => {
-      //   const res = await fetch(makeUploadsUrl(file.uri));
-      //   const blob = await res.blob();
-      //   const url = URL.createObjectURL(blob);
-      //   const a = document.createElement('a');
-      //   a.href = url;
-      //   a.download = file.name || file.uri;
-      //   a.click();
-      //   URL.revokeObjectURL(url);
-      // },
     }] : []),
     {
-      iconName: 'arrow-down',
+      iconName: 'arrow-up',
       message: i18n.t('form.prev_doc'),
       onClick: () => onSelectAdjacentFile('prev'),
     }, {
-      iconName: 'arrow-up',
+      iconName: 'arrow-down',
       message: i18n.t('form.next_doc'),
       onClick: () => onSelectAdjacentFile('next'),
     },
