@@ -1,5 +1,5 @@
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { StorageGQL } from '@jsb188/app/types/storage.d.ts';
+import type { StorageGQL } from '@jsb188/mday/types/storage.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
@@ -60,10 +60,11 @@ DVRightToolbar.displayName = 'DVRightToolbar';
 const DVNavItem = memo((p: {
   item: DVItem;
   selected: boolean;
+  isPDF: boolean;
   setSelectedFile: (file: DVItemFile | null) => void;
   onCloseModal: () => void;
 }) => {
-  const { item, selected, setSelectedFile, onCloseModal } = p;
+  const { item, selected, isPDF, setSelectedFile, onCloseModal } = p;
   const { isSubtitle } = item as DVItemSubtitle;
 
   if (isSubtitle) {
@@ -90,12 +91,14 @@ const DVNavItem = memo((p: {
   }
 
   const { file } = item as DVItemFile;
-
   return (
     <div
       role='button'
       data-file-id={file.id}
-      className={cn('px_6 py_4 h_item gap_xs ic_sm link bd_l_4 cl_primary_hv', selected ? 'bd_primary' : 'bd_lt')}
+      className={cn(
+        'px_6 py_4 h_item gap_xs ic_sm link bd_l_4 cl_primary_hv',
+        selected ? 'bd_primary' : isPDF ? 'bd_darker_4' : 'bd_lt'
+      )}
       onClick={() => setSelectedFile(item as DVItemFile)}
     >
       <span className='f_shrink'>
@@ -114,14 +117,15 @@ DVNavItem.displayName = 'DVNavItem';
 
 const DocumentPreviewToolbar = memo((p: {
   selectedFile?: DVItemFile | null;
+  isPDF?: boolean;
   backText?: string;
   onCloseModal: () => void;
   onSelectAdjacentFile: (direction: 'prev' | 'next') => void;
 }) => {
-  const { backText = i18n.t('form.go_back'), selectedFile, onCloseModal, onSelectAdjacentFile } = p;
+  const { backText = i18n.t('form.go_back'), selectedFile, isPDF, onCloseModal, onSelectAdjacentFile } = p;
   const file = selectedFile?.file;
   const fileTypeIconName = file ? getFileTypeIconName(file.contentType, file.name) : null;
-  const btnColor = file?.contentType === 'application/pdf' ? 'bg_contrast' : 'bg';
+  const btnColor = isPDF ? 'bg_contrast' : 'bg';
   const btnClassName = `${btnColor} w_25 h_25 r v_center shadow_line rel z9 link cl_df`;
 
   const toolbarItems = useMemo(() => [
@@ -367,12 +371,14 @@ export const DocumentViewerLayout = memo((p: {
     setKeyDown({ pressed: null });
   }, [keyDownValue.pressed]);
 
+  const isPDF = selectedFile?.file.contentType === 'application/pdf';
 
   return (
     <div className='h_spread'>
       <div className='of fs h_100vh rel'>
         <DocumentPreviewToolbar
           selectedFile={selectedFile}
+          isPDF={isPDF}
           backText={backText}
           onCloseModal={onCloseModal}
           onSelectAdjacentFile={onSelectAdjacentFile}
@@ -393,6 +399,7 @@ export const DocumentViewerLayout = memo((p: {
               key={item.id}
               item={item}
               selected={selectedFile?.id === item.id}
+              isPDF={'file' in item && item.file.contentType === 'application/pdf'}
               setSelectedFile={setSelectedFile}
               onCloseModal={onCloseModal}
             />

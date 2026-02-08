@@ -42,6 +42,7 @@ export const RULES = {
   searchUsers: true,
   updateNote: true,
   userIdToChatId: true,
+  workflows: true,
 
   // All fragments are cached,
   // but if you want to skip some, add it here

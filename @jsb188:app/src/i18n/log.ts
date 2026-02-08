@@ -127,7 +127,7 @@ export default {
 			SEED: 'Seed purchase',
 			PLANTING: 'Planting',
 			FIELD: 'Field work',
-			HARVEST: 'Harvested',
+			HARVEST: 'Harvest',
 			POST_HARVEST: 'Post-harvest',
 			SALES: 'Sale',
 			WATER: 'Water testing',

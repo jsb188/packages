@@ -11,6 +11,7 @@ export default {
 
 		// Report
 		collected_total_ct_evidences: 'Collected a total of %{smart_count} evidence.||||Collected a total of %{smart_count} evidences.',
+    reporting_year: 'Reporting year',
 
 		// Content names
 		view_document: 'View document',
@@ -41,6 +42,17 @@ export default {
 		contentName_plural: {
 			market: 'Markets',
 		},
+
+    feature_short: {
+      NORMAL_LOGGING: 'Logs',
+      FOOD_SAFETY: 'Food safety',
+      GLOBAL_GAP: 'GLOBALG.A.P.',
+      ORGANIC_CERTIFICATION: 'Organic',
+      CAL_EVENTS: 'Events',
+      CAL_EVENTS_ATTENDANCE: 'Attendance',
+      CAL_EVENTS_LOAD_LIST: 'Load list',
+      LIVESTOCK_MANAGEMENT: 'Livestock',
+    },
 
 		feature_title: {
 			// This object is the "title" field of "actions" database document.

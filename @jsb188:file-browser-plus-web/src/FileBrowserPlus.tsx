@@ -1,6 +1,6 @@
 import { MAX_FILE_SIZE_CLIENT } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { StorageGQL } from '@jsb188/app/types/storage.d.ts';
+import type { StorageGQL } from '@jsb188/mday/types/storage.d.ts';
 import { getFullDate } from '@jsb188/app/utils/datetime.ts';
 import { formatBytes } from '@jsb188/app/utils/number.ts';
 import { cn } from '@jsb188/app/utils/string.ts';

@@ -132,6 +132,7 @@ export default {
     summary: 'Summary',
     instructions_summary: 'Instructions summary',
     status: 'Status',
+    not_active: 'Not active',
     orders: 'Orders',
     'order_#': 'Order #',
     order_details: 'Order details',

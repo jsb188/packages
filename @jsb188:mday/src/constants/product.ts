@@ -39,6 +39,10 @@ export const PRODUCT_FEATURES = [
 	...FEATURES_BY_OPERATION.LIVESTOCK,
 ].filter((value, index, self) => self.indexOf(value) === index);
 
+export const PRODUCT_FEATURES_WORKFLOW = PRODUCT_FEATURES.filter((feature) =>
+  !['NORMAL_LOGGING', 'LIVESTOCK'].includes(feature)
+);
+
 export const ACTIVITY_TO_FEATURE_MAP = {
 	CAL_EVENTS_ATTENDANCE: ['MARKET_ATTENDANCE'],
 	CAL_EVENTS_LOAD_LIST: ['MARKET_LOAD_LIST'],

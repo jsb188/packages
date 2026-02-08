@@ -25,6 +25,7 @@ export type ContainerSizeEnum = 'tn' | 'xxs' | 'xs' | 'sm' | 'df' | 'md' | 'lg' 
 
 export function AppLayout(p: ReactDivElement & {
   open: boolean;
+  hasPhysicalToolbar?: boolean;
   scrollResetKey: string;
   routeName: string;
   contentFlexClassName?: string;
@@ -32,7 +33,7 @@ export function AppLayout(p: ReactDivElement & {
   SidebarComponent?: React.ReactNode;
   ToolbarComponent?: React.ReactNode;
 }) {
-  const { scrollResetKey, routeName, children, open, className, contentFlexClassName, AsideComponent, SidebarComponent, ToolbarComponent, ...other } = p;
+  const { hasPhysicalToolbar, scrollResetKey, routeName, children, open, className, contentFlexClassName, AsideComponent, SidebarComponent, ToolbarComponent, ...other } = p;
 
   // This is not necessary because key={pathname} handles the scroll
   // const contentAreaRef = useRef<HTMLDivElement>(null);
@@ -58,24 +59,25 @@ export function AppLayout(p: ReactDivElement & {
         </div>
       </aside>
 
-      <div className='h_f f z4 v_spread shadow_line rel of'>
+      <div className='h_f f z4 v_spread shadow_line rel of bg'>
         {ToolbarComponent}
+
+        {AsideComponent &&
+        <aside className='app_aside z3 y_scr_hidden'>
+          {AsideComponent}
+        </aside>}
 
         <main
           // {key} fixes the scroll position problem when switching routes
           key={scrollResetKey}
           // ref={contentAreaRef}
           id={DOM_IDS.mainBodyScrollArea}
-          className={cn('app_scr bg h_f', contentFlexClassName ?? 'v_top')}
+          className={cn('app_scr h_f rel', contentFlexClassName ?? 'v_top')}
         >
+          <div className='pattern_grid_fade_down alt_bf abs_t h_450 -z5' />
           {AsideComponent
           ? <div className='cw lg pr_md h_f'>
             <div className='w_app_side h_top h_f'>
-              {AsideComponent &&
-              <aside className='app_aside z3 y_scr_hidden'>
-                {AsideComponent}
-              </aside>}
-
               <div className='f max_w_850 cw h_f'>
                 {children}
               </div>
@@ -143,13 +145,14 @@ BreadcrumbItem.displayName = 'BreadcrumbItem';
 
 export const AppToolbarTitle = memo((p: {
   breadcrumbs?: BreadcrumbItemObj[] | null;
+  toolbarShadowStyle?: string;
 }) => {
-  const { breadcrumbs } = p;
+  const { breadcrumbs, toolbarShadowStyle = 'shadow_line_alt' } = p;
   const lastIx = breadcrumbs ? breadcrumbs.length - 1 : -1;
 
   return <div
     id='app_toolbar_title'
-    className='h_spread f_shrink bg px_sm shadow_bg_drop_lg z4'
+    className={cn('h_spread f_shrink px_sm bg rel z4', toolbarShadowStyle)}
   >
     <div className='px_xs h_item mt_1'>
       {breadcrumbs?.map((item, i) => {
@@ -203,6 +206,7 @@ export function FooterRefreshButton() {
   return (
     <div className='abs_b p_md h_center'>
       <button
+        type='button'
         className='text cl_md'
         onClick={() => globalThis.location.reload()}
       >
@@ -263,7 +267,7 @@ export function AbsoluteFullPageLayout(p: { children: React.ReactNode }) {
  * It's possible to do this with > :first-child but it's impossible to fool-proof target only the first child without subchilds
  */
 
-type ModalCoverProps = {
+interface ModalCoverProps {
   domId?: string;
   visible: 0 | .5 | 1 | 2;
   className?: string;
@@ -274,7 +278,7 @@ type ModalCoverProps = {
   closePopOver?: () => void;
   style?: React.CSSProperties;
   children?: React.ReactNode;
-};
+}
 
 export function ModalCover(p: ModalCoverProps) {
   const {
@@ -292,7 +296,7 @@ export function ModalCover(p: ModalCoverProps) {
     return null;
   }
 
-  let visibleCn, notVisibleCn;
+  let visibleCn: string, notVisibleCn: string;
   if (animationName) {
     visibleCn = 'visible';
     notVisibleCn = '';
@@ -425,6 +429,7 @@ export function ModalWrapper(p: ModalWrapperProps) {
     >
       {!onCloseModal ? null : (
         <button
+          type='button'
           className='abs_corner_df z1 cl_lt v_center'
           onClick={onCloseModal}
         >
@@ -486,21 +491,21 @@ export function ErrorMessage(p: ErrorMessageProps) {
   const isAuthError = errorCode == '20019';
   const onlineStatus = useOnlineStatus();
 
-  let title;
+  let title: string;
   if (p.title) {
     title = p.title;
   } else {
     title = i18n.t('error.error');
   }
 
-  let message;
+  let message: string;
   if (p.message) {
     message = p.message;
   } else {
     message = i18n.t('error.unknown_error_msg');
   }
 
-  let containerClassName, titleClassName, messageClassName, buttonClassName, buttonPreset;
+  let containerClassName: string, titleClassName: string, messageClassName: string, buttonClassName: string, buttonPreset: any;
   let buttonSize: any;
 
   switch (preset) {
@@ -522,7 +527,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
       buttonSize = null;
   }
 
-  let buttonHandler;
+  let buttonHandler: (() => void) | undefined;
   if (
     // If "30000" error, this could be an outdated GraphQL fragment error,
     // so we need to refresh the browser.
@@ -539,7 +544,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
     buttonHandler = onClickButton;
   }
 
-  let titleIconName, iconSizeClassName;
+  let titleIconName: string, iconSizeClassName: string;
   if (isAuthError) {
     titleIconName = COMMON_ICON_NAMES.login_related;
     iconSizeClassName = 'ft_xxl';
@@ -634,7 +639,7 @@ export function PageContent(p: PageContentProps) {
   const errored = !!error && !loading;
 
   return (
-    <div className={className}>
+    <div className={className} {...other}>
       {HeaderComponent}
       <div className={cn(bodyClassName, errored && 'op_50')}>
         {children}
@@ -716,6 +721,7 @@ export const FloatingMessage = memo((p: FloatingMessageProps) => {
       </span>
 
       <button
+        type='button'
         className='av av_xs r v_center bg_secondary_active link'
         onClick={onClose}
       >
@@ -750,11 +756,11 @@ export const AsideNavList = memo((p: AsideNavProps) => {
       const { text, to, anchor, rightIconName, rightIconClassName, rightIconClassNameSelected } = navItem;
       const pageNumber = addPageNumbers ? i + 1 : null;
 
-      let selected;
+      let selected: boolean;
       if (isSinglePage) {
-        selected = viewportAnchor === anchor || (!viewportAnchor && autoSelectFirstItem && i === 0);
+        selected = viewportAnchor === anchor || !!(!viewportAnchor && autoSelectFirstItem && i === 0);
       } else {
-        selected = (!pathname && autoSelectFirstItem && i === 0) || (pathname && pathname === to);
+        selected = (!pathname && autoSelectFirstItem && i === 0) || !!(pathname && pathname === to);
       }
 
       return <SmartLink
@@ -872,6 +878,7 @@ export function AsideNavMock() {
     </p>
     {[...Array(6)].map((_, i) => {
       return <span
+        // @ts-ignore -- this is just a mock component, so we don't care about the missing "to" prop
         key={i}
         className={cn('bl py_xs h_left cl_lt')}
       >

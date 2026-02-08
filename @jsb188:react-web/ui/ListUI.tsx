@@ -41,7 +41,7 @@ type ListItemProps = {
   to?: string;
   photoUri?: string;
   displayName?: string;
-  TitleComponent?: React.ReactNode;
+  TitleComponent?: React.ElementType;
   OptionsComponent?: any;
   LinkComponent?: any;
   linkProps?: object;
@@ -150,7 +150,7 @@ export const ListItem = memo((p: ListItemProps) => {
     LinkComponent = 'span';
   }
 
-  let TitleComponent: React.ReactNode = 'strong';
+  let TitleComponent: React.ElementType = 'strong';
   let AvatarComponent = Avatar;
   let avatarSize: AvatarSize = 'default';
   let chevronSizeClassName = 'ft_md';

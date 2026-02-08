@@ -1,6 +1,7 @@
 import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import React, { memo } from 'react';
+import type React from 'react';
+import { memo } from 'react';
 import { Link, type To } from 'react-router';
 import { Icon } from '../svgs/Icon';
 import { AvatarImg } from './Avatar';
@@ -92,7 +93,7 @@ export const FullWidthButton = memo((p: FullWidthButtonProps) => {
   const hasSides = !!iconName || !!photoUri;
   const preset = p.preset || 'subtle';
 
-  let buttonPreset;
+  let buttonPreset: FullWidthButtonProps['preset'];
   if (disabled && preset.startsWith('bg_')) {
     buttonPreset = 'subtle';
   } else {
@@ -159,14 +160,14 @@ export const FullWidthLink = memo((p: FullWidthLinkProps) => {
   const hasSides = !!iconName || !!photoUri;
   const preset = p.preset || 'subtle';
 
-  let buttonPreset;
+  let buttonPreset: string;
   if (disabled && ['bg_main'].includes(preset)) {
     buttonPreset = 'subtle';
   } else {
     buttonPreset = preset;
   }
 
-  let onClickLink;
+  let onClickLink: FullWidthButtonProps['onClick'] | undefined;
   if (onClick) {
     onClickLink = onClick;
   } else if (disabled || loading) {
@@ -261,6 +262,7 @@ export function InlineButton(p: NormalButtonProps) {
   const { preset, text, disabled, className, leftIconName, onClick } = p;
   return (
     <button
+      type='button'
       className={cn('btn il h_item ic_sm', className, preset)}
       onClick={onClick}
       disabled={disabled}
@@ -364,12 +366,13 @@ export function SmartLink(p: {
   fallbackElement?: React.ElementType;
   to?: To | string;
   replace?: boolean;
-  onClick?: (e: React.MouseEvent) => void;
+  onClick?: (e: React.MouseEvent<any>) => void;
+  linkClassName?: string;
   [key: string]: any;
 }) {
-  const { Component, buttonElement, fallbackElement, className, replace, ...other } = p;
+  const { Component, buttonElement, fallbackElement, className, replace, linkClassName, ...other } = p;
   const { to, onClick, disabled } = p;
-  const cnStr = cn(className, to || onClick ? 'link trans_link' : '');
+  const cnStr = cn(className, to || onClick ? (linkClassName ?? 'link trans_link') : '');
 
   if (Component) {
     return <Component {...other} className={cnStr} />;
@@ -404,13 +407,16 @@ interface PillButtonProps extends Omit<NormalButtonProps, 'preset'> {
 
 export const PillButton = memo((p: PillButtonProps) => {
   const { to, preset, text, disabled, designClassName, className, onClick, leftIconClassName, onClickLeftIcon, leftIconName, rightIconName } = p;
+  const Element = onClick ? 'button' : 'span';
+  const isButton = Element === 'button';
 
   return (
-    <button
+    <Element
+      type={isButton ? 'button' : undefined}
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'r h_item py_3 rel',
+        'bg r h_item py_3 rel',
         `pill_${preset}`,
         preset === 'sm' ? '' : 'ft_sm',
         designClassName || 'bd_1',
@@ -437,7 +443,7 @@ export const PillButton = memo((p: PillButtonProps) => {
           <Icon name={rightIconName} />
         </span>
       )}
-    </button>
+    </Element>
   );
 });
 
@@ -446,6 +452,8 @@ PillButton.displayName = 'PillButton';
 /**
  * Pill
  */
+
+type ButtonSize = 'sm' | 'df' | 'md' | 'lg';
 
 interface PillProps {
   as: React.ElementType;
@@ -457,23 +465,23 @@ interface PillProps {
   title: string;
   children: any;
   preset?: 'outline_lg'; // This overrides size
-  size?: 'sm' | 'df' | 'md' | 'lg' | null;
+  size?: ButtonSize | null;
   className: string;
-  onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onClick: (e: React.MouseEvent<any>) => void;
 }
 
 export function Pill(p: Partial<PillProps>) {
   const { preset, loading, addLoadingIndicator, to, href, target, onClick, title, children, className } = p;
   const LinkComponent = p.as || (to ? Link : 'a');
 
-  let onClick_;
+  let onClick_: (e: React.MouseEvent<any>) => void;
   if (loading) {
     onClick_ = (e: React.MouseEvent) => e.preventDefault();
   } else {
-    onClick_ = onClick;
+    onClick_ = onClick!;
   }
 
-  let size, presetClassNames;
+  let size: ButtonSize | null, presetClassNames: string | undefined;
   switch (preset) {
     case 'outline_lg':
       presetClassNames = 'bd_main_bd bg_alt_hv bd_10 ft_semibold';
@@ -489,7 +497,6 @@ export function Pill(p: Partial<PillProps>) {
       to={to}
       href={href}
       target={target}
-      // @ts-ignore
       onClick={onClick_}
       title={title}
       className={cn(

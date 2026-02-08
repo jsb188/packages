@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
+import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
-import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '../types/organization.d';
 
 // Use this for report periods, etc
 const CURRENT_YEAR = String(new Date().getFullYear());
@@ -23,7 +23,8 @@ const F = {
 type ValidRoutePath =
   '/app'
   | '/app/c/'
-  | '/app/ai-workflows'
+  | '/app/ai-workflows' // Temporary
+  | '/app/workflows/'
   | '/app/logs'
   | '/app/seeding'
   | '/app/transplanting'
@@ -58,6 +59,7 @@ interface RouteDictObj {
   // These values prevent rendering flickers when calculating TOC/breadcrumbs between page renders
   hasPhysicalToolbar?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
   hasAsideNav?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
+  toolbarShadowStyle?: string;
 }
 
 const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
@@ -76,14 +78,24 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
     hasPhysicalToolbar: 'ALWAYS',
     hasAsideNav: 'NEVER',
+    toolbarShadowStyle: 'shadow_bg_drop_lg',
   },
 
   // Advanced
 
-  '/app/ai-workflows': {
+  '/app/ai-workflows': { // Temporary
     to: '/app/ai-workflows',
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
+  },
+
+  '/app/workflows/': {
+    to: '/app/workflows/',
+    text: 'form.ai_workflows',
+    iconName: COMMON_ICON_NAMES.ai_workflow,
+
+    // Show TOC only on /app/workflows/:workflowId
+    hasAsideNav: (parts: string[]) => parts.length > 3,
   },
 
   '/app/logs': {
@@ -557,7 +569,8 @@ export function getNavigationList(
     text: i18n.t('form.advanced'),
     initialExpanded: false,
     navList: [
-      ROUTES_DICT['/app/ai-workflows'],
+      ROUTES_DICT['/app/ai-workflows'], // Temporary
+      // ROUTES_DICT['/app/workflows/'],
       ROUTES_DICT['/app/logs']
     ]
   }] as any);

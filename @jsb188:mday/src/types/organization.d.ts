@@ -8,7 +8,7 @@ import {
 import { PRODUCT_FEATURES } from '../constants/product.ts';
 
 import type { AddressObj } from '@jsb188/app/types/other.d.ts';
-import type { StorageData } from '@jsb188/app/types/storage.d.ts';
+import type { StorageData } from './storage.d.ts';
 import type { LogTypeEnum } from '../types/log.d.ts';
 
 /*

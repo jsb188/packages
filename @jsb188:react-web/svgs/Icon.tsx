@@ -145,6 +145,16 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   foreign_growers: 'shipment-international',
   growers: 'indoor-plant-house',
 
+  // Org features
+  NORMAL_LOGGING: 'notes-tasks',
+  FOOD_SAFETY: 'washing-hand',
+  GLOBAL_GAP: 'ui-webpage-check',
+  ORGANIC_CERTIFICATION: 'ui-webpage-check',
+  CAL_EVENTS: 'calendar-3',
+  CAL_EVENTS_ATTENDANCE: 'task-list-check-1',
+  CAL_EVENTS_LOAD_LIST: 'farmers-market-kiosk',
+  LIVESTOCK_MANAGEMENT: 'outdoors-horse',
+
   // Operation types
   ARABLE: 'farming-barn-silo',
   FARMERS_MARKET: 'farmers-market-kiosk',

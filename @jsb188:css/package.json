@@ -9,6 +9,7 @@
     "./_global.css": "./css/_global.css",
     "./alert.css": "./css/alert.css",
     "./animate.css": "./css/animate.css",
+    "./colors.css": "./css/colors.css",
     "./form.css": "./css/form.css",
     "./layout.css": "./css/layout.css",
     "./list.css": "./css/list.css",

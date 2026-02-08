@@ -151,12 +151,6 @@ button:not(:disabled):not(.disabled):active,
   transform: translateY(1px);
 }
 
-.hv_left:active, .hv_right:active { transform: none !important; }
-.hv_left:hover .target { transform: translateX(-.2em); }
-.hv_left:active .target { transform: translateX(-.4em); }
-.hv_right:hover .target { transform: translateX(.2em); }
-.hv_right:active .target { transform: translateX(.4em); }
-
 .non_link:active {
   transform: translateY(0) !important;
 }
@@ -258,6 +252,12 @@ p:last-child {
 .scroll_lock { overscroll-behavior-x: none; } /* Use this on <body> when Modal is used */
 .of { overflow: hidden; }
 .hidden { display: none !important; }
+
+.-z5 { z-index: -5; }
+.-z4 { z-index: -4; }
+.-z3 { z-index: -3; }
+.-z2 { z-index: -2; }
+.-z1 { z-index: -1; }
 
 .z1 { z-index: 10; }
 .z2 { z-index: 20; }
@@ -1094,8 +1094,11 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 
 /* Shadow */
 .shadow, .shadow_hv:hover { box-shadow: var(--shadow); }
+.shadow_folder, .shadow_folder_hv:hover { box-shadow: inset 0 0 30px rgba(var(--color-darker-rgb), .12), 0 6px 18px -12px rgba(var(--color-darker-rgb), .14); }
+.shadow_soft, .shadow_soft_hv:hover { box-shadow: var(--shadow-soft); }
 .shadow_soft_lg, .shadow_soft_lg_hv:hover { box-shadow: var(--shadow-soft-lg); }
 .shadow_line, .shadow_line_hv:hover { box-shadow: var(--shadow-line); }
+.shadow_line_alt, .shadow_line_alt_hv:hover { box-shadow: var(--shadow-line-alt); }
 .shadow_light, .shadow_light_hv:hover { box-shadow: var(--shadow-light); }
 .shadow_float, .shadow_float_hv:hover { box-shadow: var(--shadow-float); }
 .shadow_bg, .shadow_bg_hv:hover { box-shadow: 0 0 7px rgb(var(--color-bg)); }
@@ -1111,6 +1114,16 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .trans_link, button:not(:disabled), .link[role="button"]:not(.disabled), a:not(.disabled) { transition: color .125s ease-in-out, background-color .125s ease-in-out, border-color .125s ease-in-out, opacity .125s ease-in-out; }
 .trans_transform { transition: transform .1s ease-in-out; }
 .trans_none, .trans_none *, .trans_none_inner * { transition: none !important; }
+
+.link_float {
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.link_float:hover,
+.link_float:active {
+  transform: translateY(-8px);
+  box-shadow:
+    0 7px 21px rgba(0, 0, 0, 0.15);
+}
 
 .trans_op {
   transition-property: opacity;
@@ -1292,6 +1305,17 @@ rect.s_dot_away {
   mask-position: center;
 }
 
+.pattern_grid_fade_down:before {
+  content: ' ';
+  position: absolute; z-index: 0;
+  inset: 0;
+  mask-image: url('https://assets.chiefhappiness.co/marketday/static/grid-fade-down.svg');
+  /* mask-image: url('/svg/grid-fade-down.svg'); */
+  mask-size: 500px 500px;
+  mask-repeat: repeat-x;
+  mask-position: top left;
+}
+
 /* Double border */
 
 .bd_double {
@@ -1362,132 +1386,50 @@ rect.s_dot_away {
 /* Colors fade */
 
 .red_fade_bf:before { background-color: var(--color-red-fade); }
-.red_fade_bf { color: var(--color-red-default) !important; }
-
 .orange_fade_bf:before { background-color: var(--color-orange-fade); }
-.orange_fade_bf { color: var(--color-orange-default) !important; }
-
 .brown_fade_bf:before { background-color: var(--color-brown-fade); }
-.brown_fade_bf { color: var(--color-brown-default) !important; }
-
 .amber_fade_bf:before { background-color: var(--color-amber-fade); }
-.amber_fade_bf { color: var(--color-amber-default) !important; }
-
 .yellow_fade_bf:before { background-color: var(--color-yellow-fade); }
-.yellow_fade_bf { color: var(--color-yellow-default) !important; }
-
 .lime_fade_bf:before { background-color: var(--color-lime-fade); }
-.lime_fade_bf { color: var(--color-lime-default) !important; }
-
 .green_fade_bf:before { background-color: var(--color-green-fade); }
-.green_fade_bf { color: var(--color-green-default) !important; }
-
 .emerald_fade_bf:before { background-color: var(--color-emerald-fade); }
-.emerald_fade_bf { color: var(--color-emerald-default) !important; }
-
 .teal_fade_bf:before { background-color: var(--color-teal-fade); }
-.teal_fade_bf { color: var(--color-teal-default) !important; }
-
 .cyan_fade_bf:before { background-color: var(--color-cyan-fade); }
-.cyan_fade_bf { color: var(--color-cyan-default) !important; }
-
 .sky_fade_bf:before { background-color: var(--color-sky-fade); }
-.sky_fade_bf { color: var(--color-sky-default) !important; }
-
 .blue_fade_bf:before { background-color: var(--color-blue-fade); }
-.blue_fade_bf { color: var(--color-blue-default) !important; }
-
 .indigo_fade_bf:before { background-color: var(--color-indigo-fade); }
-.indigo_fade_bf { color: var(--color-indigo-default) !important; }
-
 .violet_fade_bf:before { background-color: var(--color-violet-fade); }
-.violet_fade_bf { color: var(--color-violet-default) !important; }
-
 .purple_fade_bf:before { background-color: var(--color-purple-fade); }
-.purple_fade_bf { color: var(--color-purple-default) !important; }
-
 .fuchsia_fade_bf:before { background-color: var(--color-fuchsia-fade); }
-.fuchsia_fade_bf { color: var(--color-fuchsia-default) !important; }
-
 .pink_fade_bf:before { background-color: var(--color-pink-fade); }
-.pink_fade_bf { color: var(--color-pink-default) !important; }
-
 .rose_fade_bf:before { background-color: var(--color-rose-fade); }
-.rose_fade_bf { color: var(--color-rose-default) !important; }
-
 .slate_fade_bf:before { background-color: var(--color-slate-fade); }
-.slate_fade_bf { color: var(--color-slate-default) !important; }
-
 .zinc_fade_bf:before { background-color: var(--color-zinc-fade); }
-.zinc_fade_bf { color: var(--color-zinc-default) !important; }
-
 .stone_fade_bf:before { background-color: var(--color-stone-fade); }
-.stone_fade_bf { color: var(--color-stone-default) !important; }
 
 /* Colors light */
 
 .red_light_bf:before { background-color: var(--color-red-light); }
-.red_light_bf { color: var(--color-red-default) !important; }
-
 .orange_light_bf:before { background-color: var(--color-orange-light); }
-.orange_light_bf { color: var(--color-orange-default) !important; }
-
 .brown_light_bf:before { background-color: var(--color-brown-light); }
-.brown_light_bf { color: var(--color-brown-default) !important; }
-
 .amber_light_bf:before { background-color: var(--color-amber-light); }
-.amber_light_bf { color: var(--color-amber-default) !important; }
-
 .yellow_light_bf:before { background-color: var(--color-yellow-light); }
-.yellow_light_bf { color: var(--color-yellow-default) !important; }
-
 .lime_light_bf:before { background-color: var(--color-lime-light); }
-.lime_light_bf { color: var(--color-lime-default) !important; }
-
 .green_light_bf:before { background-color: var(--color-green-light); }
-.green_light_bf { color: var(--color-green-default) !important; }
-
 .emerald_light_bf:before { background-color: var(--color-emerald-light); }
-.emerald_light_bf { color: var(--color-emerald-default) !important; }
-
 .teal_light_bf:before { background-color: var(--color-teal-light); }
-.teal_light_bf { color: var(--color-teal-default) !important; }
-
 .cyan_light_bf:before { background-color: var(--color-cyan-light); }
-.cyan_light_bf { color: var(--color-cyan-default) !important; }
-
 .sky_light_bf:before { background-color: var(--color-sky-light); }
-.sky_light_bf { color: var(--color-sky-default) !important; }
-
 .blue_light_bf:before { background-color: var(--color-blue-light); }
-.blue_light_bf { color: var(--color-blue-default) !important; }
-
 .indigo_light_bf:before { background-color: var(--color-indigo-light); }
-.indigo_light_bf { color: var(--color-indigo-default) !important; }
-
 .violet_light_bf:before { background-color: var(--color-violet-light); }
-.violet_light_bf { color: var(--color-violet-default) !important; }
-
 .purple_light_bf:before { background-color: var(--color-purple-light); }
-.purple_light_bf { color: var(--color-purple-default) !important; }
-
 .fuchsia_light_bf:before { background-color: var(--color-fuchsia-light); }
-.fuchsia_light_bf { color: var(--color-fuchsia-default) !important; }
-
 .pink_light_bf:before { background-color: var(--color-pink-light); }
-.pink_light_bf { color: var(--color-pink-default) !important; }
-
 .rose_light_bf:before { background-color: var(--color-rose-light); }
-.rose_light_bf { color: var(--color-rose-default) !important; }
-
 .slate_light_bf:before { background-color: var(--color-slate-light); }
-.slate_light_bf { color: var(--color-slate-default) !important; }
-
 .zinc_light_bf:before { background-color: var(--color-zinc-light); }
-.zinc_light_bf { color: var(--color-zinc-default) !important; }
-
 .stone_light_bf:before { background-color: var(--color-stone-light); }
-.stone_light_bf { color: var(--color-stone-default) !important; }
 
 /* Temporary for demo */
 

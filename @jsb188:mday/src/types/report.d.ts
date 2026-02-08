@@ -1,5 +1,5 @@
 import { REPORT_SORT_OPTS, REPORT_TYPES, REPORT_ROW_PRESETS } from '../constants/report.ts';
-import type { StorageData, StorageGQL } from '@jsb188/app/types/storage.d.ts';
+import type { StorageData, StorageGQL } from './storage.d.ts';
 
 /**
  * Enums

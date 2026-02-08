@@ -194,6 +194,27 @@ export function getOrganizationFeatures(
 }
 
 /**
+ * Map organization feature to a color (used for workflows without logType)
+ * @param feature - The feature of the workflow
+ * @returns The color associated with the feature
+ */
+
+export function getOrganizationFeatureColor(feature?: OrganizationFeatureEnum | null) {
+	const featureToColor = {
+		FOOD_SAFETY: 'violet',
+		GLOBAL_GAP: 'fuchsia',
+		ORGANIC_CERTIFICATION: 'yellow',
+		CAL_EVENTS: 'cyan',
+		CAL_EVENTS_ATTENDANCE: 'cyan',
+		CAL_EVENTS_LOAD_LIST: 'amber',
+		LIVESTOCK: 'brown',
+		LIVESTOCK_MANAGEMENT: 'brown',
+	} as Record<OrganizationFeatureEnum, string>;
+
+	return (feature && featureToColor[feature]) || 'stone';
+}
+
+/**
  * Merge directory with preferred contacts
  */
 

@@ -15,7 +15,6 @@
     "./constants/billing.ts": "./src/constants/billing.ts",
     "./constants/emoji.ts": "./src/constants/emoji.ts",
     "./constants/other.ts": "./src/constants/other.ts",
-    "./constants/storage.ts": "./src/constants/storage.ts",
     "./constants/user.ts": "./src/constants/user.ts",
     "./constants/wsActions.ts": "./src/constants/wsActions.ts",
     "./utils/account.ts": "./src/utils/account.ts",
@@ -34,8 +33,7 @@
     "./types/app.d.ts": "./src/types/app.d.ts",
     "./types/auth.d.ts": "./src/types/auth.d.ts",
     "./types/form.d.ts": "./src/types/form.d.ts",
-    "./types/other.d.ts": "./src/types/other.d.ts",
-    "./types/storage.d.ts": "./src/types/storage.d.ts"
+    "./types/other.d.ts": "./src/types/other.d.ts"
   },
   "dependencies": {
     "node-polyglot": "^2.6.0",
