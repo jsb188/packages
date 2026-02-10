@@ -1,4 +1,5 @@
 import type { AccountObj } from '@jsb188/app/types/account.d.ts';
+import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
 import type { ActionTaskGQL, ActionTaskObj } from '@jsb188/mday/types/action.d.ts';
 import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 import {
@@ -86,12 +87,6 @@ interface LogMetadataBase {
 	summary?: string;
 }
 
-interface LabelValueObj {
-	label: string;
-	value: string;
-	quantity?: number;
-}
-
 /**
  * Log details - Arable
  */
@@ -106,7 +101,7 @@ export type LogArableMetadata = LogMetadataBase & {
 	fieldLocation?: string;
 	otherParty?: string;
 	referenceNumber?: string;
-	values?: LabelValueObj[];
+	values?: LabelAndValue[];
 	tax: number;
 };
 
@@ -134,7 +129,7 @@ export type LogFarmersMarketMetadata = LogMetadataBase & {
 	referenceNumber: string;
 	voided: boolean;
 	childOrgId?: number;
-	values: LabelValueObj[];
+	values: LabelAndValue[];
 };
 
 export interface LogFarmersMarketObj {
@@ -168,7 +163,7 @@ export type LogLivestockMetadata = LogMetadataBase & {
 	livestock: string;
 	otherParty?: string;
 	referenceNumber?: string;
-	values?: LabelValueObj[];
+	values?: LabelAndValue[];
 	item: string;
 	quantity: number;
 	unit: string;

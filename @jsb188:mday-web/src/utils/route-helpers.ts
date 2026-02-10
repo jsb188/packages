@@ -24,7 +24,7 @@ type ValidRoutePath =
   '/app'
   | '/app/c/'
   | '/app/ai-workflows' // Temporary
-  | '/app/workflows/'
+  | '/app/workflows'
   | '/app/logs'
   | '/app/seeding'
   | '/app/transplanting'
@@ -65,6 +65,9 @@ interface RouteDictObj {
 const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
   // Main /app/ routes
+  // If route ends with '/', it requires (or optionally accepts) a path segment
+  // e.g. "/app/c/" means "/app/c/:chatId" etc
+  // e.g. "/app" means exactly "/app", and it never expects a path segment
 
   '/app': {
     to: '/app',
@@ -89,13 +92,11 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.ai_workflow,
   },
 
-  '/app/workflows/': {
-    to: '/app/workflows/',
+  '/app/workflows': {
+    to: '/app/workflows',
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
-
-    // Show TOC only on /app/workflows/:workflowId
-    hasAsideNav: (parts: string[]) => parts.length > 3,
+    hasAsideNav: 'NEVER',
   },
 
   '/app/logs': {
@@ -570,7 +571,7 @@ export function getNavigationList(
     initialExpanded: false,
     navList: [
       ROUTES_DICT['/app/ai-workflows'], // Temporary
-      // ROUTES_DICT['/app/workflows/'],
+      // ROUTES_DICT['/app/workflows'],
       ROUTES_DICT['/app/logs']
     ]
   }] as any);

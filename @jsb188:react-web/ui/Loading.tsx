@@ -36,7 +36,7 @@ export function BigLoading(p: BigLoadingProps) {
  */
 
 interface BigLoadingProps {
-  color?: 'default' | 'alt' | 'active';
+  color?: 'default' | 'alt' | 'active' | 'monochrome';
 }
 
 interface BigLoadingDelayedProps extends BigLoadingProps {

@@ -1,46 +1,71 @@
 /* Pastel gradients (soft, low-contrast) */
 
-.gr_red { background: linear-gradient(45deg, #f3b2c2 0%, #f4d3e8 100%); }
-.gr_orange { background: linear-gradient(45deg, #ffd891 0%, #ffeed0 100%); }
-.gr_brown { background: linear-gradient(45deg, #e6c2a8 0%, #ecdfd0 100%); }
-.gr_amber { background: linear-gradient(45deg, #f7cf95 0%, #fae9c6 100%); }
-.gr_yellow { background: linear-gradient(45deg, #ffe37e 0%, #fff4c4 100%); }
-.gr_lime { background: linear-gradient(45deg, #cbe69a 0%, #d1f4d2 100%); }
-.gr_green { background: linear-gradient(45deg, #b7dcab 0%, #beeede 100%); }
-.gr_emerald { background: linear-gradient(45deg, #a9e4cf 0%, #b5f4ea 100%); }
-.gr_teal { background: linear-gradient(45deg, #a2e0d6 0%, #acefee 100%); }
-.gr_cyan { background: linear-gradient(45deg, #a8dcf0 0%, #b9f1fb 100%); }
-.gr_sky { background: linear-gradient(45deg, #a6d2f1 0%, #b6ddfb 100%); }
-.gr_blue { background: linear-gradient(45deg, #adc8f1 0%, #bdd8fb 100%); }
-.gr_indigo { background: linear-gradient(45deg, #c0c5f2 0%, #dbe0ff 100%); }
-.gr_violet { background: linear-gradient(45deg, #ccb7f2 0%, #dcd4fd 100%); }
-.gr_purple { background: linear-gradient(45deg, #d0b4f2 0%, #e0d4fd 100%); }
-.gr_fuchsia { background: linear-gradient(45deg, #f2b7df 0%, #f4d5f8 100%); }
-.gr_pink { background: linear-gradient(45deg, #f2b6cf 0%, #f4d6ec 100%); }
-.gr_rose { background: linear-gradient(45deg, #f2b1b8 0%, #f4d0df 100%); }
-.gr_slate { background: linear-gradient(45deg, #cdd5df 0%, #d9e3f4 100%); }
-.gr_zinc { background: linear-gradient(45deg, #d0d0d7 0%, #dedff2 100%); }
-.gr_stone { background: linear-gradient(45deg, #d7cabf 0%, #e5e0d7 100%); }
+.gr_red_1 { background: linear-gradient(45deg, #f399af 0%, #f1bbdd 100%); }
+.gr_orange_1 { background: linear-gradient(45deg, #ffc762 0%, #ffdb9a 100%); }
+.gr_brown_1 { background: linear-gradient(45deg, #e4b592 0%, #e6d2bb 100%); }
+.gr_amber_1 { background: linear-gradient(45deg, #fbc77d 0%, #fbe2ae 100%); }
+.gr_yellow_1 { background: linear-gradient(45deg, #ffdf6b 0%, #fff0ad 100%); }
+.gr_lime_1 { background: linear-gradient(45deg, #cbe69a 0%, #d1f4d2 100%); }
+.gr_green_1 { background: linear-gradient(45deg, #b7dcab 0%, #beeede 100%); }
+.gr_emerald_1 { background: linear-gradient(45deg, #a9e4cf 0%, #b5f4ea 100%); }
+.gr_teal_1 { background: linear-gradient(45deg, #a2e0d6 0%, #acefee 100%); }
+.gr_cyan_1 { background: linear-gradient(45deg, #a8dcf0 0%, #b9f1fb 100%); }
+.gr_sky_1 { background: linear-gradient(45deg, #a6d2f1 0%, #b6ddfb 100%); }
+.gr_blue_1 { background: linear-gradient(45deg, #adc8f1 0%, #bdd8fb 100%); }
+.gr_indigo_1 { background: linear-gradient(45deg, #c0c5f2 0%, #dbe0ff 100%); }
+.gr_violet_1 { background: linear-gradient(45deg, #ccb7f2 0%, #dcd4fd 100%); }
+.gr_purple_1 { background: linear-gradient(45deg, #d0b4f2 0%, #e0d4fd 100%); }
+.gr_fuchsia_1 { background: linear-gradient(45deg, #f1abdb 0%, #f2c8f7 100%); }
+.gr_pink_1 { background: linear-gradient(45deg, #f1aac8 0%, #f2cbe7 100%); }
+.gr_rose_1 { background: linear-gradient(45deg, #f2a9b1 0%, #f3c8da 100%); }
+.gr_slate_1 { background: linear-gradient(45deg, #cdd5df 0%, #d9e3f4 100%); }
+.gr_zinc_1 { background: linear-gradient(45deg, #d0d0d7 0%, #dedff2 100%); }
+.gr_stone_1 { background: linear-gradient(45deg, #d7cabf 0%, #e5e0d7 100%); }
 
-/* Faint corner aurora borealis gradients from top left */
+/* Alternate versions with more noticeable contrast in gradient brightness */
 
-.gr_ab_sky {
-  background:
-    radial-gradient(160% 140% at 0% 0%,
-      color-mix(in oklch, var(--color-sky-default) 46%, transparent 54%) 0%,
-      color-mix(in oklch, var(--color-sky-default) 30%, transparent 70%) 28%,
-      color-mix(in oklch, var(--color-emerald-default) 22%, transparent 78%) 52%,
-      transparent 72%),
-    radial-gradient(140% 160% at 0% 0%,
-      color-mix(in oklch, var(--color-cyan-default) 24%, transparent 76%) 8%,
-      transparent 58%),
-    repeating-linear-gradient(135deg,
-      color-mix(in oklch, var(--color-sky-default) 34%, transparent 66%) 0%,
-      color-mix(in oklch, var(--color-sky-default) 22%, transparent 78%) 12%,
-      transparent 30%,
-      color-mix(in oklch, var(--color-sky-default) 18%, transparent 82%) 44%,
-      transparent 60%);
-  background-position: top left;
-  background-size: 750px 300px;
-  background-repeat: no-repeat;
-}
+.gr_red_2 { background: linear-gradient(to bottom right, #e6b7d4 0%, #f6e6f0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_orange_2 { background: linear-gradient(to bottom right, #efd29c 0%, #f9efdc 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_brown_2 { background: linear-gradient(to bottom right, #dbcbb8 0%, #f2ede6 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_amber_2 { background: linear-gradient(to bottom right, #eed9ab 0%, #f9f2e2 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_yellow_2 { background: linear-gradient(to bottom right, #f1e5aa 0%, #faf6e1 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_lime_2 { background: linear-gradient(to bottom right, #c6e9c9 0%, #ebf7ec 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_green_2 { background: linear-gradient(to bottom right, #b9e3d4 0%, #e7f5f0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_emerald_2 { background: linear-gradient(to bottom right, #b2e7df 0%, #e4f7f4 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_teal_2 { background: linear-gradient(to bottom right, #abe3e2 0%, #e2f5f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_cyan_2 { background: linear-gradient(to bottom right, #b4e7ef 0%, #e5f7f9 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_sky_2 { background: linear-gradient(to bottom right, #b1d4ef 0%, #e4f0f9 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_blue_2 { background: linear-gradient(to bottom right, #b6d0f0 0%, #e5effa 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_indigo_2 { background: linear-gradient(to bottom right, #cbd3f7 0%, #edf0fc 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_violet_2 { background: linear-gradient(to bottom right, #cfc8f4 0%, #eeecfb 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_purple_2 { background: linear-gradient(to bottom right, #d4c8f4 0%, #f0ecfb 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_fuchsia_2 { background: linear-gradient(to bottom right, #e7c0ec 0%, #f7e9f8 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_pink_2 { background: linear-gradient(to bottom right, #e7c4dd 0%, #f7eaf3 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_rose_2 { background: linear-gradient(to bottom right, #e9bfd1 0%, #f7e9ef 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_slate_2 { background: linear-gradient(to bottom right, #cfd7e9 0%, #eef1f7 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_zinc_2 { background: linear-gradient(to bottom right, #d2d3e7 0%, #eff0f7 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_stone_2 { background: linear-gradient(to bottom right, #dcd6cd 0%, #f3f1ee 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+
+/* Modal colors mapped from .gr_*_2 second stop */
+
+[data-theme="red_light"] { --color-modal: 243, 233, 239; /* #f3e9ef */ }
+[data-theme="orange_light"] { --color-modal: 244, 237, 225; /* #f4ede1 */ }
+[data-theme="brown_light"] { --color-modal: 240, 237, 232; /* #f0ede8 */ }
+[data-theme="amber_light"] { --color-modal: 245, 240, 230; /* #f5f0e6 */ }
+[data-theme="yellow_light"] { --color-modal: 246, 243, 229; /* #f6f3e5 */ }
+[data-theme="lime_light"] { --color-modal: 237, 245, 238; /* #edf5ee */ }
+[data-theme="green_light"] { --color-modal: 233, 243, 239; /* #e9f3ef */ }
+[data-theme="emerald_light"] { --color-modal: 231, 244, 242; /* #e7f4f2 */ }
+[data-theme="teal_light"] { --color-modal: 229, 242, 242; /* #e5f2f2 */ }
+[data-theme="cyan_light"] { --color-modal: 232, 244, 246; /* #e8f4f6 */ }
+[data-theme="sky_light"] { --color-modal: 232, 239, 245; /* #e8eff5 */ }
+[data-theme="blue_light"] { --color-modal: 233, 239, 246; /* #e9eff6 */ }
+[data-theme="indigo_light"] { --color-modal: 240, 242, 249; /* #f0f2f9 */ }
+[data-theme="violet_light"] { --color-modal: 240, 239, 248; /* #f0eff8 */ }
+[data-theme="purple_light"] { --color-modal: 241, 239, 248; /* #f1eff8 */ }
+[data-theme="fuchsia_light"] { --color-modal: 245, 236, 245; /* #f5ecf5 */ }
+[data-theme="pink_light"] { --color-modal: 245, 236, 242; /* #f5ecf2 */ }
+[data-theme="rose_light"] { --color-modal: 245, 235, 239; /* #f5ebef */ }
+[data-theme="slate_light"] { --color-modal: 240, 242, 245; /* #f0f2f5 */ }
+[data-theme="zinc_light"] { --color-modal: 240, 241, 246; /* #f0f1f6 */ }
+[data-theme="stone_light"] { --color-modal: 242, 241, 239; /* #f2f1ef */ }

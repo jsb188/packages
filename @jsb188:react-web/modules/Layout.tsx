@@ -424,7 +424,11 @@ export function ModalWrapper(p: ModalWrapperProps) {
         e.stopPropagation();
         closePopOver?.();
       }}
-      className={cn('mw modal_main_content alert_shadow_' + (outlineColor || 'default'), size, className)}
+      className={cn(
+        `mw modal_main_content of alert_shadow_${outlineColor || 'default'}`,
+        size,
+        className
+      )}
       {...other}
     >
       {!onCloseModal ? null : (

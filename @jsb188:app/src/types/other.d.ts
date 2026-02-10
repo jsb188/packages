@@ -35,6 +35,18 @@ export interface ScheduleObj {
 }
 
 /**
+ * Generic label/value object
+ */
+
+export interface LabelAndValue {
+  iconName?: String
+	label: string;
+	value: string;
+	quantity?: number;
+  tax?: number
+}
+
+/**
  * File object
  */
 

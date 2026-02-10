@@ -14,6 +14,7 @@ import log from './log.ts';
 import message from './message.ts';
 import org from './org.ts';
 import product from './product.ts';
+import workflow from './workflow.ts';
 
 export const i18nTranslations = {
   account,
@@ -29,6 +30,7 @@ export const i18nTranslations = {
   message,
   org,
   product,
+  workflow,
 } as Record<string, any>;
 
 const i18n = new Polyglot();

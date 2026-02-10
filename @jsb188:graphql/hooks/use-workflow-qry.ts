@@ -1,4 +1,4 @@
-import { useQuery } from '@jsb188/graphql/client';
+import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import { workflowsQry } from '../gql/queries/workflowQueries';
 import type { UseQueryParams } from '../types.d';
 
@@ -19,4 +19,16 @@ export function useWorkflows(organizationId?: string | null, params: UseQueryPar
     workflows: data?.workflows,
     ...rest
   };
+}
+
+/**
+ * Get reactive workflow fragment
+ */
+
+export function useReactiveWorkflowFragment(workflowId: string, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    [`$workflowFragment:${workflowId}`],
+    queryCount,
+  );
 }

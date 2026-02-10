@@ -580,17 +580,30 @@ export function getFullDate(
 			return new Intl.DateTimeFormat(locales, {
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
-		case 'NUMERIC_TIME':
-			// Expected output: "9/1/2024, 8:30 PM"
-			return new Intl.DateTimeFormat(locales, {
-				month: '2-digit',
-				day: '2-digit',
-				year: 'numeric',
-				hour: 'numeric',
-				minute: '2-digit',
-				hour12: true,
+		case 'NUMERIC_TIME': {			// Expected output: "9/1/2024, 8:30 PM"
+      const numericDate = new Intl.DateTimeFormat(locales, {
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error
 			}).format(d);
+
+      const numericTime = new Intl.DateTimeFormat(locales, {
+        timeZone: timeZone || undefined, // null is not allowed, it will throw error
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      }).format(d);
+
+      return `${numericDate}, ${numericTime}`;
+
+			// return new Intl.DateTimeFormat(locales, {
+			// 	month: '2-digit',
+			// 	day: '2-digit',
+			// 	year: 'numeric',
+			// 	hour: 'numeric',
+			// 	minute: '2-digit',
+			// 	hour12: true,
+			// 	timeZone: timeZone || undefined, // null is not allowed, it will throw error
+			// }).format(d);
+    }
 		case 'MINIMAL':
 			// Expected output: "Sep 1, 2024, 6:54 PM"
 			return new Intl.DateTimeFormat(locales, {

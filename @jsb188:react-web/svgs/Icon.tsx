@@ -64,7 +64,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   alert_error: 'alert-circle',
   alert_warning_filled: 'alert-circle-filled',
   billing: 'credit-card',
-  broken_file: 'file-broken',
+  broken_file: 'database-warning',
   broken_link: 'link-broken-2',
   chat: 'message',
   click: 'click',
@@ -144,6 +144,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   certificate: 'document-license',
   foreign_growers: 'shipment-international',
   growers: 'indoor-plant-house',
+  write_log: 'content-paper-edit',
+  time_recurring: 'time-daily-2',
 
   // Org features
   NORMAL_LOGGING: 'notes-tasks',

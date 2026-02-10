@@ -9,11 +9,18 @@ export const workflowFragment = `fragment workflowFragment on Workflow {
   title
   instructions
 
+  steps {
+    iconName
+    label
+    value
+  }
+
   schedule
   active
 
   startedAt
   nextAt
+
   createdAt
   updatedAt
 }`;

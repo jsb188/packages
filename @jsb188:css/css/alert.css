@@ -18,7 +18,9 @@
 /* Different outlines + shadows for each modal type */
 
 .alert_shadow_default {
-  box-shadow: 0 0 20px rgb(var(--color-modal));
+  /* box-shadow: 0 0 20px rgb(var(--color-modal)), 0 4px 12px rgba(0,0,0,.04); */
+  /* box-shadow: 0 0 40px 10px rgb(var(--color-modal)); */
+  box-shadow: 0 0 0 3px rgba(0,0,0,.04), 0 20px 40px rgb(var(--color-modal));
 }
 
 .alert_shadow_error {

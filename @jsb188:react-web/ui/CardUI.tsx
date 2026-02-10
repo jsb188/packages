@@ -23,7 +23,7 @@ export const GradientCardItem = memo((p: {
 }) => {
   const { className, titleEllipsisStyle, label, title, description, iconName, color, to, onClick, children } = p;
   const gradientColor = color || 'lime';
-  const gradientClassName = `gr_${gradientColor}`; // _${gradientIndex + 1}`;
+  const gradientClassName = `gr_${gradientColor}_1`;
 
   return <div
     className={cn(
@@ -52,7 +52,7 @@ export const GradientCardItem = memo((p: {
       {(label || iconName)&&
       <div className='h_bottom mt_4 ic_df'>
         {iconName && <Icon name={iconName} />}
-        {label && <span className='r_xs ft_medium px_6 ml_5 -mb_2'>
+        {label && <span className='r_xs ft_medium ml_10 -mb_2'>
           {label}
         </span>}
       </div>}

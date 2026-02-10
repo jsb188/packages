@@ -1,8 +1,8 @@
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
+import type { ColorEnum, ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import { forwardRef, memo } from 'react';
-import { Icon } from '../svgs/Icon';
+import { forwardRef, Fragment, memo } from 'react';
+import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
@@ -180,6 +180,7 @@ interface ModalSimpleContentProps {
   title?: string;
   message?: string;
   iconName: string;
+  iconClassName?: string;
   className?: string;
   children?: React.ReactNode;
   buttonText?: string;
@@ -188,10 +189,10 @@ interface ModalSimpleContentProps {
 }
 
 export function ModalSimpleContent(p: ModalSimpleContentProps) {
-  const { title, message, iconName, className, children, buttonText, buttonTo, onSubmit } = p;
+  const { title, message, iconName, iconClassName, className, children, buttonText, buttonTo, onSubmit } = p;
 
   return <div className={cn('v_center a_c', className ?? 'py_md px_df')}>
-    <span className='ic_xxxl cl_secondary'>
+    <span className={iconClassName ?? 'ic_xxxl cl_secondary'}>
       <Icon name={iconName} tryColor />
     </span>
 
@@ -498,42 +499,53 @@ export function AlertPopUp(p: AlertDataProps) {
 
 export interface ModalToolbarBreadcrumb {
   text: string;
+  iconName?: string;
   onClick?: () => void;
   variables?: any;
 }
 
 export function ModalToolbar(p: {
+  hideSeparator?: boolean;
   paddingClassName?: string;
   breadcrumbs?: ModalToolbarBreadcrumb[];
   onCloseModal?: () => void;
 }) {
-  const { paddingClassName, breadcrumbs, onCloseModal } = p;
+  const { hideSeparator, paddingClassName, breadcrumbs, onCloseModal } = p;
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
-  return <div className='of w_f rt_smw bd_b_1 bd_lt'>
-    <nav className='h_45 h_spread shadow_bg shift_down'>
-      <div className={cn('ft_medium mt_1', paddingClassName ?? 'px_df')}>
-        {!breadcrumbs ? null : breadcrumbs.map((item, i) => (
-          <span
-            key={i}
-            className={item.onClick ? 'link' : ''}
-            role={item.onClick ? 'button' : undefined}
-            onClick={item.onClick}
-            // do modal change with variables here
-          >
-            {item.text}
+  return <div className={cn('of w_f rt_smw', !hideSeparator && 'bd_b_1 bd_lt')}>
+    <nav className='h_50 h_spread shadow_bg shift_down'>
+      <div className={cn('ft_medium h_item', paddingClassName ?? 'px_df')}>
+        {!breadcrumbs ? null : breadcrumbs.map((item, i) => {
+          const { onClick, iconName, text } = item;
+
+          return <Fragment key={i}>
+            <span
+              className={cn('h_item', onClick ? 'link' : '')}
+              role={onClick ? 'button' : undefined}
+              onClick={onClick}
+              // do modal change with variables here
+            >
+              {!iconName ? null : (
+                <span className='mr_8 shift_up_2 ft_lg'>
+                  <Icon name={iconName} tryColor />
+                </span>
+              )}
+              {text}
+            </span>
+
             {i < (breadcrumbs.length - 1) && (
-              <span className='mx_xs shift_up cl_darker_2'>/</span>
+              <span className='mx_xs cl_darker_2'>/</span>
             )}
-          </span>
-        ))}
+          </Fragment>;
+        })}
       </div>
 
       {!onCloseModal ? null : (
         <button
-          className='link av_xs r bg_alt_hv v_center mr_xs'
+          className='link av_xs r bg_darker_hv_1 v_center mr_xs'
           onClick={onCloseModal}
         >
           <Icon name='x' />

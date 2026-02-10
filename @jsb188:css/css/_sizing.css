@@ -158,6 +158,7 @@ div, p {
 .ls_2 { letter-spacing: -.0425em; text-indent: -.0425em; } /* Use this when heading is .ft_normal */
 .ls_3 { letter-spacing: -.025em; text-indent: -.025em; }
 .ls_4 { letter-spacing: -.0175em; text-indent: -.0175em; }
+.ls_5 { letter-spacing: -.01em; text-indent: -.01em; }
 
 h1.ft_tn, h2.ft_tn, h3.ft_tn, h4.ft_tn, h5.ft_tn, h6.ft_tn, .ft_heading_tn { font-size: var(--heading-xxsmall); }
 h1.ft_xs, h2.ft_xs, h3.ft_xs, h4.ft_xs, h5.ft_xs, h6.ft_xs, .ft_heading_xs { font-size: var(--heading-xsmall); }
@@ -922,6 +923,26 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .-mb_10 { margin-bottom: -10px; }
 .-ml_10 { margin-left: -10px; }
 
+.-mt_11 { margin-top: -11px; }
+.-mr_11 { margin-right: -11px; }
+.-mb_11 { margin-bottom: -11px; }
+.-ml_11 { margin-left: -11px; }
+
+.-mt_12 { margin-top: -12px; }
+.-mr_12 { margin-right: -12px; }
+.-mb_12 { margin-bottom: -12px; }
+.-ml_12 { margin-left: -12px; }
+
+.-mt_13 { margin-top: -13px; }
+.-mr_13 { margin-right: -13px; }
+.-mb_13 { margin-bottom: -13px; }
+.-ml_13 { margin-left: -13px; }
+
+.-mt_14 { margin-top: -14px; }
+.-mr_14 { margin-right: -14px; }
+.-mb_14 { margin-bottom: -14px; }
+.-ml_14 { margin-left: -14px; }
+
 .-mt_15 { margin-top: -15px; }
 .-mr_15 { margin-right: -15px; }
 .-mb_15 { margin-bottom: -15px; }
@@ -949,6 +970,18 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 
 .-mx_10 { margin-left: -10px; margin-right: -10px; }
 .-my_10 { margin-top: -10px; margin-bottom: -10px; }
+
+.-mx_11 { margin-left: -11px; margin-right: -11px; }
+.-my_11 { margin-top: -11px; margin-bottom: -11px; }
+
+.-mx_12 { margin-left: -12px; margin-right: -12px; }
+.-my_12 { margin-top: -12px; margin-bottom: -12px; }
+
+.-mx_13 { margin-left: -13px; margin-right: -13px; }
+.-my_13 { margin-top: -13px; margin-bottom: -13px; }
+
+.-mx_14 { margin-left: -14px; margin-right: -14px; }
+.-my_14 { margin-top: -14px; margin-bottom: -14px; }
 
 .-mx_15 { margin-left: -15px; margin-right: -15px; }
 .-my_15 { margin-top: -15px; margin-bottom: -15px; }
@@ -1426,8 +1459,11 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .min_w_18 { min-width: 18px; }
 .min_w_19 { min-width: 19px; }
 .min_w_20 { min-width: 20px; }
+.min_w_25 { min-width: 25px; }
 .min_w_30 { min-width: 30px; }
+.min_w_35 { min-width: 35px; }
 .min_w_40 { min-width: 40px; }
+.min_w_45 { min-width: 45px; }
 .min_w_50 { min-width: 50px; }
 .min_w_60 { min-width: 60px; }
 .min_w_70 { min-width: 70px; }
@@ -1633,12 +1669,12 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 
 .av_xxxs { width: 1.25rem; height: 1.25rem; }
 .av_xxs { width: 1.5rem; height: 1.5rem; }
-.av_xs, svg.av_xs foreignObject { width: var(--av-xsmall); height: var(--av-xsmall); }
-.av_sm, svg.av_sm foreignObject { width: var(--av-small); height: var(--av-small); }
-.av_df, svg.av_df foreignObject { width: var(--av-default); height: var(--av-default); }
-.av_md, svg.av_md foreignObject { width: var(--av-medium); height: var(--av-medium); }
-.av_lg, svg.av_lg foreignObject { width: var(--av-large); height: var(--av-large); }
-.av_xl, svg.av_xl foreignObject { width: var(--av-xlarge); height: var(--av-xlarge); }
+.av_xs { width: var(--av-xsmall); height: var(--av-xsmall); }
+.av_sm { width: var(--av-small); height: var(--av-small); }
+.av_df { width: var(--av-default); height: var(--av-default); }
+.av_md { width: var(--av-medium); height: var(--av-medium); }
+.av_lg { width: var(--av-large); height: var(--av-large); }
+.av_xl { width: var(--av-xlarge); height: var(--av-xlarge); }
 
 .av_w_xs { width: var(--av-xsmall); }
 .av_w_sm { width: var(--av-small); }
@@ -1656,54 +1692,6 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 
 .av img {
   background-color: rgb(var(--color-bg-active));
-}
-
-/* viewBox cannot be controlled by CSS; but it doesn't seem necessary, so it's okay */
-/* svg.av_sm {
-  viewBox: 0 0 var(--av-small) var(--av-small);
-} */
-
-svg.av_xs .s_dot {
-  width: 0.6872727344rem; height: 0.6872727344rem;
-  x: 1.07636079995rem; y: 1.07636079995rem;
-}
-
-svg.av_sm .s_dot {
-  width: 0.75757576rem; height: 0.75757576rem;
-  x: 1.546875rem; y: 1.546875rem;
-}
-
-/* 1.71875rem - 1.51515152rem = 0.20359848rem */
-/* svg.av_df {
-  viewBox: 0 0 var(--av-default) var(--av-default);
-} */
-
-svg.av_df .s_dot {
-  width: 0.90909091rem; height: 0.90909091rem; /* size / 3.3 */
-  x: 2.06rem; y: 2.06rem; /* size / 1.45454545 */
-}
-
-/* svg.av_md {
-  viewBox: 0 0 var(--av-medium) var(--av-medium);
-} */
-
-svg.av_md .s_dot {
-  width: 1.21212121rem; height: 1.21212121rem;
-  x: 3.78125rem; y: 3.78125rem;
-}
-
-/* svg.av_lg {
-  viewBox: 0 0 var(--av-large) var(--av-large);
-} */
-
-svg.av_lg .s_dot {
-  width: 1.78977272rem; height: 1.78977272rem;
-  x: 6rem; y: 6rem;
-}
-
-svg.av_xl .s_dot {
-  width: 2.05823863rem; height: 2.05823863rem;
-  x: 8.5rem; y: 8.5rem;
 }
 
 .av {
@@ -1858,18 +1846,21 @@ svg.av_xl .s_dot {
 .grid.gap_df { row-gap: var(--rem-default); column-gap: var(--rem-default); }
 .grid.gap_md { row-gap: var(--rem-medium); column-gap: var(--rem-medium); }
 .grid.gap_lg { row-gap: var(--rem-large); column-gap: var(--rem-large); }
+.grid.gap_xl { row-gap: var(--rem-xlarge); column-gap: var(--rem-xlarge); }
 
 .grid.gapx_xs { row-gap: 0; column-gap: var(--rem-xsmall); }
 .grid.gapx_sm { row-gap: 0; column-gap: var(--rem-small); }
 .grid.gapx_df { row-gap: 0; column-gap: var(--rem-default); }
 .grid.gapx_md { row-gap: 0; column-gap: var(--rem-medium); }
 .grid.gapx_lg { row-gap: 0; column-gap: var(--rem-large); }
+.grid.gapx_xl { row-gap: 0; column-gap: var(--rem-xlarge); }
 
 .grid.gapy_xs { row-gap: var(--rem-xsmall); column-gap: 0; }
 .grid.gapy_sm { row-gap: var(--rem-small); column-gap: 0; }
 .grid.gapy_df { row-gap: var(--rem-default); column-gap: 0; }
 .grid.gapy_md { row-gap: var(--rem-medium); column-gap: 0; }
 .grid.gapy_lg { row-gap: var(--rem-large); column-gap: 0; }
+.grid.gapy_xl { row-gap: var(--rem-xlarge); column-gap: 0; }
 
 .grid.gap_n { row-gap: 0; column-gap: 0; }
 .grid.gapx_n { column-gap: 0; }

@@ -85,9 +85,9 @@ export const PageFiltersBar = memo((p: PageFiltersBarProps) => {
 
   return <div className={cn('h_item gap_15', className)}>
     {title && (
-      <div className='pill_xs h_item ft_sm rel r -ml_7'>
+      <div className='pill_xs h_item rel r -ml_7'>
         {titleIconName &&
-          <span className='ft_lg shift_up mr_8'>
+          <span className='ft_lg shift_up_2 mr_8'>
             <Icon tryColor name={titleIconName} />
           </span>
         }

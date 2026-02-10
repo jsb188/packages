@@ -19,7 +19,9 @@ export interface WorkflowData {
 
 	schedule: string | null;
 	active: boolean;
-	config: Record<string, any> | null;
+	config: Partial<{
+    steps: LabelAndValue[];
+  }>;
 
 	startedAt: Date | null;
 	nextAt: Date | null;
@@ -42,6 +44,7 @@ export interface WorkflowGQL {
 
 	title: string;
 	instructions: string;
+  steps: LabelAndValue[];
 
 	schedule: string | null;
 	active: boolean;

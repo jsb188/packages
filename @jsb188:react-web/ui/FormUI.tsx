@@ -56,7 +56,45 @@ export function getHtmlFor(id?: string, name?: string) {
 }
 
 /**
- * Form; label
+ * Display helper; label & value
+ */
+
+export function LabelValue(p: {
+  label: React.ReactNode;
+  value?: React.ReactNode;
+  className?: string;
+  labelClassName?: string;
+  valueClassName?: string;
+  nullClassName?: string;
+  separator?: React.ReactNode;
+  placeholder?: React.ReactNode;
+}) {
+  const {
+    label,
+    value,
+    className,
+    labelClassName,
+    valueClassName,
+    separator = ':',
+    placeholder = '-',
+    nullClassName = 'cl_darker_2',
+  } = p;
+
+  return (
+    <div className={cn('h_left py_5', className)}>
+      <div className={cn('ft_medium f_shrink', labelClassName)}>
+        {label}{separator}
+      </div>
+
+      <div className={cn(valueClassName, !value && nullClassName)}>
+        {value || placeholder}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Form; label & value
  */
 
 export type LabelType = Partial<{

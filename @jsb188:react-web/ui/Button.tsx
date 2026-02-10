@@ -416,9 +416,9 @@ export const PillButton = memo((p: PillButtonProps) => {
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'bg r h_item py_3 rel',
+        'bg r h_item py_3 rel ls_5',
         `pill_${preset}`,
-        preset === 'sm' ? '' : 'ft_sm',
+        // preset === 'sm' ? '' : 'ft_sm',
         designClassName || 'bd_1',
         className
       )}
@@ -434,7 +434,12 @@ export const PillButton = memo((p: PillButtonProps) => {
         </SmartLink>
       )}
 
-      <span className={leftIconName && !rightIconName ? 'shift_left' : !leftIconName && rightIconName ? 'shift_right' : ''}>
+      <span
+        className={cn(
+          'pt_1',
+          leftIconName && !rightIconName ? 'shift_left' : !leftIconName && rightIconName ? 'shift_right' : ''
+        )}
+      >
         {text}
       </span>
 

@@ -20,24 +20,17 @@ body.p_auth {
 
 .mw .scr_area {
   /* 45px is the height of modal header toolbar */
-  max-height: calc(100vh - 50px - 45px);
+  max-height: calc(100vh - 50px - 50px);
   /* max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) - 45px); */
 }
 
 .mw_adjust_center {
   padding-top: calc(25px * 2);
-  /* padding-top: calc(var(--rem-medium) * 2); */
 }
 
-.mw_adjust_center .mw {
-  /* This hides the bottom rounded corners */
-  max-height: calc(100vh - 50px + 14px);
-  /* max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) + 14px); */
-}
-
-.mw_adjust_center .mw .scr_area {
-  /* 45px is the height of modal header toolbar */
-  max-height: calc(100vh - 50px - 31px);
+.mw_adjust_center .modal_main_content {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 
 .cw.tn, .mw.tn {

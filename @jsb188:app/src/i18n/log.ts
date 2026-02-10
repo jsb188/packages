@@ -68,6 +68,8 @@ export default {
 			'You reached the end of this list with %{smart_count} entries.'
 		),
 
+    log_type_is_created: 'When %{type} log is created.',
+
 		// Need one of each for every {contentName} for log
 		inline_log: 'log',
 		inline_ai_task: 'task',

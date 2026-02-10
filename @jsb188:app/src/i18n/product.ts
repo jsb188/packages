@@ -55,10 +55,14 @@ export default {
     },
 
 		feature_title: {
-			// This object is the "title" field of "actions" database document.
-			// It's used as visualization purposes only, in front-end UI.
-			CAL_EVENTS_ATTENDANCE: 'Attendance record',
-			CAL_EVENTS_LOAD_LIST: 'Load list',
+      NORMAL_LOGGING: 'Logs',
+      FOOD_SAFETY: 'Food safety',
+      GLOBAL_GAP: 'GLOBALG.A.P.',
+      ORGANIC_CERTIFICATION: 'Organic certification',
+      CAL_EVENTS: 'Events',
+      CAL_EVENTS_ATTENDANCE: 'Attendance',
+      CAL_EVENTS_LOAD_LIST: 'Load list',
+      LIVESTOCK_MANAGEMENT: 'Livestock management',
 		},
 
 		feature_instructions: {

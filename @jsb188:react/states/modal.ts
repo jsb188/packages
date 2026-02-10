@@ -1,5 +1,5 @@
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
+import type { ColorEnum, ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { atom, useAtom, useSetAtom } from 'jotai';
 import { useCallback } from 'react';
 
@@ -10,6 +10,7 @@ import { useCallback } from 'react';
 interface ModalRequestParams {
   name: string;
   preset?: string;
+  color?: ColorEnum | null;
   props?: Record<string, any>;
 }
 
@@ -28,7 +29,7 @@ export interface ModalPopUpComponentProps {
 
 type ModalPropsFn = (prev: ModalProps | null) => ModalProps | null;
 
-export type OpenModalScreenFn = (data: ModalRequestParams) => void;
+export type OpenModalScreenFn = (data: ModalRequestParams | ModalPropsFn) => void;
 
 export type OpenModalPopUpFn = (data: ModalRequestParams | null, err?: ServerErrorObj) => void;
 
@@ -45,6 +46,7 @@ export interface ModalPopUpProps {
 }
 
 export interface ModalHandlerProps {
+  color?: ColorEnum | null;
   openModalScreen: OpenModalScreenFn;
   openModalPopUp: OpenModalPopUpFn;
   closeModalScreen: () => void;
@@ -126,11 +128,12 @@ class ModalScreen {
 
   open(data: ModalRequestParams): ModalProps | null {
     if (data) {
-      const { name, props } = data;
+      const { name, color, props } = data;
       const values = this.defaultValues?.[name ?? ''];
 
       return {
         name,
+        color,
         ...values,
         ...props,
       };
