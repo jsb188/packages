@@ -1447,6 +1447,30 @@ rect.s_dot_away {
 .zinc_light_bf:before { background-color: var(--color-zinc-light); }
 .stone_light_bf:before { background-color: var(--color-stone-light); }
 
+/* Colors */
+
+.red_bf:before { background-color: var(--color-red-default); }
+.orange_bf:before { background-color: var(--color-orange-default); }
+.brown_bf:before { background-color: var(--color-brown-default); }
+.amber_bf:before { background-color: var(--color-amber-default); }
+.yellow_bf:before { background-color: var(--color-yellow-default); }
+.lime_bf:before { background-color: var(--color-lime-default); }
+.green_bf:before { background-color: var(--color-green-default); }
+.emerald_bf:before { background-color: var(--color-emerald-default); }
+.teal_bf:before { background-color: var(--color-teal-default); }
+.cyan_bf:before { background-color: var(--color-cyan-default); }
+.sky_bf:before { background-color: var(--color-sky-default); }
+.blue_bf:before { background-color: var(--color-blue-default); }
+.indigo_bf:before { background-color: var(--color-indigo-default); }
+.violet_bf:before { background-color: var(--color-violet-default); }
+.purple_bf:before { background-color: var(--color-purple-default); }
+.fuchsia_bf:before { background-color: var(--color-fuchsia-default); }
+.pink_bf:before { background-color: var(--color-pink-default); }
+.rose_bf:before { background-color: var(--color-rose-default); }
+.slate_bf:before { background-color: var(--color-slate-default); }
+.zinc_bf:before { background-color: var(--color-zinc-default); }
+.stone_bf:before { background-color: var(--color-stone-default); }
+
 /* Temporary for demo */
 
 .doc_tag {

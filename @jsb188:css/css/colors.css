@@ -22,29 +22,29 @@
 .gr_zinc_1 { background: linear-gradient(45deg, #d0d0d7 0%, #dedff2 100%); }
 .gr_stone_1 { background: linear-gradient(45deg, #d7cabf 0%, #e5e0d7 100%); }
 
-/* Alternate versions with more noticeable contrast in gradient brightness */
+/* Alternate versions with slightly more contrast in gradient brightness, and angle difference (top to bottom */
 
-.gr_red_2 { background: linear-gradient(to bottom right, #e6b7d4 0%, #f6e6f0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_orange_2 { background: linear-gradient(to bottom right, #efd29c 0%, #f9efdc 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_brown_2 { background: linear-gradient(to bottom right, #dbcbb8 0%, #f2ede6 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_amber_2 { background: linear-gradient(to bottom right, #eed9ab 0%, #f9f2e2 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_yellow_2 { background: linear-gradient(to bottom right, #f1e5aa 0%, #faf6e1 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_lime_2 { background: linear-gradient(to bottom right, #c6e9c9 0%, #ebf7ec 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_green_2 { background: linear-gradient(to bottom right, #b9e3d4 0%, #e7f5f0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_emerald_2 { background: linear-gradient(to bottom right, #b2e7df 0%, #e4f7f4 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_teal_2 { background: linear-gradient(to bottom right, #abe3e2 0%, #e2f5f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_cyan_2 { background: linear-gradient(to bottom right, #b4e7ef 0%, #e5f7f9 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_sky_2 { background: linear-gradient(to bottom right, #b1d4ef 0%, #e4f0f9 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_blue_2 { background: linear-gradient(to bottom right, #b6d0f0 0%, #e5effa 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_indigo_2 { background: linear-gradient(to bottom right, #cbd3f7 0%, #edf0fc 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_violet_2 { background: linear-gradient(to bottom right, #cfc8f4 0%, #eeecfb 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_purple_2 { background: linear-gradient(to bottom right, #d4c8f4 0%, #f0ecfb 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_fuchsia_2 { background: linear-gradient(to bottom right, #e7c0ec 0%, #f7e9f8 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_pink_2 { background: linear-gradient(to bottom right, #e7c4dd 0%, #f7eaf3 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_rose_2 { background: linear-gradient(to bottom right, #e9bfd1 0%, #f7e9ef 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_slate_2 { background: linear-gradient(to bottom right, #cfd7e9 0%, #eef1f7 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_zinc_2 { background: linear-gradient(to bottom right, #d2d3e7 0%, #eff0f7 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_stone_2 { background: linear-gradient(to bottom right, #dcd6cd 0%, #f3f1ee 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_red_2 { background: linear-gradient(to bottom, #e6b7d4 0%, #efcae0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_orange_2 { background: linear-gradient(to bottom, #efd29c 0%, #f5deb5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_brown_2 { background: linear-gradient(to bottom, #dbcbb8 0%, #e5d9ca 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_amber_2 { background: linear-gradient(to bottom, #eed9ab 0%, #f4e4c1 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_yellow_2 { background: linear-gradient(to bottom, #f1e5aa 0%, #f5eec0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_lime_2 { background: linear-gradient(to bottom, #c6e9c9 0%, #d6f0d8 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_green_2 { background: linear-gradient(to bottom, #b9e3d4 0%, #cbede0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_emerald_2 { background: linear-gradient(to bottom, #b2e7df 0%, #c6f0ea 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_teal_2 { background: linear-gradient(to bottom, #abe3e2 0%, #c1edec 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_cyan_2 { background: linear-gradient(to bottom, #b4e7ef 0%, #c7f0f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_sky_2 { background: linear-gradient(to bottom, #b1d4ef 0%, #c5e0f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_blue_2 { background: linear-gradient(to bottom, #b6d0f0 0%, #c9ddf5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_indigo_2 { background: linear-gradient(to bottom, #cbd3f7 0%, #d9dff5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_violet_2 { background: linear-gradient(to bottom, #cfc8f4 0%, #dcd7f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_purple_2 { background: linear-gradient(to bottom, #d4c8f4 0%, #e0d7f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_fuchsia_2 { background: linear-gradient(to bottom, #e7c0ec 0%, #f0d1f2 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_pink_2 { background: linear-gradient(to bottom, #e7c4dd 0%, #f0d5e7 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_rose_2 { background: linear-gradient(to bottom, #e9bfd1 0%, #f0d0de 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_slate_2 { background: linear-gradient(to bottom, #cfd7e9 0%, #dce2f0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_zinc_2 { background: linear-gradient(to bottom, #d2d3e7 0%, #dedff0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_stone_2 { background: linear-gradient(to bottom, #dcd6cd 0%, #e6e2db 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 
 /* Modal colors mapped from .gr_*_2 second stop */
 

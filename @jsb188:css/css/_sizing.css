@@ -1948,3 +1948,35 @@ NOTE: var() doesn't work inside media queries, so we use fixed values.
   .hide_small_landscape { display: none !important; }
   .responsive.p_lg { padding: var(--rem-default) var(--rem-xsmall); }
 }
+
+/* Added missing 25px step classes (100-750) */
+.h_525 { height: 525px; }
+.h_575 { height: 575px; }
+.h_625 { height: 625px; }
+.h_675 { height: 675px; }
+.h_725 { height: 725px; }
+.w_525 { width: 525px; }
+.w_575 { width: 575px; }
+.w_625 { width: 625px; }
+.w_675 { width: 675px; }
+.w_725 { width: 725px; }
+.min_h_525 { min-height: 525px; }
+.min_h_575 { min-height: 575px; }
+.min_h_625 { min-height: 625px; }
+.min_h_675 { min-height: 675px; }
+.min_h_725 { min-height: 725px; }
+.max_h_525 { max-height: 525px; }
+.max_h_575 { max-height: 575px; }
+.max_h_625 { max-height: 625px; }
+.max_h_675 { max-height: 675px; }
+.max_h_725 { max-height: 725px; }
+.min_w_525 { min-width: 525px; }
+.min_w_575 { min-width: 575px; }
+.min_w_625 { min-width: 625px; }
+.min_w_675 { min-width: 675px; }
+.min_w_725 { min-width: 725px; }
+.max_w_525 { max-width: 525px; }
+.max_w_575 { max-width: 575px; }
+.max_w_625 { max-width: 625px; }
+.max_w_675 { max-width: 675px; }
+.max_w_725 { max-width: 725px; }
