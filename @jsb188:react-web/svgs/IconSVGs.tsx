@@ -77,6 +77,12 @@ export const AlienFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 <path d="M12.004 2c4.942 0 8.288 2.503 8.85 6.444a12.884 12.884 0 0 1 -2.163 9.308a11.794 11.794 0 0 1 -3.51 3.356c-1.982 1.19 -4.376 1.19 -6.373 -.008a11.763 11.763 0 0 1 -3.489 -3.34a12.808 12.808 0 0 1 -2.171 -9.306c.564 -3.95 3.91 -6.454 8.856 -6.454zm1.913 14.6a1 1 0 0 0 -1.317 -.517l-.146 .055a1.5 1.5 0 0 1 -1.054 -.055l-.11 -.04a1 1 0 0 0 -.69 1.874a3.5 3.5 0 0 0 2.8 0a1 1 0 0 0 .517 -1.317zm-5.304 -6.39a1 1 0 0 0 -1.32 1.497l2 2l.094 .083a1 1 0 0 0 1.32 -1.497l-2 -2zm8.094 .083a1 1 0 0 0 -1.414 0l-2 2l-.083 .094a1 1 0 0 0 1.497 1.32l2 -2l.083 -.094a1 1 0 0 0 -.083 -1.32z" />
 </svg>;
 
+export const AlarmBell = <svg xmlns="http://www.w3.org/2000/svg" id="Alarm-Bell--Streamline-Ultimate" viewBox="0 0 24 24" className="icon icon-alarm-bell" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M10.08886337,21.3167844c.31023327,1.05681021,1.41844086,1.66203251,2.47525197,1.35180015.65128584-.19118912,1.16061012-.7005134,1.35179924-1.35180015"/>
+<path d="M12,3.39987849V1.24984978"/>
+<path d="M12,3.39987849c3.95809356,0,7.16676236,3.20866881,7.16676236,7.16676236,0,6.7329339,1.43335247,7.8834386,1.43335247,7.8834386H3.39988516s1.43335247-1.83086924,1.43335247-7.8834386c0-3.95809356,3.20866881-7.16676236,7.16676236-7.16676236Z"/>
+</svg>;
+
 export const AllowancesNoSmoking = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="icon icons-allowances-no-smoking">
 <path d="M17.66666667,9.66666667h3c.73637899,0,1.33333333.5969535,1.33333333,1.33333333v2.66666667c0,.73637984-.59695435,1.33333333-1.33333333,1.33333333h-7.66666667"/>
 <path d="M9,15h-4.33333333v-5.33333333h9.66666667"/>
@@ -303,12 +309,6 @@ export const BacteriaToilet = <svg xmlns="http://www.w3.org/2000/svg" className=
 <path d="M17.25651059,17.01666667c-.13196191,0-.23888889-.10692698-.23888889-.23888889s.10692698-.23888889.23888889-.23888889"/>
 <path d="M17.25651059,17.01666667c.13196191,0,.23888889-.10692698.23888889-.23888889s-.10692698-.23888889-.23888889-.23888889"/>
 <path d="M16.531245,13.21546697c-.18031307-.03898676-.36779251-.02857073-.54275631.03019555-.17486629.05867151-.33071764.16339955-.45102234.30329331-.23621334.28255785-.43449156.59483373-.58957742.92880012-.20305519.41318198-.50224041.771611-.87242232,1.04537765-.400187.26335153-.88828422.35775922-1.3578449.26277741"/>
-</svg>;
-
-export const Bell = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-bell" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" stroke="currentColor" />
-<path d="M9 17v1a3 3 0 0 0 6 0v-1" stroke="currentColor" />
 </svg>;
 
 export const BeverageFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-bottle">
@@ -2117,6 +2117,15 @@ export const Notes = <svg xmlns="http://www.w3.org/2000/svg" className="icon ico
 <path d="M9 7l6 0" stroke="currentColor" />
 <path d="M9 11l6 0" stroke="currentColor" />
 <path d="M9 15l4 0" stroke="currentColor" />
+</svg>;
+
+export const NotesClock = <svg id="Notes-Clock--Streamline-Ultimate" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-notes-clock" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M11.14978603,16.89981445c0,3.17563804,2.57436287,5.75,5.75,5.75,3.17563804,0,5.75-2.57436196,5.75-5.75,0-3.17563713-2.57436196-5.75-5.75-5.75-3.17563713,0-5.75,2.57436287-5.75,5.75Z"/>
+<path d="M19.44128644,16.89981445h-2.54150041v-2.54150041"/>
+<path d="M8.50010412,19.69970842H2.90031618c-.75437933.01878922-1.38115693-.57752228-1.39994698-1.33190172-.00056486-.02267879-.00056486-.04536648,0-.06804526V4.40015457c-.02623314-.80024213.59979609-1.47092812,1.39994698-1.49980997h13.99946985c.80015001.02888185,1.42618068.69956762,1.39994698,1.49980975v4.09997819"/>
+<path d="M5.70021015,1.50039761v4.19984095"/>
+<path d="M9.90005111,1.50039761v4.19984095"/>
+<path d="M14.09989206,1.50039761v4.19984095"/>
 </svg>;
 
 export const NotesTasks = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-notes-tasks">

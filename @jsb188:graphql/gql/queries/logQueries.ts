@@ -2,6 +2,7 @@ import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
 import { logEntryFragment, logArableFragment, logLivestockFragment, logFarmersMarketFragment } from '../fragments/logFragments';
 import { workflowActionFragment } from '../fragments/workflowFragments';
+import { storageFileFragment } from '../fragments/storageFragments';
 
 export const logEntryFragmentStatement = `...logEntryFragment
 
@@ -51,10 +52,15 @@ query logEntries (
     actions {
       ...workflowActionFragment
     }
+
+    files {
+      ...storageFileFragment
+    }
   }
 }
 
 ${workflowActionFragment}
+${storageFileFragment}
 ${logEntryFragmentImports}
 `;
 

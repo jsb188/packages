@@ -202,7 +202,7 @@ export function getOrganizationFeatures(
 export function getOrganizationFeatureColor(feature?: OrganizationFeatureEnum | null) {
 	const featureToColor = {
 		FOOD_SAFETY: 'sky',
-		GLOBAL_GAP: 'rose',
+		GLOBAL_GAP: 'brown',
 		ORGANIC_CERTIFICATION: 'yellow',
 		CAL_EVENTS: 'cyan',
 		CAL_EVENTS_ATTENDANCE: 'cyan',

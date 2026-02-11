@@ -2,7 +2,7 @@
 
 .gr_red_1 { background: linear-gradient(45deg, #f399af 0%, #f1bbdd 100%); }
 .gr_orange_1 { background: linear-gradient(45deg, #ffc762 0%, #ffdb9a 100%); }
-.gr_brown_1 { background: linear-gradient(45deg, #e4b592 0%, #e6d2bb 100%); }
+.gr_brown_1 { background: linear-gradient(45deg, #ddaf8f 0%, #dfcdb8 100%); }
 .gr_amber_1 { background: linear-gradient(45deg, #fbc77d 0%, #fbe2ae 100%); }
 .gr_yellow_1 { background: linear-gradient(45deg, #ffdf6b 0%, #fff0ad 100%); }
 .gr_lime_1 { background: linear-gradient(45deg, #cbe69a 0%, #d1f4d2 100%); }
@@ -26,7 +26,7 @@
 
 .gr_red_2 { background: linear-gradient(to bottom, #e6b7d4 0%, #efcae0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 .gr_orange_2 { background: linear-gradient(to bottom, #efd29c 0%, #f5deb5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_brown_2 { background: linear-gradient(to bottom, #dbcbb8 0%, #e5d9ca 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_brown_2 { background: linear-gradient(to bottom, #d2c1ad 0%, #ddcfbe 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 .gr_amber_2 { background: linear-gradient(to bottom, #eed9ab 0%, #f4e4c1 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 .gr_yellow_2 { background: linear-gradient(to bottom, #f1e5aa 0%, #f5eec0 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 .gr_lime_2 { background: linear-gradient(to bottom, #c6e9c9 0%, #d6f0d8 100%); background-size: 100% 100%; background-repeat: no-repeat; }
@@ -50,7 +50,7 @@
 
 [data-theme="red_light"] { --color-modal: 243, 233, 239; /* #f3e9ef */ }
 [data-theme="orange_light"] { --color-modal: 244, 237, 225; /* #f4ede1 */ }
-[data-theme="brown_light"] { --color-modal: 240, 237, 232; /* #f0ede8 */ }
+[data-theme="brown_light"] { --color-modal: 234, 232, 228; /* #eae8e4 */ }
 [data-theme="amber_light"] { --color-modal: 245, 240, 230; /* #f5f0e6 */ }
 [data-theme="yellow_light"] { --color-modal: 246, 243, 229; /* #f6f3e5 */ }
 [data-theme="lime_light"] { --color-modal: 237, 245, 238; /* #edf5ee */ }
