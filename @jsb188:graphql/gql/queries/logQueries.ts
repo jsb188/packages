@@ -1,7 +1,7 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
 import { logEntryFragment, logArableFragment, logLivestockFragment, logFarmersMarketFragment } from '../fragments/logFragments';
-import { actionTaskFragment } from '../fragments/actionFragments';
+import { workflowActionFragment } from '../fragments/workflowFragments';
 
 export const logEntryFragmentStatement = `...logEntryFragment
 
@@ -49,12 +49,12 @@ query logEntries (
     ${logEntryFragmentStatement}
 
     actions {
-      ...actionTaskFragment
+      ...workflowActionFragment
     }
   }
 }
 
-${actionTaskFragment}
+${workflowActionFragment}
 ${logEntryFragmentImports}
 `;
 
@@ -76,11 +76,11 @@ query logEvidences (
     ${logEntryFragmentStatement}
 
     actions {
-      ...actionTaskFragment
+      ...workflowActionFragment
     }
   }
 }
 
-${actionTaskFragment}
+${workflowActionFragment}
 ${logEntryFragmentImports}
 `;

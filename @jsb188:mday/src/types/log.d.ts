@@ -1,6 +1,6 @@
 import type { AccountObj } from '@jsb188/app/types/account.d.ts';
 import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
-import type { ActionTaskGQL, ActionTaskObj } from '@jsb188/mday/types/action.d.ts';
+import type { WorkflowActionGQL, WorkflowActionObj } from '@jsb188/mday/types/action.d.ts';
 import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 import {
   LOG_ACTION_STATUS_ENUMS,
@@ -213,7 +213,7 @@ export interface LogEntryGQL {
 	status: LogActionStatusEnum | null;
 
 	account: any;
-	actions?: ActionTaskGQL[];
+	actions?: WorkflowActionGQL[];
 
 	date: string; // ISO date string
 	createdAt: string; // ISO date string
@@ -243,7 +243,7 @@ export interface LogEntryData {
 
 	// This is for outputs, but will never be set for inserts
 	account?: AccountObj;
-	actions?: ActionTaskObj[];
+	actions?: WorkflowActionObj[];
 }
 
 /**

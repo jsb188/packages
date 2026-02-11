@@ -24,3 +24,19 @@ export const workflowFragment = `fragment workflowFragment on Workflow {
   createdAt
   updatedAt
 }`;
+
+export const workflowActionFragment = `fragment workflowActionFragment on WorkflowAction {
+  id
+  logId
+
+  title
+  message
+  instruction
+
+  scheduledAt
+  delay
+  completed
+
+  createdAt
+  updatedAt
+}`;

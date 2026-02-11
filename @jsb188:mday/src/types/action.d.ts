@@ -2,7 +2,7 @@
  * Actions data object
  */
 
-export interface ActionTaskObj {
+export interface WorkflowActionObj {
 	id?: number | bigint; // Optional for updates/inserts
 	logId: number | bigint;
 	queue?: string | null;
@@ -23,7 +23,7 @@ export interface ActionTaskObj {
  * Actions GraphQL data
  */
 
-export interface ActionTaskGQL {
+export interface WorkflowActionGQL {
 	__deleted?: boolean;
 
 	id: string;
