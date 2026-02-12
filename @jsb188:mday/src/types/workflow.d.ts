@@ -1,4 +1,4 @@
-import type { LogTypeEnum } from '../types/log.d.ts';
+import type { LogActionStatusEnum, LogTypeEnum } from '../types/log.d.ts';
 import type { OrganizationFeatureEnum } from '../types/organization.d.ts';
 
 /**
@@ -25,6 +25,35 @@ export interface WorkflowData {
 
 	startedAt: Date | null;
 	nextAt: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+/**
+ * JSONB meta data for workflow instance
+ */
+
+export interface WorkflowInstanceValues {
+
+}
+
+/**
+ * Workflow instance data object
+ */
+
+export interface WorkflowInstanceData {
+	__table: 'workflow_instances';
+
+	id: number | bigint;
+	workflowId: number | bigint;
+	logId: number | bigint | null;
+	runKey: string;
+	values: WorkflowInstanceValues | null;
+	message: string | null;
+	startedAt: Date | null;
+	endActivityAt: Date | null;
+	status: LogActionStatusEnum;
+	scheduledDate: Date;
 	createdAt: Date;
 	updatedAt: Date;
 }

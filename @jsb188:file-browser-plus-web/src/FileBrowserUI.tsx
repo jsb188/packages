@@ -74,7 +74,7 @@ export const FileBrowserItemUI = memo((p: {
 			</span>
       <button
         disabled={deleted || uploading}
-        className={cn('px_5 non_link', !deleted && !uploading && 'link cl_err_hv')}
+        className={cn('px_5 no_active_transform', !deleted && !uploading && 'link cl_err_hv')}
         onClick={deleted || uploading ? undefined : onDelete}
       >
         <Icon name={errored ? COMMON_ICON_NAMES.alert_error : uploading ? COMMON_ICON_NAMES.progress : COMMON_ICON_NAMES.delete} />

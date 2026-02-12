@@ -66,6 +66,17 @@ function getMonthsDiff(date1: Date, date2: Date) {
 }
 
 /**
+ * Get UTC week number in year (1-based)
+ */
+
+export function getUtcWeekOfYear(date: Date) {
+	const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 1);
+	const currentDay = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+	const dayOfYear = Math.floor((currentDay - startOfYear) / 86400000) + 1;
+	return Math.floor((dayOfYear - 1) / 7) + 1;
+}
+
+/**
  * Get date period from date
  */
 

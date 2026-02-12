@@ -432,7 +432,7 @@ function FVPasswordInput(p: InputType & Omit<LabelType, 'children'>) {
     >
       <p>
         <button
-          className='btn ft_xs cl_lt mt_3 h_item non_link'
+          className='btn ft_xs cl_lt mt_3 h_item no_active_transform'
           onClick={(e: React.MouseEvent) => {
             // Must preventDefault() to prevent HTML <form> submission
             e.preventDefault();

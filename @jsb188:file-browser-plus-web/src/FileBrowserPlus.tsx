@@ -95,7 +95,7 @@ const FBPFolderOptions = memo((p: {
       text={uploading ? i18n.t('form.uploading_') : undefined}
     />
     <button
-      className='h_item link non_link ic_sm cl_md'
+      className='h_item link no_active_transform ic_sm cl_md'
       onClick={onToggleInstructions}
     >
       <span className='mr_5'>

@@ -151,7 +151,7 @@ button:not(:disabled):not(.disabled):active,
   transform: translateY(1px);
 }
 
-.non_link:active {
+.no_active_transform:active {
   transform: translateY(0) !important;
 }
 
@@ -1116,11 +1116,11 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .trans_none, .trans_none *, .trans_none_inner * { transition: none !important; }
 
 .link_float {
-  transition: transform .15s ease, box-shadow .15s ease;
+  transition: transform .15s ease, box-shadow .15s ease !important;
 }
 .link_float:hover,
 .link_float:active {
-  transform: translateY(-8px);
+  transform: translateY(-8px) !important;
   box-shadow: 0 7px 21px rgba(0, 0, 0, 0.15);
 }
 
