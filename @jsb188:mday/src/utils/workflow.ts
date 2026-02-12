@@ -1,3 +1,4 @@
+import { hhmmFromDateOrTime } from '@jsb188/app/utils/timeZone.ts';
 import cronParser from 'cron-parser';
 
 const DEFAULT_SCHEDULE_WINDOW_MS = 24 * 60 * 60 * 1000; // once per day
@@ -55,4 +56,42 @@ export function isWithinScheduleWindow(
 	const windowEndMs = nextAtMs + windowMs;
 
 	return nowMs >= nextAtMs && nowMs <= windowEndMs;
+}
+
+/**
+ * Map workflow instructions with config values
+ */
+
+export function mapWorkflowInstructions(
+	instructions: string,
+	values?: Partial<{
+		config: Record<string, string>;
+	}> | null,
+	timeZone?: string | null,
+) {
+	const config = values?.config;
+	if (!config || typeof config !== 'object') {
+		return instructions;
+	}
+
+	return instructions.replace(/{{(.*?)}}/g, (_, key) => {
+		const value = config[key];
+
+		switch (key) {
+			case 'endTime': {
+				if (!value) {
+					break;
+				}
+
+				const normalized = String(value).replace(':', '');
+				if (!/^[0-9]{3,4}$/.test(normalized)) {
+					break;
+				}
+
+				return hhmmFromDateOrTime(normalized, null, true, timeZone, true) || value;
+			}
+		}
+
+		return value || `{{${key}}}`;
+	});
 }

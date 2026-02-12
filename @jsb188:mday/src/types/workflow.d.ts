@@ -19,22 +19,15 @@ export interface WorkflowData {
 
 	schedule: string | null;
 	active: boolean;
-	config: Partial<{
+	values: Partial<{
     steps: LabelAndValue[];
-  }>;
+		config: Record<string, string>; // Frequent values include: "endTime"
+	}>;
 
 	startedAt: Date | null;
 	nextAt: Date | null;
 	createdAt: Date;
 	updatedAt: Date;
-}
-
-/**
- * JSONB meta data for workflow instance
- */
-
-export interface WorkflowInstanceValues {
-
 }
 
 /**
@@ -48,7 +41,9 @@ export interface WorkflowInstanceData {
 	workflowId: number | bigint;
 	logId: number | bigint | null;
 	runKey: string;
-	values: WorkflowInstanceValues | null;
+	values: null | Partial<{
+
+  }>;
 	message: string | null;
 	startedAt: Date | null;
 	endActivityAt: Date | null;

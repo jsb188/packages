@@ -2499,6 +2499,7 @@ export function getDayLightSavingsInfo(tz: string, d?: Date) {
  * @param date - Date object or date string to extract time from if hhmmStr is not provided
  * @param addAMPM - If true, return time in "HH:MM AM/PM" format, otherwise "HH:MM" format
  * @param timeZone - Timezone string (IANA format), defaults to DEFAULT_TIMEZONE
+ * @param short - If true, hide ":00" minutes (e.g. "5 PM" instead of "5:00 PM")
  * @returns {string} - Formatted time string
  */
 
@@ -2507,6 +2508,7 @@ export function hhmmFromDateOrTime(
 	dVal: Date | string | null,
 	addAMPM: boolean,
 	timeZone?: string | null,
+	short?: boolean,
 ): string {
 	let hhmm: string = '';
 	if (hhmmStr && /^[0-9]{3,4}$/.test(String(hhmmStr))) {
@@ -2533,13 +2535,14 @@ export function hhmmFromDateOrTime(
 	}
 
 	if (hh) {
+		const minuteText = short && mm === '00' ? '' : `:${mm}`;
 		if (addAMPM) {
 			const hourNum = parseInt(hh, 10);
 			const ampm = hourNum >= 12 ? 'PM' : 'AM';
 			const hour12 = hourNum % 12 === 0 ? 12 : hourNum % 12;
-			return `${hour12}:${mm} ${ampm}`;
+			return `${hour12}${minuteText} ${ampm}`;
 		}
-		return `${hh}:${mm}`;
+		return `${hh}${minuteText}`;
 	}
 
 	return '';
