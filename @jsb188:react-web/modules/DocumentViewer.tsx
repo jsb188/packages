@@ -36,10 +36,10 @@ export const FileViewer = memo((p: {
     case 'application/pdf':
       return <iframe
         style={{ border: 'none', outline: 'none' }}
-        src={fileUrl + '#toolbar=0&navpanes=0&scrollbar=0'}
+        src={fileUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH&zoom=page-fit'}
         // src={fileUrl + '#navpanes=0&scrollbar=0'}
         // src={fileUrl}
-        className='w_f h_f'
+        className='w_f h_100vh'
         title='PDF Viewer'
       />;
     case 'image/png':

@@ -13,6 +13,7 @@ export const LOG_SORT_ENUMS = [
 export const LOG_ACTION_STATUS_ENUMS = [
 	'STARTED',
 	'COMPLETED',
+	'COMPLETED_PARTIAL',
 	'ERRORED',
 	'QUEUED', // Used for AI Tasks
 	'CANCELED', // Used for AI Tasks

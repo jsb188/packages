@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { StorageGQL } from '@jsb188/mday/types/storage.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
+import type { StorageGQL } from '@jsb188/mday/types/storage.d.ts';
 import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
 import { COMMON_ICON_NAMES, FileTypeIcon, getFileTypeIconName, Icon } from '@jsb188/react-web/svgs/Icon';
 import { useKeyDown } from '@jsb188/react/states';
@@ -237,9 +237,11 @@ const DocumentPreviewArea = memo((p: {
     case 'application/pdf':
       return (
         <iframe
-          src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-          className='w_f h_f bd_0'
+          style={{ border: 'none', outline: 'none' }}
+          src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitV&zoom=page-height`}
+          className='w_f h_f rel z1'
           title={fileName}
+          scrolling='no'
         />
       );
 
@@ -399,7 +401,7 @@ export const DocumentViewerLayout = memo((p: {
               key={item.id}
               item={item}
               selected={selectedFile?.id === item.id}
-              isPDF={'file' in item && item.file.contentType === 'application/pdf'}
+              isPDF={isPDF}
               setSelectedFile={setSelectedFile}
               onCloseModal={onCloseModal}
             />

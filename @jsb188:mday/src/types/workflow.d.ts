@@ -10,6 +10,7 @@ export interface WorkflowData {
 
 	id: number | bigint;
 	organizationId: number | bigint;
+  org?: OrganizationData; // Included if query joined with organization table
 
 	logType: LogTypeEnum;
 	feature?: OrganizationFeatureEnum;
@@ -34,15 +35,16 @@ export interface WorkflowData {
  * Workflow instance data object
  */
 
-export interface WorkflowInstanceData {
-	__table: 'workflow_instances';
+export interface WorkflowRunData {
+	__table: 'workflow_runs';
 
 	id: number | bigint;
 	workflowId: number | bigint;
 	logId: number | bigint | null;
 	runKey: string;
 	values: null | Partial<{
-
+    progressSummary: string;
+		config: Record<string, string>; // Frequent values include: "endTime"
   }>;
 	message: string | null;
 	startedAt: Date | null;

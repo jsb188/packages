@@ -67,23 +67,23 @@ export function guessFirstName(str: string, len: number = 40): string {
  * Get indefinite article ("a" or "an") for a word
  */
 
-export function getIndefiniteArticle(word: string): 'a' | 'an' {
+export function addIndefiniteArticle(word: string) {
 	const raw = (word || '').trim().toLowerCase();
+
+  let article;
 	if (!raw) {
-		return 'a';
-	}
+		article = 'a';
+	} else if (/^(honest|honor|hour|heir)\b/.test(raw)) {
+    // Common silent-h words use "an"
+		article = 'an';
+	} else if (/^(uni([^nmd]|$)|use|user|euro|one|once|ubiquit|ufo|ukulele)\b/.test(raw)) {
+    // Common "you"/"w" sound starts use "a"
+		article = 'a';
+	} else {
+	  article = /^[aeiou]/.test(raw) ? 'an' : 'a';
+  }
 
-	// Common silent-h words use "an"
-	if (/^(honest|honor|hour|heir)\b/.test(raw)) {
-		return 'an';
-	}
-
-	// Common "you"/"w" sound starts use "a"
-	if (/^(uni([^nmd]|$)|use|user|euro|one|once|ubiquit|ufo|ukulele)\b/.test(raw)) {
-		return 'a';
-	}
-
-	return /^[aeiou]/.test(raw) ? 'an' : 'a';
+  return `${article} ${word}`;
 }
 
 /**
