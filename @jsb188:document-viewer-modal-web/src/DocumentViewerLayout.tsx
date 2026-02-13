@@ -181,8 +181,8 @@ const DocumentPreviewToolbar = memo((p: {
     },
   ], [file, fileTypeIconName, onCloseModal, onSelectAdjacentFile]);
 
-  // Not finished
-  return <header className='abs_t h_35 h_spread ft_tn z5'>
+  // z-index 9999 to fix a Safari iframe z-index issue
+  return <header className='abs_t h_35 h_spread ft_tn' style={{zIndex: 9999}}>
     <div className='h_item gap_5 px_10'>
       <TooltipButton
         className={btnClassName}
@@ -377,7 +377,7 @@ export const DocumentViewerLayout = memo((p: {
 
   return (
     <div className='h_spread'>
-      <div className='of fs h_100vh rel'>
+      <div className='of fs h_100vh rel' style={{isolation: 'isolate'}}>
         <DocumentPreviewToolbar
           selectedFile={selectedFile}
           isPDF={isPDF}
