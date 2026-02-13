@@ -53,7 +53,7 @@ export const FileViewer = memo((p: {
   return <img
     src={fileUrl}
     alt='Document Image'
-    className='w_f h_auto h_top'
+    className='w_f h_f h_top img_contain bg_contrast'
   />;
 });
 
@@ -82,7 +82,6 @@ const DocumentViewer = memo((p: {
     <div
       className='rel z1 fs shadow_soft_lg bd_contrast'
       // style={{ borderTop: 'solid 75px', borderLeft: 'solid 75px', borderRight: 'solid 75px' }}
-      style={{ border: 'solid 75px' }}
     >
       <FileViewer
         file={documentFiles[selectedIx]}
