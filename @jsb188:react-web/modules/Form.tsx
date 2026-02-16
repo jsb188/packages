@@ -1,7 +1,11 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 
 import { getPlatform } from '@jsb188/app/platform.ts';
-import type { FormItemIfaceObj } from '@jsb188/app/types/form.d.ts';
+import type {
+  FormItemIfaceObj,
+  FormValueSetter,
+  FormValuesObj,
+} from '@jsb188/app/types/form.d.ts';
 import { getObject, setObject } from '@jsb188/app/utils/object.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { Button, InlineBlockLabel } from '@jsb188/react-web/ui/Button';
@@ -26,12 +30,12 @@ interface InputType {
   autoComplete?: 'on' | 'off' | string;
   spellCheck?: boolean;
   name: string;
-  formValues?: any;
+  formValues: FormValuesObj;
   step?: number;
   min?: number;
   max?: number;
-  getter?: (value?: any) => string;
-  setFormValues?: (values: any) => void;
+  getter?: (value?: unknown) => string;
+  setFormValues: FormValueSetter<FormValuesObj>;
   allowClearIfLocked?: boolean;
   locked?: boolean;
   disabled?: boolean;
@@ -52,7 +56,7 @@ interface InputType {
   onKeyDown?: (e: React.KeyboardEvent, name: string) => void;
   onClick?: (e: React.MouseEvent, name: string) => void;
   onSubmit?: (e: React.MouseEvent, name: string) => void;
-  value?: string;
+  value?: string | number | null;
   label?: string;
   placeholder?: string;
   RightIconComponent?: React.ReactNode;
@@ -99,8 +103,8 @@ type TextareaType = {
   minHeight?: number;
   focusStyle?: InputFocusStyle;
   name: string;
-  formValues?: any;
-  setFormValues?: (values: any) => void;
+  formValues?: FormValuesObj;
+  setFormValues?: FormValueSetter<FormValuesObj>;
   allowClearIfLocked?: boolean;
   locked?: boolean;
   disabled?: boolean;
@@ -130,8 +134,10 @@ type SideInputButtonProps = {
   offsetRight?: boolean;
   disabled?: boolean;
   selected?: boolean;
-  onClick?: (e: any) => void;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
+
+type InputRightButtonProps = React.ComponentProps<typeof Button>;
 
 /**
  * Side button meant to be placed next to an input (e.g. search bar)
@@ -162,11 +168,12 @@ export function SideInputButton(p: SideInputButtonProps) {
  * e.g. "Enter with arrow" button in a large search input.
  */
 
-export function InputRightButton(p: any) {
+export function InputRightButton(p: InputRightButtonProps) {
+  const { className, ...rest } = p;
   return (
     <Button
-      {...p}
-      className='form_el_inline_btn'
+      {...rest}
+      className={cn('form_el_inline_btn', className)}
     />
   );
 }
@@ -391,7 +398,7 @@ function InputClick(p: InputType & Omit<LabelType, 'children'> & { popOverProps:
     if (isErrored && value) {
       setFormValues?.({
         ...formValues,
-        __errorFields: formValues.__errorFields.filter((f: string) => f !== name),
+        __errorFields: (formValues.__errorFields || []).filter((f: string) => f !== name),
       });
     }
   }, [isErrored, value]);
@@ -425,7 +432,6 @@ function FVPasswordInput(p: InputType & Omit<LabelType, 'children'>) {
   const [inputType, setInputType] = useState('password');
 
   return (
-    // @ts-expect-error - complicated typing
     <FVInput
       {...p}
       type={inputType}
@@ -728,12 +734,12 @@ FormItem.displayName = 'FormItem';
 
 interface FormInputProps extends InputType {
   name: string;
-  formValues: any;
-  setFormValues: (formValues: any) => void;
+  formValues: FormValuesObj;
+  setFormValues: FormValueSetter<FormValuesObj>;
   // Used when the form needs to listen to changes.
   listenToInput?: boolean;
   onChangeText?: (value: string, name: string) => void;
-  setter?: (value: any) => any; // Used to transform the value before setting it in formValues
+  setter?: (value: unknown) => unknown; // Used to transform the value before setting it in formValues
 }
 
 export function composeFormInput(Component: React.FC<any>, isTextarea?: boolean) {

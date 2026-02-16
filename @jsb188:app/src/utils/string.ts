@@ -186,6 +186,30 @@ export function getAlphanumeric(str: string, space: boolean = false) {
 }
 
 /**
+ * Build normalized unique list of names from raw search inputs
+ */
+
+export function getSearchNames(namesList: (string | null | undefined)[] = []): string[] {
+	const parsedNames = (namesList || [])
+		.flatMap((s) => (s || '').split(/\s*(?:,|;|\n|\band\b)\s*/i))
+		.map((s) => s.trim())
+		.filter(Boolean);
+
+	const uniqueNames: string[] = [];
+	const seen = new Set<string>();
+
+	for (const name of parsedNames) {
+		const key = name.toLowerCase();
+		if (!seen.has(key)) {
+			seen.add(key);
+			uniqueNames.push(name);
+		}
+	}
+
+	return uniqueNames;
+}
+
+/**
  * Get regex patterns from a text
  */
 

@@ -32,6 +32,7 @@ export const RULES = {
   logEvidences: true,
   myChats: true,
   myOrganizations: true,
+  organizationMembers: true,
   organizationRelationship: true,
   organizationWorkflows: true,
   platformProducts: true,

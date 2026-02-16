@@ -13,6 +13,7 @@ import form from './form.ts';
 import log from './log.ts';
 import message from './message.ts';
 import org from './org.ts';
+import organization from './organization.ts';
 import product from './product.ts';
 import workflow from './workflow.ts';
 
@@ -29,6 +30,7 @@ export const i18nTranslations = {
   log,
   message,
   org,
+  organization,
   product,
   workflow,
 } as Record<string, any>;

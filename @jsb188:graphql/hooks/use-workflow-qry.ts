@@ -1,5 +1,5 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
-import { workflowsQry } from '../gql/queries/workflowQueries';
+import { workflowRunsQry, workflowsQry } from '../gql/queries/workflowQueries';
 import type { UseQueryParams } from '../types.d';
 
 /**
@@ -17,6 +17,25 @@ export function useWorkflows(organizationId?: string | null, params: UseQueryPar
 
   return {
     workflows: data?.workflows,
+    ...rest
+  };
+}
+
+/**
+ * Fetch runs for a workflow
+ */
+
+export function useWorkflowRuns(workflowId?: string | null, params: UseQueryParams = {}) {
+  const { data, ...rest } = useQuery(workflowRunsQry, {
+    variables: {
+      workflowId,
+    },
+    skip: !workflowId,
+    ...params,
+  });
+
+  return {
+    workflowRuns: data?.workflowRuns,
     ...rest
   };
 }

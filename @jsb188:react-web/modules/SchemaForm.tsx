@@ -1,5 +1,5 @@
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { FormSchemaObj } from '@jsb188/app/types/form.d.ts';
+import type { FormSchemaObj, FormValueSetter } from '@jsb188/app/types/form.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { FormItem } from '@jsb188/react-web/modules/Form';
 import { type ButtonPresetEnum, FullWidthButton } from '@jsb188/react-web/ui/Button';
@@ -12,7 +12,7 @@ import { FormEventHandler, forwardRef, useEffect, useImperativeHandle, useMemo, 
  * Types
  */
 
-type setFormFunc = (formValues: any) => void;
+type SetFormValuesFunc = FormValueSetter<any>;
 
 type HTTPMethodEnums = 'get' | 'post' | 'put' | 'delete';
 
@@ -38,16 +38,18 @@ interface SchemaFormProps {
   hideButton?: boolean;
   stickyFooter?: boolean;
   onError?: (error: any) => void;
-  onSubmit: (formValues: any, currentData: any, setFormValues: setFormFunc) => boolean | void | Promise<void | boolean>; // Must return true/false which determines if form should be submitted
-  onFormValuesChange?: (formValues: any, currentValues: any, setFormValues: setFormFunc) => void;
+  onSubmit: (formValues: any, currentData: any, setFormValues: SetFormValuesFunc) => boolean | void | Promise<void | boolean>; // Must return true/false which determines if form should be submitted
+  onFormValuesChange?: (formValues: any, currentValues: any, setFormValues: SetFormValuesFunc) => void;
   onChangeDiff?: (diff?: boolean, saving?: boolean, fv?: any) => void;
   actionUrl?: string;
-  children?: any;
-  FooterComponent?: any;
+  children?: React.ReactNode;
+  FooterComponent?: React.ReactNode;
 }
 
-export interface SchemaFormRef {
+export interface SchemaFormRef<TFormValues = any> {
   reset: () => void;
+  getFormValues: () => TFormValues;
+  updateFormValues: (fn: (prev: TFormValues) => TFormValues) => void;
 }
 
 /**
@@ -73,7 +75,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     httpMethod,
     saving,
     disabled: disabled_,
-		notAllowed,
+    notAllowed,
     children,
     FooterComponent,
     hideButton,
@@ -81,7 +83,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     buttonClassName,
   } = p;
 
-	const disabled = disabled_ || notAllowed;
+  const disabled = disabled_ || notAllowed;
   const formRef = useRef<HTMLFormElement>(null);
   const autoComplete = p.autoComplete || true;
   const buttonPreset = p.buttonPreset || 'bg_primary';
@@ -97,7 +99,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
 
   useImperativeHandle(ref, () => ({
     reset: () => setFormValues(makeFormValues(schema, dataForSchema, currentData)),
-		getFormValues: () => formValues,
+    getFormValues: () => formValues,
     updateFormValues: (fn: (prev: any) => any) => setFormValues((fv: any) => fn(fv)),
   }), [formValues, setFormValues]);
 
@@ -161,8 +163,10 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     }
   }, [saveCounter]);
 
-  const onChangeFormItem = (handler: any) => {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, inputName: any) => {
+  const onChangeFormItem = (
+    handler?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, formValues: any, setFormValues: SetFormValuesFunc) => void
+  ) => {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, _inputName?: string) => {
       if (handler) {
         handler(e, formValues, setFormValues);
       }
@@ -177,8 +181,8 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
       //     __errorFields: newErrorFields,
       //   }));
       // }
-    }
-  }
+    };
+  };
 
   const onClickButton = async(e: React.MouseEvent) => {
     if (!actionUrl || saving || disabled) {
@@ -222,7 +226,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     >
       {children}
 
-      {listData.map((schemaItem, i) => (
+      {listData.map((schemaItem: any, i) => (
         <FormItem
           key={i}
           {...schemaItem}
@@ -232,8 +236,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
           setFormValues={setFormValues}
           listenToInput={listenToInput}
           onSubmit={onClickButton}
-          // @ts-expect-error - "future proofing" in case onChange is added
-          onChange={onChangeFormItem(schemaItem.onChange)}
+          onChange={onChangeFormItem(schemaItem.item?.onChange)}
         />
       ))}
 

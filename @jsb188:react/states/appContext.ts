@@ -163,7 +163,7 @@ export function getTheme(
   );
 
   return {
-    lightMode,
+    lightMode: lightMode || 'LIGHT',
     theme,
   };
 }

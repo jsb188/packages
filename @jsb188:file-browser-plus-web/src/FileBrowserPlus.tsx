@@ -210,7 +210,7 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
     <div className='bg_secondary_fd bd_l_5 bd_primary'>
       {files?.map((file: any, i: number) => {
         return <FileBrowserItem
-          key={i}
+          key={file.id}
           file={file}
           timeZone={timeZone}
           onClickFile={onClickFile}

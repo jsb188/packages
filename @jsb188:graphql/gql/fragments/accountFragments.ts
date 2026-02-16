@@ -1,5 +1,6 @@
 export const accountFragment = `fragment accountFragment on Account {
   id
+  readableId
   deleted
   color
 

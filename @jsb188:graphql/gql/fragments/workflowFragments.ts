@@ -7,7 +7,6 @@ export const workflowFragment = `fragment workflowFragment on Workflow {
   feature
 
   title
-  instructions
 
   steps {
     iconName
@@ -39,4 +38,20 @@ export const workflowActionFragment = `fragment workflowActionFragment on Workfl
 
   createdAt
   updatedAt
+}`;
+
+export const workflowRunFragment = `fragment workflowRunFragment on WorkflowRun {
+  id
+  workflowId
+  logId
+
+  runKey
+  iterations
+  progressReport
+  message
+  status
+
+  scheduledDate
+  followUpAt
+  activityAt
 }`;

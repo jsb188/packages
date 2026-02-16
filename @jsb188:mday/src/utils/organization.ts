@@ -151,6 +151,36 @@ export function checkACLPermission(
 }
 
 /**
+ * Check whether the user's ACL differs from role defaults
+ * @returns true if at least one ACL permission differs from default role ACL
+ */
+
+export function isCustomACLForRole(
+	orgRel: OrganizationRelGQL | OrganizationRelData | ViewerOrganization | null | undefined,
+): boolean {
+	if (!orgRel) {
+		return false;
+	}
+	if (orgRel.role === 'OWNER') {
+		return false;
+	}
+
+	const roleDefaultACL = getDefaultPermissionsByRole({
+		role: orgRel.role,
+		acl: {},
+	} as OrganizationRelGQL);
+
+	const effectiveACL = getDefaultPermissionsByRole(orgRel);
+	for (const aclKey in roleDefaultACL) {
+		if (effectiveACL[aclKey as PermissionCheckFor] !== roleDefaultACL[aclKey as PermissionCheckFor]) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Get the default object for Oganization settings
  * @param timeZone - Time zone string
  * @return Default organization settings object

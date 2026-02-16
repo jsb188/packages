@@ -1,4 +1,5 @@
 import { gql } from 'graphql-tag';
+import { accountFragment } from '../fragments/accountFragments';
 import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationInstructionsFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
 
 // Always use organizationRelationship() instead
@@ -110,4 +111,25 @@ query organizationWorkflows (
 }
 
 ${organizationInstructionsFragment}
+`;
+
+export const organizationMembersQry = gql`
+query organizationMembers (
+  $organizationId: GenericID!
+  $showGuests: Boolean
+) {
+  organizationMembers (
+    organizationId: $organizationId
+    showGuests: $showGuests
+  ) {
+    ...organizationRelationshipFragment
+
+    account {
+      ...accountFragment
+    }
+  }
+}
+
+${organizationRelationshipFragment}
+${accountFragment}
 `;

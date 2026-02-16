@@ -55,6 +55,7 @@ export const organizationComplianceFragment = `fragment organizationComplianceFr
 
 export const organizationRelationshipFragment = `fragment organizationRelationshipFragment on OrganizationRelationship {
   id
+  organizationId
   primary
   role
 

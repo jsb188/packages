@@ -181,10 +181,37 @@ export interface OrganizationGQL {
 	membersCount: number;
 }
 
+export interface OrganizationRelAccountGQL {
+	id: string;
+	deleted: boolean;
+	color: string | null;
+	profile: null | {
+		id: string;
+		firstName: string | null;
+		lastName: string | null;
+		photoId: string | null;
+		photoUri: string | null;
+	};
+	settings: Record<string, any> | null;
+	email: null | {
+		id: string;
+		address: string | null;
+		verified: boolean;
+	};
+	phone: null | {
+		id: string;
+		number: string | null;
+		verified: boolean;
+		primary: boolean;
+	};
+}
+
 export interface OrganizationRelGQL {
   __deleted?: boolean;
 
 	id: string;
+	organizationId?: string;
+	account?: OrganizationRelAccountGQL | null;
 	primary: boolean;
 	role: OrganizationRoleEnum;
 	acl: OrganizationACLGQLData;

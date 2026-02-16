@@ -242,7 +242,7 @@ export default {
     tasked_by: 'Tasked by',
     updated: 'Updated',
     next_due: 'Next due',
-    next_job: 'Next job',
+    next_run: 'Next run',
     recurring: 'Recurring',
     start_date: 'Start date',
     end_date: 'End date',

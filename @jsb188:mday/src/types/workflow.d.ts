@@ -2,6 +2,14 @@ import type { LogActionStatusEnum, LogTypeEnum } from '../types/log.d.ts';
 import type { OrganizationFeatureEnum } from '../types/organization.d.ts';
 
 /**
+ * Workflow prompt instructions
+ */
+
+export interface WorkflowPrompts {
+  main: string;
+}
+
+/**
  * Workflow data object
  */
 
@@ -16,7 +24,7 @@ export interface WorkflowData {
 	feature?: OrganizationFeatureEnum;
 
 	title: string;
-	instructions: string;
+	instructions?: null | WorkflowPrompts;
 
 	schedule: string | null;
 	active: boolean;
@@ -42,17 +50,32 @@ export interface WorkflowRunData {
 	workflowId: number | bigint;
 	logId: number | bigint | null;
 	runKey: string;
+	iterations: number;
 	values: null | Partial<{
-    progressSummary: string;
+    progressReport: string;
 		config: Record<string, string>; // Frequent values include: "endTime"
   }>;
 	message: string | null;
-	startedAt: Date | null;
-	endActivityAt: Date | null;
 	status: LogActionStatusEnum;
 	scheduledDate: Date;
-	createdAt: Date;
-	updatedAt: Date;
+	followUpAt: Date | null;
+	activityAt: Date;
+}
+
+export interface WorkflowRunGQL {
+	__deleted?: boolean;
+
+	id: string;
+	workflowId: string;
+	logId: string | null;
+	runKey: string;
+	iterations: number;
+	progressReport: string | null;
+	message: string | null;
+	status: LogActionStatusEnum;
+	scheduledDate: string;
+	followUpAt: string | null;
+	activityAt: string;
 }
 
 /**
@@ -69,7 +92,6 @@ export interface WorkflowGQL {
 	feature: OrganizationFeatureEnum | null;
 
 	title: string;
-	instructions: string;
   steps: LabelAndValue[];
 
 	schedule: string | null;

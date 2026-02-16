@@ -7,6 +7,7 @@
   "type": "module",
   "exports": {
     "./constants/log.ts": "./src/constants/log.ts",
+    "./constants/log-activityTexts.ts": "./src/constants/log-activityTexts.ts",
     "./constants/organization.ts": "./src/constants/organization.ts",
     "./constants/product.ts": "./src/constants/product.ts",
     "./constants/storage.ts": "./src/constants/storage.ts",

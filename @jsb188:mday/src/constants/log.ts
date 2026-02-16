@@ -40,8 +40,7 @@ export const AI_TASKS_GROUP: [string, string[]] = [
 	[
 		'AI_SEND_MESSAGE',
 		'AI_REMINDER',
-		'AI_CHECK_IN',
-		'AI_SCHEDULED_TASK',
+		'AI_SCHEDULED_TASK', // It's scheduled "message" now, but kept as "task" because it's an enum
 	],
 ];
 

@@ -16,6 +16,7 @@ export interface AccountPhoneObj {
 
 export interface AccountObj {
 	id: number;
+	readableId?: string | null;
 	settings: Record<string, any>;
 	profile: Partial<{
 		firstName: string;

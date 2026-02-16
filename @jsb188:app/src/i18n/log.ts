@@ -286,9 +286,8 @@ export default {
 
 			// # AI Tasks
 			AI_SEND_MESSAGE: 'Send message',
-			AI_REMINDER: 'Smart reminder',
-			AI_CHECK_IN: 'Smart check-in',
-			AI_SCHEDULED_TASK: 'Scheduled task',
+			AI_REMINDER: 'Reminder',
+			AI_SCHEDULED_TASK: 'Scheduled message',
 		},
 
 		// Short versions will override longer version for UI purposes
@@ -417,9 +416,8 @@ export default {
 
 			// # AI Tasks
 			AI_SEND_MESSAGE: 'Send message',
-			AI_REMINDER: 'Smart reminder',
-			AI_CHECK_IN: 'Smart check-in',
-			AI_SCHEDULED_TASK: 'Scheduled task',
+			AI_REMINDER: 'Reminder',
+			AI_SCHEDULED_TASK: 'Scheduled message',
 		},
 
     // Search sort

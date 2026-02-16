@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { workflowFragment } from '../fragments/workflowFragments';
+import { workflowFragment, workflowRunFragment } from '../fragments/workflowFragments';
 
 export const workflowsQry = gql`
 query workflows (
@@ -13,4 +13,18 @@ query workflows (
 }
 
 ${workflowFragment}
+`;
+
+export const workflowRunsQry = gql`
+query workflowRuns (
+  $workflowId: GenericID!
+) {
+  workflowRuns (
+    workflowId: $workflowId
+  ) {
+    ...workflowRunFragment
+  }
+}
+
+${workflowRunFragment}
 `;

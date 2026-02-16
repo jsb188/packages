@@ -189,7 +189,6 @@ export const AI_TASKS_TO_TEXT = {
 	// NOTE: If updating this, update [functions-aiTasks.ts] too
 	AI_SEND_MESSAGE: 'message',
 	AI_REMINDER: 'reminder message',
-	AI_CHECK_IN: 'check-in message',
 	AI_SCHEDULED_TASK: 'scheduled task',
 };
 

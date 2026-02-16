@@ -38,7 +38,7 @@ export default {
 		updating_attendance_list_: '🙋 Updating attendance list...',
 		updating_database_: '🗄️ Updating database...',
 		sending_message_: '✉️ Sending message...',
-		schedule_ai_task_: '📋 Scheduling task...',
+		handle_simple_task_: '📋 Handling task...',
 		schedule_next_ai_task_: '📋 Scheduling next task...',
 		saving_load_list_: '📋 Saving load list...',
 		searching_for_load_list_: '🔍 Searching for load list...',

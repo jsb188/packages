@@ -197,7 +197,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   // AI_TASK - Icon Names for each AI task activity
   AI_SEND_MESSAGE: 'email-action-send-1',
 	AI_REMINDER: 'task-list-clock',
-	AI_CHECK_IN: 'single-man-actions-time',
   AI_SCHEDULED_TASK: 'calendar-date-mark-circle',
 
   // ARABLE - Icon Names for each log activity

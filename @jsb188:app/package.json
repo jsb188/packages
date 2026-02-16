@@ -22,6 +22,7 @@
     "./utils/billing.ts": "./src/utils/billing.ts",
     "./utils/datetime.ts": "./src/utils/datetime.ts",
     "./utils/emoji.ts": "./src/utils/emoji.ts",
+    "./utils/cron.ts": "./src/utils/cron.ts",
     "./utils/logic.ts": "./src/utils/logic.ts",
     "./utils/number.ts": "./src/utils/number.ts",
     "./utils/object.ts": "./src/utils/object.ts",

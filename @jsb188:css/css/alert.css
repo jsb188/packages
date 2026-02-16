@@ -12,7 +12,7 @@
 /* Alert black-to-transparent background */
 
 .bg_modal_alert_w_screen {
-  background-color: rgba(var(--color-darker-rgb), .075);
+  background-color: rgba(var(--color-darker-rgb), .064);
 }
 
 /* Different outlines + shadows for each modal type */
