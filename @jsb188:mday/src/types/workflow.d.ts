@@ -27,10 +27,13 @@ export interface WorkflowData {
 	instructions?: null | WorkflowPrompts;
 
 	schedule: string | null;
+	scheduleInterval: number;
 	active: boolean;
 	values: Partial<{
     steps: LabelAndValue[];
-		config: Record<string, string>; // Frequent values include: "endTime"
+		config: Record<string, string> & {
+      endTime: string; // HHMM format
+    }
 	}>;
 
 	startedAt: Date | null;
@@ -53,7 +56,6 @@ export interface WorkflowRunData {
 	iterations: number;
 	values: null | Partial<{
     progressReport: string;
-		config: Record<string, string>; // Frequent values include: "endTime"
   }>;
 	message: string | null;
 	status: LogActionStatusEnum;
@@ -95,6 +97,7 @@ export interface WorkflowGQL {
   steps: LabelAndValue[];
 
 	schedule: string | null;
+	scheduleInterval: number;
 	active: boolean;
 
 	startedAt: string | null;

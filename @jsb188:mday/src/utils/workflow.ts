@@ -1,5 +1,5 @@
 import { hhmmFromDateOrTime } from '@jsb188/app/utils/timeZone.ts';
-import cronParser from 'cron-parser';
+import { CronExpressionParser } from 'cron-parser';
 
 const DEFAULT_SCHEDULE_WINDOW_MS = 24 * 60 * 60 * 1000; // once per day
 
@@ -53,7 +53,7 @@ function getScheduleWindowMs(schedule: string | null | undefined, nextAt: Date) 
 	}
 
 	try {
-		const nextMs = cronParser
+		const nextMs = CronExpressionParser
 			.parse(schedule, { currentDate: nextAt })
 			.next()
 			.toDate()
@@ -96,4 +96,58 @@ export function isWithinScheduleWindow(
 	const windowEndMs = nextAtMs + windowMs;
 
 	return nowMs >= nextAtMs && nowMs <= windowEndMs;
+}
+
+/**
+ * Get next workflow schedule date from cron expression.
+ */
+
+/**
+ * Normalize workflow schedule interval into a valid positive integer.
+ */
+
+function normalizeScheduleInterval(scheduleInterval: number | null | undefined) {
+	if (!Number.isFinite(scheduleInterval)) {
+		return 1;
+	}
+
+	const normalized = Math.floor(Number(scheduleInterval));
+	return normalized > 0 ? normalized : 1;
+}
+
+/**
+ * Get next workflow schedule date from cron expression and interval.
+ */
+
+export function getNextWorkflowScheduleDate(
+	schedule: string | null | undefined,
+	scheduleInterval: number | null | undefined = 1,
+	currentDate: Date | string = new Date(),
+	timeZone: string | null = null,
+) {
+	if (!schedule) {
+		return null;
+	}
+
+	const current = new Date(currentDate);
+	if (!Number.isFinite(current.getTime())) {
+		return null;
+	}
+
+	try {
+		const interval = normalizeScheduleInterval(scheduleInterval);
+		const parsed = CronExpressionParser.parse(schedule, {
+			currentDate: current,
+			...(timeZone ? { tz: timeZone } : {}),
+		});
+		let nextDate: Date | null = null;
+
+		for (let i = 0; i < interval; i += 1) {
+			nextDate = parsed.next().toDate();
+		}
+
+		return nextDate;
+	} catch {
+		return null;
+	}
 }

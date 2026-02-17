@@ -15,6 +15,7 @@ export const workflowFragment = `fragment workflowFragment on Workflow {
   }
 
   schedule
+  scheduleInterval
   active
 
   startedAt
