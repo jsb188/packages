@@ -23,6 +23,7 @@ export default {
     deceased: 'Deceased',
     confirmation: 'Confirmation',
     primary: 'Primary',
+    role: 'Role',
     id: 'ID',
     for: 'For',
     sort_by: 'Sort by',

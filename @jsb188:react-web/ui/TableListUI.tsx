@@ -150,12 +150,14 @@ export const TDColMain = memo((p: Partial<{
   title: string;
   titleClassName: string;
   iconName: string;
+  isRoundAvatar?: boolean;
   avatarColor?: string;
   avatarDisplayName: string;
   placeholderText?: string;
   labelIcons: LabelsAndIconsItemProps[];
+  children: React.ReactNode;
 }>) => {
-  const { __deleted, title, iconName, avatarColor, avatarDisplayName, titleClassName, labelIcons, className } = p;
+  const { children, isRoundAvatar, __deleted, title, iconName, avatarColor, avatarDisplayName, titleClassName, labelIcons, className } = p;
   const hasAvatar = !!(iconName || avatarDisplayName);
 
   const placeholderText = p.placeholderText ?? '-';
@@ -167,8 +169,9 @@ export const TDColMain = memo((p: Partial<{
         className='mr_sm'
         // letterBackgroundClassName='bg_primary_fd'
         displayName={iconName ? undefined : avatarDisplayName}
-        letterBackgroundClassName={'bg' + (avatarColor ? '_' + avatarColor : '')}
-        square outline
+        letterBackgroundClassName={`bg${avatarColor ? '_' + avatarColor : ''}`}
+        square={!isRoundAvatar}
+        outline={!isRoundAvatar}
         size='tiny'
         // urlPath={photoUri}
       >
@@ -192,6 +195,8 @@ export const TDColMain = memo((p: Partial<{
         />
       </span>
     )}
+
+    {children}
   </span>;
 });
 
@@ -240,18 +245,39 @@ export function TableListItemMock(p: Partial<TableRowProps> & {
 }
 
 /**
+ * Table list header mock
+ */
+
+export function TableListHeaderMock() {
+  return <TRow
+    removeBorderLine
+    thead
+    className='bd_b_1 bd_lt mb_6'
+  >
+    <TDCol>
+      <span className='mock alt min_w_20' style={{width: '40%'}}>
+        ....
+      </span>
+    </TDCol>
+  </TRow>;
+}
+
+/**
  * Table list mock (client)
  * NOTE: This cannot be used in SSR due to globalThis object - it will fail the hydration test
  */
 
 interface TableListMockProps extends Partial<TableRowProps> {
   isInnerContent?: boolean;
+  isSmallerRows?: boolean;
+  mockHeaderRows?: boolean;
+  removeBorderLine?: boolean;
   cellClassNames?: string | (string | undefined)[];
   browserHeightRatio?: number;
 }
 
 export const TableListMockClient = memo((p: TableListMockProps) => {
-  const { browserHeightRatio, cellClassNames, isInnerContent, ...rest } = p;
+  const { mockHeaderRows, isSmallerRows, removeBorderLine, browserHeightRatio, cellClassNames, isInnerContent, ...rest } = p;
   const browserHeight = globalThis?.window?.innerHeight || 800; // Fallback to 800 if window is not available
   const hasRatio = browserHeightRatio && browserHeightRatio > 0;
 
@@ -262,12 +288,15 @@ export const TableListMockClient = memo((p: TableListMockProps) => {
 
   return <div className={isInnerContent ? undefined : '-mx_xs py_md'}>
     <div className='w_f rel table'>
+      {/* I don't think I need this. Delete it later after confirming its unnecessary. */}
+      {mockHeaderRows ? <TableListHeaderMock /> : null}
+
       {[...Array(mockCount)].map((_, i) => (
         <TableListItemMock
           key={i}
           index={i}
-          className={typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[i]}
-          removeBorderLine={!isInnerContent && i === 0}
+          className={cn(isSmallerRows && 'min_h_40', typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[i])}
+          removeBorderLine={removeBorderLine || (!isInnerContent && i === 0)}
           {...rest}
         />
       ))}
@@ -336,6 +365,7 @@ TablePageMock.displayName = 'TablePageMock';
 
 export const TableList = memo((p: {
   gridLayoutStyle: string;
+  addHeaderBorder?: boolean;
   headers?: TableHeaderObj[];
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
@@ -344,11 +374,12 @@ export const TableList = memo((p: {
     columns: Omit<TDColProps, 'removeLeftPadding' | 'removeRightPadding'>[];
   }[];
 }) => {
-  const { headers, rows, gridLayoutStyle, removeLeftPadding, removeRightPadding } = p;
+  const { addHeaderBorder, headers, rows, gridLayoutStyle, removeLeftPadding, removeRightPadding } = p;
 
   return <>
     {headers && (
       <THead
+        addHeaderBorder={addHeaderBorder !== false}
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
         gridLayoutStyle={gridLayoutStyle}

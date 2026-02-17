@@ -20,6 +20,7 @@ export default {
     no_one_found: 'No one found with this query.',
 
     // App settings
+    manage_team: 'Manage team',
     account: 'Account',
     fName: 'First name',
     lName: 'Last name',

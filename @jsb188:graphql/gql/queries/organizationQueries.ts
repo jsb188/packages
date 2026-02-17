@@ -1,6 +1,7 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
 import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationInstructionsFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
+import { emailFragment, phoneFragment } from '../fragments/otherFragments';
 
 // Always use organizationRelationship() instead
 
@@ -126,10 +127,20 @@ query organizationMembers (
 
     account {
       ...accountFragment
+
+      email {
+        ...emailFragment
+      }
+
+      phone {
+        ...phoneFragment
+      }
     }
   }
 }
 
 ${organizationRelationshipFragment}
 ${accountFragment}
+${emailFragment}
+${phoneFragment}
 `;

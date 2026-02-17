@@ -84,7 +84,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   field_work: 'farming-field-sun',
   file: 'file-description',
   generic_report: 'ui-webpage-check',
-  group: 'users-group',
+  team: 'workflow-teammate-circle',
   harvest: 'vegetable-corn',
   image: 'photo',
   images: 'library-photo',

@@ -357,6 +357,48 @@ export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
 InlineBlockLabel.displayName = 'InlineBlockLabel';
 
 /**
+ * Minimal label component; because I got sick of using the complicated <InlineBlockLabel>
+ */
+
+export const SimpleLabel = memo((p: {
+  as?: React.ElementType;
+  preset: 'outline_secondary' | 'outline';
+  text: string;
+  className?: string;
+}) => {
+  const { preset, text, className } = p;
+  const El = p.as || 'span';
+
+  let colorClassName: string;
+  let designClassName: string;
+
+  switch (preset) {
+    case 'outline_secondary':
+      colorClassName = 'bg_secondary_fd';
+      designClassName = 'px_5 py_5 bd_1 bd_darker_1';
+      break;
+    case 'outline':
+    default:
+      designClassName = 'bd_1 bd_lt px_5 py_5';
+      colorClassName = 'bg_alt';
+      break;
+  }
+
+  return <El
+    className={cn(
+      'f_shrink ft_tn r_xs',
+      colorClassName,
+      designClassName,
+      className
+    )}
+  >
+    {text}
+  </El>;
+});
+
+SimpleLabel.displayName = 'SimpleLabel';
+
+/**
  * Link/button/span helper Component
  */
 

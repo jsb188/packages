@@ -515,8 +515,8 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
 
 /* Colors - Base */
 
-.cl_black { color: #000 !important; }
-.cl_white { color: #FFF !important; }
+.cl_black { color: rgb(var(--color-darker-rgb)) !important; }
+.cl_white { color: rgb(var(--color-lighter-rgb)) !important; }
 
 .bg, .bg_subtle { background-color: rgb(var(--color-bg)); }
 .bg_alt { background-color: rgb(var(--color-bg-alt)); }

@@ -58,6 +58,7 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
   organizationId
   primary
   role
+  notes
 
   acl {
     id

@@ -7,6 +7,7 @@ import { useOnClickOutside } from '../utils/dom';
 import { AvatarImg } from './Avatar';
 import { SmartLink } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
+import Markdown from './Markdown';
 
 /**
  * Types
@@ -44,6 +45,7 @@ export function guessTooltipSize(message: string): {
 
 export const TooltipText = memo((p: TooltipProps) => {
   const { title, message, __html, tooltipClassName, fontClassName, leftIconName, rightIconName } = p;
+  const messageComponent = <Markdown as='p'>{message}</Markdown>;
 
   return (
     <div
@@ -64,14 +66,14 @@ export const TooltipText = memo((p: TooltipProps) => {
       )}
       {__html
         ? <div className='shift_up' dangerouslySetInnerHTML={{ __html }} />
-        : <p className={cn('shift_up', leftIconName || rightIconName && 'h_center')}>
+        : <div className={cn('shift_up', leftIconName || rightIconName && 'h_center')}>
           {leftIconName && <span className='-ml_3'><Icon name={leftIconName} /></span>}
-          {!leftIconName && !rightIconName ? message
-          : <span className={cn(leftIconName ? 'ml_3' : '', rightIconName ? 'mr_3' : '')}>
-            {message}
-          </span>}
+          {!leftIconName && !rightIconName ? messageComponent
+          : <div className={cn(leftIconName ? 'ml_3' : '', rightIconName ? 'mr_3' : '')}>
+            {messageComponent}
+          </div>}
           {rightIconName && <span className='-mr_3'><Icon name={rightIconName} /></span>}
-        </p>
+        </div>
       }
     </div>
   );
