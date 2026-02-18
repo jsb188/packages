@@ -1,7 +1,7 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
 import { updateFragment } from '../cache/index';
-import { deleteComplianceDocumentMtn, editOrganizationMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
+import { deleteComplianceDocumentMtn, editMembershipMtn, editOrganizationMtn, removeMembershipMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
 import { useMutation } from './index';
 import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 import { useMemo } from 'react';
@@ -99,6 +99,72 @@ export function useEditOrganization(
     allowEdit,
     organizationRelationship,
     editOrganization,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Edit a membership on an organization
+ */
+
+export function useEditMembership(
+  params: UseMutationParams = {},
+  openModalPopUp?: OpenModalPopUpFn
+) {
+  const { onCompleted, ...rest } = params;
+
+  const [editMembership, mtnValues, mtnHandlers, updateObservers] = useMutation(editMembershipMtn, {
+    openModalPopUp,
+    onCompleted: (data, error, variables) => {
+      const updatedMembership = data?.editMembership;
+
+      if (updatedMembership?.id) {
+        updateFragment(
+          `$organizationRelationshipFragment:${updatedMembership.id}`,
+          updatedMembership,
+          null,
+          false,
+          updateObservers
+        );
+      }
+
+      onCompleted?.(updatedMembership, error, variables);
+    },
+    ...rest,
+  });
+
+  return {
+    editMembership,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Remove a membership on an organization
+ */
+
+export function useRemoveMembership(
+  params: UseMutationParams = {},
+  openModalPopUp?: OpenModalPopUpFn
+) {
+  const { onCompleted, ...rest } = params;
+
+  const [removeMembership, mtnValues, mtnHandlers, updateObservers] = useMutation(removeMembershipMtn, {
+    openModalPopUp,
+    onCompleted: (data, error, variables) => {
+      const removed = data?.removeMembership;
+      if (removed) {
+        updateFragment(`$organizationRelationshipFragment:${variables.membershipId}`, { __deleted: true }, null, false, updateObservers);
+      }
+      onCompleted?.(removed, error, variables);
+    },
+    ...rest,
+  });
+
+  return {
+    removeMembership,
     ...mtnValues,
     ...mtnHandlers,
   };

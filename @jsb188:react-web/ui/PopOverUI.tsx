@@ -1,9 +1,10 @@
+import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import type { ClosePopOverFn, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POTextObj, TooltipProps } from '@jsb188/react/types/PopOver.d';
-import { forwardRef, memo, useRef } from 'react';
+import { forwardRef, memo, useEffect, useRef, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
-import { useOnClickOutside } from '../utils/dom';
+import { copyTextToClipboard, useOnClickOutside } from '../utils/dom';
 import { AvatarImg } from './Avatar';
 import { SmartLink } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
@@ -237,6 +238,54 @@ export const POListItem = memo((p: PONavItemBase & {
 });
 
 POListItem.displayName = 'POListItem';
+
+/**
+ * Pop over option item for copy function
+ */
+
+export const POListItemCopy = memo((p: PONavItemBase & {
+  name: string | null;
+  item: POListItemObj;
+}) => {
+  const { name, item, onClickItem } = p;
+  const [cloneItem, setCloneItem] = useState<POListItemObj>({ ...item });
+  const copiedText = i18n.t('form.copied_');
+
+  /**
+   * Reset copied label back to original text after a delay
+   */
+
+  useEffect(() => {
+    if (item.text === cloneItem.text) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setCloneItem({ ...item });
+    }, 3500);
+
+    return () => clearTimeout(timeout);
+  }, [cloneItem.text, item.text]);
+
+  /**
+   * Copy item value and show copied status
+   */
+
+  const handleClick = () => {
+    copyTextToClipboard(String(item.value || ''));
+    setCloneItem({ ...item, className: 'cl_primary ft_medium', text: copiedText });
+    onClickItem(name, item.value || null);
+  }
+
+  return <POListItem
+    {...p}
+    name={null}
+    item={cloneItem}
+    onClickItem={handleClick}
+  />;
+});
+
+POListItemCopy.displayName = 'POListItemCopy';
 
 /**
  * Pop over avatar item

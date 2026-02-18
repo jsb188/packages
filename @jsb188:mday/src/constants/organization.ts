@@ -19,9 +19,11 @@ export const PARENT_ORG_OPERATIONS = [
 	'GROWER_NETWORK',
 ];
 
-// Employee ACL
+// Membership roles
+// Order of roles matter (for visualization)
+// second item is default value
 
-export const ROLE_ENUMS = ['MEMBER', 'MANAGER', 'ADMIN', 'OWNER', 'GUEST']; // first is default value
+export const ROLE_ENUMS = ['GUEST', 'MEMBER', 'MANAGER', 'ADMIN', 'OWNER'];
 
 // Role categories (used for reminders)
 

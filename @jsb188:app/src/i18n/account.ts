@@ -21,6 +21,24 @@ export default {
 
     // App settings
     manage_team: 'Manage team',
+    change_role: 'Change role',
+    change_role_desc: (
+      'Choose [hl]%{name}[/hl]\'s new role in _%{orgName}_. ' +
+      'This will change their permissions and access to certain features.'
+    ),
+    edit_note_desc: 'Edit note for [hl]%{name}[/hl].',
+    edit_note_fin_msg: 'Note for [hl]%{name}[/hl] in _%{orgName}_ has been updated.',
+    edit_note_help: (
+      'It\'s useful to write information here such as their job function, ' +
+      'dietary preferences, disabilities or anything else to help guide the AI. ' +
+      '_AI may update this note when it receives new information._'
+    ),
+    change_role_fin_msg: (
+      '[hl]%{name}[/hl]\'s role in _%{orgName}_ has been changed to **%{role}**.'
+    ),
+    remove_member_confirm_msg: 'Are you sure you want to remove\n [hl]%{name}[/hl] from _%{orgName}_?',
+    remove_member_fin_msg: '[hl]%{name}[/hl] has been removed from _%{orgName}_.',
+    remove_member: 'Remove member',
     account: 'Account',
     fName: 'First name',
     lName: 'Last name',

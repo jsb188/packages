@@ -428,7 +428,7 @@ export function AlertPopUp(p: AlertDataProps) {
   return (
     <>
       {iconName !== null
-      ? <div className={cn('pt_lg pb_xs ic_xxl', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
+      ? <div className={cn('pt_lg pb_xs ic_xxxl', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
         <Icon
           tryColor
           name={iconName || 'alert-circle'}
@@ -446,7 +446,7 @@ export function AlertPopUp(p: AlertDataProps) {
           ? <TextWithLinks as='p' className='a_c'>
             {message}
           </TextWithLinks>
-          : <Markdown as='p' className='a_c'>
+          : <Markdown as='p' className='a_c' preset='content_description'>
             {message}
           </Markdown>}
         </div>

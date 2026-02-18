@@ -62,6 +62,14 @@ export default {
 
 		yes_switch: 'Yes, switch organization',
 
+    role: {
+      MEMBER: 'Member',
+      MANAGER: 'Manager',
+      ADMIN: 'Admin',
+      OWNER: 'Owner',
+      GUEST: 'Guest',
+    },
+
 		type: {
 			ARABLE: 'Arable farm',
 			LIVESTOCK: 'Livestock ranch',

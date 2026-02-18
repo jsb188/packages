@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { organizationFragment } from '../fragments/organizationFragments';
+import { organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
 
 export const switchOrganizationMtn = gql`
 mutation switchOrganization (
@@ -39,4 +39,34 @@ mutation editOrganization (
 }
 
 ${organizationFragment}
+`;
+
+export const editMembershipMtn = gql`
+mutation editMembership (
+  $organizationId: GenericID!
+  $accountId: GenericID!
+  $role: OrganizationRole
+  $notes: String
+) {
+  editMembership (
+    organizationId: $organizationId
+    accountId: $accountId
+    role: $role
+    notes: $notes
+  ) {
+    ...organizationRelationshipFragment
+  }
+}
+
+${organizationRelationshipFragment}
+`;
+
+export const removeMembershipMtn = gql`
+mutation removeMembership (
+  $membershipId: GenericID!
+) {
+  removeMembership (
+    membershipId: $membershipId
+  )
+}
 `;

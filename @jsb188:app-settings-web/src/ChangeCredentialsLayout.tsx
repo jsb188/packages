@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { useConfirmPassword } from '@jsb188/graphql/hooks/use-auth-mtn';
-import { Input } from '@jsb188/react-web/modules/Form';
+import { FormOptions, Input } from '@jsb188/react-web/modules/Form';
 import { AlertPopUp, ModalErrorMessage } from '@jsb188/react-web/ui/ModalUI';
 import type { ModalPopUpComponentProps } from '@jsb188/react/states';
 import { useState } from 'react';
@@ -41,10 +41,20 @@ export interface ChangeCredentialsProps extends ConfirmPasswordProps {
   loading?: boolean;
   error: any;
   resetErrors: () => void;
-  inputs: {
+  inputs: ({
+    __type: 'TEXT_INPUT';
     label: string;
     placeholder?: string;
-  }[];
+  } | {
+    __type: 'OPTIONS_LIST',
+    label: string;
+    defaultValue?: string;
+    options: {
+      text: string;
+      value: string;
+      disabled?: boolean;
+    }[];
+  })[];
 }
 
 /**
@@ -129,7 +139,11 @@ export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
   } = p;
   const { onCloseModal } = rest;
 	const [passwordVerified, setPasswordVerified] = useState(false);
-  const [values, setValues] = useState(['', '']);
+  const [values, setValues] = useState(() => inputs.map((input) =>
+    input.__type === 'OPTIONS_LIST'
+      ? (input.defaultValue || '')
+      : ''
+  ));
 
   switch (status) {
     case 'FINISHED':
@@ -193,6 +207,24 @@ export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
 
     <div className='mt_df mx_md'>
       {inputs.map((obj, i) => {
+        switch (obj.__type) {
+          case 'OPTIONS_LIST':
+            return <FormOptions
+              key={i}
+              name={obj.label}
+              label={obj.label}
+              value={values[i]}
+              options={obj.options}
+              onChange={(_e: React.MouseEvent, _name: string, value: string | number | null) => {
+                const newValues = [...values];
+                newValues[i] = value === null ? '' : String(value);
+                setValues(newValues);
+              }}
+            />;
+          case 'TEXT_INPUT':
+          default:
+        }
+
         return <Input
           key={i}
           type='text'

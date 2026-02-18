@@ -413,7 +413,7 @@ export function AvatarImg(p: AvatarProps & {
     letterBackgroundClassName = p.letterBackgroundClassName ?? 'bg_alt';
 
     if (!p.letterBackgroundClassName || ['bg','bg_alt','bg_active'].includes(p.letterBackgroundClassName)) {
-      letterClassName = p.letterClassName ?? 'cl_bd';
+      letterClassName = p.letterClassName ?? 'cl_df';
     }
   }
 

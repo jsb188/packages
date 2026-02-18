@@ -34,7 +34,7 @@ export interface POListBreakObj {
 }
 
 export interface POListItemObj {
-  __type: 'LIST_ITEM' | 'CHECK_LIST_ITEM' | 'SINGLE_OPTION_LIST_ITEM' | 'LIST_ITEM_POPUP';
+  __type: 'LIST_ITEM' | 'LIST_ITEM_COPY' | 'CHECK_LIST_ITEM' | 'SINGLE_OPTION_LIST_ITEM' | 'LIST_ITEM_POPUP';
   name?: string; // Name for form, for formValues object; if not set, index will be used
   value?: string | boolean | null;
   text: string;

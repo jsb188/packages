@@ -6,7 +6,7 @@ import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRan
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
-import { POLabelsAndValues, POListBreak, POListItem, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
+import { POLabelsAndValues, POListBreak, POListItem, POListItemCopy, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
 import type { CalendarSelectedObj, OnChangeCalendarDayFn } from './Calendar';
 import { Calendar, CalendarDateRange, getCalendarSelector } from './Calendar';
 
@@ -181,6 +181,8 @@ export function PONavItemIface(p: PONavItemBase & {
       return <POListBreak />;
     case 'LIST_ITEM':
       return <POListItem {...other} item={item as POListItemObj} />;
+    case 'LIST_ITEM_COPY':
+      return <POListItemCopy {...other} item={item as POListItemObj} />;
     case 'LIST_ITEM_POPUP':
       return <POPopUpListItem {...other} item={item as POModalItemObj} />;
     case 'LIST_ITEM_MODAL':

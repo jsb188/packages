@@ -101,6 +101,7 @@ type TextareaType = {
   autoComplete?: 'on' | 'off' | string;
   spellCheck?: boolean;
   minHeight?: number;
+  maxLength?: number;
   focusStyle?: InputFocusStyle;
   name: string;
   formValues?: FormValuesObj;
@@ -487,6 +488,7 @@ export function Textarea(p: TextareaType & LabelType) {
     error,
     labelClassName,
     textareaClassName,
+    maxLength,
   } = p;
 
   const minHeight = p.minHeight ?? 150; // Default minimum height
@@ -557,6 +559,7 @@ export function Textarea(p: TextareaType & LabelType) {
           name={name}
           placeholder={placeholder}
           value={value || ''}
+          maxLength={maxLength}
           disabled={disabled || locked}
           autoFocus={autoFocus}
           autoComplete={autoComplete}
@@ -590,8 +593,13 @@ const FormOptionItem = memo((p: OptionType) => {
     <div
       role='button'
       tabIndex={0}
-      className={cn('form_opt r_sm h_item', disabled ? '' : 'link', checked ? 'cl_df' : 'cl_md', className)}
-      onClick={(e: React.MouseEvent<HTMLDivElement>) => onChange(e, name, value!)}
+      onClick={disabled ? undefined : (e: React.MouseEvent<HTMLDivElement>) => onChange(e, name, value!)}
+      className={cn(
+        'r_xs h_item px_4 py_5',
+        disabled ? '' : 'link bg_active_hv',
+        checked ? 'cl_df' : disabled ? 'cl_darker_2' : 'cl_md',
+        className
+      )}
     >
       <label className='h_item f' htmlFor={htmlFor}>
         <input
@@ -599,13 +607,19 @@ const FormOptionItem = memo((p: OptionType) => {
           type='radio'
           value={value || '?'}
           defaultChecked={checked}
+          disabled={disabled}
         />
-        {!iconName ? null : (
-          <span className='ic_cnt mr_xs h_center'>
+        {iconName ? (
+          <span className='w_25 mr_xs h_center'>
             <Icon name={iconName} />
           </span>
+        ) : (
+          <span className='w_2' />
         )}
-        {text}
+
+        <span className='shift_down'>
+          {text}
+        </span>
       </label>
 
       {!rightLabel ? null
@@ -638,24 +652,26 @@ export function FormOptions(p: OptionsType) {
   return (
     <fieldset className={className}>
       {!label ? null : (
-        <Label
-          // htmlFor={htmlFor}
-          info={info}
-          iconName={labelIconName}
-          labelClassName={labelClassName}
-        >
-          {label}
-        </Label>
+        <div className='form_el'>
+          <Label
+            // htmlFor={htmlFor}
+            info={info}
+            iconName={labelIconName}
+            labelClassName={labelClassName}
+          >
+            {label}
+          </Label>
+        </div>
       )}
 
-      <div className='form_cnt outline form_el r_sm'>
+      <div className='bd_1 bd_lt p_5 r_sm'>
         {options.map((option, i) => (
           <FormOptionItem
             key={option.value}
             {...option}
             name={name}
             index={i}
-            disabled={disabled || locked}
+            disabled={disabled || locked || option.disabled}
             checked={value === option.value}
             onChange={onChange}
           />

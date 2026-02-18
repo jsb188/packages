@@ -143,7 +143,7 @@ input.invis_input::-webkit-inner-spin-button {
 
 /* Label */
 
-.form_el label {
+.form_el label, label.form_el {
   color: var(--color-text-medium);
 }
 
@@ -166,19 +166,6 @@ fieldset {
 
 fieldset input[type="radio"] {
   display: none;
-}
-
-.form_opt {
-  padding: .3rem .3rem .4rem;
-}
-
-.form_opt:hover {
-  /* I have to figure out where this is used and change it to vars */
-  background-color: rgba(230, 230, 230, .5);
-}
-
-.form_opt .ic_cnt {
-  width: 25px;
 }
 
 /* Clickable button at right; use this for inputs */

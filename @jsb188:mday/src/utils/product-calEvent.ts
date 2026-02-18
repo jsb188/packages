@@ -155,7 +155,7 @@ export function getScheduleIcons(eventDetails: ProductCalEventGQL, alwaysFillIco
 
 	if (once) {
 		return [{
-			iconName: 'circle-number-1-filled',
+			iconName: 'number-1-circle-filled',
 			color: 'amber',
 			tooltipText: i18n.t('org.single_event_msg'),
 		}];

@@ -134,17 +134,18 @@ export function PopOverButton(p: PopOverButtonProps) {
  */
 
 function PopOverMoreButton(p: {
+  allowActiveTransform?: boolean;
   editOptions: any[];
   disabled?: boolean;
   zClassName?: string;
 }) {
-  const { editOptions, disabled, zClassName } = p;
+  const { editOptions, disabled, zClassName, allowActiveTransform } = p;
   return <PopOverButton
     // doNotTrackHover
     disabled={disabled}
     className='av av_xxs r v_center'
     zClassName={zClassName}
-    linkClassName='' // This disables double :active state
+    linkClassName={cn('link', !allowActiveTransform && 'no_active_transform')}
     notActiveClassName='bg_active_hv bd_1 bd_invis bd_lt_hv'
     activeClassName='bg_active bd_1 bd_lt'
     animationClassName='anim_dropdown_top_right on_mount'

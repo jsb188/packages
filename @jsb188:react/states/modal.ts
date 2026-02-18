@@ -106,7 +106,7 @@ export const POPUP_DEFAULT_VALUES = {
   '10012': {
     preset: 'force_reload',
     title: 'error.login_changed',
-    iconName: 'user-question',
+    iconName: 'question-circle',
   },
 } as Record<string, Record<string, string>>;
 

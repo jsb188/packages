@@ -22,7 +22,7 @@ const PRESET_REGEX = {
 
   // article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gmi,
   article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^- .+$|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
-  content_description: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
+  content_description: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
   message: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^- .+$|:([^:\n ])+:/gi,
 
   // NOTE: Next time you do mobile, check if this regex works in mobile
@@ -33,9 +33,129 @@ const PRESET_REGEX = {
 type MarkdownPreset = keyof typeof PRESET_REGEX;
 
 const TAG_REGEX = /{{(.*?)}}|%{(.*?)}/gmi;
+const HIGHLIGHT_TAG_REGEX = /^\[hl\]([\s\S]*?)\[\/hl\]$/i;
+const SPAN_MARKUP_REGEX = /^\[(.*?)##(.*?)\]$/;
+const HEADING_DOM_MAP = {
+  '#': 'h1',
+  '##': 'h2',
+  '###': 'h3',
+} as const;
 
 // NOTE: All regex that needs innner regex must be named here
 const TAG_REGEX_PRESETS = ['prompt'];
+
+/**
+ * Parse dynamic random tags for supported presets.
+ */
+
+const parsePresetTags = (text: string, needsTagRegex: boolean) => {
+  if (!needsTagRegex) {
+    return text;
+  }
+
+  return text.replace(TAG_REGEX, (matchedStr: string) => {
+    const letter = matchedStr.charAt(0);
+    if (letter === '{') {
+      const word = matchedStr.substring(2, matchedStr.length - 2)
+        .toLowerCase();
+      const matchWord = {
+        ai: 'AI',
+        kaji: 'AI',
+        hu: 'User',
+        user: 'User',
+      }[word as string];
+
+      if (matchWord) {
+        return matchWord;
+      }
+      return [randomItem(word.split('|'))];
+    } else if (letter === '%') {
+      if (matchedStr.startsWith('%{') && matchedStr.endsWith('}')) {
+        const word = matchedStr.substring(2, matchedStr.length - 1)
+          .toLowerCase();
+        return randomItem(word.split('|'));
+      }
+    }
+    return matchedStr;
+  });
+};
+
+/**
+ * Split markdown text into paragraphs per preset rules.
+ */
+
+const splitMarkdownParagraphs = (
+  text: string,
+  noWrap: boolean | undefined,
+  preset: MarkdownPreset,
+) => {
+  if (noWrap) {
+    return [text];
+  }
+
+  let paragraphTexts = (text.split(/\n{2,}|(?=^- )/gm) || []).filter(Boolean);
+
+  if (preset === 'article') {
+    paragraphTexts = paragraphTexts.reduce((acc: string[], str: string) => {
+      const isHeading = /^#.* /.test(str);
+      if (isHeading) {
+        return acc.concat(str.split('\n'));
+      }
+      return acc.concat(str);
+    }, []).filter(Boolean);
+  }
+
+  return paragraphTexts;
+};
+
+/**
+ * Parse a single paragraph into markdown fragments.
+ */
+
+const parseMarkdownParagraph = (
+  text: string,
+  preset: MarkdownPreset,
+  fullText: string,
+  codeUriMap?: Map<string, string>,
+  MappedCodeComponent?: RenderMappedCodeFn,
+  as?: React.ElementType,
+) => {
+  const regex = PRESET_REGEX[preset];
+  if (!regex) {
+    return text;
+  }
+
+  const arr = [];
+  let match;
+  let strPos = 0;
+  regex.lastIndex = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    const matchedStr = match[0];
+    const start = match.index;
+    const end = match.index + matchedStr.length;
+    const strLen = start - strPos;
+
+    if (strLen > 0) {
+      const str1 = text.substring(strPos, start);
+      arr.push([str1]);
+    }
+
+    arr.push(getMarkdownEl(matchedStr, fullText, codeUriMap, MappedCodeComponent, as));
+    strPos = end;
+  }
+
+  if (!arr.length) {
+    return text;
+  }
+
+  if (text.length > strPos) {
+    const str2 = text.substring(strPos);
+    arr.push([str2]);
+  }
+
+  return arr;
+};
 
 
 /**
@@ -153,120 +273,159 @@ export function EmojiWrapper(p: EmojiWrapperProps) {
 }
 
 /**
+ * Parse heading markdown tokens.
+ */
+
+const getHeadingEl = (matchedStr: string) => {
+  const [prefix, ...headingTextArr] = matchedStr.split(' ');
+  const headingText = headingTextArr.join(' ');
+  const dom = HEADING_DOM_MAP[prefix as keyof typeof HEADING_DOM_MAP];
+
+  if (dom && headingText) {
+    return [headingText, '', null, dom];
+  }
+
+  return null;
+};
+
+/**
+ * Parse list markdown tokens.
+ */
+
+const getListEl = (matchedStr: string, as?: React.ElementType) => {
+  return [
+    matchedStr.substring(2),
+    'ul_li',
+    'span',
+    as || 'div',
+    true
+  ];
+};
+
+/**
+ * Parse asterisk markdown tokens.
+ */
+
+const getAsteriskEl = (matchedStr: string) => {
+  // Keep this exact edge case for backwards compatibility.
+  if (matchedStr === '****') {
+    return [matchedStr];
+  }
+
+  if (
+    matchedStr.startsWith('**') &&
+    matchedStr.endsWith('**') &&
+    matchedStr.length > 4
+  ) {
+    return [
+      matchedStr.substring(2, matchedStr.length - 2),
+      'ft_semibold',
+      'span'
+    ];
+  }
+
+  return [
+    matchedStr.substring(1, matchedStr.length - 1),
+    'ft_medium cl_primary'
+  ];
+};
+
+/**
+ * Parse code map and emoji markdown tokens.
+ */
+
+const getCodeOrEmojiEl = (
+  matchedStr: string,
+  fullText: string,
+  codeUriMap?: Map<string, string>,
+  MappedCodeComponent?: RenderMappedCodeFn,
+) => {
+  const mappedCodeUri = codeUriMap?.get(matchedStr);
+
+  if (mappedCodeUri || (MappedCodeComponent && codeUriMap?.has(matchedStr))) {
+    if (MappedCodeComponent) {
+      return <MappedCodeComponent code={matchedStr} imageUri={mappedCodeUri} fullText={fullText} />;
+    }
+
+    return <img
+      className='md_img'
+      src={makeUploadsUrl(mappedCodeUri, 'small', true) as string}
+      alt={matchedStr}
+    />;
+  }
+
+  const emojiName = matchedStr.substring(1, matchedStr.length - 1).toLowerCase().trim();
+  const emoji = nameToEmoji[emojiName];
+  if (emoji) {
+    return [emoji];
+  }
+
+  return null;
+};
+
+/**
+ * Parse bracket markdown tokens.
+ */
+
+const getBracketEl = (matchedStr: string) => {
+  const highlightMatch = matchedStr.match(HIGHLIGHT_TAG_REGEX);
+  if (highlightMatch) {
+    return (
+      <span className='em_text'>
+        <span className='rel z1'>
+          {highlightMatch[1]}
+        </span>
+      </span>
+    );
+  }
+
+  // [spanClassName, text]
+  const spanMatch = matchedStr.match(SPAN_MARKUP_REGEX);
+  if (spanMatch) {
+    return [spanMatch[2], spanMatch[1]];
+  }
+
+  return [matchedStr.substring(1, matchedStr.length - 1)];
+};
+
+/**
  * Find style for Markdown
  */
 
 const getMarkdownEl = (
   matchedStr: string,
   fullText: string,
-  codesMap?: [string, string][],
+  codeUriMap?: Map<string, string>,
   MappedCodeComponent?: RenderMappedCodeFn,
   as?: React.ElementType,
 ) => {
 
-  const letter = matchedStr.charAt(0);
+  const letter = matchedStr[0];
   switch (letter) {
-    case '#':
-      // eslint-disable-next-line no-case-declarations
-      const [prefix, ...headingTextArr] = matchedStr.split(' ');
-
-      // eslint-disable-next-line no-case-declarations
-      const dom = {
-        '#': 'h1',
-        '##': 'h2',
-        '###': 'h3',
-      }[prefix];
-
-      if (dom && headingTextArr[0]) {
-        // add class names here (in second[2] element)
-        return [headingTextArr.join(' '), '', null, dom]; // [3] = Block dom (replaces <p>)
+    case '#': {
+      const headingEl = getHeadingEl(matchedStr);
+      if (headingEl) {
+        return headingEl;
       }
       break;
+    }
     case '-':
-      return [
-        matchedStr.substring(2, matchedStr.length),
-        'ul_li',
-        'span',
-        as || 'div',
-        true
-      ];
+      return getListEl(matchedStr, as);
     case '*':
-      // Currently not supporting bold + italic; but maybe later.
-      // if (/^\*\*\*(.*?)\*\*\*$/.test(matchedStr)) {
-      //   return [matchedStr.substring(3, matchedStr.length - 3), fontStyles.bold_italic];
-      if (matchedStr === '****') {
-        return [matchedStr];
-      }
-
-      if (/^\*\*(.*?)\*\*$/.test(matchedStr)) {
-        // add class names here (in second[2] element)
-        return [
-          matchedStr.substring(2, matchedStr.length - 2),
-          'ft_semibold',
-          'span'
-        ];
-      }
-      return [
-        matchedStr.substring(1, matchedStr.length - 1),
-        'cl_primary'
-      ];
+      return getAsteriskEl(matchedStr);
     case '_': {
       const str2 = matchedStr.substring(1, matchedStr.length - 1);
       return [str2, null, 'i'];
     }
     case ':': {
-      const mappedCode = codesMap?.find(([code]) => code === matchedStr);
-      const mappedCodeUri = mappedCode?.[1];
-
-      if (mappedCodeUri || (MappedCodeComponent && mappedCode)) {
-        if (MappedCodeComponent) {
-          return <MappedCodeComponent code={matchedStr} imageUri={mappedCodeUri} fullText={fullText} />;
-        }
-
-        return <img
-          className='md_img'
-          src={makeUploadsUrl(mappedCodeUri, 'small', true) as string}
-          alt={matchedStr}
-        />;
-      }
-
-      const emojiName = matchedStr.substring(1, matchedStr.length - 1).toLowerCase().trim();
-      const emoji = nameToEmoji[emojiName];
-      if (emoji) {
-        return [emoji];
+      const codeOrEmojiEl = getCodeOrEmojiEl(matchedStr, fullText, codeUriMap, MappedCodeComponent);
+      if (codeOrEmojiEl) {
+        return codeOrEmojiEl;
       }
       break;
     }
-    case '[': {
-      // [spanClassName, text]
-      const spanMatch = matchedStr.match(/\[(.*?)##(.*?)\]/);
-      if (spanMatch) {
-        return [spanMatch[2], spanMatch[1]];
-      }
-
-      const str3 = matchedStr.substring(1, matchedStr.length - 1);
-      return [str3];
-      // } case '{': {
-      //   const word = matchedStr.substring(2, matchedStr.length - 2).toLowerCase();
-      //   const matchWord = {
-      //     ai: 'AI',
-      //     kaji: 'AI',
-      //     hu: 'User',
-      //     user: 'User'
-      //   }[word];
-
-      //   if (matchWord) {
-      //     return [matchWord];
-      //   }
-
-      //   return [randomItem(word.split('|'))];
-      // } case '%': {
-      //   if (matchedStr.startsWith('%{') && matchedStr.endsWith('}')) {
-      //     const word = matchedStr.substring(2, matchedStr.length - 1).toLowerCase();
-      //     return [randomItem(word.split('|'))];
-      //   }
-      //   break;
-    }
+    case '[':
+      return getBracketEl(matchedStr);
     default:
   }
 
@@ -429,104 +588,37 @@ function MarkdownCmp(p: MarkdownProps) {
   // const doLog = children === ':wave:';
   // const doLog = children?.indexOf('Test. This is a very long reply test.') === 0;
 
-  let mdText = children || '';
-  if (typeof children !== 'string') {
-    console.warn('<Markdown /> children must be a string, it was: ' + children);
-    mdText = '';
-  }
-
-  if (needsTagRegex) {
-    mdText = mdText!.replace(TAG_REGEX, (matchedStr: string) => {
-      const letter = matchedStr.charAt(0);
-      if (letter === '{') {
-        const word = matchedStr.substring(2, matchedStr.length - 2)
-          .toLowerCase();
-        const matchWord = {
-          ai: 'AI',
-          kaji: 'AI',
-          hu: 'User',
-          user: 'User',
-        }[word as string];
-
-        if (matchWord) {
-          return matchWord;
-        }
-        return [randomItem(word.split('|'))];
-      } else if (letter === '%') {
-        if (matchedStr.startsWith('%{') && matchedStr.endsWith('}')) {
-          const word = matchedStr.substring(2, matchedStr.length - 1)
-            .toLowerCase();
-          return randomItem(word.split('|'));
-        }
-      }
-      return matchedStr;
-    });
-  }
-
-  const paragraphs = useMemo(() => {
-    let paragraphTexts;
-    if (noWrap) {
-      paragraphTexts = [mdText];
-    } else {
-      // paragraphTexts = (mdText?.split('\n\n') || []).filter(Boolean);
-      paragraphTexts = (mdText?.split(/\n{2,}|(?=^- )/gm) || []).filter(Boolean);
-      if (preset === 'article') {
-        paragraphTexts = paragraphTexts.reduce((acc: string[], str: string) => {
-          const isHeading = /^#.* /.test(str);
-          if (isHeading) {
-            return acc.concat(str.split('\n'));
-          }
-          return acc.concat(str);
-        }, []).filter(Boolean);
-      }
+  const mdText = useMemo(() => {
+    if (typeof children !== 'string') {
+      console.warn('<Markdown /> children must be a string, it was: ' + children);
+      return '';
     }
 
-    // if (doLog) {
-    //   console.log('////');
-    //   console.log(paragraphTexts);
-    // }
+    return parsePresetTags(children || '', needsTagRegex);
+  }, [children, needsTagRegex]);
 
-    return paragraphTexts.map((s: any) => {
-      const regex = PRESET_REGEX[preset];
+  /**
+   * Precompute code lookup table to avoid O(n) scans per token.
+   */
+  const codeUriMap = useMemo(() => {
+    if (!codesMap?.length) {
+      return undefined;
+    }
 
-      if (regex) {
-        // const matches = s.match(regex);
-        // console.log(matches);
-        const arr = [];
-        let match;
-        let strPos = 0;
+    return new Map(codesMap);
+  }, [codesMap]);
 
-        while ((match = regex.exec(s)) !== null) {
-          const matchedStr = match[0];
-          const start = match.index;
-          const end = match.index + matchedStr.length;
-          const strLen = start - strPos;
-
-          if (strLen > 0) {
-            const str1 = s.substring(strPos, start);
-            arr.push([str1]);
-          }
-          arr.push(getMarkdownEl(matchedStr, mdText!, codesMap, MappedCodeComponent, as));
-
-          // if (doLog) {
-          //   console.log(arr);
-          // }
-
-          strPos = end;
-        }
-
-        if (arr.length) {
-          if (s.length > strPos) {
-            const str2 = s.substring(strPos);
-            arr.push([str2]);
-          }
-          return arr;
-        }
-      }
-
-      return s;
-    });
-  }, [mdText, preset]);
+  const paragraphs = useMemo(() => {
+    const paragraphTexts = splitMarkdownParagraphs(mdText || '', noWrap, preset);
+    return paragraphTexts.map((text) => parseMarkdownParagraph(
+      text,
+      preset,
+      mdText || '',
+      codeUriMap,
+      MappedCodeComponent,
+      as,
+    ));
+  }, [as, codeUriMap, MappedCodeComponent, mdText, noWrap, preset]);
 
   // if (p.doLog) {
   //   paragraphs.map(x => x.split('\n').map(xx => console.log('|' + xx + '|')));
