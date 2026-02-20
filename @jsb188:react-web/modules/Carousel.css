@@ -1,0 +1,39 @@
+.horizontal_carousel {
+  width: 100%;
+  overflow: hidden;
+}
+
+.horizontal_carousel_track {
+  --carousel-duration: 90s;
+
+  display: flex;
+  width: max-content;
+  animation-name: horizontal_carousel_slide;
+  animation-duration: var(--carousel-duration);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.horizontal_carousel_group {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.horizontal_carousel_slide {
+  flex-shrink: 0;
+}
+
+.horizontal_carousel:hover .horizontal_carousel_track {
+  animation-play-state: paused;
+}
+
+@keyframes horizontal_carousel_slide {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}

@@ -238,6 +238,10 @@ p:last-child {
   object-fit: contain;
 }
 
+.img_cover {
+  object-fit: cover;
+}
+
 .bg_cover {
   background-size: cover;
   background-position: center;
@@ -246,6 +250,27 @@ p:last-child {
 .bg_blur {
   backdrop-filter: saturate(180%) blur(20px)
 }
+
+.edge_fade_blur {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
 
 /* Miscelaneous */
 
@@ -441,6 +466,8 @@ a.bg_pass:active, button.bg_pass:active { background-color: rgb(var(--color-pass
   background-color: var(--color-contrast) !important;
 }
 
+.bg_contrast_hv:hover,
+.bg_contrast_alt,
 button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="true"]):hover {
   background-color: var(--color-contrast-hover) !important;
 }
@@ -450,7 +477,8 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
   background-color: var(--color-solid) !important;
 }
 
-.bg_solid_hover {
+.bg_solid_hv:hover,
+.bg_solid_alt {
   background-color: var(--color-solid-hover) !important;
 }
 
@@ -916,18 +944,14 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .cl_bd_hv:hover { color: var(--color-text-bold) !important; }
 .cl_df_hv:hover { color: var(--color-text) !important; }
 
-.cl_light { color: var(--color-darker-light); }
-.cl_medium { color: var(--color-darker-medium); }
-.cl_bold { color: var(--color-darker-bold); }
-
 .cl_main, .cl_main_hv:hover { color: rgb(var(--color-main)) !important; }
 .link.cl_main:hover { color: var(--color-main-hover) !important; }
 .cl_primary, .cl_primary_hv:hover { color: rgb(var(--color-primary)) !important; }
 .link.cl_primary:hover { color: var(--color-primary-hover) !important; }
 .cl_secondary, .cl_secondary_hv:hover { color: rgb(var(--color-secondary)) !important; }
 .link.cl_secondary:hover { color: var(--color-secondary-hover) !important; }
-.cl_solid { color: var(--color-solid) !important; }
-.cl_contrast { color: rgb(var(--color-darker-rgb), 1) !important; }
+.cl_solid, .cl_solid_hv:hover { color: var(--color-solid) !important; }
+.cl_contrast, .cl_contrast_hv:hover { color: rgb(var(--color-darker-rgb), 1) !important; }
 .cl_err, .cl_err_hv:hover { color: rgb(var(--color-error)) !important; border-color: rgb(var(--color-error)) !important; }
 .cl_err_fd { color: rgb(var(--color-error-faded), .1) !important; border-color: rgb(var(--color-error)) !important; }
 .cl_warn, .cl_warn_hv:hover { color: rgb(var(--color-warn)) !important; border-color: rgb(var(--color-warn)) !important; }
@@ -1103,8 +1127,10 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .shadow_float, .shadow_float_hv:hover { box-shadow: var(--shadow-float); }
 .shadow_bg, .shadow_bg_hv:hover { box-shadow: 0 0 7px rgb(var(--color-bg)); }
 .shadow_bg, .shadow_bg_hv:hover { box-shadow: 0 0 7px rgb(var(--color-bg)); }
+.shadow_bg_xl, .shadow_bg_xl_hv:hover { box-shadow: 0 0 70px 70px rgb(var(--color-bg)); }
 .shadow_bg_lg, .shadow_bg_lg_hv:hover { box-shadow: 0 0 8px 8px rgb(var(--color-bg)); }
 .shadow_bg_alt_lg, .shadow_bg_alt_lg_hv:hover { box-shadow: 0 0 25px rgb(var(--color-bg-alt)); }
+.shadow_bg_alt_xl, .shadow_bg_alt_xl_hv:hover { box-shadow: 0 0 70px 70px rgb(var(--color-bg-alt)); }
 /* This shadow drops downward, with a top down perspective */
 .shadow_bg_drop_lg, .shadow_bg_drop_lg_hv:hover { box-shadow: 0 20px 40px rgb(var(--color-bg)); }
 
@@ -1274,7 +1300,8 @@ rect.s_dot_away {
 
 /* Patterns */
 
-.pattern_dots:before {
+.pattern_dots_1:before,
+.pattern_dots_2:before {
   content: ' ';
   position: absolute; z-index: 0;
   inset: 0;
@@ -1282,6 +1309,10 @@ rect.s_dot_away {
   mask-repeat: repeat;
   mask-size: auto;
   mask-position: center;
+}
+
+.pattern_dots_2:before {
+  mask-size: 42px 42px;
 }
 
 .pattern_stripes:before {
@@ -1304,18 +1335,22 @@ rect.s_dot_away {
   mask-position: center;
 }
 
-.pattern_grid:before {
+.pattern_grid_1:before, .pattern_grid_2:before {
   content: ' ';
   position: absolute; z-index: 0;
   inset: 0;
-  /* mask-image: url('https://assets.chiefhappiness.co/marketday/static/grid.svg'); */
-  mask-image: url('/svg/grid.svg');
-  mask-size: 27px 27px;
+  mask-image: url('https://assets.chiefhappiness.co/marketday/static/grid.svg');
+  /* mask-image: url('/svg/grid.svg'); */
   mask-repeat: repeat;
   mask-position: top center;
+}
 
-  /* Flip upside down */
-  /* transform: rotate(180deg); */
+.pattern_grid_1:before {
+  mask-size: 27px 27px;
+}
+
+.pattern_grid_2:before {
+  mask-size: 42px 42px;
 }
 
 .pattern_grid_fade_down:before {

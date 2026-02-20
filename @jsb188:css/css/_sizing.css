@@ -134,32 +134,6 @@ div, p {
   word-wrap: break-word;
 }
 
-.ft_tn { font-size: var(--text-xxsmall); }
-.ft_xs { font-size: var(--text-xsmall); }
-.ft_sm { font-size: var(--text-small); }
-.ft_df { font-size: var(--text-default); }
-.ft_md { font-size: var(--text-medium); }
-.ft_lg { font-size: var(--text-large); }
-.ft_xl { font-size: var(--text-xlarge); }
-.ft_xxl { font-size: var(--text-xxlarge); }
-
-.ft_1 { font-size: 1.1em;}
-.ft_2 { font-size: 1.35em;}
-.ft_3 { font-size: 1.6em;}
-.ft_4 { font-size: 1.8em;}
-
-.lh_1 { line-height: 1.1; }
-.lh_2 { line-height: 1.2; }
-.lh_3 { line-height: 1.3; }
-.lh_4 { line-height: 1.5; }
-.lh_5 { line-height: 1.7; }
-
-.ls_1 { letter-spacing: -.08em; text-indent: -.08em; }
-.ls_2 { letter-spacing: -.0425em; text-indent: -.0425em; } /* Use this when heading is .ft_normal */
-.ls_3 { letter-spacing: -.025em; text-indent: -.025em; }
-.ls_4 { letter-spacing: -.0175em; text-indent: -.0175em; }
-.ls_5 { letter-spacing: -.01em; text-indent: -.01em; }
-
 h1.ft_tn, h2.ft_tn, h3.ft_tn, h4.ft_tn, h5.ft_tn, h6.ft_tn, .ft_heading_tn { font-size: var(--heading-xxsmall); }
 h1.ft_xs, h2.ft_xs, h3.ft_xs, h4.ft_xs, h5.ft_xs, h6.ft_xs, .ft_heading_xs { font-size: var(--heading-xsmall); }
 h1.ft_sm, h2.ft_sm, h3.ft_sm, h4.ft_sm, h5.ft_sm, h6.ft_sm, .ft_heading_sm { font-size: var(--heading-small); }
@@ -390,9 +364,41 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .py_30 { padding-top: 30px; padding-bottom: 30px; }
 .px_30 { padding-left: 30px; padding-right: 30px; }
 
+.p_35 { padding: 35px; }
+.py_35 { padding-top: 35px; padding-bottom: 35px; }
+.px_35 { padding-left: 35px; padding-right: 35px; }
+
+.p_40 { padding: 40px; }
+.py_40 { padding-top: 40px; padding-bottom: 40px; }
+.px_40 { padding-left: 40px; padding-right: 40px; }
+
+.p_45 { padding: 45px; }
+.py_45 { padding-top: 45px; padding-bottom: 45px; }
+.px_45 { padding-left: 45px; padding-right: 45px; }
+
 .p_50 { padding: 50px; }
 .py_50 { padding-top: 50px; padding-bottom: 50px; }
 .px_50 { padding-left: 50px; padding-right: 50px; }
+
+.p_100 { padding: 100px; }
+.py_100 { padding-top: 100px; padding-bottom: 100px; }
+.px_100 { padding-left: 100px; padding-right: 100px; }
+
+.p_125 { padding: 125px; }
+.py_125 { padding-top: 125px; padding-bottom: 125px; }
+.px_125 { padding-left: 125px; padding-right: 125px; }
+
+.p_150 { padding: 150px; }
+.py_150 { padding-top: 150px; padding-bottom: 150px; }
+.px_150 { padding-left: 150px; padding-right: 150px; }
+
+.p_175 { padding: 175px; }
+.py_175 { padding-top: 175px; padding-bottom: 175px; }
+.px_175 { padding-left: 175px; padding-right: 175px; }
+
+.p_200 { padding: 200px; }
+.py_200 { padding-top: 200px; padding-bottom: 200px; }
+.px_200 { padding-left: 200px; padding-right: 200px; }
 
 .p_xs { padding: var(--rem-xsmall); }
 .py_xs { padding-top: var(--rem-xsmall); padding-bottom: var(--rem-xsmall); }
@@ -678,9 +684,41 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .my_30 { margin-top: 30px; margin-bottom: 30px; }
 .mx_30 { margin-left: 30px; margin-right: 30px; }
 
+.m_35 { margin: 35px; }
+.my_35 { margin-top: 35px; margin-bottom: 35px; }
+.mx_35 { margin-left: 35px; margin-right: 35px; }
+
+.m_40 { margin: 40px; }
+.my_40 { margin-top: 40px; margin-bottom: 40px; }
+.mx_40 { margin-left: 40px; margin-right: 40px; }
+
+.m_45 { margin: 45px; }
+.my_45 { margin-top: 45px; margin-bottom: 45px; }
+.mx_45 { margin-left: 45px; margin-right: 45px; }
+
 .m_50 { margin: 50px; }
 .my_50 { margin-top: 50px; margin-bottom: 50px; }
 .mx_50 { margin-left: 50px; margin-right: 50px; }
+
+.m_100 { margin: 100px; }
+.my_100 { margin-top: 100px; margin-bottom: 100px; }
+.mx_100 { margin-left: 100px; margin-right: 100px; }
+
+.m_125 { margin: 125px; }
+.my_125 { margin-top: 125px; margin-bottom: 125px; }
+.mx_125 { margin-left: 125px; margin-right: 125px; }
+
+.m_150 { margin: 150px; }
+.my_150 { margin-top: 150px; margin-bottom: 150px; }
+.mx_150 { margin-left: 150px; margin-right: 150px; }
+
+.m_175 { margin: 175px; }
+.my_175 { margin-top: 175px; margin-bottom: 175px; }
+.mx_175 { margin-left: 175px; margin-right: 175px; }
+
+.m_200 { margin: 200px; }
+.my_200 { margin-top: 200px; margin-bottom: 200px; }
+.mx_200 { margin-left: 200px; margin-right: 200px; }
 
 .m_xs { margin: var(--rem-xsmall); }
 .my_xs { margin-top: var(--rem-xsmall); margin-bottom: var(--rem-xsmall); }
@@ -1803,7 +1841,7 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
   padding-left: 1.15em;
   padding-right: 1.15em;
   padding-bottom: 2px;
-  font-size: var(--text-large);
+  font-size: var(--text-xlarge);
 }
 
 /* .pill_lg:before {
@@ -1813,6 +1851,34 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
   border-radius: 100vmax;
   background-color: rgba(var(--color-darker-rgb), .075);
 } */
+
+/* Font size overrides; keep this at bottom for priority */
+
+.ft_tn { font-size: var(--text-xxsmall); }
+.ft_xs { font-size: var(--text-xsmall); }
+.ft_sm { font-size: var(--text-small); }
+.ft_df { font-size: var(--text-default); }
+.ft_md { font-size: var(--text-medium); }
+.ft_lg { font-size: var(--text-large); }
+.ft_xl { font-size: var(--text-xlarge); }
+.ft_xxl { font-size: var(--text-xxlarge); }
+
+.ft_1 { font-size: 1.1em;}
+.ft_2 { font-size: 1.35em;}
+.ft_3 { font-size: 1.6em;}
+.ft_4 { font-size: 1.8em;}
+
+.lh_1 { line-height: 1.1; }
+.lh_2 { line-height: 1.2; }
+.lh_3 { line-height: 1.3; }
+.lh_4 { line-height: 1.5; }
+.lh_5 { line-height: 1.7; }
+
+.ls_1 { letter-spacing: -.08em; text-indent: -.08em; }
+.ls_2 { letter-spacing: -.0425em; text-indent: -.0425em; } /* Use this when heading is .ft_normal */
+.ls_3 { letter-spacing: -.025em; text-indent: -.025em; }
+.ls_4 { letter-spacing: -.0175em; text-indent: -.0175em; }
+.ls_5 { letter-spacing: -.01em; text-indent: -.01em; }
 
 /* Grid */
 

@@ -595,7 +595,7 @@ const FormOptionItem = memo((p: OptionType) => {
       tabIndex={0}
       onClick={disabled ? undefined : (e: React.MouseEvent<HTMLDivElement>) => onChange(e, name, value!)}
       className={cn(
-        'r_xs h_item px_4 py_5',
+        'r_xs h_item px_4 py_4 my_1',
         disabled ? '' : 'link bg_active_hv',
         checked ? 'cl_df' : disabled ? 'cl_darker_2' : 'cl_md',
         className
@@ -664,7 +664,8 @@ export function FormOptions(p: OptionsType) {
         </div>
       )}
 
-      <div className='bd_1 bd_lt p_5 r_sm'>
+      {/* y-margin has to be 1 less because of 1px margin in items */}
+      <div className='bd_1 bd_lt px_5 py_4 r_sm'>
         {options.map((option, i) => (
           <FormOptionItem
             key={option.value}

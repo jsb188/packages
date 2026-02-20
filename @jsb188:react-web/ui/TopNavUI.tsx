@@ -1,4 +1,5 @@
 import { cn } from '@jsb188/app/utils/string.ts';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { memo } from 'react';
 import { SmartLink } from './Button';
 
@@ -7,11 +8,13 @@ import { SmartLink } from './Button';
  */
 
 export interface TopNavLink {
+  className?: string;
   designClassName?: string;
   text: string;
   to: string;
   target?: string;
-  iconName?: string;
+  leftIconName?: string;
+  rightIconName?: string;
 }
 
 interface TopNavItemProps extends TopNavLink {
@@ -19,14 +22,25 @@ interface TopNavItemProps extends TopNavLink {
 }
 
 export const TopNavItem = memo((p: TopNavItemProps) => {
-  const { text, to, target, designClassName } = p;
+  const { text, to, target, leftIconName, rightIconName, className, designClassName } = p;
 
   return <SmartLink
     to={to}
     target={target}
-    className={cn('px_sm py_xs r_smw lh_1 nowrap', designClassName || 'bg_lighter_hv_1 cl_contrast')}
+    className={cn(
+      'h_40 h_item px_sm lh_1 nowrap link ic_md',
+      designClassName || 'cl_lighter_5 bg_contrast_hv cl_solid_hv',
+      className
+    )}
   >
-    {text}
+    {leftIconName && <Icon name={leftIconName} />}
+    <span className={cn(
+      leftIconName && 'ml_xs',
+      rightIconName && 'mr_xs',
+    )}>
+      {text}
+    </span>
+    {rightIconName && <Icon name={rightIconName} />}
   </SmartLink>;
 });
 
