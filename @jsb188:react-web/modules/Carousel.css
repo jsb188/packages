@@ -5,6 +5,7 @@
 
 .horizontal_carousel_track {
   --carousel-duration: 90s;
+  /* --carousel-duration: 10s; */
 
   display: flex;
   width: max-content;

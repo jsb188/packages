@@ -559,6 +559,31 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .pb_50 { padding-bottom: 50px; }
 .pl_50 { padding-left: 50px; }
 
+.pt_100 { padding-top: 100px; }
+.pr_100 { padding-right: 100px; }
+.pb_100 { padding-bottom: 100px; }
+.pl_100 { padding-left: 100px; }
+
+.pt_125 { padding-top: 125px; }
+.pr_125 { padding-right: 125px; }
+.pb_125 { padding-bottom: 125px; }
+.pl_125 { padding-left: 125px; }
+
+.pt_150 { padding-top: 150px; }
+.pr_150 { padding-right: 150px; }
+.pb_150 { padding-bottom: 150px; }
+.pl_150 { padding-left: 150px; }
+
+.pt_175 { padding-top: 175px; }
+.pr_175 { padding-right: 175px; }
+.pb_175 { padding-bottom: 175px; }
+.pl_175 { padding-left: 175px; }
+
+.pt_200 { padding-top: 200px; }
+.pr_200 { padding-right: 200px; }
+.pb_200 { padding-bottom: 200px; }
+.pl_200 { padding-left: 200px; }
+
 .pt_xs { padding-top: var(--rem-xsmall); }
 .pr_xs { padding-right: var(--rem-xsmall); }
 .pb_xs { padding-bottom: var(--rem-xsmall); }
@@ -878,6 +903,31 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .mr_50 { margin-right: 50px; }
 .mb_50 { margin-bottom: 50px; }
 .ml_50 { margin-left: 50px; }
+
+.mt_100 { margin-top: 100px; }
+.mr_100 { margin-right: 100px; }
+.mb_100 { margin-bottom: 100px; }
+.ml_100 { margin-left: 100px; }
+
+.mt_125 { margin-top: 125px; }
+.mr_125 { margin-right: 125px; }
+.mb_125 { margin-bottom: 125px; }
+.ml_125 { margin-left: 125px; }
+
+.mt_150 { margin-top: 150px; }
+.mr_150 { margin-right: 150px; }
+.mb_150 { margin-bottom: 150px; }
+.ml_150 { margin-left: 150px; }
+
+.mt_175 { margin-top: 175px; }
+.mr_175 { margin-right: 175px; }
+.mb_175 { margin-bottom: 175px; }
+.ml_175 { margin-left: 175px; }
+
+.mt_200 { margin-top: 200px; }
+.mr_200 { margin-right: 200px; }
+.mb_200 { margin-bottom: 200px; }
+.ml_200 { margin-left: 200px; }
 
 .mt_xs { margin-top: var(--rem-xsmall); }
 .mr_xs { margin-right: var(--rem-xsmall); }
@@ -1931,6 +1981,21 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .grid.gap_n { row-gap: 0; column-gap: 0; }
 .grid.gapx_n { column-gap: 0; }
 .grid.gapy_n { row-gap: 0; }
+
+.grid.gap_1 { row-gap: 1px; column-gap: 1px; }
+.grid.gap_2 { row-gap: 2px; column-gap: 2px; }
+.grid.gap_3 { row-gap: 3px; column-gap: 3px; }
+.grid.gap_4 { row-gap: 4px; column-gap: 4px; }
+.grid.gap_5 { row-gap: 5px; column-gap: 5px; }
+.grid.gap_10 { row-gap: 10px; column-gap: 10px; }
+.grid.gap_15 { row-gap: 15px; column-gap: 15px; }
+.grid.gap_20 { row-gap: 20px; column-gap: 20px; }
+.grid.gap_25 { row-gap: 25px; column-gap: 25px; }
+.grid.gap_30 { row-gap: 30px; column-gap: 30px; }
+.grid.gap_40 { row-gap: 40px; column-gap: 40px; }
+.grid.gap_50 { row-gap: 50px; column-gap: 50px; }
+.grid.gap_60 { row-gap: 60px; column-gap: 60px; }
+.grid.gap_70 { row-gap: 70px; column-gap: 70px; }
 
 /* Grid; column spans */
 

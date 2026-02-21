@@ -2669,6 +2669,17 @@ export const PasswordLock1Color = <svg xmlns="http://www.w3.org/2000/svg" fill="
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 14a2.5 2.5 0 0 0 -5 0v1.5h5V14Z" strokeWidth="1"/>
 </svg>;
 
+export const ParkBenchColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-park-bench-color">
+<path fill="#78eb7b" d="m11.58 16 -3.35 -4.186h1.54a0.5 0.5 0 0 0 0.409 -0.787L7.23 6.814h1.538a0.5 0.5 0 0 0 0.409 -0.787L6.637 2.4a0.5 0.5 0 0 0 -0.814 0l-2.54 3.627a0.5 0.5 0 0 0 0.409 0.787H5.23l-2.949 4.213a0.5 0.5 0 0 0 0.409 0.787h1.54L0.88 16a0.5 0.5 0 0 0 0.39 0.812h9.92a0.5 0.5 0 0 0 0.39 -0.812Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m10.235 14.314 -2 -2.5h1.539a0.5 0.5 0 0 0 0.41 -0.787L7.235 6.814h1.537a0.5 0.5 0 0 0 0.41 -0.787L6.642 2.4a0.5 0.5 0 0 0 -0.819 0l-2.54 3.627a0.5 0.5 0 0 0 0.409 0.787H5.23l-2.949 4.213a0.5 0.5 0 0 0 0.409 0.787h1.54L0.88 16a0.5 0.5 0 0 0 0.39 0.812h8.459" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.23 16.814v5" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m14.23 18.814 -0.503 3" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m21.23 18.814 0.497 3" strokeWidth="1" />
+<path fill="#ffbc44" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.73 15.814h-6v3h6v-3Z" strokeWidth="1" />
+<path fill="#c77f67" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M22.23 13.814h-9a0.5 0.5 0 0 0 -0.5 0.5v1a0.5 0.5 0 0 0 0.5 0.5h9a0.5 0.5 0 0 0 0.5 -0.5v-1a0.5 0.5 0 0 0 -0.5 -0.5Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.23 18.814h11" strokeWidth="1" />
+</svg>;
+
 export const PencilWrite2 = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-pencil-write-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M12.62230536,13.24398285l-3.46437718.49557781.49464414-3.46531085L18.56176967,1.36505155c.82006906-.82006889,2.1496631-.82006872,2.96973216.00000045.82006906.82006906.82006906,2.14966377,0,2.9697326l-8.90919647,8.90919825Z"/>
 <path d="M18.64670059,13.35037835v6.9996847c0,.77316311-.62677383,1.39993694-1.39993694,1.39993694H3.24739424c-.77316378,0-1.39993694-.62677383-1.39993694-1.39993694V6.35069365c0-.773164.62677316-1.39993694,1.39993694-1.39993694h6.9996847"/>
@@ -2768,6 +2779,27 @@ export const PhoneFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 export const PhoneCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-phone-call" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
 <path d="m14.137 17.7 0.008 0a3.226 3.226 0 0 0 4.014 -0.441l0.452 -0.451a1.076 1.076 0 0 0 0 -1.521l-1.9 -1.9a1.076 1.076 0 0 0 -1.521 0h0a1.077 1.077 0 0 1 -1.522 0l-3.042 -3.043a1.076 1.076 0 0 1 0 -1.521h0a1.076 1.076 0 0 0 0 -1.521l-1.9 -1.9A1.076 1.076 0 0 0 7.2 5.4l-0.452 0.451a3.229 3.229 0 0 0 -0.44 4.015l0 0.007a29.14 29.14 0 0 0 7.829 7.827Z" />
 <path d="M21 18.764a11.251 11.251 0 1 0 -9 4.5c4.418 0 6.446 -2.136 5.215 -5.344" />
+</svg>;
+
+export const PhoneTypeColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-phone-type-color">
+<path fill="#ffffff" d="M9.5 4.5h-7c-1.10457 0 -2 0.89543 -2 2v15c0 1.1046 0.89543 2 2 2h7c1.1046 0 2 -0.8954 2 -2v-15c0 -1.10457 -0.8954 -2 -2 -2Z" strokeWidth="1" />
+<path fill="#66e1ff" d="M11.5 8.5H0.5v11h11v-11Z" strokeWidth="1" />
+<path fill="#c2f3ff" d="M11.5 8.5H0.5v11h0.75L11.5 9.25V8.5Z" strokeWidth="1" />
+<path fill="#e3e3e3" d="M23.5 8c0 0.39782 -0.158 0.77936 -0.4393 1.06066C22.7794 9.34196 22.3978 9.5 22 9.5h-5.5l-3 3v-3H10c-0.39782 0 -0.77936 -0.15804 -1.06066 -0.43934C8.65804 8.77936 8.5 8.39782 8.5 8V2c0 -0.39782 0.15804 -0.77936 0.43934 -1.06066C9.22064 0.658035 9.60218 0.5 10 0.5h12c0.3978 0 0.7794 0.158035 1.0607 0.43934 0.2813 0.2813 0.4393 0.66284 0.4393 1.06066v6Z" strokeWidth="1" />
+<path fill="#ffffff" d="M22 0.5H10c-0.39782 0 -0.77936 0.158035 -1.06066 0.43934C8.65804 1.22064 8.5 1.60218 8.5 2v2.364c0 -0.39782 0.15804 -0.77936 0.43934 -1.06066 0.2813 -0.2813 0.66284 -0.43934 1.06066 -0.43934h12c0.3978 0 0.7794 0.15804 1.0607 0.43934S23.5 3.96618 23.5 4.364V2c0 -0.39782 -0.158 -0.77936 -0.4393 -1.06066C22.7794 0.658035 22.3978 0.5 22 0.5Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.5 14.5v7c0 0.5304 -0.2107 1.0391 -0.5858 1.4142S10.0304 23.5 9.5 23.5h-7c-0.53043 0 -1.03914 -0.2107 -1.41421 -0.5858C0.710714 22.5391 0.5 22.0304 0.5 21.5v-15c0 -0.53043 0.210714 -1.03914 0.58579 -1.41421C1.46086 4.71071 1.96957 4.5 2.5 4.5h4" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.5 8.5h-6" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.5 19.5H0.5" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M4.5 6.5h2" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23.5 8c0 0.39782 -0.158 0.77936 -0.4393 1.06066C22.7794 9.34196 22.3978 9.5 22 9.5h-5.5l-3 3v-3H10c-0.39782 0 -0.77936 -0.15804 -1.06066 -0.43934C8.65804 8.77936 8.5 8.39782 8.5 8V2c0 -0.39782 0.15804 -0.77936 0.43934 -1.06066C9.22064 0.658035 9.60218 0.5 10 0.5h12c0.3978 0 0.7794 0.158035 1.0607 0.43934 0.2813 0.2813 0.4393 0.66284 0.4393 1.06066v6Z" strokeWidth="1" />
+<path stroke="#191919" d="M6 21.75c-0.13807 0 -0.25 -0.1119 -0.25 -0.25s0.11193 -0.25 0.25 -0.25" strokeWidth="1" />
+<path stroke="#191919" d="M6 21.75c0.13807 0 0.25 -0.1119 0.25 -0.25s-0.11193 -0.25 -0.25 -0.25" strokeWidth="1" />
+<path stroke="#191919" d="M12.75 5c-0.1381 0 -0.25 -0.11193 -0.25 -0.25s0.1119 -0.25 0.25 -0.25" strokeWidth="1" />
+<path stroke="#191919" d="M12.75 5c0.1381 0 0.25 -0.11193 0.25 -0.25s-0.1119 -0.25 -0.25 -0.25" strokeWidth="1" />
+<path stroke="#191919" d="M16.25 5c-0.1381 0 -0.25 -0.11193 -0.25 -0.25s0.1119 -0.25 0.25 -0.25" strokeWidth="1" />
+<path stroke="#191919" d="M16.25 5c0.1381 0 0.25 -0.11193 0.25 -0.25s-0.1119 -0.25 -0.25 -0.25" strokeWidth="1" />
+<path stroke="#191919" d="M19.75 5c-0.1381 0 -0.25 -0.11193 -0.25 -0.25s0.1119 -0.25 0.25 -0.25" strokeWidth="1" />
+<path stroke="#191919" d="M19.75 5c0.1381 0 0.25 -0.11193 0.25 -0.25s-0.1119 -0.25 -0.25 -0.25" strokeWidth="1" />
 </svg>;
 
 export const Photo = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-photo" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
