@@ -12,10 +12,11 @@ interface HorizontalCarouselProps {
   className?: string;
   trackClassName?: string;
   slideClassName?: string;
+  disableMouseOver?: boolean;
 }
 
 export const HorizontalCarousel = memo((p: HorizontalCarouselProps) => {
-  const { children, className, trackClassName, slideClassName } = p;
+  const { children, className, trackClassName, slideClassName, disableMouseOver } = p;
   const slides = Children.toArray(children);
   const Element = p.as || 'div';
 
@@ -23,7 +24,11 @@ export const HorizontalCarousel = memo((p: HorizontalCarouselProps) => {
     return null;
   }
 
-  return <Element className={cn('horizontal_carousel', className)}>
+  return <Element className={cn(
+    'horizontal_carousel',
+    disableMouseOver && 'horizontal_carousel_disable_mouse_over',
+    className
+  )}>
     <div className={cn('horizontal_carousel_track', trackClassName)}>
       <div className='horizontal_carousel_group'>
         {slides.map((slide, index) => {

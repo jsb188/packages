@@ -21,9 +21,9 @@ const PRESET_REGEX = {
   // chat: /\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gi,
 
   // article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gmi,
-  article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^- .+$|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
-  content_description: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
-  message: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^- .+$|:([^:\n ])+:/gi,
+  article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
+  content_description: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
+  message: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:/gmi,
 
   // NOTE: Next time you do mobile, check if this regex works in mobile
   // I added ":emoji_style:" tags to the regex
@@ -93,7 +93,7 @@ const splitMarkdownParagraphs = (
     return [text];
   }
 
-  let paragraphTexts = (text.split(/\n{2,}|(?=^- )/gm) || []).filter(Boolean);
+  let paragraphTexts = (text.split(/\n{2,}|(?=^[-•] )/gm) || []).filter(Boolean);
 
   if (preset === 'article') {
     paragraphTexts = paragraphTexts.reduce((acc: string[], str: string) => {
@@ -297,7 +297,7 @@ const getListEl = (matchedStr: string, as?: React.ElementType) => {
     matchedStr.substring(2),
     'ul_li',
     'span',
-    as || 'div',
+    'div',
     true
   ];
 };
@@ -410,6 +410,7 @@ const getMarkdownEl = (
       break;
     }
     case '-':
+    case '•':
       return getListEl(matchedStr, as);
     case '*':
       return getAsteriskEl(matchedStr);
@@ -738,6 +739,7 @@ type MarkdownProps = Partial<{
   codesMap: [string, string][]; // [code, imageUri]
   MappedCodeComponent: RenderMappedCodeFn;
   LastComponent: React.ReactNode;
+  style: React.CSSProperties;
 }>;
 
 /**

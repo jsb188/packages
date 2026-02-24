@@ -185,9 +185,25 @@ main, section, article, aside, nav, div, p, button, input, textarea, ul, ol, li,
 }
 
 ul, ol, figure {
-  list-style: none;
   padding: 0;
   margin: 0;
+}
+
+ul, ol {
+  list-style-position: outside;
+  padding: .5rem 0;
+  position: relative;
+}
+
+li, .ul_li  {
+  padding: .25rem .6rem;
+  margin: 0 .9rem 0 1.4rem;
+}
+
+.ul_li {
+  display: list-item;
+  list-style-type: disc;
+  list-style-position: outside;
 }
 
 img {
@@ -473,7 +489,6 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
 }
 
 .bg_solid {
-  color: var(--color-contrast) !important;
   background-color: var(--color-solid) !important;
 }
 

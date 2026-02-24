@@ -234,11 +234,11 @@ export function ModalSideNavItem(p: ModalSideNavIface) {
   switch (__type) {
     case 'LIST_SUBTITLE':
       return (
-        <li className={`${itemCn} ml_2 mb_2 title`}>
+        <div className={`${itemCn} ml_2 mb_2 title`}>
           <span className='cl_lt ft_sm ft_medium'>
             {text}
           </span>
-        </li>
+        </div>
       );
     case 'LIST_ITEM':
     default:
@@ -248,10 +248,8 @@ export function ModalSideNavItem(p: ModalSideNavIface) {
   const hasLink = !!onClick;
 
   return (
-    <li
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role
-      role='button'
-      className={cn('r_sm h_item mb_2', itemCn, hasLink ? 'link' : '', selected ? 'bg_active disabled cl_df' : 'bg_active_hv cl_df')}
+    <button
+      className={cn('r_sm h_item mb_2 w_f link', itemCn, hasLink ? 'link' : '', selected ? 'bg_active disabled cl_df' : 'bg_active_hv cl_df')}
       onClick={onClick && !selected ? () => onClick(value!) : undefined}
     >
       {!iconName ? null
@@ -267,7 +265,7 @@ export function ModalSideNavItem(p: ModalSideNavIface) {
         : <span className='ic_sm ml_xs'>
           <Icon name={rightIconName} />
         </span>}
-    </li>
+    </button>
   );
 }
 
@@ -281,7 +279,7 @@ export function ModalSideNav(p: ModalSideNavProps) {
   return (
     <nav className='mw_snav y_scr always'>
       {options?.map((list, i) => (
-        <ul className='px_df py_10' key={i}>
+        <div className='px_df py_10' key={i}>
           {list.map((item, i) => (
             <ModalSideNavItem
               key={i}
@@ -290,7 +288,7 @@ export function ModalSideNav(p: ModalSideNavProps) {
               onClick={onClickItem}
             />
           ))}
-        </ul>
+        </div>
       ))}
     </nav>
   );

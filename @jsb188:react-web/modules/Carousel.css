@@ -25,7 +25,7 @@
   flex-shrink: 0;
 }
 
-.horizontal_carousel:hover .horizontal_carousel_track {
+.horizontal_carousel:not(.horizontal_carousel_disable_mouse_over):hover .horizontal_carousel_track {
   animation-play-state: paused;
 }
 

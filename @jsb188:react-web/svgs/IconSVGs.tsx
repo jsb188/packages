@@ -270,6 +270,18 @@ export const AvatarFarmerMan4 = <svg xmlns="http://www.w3.org/2000/svg" classNam
 <path d="M15.73520079,15.46666667v5.13333333"/>
 </svg>;
 
+export const AvatarMineWorkerMan = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-avatar-mine-worker-man">
+<path d="M15.966 17.18a4 4 0 0 1 -7.932 0"/>
+<path d="m17.75 18.118 0 5.037"/>
+<path d="m6.25 18.118 0 5.037"/>
+<path d="M16.234 8.164a4.471 4.471 0 0 1 -0.1 3.252 4.488 4.488 0 0 1 -8.266 0 4.471 4.471 0 0 1 -0.1 -3.252"/>
+<path d="M21.809 23.155a10.5 10.5 0 0 0 -19.618 0"/>
+<path d="M9.553 3.293a2.447 2.447 0 1 0 4.894 0 2.447 2.447 0 1 0 -4.894 0"/>
+<path d="m18.283 8.164 -12.566 0"/>
+<path d="M6.471 8.164V7.41a5.531 5.531 0 0 1 3.264 -5.045"/>
+<path d="M17.529 8.158V7.41a5.528 5.528 0 0 0 -3.263 -5.044"/>
+</svg>;
+
 export const BandageShoulderHead = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-bandage-shoulder-head" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M20.38809967,23.04710007v-4.11919975c0-2.22459984-.88369942-4.35820007-2.45680046-5.93130016-1.57309914-1.57310009-3.70670033-2.45679951-5.93130016-2.45679951-2.22470951,0-4.35827017.88370037-5.93135023,2.45680046s-2.45683002,3.70669937-2.45683002,5.93130112h0c0,2.27499962,1.84419012,4.11919975,4.11911011,4.11919975h5.82296991M13.52729893,23.04720116c1.34440041,0,2.43420029-1.08979988,2.43420029-2.4340992,0-1.34440041-1.08979988-2.4340992-2.43420029-2.4340992h-1.12110043"/>
 <path d="M11.99979973,10.53929996c2.64719963,0,4.79319954-2.14597034,4.79319954-4.79319,0-2.64722991-2.14599991-4.7932291-4.79319954-4.7932291-2.64725971,0-4.7932601,2.14599895-4.7932601,4.7932291,0,2.64721966,2.14599943,4.79319,4.7932601,4.79319Z"/>
@@ -1589,6 +1601,29 @@ export const ID = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-i
 <path d="M7 16l10 0" stroke="currentColor" />
 </svg>;
 
+export const IdeaStrategyColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-idea-strategy-color">
+<path fill="#78eb7b" d="M4 23c0.59334 0 1.17336 -0.1759 1.66671 -0.5056 0.49335 -0.3296 0.87787 -0.7982 1.10493 -1.3463 0.22706 -0.5482 0.28647 -1.1514 0.17072 -1.7334 -0.11576 -0.5819 -0.40148 -1.1165 -0.82104 -1.536 -0.41956 -0.4196 -0.95411 -0.7053 -1.53605 -0.8211 -0.58194 -0.1157 -1.18514 -0.0563 -1.73332 0.1708 -0.54818 0.227 -1.01671 0.6115 -1.34636 1.1049C1.17595 18.8266 1 19.4067 1 20c0 0.7957 0.31607 1.5587 0.87868 2.1213C2.44129 22.6839 3.20435 23 4 23Z" strokeWidth="1"/>
+<path fill="#c9f7ca" d="M4 18.961c0.62198 0.0011 1.22812 0.1962 1.73396 0.5581 0.50585 0.3619 0.8862 0.8726 1.08804 1.4609 0.11453 -0.3142 0.17472 -0.6456 0.178 -0.98 0 -0.7956 -0.31607 -1.5587 -0.87868 -2.1213C5.55871 17.3161 4.79565 17 4 17s-1.55871 0.3161 -2.12132 0.8787C1.31607 18.4413 1 19.2044 1 20c0.00328 0.3344 0.06347 0.6658 0.178 0.98 0.20184 -0.5883 0.58219 -1.099 1.08804 -1.4609 0.50584 -0.3619 1.11198 -0.557 1.73396 -0.5581Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M4 23c0.59334 0 1.17336 -0.1759 1.66671 -0.5056 0.49335 -0.3296 0.87787 -0.7982 1.10493 -1.3463 0.22706 -0.5482 0.28647 -1.1514 0.17072 -1.7334 -0.11576 -0.5819 -0.40148 -1.1165 -0.82104 -1.536 -0.41956 -0.4196 -0.95411 -0.7053 -1.53605 -0.8211 -0.58194 -0.1157 -1.18514 -0.0563 -1.73332 0.1708 -0.54818 0.227 -1.01671 0.6115 -1.34636 1.1049C1.17595 18.8266 1 19.4067 1 20c0 0.7957 0.31607 1.5587 0.87868 2.1213C2.44129 22.6839 3.20435 23 4 23Z" strokeWidth="1"/>
+<path fill="#ff808c" d="M9 17h6v6H9v-6Z" strokeWidth="1"/>
+<path fill="#ffbfc5" d="M9 23v-6h6l-6 6Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9 17h6v6H9v-6Z" strokeWidth="1"/>
+<path fill="#66e1ff" d="m20 17 -3 6h6l-3 -6Z" strokeWidth="1"/>
+<path fill="#c2f3ff" d="m20 17 -3 6h3v-6Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m20 17 -3 6h6l-3 -6Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M13.5 12h-3" strokeWidth="1"/>
+<path fill="#ffef5e" d="M15 6.5c-0.0226 -0.78849 -0.346 -1.53846 -0.9038 -2.09623C13.5385 3.84599 12.7885 3.52265 12 3.5c-0.7886 0.02241 -1.5387 0.34568 -2.0965 0.9035C9.34568 4.96133 9.02241 5.71143 9 6.5c0.01126 0.51112 0.15551 1.01049 0.41854 1.44887C9.68158 8.38726 10.0543 8.74954 10.5 9v1h3V9c0.4456 -0.25061 0.8182 -0.61293 1.0812 -1.05128 0.263 -0.43836 0.4073 -0.93764 0.4188 -1.44872Z" strokeWidth="1"/>
+<path fill="#fff9bf" d="M12 5.664c0.5918 0.01722 1.1662 0.20426 1.6547 0.53883 0.4884 0.33458 0.8704 0.80256 1.1003 1.34817 0.1469 -0.33185 0.23 -0.68839 0.245 -1.051 -0.0226 -0.78849 -0.346 -1.53846 -0.9038 -2.09623C13.5385 3.84599 12.7885 3.52265 12 3.5c-0.7885 0.02265 -1.5385 0.34599 -2.09623 0.90377C9.34599 4.96154 9.02265 5.71151 9 6.5c0.01506 0.36292 0.09817 0.71977 0.245 1.052 0.22955 -0.54594 0.61138 -1.01427 1.0999 -1.34906 0.4885 -0.33479 1.0631 -0.52188 1.6551 -0.53894Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15 6.5c-0.0226 -0.78849 -0.346 -1.53846 -0.9038 -2.09623C13.5385 3.84599 12.7885 3.52265 12 3.5c-0.7886 0.02241 -1.5387 0.34568 -2.0965 0.9035C9.34568 4.96133 9.02241 5.71143 9 6.5c0.01126 0.51112 0.15551 1.01049 0.41854 1.44887C9.68158 8.38726 10.0543 8.74954 10.5 9v1h3V9c0.4456 -0.25061 0.8182 -0.61293 1.0812 -1.05128 0.263 -0.43836 0.4073 -0.93764 0.4188 -1.44872v0Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M4 17v-2.5c0 -0.1326 0.05268 -0.2598 0.14645 -0.3536C4.24021 14.0527 4.36739 14 4.5 14h15c0.1326 0 0.2598 0.0527 0.3536 0.1464 0.0937 0.0938 0.1464 0.221 0.1464 0.3536V17" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 12v4.5" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 1v1" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m15.889 2.61099 -0.707 0.707" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5 6h-1" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m8.11099 2.61099 0.707 0.707" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.5 6h1" strokeWidth="1"/>
+</svg>;
+
 export const IndoorPlantHouse = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-indoor-plant-house" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M5.80229387.99902243h12.31033768l4.88736872,6.35612039"/>
 <path d="M23.00000027,7.35514282h-14.17708219"/>
@@ -1679,6 +1714,24 @@ export const LayoutColumns = <svg xmlns="http://www.w3.org/2000/svg" className="
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" stroke="currentColor" />
 <path d="M12 4l0 16" stroke="currentColor" />
+</svg>;
+
+export const LayoutDashboard1Color = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-layout-dashboard-1-color">
+<path fill="#66e1ff" d="M22.5 0.5h-21c-0.552285 0 -1 0.447715 -1 1v21c0 0.5523 0.447715 1 1 1h21c0.5523 0 1 -0.4477 1 -1v-21c0 -0.552285 -0.4477 -1 -1 -1Z" strokeWidth="1"/>
+<path fill="#c2f3ff" d="M23.207 0.793C23.0195 0.605451 22.7652 0.500057 22.5 0.5h-21C1.23478 0.5 0.98043 0.605357 0.792893 0.792893 0.605357 0.98043 0.5 1.23478 0.5 1.5v21c0.000057 0.2652 0.105451 0.5195 0.293 0.707L23.207 0.793Z" strokeWidth="1"/>
+<path fill="#78eb7b" d="M14.5 20.5h5c0.5523 0 1 -0.4477 1 -1v-7c0 -0.5523 -0.4477 -1 -1 -1h-5c-0.5523 0 -1 0.4477 -1 1v7c0 0.5523 0.4477 1 1 1Z" strokeWidth="1"/>
+<path fill="#c9f7ca" d="M17 11.5h-2.5c-0.2652 0 -0.5196 0.1054 -0.7071 0.2929s-0.2929 0.4419 -0.2929 0.7071v7c0 0.2652 0.1054 0.5196 0.2929 0.7071s0.4419 0.2929 0.7071 0.2929H17v-9Z" strokeWidth="1"/>
+<path fill="#ffef5e" d="M14.5 8.5h5c0.5523 0 1 -0.44772 1 -1v-3c0 -0.55228 -0.4477 -1 -1 -1l-5 0c-0.5523 0 -1 0.44772 -1 1v3c0 0.55228 0.4477 1 1 1Z" strokeWidth="1"/>
+<path fill="#fff7ae" d="M17 3.5h-2.5c-0.2652 0 -0.5196 0.10536 -0.7071 0.29289 -0.1875 0.18754 -0.2929 0.44189 -0.2929 0.70711v3c0 0.26522 0.1054 0.51957 0.2929 0.70711 0.1875 0.18753 0.4419 0.29289 0.7071 0.29289H17v-5Z" strokeWidth="1"/>
+<path fill="#78eb7b" d="M9.5 3.5h-5c-0.55228 0 -1 0.44772 -1 1v7c0 0.5523 0.44772 1 1 1h5c0.5523 0 1 -0.4477 1 -1v-7c0 -0.55228 -0.4477 -1 -1 -1Z" strokeWidth="1"/>
+<path fill="#c9f7ca" d="M7 3.5H4.5c-0.26522 0 -0.51957 0.10536 -0.70711 0.29289C3.60536 3.98043 3.5 4.23478 3.5 4.5v7c0 0.2652 0.10536 0.5196 0.29289 0.7071 0.18754 0.1875 0.44189 0.2929 0.70711 0.2929H7v-9Z" strokeWidth="1"/>
+<path fill="#ff808c" d="M9.5 15.5h-5c-0.55228 0 -1 0.4477 -1 1v3c0 0.5523 0.44772 1 1 1h5c0.5523 0 1 -0.4477 1 -1v-3c0 -0.5523 -0.4477 -1 -1 -1Z" strokeWidth="1"/>
+<path fill="#ffbfc5" d="M7 15.5H4.5c-0.26522 0 -0.51957 0.1054 -0.70711 0.2929 -0.18753 0.1875 -0.29289 0.4419 -0.29289 0.7071v3c0 0.2652 0.10536 0.5196 0.29289 0.7071 0.18754 0.1875 0.44189 0.2929 0.70711 0.2929H7v-5Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M22.5 0.5h-21c-0.552285 0 -1 0.447715 -1 1v21c0 0.5523 0.447715 1 1 1h21c0.5523 0 1 -0.4477 1 -1v-21c0 -0.552285 -0.4477 -1 -1 -1Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.5 20.5h5c0.5523 0 1 -0.4477 1 -1v-7c0 -0.5523 -0.4477 -1 -1 -1h-5c-0.5523 0 -1 0.4477 -1 1v7c0 0.5523 0.4477 1 1 1Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.5 8.5h5c0.5523 0 1 -0.44772 1 -1v-3c0 -0.55228 -0.4477 -1 -1 -1l-5 0c-0.5523 0 -1 0.44772 -1 1v3c0 0.55228 0.4477 1 1 1Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.5 3.5h-5c-0.55228 0 -1 0.44772 -1 1v7c0 0.5523 0.44772 1 1 1h5c0.5523 0 1 -0.4477 1 -1v-7c0 -0.55228 -0.4477 -1 -1 -1Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.5 15.5h-5c-0.55228 0 -1 0.4477 -1 1v3c0 0.5523 0.44772 1 1 1h5c0.5523 0 1 -0.4477 1 -1v-3c0 -0.5523 -0.4477 -1 -1 -1Z" strokeWidth="1"/>
 </svg>;
 
 export const LayoutSidebarLeftExpandFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-layout-sidebar-left-expand-filled" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -2390,6 +2443,22 @@ export const ReadEmailAt1Color = <svg xmlns="http://www.w3.org/2000/svg" fill="n
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.5 18.063A7 7 0 1 1 12 5c9.5 0 9 10.5 5 10.5 -1.5 0 -1.5 -1 -1.5 -1.5V9" strokeWidth="1" />
 </svg>;
 
+export const ReadLightIdeaColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-read-light-idea-color">
+<path fill="#ffffff" d="M12 23.376V7.00001c0 -1.82 -4.565 -3.315 -9.983 -3.484 -0.13292 -0.00226 -0.26495 0.02201 -0.38837 0.07137 -0.12343 0.04937 -0.23577 0.12285 -0.33047 0.21615 -0.09469 0.0933 -0.16983 0.20454 -0.22103 0.32722 -0.05119 0.12268 -0.077417 0.25433 -0.077132 0.38726V19.018c-0.000033 0.2625 0.103122 0.5144 0.287212 0.7015 0.18409 0.1871 0.43435 0.2943 0.69679 0.2985C7.416 20.18 12 21.677 12 23.5v-0.124Z" strokeWidth="1"/>
+<path fill="#fff9bf" d="M12 23.376V7.00001c0 -1.82 4.565 -3.315 9.983 -3.484 0.1327 -0.00225 0.2646 0.02195 0.3879 0.07119 0.1233 0.04924 0.2356 0.12254 0.3302 0.21563 0.0947 0.09308 0.1699 0.20409 0.2212 0.32653 0.0513 0.12245 0.0777 0.25389 0.0777 0.38665V19.016c0 0.2625 -0.1031 0.5144 -0.2872 0.7015 -0.1841 0.1871 -0.4344 0.2943 -0.6968 0.2985C16.584 20.18 12 21.677 12 23.5v-0.124Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23 10v9.021c0 0.2625 -0.1031 0.5144 -0.2872 0.7015 -0.1841 0.1871 -0.4344 0.2943 -0.6968 0.2985C16.583 20.18 12 21.677 12 23.5c0 -1.824 -4.584 -3.321 -10.016 -3.485 -0.26243 -0.0042 -0.5127 -0.1114 -0.69679 -0.2985 -0.18409 -0.1871 -0.287244 -0.439 -0.28721 -0.7015V4.518c-0.000019 -0.13277 0.0264 -0.26421 0.07771 -0.38665 0.05132 -0.12245 0.1265 -0.23345 0.22117 -0.32654 0.09466 -0.09308 0.20692 -0.16638 0.33021 -0.21563 0.1233 -0.04924 0.25516 -0.07344 0.38791 -0.07118C7.435 3.686 12 5.181 12 7" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M3.5 8c2.22939 0.11801 4.42474 0.59794 6.5 1.421" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M3.5 11.405c2.22928 0.1174 4.42461 0.5967 6.5 1.419" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M3.5 14.809c2.22934 0.1169 4.42475 0.5962 6.5 1.419" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 7.00101V23.376" strokeWidth="1"/>
+<path fill="#ffef5e" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21 6.50001c0.0021 -0.55048 -0.1473 -1.09092 -0.4319 -1.56215 -0.2845 -0.47124 -0.6932 -0.85509 -1.1814 -1.10954 -0.4881 -0.25446 -1.0369 -0.36969 -1.5861 -0.3331 -0.5493 0.0366 -1.0779 0.22362 -1.528 0.54058 -0.45 0.31696 -0.8042 0.75165 -1.0237 1.25646 -0.2195 0.50482 -0.2959 1.06031 -0.2208 1.60564 0.0751 0.54533 0.2988 1.05949 0.6466 1.48617 0.3478 0.42668 0.8063 0.74944 1.3253 0.93294V10.5h2V9.31801c0.5839 -0.20519 1.0898 -0.58639 1.4479 -1.09108 0.3582 -0.5047 0.5511 -1.10804 0.5521 -1.72692v0Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17 12.501h2" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5 14.501h1" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18 1.50101V0.501007" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m21.536 2.966 0.707 -0.707" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m14.465 2.966 -0.708 -0.707" strokeWidth="1"/>
+</svg>;
+
 export const ReceiptDollar = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-receipt-dollar" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M6.5,7.2h5.5"/>
 <path d="M6.5,11.3h3.4"/>
@@ -2669,17 +2738,6 @@ export const PasswordLock1Color = <svg xmlns="http://www.w3.org/2000/svg" fill="
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 14a2.5 2.5 0 0 0 -5 0v1.5h5V14Z" strokeWidth="1"/>
 </svg>;
 
-export const ParkBenchColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-park-bench-color">
-<path fill="#78eb7b" d="m11.58 16 -3.35 -4.186h1.54a0.5 0.5 0 0 0 0.409 -0.787L7.23 6.814h1.538a0.5 0.5 0 0 0 0.409 -0.787L6.637 2.4a0.5 0.5 0 0 0 -0.814 0l-2.54 3.627a0.5 0.5 0 0 0 0.409 0.787H5.23l-2.949 4.213a0.5 0.5 0 0 0 0.409 0.787h1.54L0.88 16a0.5 0.5 0 0 0 0.39 0.812h9.92a0.5 0.5 0 0 0 0.39 -0.812Z" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m10.235 14.314 -2 -2.5h1.539a0.5 0.5 0 0 0 0.41 -0.787L7.235 6.814h1.537a0.5 0.5 0 0 0 0.41 -0.787L6.642 2.4a0.5 0.5 0 0 0 -0.819 0l-2.54 3.627a0.5 0.5 0 0 0 0.409 0.787H5.23l-2.949 4.213a0.5 0.5 0 0 0 0.409 0.787h1.54L0.88 16a0.5 0.5 0 0 0 0.39 0.812h8.459" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.23 16.814v5" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m14.23 18.814 -0.503 3" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m21.23 18.814 0.497 3" strokeWidth="1" />
-<path fill="#ffbc44" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.73 15.814h-6v3h6v-3Z" strokeWidth="1" />
-<path fill="#c77f67" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M22.23 13.814h-9a0.5 0.5 0 0 0 -0.5 0.5v1a0.5 0.5 0 0 0 0.5 0.5h9a0.5 0.5 0 0 0 0.5 -0.5v-1a0.5 0.5 0 0 0 -0.5 -0.5Z" strokeWidth="1" />
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.23 18.814h11" strokeWidth="1" />
-</svg>;
-
 export const PencilWrite2 = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-pencil-write-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M12.62230536,13.24398285l-3.46437718.49557781.49464414-3.46531085L18.56176967,1.36505155c.82006906-.82006889,2.1496631-.82006872,2.96973216.00000045.82006906.82006906.82006906,2.14966377,0,2.9697326l-8.90919647,8.90919825Z"/>
 <path d="M18.64670059,13.35037835v6.9996847c0,.77316311-.62677383,1.39993694-1.39993694,1.39993694H3.24739424c-.77316378,0-1.39993694-.62677383-1.39993694-1.39993694V6.35069365c0-.773164.62677316-1.39993694,1.39993694-1.39993694h6.9996847"/>
@@ -2762,6 +2820,15 @@ export const PictureStackHumanColor = <svg xmlns="http://www.w3.org/2000/svg" fi
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.38 18.26c-0.3699 0.3924 -0.8163 0.7049 -1.3116 0.9182 -0.4953 0.2132 -1.0291 0.3228 -1.5684 0.3218h-7c-0.53928 0.001 -1.07305 -0.1086 -1.56838 -0.3218 -0.49533 -0.2133 -0.94171 -0.5258 -1.31162 -0.9182 0.07463 -0.5068 0.22639 -0.9991 0.45 -1.46 0.39 -0.8 2.06 -1.35 4.15 -2.12 0.56 -0.21 0.47 -1.69 0.22 -1.96 -0.39969 -0.4328 -0.70341 -0.9451 -0.89126 -1.5035 -0.18784 -0.5584 -0.25557 -1.1501 -0.19874 -1.7365 -0.0348 -0.3724 0.00737 -0.74798 0.1239 -1.10338 0.11652 -0.35541 0.30492 -0.68305 0.55346 -0.96254 0.24855 -0.2795 0.55193 -0.50488 0.89129 -0.66213S7.62609 6.50894 8 6.5c0.37392 0.00894 0.742 0.0947 1.08136 0.25195 0.33936 0.15725 0.64274 0.38263 0.89128 0.66213 0.24856 0.27949 0.43696 0.60713 0.55346 0.96254 0.1165 0.3554 0.1587 0.73098 0.1239 1.10338 0.0568 0.5864 -0.0109 1.1781 -0.1987 1.7365 -0.1879 0.5584 -0.4916 1.0707 -0.8913 1.5035 -0.25 0.27 -0.34 1.75 0.22 1.96 2.09 0.77 3.76 1.32 4.15 2.12 0.2236 0.4609 0.3754 0.9532 0.45 1.46Z" strokeWidth="1"/>
 </svg>;
 
+export const PieLineGraph = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-pie-line-graph">
+<path d="m8.25 19.75 4 -4a0.75 0.75 0 0 1 1.06 0l1.94 1.94a0.75 0.75 0 0 0 1.06 0l4 -4" />
+<path d="M2.25 0.75h19.5s1.5 0 1.5 1.5v19.5s0 1.5 -1.5 1.5H2.25s-1.5 0 -1.5 -1.5V2.25s0 -1.5 1.5 -1.5" />
+<path d="M3.75 8.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 1 0 -9 0" />
+<path d="m8.25 4 0 4.5 3.18 3.18" />
+<path d="m16.5 5.5 3.5 0" />
+<path d="M16.5 9 20 9" />
+</svg>;
+
 export const Phone = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-phone">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" />
@@ -2779,6 +2846,18 @@ export const PhoneFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 export const PhoneCircle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-phone-call" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
 <path d="m14.137 17.7 0.008 0a3.226 3.226 0 0 0 4.014 -0.441l0.452 -0.451a1.076 1.076 0 0 0 0 -1.521l-1.9 -1.9a1.076 1.076 0 0 0 -1.521 0h0a1.077 1.077 0 0 1 -1.522 0l-3.042 -3.043a1.076 1.076 0 0 1 0 -1.521h0a1.076 1.076 0 0 0 0 -1.521l-1.9 -1.9A1.076 1.076 0 0 0 7.2 5.4l-0.452 0.451a3.229 3.229 0 0 0 -0.44 4.015l0 0.007a29.14 29.14 0 0 0 7.829 7.827Z" />
 <path d="M21 18.764a11.251 11.251 0 1 0 -9 4.5c4.418 0 6.446 -2.136 5.215 -5.344" />
+</svg>;
+
+export const PhoneType = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-phone-type" stroke="currentColor" strokeWidth="1.5">
+<path strokeLinecap="round" strokeLinejoin="round" d="M12.75 14.25v6.268c0 0.7246 -0.2878 1.4195 -0.8002 1.9318 -0.5123 0.5124 -1.2072 0.8002 -1.9318 0.8002H3.483c-0.72466 0 -1.41966 -0.2878 -1.93217 -0.8001S0.750265 21.2427 0.75 20.518V4.983c0.000265 -0.72476 0.28829 -1.41975 0.80077 -1.93223 0.51248 -0.51248 1.20747 -0.8005 1.93223 -0.80077H6"/>
+<path strokeLinecap="round" strokeLinejoin="round" d="M0.75 18.75h12"/>
+<path strokeLinecap="round" strokeLinejoin="round" d="M20.25 0.75H12c-0.7956 0 -1.5587 0.31607 -2.12132 0.87868C9.31607 2.19129 9 2.95435 9 3.75v4.5c0 0.79565 0.31607 1.55871 0.87868 2.1213 0.56262 0.5626 1.32572 0.8787 2.12132 0.8787h3.75V15l3.75 -3.75h0.75c0.7956 0 1.5587 -0.3161 2.1213 -0.8787 0.5626 -0.56259 0.8787 -1.32565 0.8787 -2.1213v-4.5c0 -0.79565 -0.3161 -1.55871 -0.8787 -2.12132C21.8087 1.06607 21.0456 0.75 20.25 0.75v0Z"/>
+<path d="M16.125 6.375c-0.2071 0 -0.375 -0.16789 -0.375 -0.375s0.1679 -0.375 0.375 -0.375"/>
+<path d="M16.125 6.375c0.2071 0 0.375 -0.16789 0.375 -0.375s-0.1679 -0.375 -0.375 -0.375"/>
+<path d="M12.375 6.375C12.1679 6.375 12 6.20711 12 6s0.1679 -0.375 0.375 -0.375"/>
+<path d="M12.375 6.375c0.2071 0 0.375 -0.16789 0.375 -0.375s-0.1679 -0.375 -0.375 -0.375"/>
+<path d="M19.875 6.375c-0.2071 0 -0.375 -0.16789 -0.375 -0.375s0.1679 -0.375 0.375 -0.375"/>
+<path d="M19.875 6.375c0.2071 0 0.375 -0.16789 0.375 -0.375s-0.1679 -0.375 -0.375 -0.375"/>
 </svg>;
 
 export const PhoneTypeColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-phone-type-color">
@@ -2941,6 +3020,19 @@ export const Search = <svg xmlns="http://www.w3.org/2000/svg" className="icon ic
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" stroke="currentColor" />
 <path d="M21 21l-6 -6" stroke="currentColor" />
+</svg>;
+
+export const ScrollText = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-scroll-text">
+<path fill="#ffffff" d="M21.51 2.5s0.01 0.57 0.01 1.5c0.04 4.41 -0.12 17 -3.01 17 -3.5 0 -0.5 -4 -3 -4H8.03c1.11 -5.55 1 -14.5 1 -14.5S9.06 1 10.06 1h12.47c-1 0 -1.02 1.5 -1.02 1.5Z" strokeWidth="1"/>
+<path fill="#e3e3e3" d="M22.53 1h-1.962c-0.06 6.029 -3.737 14.115 -9.323 16h4.265c2.5 0 -0.5 4 3 4 2.89 0 3.05 -12.59 3.01 -17 0 -0.93 -0.01 -1.5 -0.01 -1.5S21.53 1 22.53 1Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21.51 2.5s0.01 0.57 0.01 1.5c0.04 4.41 -0.12 17 -3.01 17 -3.5 0 -0.5 -4 -3 -4H8.03c1.11 -5.55 1 -14.5 1 -14.5S9.06 1 10.06 1h12.47c-1 0 -1.02 1.5 -1.02 1.5Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.032 5h2" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.282 11h5.75" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.282 8h5.75" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.532 14h6" strokeWidth="1"/>
+<path fill="#b2b2b2" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23.46 2.88c0.0157 0.14029 0.0016 0.28233 -0.0415 0.41677 -0.0431 0.13444 -0.1141 0.25823 -0.2085 0.36323 -0.0916 0.10667 -0.2051 0.19227 -0.3328 0.25096 -0.1277 0.05869 -0.2666 0.08906 -0.4072 0.08904h-0.95c0 -0.93 -0.01 -1.5 -0.01 -1.5S21.53 1 22.53 1c0.59 0 0.83 1.03 0.93 1.88Z" strokeWidth="1"/>
+<path fill="#ffffff" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.51 17c-1.53 0 -1 2.26 -1.17 4 -0.1 1.1 -0.48 2 -1.83 2H0.529999C4.03 23 1.03 17 3.53 17h11.98Z" strokeWidth="1"/>
+<path fill="#b2b2b2" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18.51 21h-4.17c0.17 -1.74 -0.36 -4 1.17 -4 2.5 0 -0.5 4 3 4Z" strokeWidth="1"/>
 </svg>;
 
 export const SingleManActionsTime = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-task-list-check-2" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -3259,6 +3351,23 @@ export const TrashXFilled = <svg xmlns="http://www.w3.org/2000/svg" className="i
 <path d="M0,0h24v24H0V0Z" fill="none" />
 <path d="M15.5,7h-1.2v-2.8c0-.3-.2-.5-.5-.5h-3.6c-.3,0-.5.2-.5.5v2.8h-1.2v-3c0-.8.7-1.5,1.5-1.5h4c.8,0,1.5.7,1.5,1.5v3Z" fill="currentColor" />
 <path d="M4,6.5v1.1h.5l1,11.4c0,1.4,1.1,2.5,2.5,2.5h8c1.4,0,2.5-1.1,2.5-2.5l1-11.4h.5v-1.1H4ZM14.9,15.9l-.9.9-1.9-1.9-1.9,1.9-.9-.9,1.9-1.9-1.9-1.9.9-.9,1.9,1.9,1.9-1.9.9.9-1.9,1.9s1.9,1.9,1.9,1.9Z" fill="currentColor" />
+</svg>;
+
+export const TreeTwoColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-tree-two-color">
+<path fill="#c9f7ca" d="M10.75 16.388c0 0.3979 -0.158 0.7794 -0.4393 1.0607s-0.66288 0.4393 -1.0607 0.4393h-7c-0.39782 0 -0.77936 -0.158 -1.06066 -0.4393C0.908035 17.1674 0.75 16.7859 0.75 16.388L5.271 1.46703c0.03085 -0.10306 0.09412 -0.19343 0.18041 -0.25767 0.0863 -0.06425 0.19101 -0.09895 0.29859 -0.09895 0.10758 0 0.21229 0.0347 0.29859 0.09895 0.08629 0.06424 0.14956 0.15461 0.18041 0.25767L10.75 16.388Z" strokeWidth="1"/>
+<path fill="#78eb7b" d="M9.25 14.638h-7c-0.31727 -0.001 -0.62591 -0.1033 -0.881 -0.292L0.75 16.388c0 0.3978 0.158035 0.7794 0.43934 1.0607 0.2813 0.2813 0.66284 0.4393 1.06066 0.4393h7c0.39782 0 0.7794 -0.158 1.0607 -0.4393s0.4393 -0.6629 0.4393 -1.0607l-0.619 -2.042c-0.25509 0.1887 -0.56373 0.291 -0.881 0.292Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10.75 16.388c0 0.3979 -0.158 0.7794 -0.4393 1.0607s-0.66288 0.4393 -1.0607 0.4393h-7c-0.39782 0 -0.77936 -0.158 -1.06066 -0.4393C0.908035 17.1674 0.75 16.7859 0.75 16.388L5.271 1.46703c0.03085 -0.10306 0.09412 -0.19343 0.18041 -0.25767 0.0863 -0.06425 0.19101 -0.09895 0.29859 -0.09895 0.10758 0 0.21229 0.0347 0.29859 0.09895 0.08629 0.06424 0.14956 0.15461 0.18041 0.25767L10.75 16.388Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M5.75 16.388c-0.00015 -0.4977 0.10586 -0.9897 0.31094 -1.4432 0.20509 -0.4535 0.50453 -0.8581 0.87836 -1.1867 0.37383 -0.3285 0.81344 -0.5736 1.2895 -0.7188 0.47606 -0.1453 0.97762 -0.1873 1.4712 -0.1233" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M1.8 12.917c0.4935 -0.064 0.99497 -0.022 1.47096 0.1232 0.47599 0.1451 0.91555 0.3901 1.28936 0.7186 0.37381 0.3285 0.67328 0.7329 0.87843 1.1863 0.20515 0.4533 0.31126 0.9453 0.31125 1.4429" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M5.75 11.888c-0.00006 -0.3601 0.07768 -0.716 0.22791 -1.0433 0.15023 -0.3273 0.3694 -0.6183 0.64251 -0.85303 0.27311 -0.23475 0.59371 -0.40772 0.93986 -0.50707 0.34615 -0.09936 0.70969 -0.12275 1.06572 -0.06859" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M2.862 9.41701c0.35685 -0.05606 0.72161 -0.03413 1.06917 0.0643 0.34756 0.09842 0.66966 0.27099 0.94413 0.50583 0.27447 0.23486 0.49479 0.52636 0.64579 0.85456 0.151 0.3281 0.2291 0.6851 0.22891 1.0463" strokeWidth="1"/>
+<path fill="#c9f7ca" d="M16.75 16.388c3.5899 0 6.5 -2.9101 6.5 -6.5 0 -3.58985 -2.9101 -6.5 -6.5 -6.5s-6.5 2.91015 -6.5 6.5c0 3.5899 2.9101 6.5 6.5 6.5Z" strokeWidth="1"/>
+<path fill="#78eb7b" d="M16.75 12.388c-1.3739 -0.0004 -2.7124 -0.436 -3.8233 -1.2445 -1.1108 -0.8085 -1.937 -1.94823 -2.3597 -3.2555 -0.3163 0.97545 -0.3974 2.0119 -0.2365 3.0247 0.1608 1.0127 0.559 1.9731 1.162 2.8025 0.603 0.8295 1.3936 1.5045 2.3074 1.9699 0.9137 0.4654 1.9246 0.708 2.9501 0.708 1.0255 0 2.0364 -0.2426 2.9501 -0.708 0.9138 -0.4654 1.7045 -1.1404 2.3074 -1.9699 0.603 -0.8294 1.0012 -1.7898 1.162 -2.8025 0.1609 -1.0128 0.0798 -2.04925 -0.2365 -3.0247 -0.4227 1.30727 -1.2489 2.447 -2.3597 3.2555 -1.1109 0.8085 -2.4494 1.2441 -3.8233 1.2445Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16.75 16.388c3.5899 0 6.5 -2.9101 6.5 -6.5 0 -3.58985 -2.9101 -6.5 -6.5 -6.5s-6.5 2.91015 -6.5 6.5c0 3.5899 2.9101 6.5 6.5 6.5Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16.75 14.888c0.0054 -0.7699 0.2485 -1.5192 0.696 -2.1457 0.4475 -0.6265 1.0775 -1.0995 1.804 -1.3543" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.25 9.888c0.663 0 1.2989 0.2634 1.7678 0.7322 0.4688 0.4689 0.7322 1.1048 0.7322 1.7678" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16.75 22.888v-15" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M5.75 22.888v-16" strokeWidth="1"/>
 </svg>;
 
 export const TruckAnimal = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-truck-animal" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
