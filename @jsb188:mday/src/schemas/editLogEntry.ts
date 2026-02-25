@@ -191,7 +191,7 @@ function makeMetadataSchema(
           label: i18n.t('form.activity'),
           item: {
             // editable: false,
-            locked: () => true, // Conditional lock is possible
+            // locked: () => true, // Conditional lock is possible
             focused: focusedName === (formId + '_activity'),
             name: `${namespace}.activity`,
             placeholder: isCreateNew ? i18n.t(`form.activity_ph`) : '',
@@ -679,6 +679,10 @@ export function makeLogMetadataSchema(
 
   if (!isAITask) {
     activitiesList = activitiesList.filter(([type]) => type !== 'AI_TASK');
+  }
+
+  if (logType) {
+    activitiesList = activitiesList.filter(([type]) => type === logType);
   }
 
   // Date, time, createdBy is common across all log types
