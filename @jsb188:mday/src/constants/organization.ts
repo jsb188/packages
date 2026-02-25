@@ -11,6 +11,7 @@ export const OPERATION_ENUMS = [
 	'GROWER_NETWORK',
 
   // External orgs
+  'RESTAURANT',
   'VENDOR',
 ];
 

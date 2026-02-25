@@ -75,14 +75,25 @@ export default {
 			LIVESTOCK: 'Livestock ranch',
 			FARMERS_MARKET: 'Farmers market',
 			GROWER_NETWORK: 'Grower network',
+      RESTAURANT: 'Restaurant',
       VENDOR: 'Vendor',
 		},
+
+    type_short: {
+      ARABLE: 'Farm',
+      LIVESTOCK: 'Ranch',
+      FARMERS_MARKET: 'Market',
+      GROWER_NETWORK: 'Grower network',
+      RESTAURANT: 'Restaurant',
+      VENDOR: 'Vendor',
+    },
 
 		type_inline: {
 			ARABLE: 'farm',
 			LIVESTOCK: 'ranch',
 			FARMERS_MARKET: 'farmers market',
 			GROWER_NETWORK: 'grower network',
+      RESTAURANT: 'restaurant',
       VENDOR: 'vendor',
 		},
 
@@ -91,6 +102,7 @@ export default {
 			LIVESTOCK: 'Ranching',
 			FARMERS_MARKET: 'Market',
 			GROWER_NETWORK: 'Grower network',
+      RESTAURANT: 'Restaurant',
       VENDOR: 'Vendor',
 		},
 
@@ -99,6 +111,7 @@ export default {
 			LIVESTOCK: 'Livestock ranch (livestock)',
 			FARMERS_MARKET: 'Farmers market',
 			GROWER_NETWORK: 'Grower network',
+      RESTAURANT: 'Restaurant',
       VENDOR: 'Vendor (customer or supplier)',
     },
 
@@ -124,6 +137,7 @@ export default {
 			LIVESTOCK: 'livestock',
 			FARMERS_MARKET: 'product',
 			GROWER_NETWORK: 'product',
+      RESTAURANT: 'product',
       VENDOR: 'product',
 		},
 
@@ -137,6 +151,7 @@ export default {
 			LIVESTOCK: 'Edit ranch',
 			FARMERS_MARKET: 'Edit farmers market',
 			GROWER_NETWORK: 'Edit organization',
+      RESTAURANT: 'Edit restaurant',
       VENDOR: 'Edit vendor',
 		},
 
@@ -145,6 +160,7 @@ export default {
 			LIVESTOCK: 'Delete ranch',
 			FARMERS_MARKET: 'Delete farmers market',
 			GROWER_NETWORK: 'Delete organization',
+      RESTAURANT: 'Delete restaurant',
       VENDOR: 'Delete vendor',
 		},
 

@@ -108,7 +108,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   mobile: 'device-mobile',
   moderator: 'gavel',
   network_error: 'wifi-off',
-  server_outage: 'server-remove-1',
+  server_outage: 'database-warning',
   not_pinned: 'pinned-off',
   org_info: 'office-building-double',
   owner: 'crown',
@@ -162,6 +162,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   FARMERS_MARKET: 'farmers-market-kiosk',
   LIVESTOCK: 'outdoors-horse',
   GROWER_NETWORK: 'wine-grapes',
+  RESTAURANT: '',
+  VENDOR: '',
 
   // AI Task types
   AI_TASK: 'task-list-check-2',

@@ -206,6 +206,7 @@ export default {
     organization: 'Organization',
     coordinator: 'Co-ordinator',
     contact: 'Contact',
+    contacts: 'Contacts',
     profile: 'Profile',
     compliance: 'Compliance',
     requirement: 'Requirement',
