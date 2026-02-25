@@ -169,8 +169,9 @@ export default {
 			// # Transplanting activities
 			SEEDING: 'Seeding crops',
 			DIRECT_SEEDING: 'Direct seeding crops',
+      GREENHOUSE_SEEDING: 'Greenhouse seeding crops',
 			TRANSPLANTING: 'Transplanting crops',
-			SEED_COMPLIANCE_NOTE: 'Seed compliance notes',
+			SEED_COMPLIANCE_NOTE: 'Seeding compliance notes',
 			OTHER_TRANSPLANT_ACTIVITY: 'Other seeding/transplanting activities',
 
 			// # Field activities
@@ -300,6 +301,7 @@ export default {
 			// # Transplanting activities
 			SEEDING: 'Seeding',
 			DIRECT_SEEDING: 'Direct seeding',
+      GREENHOUSE_SEEDING: 'Greenhouse seeding',
 			TRANSPLANTING: 'Transplanting',
 			SEED_COMPLIANCE_NOTE: 'Notes',
 			OTHER_TRANSPLANT_ACTIVITY: 'Other',

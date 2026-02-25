@@ -17,8 +17,9 @@ export const ARABLE_FARMING_TO_TEXT = {
 	// # Seeding & transplanting activities
 	SEEDING: 'seeding crops',
 	DIRECT_SEEDING: 'direct seeding crops',
+  GREENHOUSE_SEEDING: 'greenhouse seeding crops',
 	TRANSPLANTING: 'transplanting crops',
-	SEED_COMPLIANCE_NOTE: 'seed compliance notes',
+	SEED_COMPLIANCE_NOTE: 'seeding compliance notes',
 	OTHER_TRANSPLANT_ACTIVITY: 'other seeding or transplanting activities',
 
 	// # Field activities

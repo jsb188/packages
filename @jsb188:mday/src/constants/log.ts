@@ -67,6 +67,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 		[
 			'SEEDING',
 			'DIRECT_SEEDING',
+      'GREENHOUSE_SEEDING',
 			'TRANSPLANTING',
 			'SEED_COMPLIANCE_NOTE',
 			'OTHER_TRANSPLANT_ACTIVITY',

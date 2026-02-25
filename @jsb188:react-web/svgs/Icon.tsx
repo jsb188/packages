@@ -204,6 +204,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   OTHER_SUPPLY_PURCHASE_ACTIVITY: 'accounting-invoice-dollar',
   SEEDING: 'gardening-seed-bag',
   DIRECT_SEEDING: 'agriculture-machine-seeder',
+  GREENHOUSE_SEEDING: 'indoor-plant-house',
   TRANSPLANTING: 'organic-plant-grow',
   SEED_COMPLIANCE_NOTE: 'notes-tasks',
   OTHER_TRANSPLANT_ACTIVITY: 'organic-plant-grow',
