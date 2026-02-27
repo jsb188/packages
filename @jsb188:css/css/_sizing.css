@@ -1635,30 +1635,6 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .max_w_1150 { max-width: 1150px; }
 .max_w_1200 { max-width: 1200px; }
 
-/* Special sizing for mobile */
-
-.max_h_mobile_safe { max-height: 87.5vh; }
-
-@media (max-height: 1140px) {
-  /* Designed for modal wrapper layout content while accounting for mobile header area */
-  .max_h_mobile_safe { max-height: 85vh; }
-}
-
-@media (max-height: 1024px) {
-  /* Designed for modal wrapper layout content while accounting for mobile header area */
-  .max_h_mobile_safe { max-height: 82.5vh; }
-}
-
-@media (max-height: 768px) {
-  /* Designed for modal wrapper layout content while accounting for mobile header area */
-  .max_h_mobile_safe { max-height: 80vh; }
-}
-
-@media (max-height: 640px) {
-  /* Designed for modal wrapper layout content while accounting for mobile header area */
-  .max_h_mobile_safe { max-height: 75vh; }
-}
-
 /* Radius */
 
 .r, .r .img_auto { border-radius: 100vmax; }

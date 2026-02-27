@@ -162,8 +162,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   FARMERS_MARKET: 'farmers-market-kiosk',
   LIVESTOCK: 'outdoors-horse',
   GROWER_NETWORK: 'wine-grapes',
-  RESTAURANT: '',
-  VENDOR: '',
+  RESTAURANT: 'restaurant-eating-set',
+  VENDOR: 'farmers-market-vendor',
 
   // AI Task types
   AI_TASK: 'task-list-check-2',

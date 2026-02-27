@@ -14,15 +14,18 @@ body.p_auth {
 }
 
 .mw {
-  max-height: calc(100vh - 50px);
+  --toolbar-ht: 50px;
+
+  max-height: calc(100vh - var(--toolbar-ht));
   /* max-height: calc(100vh - var(--rem-medium) - var(--rem-medium)); */
 }
 
 .mw .scr_area {
-  /* 45px is the height of modal header toolbar */
-  max-height: calc(100vh - 50px - 50px);
+  max-height: calc(100vh - var(--toolbar-ht) - var(--toolbar-ht));
   /* max-height: calc(100vh - var(--rem-medium) - var(--rem-medium) - 45px); */
 }
+
+/* Center "able" + scrollable modal content wrappers */
 
 .mw_adjust_center {
   padding-top: calc(25px * 2);
@@ -32,6 +35,49 @@ body.p_auth {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+
+/* Top-fixed position modal content wrappers */
+
+.mw_page {
+  padding-top: 6vh;
+}
+
+.mw_page .modal_main_content {
+  max-height: calc(94vh + 10px);
+}
+
+/* Special sizing for mobile */
+
+.mw_toolbar_ht { height: var(--toolbar-ht); }
+.max_h_mobile_safe { max-height: 87.5vh; }
+.mw_page .max_h_mobile_safe { max-height: calc(94vh - var(--toolbar-ht) + 10); padding-bottom: 10px; }
+
+@media (max-height: 1140px) {
+  /* Designed for modal wrapper layout content while accounting for mobile header area */
+  .max_h_mobile_safe { max-height: 85vh; }
+}
+
+@media (max-height: 1024px) {
+  /* Designed for modal wrapper layout content while accounting for mobile header area */
+  .max_h_mobile_safe { max-height: 82.5vh; }
+
+  /* .mw_page responsive design */
+  .mw_page { padding-top: 7.5vh; }
+  .mw_page .modal_main_content { max-height: calc(92.5vh + 10px); }
+  .mw_page .max_h_mobile_safe { max-height: calc(92.5vh - var(--toolbar-ht) + 10); }
+}
+
+@media (max-height: 768px) {
+  /* Designed for modal wrapper layout content while accounting for mobile header area */
+  .max_h_mobile_safe { max-height: 80vh; }
+}
+
+@media (max-height: 640px) {
+  /* Designed for modal wrapper layout content while accounting for mobile header area */
+  .max_h_mobile_safe { max-height: 75vh; }
+}
+
+/* Common, standardized content wrapper sizes */
 
 .cw.tn, .mw.tn {
   /* was .tiny */

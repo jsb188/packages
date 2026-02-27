@@ -10,8 +10,9 @@
 .gr_emerald_1 { background: linear-gradient(45deg, #a9e4cf 0%, #b5f4ea 100%); }
 .gr_teal_1 { background: linear-gradient(45deg, #a2e0d6 0%, #acefee 100%); }
 .gr_cyan_1 { background: linear-gradient(45deg, #a8dcf0 0%, #b9f1fb 100%); }
-.gr_sky_1 { background: linear-gradient(45deg, #a6d2f1 0%, #b6ddfb 100%); }
-.gr_blue_1 { background: linear-gradient(45deg, #adc8f1 0%, #bdd8fb 100%); }
+.gr_sky_1, .gr_blue_1 { background: linear-gradient(45deg, #a6d2f1 0%, #b6ddfb 100%); }
+/* blue & sky uses same gradient right now because it's too hard to differentiate the two as pastel & also make it look good */
+/* .gr_blue_1 { background: linear-gradient(45deg, #adc8f1 0%, #bdd8fb 100%); } */
 .gr_indigo_1 { background: linear-gradient(45deg, #c0c5f2 0%, #dbe0ff 100%); }
 .gr_violet_1 { background: linear-gradient(45deg, #ccb7f2 0%, #dcd4fd 100%); }
 .gr_purple_1 { background: linear-gradient(45deg, #d0b4f2 0%, #e0d4fd 100%); }
@@ -34,8 +35,8 @@
 .gr_emerald_2 { background: linear-gradient(to bottom, #b2e7df 0%, #c6f0ea 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 .gr_teal_2 { background: linear-gradient(to bottom, #abe3e2 0%, #c1edec 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 .gr_cyan_2 { background: linear-gradient(to bottom, #b4e7ef 0%, #c7f0f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_sky_2 { background: linear-gradient(to bottom, #b1d4ef 0%, #c5e0f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
-.gr_blue_2 { background: linear-gradient(to bottom, #b6d0f0 0%, #c9ddf5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+.gr_sky_2, .gr_blue_2 { background: linear-gradient(to bottom, #b1d4ef 0%, #c5e0f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
+/* .gr_blue_2 { background: linear-gradient(to bottom, #b6d0f0 0%, #c9ddf5 100%); background-size: 100% 100%; background-repeat: no-repeat; } */
 .gr_indigo_2 { background: linear-gradient(to bottom, #cbd3f7 0%, #d9dff5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 .gr_violet_2 { background: linear-gradient(to bottom, #cfc8f4 0%, #dcd7f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
 .gr_purple_2 { background: linear-gradient(to bottom, #d4c8f4 0%, #e0d7f5 100%); background-size: 100% 100%; background-repeat: no-repeat; }
@@ -59,7 +60,7 @@
 [data-theme="teal_light"] { --color-modal: 229, 242, 242; /* #e5f2f2 */ }
 [data-theme="cyan_light"] { --color-modal: 232, 244, 246; /* #e8f4f6 */ }
 [data-theme="sky_light"] { --color-modal: 232, 239, 245; /* #e8eff5 */ }
-[data-theme="blue_light"] { --color-modal: 233, 239, 246; /* #e9eff6 */ }
+[data-theme="blue_light"] { --color-modal: 233, 239, 245; /* #e9eff6 */ }
 [data-theme="indigo_light"] { --color-modal: 240, 242, 249; /* #f0f2f9 */ }
 [data-theme="violet_light"] { --color-modal: 240, 239, 248; /* #f0eff8 */ }
 [data-theme="purple_light"] { --color-modal: 241, 239, 248; /* #f1eff8 */ }

@@ -25,6 +25,8 @@ export type TableRowProps = {
   gridLayoutStyle: string;
 };
 
+export type HeaderBorderStyle = 'BORDER' | 'SEPARATOR';
+
 /**
  * Table row/head
  */
@@ -104,17 +106,18 @@ TDCol.displayName = 'TDCol';
  */
 
 export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
-  addHeaderBorder?: boolean;
+  borderStyle: HeaderBorderStyle;
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
   cellClassNames?: string | (string | undefined)[];
   doNotApplyGridToRows?: boolean;
   headers: TableHeaderObj[];
 }) => {
-  const { addHeaderBorder, removeLeftPadding, removeRightPadding, doNotApplyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
+  const { borderStyle, removeLeftPadding, removeRightPadding, doNotApplyGridToRows, gridLayoutStyle, className, cellClassNames, headers } = p;
+  const borderCnStr = 'bd_b_1 bd_lt mb_6';
 
   return <TRow
-    className={cn(addHeaderBorder && 'bd_b_1 bd_lt mb_6', className)}
+    className={cn(borderStyle === 'BORDER' && borderCnStr, className)}
     removeBorderLine
     doNotApplyGridToRows={doNotApplyGridToRows}
     gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
@@ -135,6 +138,8 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
         </span>
       </TDCol>
     ))}
+
+    {borderStyle === 'SEPARATOR' && <div className={cn(borderCnStr, 'g_fill mx_xs')} />}
   </TRow>;
 });
 
@@ -248,17 +253,26 @@ export function TableListItemMock(p: Partial<TableRowProps> & {
  * Table list header mock
  */
 
-export function TableListHeaderMock() {
+export function TableListHeaderMock(p: { gridLayoutStyle?: string }) {
+  const { gridLayoutStyle } = p;
+
   return <TRow
+    gridLayoutStyle={gridLayoutStyle}
     removeBorderLine
     thead
     className='bd_b_1 bd_lt mb_6'
   >
-    <TDCol>
+    {gridLayoutStyle?.split(' ').map((_, i) => (
+      <TDCol key={i}>
+        <span className='mock alt min_w_20' style={{width: '40%'}}>
+          ....
+        </span>
+      </TDCol>
+    )) || <TDCol>
       <span className='mock alt min_w_20' style={{width: '40%'}}>
         ....
       </span>
-    </TDCol>
+    </TDCol>}
   </TRow>;
 }
 
@@ -289,7 +303,7 @@ export const TableListMockClient = memo((p: TableListMockProps) => {
   return <div className={isInnerContent ? undefined : '-mx_xs py_md'}>
     <div className='w_f rel table'>
       {/* I don't think I need this. Delete it later after confirming its unnecessary. */}
-      {mockHeaderRows ? <TableListHeaderMock /> : null}
+      {mockHeaderRows ? <TableListHeaderMock gridLayoutStyle={rest.gridLayoutStyle} /> : null}
 
       {[...Array(mockCount)].map((_, i) => (
         <TableListItemMock
@@ -325,14 +339,18 @@ TableListMockSSR.displayName = 'TableListMockSSR';
  */
 
 export const TablePageMock = memo((p: {
+  mockHeaderRows?: boolean;
+  isSmallerRows?: boolean;
+  removeBorderLine?: boolean;
   gridLayoutStyle: string,
   cellClassNames?: string | (string | undefined)[]
   browserHeightRatio?: number;
-  HeaderComponent?: React.ReactNode;
+  ToolbarComponent?: React.ReactNode;
 }) => {
-  const { HeaderComponent, gridLayoutStyle, browserHeightRatio, cellClassNames } = p;
+  const { mockHeaderRows, isSmallerRows, removeBorderLine, ToolbarComponent, gridLayoutStyle, browserHeightRatio, cellClassNames } = p;
+
   return <>
-    {HeaderComponent || <div className='pb_xs h_item gap_5'>
+    {ToolbarComponent || <div className='pb_xs h_item gap_5'>
       <span className='r h_item py_3 rel pill_xs ft_sm bg_alt'>
         <span className='mock alt ft_tn'>
           ... ... ... ... ... ... ... ... .
@@ -349,6 +367,9 @@ export const TablePageMock = memo((p: {
     {/* <CondensedGroupTitleMock /> */}
 
     <TableListMockSSR
+      mockHeaderRows={mockHeaderRows ?? true}
+      isSmallerRows={isSmallerRows ?? true}
+      removeBorderLine={removeBorderLine ?? true}
       cellClassNames={cellClassNames}
       gridLayoutStyle={gridLayoutStyle}
       browserHeightRatio={browserHeightRatio || .85}
@@ -365,7 +386,7 @@ TablePageMock.displayName = 'TablePageMock';
 
 export const TableList = memo((p: {
   gridLayoutStyle: string;
-  addHeaderBorder?: boolean;
+  borderStyle?: HeaderBorderStyle;
   headers?: TableHeaderObj[];
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
@@ -374,12 +395,12 @@ export const TableList = memo((p: {
     columns: Omit<TDColProps, 'removeLeftPadding' | 'removeRightPadding'>[];
   }[];
 }) => {
-  const { addHeaderBorder, headers, rows, gridLayoutStyle, removeLeftPadding, removeRightPadding } = p;
+  const { borderStyle, headers, rows, gridLayoutStyle, removeLeftPadding, removeRightPadding } = p;
 
   return <>
     {headers && (
       <THead
-        addHeaderBorder={addHeaderBorder !== false}
+        borderStyle={borderStyle ?? 'BORDER'}
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
         gridLayoutStyle={gridLayoutStyle}

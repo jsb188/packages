@@ -1,7 +1,7 @@
 
 /* Modal cover for alerts & screens */
 
-.bg_modal {
+.gr_modal {
   background: linear-gradient(360deg, rgba(var(--color-modal), 1) 0%, rgba(var(--color-modal), .5) 50%);
 }
 
@@ -11,7 +11,7 @@
 
 /* Alert black-to-transparent background */
 
-.bg_modal_alert_w_screen {
+.gr_modal_alert_w_screen {
   background-color: rgba(var(--color-darker-rgb), .064);
 }
 

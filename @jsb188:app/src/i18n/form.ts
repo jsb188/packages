@@ -257,6 +257,7 @@ export default {
     note: 'Note',
     notes: 'Notes',
     details: 'Details',
+    directory: 'Directory',
     temperature: 'Temperature',
     water: 'Water',
     quantity: 'Quantity',

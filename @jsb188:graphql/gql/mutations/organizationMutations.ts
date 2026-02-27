@@ -27,12 +27,16 @@ export const editOrganizationMtn = gql`
 mutation editOrganization (
   $organizationId: GenericID!
   $name: String
+  $operation: OrganizationOperation
   $address: AddressInput
+  $directory: [OrgContactInput!]
 ) {
   editOrganization (
     organizationId: $organizationId
     name: $name
+    operation: $operation
     address: $address
+    directory: $directory
   ) {
     ...organizationFragment
   }

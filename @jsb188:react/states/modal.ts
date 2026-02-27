@@ -244,6 +244,8 @@ function composeOpenModalScreenFn(
 ) {
   return (data: ModalRequestParams | ModalPropsFn) => {
     const nextScreenState = typeof data === 'function' ? data(prevScreen) : screenClass.open(data);
+    // console.log(nextScreenState);
+
     if (nextScreenState) {
       setScreen(nextScreenState);
     } else {

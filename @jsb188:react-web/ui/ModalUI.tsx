@@ -513,8 +513,8 @@ export function ModalToolbar(p: {
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
-  return <div className={cn('of w_f rt_smw', !hideSeparator && 'bd_b_1 bd_lt')}>
-    <nav className='h_50 h_spread shadow_bg shift_down'>
+  return <div className={cn('of w_f rt_smw f_shrink', !hideSeparator && 'bd_b_1 bd_lt')}>
+    <nav className='mw_toolbar_ht h_spread shadow_bg shift_down'>
       <div className={cn('ft_medium h_item', paddingClassName ?? 'px_df')}>
         {!breadcrumbs ? null : breadcrumbs.map((item, i) => {
           const { onClick, iconName, text } = item;
@@ -570,7 +570,7 @@ export const ModalTabsNav = memo((p: {
   const { switchCase, tabs, setSwitchCase } = p;
 
   return (
-    <nav className='mw_tabs_nav px_xs h_item h_45 bd_b_1 bd_lt bg_zinc_fd gap_xs sticky_top z2'>
+    <nav className='mw_tabs_nav px_xs h_item h_45 bd_b_1 bd_lt gap_xs sticky_top z2'>
       {tabs.map((tab) => {
         if (tab.hidden) {
           return null;

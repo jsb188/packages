@@ -311,7 +311,7 @@ export function ModalCover(p: ModalCoverProps) {
       className={cn(
         // 'fixed_full',
         // visible === 2 ? 'visible' : '',
-        'fixed_full bg_modal trans_op',
+        'fixed_full gr_modal trans_op',
         visible === 2 ? visibleCn : notVisibleCn,
         animationName ? `target ${animationName}` : '',
         onCloseModal ? 'cs_back' : '',
@@ -323,7 +323,7 @@ export function ModalCover(p: ModalCoverProps) {
       }}
       {...other}
     >
-      {/* <div className={cn('bg_modal abs_full trans_op spd_2', visible === 2 ? 'op_100' : 'op_0')} /> */}
+      {/* <div className={cn('gr_modal abs_full trans_op spd_2', visible === 2 ? 'op_100' : 'op_0')} /> */}
       {children}
     </div>
   );
@@ -349,10 +349,10 @@ export function ModalCoverAnimation(p: ModalCoverProps & {
       )}
       <div
         className={cn(
-          'w_f h_f v_center target spd_1 anim_inner rel z2',
+          'w_f h_f target spd_1 anim_inner rel z2',
           containerAnimationName || 'anim_move_up_center',
           visible === 2 ? 'visible' : visible === .5 ? 'reverse' : '',
-          containerClassName
+          containerClassName ?? 'v_center'
         )}
       >
         {children}
