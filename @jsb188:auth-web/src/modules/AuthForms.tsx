@@ -156,7 +156,7 @@ function SignInMain(p: AuthFormProps) {
       {/* <ContinueWithApple onFinishSignIn={onFinishSignIn} /> */}
       <ContinueWithPhone onClickButton={() => setAuthIface('VERIFY_PHONE')} />
 
-      <FormBreak className='mt_md'>
+      <FormBreak className='mt_md' colorClassName='strong_bf'>
         {i18n.t('form.or')}
       </FormBreak>
 

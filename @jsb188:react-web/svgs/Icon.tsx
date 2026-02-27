@@ -77,8 +77,9 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   copy: 'copy-1',
   daily: 'clock-share',
   description: 'notes-paper-text',
-  delete: 'trash-x',
-  delete_filled: 'trash-x-filled',
+  delete: 'bin',
+  add_line: 'pencil-write-3',
+  remove_line: 'remove-tab',
   edit: 'pencil-write-2',
   edit_note: 'content-paper-edit',
   email_address: 'read-email-at',
@@ -146,6 +147,14 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   growers: 'indoor-plant-house',
   write_log: 'content-paper-edit',
   time_recurring: 'time-daily-2',
+
+  // Org departments
+  DIRECTORY_ACCOUNTS_RECEIVABLE: 'receipt-dollar',
+	DIRECTORY_PRIMARY_CONTACT: 'single-neutral-id-card-4',
+	DIRECTORY_SALES: 'tool-box',
+	DIRECTORY_CUSTOMER_SERVICE: 'contact-us-email',
+	DIRECTORY_SHIPPING_RECEIVING: 'shipment-in-transit',
+	DIRECTORY_OTHER: 'single-neutral-phone-book',
 
   // Org features
   NORMAL_LOGGING: 'notes-tasks',

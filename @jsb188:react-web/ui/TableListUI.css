@@ -22,3 +22,12 @@
   bottom: 0;
   border-left: solid 1px var(--color-darker-light);
 }
+
+/* Table inline input */
+
+.table_inline_input {
+  width: 100%;
+  border: 1px solid var(--color-darker-light);
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-default));
+}

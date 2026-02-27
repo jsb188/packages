@@ -147,7 +147,7 @@ type TableListProps = {
   removeRightPadding?: boolean;
   doNotApplyGridToRows?: boolean;
   headers?: Partial<TableHeaderObj>[] | null;
-  listData: VZListItemObj[] | null;
+  listData: Omit<VZListItemObj, 'lastItemIdOnMount'>[] | null;
   mapListData: MapTableListDataFn;
   onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any, onClickProps?: any) => void;
 };

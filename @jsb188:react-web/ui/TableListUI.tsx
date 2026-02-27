@@ -208,6 +208,24 @@ export const TDColMain = memo((p: Partial<{
 TDColMain.displayName = 'TDColMain';
 
 /**
+ * Inline input field for editable table cells.
+ */
+
+export const InlineTableInput = memo((p: React.InputHTMLAttributes<HTMLInputElement>) => {
+  const { className, ...rest } = p;
+
+  return <input
+    {...rest}
+    className={cn(
+      'bd_1 bd_lt r_sm w_f px_4 pt_5 pb_3 -mx_5 -my_1',
+      className
+    )}
+  />;
+});
+
+InlineTableInput.displayName = 'InlineTableInput';
+
+/**
  * Table list mock item
  */
 
@@ -392,6 +410,7 @@ export const TableList = memo((p: {
   removeRightPadding?: boolean;
   rows: Partial<Omit<TableRowProps, 'removeLeftPadding' | 'removeRightPadding'>> & {
     __deleted?: boolean;
+    removeBorderLine?: boolean;
     columns: Omit<TDColProps, 'removeLeftPadding' | 'removeRightPadding'>[];
   }[];
 }) => {
@@ -414,16 +433,16 @@ export const TableList = memo((p: {
       return <TRow
         key={i}
         gridLayoutStyle={gridLayoutStyle}
-        // removeBorderLine={i !== 0}
         {...rest}
+        removeBorderLine={rest.removeBorderLine ?? true}
       >
         {columns.map((col, ii) => {
           return <TDCol
             key={ii}
             removeLeftPadding={removeLeftPadding}
             removeRightPadding={removeRightPadding}
-            // className='h_45 py_xs'
             {...col}
+            className={col.className ?? 'py_6 min_h_40'}
           />;
         })}
       </TRow>;

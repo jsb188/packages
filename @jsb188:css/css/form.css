@@ -63,6 +63,11 @@ input.invis_input::-webkit-inner-spin-button {
 
 /* Input */
 
+input:focus {
+  outline: 2px solid rgb(var(--color-main));
+  border-color: rgb(var(--color-main));
+}
+
 .form_el input::placeholder, .form_el textarea::placeholder {
   color: var(--color-text-light);
 }

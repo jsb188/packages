@@ -1445,6 +1445,10 @@ rect.s_dot_away {
   background-color: rgb(var(--color-primary));
 }
 
+/* .primary_fd_bf:before {
+  background-color: rgba(var(--color-primary), 0.125);
+} */
+
 .secondary_bf:before {
   background-color: rgb(var(--color-secondary));
 }
