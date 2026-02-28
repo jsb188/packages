@@ -60,7 +60,7 @@ mutation editChildOrganization (
     name: $name
     operation: $operation
     address: $address
-    directory: $preferredContacts
+    preferredContacts: $preferredContacts
   ) {
     ...organizationChildFragment
 
