@@ -2578,12 +2578,25 @@ export const ReplaceFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 <path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" />
 </svg>;
 
-export const RestaurantEatingSet = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-restaurant-eating-set" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-<path d="M2.68391039,9.16663119v12.89924175"/>
-<path d="M19.88003264,14.89962753h2.15274037c.39503505.00000182.71557115-.31967954.71662454-.71471368.00764344-3.66051847.02675387-8.08161401-1.48962356-11.74213157-.15134341-.36570193-.57048975-.53947449-.93619214-.38813199-.2679633.11089414-.44267443.37235759-.44259424.66236026v19.34886239"/>
-<path d="M1.2506613,2.00038578v5.73299633c0,.79156179.64168752,1.43324908,1.43324908,1.43324908h0c.79156157,0,1.43324908-.64168729,1.43324908-1.43324908V2.00038578"/>
-<path d="M16.29977668,8.48153813c-2.44862392-2.62840653-6.51120033-2.92025831-9.31038646-.66884939"/>
-<path d="M6.2670331,18.45121785c2.58313773,2.77046491,6.92309141,2.92232408,9.69355632.33918727.11698256-.10907303.23011423-.22220471.33918727-.33918727"/>
+export const RestaurantDishes = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-restaurant-dishes" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="m11.25 17.25 -3.2 -3.334a1.891 1.891 0 0 1 -0.35 -2.183h0a1.89 1.89 0 0 1 3.028 -0.491l0.522 0.522 0.522 -0.522a1.89 1.89 0 0 1 3.028 0.491h0a1.891 1.891 0 0 1 -0.354 2.183Z" />
+<path d="m2.25 9 0 13.5" />
+<path d="M20.247 15H22.5a0.75 0.75 0 0 0 0.75 -0.748c0.008 -3.831 0.028 -8.458 -1.559 -12.289a0.75 0.75 0 0 0 -1.443 0.287V22.5" />
+<path d="M0.75 1.5v6A1.5 1.5 0 0 0 2.25 9h0a1.5 1.5 0 0 0 1.5 -1.5v-6" />
+<path d="M16.5 8.565a7.176 7.176 0 0 0 -10.5 0" />
+<path d="M6 18.435a7.176 7.176 0 0 0 10.5 0" />
+</svg>
+
+export const RestaurantDishesColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-restaurant-dishes-color">
+<path fill="#e3e3e3" d="M20.5 15H23a0.5 0.5 0 0 0 0.5 -0.5C23.443 6.77 21.852 1 20.5 1v21" strokeWidth="1"/>
+<path fill="#ffffff" d="M23.05 7.935C22.47 3.724 21.429 1 20.5 1v9.485l2.55 -2.55Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 15H23a0.5 0.5 0 0 0 0.5 -0.5C23.443 6.77 21.852 1 20.5 1v21" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M0.5 2v4a3 3 0 1 0 6 0V2" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M3.5 2v20" strokeWidth="1"/>
+<path fill="#e3e3e3" d="M12 22a6.5 6.5 0 1 0 0 -13 6.5 6.5 0 0 0 0 13Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 22a6.5 6.5 0 1 0 0 -13 6.5 6.5 0 0 0 0 13v0Z" strokeWidth="1"/>
+<path fill="#b2b2b2" d="M12 20a4.5 4.5 0 1 0 0 -9 4.5 4.5 0 0 0 0 9Z" strokeWidth="1"/>
+<path fill="#ff808c" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.692 18.751a0.5 0.5 0 0 0 0.615 0c0.832 -0.649 3.063 -2.528 3.063 -3.991 0 -2.074 -2.757 -2.73 -3.37 -0.207 -0.613 -2.523 -3.37 -1.867 -3.37 0.207 0 1.462 2.23 3.34 3.062 3.991Z" strokeWidth="1"/>
 </svg>;
 
 export const RewardStars3 = <svg xmlns="http://www.w3.org/2000/svg" strokeWidth="1.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" fill="none" viewBox="0 0 24 24" className="icon icon-reward-stars-3">

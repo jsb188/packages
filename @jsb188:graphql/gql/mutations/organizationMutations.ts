@@ -52,7 +52,7 @@ mutation editChildOrganization (
   $name: String
   $operation: OrganizationOperation
   $address: AddressInput
-  $directory: [OrgContactInput!]
+  $preferredContacts: [OrgContactInput!]
 ) {
   editChildOrganization (
     organizationId: $organizationId
@@ -60,7 +60,7 @@ mutation editChildOrganization (
     name: $name
     operation: $operation
     address: $address
-    directory: $directory
+    directory: $preferredContacts
   ) {
     ...organizationChildFragment
 
