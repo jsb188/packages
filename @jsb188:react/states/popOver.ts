@@ -226,7 +226,7 @@ export function usePopOverState() {
   const closePopOver = useCallback( composeClosePopOverFn(setPopOver, setPopOverIsHover, popOver), [popOver]);
 
   return {
-    popOverState: popOver?.globalState,
+    popOver: popOver?.globalState,
     closePopOver,
     updatePopOver
   };

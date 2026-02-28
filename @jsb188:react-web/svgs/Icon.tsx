@@ -84,6 +84,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   edit_note: 'content-paper-edit',
   email_address: 'read-email-at',
   empty: 'square-forbid-2',
+  cancel: 'circle-x',
   failed: 'circle-x',
   favorites: 'stars',
   field_work: 'farming-field-sun',
@@ -118,7 +119,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   phone: 'phone', // Tabler version
   plans: 'map',
   plus: 'plus',
-  plus_circle: 'circle-plus-filled',
+  plus_circle: 'circle-plus',
+  plus_circle_filled: 'circle-plus-filled',
   post_harvest: 'farming-barn-silo',
   progress: 'progress',
   progress_check: 'progress-check',

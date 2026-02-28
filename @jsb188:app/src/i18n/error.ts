@@ -106,6 +106,7 @@ export default {
     20061: 'You do not have permissions to perform this action. Please contact your administrator.',
     20062: '"%{value}" is not a valid e-mail address.',
     20063: 'You cannot change your e-mail to the same e-mail address.',
+    20064: '"%{value}" is not a valid phone number.',
 
     // 3x
 

@@ -31,7 +31,7 @@ type ModalPropsFn = (prev: ModalProps | null) => ModalProps | null;
 
 export type OpenModalScreenFn = (data: ModalRequestParams | ModalPropsFn) => void;
 
-export type OpenModalPopUpFn = (data: ModalRequestParams | null, err?: ServerErrorObj) => void;
+export type OpenModalPopUpFn = (data: ModalRequestParams | null, err?: Partial<ServerErrorObj>) => void;
 
 export interface ModalScreenProps {
   screen: ModalProps | null;

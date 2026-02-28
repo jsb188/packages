@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
+import { organizationChildFragment, organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
 
 export const switchOrganizationMtn = gql`
 mutation switchOrganization (
@@ -42,6 +42,35 @@ mutation editOrganization (
   }
 }
 
+${organizationFragment}
+`;
+
+export const editChildOrganizationMtn = gql`
+mutation editChildOrganization (
+  $organizationId: GenericID!
+  $childOrgId: GenericID!
+  $name: String
+  $operation: OrganizationOperation
+  $address: AddressInput
+  $directory: [OrgContactInput!]
+) {
+  editChildOrganization (
+    organizationId: $organizationId
+    childOrgId: $childOrgId
+    name: $name
+    operation: $operation
+    address: $address
+    directory: $directory
+  ) {
+    ...organizationChildFragment
+
+    organization {
+      ...organizationFragment
+    }
+  }
+}
+
+${organizationChildFragment}
 ${organizationFragment}
 `;
 

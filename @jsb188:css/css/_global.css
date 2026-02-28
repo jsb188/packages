@@ -580,27 +580,23 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
 .bg_lighter_4 { background-color: rgba(var(--color-lighter-rgb),.75); }
 .bg_lighter_5 { background-color: rgba(var(--color-lighter-rgb),.9); }
 
-.bg_active.link:not(:disabled):not(.disabled):hover {
+.pill.bg_active[role="button"]:not(:disabled):hover, .pill.bg_alt[role="button"]:not(:disabled):hover, .pill.bg[role="button"]:not(:disabled):hover,
+a.pill.bg_active:not(:disabled):hover, a.pill.bg_alt:not(:disabled):hover, a.pill.bg:not(:disabled):hover,
+button.pill.bg_active:not(:disabled):hover, button.pill.bg_alt:not(:disabled):hover, button.pill.bg:not(:disabled):hover {
+  color: var(--color-text) !important;
   background-color: rgb(var(--color-bg-medium)) !important;
 }
 
-.pill.bg_active[role="button"]:hover, .pill.bg_alt[role="button"]:hover, .pill.bg[role="button"]:hover,
-a.pill.bg_active:hover, a.pill.bg_alt:hover, a.pill.bg:hover,
-button.pill.bg_active:hover, button.pill.bg_alt:hover, button.pill.bg:hover {
-  color: var(--color-solid) !important;
-  background-color: rgb(var(--color-secondary)) !important;
-}
-
-.pill.bg_subtle[role="button"]:hover,
-a.pill.bg_subtle:hover,
-button.pill.bg_subtle:hover {
+.pill.bg_subtle[role="button"]:not(:disabled):hover,
+a.pill.bg_subtle:not(:disabled):hover,
+button.pill.bg_subtle:not(:disabled):hover {
   color: var(--color-text-bold);
   background-color: rgb(var(--color-bg-alt)) !important;
 }
 
-.pill.bg_active[role="button"]:active, .pill.bg_alt[role="button"]:active, .pill.bg[role="button"]:active,
-a.pill.bg_active:active, a.pill.bg_alt:active, a.pill.bg:active,
-button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
+.pill.bg_active[role="button"]:not(:disabled):active, .pill.bg_alt[role="button"]:not(:disabled):active, .pill.bg[role="button"]:not(:disabled):active,
+a.pill.bg_active:not(:disabled):active, a.pill.bg_alt:not(:disabled):active, a.pill.bg:not(:disabled):active,
+button.pill.bg_active:not(:disabled):active, button.pill.bg_alt:not(:disabled):active, button.pill.bg:not(:disabled):active {
   background-color: rgb(var(--color-bg-medium)) !important;
 }
 
@@ -938,7 +934,7 @@ button.pill.bg_active:active, button.pill.bg_alt:active, button.pill.bg:active {
 .cl_invis { color: rgba(0,0,0,0); }
 
 .cl_darker_1 { color: rgba(var(--color-darker-rgb),.1); }
-.cl_darker_2 { color: rgba(var(--color-darker-rgb),.2); }
+.cl_darker_2, input::placeholder, textarea::placeholder { color: rgba(var(--color-darker-rgb),.2); }
 .cl_darker_3 { color: rgba(var(--color-darker-rgb),.3); }
 .cl_darker_4 { color: rgba(var(--color-darker-rgb),.42); }
 .cl_darker_5 { color: rgba(var(--color-darker-rgb),.64); }

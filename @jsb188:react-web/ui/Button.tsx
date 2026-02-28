@@ -502,8 +502,9 @@ PillButton.displayName = 'PillButton';
 
 type ButtonSize = 'sm' | 'df' | 'md' | 'lg';
 
-interface PillProps {
+export function Pill(p: Partial<{
   as: React.ElementType;
+  disabled: boolean;
   loading: boolean;
   addLoadingIndicator: boolean;
   to: string;
@@ -515,14 +516,12 @@ interface PillProps {
   size?: ButtonSize | null;
   className: string;
   onClick: (e: React.MouseEvent<any>) => void;
-}
-
-export function Pill(p: Partial<PillProps>) {
-  const { preset, loading, addLoadingIndicator, to, href, target, onClick, title, children, className } = p;
+}>) {
+  const { preset, disabled, loading, addLoadingIndicator, to, href, target, onClick, title, children, className } = p;
   const LinkComponent = p.as || (to ? Link : 'a');
 
   let onClick_: (e: React.MouseEvent<any>) => void;
-  if (loading) {
+  if (disabled || loading) {
     onClick_ = (e: React.MouseEvent) => e.preventDefault();
   } else {
     onClick_ = onClick!;
@@ -542,6 +541,7 @@ export function Pill(p: Partial<PillProps>) {
     <SmartLink
       Component={LinkComponent}
       to={to}
+      disabled={disabled}
       href={href}
       target={target}
       onClick={onClick_}
@@ -551,7 +551,7 @@ export function Pill(p: Partial<PillProps>) {
         loading && !addLoadingIndicator ? 'is_loading' : '',
         loading && addLoadingIndicator ? 'with_loading_indicator' : '',
         `pill pill_${size || 'df'}`,
-        className ?? (!presetClassNames && 'bg_active'),
+        className ?? (presetClassNames ? '' : disabled ? 'bg_active cl_lt disabled' : 'bg_active'),
         presetClassNames,
       )}
     >

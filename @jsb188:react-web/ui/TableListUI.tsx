@@ -1,6 +1,9 @@
 import { cn } from '@jsb188/app/utils/string.ts';
-import { memo } from 'react';
+import { usePopOver } from '@jsb188/react/states';
+import type { POPosition } from '@jsb188/react/types/PopOver.d';
+import { memo, useEffect, useId } from 'react';
 import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFeatures';
+import { PopOverButton } from '../modules/PopOver';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { useWaitForClientRender } from '../utils/dom';
@@ -106,7 +109,7 @@ TDCol.displayName = 'TDCol';
  */
 
 export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
-  borderStyle: HeaderBorderStyle;
+  borderStyle?: HeaderBorderStyle;
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
   cellClassNames?: string | (string | undefined)[];
@@ -212,18 +215,162 @@ TDColMain.displayName = 'TDColMain';
  */
 
 export const InlineTableInput = memo((p: React.InputHTMLAttributes<HTMLInputElement>) => {
-  const { className, ...rest } = p;
+  const { className, type, onBeforeInput, onChange, onKeyDown, onPaste, ...rest } = p;
+
+  /**
+   * Check whether this input should enforce numeric-only typing.
+   */
+
+  const isNumericOnlyInput = type === 'number' || type === 'tel';
+
+  /**
+   * Validate that a value contains only digits.
+   */
+
+  const isDigitsOnly = (value: string) => {
+    return /^\d*$/.test(value);
+  };
 
   return <input
     {...rest}
+    type={type}
+    onBeforeInput={(e) => {
+      if (isNumericOnlyInput) {
+        const nativeEvent = e.nativeEvent as InputEvent;
+        const inputData = nativeEvent.data || '';
+        if (inputData && !isDigitsOnly(inputData)) {
+          e.preventDefault();
+        }
+      }
+
+      onBeforeInput?.(e);
+    }}
+    onKeyDown={(e) => {
+      if (
+        isNumericOnlyInput &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        e.key.length === 1 &&
+        !isDigitsOnly(e.key)
+      ) {
+        e.preventDefault();
+      }
+
+      onKeyDown?.(e);
+    }}
+    onPaste={(e) => {
+      if (isNumericOnlyInput) {
+        const pasteText = e.clipboardData.getData('text');
+        if (!isDigitsOnly(pasteText)) {
+          e.preventDefault();
+        }
+      }
+
+      onPaste?.(e);
+    }}
+    onChange={(e) => {
+      if (isNumericOnlyInput && !isDigitsOnly(e.target.value)) {
+        return;
+      }
+
+      onChange?.(e);
+    }}
     className={cn(
-      'bd_1 bd_lt r_sm w_f px_4 pt_5 pb_3 -mx_5 -my_1',
+      'bd_1 bd_lt r_sm w_f px_4 pt_5 pb_3 -mx_5 -my_1 focus_bg',
       className
     )}
   />;
 });
 
 InlineTableInput.displayName = 'InlineTableInput';
+
+/**
+ * Inline option item for table option selector.
+ */
+
+export interface InlineTableOption {
+  value: string | null;
+  text: string;
+  iconName?: string;
+  className?: string;
+  textClassName?: string;
+  disabled?: boolean;
+}
+
+/**
+ * Inline option selector for editable table cells.
+ */
+
+export const InlineTableOptions = memo((p: {
+  value?: string | null;
+  options: InlineTableOption[];
+  placeholder?: string;
+  placeholderIcon?: string;
+  className?: string;
+  disabled?: boolean;
+  position?: POPosition;
+  onChange: (value: string | number | null) => void;
+}) => {
+  const { popOver, closePopOver } = usePopOver();
+  const globalState = popOver?.globalState;
+  const { value, options, placeholder, placeholderIcon, className, disabled, position, onChange } = p;
+  const selectedOption = options.find((option) => option.value === value);
+  const optionFieldName = useId().replaceAll(':', '_');
+
+  useEffect(() => {
+    const { action, name, value } = globalState || {};
+    if (action === 'ITEM' && name === optionFieldName) {
+      onChange(value);
+      closePopOver();
+    }
+  }, [globalState]);
+
+  return <PopOverButton
+    disabled={disabled}
+    zClassName='z8'
+    className={cn(
+      // 'r_sm w_f px_4 pt_5 pb_3 -mx_5 -my_1 h_item',
+      'h_item w_f',
+      disabled ? 'op_50' : 'link focus_bg',
+      className,
+    )}
+    position={position || 'bottom_left'}
+    offsetX={0}
+    offsetY={5}
+    iface={{
+      name: 'PO_LIST',
+      variables: {
+        initialState: {
+          [optionFieldName]: value,
+        },
+        options: options.map((option) => ({
+          __type: 'SINGLE_OPTION_LIST_ITEM' as const,
+          name: optionFieldName,
+          value: option.value,
+          text: option.text,
+          iconName: option.iconName,
+          className: option.className,
+          textClassName: option.textClassName,
+          disabled: option.disabled,
+        })),
+      },
+    }}
+  >
+    <TDColMain
+      className='min_w_0 g_fill'
+      iconName={selectedOption?.iconName || placeholderIcon || 'issue-draft'}
+      title={selectedOption?.text || ''}
+      placeholderText={placeholder || '-'}
+    />
+
+    <span className={cn('f_shrink ml_4', !selectedOption?.text && 'cl_darker_2')}>
+      <Icon name='caret-down' />
+    </span>
+  </PopOverButton>;
+});
+
+InlineTableOptions.displayName = 'InlineTableOptions';
 
 /**
  * Table list mock item

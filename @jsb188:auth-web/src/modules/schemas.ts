@@ -27,7 +27,6 @@ interface SignInDataForSchema {
 
 const MIN_LEN_VALUES = {
   password: 8,
-  pronouns: 20,
   description: 750,
 };
 

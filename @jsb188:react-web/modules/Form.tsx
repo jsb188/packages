@@ -183,7 +183,9 @@ export function InputRightButton(p: InputRightButtonProps) {
  * Form; input
  */
 
-export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
+export function Input(p: Partial<InputType> & Omit<LabelType, 'children'> & {
+  disabledButClickable?: boolean;
+}) {
   const {
     id,
     className,
@@ -214,6 +216,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
     fullWidth,
     locked,
     disabled,
+    disabledButClickable,
     editable,
     focused,
     error,
@@ -306,7 +309,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'>) {
           max={max}
           placeholder={placeholder || ''}
           value={(getter ? getter(value) : value) || ''}
-          disabled={disabled || locked || editable === false}
+          disabled={disabled || locked || editable === false || disabledButClickable}
           autoFocus={autoFocus}
           autoComplete={autoComplete || 'off'}
           spellCheck={spellCheck}
@@ -408,7 +411,7 @@ function InputClick(p: InputType & Omit<LabelType, 'children'> & { popOverProps:
     {...rest}
     // as={popOverProps ? PopOverButton : undefined}
     // locked
-    disabled
+    disabledButClickable
     value={value}
     inputClassName={isDisabled ? inputClassName : cn('pointer', inputClassName)}
     rightIconName={locked ? 'locked' : 'caret-down'}

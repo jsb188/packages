@@ -102,7 +102,7 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
   const currentDate = formValues?.[name] || '';
   const htmlFor = getHtmlFor(id, name);
 
-  const { popOverState, closePopOver } = usePopOverState();
+  const { popOver, closePopOver } = usePopOverState();
   const [timeFormValues, setTimeFormValues] = useState<Record<TimeFormField, string>>(() => {
 		const d = getDateWithTimeZone(currentDate, timeZone);
     if (isNaN(d.getTime())) {
@@ -192,11 +192,11 @@ export function InputTimeFromDate(p: InputTimeType & Omit<LabelType, 'children'>
   };
 
   useEffect(() => {
-    if (popOverState?.id === `${name}_ampm` && popOverState?.action === 'ITEM') {
-      onChangeTime({ target: { value: popOverState.value } } as React.ChangeEvent<HTMLInputElement>, 'AMPM');
+    if (popOver?.id === `${name}_ampm` && popOver?.action === 'ITEM') {
+      onChangeTime({ target: { value: popOver.value } } as React.ChangeEvent<HTMLInputElement>, 'AMPM');
       closePopOver();
     }
-  }, [popOverState]);
+  }, [popOver]);
 
   let labelIconName;
   if (locked && allowClearIfLocked && setFormValues) {

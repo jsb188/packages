@@ -61,23 +61,64 @@ input.invis_input::-webkit-inner-spin-button {
   margin: 0;
 }
 
-/* Input */
+/* Input; focus, placeholder */
 
-input:focus {
+input:focus, textarea:focus, [contenteditable='true']:focus,
+.form_el input.focus, .form_el textarea.form_el, .form_el.focused input, .form_el.focused textarea {
   outline: 2px solid rgb(var(--color-main));
-  border-color: rgb(var(--color-main));
+  border-color: rgb(var(--color-main)) !important;
+  /* box-shadow: 0 0 20px rgba(0,0,0,.05); */
+  box-shadow: 0 0 40px rgba(var(--color-main),.1);
 }
 
-.form_el input::placeholder, .form_el textarea::placeholder {
+input.error, textarea.error, [contenteditable='true'].error,
+.form_el.error .form_input, .form_el .form_input.error {
+  border-color: rgb(var(--color-error)) !important;
+  background-color: rgba(var(--color-error-faded), .1) !important;
+}
+input.error:focus, textarea.error:focus, [contenteditable='true'].error:focus,
+.form_el.error .form_input:focus, .form_el .form_input.error:focus {
+  outline: 2px solid rgb(var(--color-error)) !important;
+}
+
+.form_input:not(.disabled):not(.error):hover,
+.form_el:hover .form_input:not(.disabled):not(.error) {
+  background-color: rgba(var(--color-main), .04);
+}
+
+input:not(.error):not(.disabled):focus, textarea:not(.error):not(.disabled):focus, [contenteditable='true']:not(.error):not(.disabled):focus,
+.form_input:not(.disabled):not(.error):focus:hover,
+.form_el.focused .form_input:not(.error):not(.disabled) {
+  /* background-color: rgba(var(--color-main), .075) !important; */
+  background-color: rgba(var(--color-main), .075);
+}
+
+input.focus_bg:focus, textarea.focus_bg:focus, [contenteditable='true'].focus_bg:focus {
+  background-color: rgb(var(--color-bg)) !important;
+}
+
+/* .form_el .form_input:not(.error):not(.disabled):focus, .form_el:not(.error):not(.disabled):hover .form_input:not(.error):not(.disabled):focus,
+.form_el.focused .form_input:not(.error):not(.disabled) {
+  background-color: rgba(var(--color-main), .075) !important;
+} */
+
+/* Input; focus, placeholder for black single outlines */
+
+/* .form_el input::placeholder, .form_el textarea::placeholder {
   color: var(--color-text-light);
-}
+} */
 
-.form_el input:focus, .form_el textarea:focus, [contenteditable='true']:focus {
+/* .form_el input:focus, .form_el textarea:focus, [contenteditable='true']:focus {
   outline: none;
-}
+} */
+
+/* .form_el .form_input:not(.disabled):not(.error):focus, .form_el.focused .form_input:not(.disabled):not(.error) {
+  border-color: var(--color-text-default) !important;
+} */
+
+/* Input; form element; various styles */
 
 /* .focus_shadow input:focus, .focus_shadow textarea:focus, .focus_shadow [contenteditable='true']:focus {
-  box-shadow: 0 0 20px rgba(0,0,0,.05);
   box-shadow: 0 0 40px rgba(var(--color-main),.15), 0 0 1px rgba(0,0,0,.32);
 } */
 
@@ -85,32 +126,14 @@ input:focus {
 	cursor: not-allowed !important;
 }
 
-.form_el:hover .form_input:not(.disabled):not(.error) {
-  background-color: rgba(var(--color-main), .04) !important;
-}
-
-.form_el .form_input:not(.error):not(.disabled):focus, .form_el:not(.error):not(.disabled):hover .form_input:not(.error):not(.disabled):focus,
-.form_el.focused .form_input:not(.error):not(.disabled) {
-  background-color: rgba(var(--color-main), .075) !important;
-}
-
 .form_el:not(.disabled):hover .form_el_r,
 .form_el:not(.disabled).focused .form_el_r {
   background: linear-gradient(to left, var(--color-main-bg) 50%, rgba(var(--color-main), 0)) !important;
 }
 
-.form_el .form_input:not(.disabled):not(.error):focus, .form_el.focused .form_input:not(.disabled):not(.error) {
-  border-color: var(--color-text-default) !important;
-}
-
 [contenteditable='true']:empty:before {
   content: attr(data-placeholder);
   color: var(--color-text-light);
-}
-
-.form_el.error .form_input, .form_el .form_input.error {
-  border-color: rgb(var(--color-error)) !important;
-  background-color: rgba(var(--color-error-faded), .1) !important;
 }
 
 .form_el.c input {

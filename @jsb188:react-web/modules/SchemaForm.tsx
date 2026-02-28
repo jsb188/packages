@@ -38,7 +38,7 @@ interface SchemaFormProps {
   hideButton?: boolean;
   stickyFooter?: boolean;
   onError?: (error: any) => void;
-  onSubmit: (formValues: any, currentData: any, setFormValues: SetFormValuesFunc) => boolean | void | Promise<void | boolean>; // Must return true/false which determines if form should be submitted
+  onSubmit: (formValues: any, currentData: any, setFormValues: SetFormValuesFunc) => any; // Return "true" to post form; async mutation payloads are also allowed
   onFormValuesChange?: (formValues: any, currentValues: any, setFormValues: SetFormValuesFunc) => void;
   onChangeDiff?: (diff?: boolean, saving?: boolean, fv?: any) => void;
   actionUrl?: string;
@@ -88,12 +88,29 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
   const autoComplete = p.autoComplete || true;
   const buttonPreset = p.buttonPreset || 'bg_primary';
   const buttonText = p.buttonText || i18n.t('form.continue');
+  const lastSavedFormValuesRef = useRef<any>(null);
 
   const { formValues, setFormValues, listData, validate, isButtonDisabled } = useSchema(
     schema,
     dataForSchema,
     currentData,
   );
+
+  /**
+   * Resolve the baseline values used for diff checks.
+   */
+
+  const getDiffBaselineValues = () => {
+    return lastSavedFormValuesRef.current || makeFormValues(schema, dataForSchema, currentData);
+  };
+
+  /**
+   * Persist the latest saved form values as the new local baseline.
+   */
+
+  const setDiffBaselineValues = (nextFormValues: any) => {
+    lastSavedFormValuesRef.current = JSON.parse(JSON.stringify(nextFormValues || {}));
+  };
 
   // Imperative handle
 
@@ -132,7 +149,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
   }, [disabled, listenToInput && formValues]);
 
   useEffect(() => {
-    const currentDataObj = makeFormValues(schema, dataForSchema, currentData);
+    const currentDataObj = getDiffBaselineValues();
     if (onChangeDiff) {
       onChangeDiff(formValuesAreDiff(formValues, currentDataObj), saving, formValues);
     }
@@ -143,7 +160,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
 
   useEffect(() => {
     if (!saving && onChangeDiff) {
-      const currentDataObj = makeFormValues(schema, dataForSchema, currentData);
+      const currentDataObj = getDiffBaselineValues();
       onChangeDiff(formValuesAreDiff(formValues, currentDataObj), saving, formValues);
     }
   }, [saving]);
@@ -152,12 +169,29 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     if (!saving && Number(saveCounter) > 0) {
       const errored = handleError();
       if (!errored) {
-
-        const currentDataObj = makeFormValues(schema, dataForSchema, currentData);
+        const currentDataObj = getDiffBaselineValues();
         const hasDiff = formValuesAreDiff(formValues, currentDataObj);
 
         if (hasDiff) {
-          onSubmit(formValues, currentData, setFormValues);
+          Promise.resolve(onSubmit(formValues, currentData, setFormValues))
+            .then((result) => {
+              const hasSubmitError = !!(
+                result === false ||
+                (
+                  result &&
+                  typeof result === 'object' &&
+                  'error' in result &&
+                  (result as any).error
+                )
+              );
+              if (hasSubmitError) {
+                return;
+              }
+
+              setDiffBaselineValues(formValues);
+              onChangeDiff?.(false, saving, formValues);
+            })
+            .catch(() => null);
         }
       }
     }

@@ -1,11 +1,11 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
+import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
+import { useMemo } from 'react';
 import { updateFragment } from '../cache/index';
-import { deleteComplianceDocumentMtn, editMembershipMtn, editOrganizationMtn, removeMembershipMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
+import { deleteComplianceDocumentMtn, editChildOrganizationMtn, editMembershipMtn, editOrganizationMtn, removeMembershipMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
 import { useMutation } from './index';
 import { useOrgRelFromMyOrganizations } from './use-organization-qry';
-import { useMemo } from 'react';
-import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
 
 /**
  * Fetch a single log entry,
@@ -75,10 +75,51 @@ export function useDeleteComplianceDocument(params: UseMutationParams = {}, open
 }
 
 /**
- * Edit logged in user's organization (if allowed)
+ * Edit an organization
  */
 
 export function useEditOrganization(
+  params?: UseMutationParams | null,
+  openModalPopUp?: OpenModalPopUpFn
+) {
+  const [editOrganization, mtnValues, mtnHandlers] = useMutation(editOrganizationMtn, {
+    // checkMountedBeforeCallback: true,
+    openModalPopUp,
+    ...params,
+  });
+
+  return {
+    editOrganization,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Edit a child organization from parent organization context
+ */
+
+export function useEditChildOrganization(
+  params?: UseMutationParams | null,
+  openModalPopUp?: OpenModalPopUpFn
+) {
+  const [editChildOrganization, mtnValues, mtnHandlers] = useMutation(editChildOrganizationMtn, {
+    openModalPopUp,
+    ...params,
+  });
+
+  return {
+    editChildOrganization,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Edit logged in user's organization with ACL permission check
+ */
+
+export function useEditOrganizationWithACL(
   params?: UseMutationParams | null,
   openModalPopUp?: OpenModalPopUpFn
 ) {
@@ -88,19 +129,12 @@ export function useEditOrganization(
 		checkACLPermission(organizationRelationship, 'orgManagement', 'MANAGE'),
 		[organizationRelationship?.acl, organizationRelationship?.role]
 	);
-
-  const [editOrganization, mtnValues, mtnHandlers] = useMutation(editOrganizationMtn, {
-    // checkMountedBeforeCallback: true,
-    openModalPopUp,
-    ...params,
-  });
+  const mtnHook = useEditOrganization(params, openModalPopUp);
 
   return {
     allowEdit,
     organizationRelationship,
-    editOrganization,
-    ...mtnValues,
-    ...mtnHandlers,
+    ...mtnHook
   };
 }
 

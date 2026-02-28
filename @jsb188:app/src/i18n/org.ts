@@ -15,6 +15,7 @@ export default {
 		administration: 'Administration',
 		billing: 'Billing',
 		plans: 'Plans',
+    department_req_msg: 'Please select a department for this contact.',
 		address_notice_msg: 'This information will appear on the invoices you generate for your customers and to others in your network.',
 		no_recurring_schedule: 'This event does not have a recurring schedule.',
 		daily_event_msg: 'This event repeats every day.',
@@ -29,6 +30,7 @@ export default {
 		past_markets: 'Past Markets',
 		load_lists: 'Load Lists',
 		contact_to_change: 'Please contact us to change this information.',
+		locked_contact_msg: 'This contact information is saved by the owner of this organization.',
 		vendor_documents_not_found_msg: "This vendor hasn't submitted any compliance documents or certifications.",
 		switch_organizations: 'Switch organizations',
 		switch_msg: (

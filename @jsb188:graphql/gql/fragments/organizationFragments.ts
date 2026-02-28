@@ -78,6 +78,7 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
 
 export const organizationChildFragment = `fragment organizationChildFragment on OrganizationChild {
   id
+  parentId
   cursor
   addedAt
 

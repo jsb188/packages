@@ -245,10 +245,32 @@ export function getOrganizationFeatureColor(feature?: OrganizationFeatureEnum | 
 }
 
 /**
+ * Check if preferred contact overrides at least one directory field.
+ */
+
+function hasPreferredOverride(dirContact: OrgContact, preferred?: OrgContact) {
+	if (!preferred) {
+		return false;
+	}
+
+	return (
+		preferred.name !== undefined && preferred.name !== dirContact.name
+	) || (
+		preferred.phoneNumber !== undefined && preferred.phoneNumber !== dirContact.phoneNumber
+	) || (
+		preferred.emailAddress !== undefined && preferred.emailAddress !== dirContact.emailAddress
+	);
+}
+
+/**
  * Merge directory with preferred contacts
  */
 
-export function mergeOrgDirectory(directory: OrgContact[], preferredContacts?: OrgContact[]): MergedOrgContact[] {
+export function mergeOrgDirectory(
+	directory: OrgContact[],
+	preferredContacts?: OrgContact[],
+	duplicateOrgContacts: boolean = false,
+): MergedOrgContact[] {
 	if (!preferredContacts?.length) {
 		return directory || [];
 	}
@@ -262,11 +284,14 @@ export function mergeOrgDirectory(directory: OrgContact[], preferredContacts?: O
 	}
 
 	// Merge directory with preferred contacts, removing matched entries from map
-	const merged: MergedOrgContact[] = (directory || []).map((dirContact) => {
+	const merged: MergedOrgContact[] = [];
+	for (const dirContact of directory || []) {
 		const preferred = preferredMap.get(dirContact.department);
+		const hasOverride = hasPreferredOverride(dirContact, preferred);
+		const hasPreferredContact = !!preferred;
 		preferredMap.delete(dirContact.department);
 
-		return {
+		const mergedContact: MergedOrgContact = {
 			department: dirContact.department,
 			name: preferred?.name ?? dirContact.name,
 			phoneNumber: preferred?.phoneNumber ?? dirContact.phoneNumber,
@@ -274,8 +299,24 @@ export function mergeOrgDirectory(directory: OrgContact[], preferredContacts?: O
 			defaultName: dirContact.name,
 			defaultPhoneNumber: dirContact.phoneNumber,
 			defaultEmailAddress: dirContact.emailAddress,
+			officialContact: !hasPreferredContact,
 		};
-	});
+		merged.push(mergedContact);
+
+		if (duplicateOrgContacts && hasOverride) {
+			merged.push({
+				department: dirContact.department,
+				name: dirContact.name,
+				phoneNumber: dirContact.phoneNumber,
+				emailAddress: dirContact.emailAddress,
+				defaultName: dirContact.name,
+				defaultPhoneNumber: dirContact.phoneNumber,
+				defaultEmailAddress: dirContact.emailAddress,
+				officialContact: true,
+				locked: true,
+			});
+		}
+	}
 
 	// Add remaining preferred contacts (not in directory)
 	for (const [, preferred] of preferredMap) {

@@ -101,6 +101,8 @@ export interface MergedOrgContact extends OrgContact {
 	defaultName?: string | null;
 	defaultPhoneNumber?: string | null;
 	defaultEmailAddress?: string | null;
+	officialContact?: boolean;
+	locked?: boolean;
 }
 
 export interface OrganizationSettingsObj {
@@ -222,6 +224,7 @@ export interface OrganizationChildGQL {
   __deleted?: boolean;
 
 	id: string;
+  parentId: string;
   cursor: string;
 	organization: OrganizationGQL;
   preferredContacts: OrgContact[];
