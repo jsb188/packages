@@ -121,15 +121,15 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
 }
 
 .bg_primary_fd, .bg_primary_fd_hv:hover {
-  background-color: rgba(var(--color-primary), 0.064) !important;
+  background-color: rgba(var(--color-primary), 0.075) !important;
 }
 
 .bg_secondary_fd, .bg_secondary_fd_hv:hover {
-  background-color: rgba(var(--color-secondary), 0.1) !important;
+  background-color: rgba(var(--color-secondary), 0.075) !important;
 }
 
 .bg_main_fd, .bg_main_fd_hv:hover {
-  background-color: rgba(var(--color-main), .064) !important;
+  background-color: rgba(var(--color-main), .1) !important;
 }
 
 .bg_primary_fd_hv:hover .bg_active, .bg_secondary_fd_hv:hover .bg_active {

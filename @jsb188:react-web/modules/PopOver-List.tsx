@@ -238,6 +238,20 @@ export function PopOverList(p: PopOverHandlerProps & {
 
   useOnClickOutside(divRef, true, false, 'ignore_outside_click', dismissFn);
 
+  useEffect(() => {
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.matches?.('input, textarea')) {
+        dismissFn?.();
+      }
+    };
+
+    globalThis.document?.addEventListener('focusin', onFocusIn);
+    return () => {
+      globalThis.document?.removeEventListener('focusin', onFocusIn);
+    };
+  }, [dismissFn]);
+
   const onClickItem = (name: string | null, value: any, notEventBased?: boolean) => {
     setPopOverState({
       action: notEventBased ? 'ITEM_AUTO' : 'ITEM',

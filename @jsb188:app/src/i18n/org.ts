@@ -5,6 +5,7 @@ export default {
 		name: 'Organization name',
 		name_of: 'Name of organization',
 		type_of: 'Type of organization',
+		claimed_business: 'Claimed business',
 		org_info: 'Organization information',
 		nothing_found: 'No organizations found.',
 		farms: 'Farms',
@@ -12,7 +13,9 @@ export default {
 		edit_operation: 'Edit operation',
 		edit_child_org_operation: 'Edit child organization operation',
 		edit_child_org_operation_msg: 'Choose the business operation for\n [hl]%{name}[/hl].',
-		edit_child_org_operation_finished_msg: '[hl]%{name}[/hl] is now set to **%{operation}**.',
+		edit_child_org_operation_finished_msg: '[hl]%{name}[/hl]\'s business operation is set to **%{operation}**.',
+		edit_child_org_address_msg: 'Update the address for\n [hl]%{name}[/hl].',
+		edit_child_org_address_finished_msg: 'Address has been updated for\n [hl]%{name}[/hl].',
 		manage_team: 'Manage team',
 		invite_members: 'Invite members',
 		members_ct: '%{smart_count} member||||%{smart_count} members',
@@ -152,6 +155,15 @@ export default {
 			FARMERS_MARKET: 'Vendors',
 		},
 
+		view: {
+			ARABLE: 'View farm',
+			LIVESTOCK: 'View ranch',
+			FARMERS_MARKET: 'View farmers market',
+			GROWER_NETWORK: 'View organization',
+      RESTAURANT: 'View restaurant',
+      VENDOR: 'View vendor',
+		},
+
 		edit: {
 			ARABLE: 'Edit farm',
 			LIVESTOCK: 'Edit ranch',
@@ -168,6 +180,15 @@ export default {
 			GROWER_NETWORK: 'Delete organization',
       RESTAURANT: 'Delete restaurant',
       VENDOR: 'Delete vendor',
+		},
+
+		remove: {
+			ARABLE: 'Remove farm',
+			LIVESTOCK: 'Remove ranch',
+			FARMERS_MARKET: 'Remove farmers market',
+			GROWER_NETWORK: 'Remove organization',
+      RESTAURANT: 'Remove restaurant',
+      VENDOR: 'Remove vendor',
 		},
 
 		contact_department: {

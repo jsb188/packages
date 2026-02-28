@@ -331,6 +331,17 @@ export const Bin = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-
 <path d="M14.59619999,1.61538994h-5.1923399c-.45901966,0-.89925003.18235004-1.22383022.50692999-.32459021.32457995-.50692987.76481009-.50692987,1.22384v1.73077011h8.65380049v-1.73077011c0-.45902991-.18230057-.89926004-.50689983-1.22384-.32460022-.32457995-.76480007-.50692999-1.22380066-.50692999Z"/>
 </svg>;
 
+export const BinColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-bin-color">
+<path fill="#e4f1f5" d="M20.5 3.5v19c0 0.2652 -0.1054 0.5196 -0.2929 0.7071s-0.4419 0.2929 -0.7071 0.2929h-15c-0.26522 0 -0.51957 -0.1054 -0.70711 -0.2929C3.60536 23.0196 3.5 22.7652 3.5 22.5v-19h17Z" strokeWidth="1"/>
+<path fill="#c1d4d9" d="M20.5 3.5h-17v3h17v-3Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 3.5v19c0 0.2652 -0.1054 0.5196 -0.2929 0.7071s-0.4419 0.2929 -0.7071 0.2929h-15c-0.26522 0 -0.51957 -0.1054 -0.70711 -0.2929C3.60536 23.0196 3.5 22.7652 3.5 22.5v-19h17Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.5v-2c0 -0.26522 0.10536 -0.51957 0.29289 -0.707107C7.98043 0.605357 8.23478 0.5 8.5 0.5h7c0.2652 0 0.5196 0.105357 0.7071 0.292893 0.1875 0.187537 0.2929 0.441887 0.2929 0.707107v2" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M0.5 3.5h23" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M7.5 7v12" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 7v12" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16.5 7v12" strokeWidth="1"/>
+</svg>;
+
 export const BeverageFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-bottle">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M13 1a2 2 0 0 1 1.995 1.85l.005 .15v.5c0 1.317 .381 2.604 1.094 3.705l.17 .25l.05 .072a9.093 9.093 0 0 1 1.68 4.92l.006 .354v6.199a3 3 0 0 1 -2.824 2.995l-.176 .005h-6a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-6.2a9.1 9.1 0 0 1 1.486 -4.982l.2 -.292l.05 -.069a6.823 6.823 0 0 0 1.264 -3.957v-.5a2 2 0 0 1 1.85 -1.995l.15 -.005h2zm.362 5h-2.724a8.827 8.827 0 0 1 -1.08 2.334l-.194 .284l-.05 .069a7.091 7.091 0 0 0 -1.307 3.798l-.003 .125a3.33 3.33 0 0 1 1.975 -.61a3.4 3.4 0 0 1 2.833 1.417c.27 .375 .706 .593 1.209 .583a1.4 1.4 0 0 0 1.166 -.583a3.4 3.4 0 0 1 .81 -.8l.003 .183c0 -1.37 -.396 -2.707 -1.137 -3.852l-.228 -.332a8.827 8.827 0 0 1 -1.273 -2.616z" />
@@ -2555,6 +2566,20 @@ export const Reload = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24
 <path d="M19.933 13.041a8 8 0 1 1 -9.925 -8.788c3.899 -1 7.935 1.007 9.425 4.747" />
 <path d="M20 4v5h-5" />
 </svg>
+
+export const RemoveCircle = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-remove-circle" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M2.00000042 11.99899965c0 5.52284811 4.47715232 10.00000042 9.99999958 10.00000042s9.99999958 -4.47715232 9.99999958 -10.00000042c0 -5.52284726 -4.47715232 -9.99999958 -9.99999958 -9.99999958S2.00000042 6.47615239 2.00000042 11.99899965Z"/>
+<path d="M8.00000017 15.99900033l7.99999966 -7.99999966"/>
+<path d="M15.99999983 15.99900033l-7.99999966 -7.99999966"/>
+</svg>;
+
+export const RemoveCircleColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-remove-circle-color">
+<path fill="#ffbfc5" d="M12 23c6.075 0 11 -4.925 11 -11S18.075 1 12 1 1 5.925 1 12s4.925 11 11 11Z" strokeWidth="1"/>
+<path fill="#ff808c" d="M12 20a11 11 0 0 0 10.9 -9.5 10.999 10.999 0 0 1 -18.4 9.526A11 11 0 0 1 1.1 10.5 11 11 0 0 0 12 20Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.999 23c6.075 0 11 -4.925 11 -11s-4.925 -11 -11 -11 -11 4.925 -11 11 4.925 11 11 11Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m16.241 7.758 -8.485 8.485" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16.241 16.243 7.756 7.758" strokeWidth="1"/>
+</svg>;
 
 export const RemoveTab = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-remove-tab">
 <path d="M18.938 18H2.25a1.5 1.5 0 0 1 -1.5 -1.5v-9A1.5 1.5 0 0 1 2.25 6h16.688a1.5 1.5 0 0 1 1.272 0.705l2.812 4.5a1.5 1.5 0 0 1 0 1.59L20.21 17.3a1.5 1.5 0 0 1 -1.272 0.7Z" />

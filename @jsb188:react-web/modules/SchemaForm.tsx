@@ -15,10 +15,12 @@ import { FormEventHandler, forwardRef, useEffect, useImperativeHandle, useMemo, 
 type SetFormValuesFunc = FormValueSetter<any>;
 
 type HTTPMethodEnums = 'get' | 'post' | 'put' | 'delete';
+export type SchemaFormPreset = 'condensed' | null;
 
 interface SchemaFormProps {
   httpMethod?: HTTPMethodEnums;
   doNotPostForm?: boolean | ((formValues: any) => boolean);
+  preset?: SchemaFormPreset;
   className?: string;
   labelClassName?: string;
   buttonClassName?: string;
@@ -59,6 +61,7 @@ export interface SchemaFormRef<TFormValues = any> {
 const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<SchemaFormRef>) => {
   const {
     className,
+    preset,
     labelClassName,
     buttonFullWidth,
     name,
@@ -263,6 +266,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
       {listData.map((schemaItem: any, i) => (
         <FormItem
           key={i}
+          preset={preset || null}
           {...schemaItem}
           disabled={disabled}
           labelClassName={labelClassName}

@@ -27,14 +27,12 @@ export const editOrganizationMtn = gql`
 mutation editOrganization (
   $organizationId: GenericID!
   $name: String
-  $operation: OrganizationOperation
   $address: AddressInput
   $directory: [OrgContactInput!]
 ) {
   editOrganization (
     organizationId: $organizationId
     name: $name
-    operation: $operation
     address: $address
     directory: $directory
   ) {
@@ -72,6 +70,18 @@ mutation editChildOrganization (
 
 ${organizationChildFragment}
 ${organizationFragment}
+`;
+
+export const deleteChildOrganizationMtn = gql`
+mutation deleteChildOrganization (
+  $organizationId: GenericID!
+  $childOrgId: GenericID!
+) {
+  deleteChildOrganization (
+    organizationId: $organizationId
+    childOrgId: $childOrgId
+  )
+}
 `;
 
 export const editMembershipMtn = gql`

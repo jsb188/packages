@@ -137,7 +137,7 @@ interface VirtualizedListProps extends ReactDivElement {
 type VirtualizedListOmit = Omit<VirtualizedListProps, 'GroupTitleComponent' | 'ItemComponent' | 'groupItems'>;
 
 type TableListProps = {
-  borderStyle: 'BORDER' | 'SEPARATOR';
+  borderStyle?: 'BORDER' | 'SEPARATOR';
   disableOnClickRow?: boolean;
   reactiveFragmentFn?: ReactiveFragmentFn;
   gridLayoutStyle?: string;
@@ -963,7 +963,7 @@ export const VZTable = memo((p: TableListProps) => {
   return <>
     {headers && (
       <THead
-        borderStyle={borderStyle}
+        borderStyle={borderStyle ?? 'BORDER'}
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
         doNotApplyGridToRows={doNotApplyGridToRows}

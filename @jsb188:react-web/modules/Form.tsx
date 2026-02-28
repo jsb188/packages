@@ -718,7 +718,14 @@ export function FormItem(p: any) {
               </Label>
             )
             : null}
-          {items.map((subItem: FormItemIfaceObj, i: number) => <FormItem key={i} disabled={disabled} {...subItem} {...other} />)}
+          {items.map((subItem: FormItemIfaceObj, i: number) => (
+            <FormItem
+              key={i}
+              disabled={disabled}
+              {...subItem}
+              {...other}
+            />
+          ))}
         </div>
       );
     }

@@ -84,6 +84,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   edit_note: 'content-paper-edit',
   email_address: 'read-email-at',
   empty: 'square-forbid-2',
+  remove: 'remove-circle', // This is same as circle-x but bigger
   cancel: 'circle-x',
   failed: 'circle-x',
   favorites: 'stars',

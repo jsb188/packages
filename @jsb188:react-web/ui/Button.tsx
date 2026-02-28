@@ -362,7 +362,7 @@ InlineBlockLabel.displayName = 'InlineBlockLabel';
 
 export const SimpleLabel = memo((p: {
   as?: React.ElementType;
-  preset: 'outline_secondary' | 'outline';
+  preset: 'outline_main' | 'outline_primary' | 'outline_secondary' | 'outline';
   text: string;
   className?: string;
 }) => {
@@ -373,9 +373,17 @@ export const SimpleLabel = memo((p: {
   let designClassName: string;
 
   switch (preset) {
+    case 'outline_main':
+      colorClassName = 'bg_main_fd';
+      designClassName = 'px_5 py_5 bd_1 bd_main';
+      break;
+    case 'outline_primary':
+      colorClassName = 'bg_primary_fd';
+      designClassName = 'px_5 py_5 bd_1 bd_primary';
+      break;
     case 'outline_secondary':
       colorClassName = 'bg_secondary_fd';
-      designClassName = 'px_5 py_5 bd_1 bd_darker_1';
+      designClassName = 'px_5 py_5 bd_1 bd_secondary';
       break;
     case 'outline':
     default:

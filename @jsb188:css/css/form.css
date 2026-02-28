@@ -63,14 +63,6 @@ input.invis_input::-webkit-inner-spin-button {
 
 /* Input; focus, placeholder */
 
-input:focus, textarea:focus, [contenteditable='true']:focus,
-.form_el input.focus, .form_el textarea.form_el, .form_el.focused input, .form_el.focused textarea {
-  outline: 2px solid rgb(var(--color-main));
-  border-color: rgb(var(--color-main)) !important;
-  /* box-shadow: 0 0 20px rgba(0,0,0,.05); */
-  box-shadow: 0 0 40px rgba(var(--color-main),.1);
-}
-
 input.error, textarea.error, [contenteditable='true'].error,
 .form_el.error .form_input, .form_el .form_input.error {
   border-color: rgb(var(--color-error)) !important;
@@ -79,6 +71,15 @@ input.error, textarea.error, [contenteditable='true'].error,
 input.error:focus, textarea.error:focus, [contenteditable='true'].error:focus,
 .form_el.error .form_input:focus, .form_el .form_input.error:focus {
   outline: 2px solid rgb(var(--color-error)) !important;
+}
+
+input:focus, textarea:focus, [contenteditable='true']:focus,
+.form_el input.focus, .form_el.focused textarea.form_el, .form_el.focused input, .form_el.focused textarea,
+.form_el.error.focused .form_input, .form_el.focused .form_input.error {
+  outline: 2px solid rgb(var(--color-main));
+  border-color: rgb(var(--color-main)) !important;
+  /* box-shadow: 0 0 20px rgba(0,0,0,.05); */
+  box-shadow: 0 0 40px rgba(var(--color-main),.1);
 }
 
 .form_input:not(.disabled):not(.error):hover,
@@ -141,6 +142,7 @@ input.focus_bg:focus, textarea.focus_bg:focus, [contenteditable='true'].focus_bg
 }
 
 /* Input preset: lighter */
+
 .form_el.lighter .form_input, .form_el.lighter .tx_virtualizer {
   border: solid 1px var(--color-darker-light);
 }
@@ -150,6 +152,20 @@ input.focus_bg:focus, textarea.focus_bg:focus, [contenteditable='true'].focus_bg
 .form_el.subtle input {
   width: 120px;
   padding: .35rem;
+}
+
+/* Input preset; condensed */
+
+.form_el.condensed {
+  margin-top: .9rem;
+}
+
+.form_el.condensed label {
+  position: absolute; z-index: 5;
+  top: -9px; left: 9px;
+  padding: 0 1px !important;
+  font-size: var(--text-xxsmall);
+  background-color: rgb(var(--color-bg));
 }
 
 /* Textarea */

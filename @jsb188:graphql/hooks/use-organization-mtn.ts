@@ -3,7 +3,15 @@ import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
 import { useMemo } from 'react';
 import { updateFragment } from '../cache/index';
-import { deleteComplianceDocumentMtn, editChildOrganizationMtn, editMembershipMtn, editOrganizationMtn, removeMembershipMtn, switchOrganizationMtn } from '../gql/mutations/organizationMutations';
+import {
+  deleteChildOrganizationMtn,
+  deleteComplianceDocumentMtn,
+  editChildOrganizationMtn,
+  editMembershipMtn,
+  editOrganizationMtn,
+  removeMembershipMtn,
+  switchOrganizationMtn
+} from '../gql/mutations/organizationMutations';
 import { useMutation } from './index';
 import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 
@@ -110,6 +118,32 @@ export function useEditChildOrganization(
 
   return {
     editChildOrganization,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Delete a child organization from an organization directory.
+ */
+
+export function useDeleteChildOrganization(
+  params: UseMutationParams = {},
+  openModalPopUp?: OpenModalPopUpFn
+) {
+  const { onCompleted, ...rest } = params;
+
+  const [deleteChildOrganization, mtnValues, mtnHandlers] = useMutation(deleteChildOrganizationMtn, {
+    openModalPopUp,
+    onCompleted: (data, error, variables) => {
+      const deleted = data?.deleteChildOrganization;
+      onCompleted?.(deleted, error, variables);
+    },
+    ...rest,
+  });
+
+  return {
+    deleteChildOrganization,
     ...mtnValues,
     ...mtnHandlers,
   };
