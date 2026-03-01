@@ -16,6 +16,7 @@ export default {
 		edit_child_org_operation_finished_msg: '[hl]%{name}[/hl]\'s business operation is set to **%{operation}**.',
 		edit_child_org_address_msg: 'Update the address for\n [hl]%{name}[/hl].',
 		edit_child_org_address_finished_msg: 'Address has been updated for\n [hl]%{name}[/hl].',
+    delete_child_org_msg: 'Are you sure you want to remove\n [hl]%{name}[/hl]?',
 		manage_team: 'Manage team',
 		invite_members: 'Invite members',
 		members_ct: '%{smart_count} member||||%{smart_count} members',
@@ -38,6 +39,7 @@ export default {
 		load_lists: 'Load Lists',
 		contact_to_change: 'Please contact us to change this information.',
 		locked_contact_msg: 'This contact information is saved by the owner of this organization.',
+		no_contact_information_msg: 'This organization doesn\'t have any contact information.',
 		vendor_documents_not_found_msg: "This vendor hasn't submitted any compliance documents or certifications.",
 		switch_organizations: 'Switch organizations',
 		switch_msg: (

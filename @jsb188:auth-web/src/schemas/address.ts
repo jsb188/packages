@@ -50,6 +50,7 @@ export function makeAddressSchema(
     postalCode: string | null;
     country: string | null;
   }> | null,
+  popOverDesignClassName?: string,
 ) {
   const currentAddress = addressFormValues || {};
   const selectedCountryCode = currentAddress?.country || '';
@@ -142,7 +143,7 @@ export function makeAddressSchema(
           iface: {
             name: 'PO_LIST',
             variables: {
-              designClassName: 'w_400',
+              designClassName: popOverDesignClassName ?? 'w_400',
               className: 'max_h_50vh',
               initialState: {
                 'address.country': selectedCountryCode,

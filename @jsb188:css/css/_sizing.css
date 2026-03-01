@@ -248,8 +248,6 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .gap_60 { gap: 60px; }
 .gap_70 { gap: 70px; }
 
-.g_fill { grid-column: 1 / -1; }
-
 .gap_xs { gap: var(--rem-xsmall); }
 .gap_sm { gap: var(--rem-small); }
 .gap_df { gap: var(--rem-default); }

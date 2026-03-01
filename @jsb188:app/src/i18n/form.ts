@@ -56,6 +56,7 @@ export default {
     documents: 'Documents',
     document_type: 'Document type',
     untitled_document: 'Untitled document',
+    yes_remove: 'Yes, please remove',
     yes_active: 'Yes, active',
     no_disabled: 'No, disabled',
     prev: 'Prev',
