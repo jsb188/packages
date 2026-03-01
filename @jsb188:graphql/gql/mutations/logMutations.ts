@@ -7,6 +7,7 @@ mutation editLogEntry (
   $logEntryId: GenericID!
   $accountId: GenericID
   $date: DateTime
+  $flagColor: String
 
   $arableDetails: LogArableInput
   $livestockDetails: LogLivestockInput
@@ -17,6 +18,7 @@ mutation editLogEntry (
     logEntryId: $logEntryId
     accountId: $accountId
     date: $date
+    flagColor: $flagColor
 
     arableDetails: $arableDetails
     livestockDetails: $livestockDetails

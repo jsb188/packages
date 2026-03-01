@@ -741,7 +741,7 @@ button.pill.bg_active:not(:disabled):active, button.pill.bg_alt:not(:disabled):a
 .bg_yellow_lt { background-color: var(--color-yellow-light); }
 .bg_yellow_md { background-color: var(--color-yellow-medium); }
 .bg_yellow_bd { background-color: var(--color-yellow-bold); }
-.bg_yellow { background-color: var(--color-yellow-default); color: var(--color-solid); }
+.bg_yellow { background-color: var(--color-yellow-default); color: var(--color-contrast-hover); }
 .bg_lime_fd { background-color: var(--color-lime-fade); }
 .bg_lime_lt { background-color: var(--color-lime-light); }
 .bg_lime_md { background-color: var(--color-lime-medium); }

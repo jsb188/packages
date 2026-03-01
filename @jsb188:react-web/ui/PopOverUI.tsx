@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import type { ClosePopOverFn, POListItemObj, PONavAvatarItemObj, PONListSubtitleObj, POTextObj, TooltipProps } from '@jsb188/react/types/PopOver.d';
+import type { ClosePopOverFn, POListItemObj, POListItemPickerObj, PONavAvatarItemObj, PONListSubtitleObj, POTextObj, TooltipProps } from '@jsb188/react/types/PopOver.d';
 import { forwardRef, memo, useEffect, useRef, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
@@ -15,7 +15,7 @@ import Markdown from './Markdown';
  */
 
 export interface PONavItemBase {
-  onClickItem: (name: string | null, value: string | boolean | null) => void;
+  onClickItem: (name: string | null, value: string | boolean | null, notEventBased?: boolean, dismissOnClick?: boolean) => void;
   saving: boolean;
   selected?: boolean;
   disabled?: boolean;
@@ -238,6 +238,43 @@ export const POListItem = memo((p: PONavItemBase & {
 });
 
 POListItem.displayName = 'POListItem';
+
+/**
+ * Pop over option list item picker
+ */
+
+export const POListItemPicker = memo((p: PONavItemBase & {
+  name: string;
+  value?: any;
+  item: Omit<POListItemPickerObj, 'useMutation' | 'mutationName' | 'useMutationArgs'>;
+  allowEdit?: boolean;
+}) => {
+  const { name, item, onClickItem } = p;
+  const { label, options, selectedValue } = item;
+
+  return <>
+    <div className='ft_xs pt_4 px_8 ft_medium cl_lt'>
+      {label}
+    </div>
+
+    <div className='h_item px_4 pb_4 gap_2'>
+      {options.map((opt, i) => {
+        const selected = selectedValue === opt.value;
+        return <button
+          key={`${name}_${String(opt.value)}_${i}`}
+          name={name}
+          // saving={saving && selected}
+          onClick={() => onClickItem(name, opt.value, false)}
+          className={cn('p_4 r_xs v_center bg_alt_hv ic_xs bd_1', opt.className, !selected && 'bd_invis')}
+        >
+          <Icon name={selected && opt.selectedIconName ? opt.selectedIconName : opt.iconName} />
+        </button>;
+      })}
+    </div>
+  </>;
+});
+
+POListItemPicker.displayName = 'POListItemPicker';
 
 /**
  * Pop over option item for copy function

@@ -362,12 +362,14 @@ InlineBlockLabel.displayName = 'InlineBlockLabel';
 
 export const SimpleLabel = memo((p: {
   as?: React.ElementType;
+  color?: string; // Must use "outline" preset for "color" to work
   preset: 'outline_main' | 'outline_primary' | 'outline_secondary' | 'outline';
   text: string;
   className?: string;
 }) => {
-  const { preset, text, className } = p;
+  const { preset, text, color, className } = p;
   const El = p.as || 'span';
+  const paddingClassName = 'p_5';
 
   let colorClassName: string;
   let designClassName: string;
@@ -375,20 +377,20 @@ export const SimpleLabel = memo((p: {
   switch (preset) {
     case 'outline_main':
       colorClassName = 'bg_main_fd';
-      designClassName = 'px_5 py_5 bd_1 bd_main';
+      designClassName = `${paddingClassName} bd_1 bd_main`;
       break;
     case 'outline_primary':
       colorClassName = 'bg_primary_fd';
-      designClassName = 'px_5 py_5 bd_1 bd_primary';
+      designClassName = `${paddingClassName} bd_1 bd_primary`;
       break;
     case 'outline_secondary':
       colorClassName = 'bg_secondary_fd';
-      designClassName = 'px_5 py_5 bd_1 bd_secondary';
+      designClassName = `${paddingClassName} bd_1 bd_secondary`;
       break;
     case 'outline':
     default:
-      designClassName = 'bd_1 bd_lt px_5 py_5';
-      colorClassName = 'bg_alt';
+      colorClassName = `bg_${color || 'alt'}`;
+      designClassName = `${paddingClassName} bd_1 bd_${color || 'lt'}`;
       break;
   }
 

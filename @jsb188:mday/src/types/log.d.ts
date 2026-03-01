@@ -211,6 +211,7 @@ export interface LogEntryGQL {
 	organizationId: string;
 	details: LogMetadataGQL;
 	status: LogActionStatusEnum | null;
+	flagColor?: string | null;
 
 	account: any;
 	actions?: WorkflowActionGQL[];

@@ -97,6 +97,18 @@ export const COLORS = [
 	'stone',
 ];
 
+// Major colors where limited color options are preferred
+
+export const MAJOR_COLORS = [
+	'red',
+  'amber',
+	'yellow',
+	'emerald', // Using "emerald" instead of "green" because its closer to brand color
+	'blue',
+	'purple',
+	'stone',
+];
+
 // Languages
 
 export const SUPPORTED_LANGUAGES = [

@@ -5,6 +5,7 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   organizationId
   cursor
   status
+  flagColor
   date
   createdAt
   updatedAt

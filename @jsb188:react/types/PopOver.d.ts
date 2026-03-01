@@ -1,5 +1,5 @@
-import type { CSSProperties } from 'react';
 import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
+import type { CSSProperties } from 'react';
 
 /**
  * Utility types
@@ -51,7 +51,7 @@ export interface POListItemObj {
   selected?: boolean;
   hidden?: boolean;
   disabled?: boolean;
-  onClick?: (name: string | null, value?: any) => void; // optional, if you want to bypass globalState handlers
+  onClick?: (name: string | null, value?: any, notEventBased?: boolean, dismissOnClick?: boolean) => void; // optional, if you want to bypass globalState handlers
 
   // Presets
   preset?: 'small' | 'default';
@@ -63,9 +63,29 @@ export interface POListItemObj {
   // ?
 }
 
+export interface POListItemPickerOptionObj {
+  iconName: string;
+  selectedIconName: string;
+  className?: string;
+  value: string | boolean | null;
+}
+
+export interface POListItemPickerObj extends Omit<POListItemObj, '__type' | 'text' | 'value' | 'iconName'> {
+  __type: 'LIST_ITEM_PICKER';
+  label: string;
+  options: POListItemPickerOptionObj[];
+  selectedValue?: string | boolean | null;
+
+  mutationName: string;
+  useMutation?: (...args: any[]) => Record<string, any>;
+  useMutationArgs?: any[];
+  mutationVariables?: Record<string, any> | ((value: any) => Record<string, any>);
+}
+
 export interface POModalItemObj extends POListItemObj {
   __type: 'LIST_ITEM_POPUP' | 'LIST_ITEM_MODAL';
   variables: any; // Variables for the pop up
+  useMutationArgs?: any[];
 }
 
 export interface POCheckListItemObj extends POListItemObj {
@@ -117,7 +137,7 @@ export interface POTextObj {
   designClassName?: string;
 }
 
-export type POListIfaceItem = PONavAvatarItemObj | PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | POModalItemObj | PODatePickerObj | PODateRangeObj | POTextObj;
+export type POListIfaceItem = PONavAvatarItemObj | PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | POListItemPickerObj | POModalItemObj | PODatePickerObj | PODateRangeObj | POTextObj;
 export type POCheckListIfaceItem = PONListSubtitleObj | POListBreakObj | POCheckListItemObj;
 
 export interface POListIface {

@@ -2,11 +2,11 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
-import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POLabelsAndValuesIface, POListIface, POListIfaceItem, POListItemObj, POModalItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
+import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POLabelsAndValuesIface, POListIface, POListIfaceItem, POListItemObj, POListItemPickerObj, POModalItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
-import { POLabelsAndValues, POListBreak, POListItem, POListItemCopy, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
+import { POLabelsAndValues, POListBreak, POListItem, POListItemCopy, POListItemPicker, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
 import type { CalendarSelectedObj, OnChangeCalendarDayFn } from './Calendar';
 import { Calendar, CalendarDateRange, getCalendarSelector } from './Calendar';
 
@@ -18,7 +18,7 @@ const PODatePicker = memo((p: {
   name: string;
   item: PODatePickerObj;
   value?: CalendarSelectedObj | null;
-  onClickItem: (name: string, value: any, notEventBased?: boolean) => void;
+  onClickItem: (name: string, value: any, notEventBased?: boolean, dismissOnClick?: boolean) => void;
 }) => {
   const { name, value, item, onClickItem } = p;
   const { minDate, maxDate } = item;
@@ -62,7 +62,7 @@ const PODateRange = memo((p: {
   name: string;
   item: PODateRangeObj;
   value?: [CalendarSelectedObj | null, CalendarSelectedObj | null] | null;
-  onClickItem: (name: string, value: any, notEventBased?: boolean) => void;
+  onClickItem: (name: string, value: any, notEventBased?: boolean, dismissOnClick?: boolean) => void;
 }) => {
   const { name, value, item, onClickItem } = p;
   const [startDate, endDate] = value || [];
@@ -162,6 +162,45 @@ const POModalScreenListItem = memo((p: POOpenModalListItemProps) => {
 POModalScreenListItem.displayName = 'POModalScreenListItem';
 
 /**
+ * Pop over list item wrapper with reactive data
+ */
+
+const POListItemPickerWithData = memo((p: PONavItemBase & {
+  name: string;
+  value?: any;
+  item: POListItemPickerObj;
+}) => {
+  const { onClickItem, ...rest } = p;
+  const { item } = p;
+  const { mutationName, useMutation, mutationVariables, useMutationArgs } = item;
+  const mutation = useMutation ? useMutation(...(useMutationArgs || [])) : null;
+  const mutationHandler = mutation?.[mutationName || ''];
+  const hasMutation = !!mutationHandler;
+  const allowEdit = mutation?.allowEdit;
+
+  const onClickItemWrapper = (name: string | null, value: any, notEventBased?: boolean, dismissOnClick?: boolean) => {
+    if (hasMutation) {
+      if (!allowEdit) {
+        return;
+      }
+
+      const variables = typeof mutationVariables === 'function' ? mutationVariables(value) : mutationVariables;
+      mutationHandler({ variables });
+    }
+
+    onClickItem(name, value, notEventBased, typeof dismissOnClick === 'boolean' ? dismissOnClick : hasMutation);
+  };
+
+  return <POListItemPicker
+    {...p}
+    allowEdit={allowEdit}
+    onClickItem={onClickItemWrapper}
+  />;
+});
+
+POListItemPickerWithData.displayName = 'POListItemPickerWithData';
+
+/**
  * Ifaces for pop over nav item
  */
 
@@ -185,6 +224,8 @@ export function PONavItemIface(p: PONavItemBase & {
       return <POListItemCopy {...other} item={item as POListItemObj} />;
     case 'LIST_ITEM_POPUP':
       return <POPopUpListItem {...other} item={item as POModalItemObj} />;
+    case 'LIST_ITEM_PICKER':
+      return <POListItemPickerWithData {...other} item={item as POListItemPickerObj} />;
     case 'LIST_ITEM_MODAL':
       return <POModalScreenListItem {...other} item={item as POModalItemObj} />;
     case 'CHECK_LIST_ITEM': {
@@ -252,7 +293,12 @@ export function PopOverList(p: PopOverHandlerProps & {
     };
   }, [dismissFn]);
 
-  const onClickItem = (name: string | null, value: any, notEventBased?: boolean) => {
+  const onClickItem = (name: string | null, value: any, notEventBased?: boolean, dismissOnClick?: boolean) => {
+    if (dismissOnClick) {
+      dismissFn?.();
+      return;
+    }
+
     setPopOverState({
       action: notEventBased ? 'ITEM_AUTO' : 'ITEM',
       name,
