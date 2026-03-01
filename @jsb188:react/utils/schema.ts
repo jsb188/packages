@@ -28,7 +28,12 @@ export function makeFormValues(
   const { listData } = schema;
 
   for (const obj of listData) {
-    const { item: { name, setter, items } } = obj;
+    const item = obj?.item || {};
+    const { name, setter, items } = item;
+
+    if (!name && !Array.isArray(items)) {
+      continue;
+    }
 
     if (currentData || dataForSchema) {
       if (Array.isArray(items)) {

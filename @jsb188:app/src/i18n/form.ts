@@ -169,6 +169,7 @@ export default {
     history: 'History',
     edit: 'Edit',
     edit_address: 'Edit address',
+    edit_information: 'Edit information',
     edit_note: 'Edit note',
     edit_line: 'Edit line',
     enter: 'Enter',

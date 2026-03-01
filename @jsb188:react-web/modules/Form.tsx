@@ -707,6 +707,12 @@ export function FormItem(p: any) {
         </strong>
       );
     }
+    case 'break': {
+      // return <div className='h_6 bd_t_1 bd_lt mt_12' />;
+
+      // This is tuned for condensed preset
+      return <div className='h_6 rel texture_bf pattern_texture mt_16 mb_20' />;
+    }
     case 'group': {
       const { label, items } = item;
       return (

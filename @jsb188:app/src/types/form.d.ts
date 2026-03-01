@@ -14,6 +14,7 @@ export type FormValueSetter<TFormValues extends FormValuesObj = any> = (
 
 export type FormItemType =
   | 'subtitle'
+  | 'break'
   | 'group'
   | 'input'
   | 'section_title'
