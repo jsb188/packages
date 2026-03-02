@@ -162,6 +162,7 @@ export default {
     ai_tasks: 'AI tasks',
     ai_workflows: 'AI workflows',
     add: 'Add',
+    add_file: 'Add file',
     add_contact: 'Add contact',
     copy_id: 'Copy ID',
     remove: 'Remove',

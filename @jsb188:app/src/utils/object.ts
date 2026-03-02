@@ -299,6 +299,41 @@ export function groupCollections(
 	innerCollectionPrimaryKeys?: Record<string, (obj: any) => string>,
 	isTest?: boolean,
 ): any[] {
+	/**
+	 * Check if object has a meaningful (non-null) value, including nested objects.
+	 */
+
+	function hasMeaningfulValue(obj: any): boolean {
+		if (obj === null || typeof obj === 'undefined') {
+			return false;
+		}
+
+		if (typeof obj !== 'object') {
+			return true;
+		}
+
+		if (Array.isArray(obj)) {
+			return obj.some((item) => hasMeaningfulValue(item));
+		}
+
+		const proto = Object.getPrototypeOf(obj);
+		if (proto && proto !== Object.prototype) {
+			return true;
+		}
+
+		for (const key in obj) {
+			if (!Object.prototype.hasOwnProperty.call(obj, key) || key.startsWith('__')) {
+				continue;
+			}
+
+			if (hasMeaningfulValue(obj[key])) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	let hasHash = false;
 	let primaryKeyName;
 	let collections = collections_;
@@ -342,15 +377,7 @@ export function groupCollections(
 				// }
 
 				if (ref) {
-					let isNull = true;
-					for (const key in ref) {
-						if (!key.startsWith('__') && ref[key] !== null) {
-							isNull = false;
-							break;
-						}
-					}
-
-					if (!isNull) {
+					if (hasMeaningfulValue(ref)) {
 						setObject(obj, name, Array.isArray(defaultValue) ? [ref] : ref);
 					} else {
 						setObject(obj, name, defaultValue);
@@ -386,10 +413,12 @@ export function groupCollections(
 				const innerObj = getObject(obj, name);
 				const ref = getObject(acc[i], name);
 
+				const hasInnerObj = hasMeaningfulValue(innerObj);
+
 				if (!ref) {
-					setObject(acc[i], name, innerObj && Array.isArray(innerObj) ? [innerObj] : (innerObj || defaultValue));
+					setObject(acc[i], name, hasInnerObj ? [innerObj] : defaultValue);
 				} else if (
-					innerObj &&
+					hasInnerObj &&
 					!ref.find((o: any) => {
 						const innerPKFn = innerCollectionPrimaryKeys?.[name];
 						if (innerPKFn) {
