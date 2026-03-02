@@ -362,12 +362,14 @@ InlineBlockLabel.displayName = 'InlineBlockLabel';
 
 export const SimpleLabel = memo((p: {
   as?: React.ElementType;
-  color?: string; // Must use "outline" preset for "color" to work
+  color?: string | null; // Must use "outline" preset for "color" to work
   preset: 'outline_main' | 'outline_primary' | 'outline_secondary' | 'outline';
   text: string;
+  leftIconName?: string;
+  rightIconName?: string;
   className?: string;
 }) => {
-  const { preset, text, color, className } = p;
+  const { preset, text, color, leftIconName, rightIconName, className } = p;
   const El = p.as || 'span';
   const paddingClassName = 'p_5';
 
@@ -390,7 +392,7 @@ export const SimpleLabel = memo((p: {
     case 'outline':
     default:
       colorClassName = `bg_${color || 'alt'}`;
-      designClassName = `${paddingClassName} bd_1 bd_${color || 'lt'}`;
+      designClassName = `${paddingClassName} bd_1 bd_${color || 'lt'}${color === 'yellow' ? ' cl_contrast' : ''}`;
       break;
   }
 
@@ -402,7 +404,21 @@ export const SimpleLabel = memo((p: {
       className
     )}
   >
-    {text}
+    {leftIconName || rightIconName
+    ? <span className='h_item'>
+      {!leftIconName ? null : (
+        <span className='mr_5 shift_up'>
+          <Icon name={leftIconName} />
+        </span>
+      )}
+      {text}
+      {!rightIconName ? null : (
+        <span className='ml_5 shift_up'>
+          <Icon name={rightIconName} />
+        </span>
+      )}
+    </span>
+    : text}
   </El>;
 });
 

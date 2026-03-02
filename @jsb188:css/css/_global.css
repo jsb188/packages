@@ -741,7 +741,7 @@ button.pill.bg_active:not(:disabled):active, button.pill.bg_alt:not(:disabled):a
 .bg_yellow_lt { background-color: var(--color-yellow-light); }
 .bg_yellow_md { background-color: var(--color-yellow-medium); }
 .bg_yellow_bd { background-color: var(--color-yellow-bold); }
-.bg_yellow { background-color: var(--color-yellow-default); color: var(--color-contrast-hover); }
+.bg_yellow { background-color: var(--color-yellow-default); color: var(--color-solid); }
 .bg_lime_fd { background-color: var(--color-lime-fade); }
 .bg_lime_lt { background-color: var(--color-lime-light); }
 .bg_lime_md { background-color: var(--color-lime-medium); }
@@ -962,7 +962,7 @@ button.pill.bg_active:not(:disabled):active, button.pill.bg_alt:not(:disabled):a
 .cl_secondary, .cl_secondary_hv:hover { color: rgb(var(--color-secondary)) !important; }
 .link.cl_secondary:hover { color: var(--color-secondary-hover) !important; }
 .cl_solid, .cl_solid_hv:hover { color: var(--color-solid) !important; }
-.cl_contrast, .cl_contrast_hv:hover { color: rgb(var(--color-darker-rgb), 1) !important; }
+.cl_contrast, .cl_contrast_hv:hover { color: var(--color-contrast) !important; }
 .cl_err, .cl_err_hv:hover { color: rgb(var(--color-error)) !important; border-color: rgb(var(--color-error)) !important; }
 .cl_err_fd { color: rgb(var(--color-error-faded), .1) !important; border-color: rgb(var(--color-error)) !important; }
 .cl_warn, .cl_warn_hv:hover { color: rgb(var(--color-warn)) !important; border-color: rgb(var(--color-warn)) !important; }
