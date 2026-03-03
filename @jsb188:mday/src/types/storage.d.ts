@@ -50,6 +50,11 @@ export type StorageUploadObj = Partial<{
 		name: string;
 		description: string;
 		aiNote: string;
+
+    // For PDF only
+    pageCount: number;
+    isEncrypted: boolean;
+    pdfVersion: string;
 	}>;
 	uploadIntent: {
 		intent: StorageIntentEnum;
