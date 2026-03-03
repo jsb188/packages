@@ -229,7 +229,6 @@ export interface OrganizationChildGQL {
 
 export interface OrganizationComplianceFileData {
 	__table: 'organization_compliance_files';
-	id: number;
 	complianceId: number;
 	storageId: number;
 	order: number;
