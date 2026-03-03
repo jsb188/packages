@@ -4007,6 +4007,12 @@ export const UiWebpageCheckColor = <svg xmlns="http://www.w3.org/2000/svg" fill=
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m10 19.5 1 1 2 -2" strokeWidth="1"/>
 </svg>;
 
+export const UploadBottom = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-upload-bottom" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="m12.001 15.75 0 -12"/>
+<path d="m16.501 8.25 -4.5 -4.5 -4.5 4.5"/>
+<path d="M23.251 15.75v1.5a3 3 0 0 1 -3 3h-16.5a3 3 0 0 1 -3 -3v-1.5"/>
+</svg>;
+
 export const UploadSquare2 = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-upload-square-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M0.752 2.251a1.5 1.5 0 0 1 1.5 -1.5" />
 <path d="M2.252 23.251a1.5 1.5 0 0 1 -1.5 -1.5" />

@@ -133,6 +133,8 @@ export default {
     30028: 'You cannot send an empty message.',
     '30031_title': 'Upload failed',
     30031: 'There was an issue while uploading your file.\n Please try again in a moment.',
+    '30032_title': 'Upload failed',
+    30032: 'Your file upload failed because required metadata was missing.',
 
     // Form errors
 

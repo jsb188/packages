@@ -31,6 +31,7 @@ export default {
 		daily_digest: 'Daily digest',
 		compliance_title: 'Compliance',
 		compliance_docs: 'Compliance documents',
+		compliance_documents: 'Compliance documents',
 		outstanding_balance: 'Outstanding balance',
 		recent_invoices: 'Recent invoices',
 		upcoming_invoices: 'Upcoming invoices',

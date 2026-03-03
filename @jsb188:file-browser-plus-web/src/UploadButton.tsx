@@ -14,6 +14,9 @@ import { uploadFileToGCS } from './googleStorage';
 
 export interface UploadInputRef {
   click: () => void;
+  upload: () => Promise<void>;
+  startUpload: () => Promise<void>;
+  clearPickedFile: () => void;
 }
 
 /**
@@ -25,6 +28,8 @@ export interface UploadInputProps {
   acceptedFileTypes?: string;
   organizationId?: string | null;
   maxFileSize?: number;
+  initiateUploadOnPick?: boolean;
+  onChangeFile?: (file: UploadInputFileObj | null) => void;
   removeProgressAfterUpload?: boolean;
   reactiveFragmentName?: string;
   dataFragmentName?: string;
@@ -35,12 +40,26 @@ export interface UploadInputProps {
   };
 }
 
+/**
+ * File details emitted when the selected file changes.
+ */
+
+export interface UploadInputFileObj {
+  name: string;
+  size: number;
+  contentType: string;
+  lastModified: number;
+  file: File;
+}
+
 export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref) => {
   const {
     disabled,
     acceptedFileTypes,
     organizationId,
     uploadIntent,
+    initiateUploadOnPick = false,
+    onChangeFile,
     dataObject,
     reactiveFragmentName = '$storageFileFragment',
     dataFragmentName = '$storageFileFragment',
@@ -49,6 +68,7 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
 
   const maxFileSize = p.maxFileSize || MAX_FILE_SIZE_CLIENT;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pickedFileRef = useRef<File | null>(null);
   const mounted = useMounted();
   const openModalPopUp = useOpenModalPopUp();
   const { createSignedUploadUrl, updateObservers } = useCreateSignedUploadUrl({}, openModalPopUp);
@@ -58,7 +78,7 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
    * Handle file selection and upload flow.
    */
 
-  const onPickFile = async (file: File) => {
+  const startFileUpload = async (file: File) => {
     if (file.size > maxFileSize) {
       openModalPopUp(null, {
         statusCode: 400,
@@ -175,14 +195,64 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
   };
 
   /**
-   * Handle native file selection and start upload.
+   * Emit selected-file details to external listeners.
    */
 
-  const onChangeFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const emitChangeFile = (file: File | null) => {
     if (file) {
-      void onPickFile(file);
+      onChangeFile?.({
+        name: file.name,
+        size: file.size,
+        contentType: file.type,
+        lastModified: file.lastModified,
+        file,
+      });
+      return;
     }
+
+    onChangeFile?.(null);
+  };
+
+  /**
+   * Clear selected file from local state and notify listeners.
+   */
+
+  const clearPickedFile = () => {
+    pickedFileRef.current = null;
+    emitChangeFile(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  /**
+   * Start upload for the currently selected file.
+   */
+
+  const startPickedFileUpload = async () => {
+    const pickedFile = pickedFileRef.current;
+    if (!pickedFile) {
+      return;
+    }
+
+    clearPickedFile();
+    await startFileUpload(pickedFile);
+  };
+
+  /**
+   * Handle native file selection and optionally start upload.
+   */
+
+  const handleChangeFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    pickedFileRef.current = file || null;
+    emitChangeFile(file || null);
+
+    if (file && initiateUploadOnPick) {
+      void startPickedFileUpload();
+    }
+
     // Allow selecting the same file again in future picks.
     e.target.value = '';
   };
@@ -193,15 +263,18 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
         return;
       }
       fileInputRef.current?.click();
-    }
-  }), [disabled]);
+    },
+    upload: startPickedFileUpload,
+    startUpload: startPickedFileUpload,
+    clearPickedFile,
+  }), [disabled, startPickedFileUpload]);
 
   return <input
     ref={fileInputRef}
     type='file'
     accept={acceptedFileTypes}
     className='hidden'
-    onChange={onChangeFile}
+    onChange={handleChangeFile}
   />;
 });
 

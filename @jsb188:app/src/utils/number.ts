@@ -282,7 +282,7 @@ export function convertToMilitaryTime(time?: number | string | null): string | n
 export function calculateTotalAmount(values: any[], tax: number = 0): number {
 	return (values || []).reduce((acc, obj) => {
 		// NOTE: obj.value is the total, so obj.quantity can be ignored
-		const val = parseFloat(obj?.value);
+		const val = parseFloat(obj?.value) * (obj?.quantity || 1);
 		if (!isNaN(val)) {
 			return acc + val;
 		}

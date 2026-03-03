@@ -105,6 +105,7 @@ export default {
     upload_file: 'Upload file',
     keep_current_img: 'Keep current image',
     select_file: 'Select file',
+    select_file_from_computer: 'Click here to pick a file from your computer.',
     tasks: 'Tasks',
     latest_update: 'Latest update',
     name: 'Name',
