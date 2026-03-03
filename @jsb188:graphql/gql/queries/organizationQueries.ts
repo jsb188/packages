@@ -2,6 +2,7 @@ import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
 import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationInstructionsFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
 import { emailFragment, phoneFragment } from '../fragments/otherFragments';
+import { storageFileFragment } from '../fragments/storageFragments';
 
 // Always use organizationRelationship() instead
 
@@ -34,6 +35,10 @@ query organizationRelationship (
 
       compliance {
         ...organizationComplianceFragment
+
+        files {
+          ...storageFileFragment
+        }
       }
     }
   }
@@ -42,6 +47,7 @@ query organizationRelationship (
 ${organizationFragment}
 ${organizationComplianceFragment}
 ${organizationRelationshipFragment}
+${storageFileFragment}
 `;
 
 export const myOrganizationsQry = gql`
@@ -55,6 +61,10 @@ query myOrganizations {
 
       compliance {
         ...organizationComplianceFragment
+
+        files {
+          ...storageFileFragment
+        }
       }
     }
   }
@@ -63,6 +73,7 @@ query myOrganizations {
 ${organizationFragment}
 ${organizationComplianceFragment}
 ${organizationRelationshipFragment}
+${storageFileFragment}
 `;
 
 export const childOrganizationsQry = gql`
@@ -88,6 +99,10 @@ query childOrganizations (
 
       compliance {
         ...organizationComplianceFragment
+
+        files {
+          ...storageFileFragment
+        }
       }
     }
   }
@@ -96,6 +111,7 @@ query childOrganizations (
 ${organizationChildFragment}
 ${organizationFragment}
 ${organizationComplianceFragment}
+${storageFileFragment}
 `;
 
 export const organizationWorkflowsQry = gql`

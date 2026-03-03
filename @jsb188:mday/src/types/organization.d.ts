@@ -8,7 +8,7 @@ import {
 import { PRODUCT_FEATURES } from '../constants/product.ts';
 
 import type { AddressObj } from '@jsb188/app/types/other.d.ts';
-import type { StorageData } from './storage.d.ts';
+import type { StorageData, StorageGQL } from './storage.d.ts';
 import type { LogTypeEnum } from '../types/log.d.ts';
 
 /*
@@ -148,22 +148,14 @@ export interface OrganizationComplianceGQL {
 	__deleted?: boolean;
 
 	id: string;
-	number: string;
-	name: string;
+	number: string | null;
+	documentName: string | null;
 	type: OrganizationComplianceType;
 	expirationDate: string; // YYYY-MM-DD
-	notes: string;
 	createdAt: string; // ISO date string
 	updatedAt: string; // ISO date string
 
-	files: {
-		id: string;
-		complianceId: string;
-		storageId: string;
-		uri: string | null;
-		contentType: string | null;
-		order: number;
-	}[];
+	documents: StorageGQL[] | null;
 }
 
 export interface OrganizationGQL {

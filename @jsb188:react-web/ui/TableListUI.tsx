@@ -1,7 +1,8 @@
 import { cn } from '@jsb188/app/utils/string.ts';
+import { convertIntToCalDate, getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { usePopOver } from '@jsb188/react/states';
 import type { POPosition } from '@jsb188/react/types/PopOver.d';
-import { memo, useEffect, useId } from 'react';
+import { memo, useEffect, useId, useMemo } from 'react';
 import { LabelsAndIcons, type LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { PopOverButton } from '../modules/PopOver';
 import { Icon } from '../svgs/Icon';
@@ -371,6 +372,83 @@ export const InlineTableOptions = memo((p: {
 });
 
 InlineTableOptions.displayName = 'InlineTableOptions';
+
+/**
+ * Convert inline date picker value into a readable date label.
+ */
+
+function getInlineTableReadableDate(value: string | number | null | undefined) {
+  if (!value) {
+    return '';
+  }
+
+  const dateValue = typeof value === 'number'
+    ? convertIntToCalDate(value)
+    : value;
+
+  return getReadableCalDate(dateValue);
+}
+
+/**
+ * Inline date picker trigger for editable table cells.
+ */
+
+export const InlineTableDatePicker = memo((p: {
+  value?: string | number | null;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+  position?: POPosition;
+  minDate?: Date;
+  maxDate?: Date;
+  onChange: (value: string | number | null | Record<string, unknown>) => void;
+}) => {
+  const { popOver } = usePopOver();
+  const globalState = popOver?.globalState;
+  const { value, placeholder, className, disabled, position, minDate, maxDate, onChange } = p;
+  const optionFieldName = useId().replaceAll(':', '_');
+  const formattedValue = useMemo(() => getInlineTableReadableDate(value) || '', [value]);
+
+  useEffect(() => {
+    const { action, name, value } = globalState || {};
+    if (action === 'ITEM' && name === optionFieldName) {
+      onChange(value);
+    }
+  }, [globalState]);
+
+  return <PopOverButton
+    disabled={disabled}
+    zClassName='z8'
+    className={cn('w_f non_link', className)}
+    position={position || 'bottom_left'}
+    offsetX={0}
+    offsetY={5}
+    iface={{
+      name: 'PO_LIST',
+      variables: {
+        initialState: {
+          [optionFieldName]: value || null,
+        },
+        className: 'min_w_275',
+        options: [{
+          __type: 'DATE_PICKER' as const,
+          name: optionFieldName,
+          minDate,
+          maxDate,
+        }],
+      },
+    }}
+  >
+    <input
+      readOnly
+      value={formattedValue}
+      placeholder={placeholder || '-'}
+      className='bd_1 bd_lt r_sm w_f px_4 pt_5 pb_3 -mx_5 -my_1 focus_bg'
+    />
+  </PopOverButton>;
+});
+
+InlineTableDatePicker.displayName = 'InlineTableDatePicker';
 
 /**
  * Table list mock item

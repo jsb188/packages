@@ -92,6 +92,14 @@ export const AllowancesNoSmoking = <svg xmlns="http://www.w3.org/2000/svg" viewB
 <path d="M6,3c0,1.47275925-1.19390742,2.66666667-2.66666667,2.66666667-.73637962,0-1.33333333.5969535-1.33333333,1.33333333"/>
 </svg>;
 
+export const AnimalProductsEggs = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-animal-products-eggs" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M21.25 14.75a2 2 0 0 0 0 -4H2.75a2 2 0 0 0 0 4Z"/>
+<path d="m3 14.75 1.16 3.47a1.49 1.49 0 0 0 1.42 1h3.84a1.49 1.49 0 0 0 1.42 -1L12 14.75"/>
+<path d="m12 14.75 1.16 3.47a1.49 1.49 0 0 0 1.42 1h3.84a1.49 1.49 0 0 0 1.42 -1L21 14.75"/>
+<path d="M3 10.75c0 -3.31 2 -6 4.5 -6s4.5 2.69 4.5 6"/>
+<path d="M12 10.75c0 -3.31 2 -6 4.5 -6s4.5 2.69 4.5 6"/>
+</svg>;
+
 export const AntiBacterial1 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="icon icons-anti-bacterial-1">
 <path d="M12,23c6.07509995,0,11-4.92490005,11-11,0-6.07512999-4.92490005-11-11-11C5.92487001,1,1,5.92487001,1,12c0,6.07509995,4.92487001,11,11,11Z"/>
 <path d="M7.94498014,7.75501013l-3.60300016-3.60300016"/>
@@ -1969,6 +1977,19 @@ export const LockerRoomWashHands1Color = <svg xmlns="http://www.w3.org/2000/svg"
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m11.379 4.91501 -0.387 1.962" strokeWidth="1" />
 </svg>;
 
+export const LocallyGrown2 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-locally-grown-2" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="m6.226 17.477 -2.055 -0.857C1.9 15.674 0.058 13.067 1 10.8l2.824 0.856a4.454 4.454 0 0 1 2.402 5.821Z"/>
+<path d="m6.913 17.477 2.056 -0.857c2.27 -0.946 4.113 -3.553 3.167 -5.823l-2.825 0.856a4.455 4.455 0 0 0 -2.398 5.824Z"/>
+<path d="m6.226 12.467 -2.055 -0.856C1.9 10.665 0.058 8.058 1 5.788l2.824 0.856a4.453 4.453 0 0 1 2.402 5.823Z"/>
+<path d="m6.913 12.467 2.056 -0.856c2.27 -0.946 4.113 -3.553 3.167 -5.823l-2.825 0.856a4.454 4.454 0 0 0 -2.398 5.823Z"/>
+<path d="m6.57 8.571 0 11.689"/>
+<path d="M8.8 4.674c0 1.537 -2.226 3.9 -2.226 3.9s-2.227 -2.36 -2.227 -3.9S6.57 0.778 6.57 0.778 8.8 3.137 8.8 4.674Z"/>
+<path d="M11.355 18.568h11.378v4.654H11.355Z"/>
+<path d="m12.39 17.477 0 1.091"/>
+<path d="m21.699 15.392 0 3.176"/>
+<path d="M14.076 15.1a2.068 2.068 0 0 0 0.9 -1.707 2.069 2.069 0 1 0 4.138 0 2.069 2.069 0 1 0 4.137 0l-1.034 -3.1h-7.242"/>
+</svg>;
+
 export const Login2 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-login-2">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M9 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" />
@@ -2100,6 +2121,13 @@ export const MessageOff = <svg xmlns="http://www.w3.org/2000/svg" className="ico
 <path d="M8 13h5" stroke="currentColor" />
 <path d="M8 4h10a3 3 0 0 1 3 3v8c0 .577 -.163 1.116 -.445 1.573m-2.555 1.427h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8c0 -1.085 .576 -2.036 1.439 -2.562" stroke="currentColor" />
 <path d="M3 3l18 18" stroke="currentColor" />
+</svg>;
+
+export const MilkCarton = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-milk-carton" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M18 5.25H6L3.158 9.433A1.5 1.5 0 0 0 3 10.1v11.65a1.5 1.5 0 0 0 1.5 1.5h15a1.5 1.5 0 0 0 1.5 -1.5V10.1a1.5 1.5 0 0 0 -0.158 -0.671Z"/>
+<path d="M18 2.25a1.5 1.5 0 0 0 -1.5 -1.5h-9A1.5 1.5 0 0 0 6 2.25v3h12Z"/>
+<path d="m6.75 9.75 10.5 0"/>
+<path d="M9 17.25a3 3 0 1 0 6 0 3 3 0 1 0 -6 0Z"/>
 </svg>;
 
 export const MonitorHeartBeat = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-monitor-heart-beat" strokeWidth="1.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
@@ -2304,6 +2332,17 @@ export const OfficeBuildingDouble = <svg xmlns="http://www.w3.org/2000/svg" fill
 <path d="M7.51106686,21.99991184v-2.93333266c0-.88888889.71111128-1.59999932,1.60000017-1.59999932s1.60004425.71111043,1.60004425,1.59999932v2.93333266"/>
 </svg>;
 
+export const Orchid = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-orchid" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M10.12 6.338a1.506 1.506 0 0 0 -2.582 -0.51 1.512 1.512 0 1 0 -2.927 0.726 1.406 1.406 0 0 0 0.089 0.206 1.511 1.511 0 1 0 0.1 2.921 1.509 1.509 0 1 0 2.776 1.04 1.51 1.51 0 1 0 1.616 -2.488 1.515 1.515 0 0 0 0.928 -1.895Z"/>
+<path d="M16.6 2.522a1.508 1.508 0 0 0 -2.583 -0.51 1.393 1.393 0 0 0 -0.048 -0.22 1.515 1.515 0 0 0 -2.878 0.946 1.4 1.4 0 0 0 0.091 0.206 1.511 1.511 0 1 0 0.1 2.921 1.51 1.51 0 0 0 2.577 1.574 1.529 1.529 0 0 0 0.2 -0.534 1.509 1.509 0 1 0 1.616 -2.488 1.514 1.514 0 0 0 0.925 -1.895Z"/>
+<path d="M21.889 5.238a1.507 1.507 0 0 0 -2.584 0.5 1.424 1.424 0 0 0 -0.128 -0.186 1.515 1.515 0 1 0 -2.145 2.12 1.511 1.511 0 1 0 1.193 2.668 1.509 1.509 0 1 0 2.963 -0.086 1.51 1.51 0 0 0 1.1 -2.811 1.527 1.527 0 0 0 -0.547 -0.1 1.516 1.516 0 0 0 0.148 -2.105Z"/>
+<path d="M10.079 19.75s-2.059 -4.8 -2.059 -7.99"/>
+<path d="M7.659 19.75a8.782 8.782 0 0 0 -2.881 -2.4c-1.11 -0.517 -2.324 -0.768 -3.466 -1.211a0.894 0.894 0 0 1 -0.507 -0.362 0.669 0.669 0 0 1 0.018 -0.566 2.162 2.162 0 0 1 1.829 -0.99 5.112 5.112 0 0 1 2.186 0.108 4.343 4.343 0 0 1 2.2 1.781 36.115 36.115 0 0 1 1.84 3.643"/>
+<path d="M13.3 19.645a7.917 7.917 0 0 1 2.8 -2.192c1.11 -0.517 2.324 -0.769 3.466 -1.212a0.892 0.892 0 0 0 0.506 -0.361 0.667 0.667 0 0 0 -0.018 -0.567 2.159 2.159 0 0 0 -1.828 -0.99 5.132 5.132 0 0 0 -2.187 0.109 4.346 4.346 0 0 0 -2.2 1.78 32.272 32.272 0 0 0 -1.748 3.433"/>
+<path d="m20.75 19.75 -19 0 1.5 3.5 16.5 0 1 -3.5z"/>
+<path d="M12.093 19.75s1.657 -5.6 1.119 -8.99"/>
+</svg>;
+
 export const OrganicBagLeaf = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-organic-bag-leaf" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M8.8,13.9s1.1,2.3,3.1,2.2c3.9-.4,3.6-5.5,5-7.3-2.4-1.2-5.3-1.2-7.7,0-2,1.1-2.2,3.1-.4,5.1Z"/>
 <path d="M11.6,11.5s-2.5.3-4.3,4.7"/>
@@ -2318,6 +2357,19 @@ export const OrganicFlask = <svg xmlns="http://www.w3.org/2000/svg" className="i
 <path d="M6.7,2h10.7"/>
 <path d="M15.3,4.7h-2"/>
 <path d="M15.3,7.3h-2"/>
+</svg>;
+
+export const OrganicPlant = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-organic-plant" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M0.85 13.5a11.429 11.429 0 0 1 -0.1 -1.5A11.25 11.25 0 0 1 12 0.75"/>
+<path d="M23.152 13.5a11.417 11.417 0 0 0 0.1 -1.5A11.25 11.25 0 0 0 12 0.75"/>
+<path d="M20.251 12.046A8.259 8.259 0 0 0 12 20.315a8.26 8.26 0 0 0 8.251 -8.269Z"/>
+<path d="M14.171 14.725a9.152 9.152 0 0 0 -2.16 -9.475 9.151 9.151 0 0 0 -2.148 9.511"/>
+<path d="M12 20.315a8.26 8.26 0 0 0 -8.25 -8.269A8.259 8.259 0 0 0 12 20.315Z"/>
+<path d="m12.001 23.25 0 -2.935"/>
+<path d="M22.317 16.492a10.729 10.729 0 0 1 -1.41 2.381"/>
+<path d="M18.738 21.006a10.576 10.576 0 0 1 -2.4 1.372"/>
+<path d="M7.687 22.378a10.5 10.5 0 0 1 -2.4 -1.372"/>
+<path d="M3.115 18.873a10.706 10.706 0 0 1 -1.41 -2.381"/>
 </svg>;
 
 export const OrganicPlantGrow = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-organic-plant-grow" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -2789,7 +2841,7 @@ export const PencilWrite2 = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/20
 </svg>;
 
 export const PencilWrite3 = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-pencil-write-3" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-<path d="M12.25278582,16.38599968l-3.71199989.53000069.52999973-3.7159996L18.61678614,3.65400124c.87978935-.87868476,2.30531502-.87778926,3.18400002.00200033.878685.87978935.87778854,2.30531454-.00200081,3.18399954h0l-9.54599953,9.54599857Z"/>
+<path d="M12.25278568,16.38599968l-3.71199989.53000069.52999973-3.7159996L18.61678696,3.65400124c.87978935-.87868476,2.30531502-.87778926,3.18400002.00200033.878685.87978935.87778854,2.30531454-.00200081,3.18399954h0s-9.54599953,9.54599857-9.54600048,9.54599857Z"/>
 <path d="M5.25,14h-3c-.82842708,0-1.5.67157269-1.5,1.5v5c0,.82842636.67157292,1.5,1.5,1.5h19.5c.82842636,0,1.5-.67157364,1.5-1.5v-5c0-.82842731-.67157364-1.5-1.5-1.5h-3"/>
 </svg>;
 

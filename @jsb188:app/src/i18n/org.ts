@@ -32,6 +32,8 @@ export default {
 		compliance_title: 'Compliance',
 		compliance_docs: 'Compliance documents',
 		compliance_documents: 'Compliance documents',
+		compliance_name_ph: 'Certificate document - #12345',
+		compliance_input_type_missing: 'Please select a document type.',
 		outstanding_balance: 'Outstanding balance',
 		recent_invoices: 'Recent invoices',
 		upcoming_invoices: 'Upcoming invoices',
@@ -204,12 +206,12 @@ export default {
 		},
 
 		compliance: {
-			ORGANIC: 'Organic',
-			INSURANCE: 'Insurance',
-			PRODUCERS_CERTIFICATE: 'Producer',
-			MILK_HANDLER_LICENSE: 'Milk Handler',
-			EGG_HANDLER_LICENSE: 'Egg Handler',
-			NURSERY_LICENSE: 'Nursery',
+			ORGANIC: 'Organic certification',
+			INSURANCE: 'Insurance policy',
+			PRODUCERS_CERTIFICATE: 'Producer\'s certificate',
+			MILK_HANDLER_LICENSE: 'Milk Handler license',
+			EGG_HANDLER_LICENSE: 'Egg Handler license',
+			NURSERY_LICENSE: 'Nursery license',
 		},
 
 		event_type: {

@@ -145,7 +145,7 @@ function PopOverMoreButton(p: {
     disabled={disabled}
     className='av av_xxs r v_center'
     zClassName={zClassName}
-    linkClassName={cn('link', !allowActiveTransform && 'no_active_transform')}
+    linkClassName={cn('link', !allowActiveTransform && 'non_link')}
     notActiveClassName='bg_active_hv bd_1 bd_invis bd_lt_hv'
     activeClassName='bg_active bd_1 bd_lt'
     animationClassName='anim_dropdown_top_right on_mount'

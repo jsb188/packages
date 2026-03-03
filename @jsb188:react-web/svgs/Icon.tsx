@@ -150,6 +150,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   growers: 'indoor-plant-house',
   write_log: 'content-paper-edit',
   time_recurring: 'time-daily-2',
+  upload: 'upload-bottom',
 
   // Org departments
   DIRECTORY_ACCOUNTS_RECEIVABLE: 'receipt-dollar',
@@ -176,6 +177,14 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   GROWER_NETWORK: 'wine-grapes',
   RESTAURANT: 'restaurant-dishes',
   VENDOR: 'farmers-market-vendor',
+
+  // Certification types
+  COMPLIANCE_ORGANIC: 'organic-plant',
+  COMPLIANCE_INSURANCE: 'document-license',
+  COMPLIANCE_PRODUCERS_CERTIFICATE: 'locally-grown-2',
+  COMPLIANCE_MILK_HANDLER_LICENSE: 'milk-carton',
+  COMPLIANCE_EGG_HANDLER_LICENSE: 'animal-products-eggs',
+  COMPLIANCE_NURSERY_LICENSE: 'orchid',
 
   // AI Task types
   AI_TASK: 'task-list-check-2',

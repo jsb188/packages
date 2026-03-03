@@ -35,22 +35,11 @@ export const organizationFragment = `fragment organizationFragment on Organizati
 
 export const organizationComplianceFragment = `fragment organizationComplianceFragment on OrganizationCompliance {
   id
-  number
-  name
+  documentName
   type
   expirationDate
-  notes
   createdAt
   updatedAt
-
-  files {
-    id
-    complianceId
-    storageId
-    order
-    uri
-    contentType
-  }
 }`;
 
 export const organizationRelationshipFragment = `fragment organizationRelationshipFragment on OrganizationRelationship {

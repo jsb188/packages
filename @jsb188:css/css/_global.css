@@ -151,7 +151,7 @@ button:not(:disabled):not(.disabled):active,
   transform: translateY(1px);
 }
 
-.no_active_transform:active {
+.non_link:active {
   transform: translateY(0) !important;
 }
 

@@ -40,7 +40,7 @@
   background-color: rgba(0,0,0,0);
 }
 
-.invis_input:focus {
+.invis_input:focus, .stock:focus {
   outline: none;
 }
 
@@ -73,7 +73,7 @@ input.error:focus, textarea.error:focus, [contenteditable='true'].error:focus,
   outline: 2px solid rgb(var(--color-error)) !important;
 }
 
-input:focus, textarea:focus, [contenteditable='true']:focus,
+input:not(.stock):focus, textarea:not(.stock):focus, [contenteditable='true']:not(.stock):focus,
 .form_el input.focus, .form_el.focused textarea.form_el, .form_el.focused input, .form_el.focused textarea,
 .form_el.error.focused .form_input, .form_el.focused .form_input.error {
   outline: 2px solid rgb(var(--color-main));
@@ -87,7 +87,7 @@ input:focus, textarea:focus, [contenteditable='true']:focus,
   background-color: rgba(var(--color-main), .04);
 }
 
-input:not(.error):not(.disabled):focus, textarea:not(.error):not(.disabled):focus, [contenteditable='true']:not(.error):not(.disabled):focus,
+input:not(.error):not(.disabled):not(.stock):focus, textarea:not(.error):not(.disabled):not(.stock):focus, [contenteditable='true']:not(.error):not(.disabled):not(.stock):focus,
 .form_input:not(.disabled):not(.error):focus:hover,
 .form_el.focused .form_input:not(.error):not(.disabled) {
   /* background-color: rgba(var(--color-main), .075) !important; */
