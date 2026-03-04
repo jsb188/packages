@@ -80,6 +80,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   delete: 'bin',
   add_line: 'pencil-write-3',
   remove_line: 'remove-tab',
+  view_document: 'common-file-view',
+  edit_document: 'common-file-text-edit',
   edit: 'pencil-write-2',
   edit_note: 'content-paper-edit',
   email_address: 'read-email-at',

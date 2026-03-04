@@ -41,7 +41,23 @@ function enforceArrayType(obj: any): any {
  */
 
 function mergeNestedObjects(obj1: any, obj2: any) {
+  if (Array.isArray(obj1) || Array.isArray(obj2)) {
+    if (Array.isArray(obj2)) {
+      return [...obj2];
+    }
+
+    if (Array.isArray(obj1)) {
+      return [...obj1];
+    }
+
+    return obj2;
+  }
+
   if (!obj1) {
+    if (!obj2 || typeof obj2 !== 'object') {
+      return obj2;
+    }
+
     return { ...obj2 };
   }
 
@@ -57,6 +73,76 @@ function mergeNestedObjects(obj1: any, obj2: any) {
   }
 
   return newObj;
+}
+
+/**
+ * Get spread value richness score by counting known mapped entries.
+ */
+
+function getSpreadValueScore(spreadValue: any) {
+  if (!spreadValue) {
+    return 0;
+  }
+
+  if (typeof spreadValue === 'string') {
+    return 1;
+  }
+
+  if (Array.isArray(spreadValue)) {
+    return spreadValue.length;
+  }
+
+  if (spreadValue?.__list && Array.isArray(spreadValue.data)) {
+    return spreadValue.data.length;
+  }
+
+  return 0;
+}
+
+/**
+ * Merge two spread values while preferring richer existing spread metadata.
+ */
+
+function mergeSpreadValue(currentValue: any, nextValue: any) {
+  if (!currentValue) {
+    return nextValue;
+  }
+
+  if (!nextValue) {
+    return currentValue;
+  }
+
+  const currentScore = getSpreadValueScore(currentValue);
+  const nextScore = getSpreadValueScore(nextValue);
+
+  if (nextScore >= currentScore) {
+    return nextValue;
+  }
+
+  return currentValue;
+}
+
+/**
+ * Merge spread maps so partial mutation payloads do not drop nested cached fields.
+ */
+
+function mergeSpreads(currentSpreads: any, nextSpreads: any) {
+  if (!currentSpreads) {
+    return nextSpreads;
+  }
+
+  if (!nextSpreads) {
+    return currentSpreads;
+  }
+
+  const mergedSpreads = { ...currentSpreads };
+  for (const key in nextSpreads) {
+    if (Object.prototype.hasOwnProperty.call(nextSpreads, key)) {
+      mergedSpreads[key] = mergeSpreadValue(currentSpreads[key], nextSpreads[key]);
+    }
+  }
+
+  return mergedSpreads;
 }
 
 /**
@@ -131,35 +217,7 @@ export function loadQuery(queryKey: string, referencesOnly?: boolean) {
  * Load fragment cache
  */
 
-/**
- * Merge spread data into fragment data while preserving latest fragment values
- */
-
-function mergeSpreadIntoFragment(fragmentValue: any, spreadValue: any): any {
-  const isObject = (value: any) => !!value && typeof value === 'object' && !Array.isArray(value);
-
-  if (typeof fragmentValue === 'undefined') {
-    return spreadValue;
-  }
-
-  if (Array.isArray(fragmentValue)) {
-    return fragmentValue;
-  }
-
-  if (isObject(fragmentValue) && isObject(spreadValue)) {
-    const mergedObj = { ...spreadValue };
-    for (const key in fragmentValue) {
-      if (Object.prototype.hasOwnProperty.call(fragmentValue, key)) {
-        mergedObj[key] = mergeSpreadIntoFragment(fragmentValue[key], spreadValue?.[key]);
-      }
-    }
-    return mergedObj;
-  }
-
-  return fragmentValue;
-}
-
-export function loadFragment(id: string, isTest?: boolean) {
+export function loadFragment(id: string, mainPrioritizedFields: string[] = []) {
   // console.log('load fragment:', id, FRAGMENTS.get(id));
 
   const fragment = enforceArrayType(FRAGMENTS.get(id));
@@ -193,7 +251,7 @@ export function loadFragment(id: string, isTest?: boolean) {
 
       let spreadData;
       if (typeof spreadValue === 'string') {
-        spreadData = loadFragment(spreadValue);
+        spreadData = enforceArrayType(FRAGMENTS.get(spreadValue));
       } else if (Array.isArray(spreadValue)) {
         spreadData = spreadValue.reduce((acc, value) => {
 
@@ -203,7 +261,7 @@ export function loadFragment(id: string, isTest?: boolean) {
 
 
           if (typeof value === 'string') {
-            const fragmentData = loadFragment(value);
+            const fragmentData = enforceArrayType(FRAGMENTS.get(value));
 
             // if (isTest) {
             //   console.log('1:', value, fragmentData);
@@ -258,7 +316,20 @@ export function loadFragment(id: string, isTest?: boolean) {
       }
 
       if (spreadData) {
-        fragmentWithSpreads[key] = mergeSpreadIntoFragment(fragmentWithSpreads[key], spreadData);
+        if (mainPrioritizedFields.includes(key) && fragmentWithSpreads[key] !== undefined) {
+          if (
+            spreadData &&
+            fragmentWithSpreads[key] &&
+            typeof spreadData === 'object' &&
+            typeof fragmentWithSpreads[key] === 'object' &&
+            !Array.isArray(spreadData) &&
+            !Array.isArray(fragmentWithSpreads[key])
+          ) {
+            fragmentWithSpreads[key] = mergeNestedObjects(spreadData, fragmentWithSpreads[key]);
+          }
+        } else {
+          fragmentWithSpreads[key] = spreadData;
+        }
       }
     }
   }
@@ -473,7 +544,8 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
       //   console.log(data);
       //   console.log(spreads);
       // }
-      FRAGMENTS.set(spreadsFragmentKey, spreads);
+      const currentSpreads = FRAGMENTS.get(spreadsFragmentKey);
+      FRAGMENTS.set(spreadsFragmentKey, mergeSpreads(currentSpreads, spreads));
     }
   }
 

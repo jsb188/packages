@@ -224,14 +224,10 @@ export function useReactiveFragment(
   observe: Array<string | [string, string | null]>,
   qryObsCount?: number | boolean,
   otherCheck?: (latestData: any, updatedKeys: any[]) => boolean,
+  mainPrioritizedFields?: string[],
   ignoreIDWarning?: boolean,
   isTest?: boolean
 ) {
-
-  // const isTest = observe[0] === '$organizationChildFragment:425588144757:712505814156';
-  // if (isTest) {
-  //   console.log('is test yes');
-  // }
 
   const fragmentObserver = useFragmentObserverValue();
   const frgObsCount = fragmentObserver.count;
@@ -243,13 +239,7 @@ export function useReactiveFragment(
 
     observe.forEach((key) => {
       const isMapped = Array.isArray(key);
-      const fragmentData = loadFragment(isMapped ? key[0] : key, isTest);
-
-      // if (isTest) {
-      //   console.log('isMapped', isMapped);
-      //   console.log('key', key);
-      //   console.log(fragmentData);
-      // }
+      const fragmentData = loadFragment(isMapped ? key[0] : key, mainPrioritizedFields);
 
       if (fragmentData) {
         if (isMapped) {
@@ -347,7 +337,7 @@ export function useReactiveFragment(
               }
             }
 
-            const fragmentData = loadFragment(isMapped ? key[0] : key);
+            const fragmentData = loadFragment(isMapped ? key[0] : key, mainPrioritizedFields);
 
             // if (isTest) {
             //   console.log('fragmentKey', key);

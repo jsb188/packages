@@ -137,7 +137,7 @@ export function useChildOrganizations(variables: PaginationArgs & {
  * Get reactive organization fragment
  */
 
-export function useReactiveOrganizationChildFragment(childId: string, currentData?: any, queryCount?: number) {
+export function useReactiveOrganizationChildFragment(childId: string, currentData?: any, queryCount?: number, mainPrioritizedFields?: string[]) {
   return useReactiveFragment(
     currentData,
     [
@@ -147,6 +147,8 @@ export function useReactiveOrganizationChildFragment(childId: string, currentDat
       // [`$logArableFragment:${logEntryId}`, null],
     ],
     queryCount,
+    undefined,
+    mainPrioritizedFields,
   );
 }
 

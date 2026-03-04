@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { organizationChildFragment, organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
 
 export const switchOrganizationMtn = gql`
 mutation switchOrganization (
@@ -21,6 +21,26 @@ mutation deleteComplianceDocument (
     complianceId: $complianceId
   )
 }
+`;
+
+export const editComplianceDocumentMtn = gql`
+mutation editComplianceDocument (
+  $complianceId: GenericID!
+  $documentName: String
+  $type: OrganizationComplianceType
+  $expirationDate: CalDate
+) {
+  editComplianceDocument (
+    complianceId: $complianceId
+    documentName: $documentName
+    type: $type
+    expirationDate: $expirationDate
+  ) {
+    ...organizationComplianceFragment
+  }
+}
+
+${organizationComplianceFragment}
 `;
 
 export const editOrganizationMtn = gql`

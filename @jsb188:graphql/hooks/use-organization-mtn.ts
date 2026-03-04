@@ -7,6 +7,7 @@ import {
   deleteChildOrganizationMtn,
   deleteComplianceDocumentMtn,
   editChildOrganizationMtn,
+  editComplianceDocumentMtn,
   editMembershipMtn,
   editOrganizationMtn,
   removeMembershipMtn,
@@ -77,6 +78,25 @@ export function useDeleteComplianceDocument(params: UseMutationParams = {}, open
 
   return {
     deleteComplianceDocument,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Edit a compliance document
+ */
+
+export function useEditComplianceDocument(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+  const [editComplianceDocument, mtnValues, mtnHandlers] = useMutation(editComplianceDocumentMtn,
+    {
+      openModalPopUp,
+      ...params,
+    }
+  );
+
+  return {
+    editComplianceDocument,
     ...mtnValues,
     ...mtnHandlers,
   };
