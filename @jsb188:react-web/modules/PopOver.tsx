@@ -551,12 +551,13 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
   };
 
   useEffect(() => {
-    if (hasTooltip) {
-      return () => {
-        closeTooltip(unique.current);
-      };
-    }
-  }, [hasTooltip]);
+    // Cannot do "hasTooltip" check here because there are edge cases where the tooltip doesn't close
+    // Do NOT do it
+    // if (hasTooltip) {
+    return () => {
+      closeTooltip(unique.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (disabled && hasTooltip) {

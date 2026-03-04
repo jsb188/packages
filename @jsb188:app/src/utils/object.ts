@@ -334,6 +334,34 @@ export function groupCollections(
 		return false;
 	}
 
+	/**
+	 * Build a stable key for dedupe checks.
+	 */
+
+	function makeMergeKey(
+		obj: any,
+		pkFn?: (obj: any) => string,
+		pkName?: string,
+	): string | number | undefined {
+		if (!obj) {
+			return undefined;
+		}
+
+		if (pkFn) {
+			return pkFn(obj);
+		}
+
+		if (obj.id !== null && typeof obj.id !== 'undefined') {
+			return obj.id;
+		}
+
+		if (pkName && obj[pkName] !== null && typeof obj[pkName] !== 'undefined') {
+			return obj[pkName];
+		}
+
+		return Object.entries(obj).flat().join('|');
+	}
+
 	let hasHash = false;
 	let primaryKeyName;
 	let collections = collections_;
@@ -455,33 +483,39 @@ export function groupCollections(
 		}
 
 		const flatName = name.replace('.#.', '.');
+		const parentPKFn = innerCollectionPrimaryKeys?.[beforeHash];
+		const childPKFn = innerCollectionPrimaryKeys?.[flatName];
 
 		collections.forEach((obj) => {
 			const innerObj = getObject(obj, flatName);
 			const primaryKey = obj[primaryKeyName];
 			const i = groupedCollections.findIndex((o: any) => o[primaryKeyName] === primaryKey);
 			const innerParent = getObject(obj, beforeHash);
-			const innerParentId = innerParent?.[primaryKeyName];
+			const innerParentId = makeMergeKey(innerParent, parentPKFn, primaryKeyName);
 
-			if (!innerObj) {
+			if (!innerObj || !hasMeaningfulValue(innerObj)) {
 				return;
 			}
 
 			if (innerParentId && i >= 0) {
 				const innerArr = getObject(groupedCollections[i], beforeHash) || [];
-				const j = innerArr.findIndex((o: any) => o[primaryKeyName] === innerParentId);
+				const j = innerArr.findIndex((o: any) => makeMergeKey(o, parentPKFn, primaryKeyName) === innerParentId);
 
 				if (j >= 0) {
 					const currentValue = innerArr[j][afterHash];
 					const currentValueIsArray = Array.isArray(currentValue);
 					const actualPathName = `${beforeHash}.${j}.${afterHash}`;
+					const nextInnerObjKey = makeMergeKey(innerObj, childPKFn);
 
 					let newValue;
 					if (currentValueIsArray) {
-						if (!currentValue.find((o) => o.id === innerObj.id)) {
+						if (!currentValue.find((o) => makeMergeKey(o, childPKFn) === nextInnerObjKey)) {
 							newValue = currentValue.concat(innerObj);
 						}
-					} else if (currentValue && currentValue.id !== innerObj.id) {
+					} else if (
+						currentValue &&
+						makeMergeKey(currentValue, childPKFn) !== nextInnerObjKey
+					) {
 						newValue = [currentValue].concat(innerObj);
 					} else if (!currentValue) {
 						newValue = [innerObj];
@@ -502,12 +536,18 @@ export function groupCollections(
 			if (Array.isArray(innerParent)) {
 				innerParent.forEach((obj: any) => {
 					const innerParentObj = getObject(obj, afterHash);
-					if (innerParentObj) {
+					if (innerParentObj && hasMeaningfulValue(innerParentObj)) {
 						if (Array.isArray(innerParentObj)) {
-							setObject(obj, afterHash, uniqBy(innerParentObj, primaryKeyName));
+							if (childPKFn) {
+								setObject(obj, afterHash, uniqBy(innerParentObj, childPKFn));
+							} else {
+								setObject(obj, afterHash, uniqBy(innerParentObj, (iObj: any) => makeMergeKey(iObj)));
+							}
 						} else {
 							setObject(obj, afterHash, [innerParentObj]);
 						}
+					} else {
+						setObject(obj, afterHash, []);
 					}
 				});
 			}

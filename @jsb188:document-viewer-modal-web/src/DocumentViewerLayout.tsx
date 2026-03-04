@@ -14,15 +14,18 @@ import { Link, useLocation } from 'react-router';
 
 const DVRightToolbar = memo((p: {
   title: string | null;
+  titleIconName?: string;
   pathname: string | null;
   onCloseModal: () => void;
 }) => {
-  const { title, onCloseModal } = p;
+  const { title, titleIconName, onCloseModal } = p;
   return (
     <header className='bg bd_b_1 bd_lt shadow_line h_35 f_stretch h_spread px_10'>
       <div className='h_item gap_xs ic_sm ft_medium'>
-        <Icon name='folder-open' />
-        {title || '..'}
+        <Icon name={titleIconName || 'folder-open'} />
+        <span className='ellip'>
+          {title || '..'}
+        </span>
       </div>
 
       <div className='h_right gap_5'>
@@ -97,7 +100,8 @@ const DVNavItem = memo((p: {
       data-file-id={file.id}
       className={cn(
         'px_6 py_4 h_item gap_xs ic_sm link bd_l_4 cl_primary_hv',
-        selected ? 'bd_primary' : isPDF ? 'bd_darker_4' : 'bd_lt'
+        // selected ? 'bd_primary' : isPDF ? 'bd_darker_4' : 'bd_lt'
+        selected ? 'bd_primary' : 'bd_md'
       )}
       onClick={() => setSelectedFile(item as DVItemFile)}
     >
@@ -125,8 +129,8 @@ const DocumentPreviewToolbar = memo((p: {
   const { backText = i18n.t('form.go_back'), selectedFile, isPDF, onCloseModal, onSelectAdjacentFile } = p;
   const file = selectedFile?.file;
   const fileTypeIconName = file ? getFileTypeIconName(file.contentType, file.name) : null;
-  const btnColor = isPDF ? 'bg_contrast' : 'bg';
-  const btnClassName = `${btnColor} w_25 h_25 r v_center shadow_line rel z9 link cl_df`;
+  // const btnColor = isPDF ? 'bg_contrast' : 'bg_medium';
+  const btnClassName = `bg_alt w_25 h_25 r v_center shadow_line rel z9 link cl_df shadow_line_alt`;
 
   const toolbarItems = useMemo(() => [
     ...(file ? [{
@@ -303,10 +307,12 @@ export const DocumentViewerLayout = memo((p: {
   documentsList: DVItem[];
   initialFileId: string | null;
   backText?: string;
+  fixedTitle?: string | null;
+  titleIconName?: string;
   // selectedFile: StorageGQL | null;
   // onSelectFile: (file: StorageGQL | null) => void;
 }) => {
-  const { initialFileId, documentsList, onCloseModal, backText } = p;
+  const { initialFileId, documentsList, onCloseModal, backText, fixedTitle, titleIconName } = p;
   const { pathname } = useLocation();
   const navRef = useRef<HTMLDivElement | null>(null);
   const firstRenderUrl = useRef<string | null>(null);
@@ -390,7 +396,8 @@ export const DocumentViewerLayout = memo((p: {
       </div>
       <div className='w_225 h_100vh bg ft_xs v_item of'>
         <DVRightToolbar
-          title={selectedFile?.title || null}
+          title={fixedTitle || selectedFile?.title || null}
+          titleIconName={titleIconName}
           pathname={selectedFile?.pathname || null}
           onCloseModal={onCloseModal}
         />

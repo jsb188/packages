@@ -228,6 +228,11 @@ export function useReactiveFragment(
   isTest?: boolean
 ) {
 
+  // const isTest = observe[0] === '$organizationChildFragment:425588144757:712505814156';
+  // if (isTest) {
+  //   console.log('is test yes');
+  // }
+
   const fragmentObserver = useFragmentObserverValue();
   const frgObsCount = fragmentObserver.count;
   const dataId = data?.id;
@@ -238,7 +243,13 @@ export function useReactiveFragment(
 
     observe.forEach((key) => {
       const isMapped = Array.isArray(key);
-      const fragmentData = loadFragment(isMapped ? key[0] : key);
+      const fragmentData = loadFragment(isMapped ? key[0] : key, isTest);
+
+      // if (isTest) {
+      //   console.log('isMapped', isMapped);
+      //   console.log('key', key);
+      //   console.log(fragmentData);
+      // }
 
       if (fragmentData) {
         if (isMapped) {

@@ -51,6 +51,7 @@ export interface SimpleErrorType {
 // Web Socket events
 
 type ResetQueryRuleEnum = 'ALWAYS' | 'IF_FRAGMENT_NOT_FOUND' | 'IF_FRAGMENT_FOUND' | 'NEVER';
+type AppendRuleEnum = 'APPEND_AT_END' | 'APPEND_AT_FRONT';
 
 export interface WSDataUpdateObj {
   id: string;
@@ -64,6 +65,7 @@ export interface WSDataUpdateObj {
     name: string;
     dataId: string;
     replaceId?: string; // Use this where client has a temporary ID that will be replaced by the server-side ID later
+    appendRule?: AppendRuleEnum | null;
     data: any;
   } | null)[];
 }

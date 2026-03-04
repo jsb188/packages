@@ -14,8 +14,8 @@ import { uploadFileToGCS } from './googleStorage';
 
 export interface UploadInputRef {
   click: () => void;
-  upload: () => Promise<void>;
-  startUpload: () => Promise<void>;
+  upload: (options?: { doNotClearInput?: boolean }) => Promise<boolean>;
+  startUpload: (options?: { doNotClearInput?: boolean }) => Promise<boolean>;
   clearPickedFile: () => void;
 }
 
@@ -78,7 +78,7 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
    * Handle file selection and upload flow.
    */
 
-  const startFileUpload = async (file: File) => {
+  const startFileUpload = async (file: File): Promise<boolean> => {
     if (file.size > maxFileSize) {
       openModalPopUp(null, {
         statusCode: 400,
@@ -86,11 +86,11 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
         title: i18n.t('error.file_too_large'),
         message: i18n.t('error.file_too_large_msg', { maxFileSize: formatBytes(maxFileSize) }),
       });
-      return;
+      return false;
     }
 
     if (!organizationId || !uploadIntent) {
-      return;
+      return false;
     }
 
     const temporaryId = `uploading-${Date.now()}-${Math.round(Math.random() * 1000)}`;
@@ -110,19 +110,25 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
 
     addFragmentToCache(`${dataFragmentName}:${uploadObj.id}`, uploadObj);
 
-    const { createSignedUploadUrl: signedUrlResult } = await createSignedUploadUrl({
-      variables: {
-        temporaryId,
-        organizationId,
-        fileName: file.name,
-        contentType: file.type,
-        fileSize: file.size,
-        uploadIntent,
-      },
-    });
+    let signedUrlResult: any = null;
+    try {
+      const result = await createSignedUploadUrl({
+        variables: {
+          temporaryId,
+          organizationId,
+          fileName: file.name,
+          contentType: file.type,
+          fileSize: file.size,
+          uploadIntent,
+        },
+      });
+      signedUrlResult = result?.createSignedUploadUrl;
+    } catch {
+      return false;
+    }
 
     if (!mounted.current) {
-      return;
+      return false;
     }
 
     const { signedUrl, fileUri } = signedUrlResult || {};
@@ -137,7 +143,7 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
         false,
         updateObservers,
       );
-      return;
+      return false;
     }
 
     uploadObj = {
@@ -157,7 +163,7 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
       });
 
       if (!mounted.current) {
-        return;
+        return false;
       }
 
       if (removeProgressAfterUpload) {
@@ -165,9 +171,10 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
       }
 
       updateFragment(`${dataFragmentName}:${uploadObj.id}`, uploadObj, null, false, updateObservers);
+      return true;
     } catch (_err) {
       if (!mounted.current) {
-        return;
+        return false;
       }
 
       if (removeProgressAfterUpload) {
@@ -191,6 +198,7 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
         title: i18n.t('error.30031_title'),
         message: i18n.t('error.30031'),
       });
+      return false;
     }
   };
 
@@ -230,14 +238,17 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
    * Start upload for the currently selected file.
    */
 
-  const startPickedFileUpload = async () => {
+  const startPickedFileUpload = async (options?: { doNotClearInput?: boolean }): Promise<boolean> => {
     const pickedFile = pickedFileRef.current;
     if (!pickedFile) {
-      return;
+      return false;
     }
 
-    clearPickedFile();
-    await startFileUpload(pickedFile);
+    if (!options?.doNotClearInput) {
+      clearPickedFile();
+    }
+
+    return await startFileUpload(pickedFile);
   };
 
   /**

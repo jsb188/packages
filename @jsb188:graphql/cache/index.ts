@@ -131,7 +131,35 @@ export function loadQuery(queryKey: string, referencesOnly?: boolean) {
  * Load fragment cache
  */
 
-export function loadFragment(id: string) {
+/**
+ * Merge spread data into fragment data while preserving latest fragment values
+ */
+
+function mergeSpreadIntoFragment(fragmentValue: any, spreadValue: any): any {
+  const isObject = (value: any) => !!value && typeof value === 'object' && !Array.isArray(value);
+
+  if (typeof fragmentValue === 'undefined') {
+    return spreadValue;
+  }
+
+  if (Array.isArray(fragmentValue)) {
+    return fragmentValue;
+  }
+
+  if (isObject(fragmentValue) && isObject(spreadValue)) {
+    const mergedObj = { ...spreadValue };
+    for (const key in fragmentValue) {
+      if (Object.prototype.hasOwnProperty.call(fragmentValue, key)) {
+        mergedObj[key] = mergeSpreadIntoFragment(fragmentValue[key], spreadValue?.[key]);
+      }
+    }
+    return mergedObj;
+  }
+
+  return fragmentValue;
+}
+
+export function loadFragment(id: string, isTest?: boolean) {
   // console.log('load fragment:', id, FRAGMENTS.get(id));
 
   const fragment = enforceArrayType(FRAGMENTS.get(id));
@@ -165,7 +193,7 @@ export function loadFragment(id: string) {
 
       let spreadData;
       if (typeof spreadValue === 'string') {
-        spreadData = enforceArrayType(FRAGMENTS.get(spreadValue));
+        spreadData = loadFragment(spreadValue);
       } else if (Array.isArray(spreadValue)) {
         spreadData = spreadValue.reduce((acc, value) => {
 
@@ -175,7 +203,7 @@ export function loadFragment(id: string) {
 
 
           if (typeof value === 'string') {
-            const fragmentData = enforceArrayType(FRAGMENTS.get(value));
+            const fragmentData = loadFragment(value);
 
             // if (isTest) {
             //   console.log('1:', value, fragmentData);
@@ -230,7 +258,7 @@ export function loadFragment(id: string) {
       }
 
       if (spreadData) {
-        fragmentWithSpreads[key] = spreadData;
+        fragmentWithSpreads[key] = mergeSpreadIntoFragment(fragmentWithSpreads[key], spreadData);
       }
     }
   }

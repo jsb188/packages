@@ -154,8 +154,7 @@ export interface OrganizationComplianceGQL {
 	expirationDate: string; // YYYY-MM-DD
 	createdAt: string; // ISO date string
 	updatedAt: string; // ISO date string
-
-	documents: StorageGQL[] | null;
+	files: StorageGQL[] | null;
 }
 
 export interface OrganizationGQL {
