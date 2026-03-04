@@ -284,8 +284,10 @@ export function getCalDate(d: Date, timeZone_?: string | null) {
  */
 
 export function getReadableCalDate(d_: string | Date, timeZone?: string | null, locales?: string) {
+	let isCalDateString = false;
 	let d;
 	if (typeof d_ === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d_)) {
+		isCalDateString = true;
 		// Assume YYYY-MM-DD format
 		const [year, month, day] = d_.split('-').map(Number);
 		d = new Date(year, month - 1, day);
@@ -311,9 +313,9 @@ export function getReadableCalDate(d_: string | Date, timeZone?: string | null, 
 
 	// return dt.toFormat('MM/dd/yyyy');
 
-  return new Intl.DateTimeFormat(locales || 'en-US', {
-    timeZone: timeZone || undefined, // null is not allowed, it will throw error
-  }).format(d);
+	return new Intl.DateTimeFormat(locales || 'en-US', {
+		timeZone: isCalDateString ? undefined : timeZone || undefined, // null is not allowed, it will throw error
+	}).format(d);
 }
 
 /**

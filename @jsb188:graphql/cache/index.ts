@@ -76,6 +76,76 @@ function mergeNestedObjects(obj1: any, obj2: any) {
 }
 
 /**
+ * Check whether a value is a plain object.
+ */
+
+function isPlainObject(value: any) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Build priority tree from dot-path fields.
+ */
+
+function makePrioritizedFieldTree(fields: string[]) {
+  const priorityTree: Record<string, any> = {};
+
+  for (const fieldPath of fields) {
+    if (!fieldPath || typeof fieldPath !== 'string') {
+      continue;
+    }
+
+    const pathParts = fieldPath.split('.').filter(Boolean);
+    if (pathParts.length === 0) {
+      continue;
+    }
+
+    let currentNode = priorityTree;
+    for (const part of pathParts) {
+      currentNode[part] = currentNode[part] || {};
+      currentNode = currentNode[part];
+    }
+
+    currentNode.__self = true;
+  }
+
+  return priorityTree;
+}
+
+/**
+ * Merge values while prioritizing main fragment data for selected field paths.
+ */
+
+function mergeWithPriorityPaths(innerValue: any, mainValue: any, priorityNode: any) {
+  if (!priorityNode) {
+    return innerValue;
+  }
+
+  if (priorityNode.__self) {
+    if (isPlainObject(innerValue) && isPlainObject(mainValue)) {
+      return mergeNestedObjects(innerValue, mainValue);
+    }
+
+    return mainValue;
+  }
+
+  if (!isPlainObject(innerValue) || !isPlainObject(mainValue)) {
+    return innerValue;
+  }
+
+  const mergedValue = { ...innerValue };
+  for (const key in priorityNode) {
+    if (key !== '__self' && Object.prototype.hasOwnProperty.call(priorityNode, key)) {
+      if (mainValue[key] !== undefined) {
+        mergedValue[key] = mergeWithPriorityPaths(innerValue[key], mainValue[key], priorityNode[key]);
+      }
+    }
+  }
+
+  return mergedValue;
+}
+
+/**
  * Get spread value richness score by counting known mapped entries.
  */
 
@@ -236,6 +306,7 @@ export function loadFragment(id: string, mainPrioritizedFields: string[] = []) {
   // }
 
   let fragmentWithSpreads = { ...fragment };
+  const prioritizedFieldTree = makePrioritizedFieldTree(mainPrioritizedFields);
   for (const key in spreads) {
 
     if (Object.prototype.hasOwnProperty.call(spreads, key)) {
@@ -316,17 +387,13 @@ export function loadFragment(id: string, mainPrioritizedFields: string[] = []) {
       }
 
       if (spreadData) {
-        if (mainPrioritizedFields.includes(key) && fragmentWithSpreads[key] !== undefined) {
-          if (
-            spreadData &&
-            fragmentWithSpreads[key] &&
-            typeof spreadData === 'object' &&
-            typeof fragmentWithSpreads[key] === 'object' &&
-            !Array.isArray(spreadData) &&
-            !Array.isArray(fragmentWithSpreads[key])
-          ) {
-            fragmentWithSpreads[key] = mergeNestedObjects(spreadData, fragmentWithSpreads[key]);
-          }
+        const priorityNode = prioritizedFieldTree[key];
+        if (priorityNode && fragmentWithSpreads[key] !== undefined) {
+          fragmentWithSpreads[key] = mergeWithPriorityPaths(
+            spreadData,
+            fragmentWithSpreads[key],
+            priorityNode
+          );
         } else {
           fragmentWithSpreads[key] = spreadData;
         }

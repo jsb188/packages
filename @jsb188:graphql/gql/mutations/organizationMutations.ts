@@ -28,7 +28,7 @@ mutation editComplianceDocument (
   $complianceId: GenericID!
   $documentName: String
   $type: OrganizationComplianceType
-  $expirationDate: CalDate
+  $expirationDate: CalDateString
 ) {
   editComplianceDocument (
     complianceId: $complianceId
