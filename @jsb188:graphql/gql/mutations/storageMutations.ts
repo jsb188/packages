@@ -2,7 +2,6 @@ import { gql } from 'graphql-tag';
 
 export const createSignedUploadUrlMtn = gql`
 mutation createSignedUploadUrl (
-  $temporaryId: String!
   $organizationId: GenericID!
   $fileName: String!
   $contentType: String!
@@ -10,13 +9,13 @@ mutation createSignedUploadUrl (
   $uploadIntent: StorageIntentObject!
 ) {
   createSignedUploadUrl (
-    temporaryId: $temporaryId
     organizationId: $organizationId
     fileName: $fileName
     contentType: $contentType
     fileSize: $fileSize
     uploadIntent: $uploadIntent
   ) {
+    id
     signedUrl
     fileUri
   }

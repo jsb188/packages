@@ -12,11 +12,6 @@
   will-change: transform;
 }
 
-.horizontal_carousel_group {
-  display: flex;
-  flex-shrink: 0;
-}
-
 .horizontal_carousel_slide {
   flex-shrink: 0;
 }

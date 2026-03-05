@@ -405,24 +405,9 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
     }
 
     const uploadFolder = folders?.[folderIndex];
-    const temporaryId = `uploading-${Date.now()}-${Math.round(Math.random() * 1000)}`;
-
-    let uploadObj = {
-      __reactiveFragmentName: '$storageFileFragment',
-      id: temporaryId, // Temporary, and will be updated via WS later
-      name: file.name,
-      uri: undefined,
-      contentType: file.type,
-      uploadStatus: 'UPLOADING' as const,
-      at: (new Date()).toISOString(),
-    };
-
-    addFragmentToCache(`$storageFileFragment:${uploadObj.id}`, uploadObj);
-    updateDataAfterUpload(uploadFolder, uploadObj, updateObservers);
 
     const { createSignedUploadUrl: signedUrlResult } = await createSignedUploadUrl({
       variables: {
-        temporaryId,
         organizationId,
         fileName: file.name,
         contentType: file.type,
@@ -435,25 +420,25 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
       return;
     }
 
-    const { signedUrl, fileUri } = signedUrlResult || {};
-    if (!signedUrl || !fileUri) {
-      updateFragment(`$storageFileFragment:${uploadObj.id}`, {...uploadObj, uploadStatus: 'ERROR' }, fileUri, false, updateObservers);
+    const { id, signedUrl, fileUri } = signedUrlResult || {};
+    if (!id || !signedUrl || !fileUri) {
       return;
     }
 
-    uploadObj = {
-      ...uploadObj,
-      id: fileUri,
+    let uploadObj = {
+      __reactiveFragmentName: '$storageFileFragment',
+      id,
+      name: file.name,
       uri: fileUri,
+      contentType: file.type,
+      uploadStatus: 'UPLOADING' as const,
+      at: (new Date()).toISOString(),
     };
+    addFragmentToCache(`$storageFileFragment:${uploadObj.id}`, uploadObj);
 
-    // Replace temporary ID with actual fileUri after getting signed URL
-    updateDataAfterUpload(uploadFolder, uploadObj, updateObservers, temporaryId);
+    updateDataAfterUpload(uploadFolder, uploadObj, updateObservers);
 
     startUploadProgress(fileUri);
-
-    const replacementKey = `$storageFileFragment:${uploadObj.id}`;
-    updateFragment(`$storageFileFragment:${temporaryId}`, uploadObj, replacementKey, false, updateObservers);
 
     try {
       await uploadFileToGCS(signedUrl, file, (progress) => {
@@ -465,7 +450,6 @@ export function FileBrowserPlusWithData(p: FileBrowserPlusProps & {
         removeUploadProgress(fileUri);
       }
       updateFragment(`$storageFileFragment:${uploadObj.id}`, uploadObj, null, false, updateObservers);
-      // updateFragment(`$storageFileFragment:${temporaryId}`, {...uploadObj, uploadStatus: null}, null, false, updateObservers);
     } catch (err) {
       console.error('File upload failed:', err);
       if (!mounted.current) return;

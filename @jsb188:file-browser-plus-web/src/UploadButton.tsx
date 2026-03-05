@@ -93,28 +93,12 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
       return false;
     }
 
-    const temporaryId = `uploading-${Date.now()}-${Math.round(Math.random() * 1000)}`;
     const dataObjectValues = typeof dataObject === 'function' ? dataObject(file) : dataObject;
-
-    let uploadObj = {
-      __reactiveFragmentName: reactiveFragmentName,
-      ...(dataObjectValues || {
-        name: file.name,
-        uri: undefined,
-        contentType: file.type,
-        at: (new Date()).toISOString(),
-      }),
-      id: temporaryId,
-      uploadStatus: 'UPLOADING' as const,
-    };
-
-    addFragmentToCache(`${dataFragmentName}:${uploadObj.id}`, uploadObj);
 
     let signedUrlResult: any = null;
     try {
       const result = await createSignedUploadUrl({
         variables: {
-          temporaryId,
           organizationId,
           fileName: file.name,
           contentType: file.type,
@@ -131,31 +115,26 @@ export const UploadInput = forwardRef<UploadInputRef, UploadInputProps>((p, ref)
       return false;
     }
 
-    const { signedUrl, fileUri } = signedUrlResult || {};
-    if (!signedUrl || !fileUri) {
-      updateFragment(
-        `${dataFragmentName}:${uploadObj.id}`,
-        {
-          ...uploadObj,
-          uploadStatus: 'ERROR',
-        },
-        fileUri,
-        false,
-        updateObservers,
-      );
+    const { id, signedUrl, fileUri } = signedUrlResult || {};
+    if (!id || !signedUrl || !fileUri) {
       return false;
     }
 
-    uploadObj = {
-      ...uploadObj,
-      id: fileUri,
+    let uploadObj = {
+      __reactiveFragmentName: reactiveFragmentName,
+      ...(dataObjectValues || {
+        name: file.name,
+        uri: undefined,
+        contentType: file.type,
+        at: (new Date()).toISOString(),
+      }),
+      id,
       uri: fileUri,
+      uploadStatus: 'UPLOADING' as const,
     };
 
+    addFragmentToCache(`${dataFragmentName}:${uploadObj.id}`, uploadObj);
     startUploadProgress(fileUri);
-
-    const replacementKey = `${dataFragmentName}:${uploadObj.id}`;
-    updateFragment(`${dataFragmentName}:${temporaryId}`, uploadObj, replacementKey, false, updateObservers);
 
     try {
       await uploadFileToGCS(signedUrl, file, (progress) => {
