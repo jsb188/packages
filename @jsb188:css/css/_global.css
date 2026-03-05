@@ -172,12 +172,8 @@ button, .link[role="button"] {
   user-select: none;
 }
 
-button:disabled, .link[role="button"]:disabled {
+button.disabled, button:disabled, .link[role="button"]:disabled {
   cursor: auto;
-}
-
-.link[role="button"]:disabled {
-  cursor: text;
 }
 
 main, section, article, aside, nav, div, p, button, input, textarea, ul, ol, li, span, i, a {

@@ -1788,6 +1788,12 @@ export const JewishStarFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox=
 <path d="M8.433 6h-5.433l-.114 .006a1 1 0 0 0 -.743 1.508l2.69 4.486l-2.69 4.486l-.054 .1a1 1 0 0 0 .911 1.414h5.434l2.709 4.514l.074 .108a1 1 0 0 0 1.64 -.108l2.708 -4.514h5.435l.114 -.006a1 1 0 0 0 .743 -1.508l-2.691 -4.486l2.691 -4.486l.054 -.1a1 1 0 0 0 -.911 -1.414h-5.434l-2.709 -4.514a1 1 0 0 0 -1.714 0l-2.71 4.514z" />
 </svg>;
 
+export const KeyboardReturn = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-keyboard-return" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+<path d="M6.3 13.42484999h7.125c2.36101694 0 4.275 -1.91398306 4.275 -4.275v-2.14034979" />
+<path d="M9.8625 9.85949974l-3.5625 3.5625 3.5625 3.5625" />
+<path d="M5.21428571 2.49699996h13.57142857s2.71428571 0 2.71428571 2.7142855v13.57142857s0 2.71428571 -2.71428571 2.71428571H5.21428571s-2.71428571 0 -2.71428571 -2.71428571V5.21128545s0 -2.71428571 2.71428571 -2.71428571" />
+</svg>;
+
 export const Language = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-language">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M4 5h7" />
@@ -3290,16 +3296,6 @@ export const SingleNeutralIdCard4 = <svg viewBox="0 0 24 24" xmlns="http://www.w
 <path d="M21.75 3H2.25a1.5 1.5 0 0 0 -1.5 1.5v15a1.5 1.5 0 0 0 1.5 1.5h3a1.5 1.5 0 0 1 3 0h7.5a1.5 1.5 0 0 1 3 0h3a1.5 1.5 0 0 0 1.5 -1.5v-15a1.5 1.5 0 0 0 -1.5 -1.5Z"/>
 </svg>;
 
-export const SingleNeutralPhoneBook = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-single-neutral-phone-book" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-<path d="M10.125 9.375a2.625 2.625 0 1 0 5.25 0 2.625 2.625 0 1 0 -5.25 0"/>
-<path d="M8.25 17.25a4.5 4.5 0 0 1 9 0"/>
-<path d="m5.25 0.75 0 22.5"/>
-<path d="m23.25 3 0 3"/>
-<path d="m23.25 9 0 3"/>
-<path d="m23.25 15 0 3"/>
-<path d="M2.25 0.75h16.5s1.5 0 1.5 1.5v19.5s0 1.5 -1.5 1.5H2.25s-1.5 0 -1.5 -1.5V2.25s0 -1.5 1.5 -1.5"/>
-</svg>;
-
 export const Share3 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-share-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M13 4v4c-6.575 1.028 -9.02 6.788 -10 12c-.037 .206 5.384 -5.962 10 -6v4l8 -7l-8 -7z" stroke="currentColor" />
 </svg>;
@@ -4105,6 +4101,12 @@ export const UploadBottom = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/20
 <path d="m12.001 15.75 0 -12"/>
 <path d="m16.501 8.25 -4.5 -4.5 -4.5 4.5"/>
 <path d="M23.251 15.75v1.5a3 3 0 0 1 -3 3h-16.5a3 3 0 0 1 -3 -3v-1.5"/>
+</svg>;
+
+export const UploadButton = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-upload-button" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="m12.002 23.251 0 -15"/>
+<path d="m16.502 12.751 -4.5 -4.5 -4.5 4.5"/>
+<path d="M8.252 19.5H6a3 3 0 0 1 -3 -3V3.751a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3V16.5a3 3 0 0 1 -3 3h-2.25"/>
 </svg>;
 
 export const UploadSquare2 = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-upload-square-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">

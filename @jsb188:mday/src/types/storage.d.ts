@@ -32,7 +32,7 @@ export interface StorageGQL {
 	uri: string;
 	size: number;
 	checked: boolean;
-	at: Date;
+	at: string; // ISO Date string
 	contentType: string;
 
   // client-side only
@@ -40,8 +40,8 @@ export interface StorageGQL {
 
 	// metadata
 	name: string | null;
-	description: string | null;
-	aiNote: string | null;
+	description?: string | null;
+	aiNote?: string | null;
 }
 
 export type StorageUploadObj = Partial<{

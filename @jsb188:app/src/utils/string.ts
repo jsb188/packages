@@ -414,9 +414,12 @@ export function formatPhoneNumber(phone?: string | null) {
 	const match = phone?.match(/(\d{3})(\d{3})(\d{4})$/);
 	if (match) {
 		const [, area, first, second] = match;
-		const countryCode = phone!.substring(0, phone!.length - area.length - first.length - second.length);
+		const countryCode = phone!.substring(0, phone!.length - area.length - first.length - second.length).trim();
+		const normalizedCountryCode = countryCode
+			? countryCode.startsWith('+') ? countryCode : `+${countryCode}`
+			: '';
 		// NOTE: This does not account for non North American (+1) phone numbers
-		return `${countryCode} (${area}) ${first}-${second}`;
+		return `${normalizedCountryCode}${normalizedCountryCode ? ' ' : ''}(${area}) ${first}-${second}`;
 	}
 
 	return phone;

@@ -521,6 +521,8 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
   };
 
   const props = {
+    disabled: Element === 'button' ? tooltipDisabled : undefined,
+    'aria-disabled': Element !== 'button' ? tooltipDisabled : undefined,
     onClick: (e: React.MouseEvent) => {
       if (hasTooltip) {
         if (messageAfterClick) {

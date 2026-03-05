@@ -125,12 +125,14 @@ const DocumentPreviewToolbar = memo((p: {
   backText?: string;
   onCloseModal: () => void;
   onSelectAdjacentFile: (direction: 'prev' | 'next') => void;
+  hasPrevDocument: boolean;
+  hasNextDocument: boolean;
 }) => {
-  const { backText = i18n.t('form.go_back'), selectedFile, isPDF, onCloseModal, onSelectAdjacentFile } = p;
+  const { backText = i18n.t('form.go_back'), selectedFile, isPDF, onCloseModal, onSelectAdjacentFile, hasPrevDocument, hasNextDocument } = p;
   const file = selectedFile?.file;
   const fileTypeIconName = file ? getFileTypeIconName(file.contentType, file.name) : null;
   // const btnColor = isPDF ? 'bg_contrast' : 'bg_medium';
-  const btnClassName = `bg_alt w_25 h_25 r v_center shadow_line rel z9 link cl_df shadow_line_alt`;
+  const btnClassName = `bg_alt w_25 h_25 r v_center shadow_line rel z9 cl_df shadow_line_alt`;
 
   const toolbarItems = useMemo(() => [
     ...(file ? [{
@@ -177,18 +179,20 @@ const DocumentPreviewToolbar = memo((p: {
     {
       iconName: 'arrow-up',
       message: i18n.t('form.prev_doc'),
-      onClick: () => onSelectAdjacentFile('prev'),
+      disabled: !hasPrevDocument,
+      onClick: hasPrevDocument ? () => onSelectAdjacentFile('prev') : undefined,
     }, {
       iconName: 'arrow-down',
       message: i18n.t('form.next_doc'),
-      onClick: () => onSelectAdjacentFile('next'),
+      disabled: !hasNextDocument,
+      onClick: hasNextDocument ? () => onSelectAdjacentFile('next') : undefined,
     },
-  ], [file, fileTypeIconName, onCloseModal, onSelectAdjacentFile]);
+  ], [file, fileTypeIconName, onCloseModal, onSelectAdjacentFile, hasPrevDocument, hasNextDocument]);
 
   return <header className='abs_t h_35 h_spread ft_tn z9'>
     <div className='h_item gap_5 px_10'>
       <TooltipButton
-        className={btnClassName}
+        className={cn(btnClassName, 'link')}
         message={backText}
         onClick={onCloseModal}
         position='right'
@@ -203,8 +207,9 @@ const DocumentPreviewToolbar = memo((p: {
         const { iconName, ...rest } = item;
         return <TooltipButton
           key={iconName}
-          className={btnClassName}
+          className={cn(btnClassName, item.disabled ? 'disabled op_50' : 'link')}
           {...rest}
+          disabled={item.disabled}
           position='bottom_right'
           offsetX={0}
           offsetY={9}
@@ -227,6 +232,26 @@ const DocumentPreviewArea = memo((p: {
   file?: StorageGQL;
 }) => {
   const { file } = p;
+  const shouldDelayPdfOnMount = useRef(file?.contentType === 'application/pdf');
+  const [showPDF, setShowPDF] = useState(() => file?.contentType !== 'application/pdf');
+
+  /**
+   * Delay PDF iframe render briefly on initial mount only.
+   */
+
+  useEffect(() => {
+    if (!shouldDelayPdfOnMount.current || showPDF) {
+      return;
+    }
+
+    const timerId = setTimeout(() => {
+      setShowPDF(true);
+    }, 200);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, []);
 
   if (!file) {
     return null;
@@ -238,10 +263,15 @@ const DocumentPreviewArea = memo((p: {
 
   switch (contentType) {
     case 'application/pdf':
+      if (!showPDF) {
+        // Delay during modal transition, for smoother user experience
+        return <div className='w_f h_f' style={{ backgroundColor: '#282828' }} />;
+      }
+
       return (
         <iframe
-          style={{ border: 'none', outline: 'none' }}
-          src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitV&zoom=page-height`}
+          style={{ border: 'none', outline: 'none', backgroundColor: '#282828' }}
+          src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-height`}
           className='w_f h_f rel z1'
           title={fileName}
           scrolling='no'
@@ -348,8 +378,22 @@ export const DocumentViewerLayout = memo((p: {
 
   // Arrow controls
 
+  const fileItems = useMemo(
+    () => documentsList.filter((item): item is DVItemFile => 'file' in item),
+    [documentsList],
+  );
+
+  const selectedFileIndex = useMemo(() => {
+    if (!selectedFile) {
+      return -1;
+    }
+    return fileItems.findIndex(item => item.id === selectedFile.id);
+  }, [selectedFile, fileItems]);
+
+  const hasPrevDocument = selectedFileIndex > 0;
+  const hasNextDocument = selectedFileIndex < fileItems.length - 1;
+
   const onSelectAdjacentFile = (direction: 'prev' | 'next', jump?: boolean) => {
-    const fileItems = documentsList.filter((item): item is DVItemFile => 'file' in item);
     if (!fileItems.length) return;
 
     setSelectedFile(prev => {
@@ -389,6 +433,8 @@ export const DocumentViewerLayout = memo((p: {
           backText={backText}
           onCloseModal={onCloseModal}
           onSelectAdjacentFile={onSelectAdjacentFile}
+          hasPrevDocument={hasPrevDocument}
+          hasNextDocument={hasNextDocument}
         />
         <DocumentPreviewArea
           file={selectedFile?.file}

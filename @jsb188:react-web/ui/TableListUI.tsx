@@ -218,15 +218,11 @@ TDColMain.displayName = 'TDColMain';
 export const InlineTableInput = memo((p: React.InputHTMLAttributes<HTMLInputElement>) => {
   const { className, type, onBeforeInput, onChange, onKeyDown, onPaste, ...rest } = p;
 
-  /**
-   * Check whether this input should enforce numeric-only typing.
-   */
+  // Check whether this input should enforce numeric-only typing.
 
   const isNumericOnlyInput = type === 'number' || type === 'tel';
 
-  /**
-   * Validate that a value contains only digits.
-   */
+  // Validate that a value contains only digits.
 
   const isDigitsOnly = (value: string) => {
     return /^\d*$/.test(value);

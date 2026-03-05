@@ -541,6 +541,7 @@ export function Pill(p: Partial<{
   preset?: 'outline_lg'; // This overrides size
   size?: ButtonSize | null;
   className: string;
+  colorClassName?: string;
   onClick: (e: React.MouseEvent<any>) => void;
 }>) {
   const { preset, disabled, loading, addLoadingIndicator, to, href, target, onClick, title, children, className } = p;
@@ -553,7 +554,7 @@ export function Pill(p: Partial<{
     onClick_ = onClick!;
   }
 
-  let size: ButtonSize | null, presetClassNames: string | undefined;
+  let size: ButtonSize | null, presetClassNames: string | undefined, colorClassName: string | undefined;
   switch (preset) {
     case 'outline_lg':
       presetClassNames = 'bd_main_bd bg_alt_hv bd_10 ft_semibold';
@@ -561,6 +562,7 @@ export function Pill(p: Partial<{
       break;
     default:
       size = p.size || 'df';
+      colorClassName = p.colorClassName || 'bg_active';
   }
 
   return (
@@ -577,7 +579,7 @@ export function Pill(p: Partial<{
         loading && !addLoadingIndicator ? 'is_loading' : '',
         loading && addLoadingIndicator ? 'with_loading_indicator' : '',
         `pill pill_${size || 'df'}`,
-        className ?? (presetClassNames ? '' : disabled ? 'bg_active cl_lt disabled' : 'bg_active'),
+        className ?? (presetClassNames ? '' : disabled ? 'bg_active cl_lt disabled' : colorClassName),
         presetClassNames,
       )}
     >

@@ -24,6 +24,7 @@ export default {
 		billing: 'Billing',
 		plans: 'Plans',
     department_req_msg: 'Please select a department for this contact.',
+    contact_phone_or_email_req_msg: 'Please provide a phone number or email for this contact.',
 		address_notice_msg: 'This information will appear on the invoices you generate for your customers and to others in your network.',
 		no_recurring_schedule: 'This event does not have a recurring schedule.',
 		daily_event_msg: 'This event repeats every day.',

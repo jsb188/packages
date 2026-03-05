@@ -78,6 +78,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   daily: 'clock-share',
   description: 'notes-paper-text',
   delete: 'bin',
+  enter_button: 'keyboard-return',
+  upload_button: 'upload-button',
   add_line: 'pencil-write-3',
   remove_line: 'remove-tab',
   view_document: 'common-file-view',
@@ -160,7 +162,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
 	DIRECTORY_SALES: 'tool-box',
 	DIRECTORY_CUSTOMER_SERVICE: 'contact-us-email',
 	DIRECTORY_SHIPPING_RECEIVING: 'shipment-in-transit',
-	DIRECTORY_OTHER: 'single-neutral-phone-book',
+	DIRECTORY_OTHER: 'single-neutral-actions-chat',
 
   // Org features
   NORMAL_LOGGING: 'notes-tasks',
