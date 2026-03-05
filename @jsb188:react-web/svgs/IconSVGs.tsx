@@ -1037,6 +1037,19 @@ export const DatabaseWarningColor = <svg xmlns="http://www.w3.org/2000/svg" fill
 <path stroke="#191919" d="M17.5 21a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
 </svg>;
 
+export const DeliveryTruck4 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-delivery-truck-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M16.5 18.5a2 2 0 1 0 4 0 2 2 0 1 0 -4 0"/>
+<path d="M3.75 18.5a2 2 0 1 0 4 0 2 2 0 1 0 -4 0"/>
+<path d="M20.5 18.5h1.25a1.5 1.5 0 0 0 1.5 -1.5v-6a3 3 0 0 0 -3 -3H16.5"/>
+<path d="M16.5 18.5V5A1.5 1.5 0 0 0 15 3.5H2.25A1.5 1.5 0 0 0 0.75 5v12a1.5 1.5 0 0 0 1.5 1.5h1.5"/>
+<path d="m16.5 18.5 -8.75 0"/>
+<path d="m0.75 14 15.75 0"/>
+<path d="m4.5 14 0 -6"/>
+<path d="m8.25 14 0 -6"/>
+<path d="m12 14 0 -6"/>
+<path d="m23.25 12.5 -6.75 0"/>
+</svg>;
+
 export const DocumentAi = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-document-ai" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M4.2,2.4h15.6c0,0,1.2,0,1.2,1.4v15.6s0,1.3-1.2,1.3H4.2c0,0-1.2,0-1.2-1.4V3.7s0-1.3,1.2-1.3" />
 <path d="M16.2,16V7.5" />
@@ -3122,6 +3135,16 @@ export const QuestionCircleColor = <svg xmlns="http://www.w3.org/2000/svg" fill=
 <path stroke="#191919" d="M12 17.5c0.1381 0 0.25 -0.1119 0.25 -0.25S12.1381 17 12 17" strokeWidth="1"/>
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9 10c0.00008 -0.54082 0.14637 -1.07159 0.4234 -1.5361 0.27702 -0.46452 0.6745 -0.84551 1.1503 -1.10266 0.4758 -0.25714 1.0123 -0.38087 1.5526 -0.35809 0.5404 0.02278 1.0646 0.19121 1.5171 0.48748 0.4524 0.29627 0.8164 0.70936 1.0534 1.19554 0.2369 0.48618 0.338 1.02738 0.2926 1.56633 -0.0454 0.5389 -0.2357 1.0556 -0.5507 1.4952 -0.315 0.4397 -0.743 0.786 -1.2387 1.0023 -0.3573 0.156 -0.6612 0.4129 -0.8744 0.7393 -0.2132 0.3263 -0.3264 0.7079 -0.3256 1.0977V15" strokeWidth="1"/>
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 23c6.0751 0 11 -4.9249 11 -11 0 -6.07513 -4.9249 -11 -11 -11C5.92487 1 1 5.92487 1 12c0 6.0751 4.92487 11 11 11Z" strokeWidth="1"/>
+</svg>;
+
+export const SafetyGear = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-safety-gear" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeWidth="1.5">
+<path d="M5.75 15.75c-1.1 0 -2 0.9 -2 2v1.8c0 0.3 0 0.5 0.1 0.8 0.3 1.4 1.6 2.5 3 2.8 1 0.2 2 0.1 2.8 -0.3 1.4 -0.6 3 -0.8 4.4 -0.1 0.6 0.3 1.3 0.5 2.1 0.5 2.4 0 4.2 -1.8 4.1 -4v-1.5c0 -1.1 -0.9 -2 -2 -2H5.75Z"/>
+<path d="M1.75 17.75h2"/>
+<path d="M20.25 17.75h2"/>
+<path d="M13.5 2.45001c2.9 0.7 5 3.30001 5 6.30001v1"/>
+<path d="M10.5 9.75v-8c0 -0.6 0.4 -1 1 -1h1c0.6 0 1 0.4 1 1v8"/>
+<path d="M20.5 11.75c0 0.6 -0.4 1 -1 1h-15c-0.6 0 -1 -0.4 -1 -1v-1c0 -0.6 0.4 -1 1 -1h15c0.6 0 1 0.4 1 1v1Z"/>
+<path d="M10.5 2.45001c-2.9 0.7 -5 3.30001 -5 6.30001v1"/>
 </svg>;
 
 export const Settings = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-settings" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

@@ -2016,19 +2016,30 @@ NOTE: Do not change any of these media query widths because these values are use
 NOTE: var() doesn't work inside media queries, so we use fixed values.
 */
 
+@media (max-width: 1050px) { /* Tablet landscape */
+  .responsive.grid.size_3 { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 1024px) { /* Tablet landscape */
   .hide_tablet_landscape { display: none !important; }
   .responsive.p_lg { padding: var(--rem-medium); }
+  .responsive.grid.size_5 { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 768px) { /* Tablet portrait */
   .hide_tablet_portrait { display: none !important; }
   .responsive.p_lg { padding: var(--rem-medium) var(--rem-default); }
+  .responsive.grid.size_5 { grid-template-columns: repeat(2, 1fr); }
+  .responsive.grid.size_3 { grid-template-columns: repeat(1, 1fr); }
   .responsive.grid.size_2 { grid-template-columns: repeat(1, 1fr); }
 }
 
 @media (max-width: 600px) { /* Mobile landscape */
   .hide_mobile_landscape { display: none !important; }
+}
+
+@media (max-width: 530px) {
+  .responsive.grid.size_5 { grid-template-columns: repeat(1, 1fr); }
 }
 
 @media (max-width: 480px) { /* Mobile portrait */

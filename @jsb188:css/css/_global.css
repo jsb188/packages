@@ -1129,6 +1129,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 
 /* Shadow */
 .shadow, .shadow_hv:hover { box-shadow: var(--shadow); }
+.shadow_lg, .shadow_hv_lg:hover { box-shadow: var(--shadow-lg); }
 .shadow_folder, .shadow_folder_hv:hover { box-shadow: inset 0 0 30px rgba(var(--color-darker-rgb), .12), 0 6px 18px -12px rgba(var(--color-darker-rgb), .14); }
 .shadow_soft, .shadow_soft_hv:hover { box-shadow: var(--shadow-soft); }
 .shadow_soft_lg, .shadow_soft_lg_hv:hover { box-shadow: var(--shadow-soft-lg); }

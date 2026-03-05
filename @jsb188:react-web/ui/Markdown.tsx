@@ -297,7 +297,7 @@ const getListEl = (matchedStr: string, as?: React.ElementType) => {
     matchedStr.substring(2),
     'ul_li',
     'span',
-    'div',
+    'span',
     true
   ];
 };

@@ -1,7 +1,3 @@
-.horizontal_carousel {
-  width: 100%;
-  overflow: hidden;
-}
 
 .horizontal_carousel_track {
   --carousel-duration: 90s;
@@ -23,6 +19,10 @@
 
 .horizontal_carousel_slide {
   flex-shrink: 0;
+}
+
+.horizontal_carousel_track_no_animation {
+  animation: none;
 }
 
 .horizontal_carousel:not(.horizontal_carousel_disable_mouse_over):hover .horizontal_carousel_track {
