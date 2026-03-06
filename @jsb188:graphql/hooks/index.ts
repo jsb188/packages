@@ -397,6 +397,36 @@ export function useReactiveFragment(
 }
 
 /**
+ * Merge mapped array data with the latest fragment cache values.
+ */
+
+function getReactiveFragmentMapData(
+  data: any[] | null,
+  observe?: string[] | null,
+) {
+  if (!data || !observe?.length) {
+    return data;
+  }
+
+  return data.map((item, i) => {
+    const key = observe[i];
+    if (!key) {
+      return item;
+    }
+
+    const fragmentData = loadFragment(key);
+    if (!fragmentData) {
+      return item;
+    }
+
+    return {
+      ...item,
+      ...fragmentData,
+    };
+  });
+}
+
+/**
  * Observe query changes; but for Arrays
  */
 
@@ -411,7 +441,7 @@ export function useReactiveFragmentMap(
   const [changedData, setChangedData] = useState({
     count: fragmentObserver.count,
     lastObserve: observe,
-    data
+    data: getReactiveFragmentMapData(data, observe)
   });
 
   useEffect(() => {
@@ -461,7 +491,7 @@ export function useReactiveFragmentMap(
     if (changedData.lastObserve?.join(',') !== observeStr) {
       setChangedData({
         ...changedData,
-        data,
+        data: getReactiveFragmentMapData(data, observe),
         lastObserve: observe,
       });
     }

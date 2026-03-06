@@ -394,6 +394,11 @@ export function loadFragment(id: string, mainPrioritizedFields: string[] = []) {
             fragmentWithSpreads[key],
             priorityNode
           );
+        } else if (fragmentWithSpreads[key] !== undefined) {
+          fragmentWithSpreads[key] = mergeNestedObjects(
+            spreadData,
+            fragmentWithSpreads[key],
+          );
         } else {
           fragmentWithSpreads[key] = spreadData;
         }
