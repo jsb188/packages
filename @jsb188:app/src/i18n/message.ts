@@ -6,6 +6,6 @@ export default {
 	en: {
 		email_from_name: 'Marketday',
 		from_: 'From: %{name}',
-		sent_by_ai_msg: 'This e-mail was sent by Marketday AI.',
+		sent_by_ai_msg: 'This email was sent by Marketday AI.',
 	},
 };

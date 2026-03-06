@@ -306,7 +306,7 @@ function ResetPasswordCompleted(p: AuthFormProps) {
   const supportEmail = APP_EMAILS.support;
 
   // Because this screen is opened by a client-side fetch, emailAddress will not always be present;
-  // Only way to have the used e-mail address here is if we used POST form request.
+  // Only way to have the used email address here is if we used POST form request.
 
   return <ModalSimpleContent
     title={i18n.t('auth.email_sent')}

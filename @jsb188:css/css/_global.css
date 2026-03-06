@@ -85,6 +85,7 @@ a.em:before {
 
 .em_text {
   position: relative;
+  white-space: nowrap;
 }
 
 .em_text:before {

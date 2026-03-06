@@ -72,7 +72,7 @@ export default {
     refresh_page: 'Refresh page',
     authenticate: 'Authenticate',
     please_verify: 'Please verify',
-    check_email: 'Check your e-mail',
+    check_email: 'Check your email',
     request_will_complete_once_verified_msg: 'Your request will be completed once the verification is complete.',
     your_request_is_completed_msg: 'Your request is completed.',
     page: 'Page',
@@ -195,7 +195,7 @@ export default {
     use_personal: 'Use personal',
     learn_more: 'Learn more',
     department: 'Department',
-    email: 'E-mail',
+    email: 'Email',
     phone: 'Phone',
     phone_number: 'Phone number',
     partners: 'Partners',
@@ -305,7 +305,7 @@ export default {
     greet_NIGHT: 'Good evening, %{name}.',
 
     // Communication types
-    comm_type_EMAIL: 'E-mail',
+    comm_type_EMAIL: 'Email',
     comm_type_SMS: 'SMS',
 
     // Languages

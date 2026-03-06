@@ -77,7 +77,7 @@ export default {
 
     checkout_completed_msg: (
       'Your account was updated. If there are problems, ' +
-      'please contact us by e-mail.'
+      'please contact us by email.'
     ),
 
     try_again_diff_card: 'Try with a different card',

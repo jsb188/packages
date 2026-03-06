@@ -43,7 +43,7 @@ export function useEditAccount(
 }
 
 /**
- * Change logged in user's e-mail address
+ * Change logged in user's email address
  */
 
 export function useRequestChangeEmail(

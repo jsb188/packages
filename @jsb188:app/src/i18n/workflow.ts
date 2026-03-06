@@ -14,7 +14,7 @@ export default {
     waiting_for_tasks_to_be_created: 'Waiting for tasks to be created...',
     view_workflow: 'View workflow',
     delete_workflow: 'Delete workflow',
-    workflows_empty_msg: 'Please e-mail us at hello@marketday.ai to create workflows for your %{orgType}.',
+    workflows_empty_msg: 'Please email us at hello@marketday.ai to create workflows for your %{orgType}.',
 
     for_operation: {
       FARMERS_MARKET: 'Vendor',

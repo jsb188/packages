@@ -87,7 +87,7 @@ export function addIndefiniteArticle(word: string) {
 }
 
 /**
- * Check if e-mail
+ * Check if email
  */
 
 export function isEmail(str: string) {

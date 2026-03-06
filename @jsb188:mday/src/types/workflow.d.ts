@@ -10,6 +10,16 @@ export interface WorkflowPrompts {
 }
 
 /**
+ * Workflow data; each step object
+ */
+
+export interface WorkflowStep extends LabelAndValue {
+  conditional?: Partial<LabelAndValue> & {
+    required?: string[]; // If this value doesn't exist or is not an array, that's a data error, and this object should be ignored
+  }
+}
+
+/**
  * Workflow data object
  */
 
@@ -30,8 +40,8 @@ export interface WorkflowData {
 	scheduleInterval: number;
 	active: boolean;
 	values: Partial<{
-    steps: LabelAndValue[];
-		config: Record<string, string> & {
+    steps: WorkflowStep[];
+		config: Record<string, string | number | boolean | null> & {
       endTime: string; // HHMM format
     }
 	}>;

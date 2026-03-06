@@ -10,23 +10,23 @@ export default {
     continue_with_discord: 'Continue with Discord',
     continue_with_apple: 'Continue with Apple',
     continue_with_phone: 'Continue with Phone',
-    login_opts_main: 'Phone number or e-mail',
+    login_opts_main: 'Phone number or email',
     verify_your_acc: 'Verify your account',
     reset_password: 'Reset password',
     forgot_password_: 'Forgot password or username?',
-    signup_email: 'Sign up using e-mail',
+    signup_email: 'Sign up using email',
     log_in_w_existing: 'Log in with an existing account',
     log_in_other_methods: 'Log in using other methods',
 		change_password: 'Change password',
     you_are_verified_: 'You are verified!',
-    account_is_verified: 'Thank you for verifying your account with e-mail address: **%{emailAddress}**. Please log in again using your password.',
+    account_is_verified: 'Thank you for verifying your account with email address: **%{emailAddress}**. Please log in again using your password.',
     continue_to_login: 'Continue to log in',
     continue_to_app: 'Continue to app',
     back_to_homepage: 'Back to homepage',
     login_changed: 'Login changed',
 
-    // Phone 2FA & E-mail verification
-    send_verification_email: 'Send verification e-mail',
+    // Phone 2FA & Email verification
+    send_verification_email: 'Send verification email',
     send_verification_code_msg: 'Enter your phone number and we will send you a verification code for authentication.',
     send_verification_code: 'Send verification code',
     confirm_verification_code_instr: 'Enter the verification code sent to your phone. Please wait few minutes if you did not receive it.',
@@ -39,33 +39,33 @@ export default {
     hello_: 'Hello %{name}!',
     you_are_logged_in: 'You are signed in.',
     password_changed_msg: 'Your password has been changed.',
-    request_reset_password_instr: 'Enter your e-mail address and we will send\n you instructions to reset your password.',
-    resend_verification_instr: 'Enter your e-mail address and we will send\nyou an e-mail to verify your account.',
-    reset_password_instr: 'Choose a new password for your account with\n the e-mail address: %{emailAddress}',
-    _verify_your_email: ' to verify your e-mail.',
+    request_reset_password_instr: 'Enter your email address and we will send\n you instructions to reset your password.',
+    resend_verification_instr: 'Enter your email address and we will send\nyou an email to verify your account.',
+    reset_password_instr: 'Choose a new password for your account with\n the email address: %{emailAddress}',
+    _verify_your_email: ' to verify your email.',
     _verify_your_phone: ' to verify your phone number.',
     account_secured_: 'Account secured!',
     one_last_step_: 'One last step!',
     add_password: 'Add password',
     add_password_log_in_msg: 'Please add a password to your account (%{identifier}) for security.',
-    add_email: 'Add e-mail address',
-    add_email_to_login_msg: 'Please add an e-mail address to your account (%{identifier}) for security.',
+    add_email: 'Add email address',
+    add_email_to_login_msg: 'Please add an email address to your account (%{identifier}) for security.',
     required_auth_fin_msg: 'Your account has been secured. From now on, you may use your password to log in.',
-    check_email: 'Check your e-mail',
-    check_email_to_login_msg: 'Please check your e-mail for verification instructions. You will be logged in  after you verify your e-mail address.',
+    check_email: 'Check your email',
+    check_email_to_login_msg: 'Please check your email for verification instructions. You will be logged in  after you verify your email address.',
 
     // Auth - check fails
     no_account_with_phone: 'No account was found with that phone number.',
-    no_account_with_email: 'No account was found with that e-mail address.',
-    not_valid_email_or_phone: 'That is not a valid phone number or e-mail address.',
+    no_account_with_email: 'No account was found with that email address.',
+    not_valid_email_or_phone: 'That is not a valid phone number or email address.',
 
     // Reset password (requested)
     reset_password_requested_msg: (
-      'Check your e-mail, <strong>%{emailAddress}</strong> ' +
+      'Check your email, <strong>%{emailAddress}</strong> ' +
       'for instructions to reset your password.'
     ),
     reset_password_requested_msg_no_email: (
-      'Please check your e-mail for instructions to reset your password.'
+      'Please check your email for instructions to reset your password.'
     ),
     if_need_more_help_email: (
       'If you need assistance, please contact us at ' +
@@ -89,21 +89,21 @@ export default {
       '[Terms of Service](/tos) and acknowledge the ' +
       '[Privacy Policy](/privacy).'
     ),
-    email_sent: 'E-mail sent',
-    check_email_msg: 'Please check your e-mail for instructions to verify your account.',
+    email_sent: 'Email sent',
+    check_email_msg: 'Please check your email for instructions to verify your account.',
     // check_email_3: 'Click "continue" to log in as ',
-    // check_email_4: ' or re-send another verification link to your e-mail.',
-    not_verified_yet: 'Please verify your e-mail and try again.',
-    resend_change_verification: 'Re-send verification link or change e-mail',
+    // check_email_4: ' or re-send another verification link to your email.',
+    not_verified_yet: 'Please verify your email and try again.',
+    resend_change_verification: 'Re-send verification link or change email',
     verify_account: 'Verify your account',
-    verify_email_msg: 'Send a new verification link to your e-mail.',
-    resend_verification: 'Send verification e-mail',
+    verify_email_msg: 'Send a new verification link to your email.',
+    resend_verification: 'Send verification email',
 
     // Sign up success
     account_created: 'Account created',
     account_created_msg: (
       'Your account has been created successfully. Please follow the instructions ' +
-      'in the e-mail we sent you to verify your account.'
+      'in the email we sent you to verify your account.'
     ),
 
     // Sign out

@@ -53,7 +53,7 @@ export const COMPANY_ADDRESS = {
 	country: 'US',
 };
 
-// Support e-mails
+// Support emails
 
 export const APP_EMAILS = {
 	support: 'hello@marketday.ai',
