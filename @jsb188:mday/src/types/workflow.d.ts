@@ -6,7 +6,7 @@ import type { OrganizationFeatureEnum } from '../types/organization.d.ts';
  */
 
 export interface WorkflowPrompts {
-  main: string;
+  main: string | (string | [string[], string] | [string[], string][])[];
 }
 
 /**

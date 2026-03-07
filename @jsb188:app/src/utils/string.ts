@@ -1,12 +1,12 @@
-import i18n from '../i18n/index.ts';
-import type { AddressObj } from '../types/other.d.ts';
+import i18n from "../i18n/index.ts";
+import type { AddressObj } from "../types/other.d.ts";
 
 /**
  * Combine list of class names
  */
 
 export function cn(...classNames: (string | boolean | undefined | null)[]) {
-	return classNames.filter(Boolean).join(' ');
+  return classNames.filter(Boolean).join(" ");
 }
 
 /**
@@ -14,25 +14,25 @@ export function cn(...classNames: (string | boolean | undefined | null)[]) {
  */
 
 export function shortenToSpace(
-	str: string,
-	len: number = 100,
-	ellipsis: string = '...',
+  str: string,
+  len: number = 100,
+  ellipsis: string = "...",
 ): string {
-	if (!str || str.length < len) {
-		return str;
-	}
+  if (!str || str.length < len) {
+    return str;
+  }
 
-	const trimmed = str.substring(0, len);
-	const spaceIndex = trimmed.lastIndexOf(' ');
+  const trimmed = str.substring(0, len);
+  const spaceIndex = trimmed.lastIndexOf(" ");
 
-	if (spaceIndex < 0) {
-		return trimmed.substring(0, len) + ellipsis;
-	}
+  if (spaceIndex < 0) {
+    return trimmed.substring(0, len) + ellipsis;
+  }
 
-	return (
-		trimmed.substring(0, Math.min(trimmed.length, spaceIndex)) +
-		ellipsis
-	);
+  return (
+    trimmed.substring(0, Math.min(trimmed.length, spaceIndex)) +
+    ellipsis
+  );
 }
 
 /**
@@ -40,27 +40,29 @@ export function shortenToSpace(
  */
 
 export function guessFirstName(str: string, len: number = 40): string {
-	let shortened = str?.replace(/^(a|an|the|da|de|that|there|this|than|then)\b/i, '')?.trim() || '';
-	const spaceIx = shortened.indexOf(' ');
+  let shortened =
+    str?.replace(/^(a|an|the|da|de|that|there|this|than|then)\b/i, "")
+      ?.trim() || "";
+  const spaceIx = shortened.indexOf(" ");
 
-	if (spaceIx >= 0) {
-		shortened = shortened.substring(0, spaceIx + 1);
-	}
+  if (spaceIx >= 0) {
+    shortened = shortened.substring(0, spaceIx + 1);
+  }
 
-	if (len < shortened.length) {
-		shortened = shortened.substring(0, len);
-	}
+  if (len < shortened.length) {
+    shortened = shortened.substring(0, len);
+  }
 
-	const articleReplacedEnd = shortened.replace(
-		/\b(a|an|the|da|de|that|there|this|than|then)$/i,
-		'',
-	);
+  const articleReplacedEnd = shortened.replace(
+    /\b(a|an|the|da|de|that|there|this|than|then)$/i,
+    "",
+  );
 
-	if (articleReplacedEnd.length < 5) {
-		return shortened.trim();
-	}
+  if (articleReplacedEnd.length < 5) {
+    return shortened.trim();
+  }
 
-	return articleReplacedEnd.trim();
+  return articleReplacedEnd.trim();
 }
 
 /**
@@ -68,19 +70,21 @@ export function guessFirstName(str: string, len: number = 40): string {
  */
 
 export function addIndefiniteArticle(word: string) {
-	const raw = (word || '').trim().toLowerCase();
+  const raw = (word || "").trim().toLowerCase();
 
   let article;
-	if (!raw) {
-		article = 'a';
-	} else if (/^(honest|honor|hour|heir)\b/.test(raw)) {
+  if (!raw) {
+    article = "a";
+  } else if (/^(honest|honor|hour|heir)\b/.test(raw)) {
     // Common silent-h words use "an"
-		article = 'an';
-	} else if (/^(uni([^nmd]|$)|use|user|euro|one|once|ubiquit|ufo|ukulele)\b/.test(raw)) {
+    article = "an";
+  } else if (
+    /^(uni([^nmd]|$)|use|user|euro|one|once|ubiquit|ufo|ukulele)\b/.test(raw)
+  ) {
     // Common "you"/"w" sound starts use "a"
-		article = 'a';
-	} else {
-	  article = /^[aeiou]/.test(raw) ? 'an' : 'a';
+    article = "a";
+  } else {
+    article = /^[aeiou]/.test(raw) ? "an" : "a";
   }
 
   return `${article} ${word}`;
@@ -91,10 +95,10 @@ export function addIndefiniteArticle(word: string) {
  */
 
 export function isEmail(str: string) {
-	// return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
-	const emailRegex =
-		/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
-	return !!str && emailRegex.test(str.trim());
+  // return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+  const emailRegex =
+    /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+  return !!str && emailRegex.test(str.trim());
 }
 
 /**
@@ -103,25 +107,25 @@ export function isEmail(str: string) {
  */
 
 export function convertToInternationalPhone(str: string) {
-	// Check if string has a character that isn't one of [(, ), +, -, " ", 0-9]
-	if (/[^0-9+\-\s().]/.test(str)) {
-		// Invalid
-		return null;
-	}
+  // Check if string has a character that isn't one of [(, ), +, -, " ", 0-9]
+  if (/[^0-9+\-\s().]/.test(str)) {
+    // Invalid
+    return null;
+  }
 
-	const digits = str.replace(/[^0-9]/g, '');
-	if (!digits || digits.startsWith('0')) {
-		// Invalid
-		return null;
-	} else if (
-		!digits.startsWith('1') &&
-		digits.length === 10
-	) {
-		return '+1' + digits;
-	}
+  const digits = str.replace(/[^0-9]/g, "");
+  if (!digits || digits.startsWith("0")) {
+    // Invalid
+    return null;
+  } else if (
+    !digits.startsWith("1") &&
+    digits.length === 10
+  ) {
+    return "+1" + digits;
+  }
 
-	// If it doesn't start with a country code, assume it's already in international format
-	return '+' + digits;
+  // If it doesn't start with a country code, assume it's already in international format
+  return "+" + digits;
 }
 
 /**
@@ -130,15 +134,18 @@ export function convertToInternationalPhone(str: string) {
  * NOTE: This will convert phone-like strings to international format
  */
 
-export function isPhone(str: string, doNotConvertInternational: boolean = false) {
-	let phoneNumber: string | null = str.trim();
-	if (!doNotConvertInternational) {
-		phoneNumber = convertToInternationalPhone(phoneNumber);
-		if (!phoneNumber) {
-			return false;
-		}
-	}
-	return /^\+[0-9]{7,15}$/.test(phoneNumber);
+export function isPhone(
+  str: string,
+  doNotConvertInternational: boolean = false,
+) {
+  let phoneNumber: string | null = str.trim();
+  if (!doNotConvertInternational) {
+    phoneNumber = convertToInternationalPhone(phoneNumber);
+    if (!phoneNumber) {
+      return false;
+    }
+  }
+  return /^\+[0-9]{7,15}$/.test(phoneNumber);
 }
 
 /**
@@ -151,22 +158,22 @@ export function isPhone(str: string, doNotConvertInternational: boolean = false)
  */
 
 export function passwordStrength(str: string, minLength: number = 8) {
-	const isLongEnough = str.length >= minLength;
-	const hasLowercase = /[a-z]/.test(str);
-	const hasUppercase = /[A-Z]/.test(str);
-	const hasDigit = /\d/.test(str);
-	const hasSpecial = /\W/.test(str);
-	const valid = isLongEnough && hasLowercase && hasUppercase && hasDigit &&
-		hasSpecial;
-	// return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W)[a-zA-Z\d\W]{8,}$/.test(str);
-	return {
-		valid,
-		isLongEnough,
-		hasLowercase,
-		hasUppercase,
-		hasDigit,
-		hasSpecial,
-	};
+  const isLongEnough = str.length >= minLength;
+  const hasLowercase = /[a-z]/.test(str);
+  const hasUppercase = /[A-Z]/.test(str);
+  const hasDigit = /\d/.test(str);
+  const hasSpecial = /\W/.test(str);
+  const valid = isLongEnough && hasLowercase && hasUppercase && hasDigit &&
+    hasSpecial;
+  // return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W)[a-zA-Z\d\W]{8,}$/.test(str);
+  return {
+    valid,
+    isLongEnough,
+    hasLowercase,
+    hasUppercase,
+    hasDigit,
+    hasSpecial,
+  };
 }
 
 /**
@@ -174,7 +181,7 @@ export function passwordStrength(str: string, minLength: number = 8) {
  */
 
 export function getTimeBasedUnique() {
-	return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
 /**
@@ -182,31 +189,33 @@ export function getTimeBasedUnique() {
  */
 
 export function getAlphanumeric(str: string, space: boolean = false) {
-	return str.replace(space ? /[^a-z0-9\s]/gi : /[^a-z0-9]/gi, '');
+  return str.replace(space ? /[^a-z0-9\s]/gi : /[^a-z0-9]/gi, "");
 }
 
 /**
  * Build normalized unique list of names from raw search inputs
  */
 
-export function getSearchNames(namesList: (string | null | undefined)[] = []): string[] {
-	const parsedNames = (namesList || [])
-		.flatMap((s) => (s || '').split(/\s*(?:,|;|\n|\band\b)\s*/i))
-		.map((s) => s.trim())
-		.filter(Boolean);
+export function getSearchNames(
+  namesList: (string | null | undefined)[] = [],
+): string[] {
+  const parsedNames = (namesList || [])
+    .flatMap((s) => (s || "").split(/\s*(?:,|;|\n|\band\b)\s*/i))
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-	const uniqueNames: string[] = [];
-	const seen = new Set<string>();
+  const uniqueNames: string[] = [];
+  const seen = new Set<string>();
 
-	for (const name of parsedNames) {
-		const key = name.toLowerCase();
-		if (!seen.has(key)) {
-			seen.add(key);
-			uniqueNames.push(name);
-		}
-	}
+  for (const name of parsedNames) {
+    const key = name.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueNames.push(name);
+    }
+  }
 
-	return uniqueNames;
+  return uniqueNames;
 }
 
 /**
@@ -214,15 +223,17 @@ export function getSearchNames(namesList: (string | null | undefined)[] = []): s
  */
 
 export function regexFromText(text: string) {
-	const words = getAlphanumeric(text, true).split(/\s+/).filter((s) => s.length >= 2);
-	if (!words.length) {
-		return null;
-	}
+  const words = getAlphanumeric(text, true).split(/\s+/).filter((s) =>
+    s.length >= 2
+  );
+  if (!words.length) {
+    return null;
+  }
 
-	return new RegExp(
-		'\\b' + (words.length === 1 ? words[0] : '(?:' + words.join('|') + ')'),
-		'gi',
-	);
+  return new RegExp(
+    "\\b" + (words.length === 1 ? words[0] : "(?:" + words.join("|") + ")"),
+    "gi",
+  );
 }
 
 /**
@@ -230,10 +241,10 @@ export function regexFromText(text: string) {
  */
 
 export function ucFirst(str: string) {
-	if (!str) {
-		return '';
-	}
-	return str.charAt(0).toUpperCase() + str.slice(1);
+  if (!str) {
+    return "";
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 /**
@@ -241,43 +252,47 @@ export function ucFirst(str: string) {
  */
 
 export function camelCaseToDash(str: string) {
-	if (/^[A-Z0-9]+$/.test(str)) {
-		return str.toLowerCase();
-	}
-	return str.replace(/[A-Z0-9]/g, (m, i) => {
-		return `${i ? '-' : ''}${m.toLowerCase()}`;
-	});
+  if (/^[A-Z0-9]+$/.test(str)) {
+    return str.toLowerCase();
+  }
+  return str.replace(/[A-Z0-9]/g, (m, i) => {
+    return `${i ? "-" : ""}${m.toLowerCase()}`;
+  });
 }
 
 /**
  * Shorten text to a paragraph length
  */
 
-export function shortenToParagraph(str: string, len: number, replaceDoubleLineBreaks?: boolean) {
-	let trimedToParagraph = str || '';
-	if (replaceDoubleLineBreaks) {
-		trimedToParagraph = trimedToParagraph.replace(/\n\s*\n/g, '\n');
-	}
+export function shortenToParagraph(
+  str: string,
+  len: number,
+  replaceDoubleLineBreaks?: boolean,
+) {
+  let trimedToParagraph = str || "";
+  if (replaceDoubleLineBreaks) {
+    trimedToParagraph = trimedToParagraph.replace(/\n\s*\n/g, "\n");
+  }
 
-	trimedToParagraph = trimedToParagraph.split('\n').reduce((acc, str) => {
-		if (acc.done) {
-			return acc;
-		}
-		acc.done = (acc.value.length + str.length) >= len;
-		acc.value = acc.done ? acc.value : acc.value + '\n' + str;
-		return acc;
-	}, {
-		done: false,
-		value: '',
-	}).value.trim();
+  trimedToParagraph = trimedToParagraph.split("\n").reduce((acc, str) => {
+    if (acc.done) {
+      return acc;
+    }
+    acc.done = (acc.value.length + str.length) >= len;
+    acc.value = acc.done ? acc.value : acc.value + "\n" + str;
+    return acc;
+  }, {
+    done: false,
+    value: "",
+  }).value.trim();
 
-	if (!trimedToParagraph) {
-		return shortenToSpace(str || '', len);
-	} else if (trimedToParagraph.length <= len) {
-		return trimedToParagraph;
-	}
+  if (!trimedToParagraph) {
+    return shortenToSpace(str || "", len);
+  } else if (trimedToParagraph.length <= len) {
+    return trimedToParagraph;
+  }
 
-	return shortenToSpace(trimedToParagraph, len);
+  return shortenToSpace(trimedToParagraph, len);
 }
 
 /**
@@ -285,14 +300,14 @@ export function shortenToParagraph(str: string, len: number, replaceDoubleLineBr
  */
 
 export function isInvisibleString(str: string) {
-	if (!str?.trim()) {
-		return true;
-	}
+  if (!str?.trim()) {
+    return true;
+  }
 
-	// eslint-disable-next-line no-misleading-character-class
-	const invisRegex = /[ㅤ ️⠀ْٔ]/g;
-	const checkStr = str.replace(invisRegex, ' '); // .replace(/[ㅤ ️⠀]/gi, ' ');
-	return !checkStr.trim();
+  // eslint-disable-next-line no-misleading-character-class
+  const invisRegex = /[ㅤ ️⠀ْٔ]/g;
+  const checkStr = str.replace(invisRegex, " "); // .replace(/[ㅤ ️⠀]/gi, ' ');
+  return !checkStr.trim();
 }
 
 /**
@@ -301,31 +316,161 @@ export function isInvisibleString(str: string) {
  */
 
 type AnyLineItem = string | undefined | false | null;
+type BuildSingleTextConditionalLine = [
+  string[],
+  BuildSingleTextLine | BuildSingleTextLine[],
+];
+type BuildSingleTextConditionalLineGroup = BuildSingleTextConditionalLine[];
+interface BuildSingleTextFeatureMap {
+  [key: string]: BuildSingleTextLine | BuildSingleTextLine[];
+}
+type BuildSingleTextLine =
+  | AnyLineItem
+  | BuildSingleTextFeatureMap
+  | BuildSingleTextConditionalLine
+  | BuildSingleTextConditionalLineGroup;
+
+/*
+ * Check whether a buildSingleText line uses the all-features conditional tuple syntax.
+ */
+
+function isBuildSingleTextConditionalLine(
+  line: BuildSingleTextLine | BuildSingleTextLine[],
+): line is BuildSingleTextConditionalLine {
+  return Array.isArray(line) &&
+    line.length === 2 &&
+    Array.isArray(line[0]) &&
+    line[0].every((feature) => typeof feature === "string");
+}
+
+/*
+ * Check whether a buildSingleText line uses the first-match conditional group syntax.
+ */
+
+function isBuildSingleTextConditionalLineGroup(
+  line: BuildSingleTextLine | BuildSingleTextLine[],
+): line is BuildSingleTextConditionalLineGroup {
+  return Array.isArray(line) &&
+    line.length > 0 &&
+    line.every((lineItem) => isBuildSingleTextConditionalLine(lineItem));
+}
+
+/*
+ * Check whether a buildSingleText requirement matches the enabled features.
+ */
+
+function doesBuildSingleTextRequirementMatch(
+  requirement: string,
+  features: string[],
+) {
+  const isNegatedRequirement = requirement.startsWith("!");
+  const feature = isNegatedRequirement ? requirement.slice(1) : requirement;
+
+  if (!feature) {
+    return false;
+  }
+
+  const hasFeature = features.includes(feature);
+  return isNegatedRequirement ? !hasFeature : hasFeature;
+}
+
+/*
+ * Check whether a buildSingleText conditional line matches the enabled features.
+ */
+
+function doesBuildSingleTextConditionalLineMatch(
+  conditionalLine: BuildSingleTextConditionalLine,
+  features: string[],
+) {
+  return conditionalLine[0].every((feature) => doesBuildSingleTextRequirementMatch(feature, features));
+}
+
+/*
+ * Build text for a conditional line payload.
+ */
+
+function getBuildSingleTextConditionalText(
+  conditionalLines: BuildSingleTextLine | BuildSingleTextLine[],
+  delemiter: string,
+  features: string[],
+) {
+  return buildSingleText(
+    Array.isArray(conditionalLines) &&
+      !isBuildSingleTextConditionalLine(conditionalLines)
+      ? conditionalLines
+      : [conditionalLines],
+    delemiter,
+    features,
+  );
+}
 
 export function buildSingleText(
-	lines: (AnyLineItem | Record<string, AnyLineItem[]>)[],
-	delemiter: string = '\n',
-	features: string[] = [],
+  lines: BuildSingleTextLine[],
+  delemiter: string = "\n",
+  features: string[] = [],
 ) {
-	return lines
-		.reduce((acc, line_) => {
-			const line = line_ || '';
-			if (line && typeof line === 'object') {
-				for (const key in line) {
-					const lineItem = line[key];
-					if (features.includes(key)) {
-						acc.push(buildSingleText(lineItem, delemiter, features));
-					}
-				}
-				return acc;
-			}
-			if (line || acc[acc.length - 1] !== '') {
-				acc.push(line);
-			}
-			return acc;
-		}, [] as string[])
-		.join(delemiter)
-		.trim();
+  return lines
+    .reduce((acc, line_) => {
+      const line = line_ || "";
+      if (isBuildSingleTextConditionalLineGroup(line)) {
+        const matchedConditionalLine = line.find((conditionalLine) =>
+          doesBuildSingleTextConditionalLineMatch(conditionalLine, features)
+        );
+
+        if (!matchedConditionalLine) {
+          return acc;
+        }
+
+        const conditionalText = getBuildSingleTextConditionalText(
+          matchedConditionalLine[1],
+          delemiter,
+          features,
+        );
+
+        if (conditionalText || acc[acc.length - 1] !== "") {
+          acc.push(conditionalText);
+        }
+
+        return acc;
+      }
+
+      if (isBuildSingleTextConditionalLine(line)) {
+        const [, conditionalLines] = line;
+
+        if (doesBuildSingleTextConditionalLineMatch(line, features)) {
+          const conditionalText = getBuildSingleTextConditionalText(
+            conditionalLines,
+            delemiter,
+            features,
+          );
+
+          if (conditionalText || acc[acc.length - 1] !== "") {
+            acc.push(conditionalText);
+          }
+        }
+
+        return acc;
+      }
+      if (line && typeof line === "object") {
+        for (const key in line) {
+          const lineItem = line[key];
+          if (features.includes(key)) {
+            const nextLines = Array.isArray(lineItem) &&
+                !isBuildSingleTextConditionalLine(lineItem)
+              ? lineItem
+              : [lineItem];
+            acc.push(buildSingleText(nextLines, delemiter, features));
+          }
+        }
+        return acc;
+      }
+      if (line || acc[acc.length - 1] !== "") {
+        acc.push(line);
+      }
+      return acc;
+    }, [] as string[])
+    .join(delemiter)
+    .trim();
 }
 
 /**
@@ -338,14 +483,14 @@ export function buildSingleText(
  */
 
 export function joinReadable(
-	texts: string[],
-	separator: string = ', ',
-	lastSeparator: string = ' and ',
+  texts: string[],
+  separator: string = ", ",
+  lastSeparator: string = " and ",
 ) {
-	const lastIx = texts.length - 1;
-	return texts.filter(Boolean).reduce((acc, text, i) => {
-		return acc + (!acc ? '' : i === lastIx ? lastSeparator : separator) + text;
-	}, '');
+  const lastIx = texts.length - 1;
+  return texts.filter(Boolean).reduce((acc, text, i) => {
+    return acc + (!acc ? "" : i === lastIx ? lastSeparator : separator) + text;
+  }, "");
 }
 
 /**
@@ -358,22 +503,22 @@ export function joinReadable(
  */
 
 export function textWithBrackets(
-	text: string,
-	bracketsText?: string | string[],
-	brackets: [string, string] = ['(', ')'],
+  text: string,
+  bracketsText?: string | string[],
+  brackets: [string, string] = ["(", ")"],
 ) {
-	let bText;
-	if (Array.isArray(bracketsText)) {
-		bText = bracketsText.filter(Boolean).join(' ').trim();
-	} else {
-		bText = bracketsText?.trim();
-	}
-	if (!bText) {
-		return text;
-	} else if (!text) {
-		return bText;
-	}
-	return `${text} ${brackets[0].trimStart()}${bText}${brackets[1].trimEnd()}`;
+  let bText;
+  if (Array.isArray(bracketsText)) {
+    bText = bracketsText.filter(Boolean).join(" ").trim();
+  } else {
+    bText = bracketsText?.trim();
+  }
+  if (!bText) {
+    return text;
+  } else if (!text) {
+    return bText;
+  }
+  return `${text} ${brackets[0].trimStart()}${bText}${brackets[1].trimEnd()}`;
 }
 
 /**
@@ -385,11 +530,11 @@ export function textWithBrackets(
  */
 
 export function removeGeneratedTextGarbage(str: string) {
-	if (!str || typeof str !== 'string') {
-		return '';
-	}
-	// Remove all line breaks and spaces
-	return str.replace(/[\n\r\s]+/g, ' ').trim();
+  if (!str || typeof str !== "string") {
+    return "";
+  }
+  // Remove all line breaks and spaces
+  return str.replace(/[\n\r\s]+/g, " ").trim();
 }
 
 /**
@@ -399,10 +544,25 @@ export function removeGeneratedTextGarbage(str: string) {
  */
 
 export function escapeCSVValue(value: string): string {
-	if (/[",\n]/.test(value)) {
-		return `"${value.replace(/"/g, '""')}"`;
-	}
-	return value;
+  if (/[",\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+/**
+ * Truncate a file name while preserving extension when possible.
+ */
+
+export function truncateFileName(fileName: string, maxLen = 34) {
+  if (fileName.length <= maxLen) {
+    return fileName;
+  }
+
+  const extIndex = fileName.lastIndexOf(".");
+  const ext = extIndex > 0 ? fileName.slice(extIndex) : "";
+  const headLen = Math.max(1, maxLen - ext.length - 3);
+  return fileName.slice(0, headLen) + "..." + ext;
 }
 
 /**
@@ -411,18 +571,23 @@ export function escapeCSVValue(value: string): string {
  */
 
 export function formatPhoneNumber(phone?: string | null) {
-	const match = phone?.match(/(\d{3})(\d{3})(\d{4})$/);
-	if (match) {
-		const [, area, first, second] = match;
-		const countryCode = phone!.substring(0, phone!.length - area.length - first.length - second.length).trim();
-		const normalizedCountryCode = countryCode
-			? countryCode.startsWith('+') ? countryCode : `+${countryCode}`
-			: '';
-		// NOTE: This does not account for non North American (+1) phone numbers
-		return `${normalizedCountryCode}${normalizedCountryCode ? ' ' : ''}(${area}) ${first}-${second}`;
-	}
+  const match = phone?.match(/(\d{3})(\d{3})(\d{4})$/);
+  if (match) {
+    const [, area, first, second] = match;
+    const countryCode = phone!.substring(
+      0,
+      phone!.length - area.length - first.length - second.length,
+    ).trim();
+    const normalizedCountryCode = countryCode
+      ? countryCode.startsWith("+") ? countryCode : `+${countryCode}`
+      : "";
+    // NOTE: This does not account for non North American (+1) phone numbers
+    return `${normalizedCountryCode}${
+      normalizedCountryCode ? " " : ""
+    }(${area}) ${first}-${second}`;
+  }
 
-	return phone;
+  return phone;
 }
 
 /**
@@ -433,43 +598,50 @@ export function formatPhoneNumber(phone?: string | null) {
  * @returns An array of text chunks.
  */
 
-export function splitTextIntoChunks(text: string, chunkSize: number, linebreakDistance: number = 50): string[] {
-	if (!text || chunkSize <= 0 || text.length < chunkSize) {
-		return [text || ''];
-	}
+export function splitTextIntoChunks(
+  text: string,
+  chunkSize: number,
+  linebreakDistance: number = 50,
+): string[] {
+  if (!text || chunkSize <= 0 || text.length < chunkSize) {
+    return [text || ""];
+  }
 
-	const chunks: string[] = [];
-	let start = 0;
+  const chunks: string[] = [];
+  let start = 0;
 
-	while (start < text.length) {
-		let end = Math.min(start + chunkSize, text.length);
+  while (start < text.length) {
+    let end = Math.min(start + chunkSize, text.length);
 
-		if (end < text.length) {
-			// Find the nearest line break around the target chunk boundary
-			const beforeBreak = text.lastIndexOf('\n', end);
+    if (end < text.length) {
+      // Find the nearest line break around the target chunk boundary
+      const beforeBreak = text.lastIndexOf("\n", end);
 
-			let chosenBreak = -1;
-			if (beforeBreak !== -1 && end - beforeBreak <= linebreakDistance && beforeBreak > start) {
-				chosenBreak = beforeBreak + 1;
-			}
+      let chosenBreak = -1;
+      if (
+        beforeBreak !== -1 && end - beforeBreak <= linebreakDistance &&
+        beforeBreak > start
+      ) {
+        chosenBreak = beforeBreak + 1;
+      }
 
-			if (chosenBreak !== -1) {
-				end = chosenBreak;
-			} else {
-				// Fall back to last whitespace near the end
-				const lastSpace = text.lastIndexOf(' ', end);
-				if (lastSpace > start && end - lastSpace < 100) {
-					end = lastSpace;
-				}
-			}
-		}
+      if (chosenBreak !== -1) {
+        end = chosenBreak;
+      } else {
+        // Fall back to last whitespace near the end
+        const lastSpace = text.lastIndexOf(" ", end);
+        if (lastSpace > start && end - lastSpace < 100) {
+          end = lastSpace;
+        }
+      }
+    }
 
-		const chunk = text.slice(start, end).trim();
-		if (chunk) chunks.push(chunk);
-		start = end;
-	}
+    const chunk = text.slice(start, end).trim();
+    if (chunk) chunks.push(chunk);
+    start = end;
+  }
 
-	return chunks;
+  return chunks;
 }
 
 /**
@@ -477,10 +649,10 @@ export function splitTextIntoChunks(text: string, chunkSize: number, linebreakDi
  */
 
 export function formatReferenceNumber(idStr: string) {
-	if (idStr && /^\d+$/.test(idStr)) {
-		return '#' + idStr;
-	}
-	return idStr;
+  if (idStr && /^\d+$/.test(idStr)) {
+    return "#" + idStr;
+  }
+  return idStr;
 }
 
 /**
@@ -490,18 +662,18 @@ export function formatReferenceNumber(idStr: string) {
  */
 
 export function getNthString(num: number): string {
-	const mod10 = num % 10;
-	const mod100 = num % 100;
+  const mod10 = num % 10;
+  const mod100 = num % 100;
 
-	if (mod10 === 1 && mod100 !== 11) {
-		return `${num}st`;
-	} else if (mod10 === 2 && mod100 !== 12) {
-		return `${num}nd`;
-	} else if (mod10 === 3 && mod100 !== 13) {
-		return `${num}rd`;
-	} else {
-		return `${num}th`;
-	}
+  if (mod10 === 1 && mod100 !== 11) {
+    return `${num}st`;
+  } else if (mod10 === 2 && mod100 !== 12) {
+    return `${num}nd`;
+  } else if (mod10 === 3 && mod100 !== 13) {
+    return `${num}rd`;
+  } else {
+    return `${num}th`;
+  }
 }
 
 /**
@@ -513,44 +685,45 @@ export function getNthString(num: number): string {
  */
 
 export function makeAddressText(
-	address: Partial<AddressObj>,
-	format: 'REGION_ONLY' | 'SINGLE_LINE' | 'NORMAL' = 'NORMAL',
-	useFullCountryName: boolean = false,
-	delimiter: string = ', ',
+  address: Partial<AddressObj>,
+  format: "REGION_ONLY" | "SINGLE_LINE" | "NORMAL" = "NORMAL",
+  useFullCountryName: boolean = false,
+  delimiter: string = ", ",
 ) {
-	if (!address) {
-		return null;
-	}
+  if (!address) {
+    return null;
+  }
 
-	const countryName = useFullCountryName && i18n.has(`country.from_code.${address.country}`)
-		? i18n.t(`country.from_code.${address.country}`)
-		: address.country;
+  const countryName =
+    useFullCountryName && i18n.has(`country.from_code.${address.country}`)
+      ? i18n.t(`country.from_code.${address.country}`)
+      : address.country;
 
-	if (format === 'REGION_ONLY') {
-		return [
-			address.city,
-			address.state,
-			countryName,
-		].filter(Boolean).join(delimiter);
-	} else if (format === 'SINGLE_LINE') {
-		return [
-			address.line1,
-			address.line2,
-			address.city,
-			address.state,
-			address.postalCode,
-			countryName,
-		].filter(Boolean).join(delimiter);
-	}
+  if (format === "REGION_ONLY") {
+    return [
+      address.city,
+      address.state,
+      countryName,
+    ].filter(Boolean).join(delimiter);
+  } else if (format === "SINGLE_LINE") {
+    return [
+      address.line1,
+      address.line2,
+      address.city,
+      address.state,
+      address.postalCode,
+      countryName,
+    ].filter(Boolean).join(delimiter);
+  }
 
-	// NORMAL format
-	return [
-		address.line1,
-		address.line2,
-		[
-			[address.city, address.state].filter(Boolean).join(', '),
-			address.postalCode,
-		].filter(Boolean).join(' '),
-		countryName,
-	].filter(Boolean).join('\n');
+  // NORMAL format
+  return [
+    address.line1,
+    address.line2,
+    [
+      [address.city, address.state].filter(Boolean).join(", "),
+      address.postalCode,
+    ].filter(Boolean).join(" "),
+    countryName,
+  ].filter(Boolean).join("\n");
 }

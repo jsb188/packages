@@ -148,6 +148,7 @@ export default {
     summary: 'Summary',
     instructions_summary: 'Instructions summary',
     status: 'Status',
+    active: 'Active',
     not_active: 'Not active',
     orders: 'Orders',
     'order_#': 'Order #',

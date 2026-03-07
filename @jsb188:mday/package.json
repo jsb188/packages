@@ -28,7 +28,6 @@
     "./utils/organization.ts": "./src/utils/organization.ts",
     "./utils/product-calEvent.ts": "./src/utils/product-calEvent.ts",
     "./utils/report.ts": "./src/utils/report.ts",
-    "./utils/string.ts": "./src/utils/string.ts",
     "./utils/workflow.ts": "./src/utils/workflow.ts"
   },
   "dependencies": {

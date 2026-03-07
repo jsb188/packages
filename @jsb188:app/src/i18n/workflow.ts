@@ -4,6 +4,7 @@ export default {
     workflow_missing: 'Workflow is missing',
     workflow_missing_msg: 'The workflow you\'re looking for could not be found.',
     not_active_msg: 'Not active – no upcoming jobs',
+    active_msg: 'Active – waiting for %{logType} logs',
 
     // Below is old but some may be useful
 
