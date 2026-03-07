@@ -162,11 +162,11 @@ export async function graphqlRequest(
         }
       }
 
+      setDataToCache(data.data, gqlQuery, variables, cacheMap, updateObservers);
+
       if (onCompleted) {
         onCompleted(data, gqlError, variables);
       }
-
-      setDataToCache(data.data, gqlQuery, variables, cacheMap, updateObservers);
 
       return {
         ...data.data,
