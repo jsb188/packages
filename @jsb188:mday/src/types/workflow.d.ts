@@ -69,7 +69,7 @@ export interface WorkflowRunData {
   }>;
 	message: string | null;
 	status: LogActionStatusEnum;
-	scheduledDate: Date;
+	scheduledDate: Date | null;
 	followUpAt: Date | null;
 	activityAt: Date;
 }
@@ -85,7 +85,7 @@ export interface WorkflowRunGQL {
 	progressReport: string | null;
 	message: string | null;
 	status: LogActionStatusEnum;
-	scheduledDate: string;
+	scheduledDate: string | null;
 	followUpAt: string | null;
 	activityAt: string;
 }
