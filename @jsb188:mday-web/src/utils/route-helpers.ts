@@ -23,7 +23,6 @@ const F = {
 type ValidRoutePath =
   '/app'
   | '/app/c/'
-  | '/app/ai-workflows' // DEPRECATED
   | '/app/workflows'
   | '/app/logs'
   | '/app/seeding'
@@ -85,12 +84,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
 
   // Advanced
-
-  // '/app/ai-workflows': { // DEPRECATED
-  //   to: '/app/ai-workflows',
-  //   text: 'form.ai_workflows',
-  //   iconName: COMMON_ICON_NAMES.ai_workflow,
-  // },
 
   '/app/workflows': {
     to: '/app/workflows',
@@ -547,6 +540,13 @@ export function getNavigationList(
     case 'GROWER_NETWORK':
       navListArr = [
         {
+          text: i18n.t('form.reports'),
+          navList: [
+            ROUTES_DICT['/app/organic'],
+            ROUTES_DICT['/app/globalgap/'],
+          ]
+        },
+        {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['/app/growers'],
@@ -568,9 +568,8 @@ export function getNavigationList(
   // @ts-ignore
   ].concat(navListArr).concat([{
     text: i18n.t('form.advanced'),
-    initialExpanded: false,
+    initialExpanded: true,
     navList: [
-      // ROUTES_DICT['/app/ai-workflows'], // DEPRECATED
       ROUTES_DICT['/app/workflows'],
       ROUTES_DICT['/app/logs']
     ]

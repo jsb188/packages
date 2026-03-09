@@ -92,6 +92,14 @@ export function replaceTemplateStrings(
 ) {
 	return str?.replace(/{{(.*?)}}/g, (_, p1) => {
 		switch (p1) {
+      case 'id':
+      case 'orgId':
+      case 'status':
+      case 'date':
+      case 'account':
+      case 'orgLocation':
+        // Gotta do these
+        return '';
 			case 'year':
 				return variables?.year ?? mapParams?.period?.split?.('-')?.[0] ?? '#year';
 			case 'month': {

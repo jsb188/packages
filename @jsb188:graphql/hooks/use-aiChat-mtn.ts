@@ -23,7 +23,7 @@ export function useStartAIChat(params: UseMutationParams = {}) {
         onCompleted?.(data, err, variables);
 
         const aiChat = data.startAIChat?.node;
-        updateAIChats(aiChat, updateObservers);
+        updateAIChats(aiChat, variables?.organizationId, updateObservers);
       },
       onError,
     },

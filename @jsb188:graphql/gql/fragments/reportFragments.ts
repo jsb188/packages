@@ -6,7 +6,8 @@ export const reportFragment = `fragment reportFragment on Report {
   documentName
   title
   description
-  type
+  group
+  groupTitle
   period
   evidencesCount
   gridLayoutStyle
@@ -43,6 +44,7 @@ export const reportColumnDataFragment = `fragment reportColumnDataFragment on Re
 export const reportAvailabilityFragment = `fragment reportAvailabilityFragment on ReportAvailability {
   id
   organizationId
-  type
+  group
+  groupTitle
   periods
 }`;

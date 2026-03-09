@@ -17,6 +17,29 @@ const AI_CHATS_LIMIT = 70; // Must match server code exactly
 const AI_CHAT_MESSAGES_LIMIT = 55; // Must match server code exactly
 
 /**
+ * Helper; build AI chats query key
+ */
+
+function getAIChatsQueryKey(
+  organizationId?: string | null,
+  filter?: 'CAL_DATE' | 'CHATS',
+) {
+  if (!organizationId || !filter) {
+    return '';
+  }
+
+  const variablesKey = makeVariablesKey({
+    organizationId,
+    filter,
+    cursor: null,
+    after: false,
+    limit: AI_CHATS_LIMIT
+  });
+
+  return `#aiChats:${variablesKey}`;
+}
+
+/**
  * Helper; get generating (status) key from SSE data
  */
 
@@ -108,14 +131,10 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
   useEffect(() => {
     // Every time AIChat is fetched, check if it exists in lists cache
     if (dataAIChatId) {
-      const variablesKey = makeVariablesKey({
-        filter: aiChat.calDate ? 'CAL_DATE' : 'CHATS',
-        cursor: null,
-        after: false,
-        limit: AI_CHATS_LIMIT
-      });
-
-      const queryKey = `#aiChats:${variablesKey}`;
+      const queryKey = getAIChatsQueryKey(
+        aiChat.organizationId,
+        aiChat.calDate ? 'CAL_DATE' : 'CHATS'
+      );
       const queryCache = loadQuery(queryKey);
 
       if (queryCache) {
@@ -183,20 +202,32 @@ export function useAIChatMessages(aiChatId?: string, params: UseQueryParams = {}
  * Update sidebar AI chats query
  */
 
-export function updateAIChats(aiChat: any, updateObservers: UpdateObserversFn) {
+export function updateAIChats(
+  aiChat: any,
+  organizationId: string | null | undefined,
+  updateObservers: UpdateObserversFn
+) {
   if (aiChat) {
     const isCalDate = !!aiChat.calDate;
-    const queryKey = `#aiChats:$after:false$filter:${isCalDate ? 'cal_date' : 'chats'}$limit:${AI_CHATS_LIMIT}`;
+    const queryKey = getAIChatsQueryKey(
+      organizationId || aiChat.organizationId,
+      isCalDate ? 'CAL_DATE' : 'CHATS'
+    );
+    const fragmentKey = `$aiChatFragment:${aiChat.id}`;
 
     updateQuery(
       queryKey,
-      (res) => {
+      (res: any[]) => {
+        if (res.some((item: any) => item?.__flat?.data?.[0] === fragmentKey)) {
+          return res;
+        }
+
         return [
           {
             cursor: aiChat.cursor,
             __flat: {
               __cache: true,
-              data: [`$aiChatFragment:${aiChat.id}`]
+              data: [fragmentKey]
             }
           },
           ...res

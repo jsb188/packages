@@ -1,3 +1,5 @@
+/// <reference path="../types/node-polyglot.d.ts" />
+
 import Polyglot from 'node-polyglot';
 import type NodePolyglot from '../types.d.ts';
 

@@ -44,6 +44,7 @@ export interface LabelAndValue {
 	value: string;
 	quantity?: number;
   tax?: number
+  note?: string;
 }
 
 /**

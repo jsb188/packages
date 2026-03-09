@@ -2,7 +2,6 @@ import z from 'zod';
 import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 import type { ReportsFilterArgs } from '../types/report.d.ts';
 import { convertDigitToProductType } from './productsQuery';
-import { REPORT_TYPES } from '../constants/report.ts';
 
 /**
  * Zod schema for query params to filter
@@ -12,7 +11,7 @@ export const ReportsFilterSchema = z.object({
   preset: z.string()
     .optional()
     .nullable(),
-  reportType: z.enum(REPORT_TYPES as [string]),
+  reportGroup: z.string(),
   query: z.string()
     .nullable(),
 });
@@ -50,7 +49,7 @@ export function getReportsFilterFromURL(
   // }
 
   const filter: ReportsFilterArgs = {
-    reportType: convertDigitToProductType(urlParams.get('t'))!,
+    reportGroup: convertDigitToProductType(urlParams.get('t'))!,
     period: urlParams.get('p') || '',
     // startDate,
     // endDate,
@@ -89,7 +88,7 @@ export function reportsSearchQueryIsValid(
 
   const urlParams = new URLSearchParams(searchQuery);
   // const operation = urlParams.get('o');
-  const reportType = urlParams.get('t');
+  const reportGroup = urlParams.get('t');
   // const accountId = urlParams.get('a');
   // const startDate = urlParams.get('sd');
   // const endDate = urlParams.get('ed');
@@ -98,7 +97,7 @@ export function reportsSearchQueryIsValid(
   return (
     // operation is allowed to pass through
     // !!filter.operation === !!operation &&
-    !!filter.reportType === !!reportType &&
+    !!filter.reportGroup === !!reportGroup &&
     // !!filter.accountId === !!accountId &&
     // !!filter.startDate === !!startDate &&
     // !!filter.endDate === !!endDate &&

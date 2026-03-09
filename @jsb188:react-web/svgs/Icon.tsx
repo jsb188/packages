@@ -178,7 +178,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   ARABLE: 'farming-barn-silo',
   FARMERS_MARKET: 'farmers-market-kiosk',
   LIVESTOCK: 'outdoors-horse',
-  GROWER_NETWORK: 'wine-grapes',
+  GROWER_NETWORK: 'office-outdoors',
   RESTAURANT: 'restaurant-dishes',
   VENDOR: 'farmers-market-vendor',
 
