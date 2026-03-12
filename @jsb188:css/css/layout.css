@@ -142,7 +142,6 @@ body.p_auth {
 .app_aside {
   position: absolute;
   width: var(--aside-wt);
-  padding-right: 20px;
   max-height: calc(100vh - var(--toolbar-ht));
   top: var(--toolbar-ht); left: 0;
 

@@ -18,7 +18,6 @@ export const FEATURES_BY_OPERATION = {
 		'NORMAL_LOGGING', // First item is always the default
 		'FOOD_SAFETY',
 		'GLOBAL_GAP',
-		'ORGANIC_CERTIFICATION',
 	],
 	FARMERS_MARKET: [
 		'NORMAL_LOGGING',
@@ -31,6 +30,9 @@ export const FEATURES_BY_OPERATION = {
 		'LIVESTOCK', // DEPRECATED
     'LIVESTOCK_MANAGEMENT',
 	],
+  GROWER_NETWORK: [
+    'NORMAL_LOGGING',
+  ]
 };
 
 export const PRODUCT_FEATURES = [

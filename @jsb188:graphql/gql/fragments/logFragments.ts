@@ -63,6 +63,24 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
   notes
 }`;
 
+export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on LogGrowerNetwork {
+  __typename
+
+  id
+  type
+  activity
+
+  childOrgId
+  otherParty
+
+  item
+  location
+  fieldLocation
+
+  summary
+  notes
+}`;
+
 export const logLivestockFragment = `fragment logLivestockFragment on LogLivestock {
   __typename
 

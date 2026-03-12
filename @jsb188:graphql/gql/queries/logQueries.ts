@@ -1,6 +1,12 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
-import { logEntryFragment, logArableFragment, logLivestockFragment, logFarmersMarketFragment } from '../fragments/logFragments';
+import {
+  logEntryFragment,
+  logArableFragment,
+  logFarmersMarketFragment,
+  logGrowerNetworkFragment,
+  logLivestockFragment
+} from '../fragments/logFragments';
 import { workflowActionFragment } from '../fragments/workflowFragments';
 import { storageFileFragment } from '../fragments/storageFragments';
 
@@ -12,6 +18,9 @@ export const logEntryFragmentStatement = `...logEntryFragment
       }
       ...on LogFarmersMarket {
         ...logFarmersMarketFragment
+      }
+      ...on LogGrowerNetwork {
+        ...logGrowerNetworkFragment
       }
       ...on LogLivestock {
         ...logLivestockFragment
@@ -27,6 +36,7 @@ ${accountFragment}
 ${logEntryFragment}
 ${logArableFragment}
 ${logFarmersMarketFragment}
+${logGrowerNetworkFragment}
 ${logLivestockFragment}
 `;
 
@@ -61,32 +71,5 @@ query logEntries (
 
 ${workflowActionFragment}
 ${storageFileFragment}
-${logEntryFragmentImports}
-`;
-
-export const logEvidencesQry = gql`
-query logEvidences (
-  $organizationId: GenericID!
-  $reportId: CursorToID!
-  $cursor: Cursor
-  $after: Boolean!
-  $limit: Int!
-) {
-  logEvidences (
-    organizationId: $organizationId
-    reportId: $reportId
-    cursor: $cursor
-    after: $after
-    limit: $limit
-  ) {
-    ${logEntryFragmentStatement}
-
-    actions {
-      ...workflowActionFragment
-    }
-  }
-}
-
-${workflowActionFragment}
 ${logEntryFragmentImports}
 `;

@@ -32,6 +32,9 @@ export default {
 			SICK: 'Sick',
 			SOLD: 'Sold',
 			DECEASED: 'Deceased',
+      PASS: 'Pass',
+      WARNING: 'Warning',
+      FAIL: 'Fail',
 		},
 
 		event_frequency_msg: {
@@ -47,7 +50,6 @@ export default {
       NORMAL_LOGGING: 'Logs',
       FOOD_SAFETY: 'Food safety',
       GLOBAL_GAP: 'GLOBALG.A.P.',
-      ORGANIC_CERTIFICATION: 'Organic',
       CAL_EVENTS: 'Events',
       CAL_EVENTS_ATTENDANCE: 'Attendance',
       CAL_EVENTS_LOAD_LIST: 'Load list',
@@ -58,7 +60,6 @@ export default {
       NORMAL_LOGGING: 'Logs',
       FOOD_SAFETY: 'Food safety',
       GLOBAL_GAP: 'GLOBALG.A.P.',
-      ORGANIC_CERTIFICATION: 'Organic certification',
       CAL_EVENTS: 'Events',
       CAL_EVENTS_ATTENDANCE: 'Attendance',
       CAL_EVENTS_LOAD_LIST: 'Load list',
@@ -84,7 +85,6 @@ export default {
 
 		report: {
 			GLOBAL_GAP: 'GLOBALG.A.P.',
-			ORGANIC_CERTIFICATION: 'USDA National Organic Program (NOP)',
 			CLEANING: 'Cleaning logs',
 		},
 

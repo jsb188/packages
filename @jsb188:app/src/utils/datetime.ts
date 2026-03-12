@@ -319,6 +319,20 @@ export function getReadableCalDate(d_: string | Date, timeZone?: string | null, 
 }
 
 /**
+ * Date objects create different calendar dates based on timezone,
+ * to avoid such issue, use this funciton to convert JS date to string format.
+ */
+
+export function getReadableCalDateFromUTC(d: string | Date) {
+  if (typeof d === 'string') {
+    return getReadableCalDate(d);
+  }
+
+  const dStr = d.toISOString().split('T')[0]; // Get date part in YYYY-MM-DD format
+  return getReadableCalDate(dStr);
+}
+
+/**
  * Update JS date with year/month/day and hour/minutes
  */
 
@@ -409,7 +423,7 @@ export function convertIntToCalDate(
  */
 
 export function isValidCalDate(
-	calDate_: string | number,
+	calDate_: string | number | bigint,
 	allowDashes: boolean = false,
 	minCalDate: number = 19500101,
 ): boolean {

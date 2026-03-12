@@ -152,7 +152,7 @@ export const SidebarNestedNavItem = memo((p: {
         : <SidebarItem
           key={i}
           currentPath={currentPath}
-          selected={item.to === currentPath || (!!currentPathPrefix && item.to?.startsWith(currentPathPrefix + '/'))}
+          selected={item.to === currentPath || !!(item.to && currentPath?.startsWith(item.to + '/'))}
           {...item}
         />
       ))}

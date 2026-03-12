@@ -539,6 +539,22 @@ export function getIconNameForFarmersMarket(
 }
 
 /**
+ * Get the icon name for grower network logs
+ * @param _item - The log item text
+ * @param _note - Additional note text
+ * @param _defaultIcon - The default icon to return if no match is found
+ * @returns The icon name or a default icon if no match is found
+ */
+
+export function getIconNameForGrowerNetwork(
+	_item?: string | null,
+	_note?: string | null,
+	_defaultIcon?: string,
+): string {
+	return 'circle';
+}
+
+/**
  * Get any icon name for any word
  */
 
@@ -558,6 +574,9 @@ export function getIconNameForWord(
     case 'FARMERS_MARKET':
 		case 'LogFarmersMarket':
 			return getIconNameForFarmersMarket(text1, text2, defaultIcon);
+		case 'GROWER_NETWORK':
+		case 'LogGrowerNetwork':
+			return getIconNameForGrowerNetwork(text1, text2, defaultIcon);
 		default:
 	}
 	return 'circle';

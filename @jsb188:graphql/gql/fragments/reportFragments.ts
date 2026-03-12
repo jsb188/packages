@@ -1,4 +1,3 @@
-
 export const reportFragment = `fragment reportFragment on Report {
   id
   organizationId
@@ -6,33 +5,33 @@ export const reportFragment = `fragment reportFragment on Report {
   documentName
   title
   description
-  group
-  groupTitle
+  reportGroupId
+  groupName
+  groupShortName
   period
-  evidencesCount
   gridLayoutStyle
-
-  activityAt
 }`;
 
-export const reportSectionFragment = `fragment reportSectionFragment on ReportSection {
+export const reportSectionFragment =
+  `fragment reportSectionFragment on ReportSection {
   id
   isGroupTitle
   sectionKey
-  sectionName
   title
   description
   requireFileUploads
 }`;
 
-export const reportRowDataFragment = `fragment reportRowDataFragment on ReportRowData {
+export const reportRowDataFragment =
+  `fragment reportRowDataFragment on ReportRowData {
   id
   preset
   className
   isHeader
 }`;
 
-export const reportColumnDataFragment = `fragment reportColumnDataFragment on ReportColumnData {
+export const reportColumnDataFragment =
+  `fragment reportColumnDataFragment on ReportColumnData {
   id
   className
   label
@@ -41,10 +40,43 @@ export const reportColumnDataFragment = `fragment reportColumnDataFragment on Re
   checked
 }`;
 
-export const reportAvailabilityFragment = `fragment reportAvailabilityFragment on ReportAvailability {
+export const reportGroupFragment =
+  `fragment reportGroupFragment on ReportGroup {
   id
+  name
+  shortName
+  frequency
+  layout {
+    columns
+    headers
+    gridLayoutStyle
+  }
+  lastSubmissionPeriod
+  lastSubmissionReportId
+}`;
+
+export const reportSubmissionFragment =
+  `fragment reportSubmissionFragment on ReportSubmission {
+  id
+  reportId
+  reportSubmissionIdEnc
+
   organizationId
-  group
-  groupTitle
-  periods
+  organizationIdEnc
+  organizationName
+  organizationOperation
+
+  childOrgId
+  childOrgIdEnc
+  childOrgName
+  childOrgOperation
+
+  period
+  status
+  reportGroupId
+  groupName
+  groupShortName
+  activityAt
+  createdAt
+  updatedAt
 }`;

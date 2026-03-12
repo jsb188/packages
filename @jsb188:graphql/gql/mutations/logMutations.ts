@@ -1,5 +1,11 @@
 import { gql } from 'graphql-tag';
-import { logEntryFragment, logArableFragment, logLivestockFragment, logFarmersMarketFragment } from '../fragments/logFragments';
+import {
+  logEntryFragment,
+  logArableFragment,
+  logFarmersMarketFragment,
+  logGrowerNetworkFragment,
+  logLivestockFragment
+} from '../fragments/logFragments';
 
 export const editLogEntryMtn = gql`
 mutation editLogEntry (
@@ -10,6 +16,7 @@ mutation editLogEntry (
   $flagColor: String
 
   $arableDetails: LogArableInput
+  $growerNetworkDetails: GrowerNetworkInput
   $livestockDetails: LogLivestockInput
   $farmersMarketDetails: LogFarmersMarketInput
 ) {
@@ -21,6 +28,7 @@ mutation editLogEntry (
     flagColor: $flagColor
 
     arableDetails: $arableDetails
+    growerNetworkDetails: $growerNetworkDetails
     livestockDetails: $livestockDetails
     farmersMarketDetails: $farmersMarketDetails
   ) {
@@ -33,6 +41,9 @@ mutation editLogEntry (
       ...on LogFarmersMarket {
         ...logFarmersMarketFragment
       }
+      ...on LogGrowerNetwork {
+        ...logGrowerNetworkFragment
+      }
       ...on LogLivestock {
         ...logLivestockFragment
       }
@@ -43,6 +54,7 @@ mutation editLogEntry (
 ${logEntryFragment}
 ${logArableFragment}
 ${logFarmersMarketFragment}
+${logGrowerNetworkFragment}
 ${logLivestockFragment}
 `;
 

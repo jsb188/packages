@@ -129,6 +129,21 @@ export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {
 
 /**
  * #### #### #### ####
+ * Grower Network
+ * #### #### #### ####
+ */
+
+export const GROWER_NETWORK_INSPECTION_TO_TEXT = {
+  INSPECTION_NOTES: 'site inspection or audit related notes',
+  GROWER_NOTES: 'notes about a grower in the network',
+};
+
+export const GROWER_NETWORK_ACTIVITIES_TO_TEXT = {
+	...GROWER_NETWORK_INSPECTION_TO_TEXT,
+};
+
+/**
+ * #### #### #### ####
  * Livestock ranching
  * #### #### #### ####
  */
@@ -203,6 +218,7 @@ export const AGENT_TEXT_TO_ACTIVITIES: Record<string, string> = Object.fromEntri
 	Object.entries({
 		...ARABLE_ACTIVITIES_TO_TEXT,
 		...FARMERS_MARKET_ACTIVITIES_TO_TEXT,
+		...GROWER_NETWORK_ACTIVITIES_TO_TEXT,
 		...LIVESTOCK_ACTIVITIES_TO_TEXT,
 		...AI_TASKS_TO_TEXT,
 	}).map(([key, value]) => [value, key]),

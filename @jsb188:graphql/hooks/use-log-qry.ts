@@ -1,6 +1,6 @@
 import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d.ts';
 import { useQuery, useReactiveFragment } from '../client';
-import { logEntriesQry, logEvidencesQry } from '../gql/queries/logQueries';
+import { logEntriesQry } from '../gql/queries/logQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';
 
 /**
@@ -58,36 +58,6 @@ export function useLogEntries(
 }
 
 /**
- * Fetch logs as evidences for a specific report
- */
-
-export function useLogEvidences(
-  variables: {
-    organizationId: string,
-    reportId: string,
-    cursor?: string | null,
-    after?: boolean,
-    limit?: number,
-  },
-  params: UseQueryParams = {}
-) {
-  const { data, ...rest } = useQuery(logEvidencesQry, {
-    ...params,
-    variables: {
-      ...variables,
-      after: variables.after ?? true,
-      limit: variables.limit ?? 1000, // Change this when we have pagination support
-    },
-    skip: !variables.organizationId || !variables.reportId || params.skip,
-  });
-
-  return {
-    logEvidences: data?.logEvidences,
-    ...rest
-  };
-}
-
-/**
  * Get reactive log fragment
  */
 
@@ -98,6 +68,7 @@ export function useReactiveLogFragment(logEntryId: string, currentData?: any, qu
       `$logEntryFragment:${logEntryId}`,
       [`$logArableFragment:${logEntryId}`, 'details'],
       [`$logFarmersMarketFragment:${logEntryId}`, 'details'],
+      [`$logGrowerNetworkFragment:${logEntryId}`, 'details'],
       [`$logLivestockFragment:${logEntryId}`, 'details'],
     ],
     queryCount,

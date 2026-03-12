@@ -1,7 +1,6 @@
 import z from 'zod';
 import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 import type { ReportsFilterArgs } from '../types/report.d.ts';
-import { convertDigitToProductType } from './productsQuery';
 
 /**
  * Zod schema for query params to filter
@@ -11,8 +10,14 @@ export const ReportsFilterSchema = z.object({
   preset: z.string()
     .optional()
     .nullable(),
-  reportGroup: z.string(),
-  query: z.string()
+  reportGroupId: z.string()
+    .optional()
+    .nullable(),
+  startPeriod: z.string()
+    .optional()
+    .nullable(),
+  endPeriod: z.string()
+    .optional()
     .nullable(),
 });
 
@@ -49,11 +54,9 @@ export function getReportsFilterFromURL(
   // }
 
   const filter: ReportsFilterArgs = {
-    reportGroup: convertDigitToProductType(urlParams.get('t'))!,
-    period: urlParams.get('p') || '',
-    // startDate,
-    // endDate,
-    query: urlParams.get('q') || '',
+    reportGroupId: urlParams.get('t') || '',
+    startPeriod: urlParams.get('sd') || urlParams.get('p') || '',
+    endPeriod: urlParams.get('ed') || urlParams.get('p') || '',
     ...otherFiltersObj?.withoutPreset,
   };
 
@@ -87,20 +90,13 @@ export function reportsSearchQueryIsValid(
   }
 
   const urlParams = new URLSearchParams(searchQuery);
-  // const operation = urlParams.get('o');
-  const reportGroup = urlParams.get('t');
-  // const accountId = urlParams.get('a');
-  // const startDate = urlParams.get('sd');
-  // const endDate = urlParams.get('ed');
-  const query = urlParams.get('q');
+  const reportGroupId = urlParams.get('t');
+  const startPeriod = urlParams.get('sd') || urlParams.get('p');
+  const endPeriod = urlParams.get('ed') || urlParams.get('p');
 
   return (
-    // operation is allowed to pass through
-    // !!filter.operation === !!operation &&
-    !!filter.reportGroup === !!reportGroup &&
-    // !!filter.accountId === !!accountId &&
-    // !!filter.startDate === !!startDate &&
-    // !!filter.endDate === !!endDate &&
-    !!filter.query === !!query
+    !!filter.reportGroupId === !!reportGroupId &&
+    !!filter.startPeriod === !!startPeriod &&
+    !!filter.endPeriod === !!endPeriod
   );
 }

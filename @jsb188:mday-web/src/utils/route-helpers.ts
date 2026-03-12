@@ -1,5 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
+import type { ReportGroupGQL } from '@jsb188/mday/types/report.d.ts';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 
 // Use this for report periods, etc
@@ -9,7 +10,10 @@ const CURRENT_YEAR = String(new Date().getFullYear());
  * Constants; Re-usable rules
  */
 
-const OP_FARMING = ['ARABLE', 'LIVESTOCK'];
+const OP = {
+  FARMING: ['ARABLE', 'LIVESTOCK'],
+  GROWER_NETWORK: ['GROWER_NETWORK'],
+};
 
 const F = {
   normal_logging: ['NORMAL_LOGGING'],
@@ -31,10 +35,7 @@ type ValidRoutePath =
   | '/app/harvested'
   | '/app/post-harvest'
   | '/app/orders'
-  | '/app/globalgap/'
-  | '/app/cleaning'
   | '/app/purchases'
-  | '/app/organic'
   | '/app/hygiene'
   | '/app/sanitation'
   | '/app/materials'
@@ -45,7 +46,14 @@ type ValidRoutePath =
   | '/app/receipts'
   | '/app/livestock'
   | '/app/growers'
-  | '/app/foreign-growers';
+  | '/app/foreign-growers'
+
+  // Reports
+  | '/app/r/'
+  | '/app/r/globalgap/'
+  | '/app/r/cleaning'
+  | '/app/s/';
+  // | '/app/r/water-source/';
 
 interface RouteDictObj {
   to: ValidRoutePath;
@@ -56,6 +64,7 @@ interface RouteDictObj {
   requiredFeature?: OrganizationFeatureEnum[];
 
   // These values prevent rendering flickers when calculating TOC/breadcrumbs between page renders
+  scrollResetKey?: string | ((parts: string[], pathname: string) => string);
   hasPhysicalToolbar?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
   hasAsideNav?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
   toolbarShadowStyle?: string;
@@ -96,7 +105,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app/logs',
     text: 'log.all_logs',
     iconName: COMMON_ICON_NAMES.logs,
-    notAllowedOperations: ['GROWER_NETWORK'], // Temporary for now
   },
 
   // Arable
@@ -146,7 +154,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'log.purchases',
     iconName: COMMON_ICON_NAMES.invoice,
 
-    allowedOperations: OP_FARMING,
+    allowedOperations: OP.FARMING,
     requiredFeature: F.normal_logging,
   },
   '/app/orders': {
@@ -154,42 +162,8 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'form.sales_orders',
     iconName: COMMON_ICON_NAMES.receipt,
 
-    allowedOperations: OP_FARMING,
+    allowedOperations: OP.FARMING,
     requiredFeature: F.normal_logging,
-  },
-
-  // Arable; Reports
-
-  '/app/globalgap/': {
-    to: ('/app/globalgap/' + CURRENT_YEAR) as ValidRoutePath,
-    text: 'product.report.GLOBAL_GAP',
-    iconName: COMMON_ICON_NAMES.generic_report,
-
-    allowedOperations: OP_FARMING,
-    requiredFeature: ['GLOBAL_GAP'],
-
-    hasPhysicalToolbar: (parts: string[]) => parts.length > 4,
-    hasAsideNav: (parts: string[]) => parts.length > 4,
-  },
-  '/app/cleaning': {
-    to: '/app/cleaning',
-    text: 'product.report.CLEANING',
-    iconName: COMMON_ICON_NAMES.SANITATION,
-
-    allowedOperations: OP_FARMING,
-    requiredFeature: F.food_safety,
-  },
-  '/app/organic': {
-    to: '/app/organic',
-    text: 'product.report.ORGANIC_CERTIFICATION',
-    iconName: COMMON_ICON_NAMES.generic_report,
-
-    allowedOperations: OP_FARMING,
-    requiredFeature: ['ORGANIC_CERTIFICATION'],
-
-    // This will need to change later if we're introducing "period" table of contents page selection
-    hasPhysicalToolbar: 'ALWAYS',
-    hasAsideNav: 'ALWAYS',
   },
 
   // Arable; Food Safety
@@ -199,7 +173,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'log.hygiene',
     iconName: COMMON_ICON_NAMES.HYGIENE,
 
-    allowedOperations: OP_FARMING,
+    allowedOperations: OP.FARMING,
     requiredFeature: F.food_safety,
   },
   '/app/sanitation': {
@@ -207,7 +181,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'log.sanitation',
     iconName: COMMON_ICON_NAMES.SANITATION,
 
-    allowedOperations: OP_FARMING,
+    allowedOperations: OP.FARMING,
     requiredFeature: F.food_safety,
   },
   '/app/materials': {
@@ -215,7 +189,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'log.materials',
     iconName: COMMON_ICON_NAMES.MATERIALS,
 
-    allowedOperations: OP_FARMING,
+    allowedOperations: OP.FARMING,
     requiredFeature: F.food_safety,
   },
   '/app/biosecurity': {
@@ -223,7 +197,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'log.biosecurity',
     iconName: COMMON_ICON_NAMES.BIOSECURITY,
 
-    allowedOperations: OP_FARMING,
+    allowedOperations: OP.FARMING,
     requiredFeature: F.food_safety,
   },
   '/app/employees': {
@@ -231,7 +205,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'log.employees',
     iconName: COMMON_ICON_NAMES.EMPLOYEES,
 
-    allowedOperations: OP_FARMING,
+    allowedOperations: OP.FARMING,
     requiredFeature: F.food_safety,
   },
 
@@ -277,15 +251,66 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'form.domestic_growers',
     iconName: COMMON_ICON_NAMES.growers,
 
-    allowedOperations: ['GROWER_NETWORK'],
+    allowedOperations: OP.GROWER_NETWORK,
   },
   '/app/foreign-growers': {
     to: '/app/foreign-growers',
     text: 'form.foreign_growers',
     iconName: COMMON_ICON_NAMES.foreign_growers,
 
-    allowedOperations: ['GROWER_NETWORK'],
+    allowedOperations: OP.GROWER_NETWORK,
   },
+
+  // Reports
+
+  '/app/r/': {
+    to: '/app/r/',
+    text: 'form.reports',
+    iconName: COMMON_ICON_NAMES.generic_report,
+    hasPhysicalToolbar: 'NEVER',
+    hasAsideNav: 'NEVER',
+  },
+  '/app/r/globalgap/': {
+    to: ('/app/r/globalgap/' + CURRENT_YEAR) as ValidRoutePath,
+    text: 'product.report.GLOBAL_GAP',
+    iconName: COMMON_ICON_NAMES.generic_report,
+
+    allowedOperations: OP.FARMING,
+    requiredFeature: ['GLOBAL_GAP'],
+    scrollResetKey: (parts: string[], pathname: string) => {
+      const reportId = parts[5];
+      return reportId ? pathname : parts.slice(0, parts.length - 1).join('/');
+    },
+
+    hasPhysicalToolbar: (parts: string[]) => !!parts[5],
+    hasAsideNav: (parts: string[]) => !!parts[5],
+  },
+  '/app/r/cleaning': {
+    to: '/app/r/cleaning',
+    text: 'product.report.CLEANING',
+    iconName: COMMON_ICON_NAMES.SANITATION,
+
+    allowedOperations: OP.FARMING,
+    requiredFeature: F.food_safety,
+  },
+  '/app/s/': {
+    to: '/app/s/',
+    text: 'form.reports',
+    iconName: COMMON_ICON_NAMES.generic_report,
+    hasPhysicalToolbar: 'NEVER',
+    hasAsideNav: 'ALWAYS',
+  },
+  // '/app/r/water-source/': {
+  //   to: '/app/r/water-source/',
+  //   text: 'product.report.WATER_SOURCE',
+  //   iconName: COMMON_ICON_NAMES.generic_report,
+
+  //   allowedOperations: OP.GROWER_NETWORK,
+  //   requiredFeature: ['WATER_SOURCE'],
+
+  //   hasPhysicalToolbar: 'ALWAYS',
+  //   hasAsideNav: 'ALWAYS',
+  // }
 };
 
 /**
@@ -352,7 +377,11 @@ export function getRouteConfigs(
       const pathParts = pathname.split('/');
 
       let scrollResetKey: string;
-      if (pathParts.length >= 3) {
+      if (typeof routeDict.scrollResetKey === 'function') {
+        scrollResetKey = routeDict.scrollResetKey(pathParts, pathname);
+      } else if (typeof routeDict.scrollResetKey === 'string') {
+        scrollResetKey = routeDict.scrollResetKey;
+      } else if (pathParts.length >= 3) {
         // scroll reset key here is full path minus last part
         scrollResetKey = pathParts.slice(0, pathParts.length - 1).join('/');
       } else {
@@ -431,17 +460,6 @@ export function isRouteAllowed(
 }
 
 /**
- * Helper; because i18n isn't registered when this file opens, we gotta do this
- */
-
-function routesDictI18n(routeDictObj: RouteDictObj) {
-  return {
-    ...routeDictObj,
-    text: i18n.t(routeDictObj.text),
-  };
-}
-
-/**
  * Helper; get static nav list based on organization's operation & features
  */
 
@@ -463,7 +481,8 @@ export type NavigationItem = NavListItem | NavBreakItem;
 
 export function getNavigationList(
   operation: OrganizationOperationEnum | null,
-  orgFeatures?: OrganizationFeatureEnum[],
+  orgFeatures?: (OrganizationFeatureEnum | string)[], // This array contains available report groups also
+  reportGroups?: ReportGroupGQL[] | null,
 ): NavigationItem[] {
 
   const breakItem = {
@@ -479,24 +498,6 @@ export function getNavigationList(
   switch (operation) {
     case 'ARABLE':
       navListArr = [
-        {
-          text: i18n.t('form.reports'),
-          navList: [
-            ROUTES_DICT['/app/organic'],
-            ROUTES_DICT['/app/globalgap/'],
-          ]
-        },
-        {
-          text: i18n.t('log.food_safety'),
-          navList: [
-            ROUTES_DICT['/app/cleaning'],
-            // ROUTES_DICT['/app/hygiene'],
-            // ROUTES_DICT['/app/sanitation'],
-            // ROUTES_DICT['/app/materials'],
-            // ROUTES_DICT['/app/biosecurity'],
-            // ROUTES_DICT['/app/employees'],
-          ]
-        },
         {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
@@ -540,13 +541,6 @@ export function getNavigationList(
     case 'GROWER_NETWORK':
       navListArr = [
         {
-          text: i18n.t('form.reports'),
-          navList: [
-            ROUTES_DICT['/app/organic'],
-            ROUTES_DICT['/app/globalgap/'],
-          ]
-        },
-        {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['/app/growers'],
@@ -558,6 +552,26 @@ export function getNavigationList(
     default:
       navListArr = [];
   }
+
+  // Report sections
+
+  const reportsSection = {
+    text: i18n.t('form.reports'),
+    navList: [
+      // ROUTES_DICT['/app/r/globalgap/'],
+    ]
+  };
+
+  if (reportGroups) {
+    // @ts-ignore
+    reportsSection.navList = reportsSection.navList.concat(reportGroups.map((reportGroup) => ({
+      to: makePathname('/app/r/', reportGroup.id),
+      text: reportGroup.shortName || reportGroup.name,
+      iconName: COMMON_ICON_NAMES.generic_report,
+    })));
+  }
+
+  navListArr.push(reportsSection);
 
   // @ts-ignore
   navListArr = [{

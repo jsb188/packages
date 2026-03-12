@@ -26,8 +26,8 @@ export const organizationFragment = `fragment organizationFragment on Organizati
   }
 
   directory {
-    department
     name
+    department
     emailAddress
     phoneNumber
   }

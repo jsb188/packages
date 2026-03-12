@@ -963,7 +963,7 @@ export function useQuery(
       refreshTime,
       data: queryData,
     });
-  }, [queryData[queryName]]);
+  }, [queryKey, refreshTime, queryData[queryName]]);
 
   return {
     ...qryValues,

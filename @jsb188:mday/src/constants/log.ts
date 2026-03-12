@@ -254,6 +254,35 @@ export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUP
 
 /**
  * #### #### #### ####
+ * Grower Network logs
+ * #### #### #### ####
+ */
+
+export const GROWER_NETWORK_ACTIVITIES_GROUPED: [string, string[]][] = [
+	AI_TASKS_GROUP,
+	[
+		'SITE_INSPECTION',
+		[
+			'INSPECTION_NOTES',
+      'GROWER_NOTES',
+		],
+	],
+];
+
+export const LOG_GROWER_NETWORK_TYPE_ENUMS = GROWER_NETWORK_ACTIVITIES_GROUPED.map(([type]) => type);
+
+export const GROWER_NETWORK_TYPES_TO_TEXT = {
+	SITE_INSPECTION: 'site inspection notes',
+	EVERYTHING: 'all network activities', // Not part of enums
+};
+
+export const LOG_GROWER_NETWORK_ACTIVITY_ENUMS = GROWER_NETWORK_ACTIVITIES_GROUPED.reduce(
+	(acc, a) => acc.concat(a[1]),
+	[] as string[],
+);
+
+/**
+ * #### #### #### ####
  * Livestock logs
  * #### #### #### ####
  */
@@ -341,24 +370,28 @@ export const LOG_LIVESTOCK_ACTIVITY_ENUMS = LIVESTOCK_ACTIVITIES_GROUPED.reduce(
 export const LOG_ANY_TYPE_ENUMS = [
 	...LOG_ARABLE_TYPE_ENUMS,
 	...LOG_FARMERS_MARKET_TYPE_ENUMS,
+	...LOG_GROWER_NETWORK_TYPE_ENUMS,
 	...LOG_LIVESTOCK_TYPE_ENUMS,
 ].filter((value, index, self) => self.indexOf(value) === index);
 
 export const LOG_ANY_ACTIVITY_ENUMS = [
 	...LOG_ARABLE_ACTIVITY_ENUMS,
 	...LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
+	...LOG_GROWER_NETWORK_ACTIVITY_ENUMS,
 	...LOG_LIVESTOCK_ACTIVITY_ENUMS,
 ].filter((value, index, self) => self.indexOf(value) === index);
 
 export const LOG_ACTIVITIES_BY_OPERATION: Record<OrganizationOperationEnum, any> = {
 	ARABLE: ARABLE_ACTIVITIES_GROUPED,
 	FARMERS_MARKET: FARMERS_MARKET_ACTIVITIES_GROUPED,
+	GROWER_NETWORK: GROWER_NETWORK_ACTIVITIES_GROUPED,
 	LIVESTOCK: LIVESTOCK_ACTIVITIES_GROUPED,
 };
 
 export const LOG_TYPES_BY_OPERATION: Record<OrganizationOperationEnum, (typeof LOG_ANY_TYPE_ENUMS)[number][]> = {
 	ARABLE: LOG_ARABLE_TYPE_ENUMS,
 	FARMERS_MARKET: LOG_FARMERS_MARKET_TYPE_ENUMS,
+	GROWER_NETWORK: LOG_GROWER_NETWORK_TYPE_ENUMS,
 	LIVESTOCK: LOG_LIVESTOCK_TYPE_ENUMS,
 };
 
@@ -368,5 +401,6 @@ export const ALL_TEXT_TO_TYPES = {
 	...Object.fromEntries(Object.entries(ARABLE_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 	...Object.fromEntries(Object.entries(ARABLE_FOOD_SAFETY_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 	...Object.fromEntries(Object.entries(FARMERS_MARKET_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
+	...Object.fromEntries(Object.entries(GROWER_NETWORK_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 	...Object.fromEntries(Object.entries(LIVESTOCK_TYPES_TO_TEXT).map(([key, value]) => [value, key])),
 };

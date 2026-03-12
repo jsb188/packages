@@ -74,7 +74,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 				logs: acl.logs || 'MANAGE', // "READ" for logs does nothing
 				members: acl.members || 'MANAGE',
 				orgManagement: acl.orgManagement || 'MANAGE',
-				products: acl.products || 'MANAGE',
+				products: acl.products || 'MANAGE', // products = reports
 				settings: acl.settings || 'MANAGE',
 				viewData: acl.viewData || 'MANAGE', // This blocks access from users being able to read other people's logs
 			};
@@ -102,7 +102,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 				logs: acl.logs || 'NONE',
 				members: acl.members || 'NONE',
 				orgManagement: acl.orgManagement || 'NONE',
-				products: acl.products || 'READ',
+				products: acl.products || 'READ', // products = reports
 				settings: acl.settings || 'NONE',
 				viewData: acl.viewData || 'NONE',
 			};
@@ -119,7 +119,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 		logs: acl.logs || 'WRITE', // "READ" for logs does nothing
 		members: acl.members || 'READ',
 		orgManagement: acl.orgManagement || 'READ',
-		products: acl.products || 'READ',
+		products: acl.products || 'READ', // products = reports
 		settings: acl.settings || 'READ',
 		viewData: acl.viewData || 'NONE', // This blocks access from users being able to read other people's logs
 	};
@@ -233,7 +233,6 @@ export function getOrganizationFeatureColor(feature?: OrganizationFeatureEnum | 
 	const featureToColor = {
 		FOOD_SAFETY: 'sky',
 		GLOBAL_GAP: 'brown',
-		ORGANIC_CERTIFICATION: 'yellow',
 		CAL_EVENTS: 'cyan',
 		CAL_EVENTS_ATTENDANCE: 'cyan',
 		CAL_EVENTS_LOAD_LIST: 'amber',

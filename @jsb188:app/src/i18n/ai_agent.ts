@@ -56,11 +56,13 @@ export default {
 			ARABLE: 'farming activities',
 			LIVESTOCK: 'ranching activities',
 			FARMERS_MARKET: 'farmers market operations',
+      GROWER_NETWORK: 'network activities',
 		},
 		operation_farmers: {
 			ARABLE: 'farmers',
 			LIVESTOCK: 'ranchers',
 			FARMERS_MARKET: 'farmers market vendors',
+      GROWER_NETWORK: 'growers',
 		},
 
 		// Real time data update messages

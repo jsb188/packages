@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { reportColumnDataFragment, reportFragment, reportAvailabilityFragment, reportRowDataFragment, reportSectionFragment } from '../fragments/reportFragments';
+import { reportColumnDataFragment, reportFragment, reportGroupFragment, reportRowDataFragment, reportSectionFragment, reportSubmissionFragment } from '../fragments/reportFragments';
 import { storageFileFragment } from '../fragments/storageFragments';
 
 export const reportsQry = gql`
@@ -14,6 +14,16 @@ query reports (
     sort: $sort
   ) {
     ...reportFragment
+
+    aside {
+      className
+      label
+      text
+    }
+
+    submission {
+      ...reportSubmissionFragment
+    }
 
     sections {
       ...reportSectionFragment
@@ -45,22 +55,96 @@ query reports (
 }
 
 ${reportFragment}
+${reportSubmissionFragment}
 ${reportSectionFragment}
 ${storageFileFragment}
 ${reportRowDataFragment}
 ${reportColumnDataFragment}
 `;
 
-export const availableReportsQry = gql`
-query availableReports (
-  $organizationId: GenericID!
+export const reportQry = gql`
+query report (
+  $reportSubmissionId: CursorToIDs!
 ) {
-  availableReports (
-    organizationId: $organizationId
+  report (
+    reportSubmissionId: $reportSubmissionId
   ) {
-    ...reportAvailabilityFragment
+    ...reportFragment
+
+    aside {
+      className
+      label
+      text
+    }
+
+    submission {
+      ...reportSubmissionFragment
+    }
+
+    sections {
+      ...reportSectionFragment
+
+      files {
+        ...storageFileFragment
+      }
+
+      rows {
+        ...reportRowDataFragment
+
+        columns {
+          ...reportColumnDataFragment
+        }
+      }
+    }
+
+    rows {
+      ...reportRowDataFragment
+
+      columns {
+        ...reportColumnDataFragment
+      }
+    }
   }
 }
 
-${reportAvailabilityFragment}
+${reportFragment}
+${reportSubmissionFragment}
+${reportSectionFragment}
+${storageFileFragment}
+${reportRowDataFragment}
+${reportColumnDataFragment}
+`;
+
+export const reportGroupsQry = gql`
+query reportGroups (
+  $organizationId: GenericID!
+) {
+  reportGroups (
+    organizationId: $organizationId
+  ) {
+    ...reportGroupFragment
+  }
+}
+
+${reportGroupFragment}
+`;
+
+export const reportSubmissionsQry = gql`
+query reportSubmissions (
+  $organizationId: GenericID!
+  $filter: ReportsFilter!
+  $sort: ReportsSort
+  $limit: Int!
+) {
+  reportSubmissions (
+    organizationId: $organizationId
+    filter: $filter
+    sort: $sort
+    limit: $limit
+  ) {
+    ...reportSubmissionFragment
+  }
+}
+
+${reportSubmissionFragment}
 `;

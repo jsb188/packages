@@ -235,6 +235,29 @@ function extractFragment(dataObj: any, innerSelection: any[], isTest?: boolean) 
 }
 
 /**
+ * Build a stable cache scope for fragment data that may not have an id.
+ */
+
+function getFragmentCacheScope(
+  data: any,
+  fallbackScope?: string,
+) {
+  return data?.id || fallbackScope || 'none';
+}
+
+/**
+ * Build a fragment cache key using id when available, or a scoped fallback.
+ */
+
+function makeFragmentCacheKey(
+  fragmentName: string,
+  data: any,
+  fallbackScope?: string,
+) {
+  return `$${fragmentName}:${getFragmentCacheScope(data, fallbackScope)}`;
+}
+
+/**
  * Load query cache
  */
 
@@ -413,7 +436,12 @@ export function loadFragment(id: string, mainPrioritizedFields: string[] = []) {
  * Map each inner selection under a graphql query object
  */
 
-function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] = []) {
+function mapSelections(
+  data: any,
+  innerSelections: any[],
+  updatedKeys: string[] = [],
+  fallbackScope?: string,
+) {
 
   return innerSelections.map((inner) => {
 
@@ -423,7 +451,7 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
       const frgName = inner.name.value;
       const frgMap = PARTIALS_MAP[frgName];
 
-      fragmentKey = `$${frgMap || frgName}:${data.id || 'none'}`;
+      fragmentKey = makeFragmentCacheKey(frgMap || frgName, data, fallbackScope);
 
     } else if (inner.kind === 'Field' && inner.selectionSet && inner.selectionSet.selections?.length) {
 
@@ -434,11 +462,22 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
 
       if (innerData && Array.isArray(innerSelections)) {
         if (Array.isArray(innerData)) {
-          for (const item of innerData) {
-            mapSelections(item, inner.selectionSet.selections, updatedKeys);
+          const parentScope = getFragmentCacheScope(data, fallbackScope);
+          for (const [itemIndex, item] of innerData.entries()) {
+            mapSelections(
+              item,
+              inner.selectionSet.selections,
+              updatedKeys,
+              `${parentScope}.${inner.name.value}.${itemIndex}`,
+            );
           }
         } else {
-          mapSelections(innerData, inner.selectionSet.selections, updatedKeys);
+          mapSelections(
+            innerData,
+            inner.selectionSet.selections,
+            updatedKeys,
+            `${getFragmentCacheScope(data, fallbackScope)}.${inner.name.value}`,
+          );
         }
       }
 
@@ -451,7 +490,7 @@ function mapSelections(data: any, innerSelections: any[], updatedKeys: string[] 
         return null;
       }
 
-      fragmentKey = `$${frgNamesJoined}:${data.id || 'none'}`;
+      fragmentKey = makeFragmentCacheKey(frgNamesJoined, data, fallbackScope);
     }
 
     if (fragmentKey) {
@@ -513,12 +552,14 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
               cacheObj[key] = {
                 __cache: true,
                 __list: true,
-                data: data[key].map((item) => mapSelections(item, innerSelections, updatedKeys)),
+                data: data[key].map((item, itemIndex) =>
+                  mapSelections(item, innerSelections, updatedKeys, `${key}.${itemIndex}`)
+                ),
               };
             } else {
               cacheObj[key] = {
                 __cache: true,
-                data: mapSelections(data[key], innerSelections, updatedKeys),
+                data: mapSelections(data[key], innerSelections, updatedKeys, key),
               };
             }
           } else {
@@ -530,7 +571,7 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
         {
           const frgName = sel.name.value;
           const frgMap = PARTIALS_MAP[frgName];
-          const fragmentKey = `$${frgMap || frgName}:${data.id || 'none'}`;
+          const fragmentKey = makeFragmentCacheKey(frgMap || frgName, data);
 
           if (RULES[frgName] !== false) {
             // if (testMode) {

@@ -78,7 +78,7 @@ export function AppLayout(p: ReactDivElement & {
           {AsideComponent
           ? <div className='cw lg pr_md h_f'>
             <div className='w_app_side h_top h_f'>
-              <div className='f max_w_850 cw h_f'>
+              <div className='f max_w_950 cw h_f'>
                 {children}
               </div>
             </div>
@@ -744,9 +744,9 @@ FloatingMessage.displayName = 'FloatingMessage';
  */
 
 export const AsideNavList = memo((p: AsideNavProps) => {
-  const { pathname, autoSelectFirstItem, addPageNumbers, addEllipsis, title, isSinglePage, viewportAnchor, navList, onClickItem } = p;
+  const { pathname, autoSelectFirstItem, addPageNumbers, addEllipsis, title, isScrollIndicator, viewportAnchor, nullText, navList, onClickItem } = p;
 
-  return <nav className='my_md ft_sm lh_1'>
+  return <nav className='my_lg ft_sm lh_1'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
@@ -757,11 +757,13 @@ export const AsideNavList = memo((p: AsideNavProps) => {
     </p>}
 
     {navList?.map((navItem, i) => {
-      const { text, to, anchor, rightIconName, rightIconClassName, rightIconClassNameSelected } = navItem;
+      const { label, text, to, anchor, rightIconName, rightIconClassName, rightIconClassNameSelected } = navItem;
       const pageNumber = addPageNumbers ? i + 1 : null;
+      const hasLabel = !!label || label === '';
+      const textClassName = cn(!text ? 'cl_lt' : hasLabel ? 'cl_df' : '', addEllipsis ? 'ellip' : undefined);
 
       let selected: boolean;
-      if (isSinglePage) {
+      if (isScrollIndicator) {
         selected = viewportAnchor === anchor || !!(!viewportAnchor && autoSelectFirstItem && i === 0);
       } else {
         selected = (!pathname && autoSelectFirstItem && i === 0) || !!(pathname && pathname === to);
@@ -770,7 +772,7 @@ export const AsideNavList = memo((p: AsideNavProps) => {
       return <SmartLink
         key={i}
         // className={cn('bl mb_df h_left', selected ? 'cl_df' : 'cl_lt')}
-        className={cn('bl py_xs h_left', selected ? 'cl_df' : 'cl_lt')}
+        className={cn('bl py_xs h_left', selected ? 'cl_df' : 'cl_md')}
         to={to}
         onClick={onClickItem ? () => onClickItem(navItem) : undefined}
         buttonElement='div'
@@ -786,16 +788,27 @@ export const AsideNavList = memo((p: AsideNavProps) => {
           </span>}
         </div>
         {rightIconName
-        ? <div className='h_item pr_20'>
-          <span className={addEllipsis ? 'ellip' : undefined}>
-            {text}
+        ? <div className='h_spread f pr_20'>
+          {hasLabel &&
+          <span className='bl'>
+            {label}:
+          </span>}
+          <span className={textClassName}>
+            {text || nullText}
           </span>
+
           <span className={cn('-mr_2 abs_r_center', selected ? rightIconClassNameSelected : rightIconClassName)}>
             <Icon name={rightIconName} />
           </span>
         </div>
-        : <div className={addEllipsis ? 'ellip' : undefined}>
-          {text}
+        : <div className='h_spread f'>
+          {hasLabel &&
+          <span className='bl'>
+            {label}:
+          </span>}
+          <span className={textClassName}>
+            {text || nullText}
+          </span>
         </div>}
       </SmartLink>;
     })}
@@ -831,6 +844,7 @@ AsideScrollIndicator.displayName = 'AsideScrollIndicator';
  */
 
 export interface AsideNavItemObj {
+  label?: string;
   text: string;
   rightIconName?: string;
   rightIconClassName?: string;
@@ -847,18 +861,19 @@ interface AsideNavProps {
   viewportAnchor?: string | null;
   title?: string | null;
   onClickItem?: (item: AsideNavItemObj) => void;
+  nullText: string;
   navList: AsideNavItemObj[] | null;
 
   // Required for scroll indicator nav only
-  isSinglePage?: boolean;
+  isScrollIndicator?: boolean;
   scrollBehavior?: 'smooth' | 'instant';
 }
 
 export function AsideNav(p: AsideNavProps) {
-  const { navList, isSinglePage } = p;
+  const { navList, isScrollIndicator } = p;
   if (!navList) {
     return <AsideNavMock />;
-  } else if (isSinglePage) {
+  } else if (isScrollIndicator) {
     return <AsideScrollIndicator {...p} />;
   }
   return <AsideNavList {...p} />;
@@ -870,7 +885,7 @@ export function AsideNav(p: AsideNavProps) {
 
 export function AsideNavMock() {
 
-  return <nav className='my_md ft_sm lh_1'>
+  return <nav className='my_lg ft_sm lh_1'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}

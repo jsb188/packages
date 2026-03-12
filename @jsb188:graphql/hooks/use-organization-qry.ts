@@ -138,14 +138,17 @@ export function useChildOrganizations(variables: PaginationArgs & {
  */
 
 export function useReactiveOrganizationChildFragment(childId: string, currentData?: any, queryCount?: number, mainPrioritizedFields?: string[]) {
+  const organizationId = currentData?.organization?.id;
+
   return useReactiveFragment(
     currentData,
     [
       `$organizationChildFragment:${childId}`,
+      organizationId ? [`$organizationFragment:${organizationId}`, 'organization'] : null,
       // [`$organizationChildArableFragment:${childId}`, null],
       // By having the second paramter as null, we only observe the reactive changes without setting the data
       // [`$logArableFragment:${logEntryId}`, null],
-    ],
+    ].filter(Boolean) as Array<string | [string, string | null]>,
     queryCount,
     undefined,
     mainPrioritizedFields,

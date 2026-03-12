@@ -1,9 +1,9 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
-import { memo } from 'react';
+import { Fragment, memo } from 'react';
 import { PopOverButton } from '../modules/PopOver';
 import { Icon } from '../svgs/Icon';
-import { PillButton } from './Button';
+import { PillButton, SmartLink } from './Button';
 
 /**
  * Filter pill button; renders a pill with optional PopOver dropdown
@@ -77,25 +77,44 @@ interface PageFiltersBarProps {
   className?: string;
   title?: string;
   titleIconName?: string;
+  titleTo?: string;
+  titleBreadcrumbs?: string[];
   children?: React.ReactNode;
 }
 
 export const PageFiltersBar = memo((p: PageFiltersBarProps) => {
-  const { className, title, titleIconName, children } = p;
+  const { className, title, titleIconName, titleTo, titleBreadcrumbs, children } = p;
+  const hasBreadcrumbs = titleBreadcrumbs && titleBreadcrumbs.length > 0;
 
   return <div className={cn('h_item gap_15', className)}>
-    {title && (
-      <div className='pill_xs h_item rel r -ml_7'>
-        {titleIconName &&
-          <span className='ft_lg shift_up_2 mr_8'>
-            <Icon tryColor name={titleIconName} />
+      <div className='h_item pill_xs'>
+      {title && (
+        <SmartLink
+          className='h_item rel r -ml_7 cl_df'
+          to={titleTo}
+        >
+          {titleIconName &&
+            <span className='ft_lg shift_up_2 mr_8'>
+              <Icon tryColor name={titleIconName} />
+            </span>
+          }
+          <span className={cn('ft_medium', !hasBreadcrumbs && 'pr_5')}>
+            {title}
           </span>
-        }
-        <span className='pr_5 ft_medium'>
-          {title}
-        </span>
-      </div>
-    )}
+        </SmartLink>
+      )}
+
+      {titleBreadcrumbs?.map((breadcrumb, index) => (
+        <Fragment key={index}>
+          <span className='mx_xs shift_up cl_darker_2'>/</span>
+
+          <span className='h_item cl_md'>
+            {breadcrumb}
+          </span>
+        </Fragment>
+      ))}
+    </div>
+
     {children}
   </div>;
 });

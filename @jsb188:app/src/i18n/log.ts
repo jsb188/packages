@@ -113,6 +113,9 @@ export default {
 			MARKET_RECEIPTS: 'Receipt',
 			MARKET_OPERATIONS: 'Operation',
 
+			// #### GROWER_NETWORK
+			SITE_INSPECTION: 'Site inspection',
+
 			// #### LIVESTOCK
 			SUPPLY_PURCHASE: 'Supply purchase',
 			LIVESTOCK_LIFE_CYCLE: 'Livestock life cycle',
@@ -145,6 +148,9 @@ export default {
 			MARKET_RECEIPTS: 'Receipt',
 			MARKET_OPERATIONS: 'Operation',
 			VOID_MARKET_RECEIPTS: 'Void receipt',
+
+			// #### GROWER_NETWORK
+			SITE_INSPECTION: 'Inspection',
 
 			// #### LIVESTOCK
 			SUPPLY_PURCHASE: 'Supply purchase',
@@ -247,6 +253,12 @@ export default {
 			MARKET_LOAD_LIST: 'Market load list',
 			VENDOR_NOTES: 'Notes on vendors',
 			FARMERS_MARKET_NOTES: 'General operation notes',
+
+			// #### GROWER NETWORK
+
+			// # Site inspection activities
+			INSPECTION_NOTES: 'Site inspection notes',
+      GROWER_NOTES: 'Grower network notes',
 
 			// #### LIVESTOCK
 
@@ -378,6 +390,12 @@ export default {
 			MARKET_LOAD_LIST: 'Load list',
 			VENDOR_NOTES: 'Notes',
 			FARMERS_MARKET_NOTES: 'Operation',
+
+			// #### GROWER NETWORK
+
+			// # Site inspection activities
+			INSPECTION_NOTES: 'Inspection notes',
+      GROWER_NOTES: 'Grower notes',
 
 			// #### LIVESTOCK
 

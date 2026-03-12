@@ -4,8 +4,20 @@ import { formatCurrency } from '@jsb188/app/utils/number.ts';
 import { getObject } from '@jsb188/app/utils/object.ts';
 import { textWithBrackets } from '@jsb188/app/utils/string.ts';
 import { getTimeZoneCode } from '@jsb188/app/utils/timeZone.ts';
-import { ARABLE_ACTIVITIES_GROUPED, FARMERS_MARKET_ACTIVITIES_GROUPED, LIVESTOCK_ACTIVITIES_GROUPED } from '../constants/log.ts';
-import type { LogArableMetadataGQL, LogEntryGQL, LogFarmersMarketMetadataGQL, LogLivestockMetadataGQL, LogTypeEnum } from '../types/log.d.ts';
+import {
+  ARABLE_ACTIVITIES_GROUPED,
+  FARMERS_MARKET_ACTIVITIES_GROUPED,
+  GROWER_NETWORK_ACTIVITIES_GROUPED,
+  LIVESTOCK_ACTIVITIES_GROUPED
+} from '../constants/log.ts';
+import type {
+  LogArableMetadataGQL,
+  LogEntryGQL,
+  LogFarmersMarketMetadataGQL,
+  LogGrowerNetworkMetadataGQL,
+  LogLivestockMetadataGQL,
+  LogTypeEnum
+} from '../types/log.d.ts';
 import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log.ts';
 
 /**
@@ -15,6 +27,7 @@ import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log.ts';
 export const LOG_TYPENAME_TO_DETAILS_INPUT_NAME = {
   LogArable: 'arableDetails',
   LogFarmersMarket: 'farmersMarketDetails',
+  LogGrowerNetwork: 'growerNetworkDetails',
   LogLivestock: 'livestockDetails',
 };
 
@@ -55,6 +68,18 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         referenceNumber: details.referenceNumber,
         voided: details.voided,
         values: details.values,
+        notes: details.notes,
+      };
+    } break;
+    case 'LogGrowerNetwork': {
+      const details = logEntry.details as LogGrowerNetworkMetadataGQL;
+      formValues.growerNetworkDetails = {
+        activity: details.activity,
+        childOrgId: details.childOrgId,
+        otherParty: details.otherParty,
+        item: details.item,
+        location: details.location,
+        fieldLocation: details.fieldLocation,
         notes: details.notes,
       };
     } break;
@@ -585,6 +610,15 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         isReceipt ? 'marketCredits' : null,
       ];
     } break;
+    case 'LogGrowerNetwork': {
+      schemaFields = [
+        'activity',
+        'otherParty',
+        'crop',
+        'location_arable',
+        'fieldLocation',
+      ];
+    } break;
     case 'LogLivestock': {
       const isLivestock = ['LIVESTOCK_LIFE_CYCLE', 'LIVESTOCK_TRACKING', 'LIVESTOCK_HEALTHCARE'].includes(logType);
       const isSupplyPurchase = logType === 'SUPPLY_PURCHASE';
@@ -653,6 +687,7 @@ export function makeLogMetadataSchema(
   const namespace = {
     LogArable: 'arableDetails',
     LogFarmersMarket: 'farmersMarketDetails',
+    LogGrowerNetwork: 'growerNetworkDetails',
     LogLivestock: 'livestockDetails',
   }[__typename] || '';
 
@@ -668,6 +703,10 @@ export function makeLogMetadataSchema(
     } break;
     case 'LogFarmersMarket': {
       activitiesList = FARMERS_MARKET_ACTIVITIES_GROUPED;
+      schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, schemaFields);
+    } break;
+    case 'LogGrowerNetwork': {
+      activitiesList = GROWER_NETWORK_ACTIVITIES_GROUPED;
       schemaItems = makeMetadataSchema(namespace, formValues, metadataParams, basePopOverProps, schemaFields);
     } break;
     case 'LogLivestock': {

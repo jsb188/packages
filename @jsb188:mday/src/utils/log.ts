@@ -5,6 +5,7 @@ import {
   AI_TASK_ACTIVITIES,
   ARABLE_ACTIVITIES_GROUPED,
   FARMERS_MARKET_ACTIVITIES_GROUPED,
+  GROWER_NETWORK_ACTIVITIES_GROUPED,
   LIVESTOCK_ACTIVITIES_GROUPED,
   LOG_ACTIVITIES_BY_OPERATION,
   LOG_TYPES_BY_OPERATION
@@ -69,6 +70,9 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 		// #### FARMERS_MARKET
 		MARKET_RECEIPTS: 'blue',
 		MARKET_OPERATIONS: 'rose',
+
+		// #### GROWER_NETWORK
+		SITE_INSPECTION: 'emerald',
 
 		// #### LIVESTOCK
 		SUPPLY_PURCHASE: 'brown',
@@ -144,6 +148,10 @@ export function getLogTypeFromActivity(operation: OrganizationOperationEnum | st
 		case 'FARMERS_MARKET':
 		case 'LogFarmersMarket':
 			logGroup = FARMERS_MARKET_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity));
+			break;
+		case 'GROWER_NETWORK':
+		case 'LogGrowerNetwork':
+			logGroup = GROWER_NETWORK_ACTIVITIES_GROUPED.find((group: any) => group[1].includes(activity));
 			break;
 		default:
 			console.warn('(!1) Cannot get log type from unknown operation type:', operation);
@@ -226,6 +234,14 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 			const voidText = isServer && md.voided ? i18n.t('form.void').toUpperCase() : '';
 			return `${creditsText && voidText ? '(' + voidText + ')' : voidText} ${creditsText}`.trim();
 		}
+		case 'GROWER_NETWORK':
+		case 'logs_grower_network':
+		case 'LogGrowerNetwork':
+			return textWithBrackets(
+				ucFirst(md.item),
+				joinReadable([md.location, md.fieldLocation], ', ', ', '),
+				[' - ', ''],
+			);
 		case 'LIVESTOCK':
 		case 'logs_livestock':
 		case 'LogLivestock': {

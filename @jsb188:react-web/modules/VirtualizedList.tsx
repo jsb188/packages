@@ -415,6 +415,8 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
           lastItemIdOnMount: referenceObj.current.lastItemIdOnMount
         };
       }).filter(Boolean) as VZListItemObj[];
+    } else if (limit <= 0) {
+      console.warn('VirtualizedList: limit is set to 0 or negative, which means no items will be rendered. Set a positive limit to render items.');
     }
 
     return null;
@@ -960,6 +962,7 @@ const ReactiveTableListItem = (p: any) => {
 
 export const VZTable = memo((p: TableListProps) => {
   const { borderStyle, disableOnClickRow, reactiveFragmentFn, gridLayoutStyle, headers, listData, cellClassNames, doNotApplyGridToRows, removeLeftPadding, removeRightPadding } = p;
+
   return <>
     {headers && (
       <THead
