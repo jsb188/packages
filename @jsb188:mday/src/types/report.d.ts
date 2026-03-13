@@ -1,9 +1,5 @@
-import {
-  REPORT_ROW_PRESETS,
-  REPORT_SORT_OPTS,
-  REPORT_STATUS_ENUMS,
-} from "../constants/report.ts";
-import type { StorageData, StorageGQL } from "./storage.d.ts";
+import { REPORT_ROW_PRESETS, REPORT_SORT_OPTS, REPORT_STATUS_ENUMS } from '../constants/report.ts';
+import type { StorageData, StorageGQL } from './storage.d.ts';
 
 /**
  * Enums
@@ -18,10 +14,10 @@ export type ReportSubmissionStatusEnum = typeof REPORT_STATUS_ENUMS[number];
  */
 
 export interface ReportsFilterArgs {
-  preset?: "?" | null;
-  reportGroupId?: string | null;
-  startPeriod?: string | null; // YYYY-MM-DD
-  endPeriod?: string | null; // YYYY-MM-DD
+	preset?: '?' | null;
+	reportGroupId?: string | null;
+	startPeriod?: string | null; // YYYY-MM-DD
+	endPeriod?: string | null; // YYYY-MM-DD
 }
 
 /**
@@ -29,88 +25,88 @@ export interface ReportsFilterArgs {
  */
 
 export interface ReportFieldsVariables {
-  month?: number; // Used for MONTH presets (required for all preset="MONTH" rows)
-  [key: string]: any;
+	month?: number; // Used for MONTH presets (required for all preset="MONTH" rows)
+	[key: string]: any;
 }
 
 export interface ReportFieldsObj {
-  __allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
-  __notAutomated?: boolean; // If true, report is not skipped during automation
-  __prompt?: string; // Server-only, this prompt used on the entire report as a whole (ie. OSP generation)
-  gridLayoutStyle?: string;
-  aside?: ReportFieldsAsideItem[];
-  sections?: ReportFieldsSection[];
-  rows?: ReportFieldsRow[];
-  metadata?: ReportFieldsRow[];
-  variables?: ReportFieldsVariables;
+	__allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
+	__notAutomated?: boolean; // If true, report is not skipped during automation
+	__prompt?: string; // Server-only, this prompt used on the entire report as a whole (ie. OSP generation)
+	gridLayoutStyle?: string;
+	aside?: ReportFieldsAsideItem[];
+	sections?: ReportFieldsSection[];
+	rows?: ReportFieldsRow[];
+	metadata?: ReportFieldsRow[];
+	variables?: ReportFieldsVariables;
 }
 
-export interface ReportResolvedFieldsObj
-  extends Omit<ReportFieldsObj, "variables"> {
-  variables: ReportFieldsVariables;
+export interface ReportResolvedFieldsObj extends Omit<ReportFieldsObj, 'variables'> {
+	variables: ReportFieldsVariables;
 }
 
 export interface ReportFieldsSection {
-  id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
-  key: string; // Every section must have a unique string UID
-  isGroupTitle?: boolean;
-  sectionKey?: string; // Derived from "key" for client-facing GraphQL data
-  title?: string;
-  description?: string;
-  rows?: ReportFieldsRow[];
-  requireFileUploads?: boolean;
-  files?: StorageData[];
+	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	key: string; // Every section must have a unique string UID
+	isGroupTitle?: boolean;
+	sectionKey?: string; // Derived from "key" for client-facing GraphQL data
+	title?: string;
+	description?: string;
+	rows?: ReportFieldsRow[];
+	requireFileUploads?: boolean;
+	files?: StorageData[];
 
-  __prompt_section?: string; // Server-only; full prompt for this section - this is the only prompt that allows {{variable}} regex
-  __prompt_examples?: string; // Server-only; for examples of what the output should be
-  __prompt_topics?: string; // Server-only; for topics this section should cover
+	__prompt_section?: string; // Server-only; full prompt for this section - this is the only prompt that allows {{variable}} regex
+	__prompt_examples?: string; // Server-only; for examples of what the output should be
+	__prompt_topics?: string; // Server-only; for topics this section should cover
 }
 
 export interface ReportFieldsAsideItem {
-  className?: string;
-  label: string;
-  text: string;
+	className?: string;
+	label: string;
+	text: string;
 }
 
 export interface ReportFieldsRow {
-  id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
-  key: string; // Key is used to map row/columns to answers
-  preset?: ReportRowPresetEnum;
-  className?: string;
-  isHeader?: boolean;
-  columns: ReportFieldsColumn[];
-  __notAutomated?: boolean; // If true, this column is not filled during automation
+	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	key: string; // Key is used to map row/columns to answers
+	preset?: ReportRowPresetEnum;
+	className?: string;
+	isHeader?: boolean;
+	columns: ReportFieldsColumn[];
+	__notAutomated?: boolean; // If true, this column is not filled during automation
 }
 
 export interface ReportFieldsColumn {
-  id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
-  key?: string; // Key is used to map column to answers
-  className?: string;
-  labelClassName?: string;
-  label?: string;
-  text?: string;
-  note?: string; // Additional notes in relation to the user's answer for this column
-  placeholder?: string | null;
-  checked?: boolean | null;
-  value?: string | null; // Available only in server; this value has the indexes to map answers to directly without keys
-  options?: string[]; // If set, user provided inputs *must* be one of these options (ie. for dropdowns, radios, etc.)
-  __allowMultiples?: boolean; // If true, multiple selections are allowed (for options[])
-  __notAutomated?: boolean; // If true, this column is not filled during automation
+	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	key?: string; // Key is used to map column to answers
+	className?: string;
+	labelClassName?: string;
+	label?: string; // Typically, this is the "question" the AI Agent/human must answer
+	text?: string; // This the answer provided by the AI Agent/human
+	hint?: string; // Additional instructions or context for this column, typically only shown to AI Agents for more guidance.
+	note?: string; // Additional notes in relation to the user's answer for this column
+	placeholder?: string | null;
+	checked?: boolean | null;
+	options?: string[]; // If set, user provided inputs *must* be one of these options (ie. for dropdowns, radios, etc.)
+	__allowMultiples?: boolean; // If true, multiple selections are allowed (for options[])
+	__notAutomated?: boolean; // If true, this column is not filled during automation
+  __doNotAllowNotes?: boolean; // If true, AI will NOT leave notes for this column
 }
 
 export interface ReportColumnGQL extends ReportFieldsColumn {
-  id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 }
 
-export type ReportRowGQL = Omit<ReportFieldsRow, "key" | "columns"> & {
-  id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
-  columns?: (ReportColumnGQL | null)[] | null;
+export type ReportRowGQL = Omit<ReportFieldsRow, 'key' | 'columns'> & {
+	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	columns?: (ReportColumnGQL | null)[] | null;
 };
 
 export interface ReportGroupLayoutObj {
-  columns: string[];
-  headers: string[];
-  gridLayoutStyle: string;
+	columns: string[];
+	headers: string[];
+	gridLayoutStyle: string;
 }
 
 /**
@@ -118,118 +114,119 @@ export interface ReportGroupLayoutObj {
  */
 
 export interface ReportGroupData {
-  __table: "report_groups";
-  id: number;
-  name: string;
-  shortName?: string | null;
-  frequency?: string | null;
-  layout?: Partial<ReportGroupLayoutObj> | null;
+	__table: 'report_groups';
+	id: number;
+	name: string;
+	shortName?: string | null;
+	layout?: Partial<ReportGroupLayoutObj> | null;
 }
 
 export interface ReportData {
-  __table: "reports";
+	__table: 'reports';
 
-  id: number;
-  reportGroupId: number;
-  reportGroup?: ReportGroupData | null;
-  documentName: string;
-  title: string;
-  description: string;
-  order: number;
+	id: number;
+	reportGroupId: number;
+	reportGroup?: ReportGroupData | null;
+	documentName: string;
+	title: string;
+	description: string;
+	frequency: string;
+	order: number;
 
-  fields: ReportFieldsObj;
-  submission?: ReportSubmissionData | null; // Present when report_submissions was joined onto the report row.
+	fields: ReportFieldsObj;
+	submission?: ReportSubmissionData | null; // Present when report_submissions was joined onto the report row.
 
-  template?: {
-    __table: "report_templates";
-    id: number;
-    fields: ReportFieldsObj;
-    description: string | null;
-  };
+	template?: {
+		__table: 'report_templates';
+		id: number;
+		fields: ReportFieldsObj;
+		description: string | null;
+	};
 }
 
 export interface ReportGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
-  id: string;
-  organizationId: string;
-  documentName: string;
-  title: string;
-  description: string;
-  reportGroupId: string;
-  groupName: string;
-  groupShortName?: string | null;
-  period: string; // YYYY-MM-DD
-  submission?: ReportSubmissionGQL | null;
-  gridLayoutStyle?: string | null;
+	id: string;
+	organizationId: string;
+	documentName: string;
+	title: string;
+	description: string;
+	frequency?: string | null;
+	reportGroupId: string;
+	groupName: string;
+	groupShortName?: string | null;
+	period: string; // YYYY-MM-DD
+	submission?: ReportSubmissionGQL | null;
+	gridLayoutStyle?: string | null;
 
-  aside?: ReportFieldsAsideItem[];
-  sections?: ReportSectionGQL[];
-  rows?: ReportRowGQL[];
+	aside?: ReportFieldsAsideItem[];
+	sections?: ReportSectionGQL[];
+	rows?: ReportRowGQL[];
 }
 
 export interface ReportSectionGQL {
-  id: string;
-  isGroupTitle?: boolean;
-  sectionKey: string;
-  title?: string | null;
-  description?: string | null;
-  rows?: ReportRowGQL[];
-  requireFileUploads?: boolean;
-  files?: StorageGQL[];
+	id: string;
+	isGroupTitle?: boolean;
+	sectionKey: string;
+	title?: string | null;
+	description?: string | null;
+	rows?: ReportRowGQL[];
+	requireFileUploads?: boolean;
+	files?: StorageGQL[];
 }
 
 export interface ReportSubmissionGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
-  id: string;
-  reportId: string;
-  reportSubmissionIdEnc?: string | null;
-  organizationId: string;
-  organizationIdEnc?: string | null;
-  childOrgId: string | null;
-  childOrgIdEnc?: string | null;
-  childOrgName: string | null;
-  childOrgOperation: string | null;
-  organizationName?: string | null;
-  organizationOperation?: string | null;
-  reportGroupId: string;
-  groupName: string;
-  groupShortName?: string | null;
-  period: string; // YYYY-MM-DD
-  status: ReportSubmissionStatusEnum | null;
-  activityAt: string | null; // ISO date string
-  createdAt: string | null; // ISO date string
-  updatedAt: string | null; // ISO date string
+	id: string;
+	reportId: string;
+	reportSubmissionIdEnc?: string | null;
+	organizationId: string;
+	organizationIdEnc?: string | null;
+	childOrgId: string | null;
+	childOrgIdEnc?: string | null;
+	childOrgName: string | null;
+	childOrgOperation: string | null;
+	organizationName?: string | null;
+	organizationOperation?: string | null;
+	reportGroupId: string;
+	groupName: string;
+	groupShortName?: string | null;
+	period: string; // YYYY-MM-DD
+	status: ReportSubmissionStatusEnum | null;
+	activityAt: string | null; // ISO date string
+	createdAt: string | null; // ISO date string
+	updatedAt: string | null; // ISO date string
 }
 
 export interface ReportStorageRelData {
-  __table: "report_storage_rels";
-  reportSubmissionId: number | bigint;
-  storageId: number | bigint;
-  sectionKey: string;
-  order: number;
-  file: StorageData;
+	__table: 'report_storage_rels';
+	reportSubmissionId: number | bigint;
+	storageId: number | bigint;
+	sectionKey: string;
+	order: number;
+	file: StorageData;
 }
 
 export interface ReportSubmissionData {
-  __table: "report_submissions";
-  id: number;
-  childOrgId?: number | bigint | null;
-  childOrg?: {
-    id: number | bigint;
-    name: string;
-    operation?: string | null;
-  } | null;
-  organizationId: number;
-  reportId: number;
-  period: Date; // YYYY-MM-DD in database, Date object in server via ORM
-  answers: Record<string, any>; // key-value pairs of answers
-  status?: ReportSubmissionStatusEnum | null;
-  storageRels?: ReportStorageRelData[];
-  activityAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
+	__table: 'report_submissions';
+	id: number;
+	childOrgId?: number | bigint | null;
+	childOrg?: {
+		id: number | bigint;
+		name: string;
+		operation?: string | null;
+	} | null;
+	organizationId: number;
+	reportId: number;
+	period: Date; // YYYY-MM-DD in database, Date object in server via ORM
+	answers: Record<string, any>; // key-value pairs of answers
+	status?: ReportSubmissionStatusEnum | null;
+	storageRels?: ReportStorageRelData[];
+	activityAt: Date;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 /**
@@ -237,11 +234,10 @@ export interface ReportSubmissionData {
  */
 
 export interface ReportGroupGQL {
-  id: string;
-  name: string;
-  shortName?: string | null;
-  frequency?: string | null;
-  layout?: Partial<ReportGroupLayoutObj> | null;
-  lastSubmissionPeriod?: string | null; // YYYY-MM-DD
-  lastSubmissionReportId?: string | null;
+	id: string;
+	name: string;
+	shortName?: string | null;
+	layout?: Partial<ReportGroupLayoutObj> | null;
+	lastSubmissionPeriod?: string | null; // YYYY-MM-DD
+	lastSubmissionReportId?: string | null;
 }

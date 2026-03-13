@@ -1,22 +1,25 @@
-import type { AccountObj } from '@jsb188/app/types/account.d.ts';
-import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
-import type { WorkflowActionGQL, WorkflowActionObj } from '@jsb188/mday/types/action.d.ts';
-import type { OrganizationOperationEnum } from '../types/organization.d.ts';
+import type { AccountObj } from "@jsb188/app/types/account.d.ts";
+import type { LabelAndValue } from "@jsb188/app/types/other.d.ts";
+import type {
+  WorkflowActionGQL,
+  WorkflowActionObj,
+} from "@jsb188/mday/types/action.d.ts";
+import type { OrganizationOperationEnum } from "../types/organization.d.ts";
 import {
   LOG_ACTION_STATUS_ENUMS,
   LOG_ARABLE_ACTIVITY_ENUMS,
   LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
   LOG_GROWER_NETWORK_ACTIVITY_ENUMS,
   LOG_LIVESTOCK_ACTIVITY_ENUMS,
-  LOG_SORT_ENUMS
-} from '../constants/log.ts';
+  LOG_SORT_ENUMS,
+} from "../constants/log.ts";
 
 /**
  * Enums
  */
 
 export type LogActionStatusEnum = (typeof LOG_ACTION_STATUS_ENUMS)[number];
-export type LogContentName = 'log' | 'ai_task' | 'invoice' | 'receipt'; // For UI visuals, client-side only
+export type LogContentName = "log" | "ai_task" | "invoice" | "receipt"; // For UI visuals, client-side only
 export type LogSortEnum = typeof LOG_SORT_ENUMS[number];
 
 /**
@@ -24,79 +27,89 @@ export type LogSortEnum = typeof LOG_SORT_ENUMS[number];
  */
 
 export type LogArableTypeEnum =
-	| 'SEED'
-	| 'PLANTING'
-	| 'FIELD'
-	| 'HARVEST'
-	| 'POST_HARVEST'
-	| 'SALES'
-	| 'WATER'
-	| 'HYGIENE'
-	| 'SANITATION'
-	| 'EQUIPMENTS'
-	| 'BIOSECURITY'
-	| 'EMPLOYEES';
+  | "SEED"
+  | "PLANTING"
+  | "FIELD"
+  | "HARVEST"
+  | "POST_HARVEST"
+  | "SALES"
+  | "WATER"
+  | "HYGIENE"
+  | "SANITATION"
+  | "EQUIPMENTS"
+  | "BIOSECURITY"
+  | "EMPLOYEES";
 export type LogArableActivityEnum = typeof LOG_ARABLE_ACTIVITY_ENUMS[number];
 
 /**
  * Farmers Market
  */
 
-export type LogFarmersMarketTypeEnum = 'MARKET_RECEIPTS' | 'MARKET_OPERATIONS';
-export type LogFarmersMarketActivityEnum = typeof LOG_FARMERS_MARKET_ACTIVITY_ENUMS[number];
+export type LogFarmersMarketTypeEnum = "MARKET_RECEIPTS" | "MARKET_OPERATIONS";
+export type LogFarmersMarketActivityEnum =
+  typeof LOG_FARMERS_MARKET_ACTIVITY_ENUMS[number];
 
 /**
  * Grower Network
  */
 
-export type LogGrowerNetworkTypeEnum = 'SITE_INSPECTION';
-export type LogGrowerNetworkActivityEnum = typeof LOG_GROWER_NETWORK_ACTIVITY_ENUMS[number];
+export type LogGrowerNetworkTypeEnum = "SITE_INSPECTION";
+export type LogGrowerNetworkActivityEnum =
+  typeof LOG_GROWER_NETWORK_ACTIVITY_ENUMS[number];
 
 /**
  * Livestock
  */
 
 export type LogLivestockTypeEnum =
-	| 'SUPPLY_PURCHASE'
-	| 'LIVESTOCK_LIFE_CYCLE'
-	| 'LIVESTOCK_TRACKING'
-	| 'PASTURE_LAND_MANAGEMENT'
-	| 'LIVESTOCK_HEALTHCARE'
-	| 'LIVESTOCK_SALE';
-export type LogLivestockActivityEnum = typeof LOG_LIVESTOCK_ACTIVITY_ENUMS[number];
+  | "SUPPLY_PURCHASE"
+  | "LIVESTOCK_LIFE_CYCLE"
+  | "LIVESTOCK_TRACKING"
+  | "PASTURE_LAND_MANAGEMENT"
+  | "LIVESTOCK_HEALTHCARE"
+  | "LIVESTOCK_SALE";
+export type LogLivestockActivityEnum =
+  typeof LOG_LIVESTOCK_ACTIVITY_ENUMS[number];
 
 /**
  * All log types/activities Union
  */
 
-export type LogTypeEnum = LogArableTypeEnum | LogFarmersMarketTypeEnum | LogGrowerNetworkTypeEnum | LogLivestockTypeEnum | 'AI_TASK';
+export type LogTypeEnum =
+  | LogArableTypeEnum
+  | LogFarmersMarketTypeEnum
+  | LogGrowerNetworkTypeEnum
+  | LogLivestockTypeEnum
+  | "AI_TASK";
 export type LogActivityEnum =
-	| LogArableActivityEnum
-	| LogFarmersMarketActivityEnum
-	| LogGrowerNetworkActivityEnum
-	| LogLivestockActivityEnum;
+  | LogArableActivityEnum
+  | LogFarmersMarketActivityEnum
+  | LogGrowerNetworkActivityEnum
+  | LogLivestockActivityEnum;
 
 /**
  * Log metadata
  */
 
 interface LogDetailsGQLBase {
-	__typename: string;
-	id: string;
-	type: any;
-	activity: any;
-	notes: string;
+  __typename: string;
+  id: string;
+  type: any;
+  activity: any;
+  notes: string;
 }
 
 interface LogMetadataBase {
-	__before: any;
-	childOrg: never;
-	childOrgId: never;
-	referenceNumber: never;
+  __before: any;
+  childOrg: never;
+  childOrgId: never;
+  referenceNumber: never;
+  date: string;
+  time: string;
 
-	recurFromLogId?: number;
-	recurredCount?: number;
-	summary?: string;
+  recurFromLogId?: number;
+  recurredCount?: number;
+  summary?: string;
 }
 
 /**
@@ -104,191 +117,212 @@ interface LogMetadataBase {
  */
 
 export type LogArableMetadata = LogMetadataBase & {
-	item: string;
-	quantity: number;
-	unit: string;
-	concentration: number;
-	concentrationUnit: string;
-	location: string;
-	fieldLocation?: string;
-	otherParty?: string;
-	referenceNumber?: string;
-	values?: LabelAndValue[];
-	tax: number;
+  item: string;
+  quantity: number;
+  unit: string;
+  concentration: number;
+  concentrationUnit: string;
+  location: string;
+  fieldLocation?: string;
+  otherParty?: string;
+  referenceNumber?: string;
+  values?: LabelAndValue[];
+  tax: number;
 };
 
 export interface LogArableObj {
-	type?: LogArableTypeEnum; // Only set in server if manually extended
-	activity: LogArableActivityEnum;
-	notes: string | null;
-	translation?: string | null;
-	metadata?: Partial<LogArableMetadata> | null;
+  reportId?: never;
+  type?: LogArableTypeEnum; // Only set in server if manually extended
+  activity: LogArableActivityEnum;
+  notes: string | null;
+  translation?: string | null;
+  metadata?: Partial<LogArableMetadata> | null;
 }
 
 export interface LogArableDetailsObj extends LogArableObj {
-	__table: 'logs_arable';
-	id: number | bigint;
-	childOrg: never;
+  __table: "logs_arable";
+  id: number | bigint;
+  childOrg: never;
 }
 
-export type LogArableMetadataGQL = LogArableMetadata & LogDetailsGQLBase;
+export type LogArableMetadataGQL =
+  & Omit<LogArableMetadata, "date" | "time">
+  & LogDetailsGQLBase;
 
 /**
  * Log details - Farmers Market
  */
 
 export type LogFarmersMarketMetadata = LogMetadataBase & {
-	referenceNumber: string;
-	voided: boolean;
-	childOrgId?: number;
-	values: LabelAndValue[];
+  referenceNumber: string;
+  voided: boolean;
+  childOrgId?: number;
+  values: LabelAndValue[];
 };
 
 export interface LogFarmersMarketObj {
-	childOrgId: number | bigint;
-	type?: LogFarmersMarketTypeEnum; // Only set in server if manually extended
-	activity: LogFarmersMarketActivityEnum;
-	notes: string | null;
-	translation?: string | null;
-	metadata?: Partial<LogFarmersMarketMetadata> | null;
+  reportId?: never;
+  childOrgId: number | bigint;
+  type?: LogFarmersMarketTypeEnum; // Only set in server if manually extended
+  activity: LogFarmersMarketActivityEnum;
+  notes: string | null;
+  translation?: string | null;
+  metadata?: Partial<LogFarmersMarketMetadata> | null;
 }
 
 export interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
-	__table: 'logs_farmers_market';
-	id: number | bigint;
-	childOrg: {
-		id: number | bigint;
-		name: string;
-	};
+  __table: "logs_farmers_market";
+  id: number | bigint;
+  childOrg: {
+    id: number | bigint;
+    name: string;
+  };
 }
 
-export type LogFarmersMarketMetadataGQL = LogFarmersMarketMetadata & LogDetailsGQLBase;
+export type LogFarmersMarketMetadataGQL =
+  & Omit<LogFarmersMarketMetadata, "date" | "time">
+  & LogDetailsGQLBase;
 
 /**
  * Log details - Grower Network
  */
 
 export type LogGrowerNetworkMetadata = LogMetadataBase & {
-	childOrgId?: number;
-	otherParty?: string;
-	item: string;
-	location?: string;
-	fieldLocation?: string;
+  childOrgId?: number;
+  otherParty?: string;
+  item: string;
+  location?: string;
+  fieldLocation?: string;
 };
 
 export interface LogGrowerNetworkObj {
-	type?: LogGrowerNetworkTypeEnum; // Only set in server if manually extended
-	activity: LogGrowerNetworkActivityEnum;
-	notes: string | null;
-	translation?: string | null;
-	metadata?: Partial<LogGrowerNetworkMetadata> | null;
+  childOrgId?: number | bigint;
+  reportId?: number | null;
+  type?: LogGrowerNetworkTypeEnum; // Only set in server if manually extended
+  activity: LogGrowerNetworkActivityEnum;
+  notes: string | null;
+  translation?: string | null;
+  metadata?: Partial<LogGrowerNetworkMetadata> | null;
 }
 
 export interface LogGrowerNetworkDetailsObj extends LogGrowerNetworkObj {
-	__table: 'logs_grower_network';
-	id: number | bigint;
-	childOrg: never;
+  __table: "logs_grower_network";
+  id: number | bigint;
+  childOrg: never;
 }
 
-export type LogGrowerNetworkMetadataGQL = LogGrowerNetworkMetadata & LogDetailsGQLBase;
+export type LogGrowerNetworkMetadataGQL =
+  & Omit<LogGrowerNetworkMetadata, "date" | "time">
+  & LogDetailsGQLBase;
 
 /**
  * Log details - Livestock
  */
 
 export type LogLivestockMetadata = LogMetadataBase & {
-	damIdentifier?: string;
-	livestockIdentifiers: string[];
-	livestockGroup?: string;
-	livestock: string;
-	otherParty?: string;
-	referenceNumber?: string;
-	values?: LabelAndValue[];
-	item: string;
-	quantity: number;
-	unit: string;
-	location: string;
-	fieldLocation?: string;
-	price: number;
-	tax: number;
+  damIdentifier?: string;
+  livestockIdentifiers: string[];
+  livestockGroup?: string;
+  livestock: string;
+  otherParty?: string;
+  referenceNumber?: string;
+  values?: LabelAndValue[];
+  item: string;
+  quantity: number;
+  unit: string;
+  location: string;
+  fieldLocation?: string;
+  price: number;
+  tax: number;
 };
 
 export interface LogLivestockObj {
-	type?: LogLivestockTypeEnum; // Only set in server if manually extended
-	activity: LogLivestockActivityEnum;
-	notes: string | null;
-	translation?: string | null;
-	damIdentifier?: string;
-	livestockIdentifiers: string[];
-	livestockGroup?: string;
-	metadata?: Partial<LogLivestockMetadata> | null;
+  reportId?: never;
+  type?: LogLivestockTypeEnum; // Only set in server if manually extended
+  activity: LogLivestockActivityEnum;
+  notes: string | null;
+  translation?: string | null;
+  damIdentifier?: string;
+  livestockIdentifiers: string[];
+  livestockGroup?: string;
+  metadata?: Partial<LogLivestockMetadata> | null;
 }
 
 export interface LogLivestockDetailsObj extends LogLivestockObj {
-	__table: 'logs_livestock';
-	id: number | bigint;
-	childOrg: never;
+  __table: "logs_livestock";
+  id: number | bigint;
+  childOrg: never;
 }
 
-export type LogLivestockMetadataGQL = LogLivestockMetadata & LogDetailsGQLBase;
+export type LogLivestockMetadataGQL =
+  & Omit<LogLivestockMetadata, "date" | "time">
+  & LogDetailsGQLBase;
 
 /**
  * Union type for log details
  */
 
-export type LogDetailsObj = LogArableObj | LogFarmersMarketObj | LogGrowerNetworkObj | LogLivestockObj;
+export type LogDetailsObj =
+  | LogArableObj
+  | LogFarmersMarketObj
+  | LogGrowerNetworkObj
+  | LogLivestockObj;
 export type LogMetadataGQL =
-	| LogArableMetadataGQL
-	| LogFarmersMarketMetadataGQL
-	| LogGrowerNetworkMetadataGQL
-	| LogLivestockMetadataGQL;
+  | LogArableMetadataGQL
+  | LogFarmersMarketMetadataGQL
+  | LogGrowerNetworkMetadataGQL
+  | LogLivestockMetadataGQL;
 
 /**
  * GQL data interfaces
  */
 
 export interface LogEntryGQL {
-	__deleted?: boolean;
+  __deleted?: boolean;
 
-	id: string;
-	accountId: string;
-	organizationId: string;
-	details: LogMetadataGQL;
-	status: LogActionStatusEnum | null;
-	flagColor?: string | null;
+  id: string;
+  accountId: string;
+  organizationId: string;
+  details: LogMetadataGQL;
+  status: LogActionStatusEnum | null;
+  flagColor?: string | null;
 
-	account: any;
-	actions?: WorkflowActionGQL[];
+  account: any;
+  actions?: WorkflowActionGQL[];
 
-	date: string; // ISO date string
-	createdAt: string; // ISO date string
-	updatedAt: string; // ISO date string
+  date: string; // ISO date string
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
 }
 
 export interface LogEntryInsertObj {
-	id?: number | bigint; // Only for edits
-	accountId: number | bigint;
-	organizationId: number | bigint;
-	status?: LogActionStatusEnum | null;
-	details: any;
-	date: Date;
+  id?: number | bigint; // Only for edits
+  accountId: number | bigint;
+  organizationId: number | bigint;
+  status?: LogActionStatusEnum | null;
+  details: any;
+  date: Date;
 }
 
 export interface LogEntryData {
-	__table: 'logs';
-	id: number | bigint;
-	accountId: number | bigint;
-	organizationId: number | bigint;
-	status: LogActionStatusEnum | null;
-	distance?: number; // For vector search
-	details: LogArableDetailsObj | LogFarmersMarketDetailsObj | LogGrowerNetworkDetailsObj | LogLivestockDetailsObj;
-	date: Date;
-	createdAt: Date;
-	updatedAt: Date;
+  __table: "logs";
+  id: number | bigint;
+  accountId: number | bigint;
+  organizationId: number | bigint;
+  status: LogActionStatusEnum | null;
+  distance?: number; // For vector search
+  details:
+    | LogArableDetailsObj
+    | LogFarmersMarketDetailsObj
+    | LogGrowerNetworkDetailsObj
+    | LogLivestockDetailsObj;
+  date: Date;
+  createdAt: Date;
+  updatedAt: Date;
 
-	// This is for outputs, but will never be set for inserts
-	account?: AccountObj;
-	actions?: WorkflowActionObj[];
+  // This is for outputs, but will never be set for inserts
+  account?: AccountObj;
+  actions?: WorkflowActionObj[];
 }
 
 /**
@@ -296,13 +330,13 @@ export interface LogEntryData {
  */
 
 export interface FilterLogEntriesArgs {
-	operation: OrganizationOperationEnum;
-	accountId?: string | null; // Account ID to filter logs by account
-	preset?: 'WEEKS_5' | 'AI_TASKS' | 'INCLUDE_AI_TASKS' | 'HIDE_AI_TASKS' | null;
-	types?: LogTypeEnum[] | null;
-	activities?: LogActivityEnum[] | null;
-	startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
-	endDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
-	timeZone?: string | null; // Timezone string, e.g., 'America/New_York'
-	query?: string | null;
+  operation: OrganizationOperationEnum;
+  accountId?: string | null; // Account ID to filter logs by account
+  preset?: "WEEKS_5" | "AI_TASKS" | "INCLUDE_AI_TASKS" | "HIDE_AI_TASKS" | null;
+  types?: LogTypeEnum[] | null;
+  activities?: LogActivityEnum[] | null;
+  startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
+  endDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
+  timeZone?: string | null; // Timezone string, e.g., 'America/New_York'
+  query?: string | null;
 }

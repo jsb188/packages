@@ -15,6 +15,7 @@ export default {
 		writing_logs_: '📝 Writing log entries...',
 		searching_logs_: '📖 Searching for logs...',
 		searching_harvest_logs_: '📖 Searching for harvest logs...',
+    searching_avail_forms_: '🗄️ Searching for available forms...',
 		getting_file_url_: '📄 Getting file URL...',
 		create_reminder_task_: '📅 Creating task(s)...',
 		create_recurring_reminder_task_: '📅 Creating recurring task(s)...',

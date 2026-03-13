@@ -1887,7 +1887,7 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 
 .ls_1 { letter-spacing: -.08em; text-indent: -.08em; }
 .ls_2 { letter-spacing: -.0425em; text-indent: -.0425em; } /* Use this when heading is .ft_normal */
-.ls_3 { letter-spacing: -.025em; text-indent: -.025em; }
+.ls_3 { letter-spacing: -.03em; text-indent: -.03em; }
 .ls_4 { letter-spacing: -.0175em; text-indent: -.0175em; }
 .ls_5 { letter-spacing: -.01em; text-indent: -.01em; }
 

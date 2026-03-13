@@ -6,7 +6,7 @@ import type { OrganizationFeatureEnum } from '../types/organization.d.ts';
  */
 
 export interface WorkflowPrompts {
-  main: string | (string | [string[], string] | [string[], string][])[];
+	main: string | (string | [string[], string] | [string[], string][])[];
 }
 
 /**
@@ -14,9 +14,9 @@ export interface WorkflowPrompts {
  */
 
 export interface WorkflowStep extends LabelAndValue {
-  conditional?: Partial<LabelAndValue> & {
-    required?: string[]; // If this value doesn't exist or is not an array, that's a data error, and this object should be ignored
-  }
+	conditional?: Partial<LabelAndValue> & {
+		required?: string[]; // If this value doesn't exist or is not an array, that's a data error, and this object should be ignored
+	};
 }
 
 /**
@@ -28,7 +28,8 @@ export interface WorkflowData {
 
 	id: number | bigint;
 	organizationId: number | bigint;
-  org?: OrganizationData; // Included if query joined with organization table
+	org?: OrganizationData; // Included if query joined with organization table
+	reportId?: number | null;
 
 	logType: LogTypeEnum;
 	feature?: OrganizationFeatureEnum;
@@ -40,10 +41,10 @@ export interface WorkflowData {
 	scheduleInterval: number;
 	active: boolean;
 	values: Partial<{
-    steps: WorkflowStep[];
+		steps: WorkflowStep[];
 		config: Record<string, string | number | boolean | null> & {
-      endTime: string; // HHMM format
-    }
+			endTime: string; // HHMM format
+		};
 	}>;
 
 	startedAt: Date | null;
@@ -64,9 +65,11 @@ export interface WorkflowRunData {
 	logId: number | bigint | null;
 	runKey: string;
 	iterations: number;
-	values: null | Partial<{
-    progressReport: string;
-  }>;
+	values:
+		| null
+		| Partial<{
+			progressReport: string;
+		}>;
 	message: string | null;
 	status: LogActionStatusEnum;
 	scheduledDate: Date | null;
@@ -104,7 +107,7 @@ export interface WorkflowGQL {
 	feature: OrganizationFeatureEnum | null;
 
 	title: string;
-  steps: LabelAndValue[];
+	steps: LabelAndValue[];
 
 	schedule: string | null;
 	scheduleInterval: number;

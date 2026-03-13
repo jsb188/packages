@@ -5,6 +5,7 @@ export const reportFragment = `fragment reportFragment on Report {
   documentName
   title
   description
+  frequency
   reportGroupId
   groupName
   groupShortName
@@ -12,8 +13,7 @@ export const reportFragment = `fragment reportFragment on Report {
   gridLayoutStyle
 }`;
 
-export const reportSectionFragment =
-  `fragment reportSectionFragment on ReportSection {
+export const reportSectionFragment = `fragment reportSectionFragment on ReportSection {
   id
   isGroupTitle
   sectionKey
@@ -22,16 +22,14 @@ export const reportSectionFragment =
   requireFileUploads
 }`;
 
-export const reportRowDataFragment =
-  `fragment reportRowDataFragment on ReportRowData {
+export const reportRowDataFragment = `fragment reportRowDataFragment on ReportRowData {
   id
   preset
   className
   isHeader
 }`;
 
-export const reportColumnDataFragment =
-  `fragment reportColumnDataFragment on ReportColumnData {
+export const reportColumnDataFragment = `fragment reportColumnDataFragment on ReportColumnData {
   id
   className
   label
@@ -40,12 +38,10 @@ export const reportColumnDataFragment =
   checked
 }`;
 
-export const reportGroupFragment =
-  `fragment reportGroupFragment on ReportGroup {
+export const reportGroupFragment = `fragment reportGroupFragment on ReportGroup {
   id
   name
   shortName
-  frequency
   layout {
     columns
     headers
@@ -55,8 +51,7 @@ export const reportGroupFragment =
   lastSubmissionReportId
 }`;
 
-export const reportSubmissionFragment =
-  `fragment reportSubmissionFragment on ReportSubmission {
+export const reportSubmissionFragment = `fragment reportSubmissionFragment on ReportSubmission {
   id
   reportId
   reportSubmissionIdEnc

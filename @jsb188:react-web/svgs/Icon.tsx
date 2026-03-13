@@ -212,6 +212,9 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   MARKET_RECEIPTS: 'farming-sell-vegetable',
   MARKET_OPERATIONS: 'notes-tasks',
 
+  // Grower Network types
+  SITE_INSPECTION: 'task-list-search',
+
   // Livestock types
   SUPPLY_PURCHASE: 'accounting-invoice-dollar',
   LIVESTOCK_LIFE_CYCLE: 'love-it',
