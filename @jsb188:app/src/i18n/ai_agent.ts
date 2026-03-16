@@ -26,6 +26,8 @@ export default {
 		updating_contacts_: '🪪 Updating contacts list...',
 		searching_directory_: '🗂️ Searching directory...',
 		updating_directory_: '🗂️ Updating directory...',
+    searching_site_loc_: '🗺️ Searching for site...',
+    updating_site_loc_: '🗺️ Updating site location...',
 		creating_report_: '📊 Creating report... ',
 		updating_schedule_: '📅 Updating schedule...',
 		updating_events_: '📅 Updating events...',

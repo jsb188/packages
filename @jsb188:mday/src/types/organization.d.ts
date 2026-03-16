@@ -34,8 +34,8 @@ export interface ChildOrgsFilterArgs {
  * ACL
  */
 
-type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-write, 3: allow-manage
-type ACLPermissionEnum = 'NONE' | 'READ' | 'WRITE' | 'MANAGE';
+export type ACLPermission = 0 | 1 | 2 | 3; // 0: no access, 1: read-only, 2: allow-write, 3: allow-manage
+export type ACLPermissionEnum = 'NONE' | 'READ' | 'WRITE' | 'MANAGE';
 
 export interface OrganizationACL {
 	billing: ACLPermission;
@@ -87,6 +87,15 @@ export interface OrganizationData {
 			organizationId: bigint;
 		};
 	activated: boolean;
+}
+
+export interface OrganizationSiteData {
+	__table: 'organization_sites';
+	id: bigint;
+	organizationId: bigint;
+	parentId?: bigint | null;
+	name: string;
+	note?: string | null;
 }
 
 export interface OrgContact {
@@ -172,6 +181,16 @@ export interface OrganizationGQL {
 	directory: OrgContact[];
 	activated: boolean;
 	membersCount: number;
+}
+
+export interface OrganizationSiteGQL {
+	__deleted?: boolean;
+
+	id: string;
+	organizationId: string;
+	parentId?: string | null;
+	name: string;
+	note?: string | null;
 }
 
 export interface OrganizationRelAccountGQL {

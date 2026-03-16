@@ -1,5 +1,5 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
-import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationWorkflowsQry } from '../gql/queries/organizationQueries';
+import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationSitesQry, organizationWorkflowsQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
 import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 
@@ -60,6 +60,30 @@ export function useOrganizationMembers(
 
   return {
     organizationMembers: data?.organizationMembers,
+    ...rest
+  };
+}
+
+/**
+ * Fetch organization sites
+ */
+
+export function useOrganizationSites(
+  organizationId: string | null,
+  parentId: string | null,
+  params: UseQueryParams = {},
+) {
+  const { data, ...rest } = useQuery(organizationSitesQry, {
+    variables: {
+      organizationId,
+      parentId,
+    },
+    skip: !organizationId || params.skip,
+    ...params,
+  });
+
+  return {
+    organizationSites: data?.organizationSites,
     ...rest
   };
 }

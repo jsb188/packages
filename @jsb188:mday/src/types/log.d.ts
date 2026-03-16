@@ -198,6 +198,7 @@ export type LogGrowerNetworkMetadata = LogMetadataBase & {
 export interface LogGrowerNetworkObj {
   childOrgId?: number | bigint;
   reportId?: number | null;
+  siteId?: number | null;
   type?: LogGrowerNetworkTypeEnum; // Only set in server if manually extended
   activity: LogGrowerNetworkActivityEnum;
   notes: string | null;

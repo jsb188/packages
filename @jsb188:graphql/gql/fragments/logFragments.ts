@@ -71,6 +71,8 @@ export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on Lo
   activity
 
   childOrgId
+  reportId
+  siteId
   otherParty
 
   item

@@ -1,6 +1,6 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
-import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationInstructionsFragment, organizationRelationshipFragment } from '../fragments/organizationFragments';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationInstructionsFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments';
 import { emailFragment, phoneFragment } from '../fragments/otherFragments';
 import { storageFileFragment } from '../fragments/storageFragments';
 
@@ -159,4 +159,20 @@ ${organizationRelationshipFragment}
 ${accountFragment}
 ${emailFragment}
 ${phoneFragment}
+`;
+
+export const organizationSitesQry = gql`
+query organizationSites (
+  $organizationId: GenericID!
+  $parentId: GenericID!
+) {
+  organizationSites (
+    organizationId: $organizationId
+    parentId: $parentId
+  ) {
+    ...organizationSiteFragment
+  }
+}
+
+${organizationSiteFragment}
 `;

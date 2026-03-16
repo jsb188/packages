@@ -65,6 +65,14 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
   }
 }`;
 
+export const organizationSiteFragment = `fragment organizationSiteFragment on OrganizationSite {
+  id
+  organizationId
+  parentId
+  name
+  note
+}`;
+
 export const organizationChildFragment = `fragment organizationChildFragment on OrganizationChild {
   id
   parentId
