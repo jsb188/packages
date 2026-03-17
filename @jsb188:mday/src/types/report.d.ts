@@ -213,6 +213,7 @@ export interface ReportSubmissionData {
 	__table: 'report_submissions';
 	id: number;
 	childOrgId?: number | bigint | null;
+	siteId?: number | bigint | null;
 	childOrg?: {
 		id: number | bigint;
 		name: string;
