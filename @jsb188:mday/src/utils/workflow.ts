@@ -1,5 +1,6 @@
 import { hhmmFromDateOrTime } from '@jsb188/app/utils/timeZone.ts';
 import { CronExpressionParser } from 'cron-parser';
+import type { WorkflowRunData } from '../types/workflow';
 
 const DEFAULT_SCHEDULE_WINDOW_MS = 24 * 60 * 60 * 1000; // once per day
 
@@ -150,4 +151,37 @@ export function getNextWorkflowScheduleDate(
 	} catch {
 		return null;
 	}
+}
+
+/**
+ * Helper; check if workflow run is still active based on next follow-up time.
+ */
+
+export function isWorkflowRunActive(
+	workflowRun: WorkflowRunData | null,
+	isFollowUp: boolean = false,
+) {
+	if (!workflowRun) {
+		return false;
+	}
+
+	const nextFollowUpAt = workflowRun.followUpAt;
+	if (!nextFollowUpAt) {
+    if (['COMPLETED', 'ERRORED', 'CANCELED'].includes(workflowRun.status)) {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      return workflowRun.activityAt > oneDayAgo;
+    }
+
+		return true;
+	}
+
+	if (isFollowUp) {
+		const now = new Date();
+		const followUpWindowStart = new Date(nextFollowUpAt.getTime() - 10 * 60 * 1000);
+
+		// Allow follow-up run only after entering the 10-minute pre-follow-up window.
+		return now >= followUpWindowStart;
+	}
+
+	return nextFollowUpAt > new Date();
 }
