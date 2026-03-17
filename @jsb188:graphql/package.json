@@ -43,7 +43,7 @@
     "./utils": "./utils.ts"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "deno test --no-check --unstable-sloppy-imports --config ./deno.test.json ./cache/index.test.ts"
   },
   "dependencies": {
     "graphql": "^16.11.0",

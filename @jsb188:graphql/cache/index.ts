@@ -258,6 +258,73 @@ function makeFragmentCacheKey(
 }
 
 /**
+ * Rebuild one cached list item from fragment refs and inline field tuples.
+ */
+
+function mapCachedListItem(
+  cachedItemData: any[],
+  loadFragmentData: (fragmentKey: string) => any,
+) {
+  let item: Record<string, any> = {};
+  let cacheIsValid = true;
+
+  cachedItemData.forEach((cachedValue: any) => {
+    let mapCacheId;
+    if (Array.isArray(cachedValue)) {
+      if (cachedValue.length === 1 && cachedValue?.[0]?.startsWith('$')) {
+        mapCacheId = cachedValue[0];
+      } else if (Array.isArray(cachedValue[1])) {
+        item[cachedValue[0]] = cachedValue[1].map((value: any) => {
+          if (value?.__reactiveFragmentName) {
+            const clientReactiveFragmentKey = `${value.__reactiveFragmentName}:${value.id}`;
+            return FRAGMENTS.get(clientReactiveFragmentKey) || value;
+          }
+
+          return value;
+        });
+        return;
+      } else if (cachedValue[1]?.__reactiveFragmentName) {
+        const clientReactiveFragmentKey = `${cachedValue[1].__reactiveFragmentName}:${cachedValue[1].id}`;
+        item[cachedValue[0]] = FRAGMENTS.get(clientReactiveFragmentKey) || cachedValue[1];
+        return;
+      } else {
+        item[cachedValue[0]] = cachedValue[1];
+        return;
+      }
+    } else if (typeof cachedValue === 'string') {
+      mapCacheId = cachedValue;
+    }
+
+    if (!mapCacheId) {
+      return;
+    }
+
+    const frgIndex = mapCacheId.indexOf(':');
+    const frgName = mapCacheId.substring(1, frgIndex);
+    const frgMap = PARTIALS_MAP[frgName];
+    const fragmentKey = frgMap
+      ? `$${frgMap}:${mapCacheId.substring(frgIndex + 1)}`
+      : mapCacheId;
+
+    const cachedFragment = loadFragmentData(fragmentKey);
+    if (cachedFragment) {
+      item = {
+        ...item,
+        ...cachedFragment,
+      };
+    } else {
+      cacheIsValid = false;
+    }
+  });
+
+  if (!cacheIsValid) {
+    return null;
+  }
+
+  return item;
+}
+
+/**
  * Load query cache
  */
 
@@ -377,34 +444,12 @@ export function loadFragment(id: string, mainPrioritizedFields: string[] = []) {
         }, {});
       } else if (spreadValue?.__list === true) {
         spreadData = spreadValue.data.map((val: any) => {
-
-          // if (isTest) {
-          //   console.log('>>> VAL:', val);
-          // }
-
-          // NOTE: I haven't fully finished this work,
-          // but it should work for most cases.
-
           if (typeof val === 'string') {
             return loadFragment(val);
-          } else if (Array.isArray(val) && typeof val[0] === 'string' && val[0].startsWith('$')) {
-            const [innerFragmentKey, ...restInner] = val;
-            const innerFragment = loadFragment(innerFragmentKey);
-
-            if (innerFragment) {
-              for (const ri of restInner) {
-                if (Array.isArray(ri) && ri.length === 2) {
-                  // ri[0] === 'files' && ri[1].length === 1 && console.log(ri);
-                  // innerFragment[ri[0]] = ri[1];
-                }
-              }
-            }
-
-            return innerFragment;
+          } else if (Array.isArray(val)) {
+            return mapCachedListItem(val, loadFragment);
           }
 
-          // Unfinished work
-          console.warn('Unfinished GraphQL cache scenario!: ', val)
           return null;
         }).filter(Boolean);
       }
@@ -817,70 +862,16 @@ export function appendFragmentToCache(cacheData: any, testMode?: boolean) {
       const isCache = newObj[key].__cache && newObj[key].data;
 
       if (isCache) {
-        let cachedObj = {};
+        let cachedObj: any = {};
         let cacheIsValid = true;
 
         if (newObj[key].__list) {
           cachedObj = newObj[key].data.map((di: any[]) => {
-
-            let item = {};
-            di.forEach((d) => {
-              let mapCacheId;
-              if (Array.isArray(d)) {
-                if (d.length === 1 && d?.[0]?.startsWith('$')) {
-                  mapCacheId = d[0];
-                } else if (Array.isArray(d[1])) {
-                  // Use __reactiveFragmentName to make client-side data up to date
-                  item[d[0]] = d[1].map(dr => {
-                    if (dr.__reactiveFragmentName) {
-                      const crFKey = `${dr.__reactiveFragmentName}:${dr.id}`;
-                      return FRAGMENTS.get(crFKey) || dr;
-                    }
-                    return dr;
-                  });
-                  return;
-                } else if (d[1]?.__reactiveFragmentName) {
-                  // Use __reactiveFragmentName to make client-side data up to date
-                  const clientReactiveFragmentKey = `${d[1].__reactiveFragmentName}:${d[1].id}`;
-                  item[d[0]] = FRAGMENTS.get(clientReactiveFragmentKey) || d[1];
-                  return;
-                } else {
-                  item[d[0]] = d[1];
-                  return;
-                }
-              } else if (typeof d === 'string') {
-                mapCacheId = d;
-              }
-
-              // if (Array.isArray(d)) {
-              //   item[d[0]] = d[1];
-              //   return;
-              // } else if (typeof d === 'string') {
-              //   mapCacheId = d;
-              // }
-
-              const frgIndex = mapCacheId.indexOf(':');
-              const frgName = mapCacheId.substring(1, frgIndex);
-              const frgMap = PARTIALS_MAP[frgName];
-
-              let fragmentKey;
-              if (frgMap) {
-                fragmentKey = `$${frgMap}:${mapCacheId.substring(frgIndex + 1)}`;
-              } else {
-                fragmentKey = mapCacheId;
-              }
-
-              const cachedFragment = loadFragment(fragmentKey);
-              if (cachedFragment) {
-                item = {
-                  ...item,
-                  ...cachedFragment,
-                };
-              } else {
-                // Cache was invalidated
-                cacheIsValid = false;
-              }
-            });
+            const item = mapCachedListItem(di, loadFragment);
+            if (!item) {
+              cacheIsValid = false;
+              return {};
+            }
 
             return item;
           });

@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@jsb188/app/": "../@jsb188:app/src/",
+    "@jsb188/react/": "../@jsb188:react/src/"
+  }
+}
