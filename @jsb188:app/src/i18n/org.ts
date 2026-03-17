@@ -18,6 +18,7 @@ export default {
 		edit_child_org_info_finished_msg: 'Information has been updated for\n [hl]%{name}[/hl].',
     delete_child_org_msg: 'Are you sure you want to remove\n [hl]%{name}[/hl]?',
 		manage_team: 'Manage team',
+		site_locations: 'Site locations',
 		invite_members: 'Invite members',
 		members_ct: '%{smart_count} member||||%{smart_count} members',
 		administration: 'Administration',
@@ -44,6 +45,7 @@ export default {
 		contact_to_change: 'Please contact us to change this information.',
 		locked_contact_msg: 'This contact information is saved by the owner of this organization.',
 		no_contact_information_msg: 'This organization doesn\'t have any contact information.',
+		no_site_locations: 'This organization doesn\'t have any site locations.',
 		vendor_documents_not_found_msg: "This vendor hasn't submitted any compliance documents or certifications.",
 		switch_organizations: 'Switch organizations',
 		switch_msg: (

@@ -4,7 +4,6 @@ import type {
   WorkflowActionGQL,
   WorkflowActionObj,
 } from "@jsb188/mday/types/action.d.ts";
-import type { OrganizationOperationEnum } from "../types/organization.d.ts";
 import {
   LOG_ACTION_STATUS_ENUMS,
   LOG_ARABLE_ACTIVITY_ENUMS,
@@ -13,6 +12,7 @@ import {
   LOG_LIVESTOCK_ACTIVITY_ENUMS,
   LOG_SORT_ENUMS,
 } from "../constants/log.ts";
+import type { OrganizationOperationEnum } from "../types/organization.d.ts";
 
 /**
  * Enums
@@ -81,6 +81,7 @@ export type LogTypeEnum =
   | LogGrowerNetworkTypeEnum
   | LogLivestockTypeEnum
   | "AI_TASK";
+
 export type LogActivityEnum =
   | LogArableActivityEnum
   | LogFarmersMarketActivityEnum
@@ -91,194 +92,180 @@ export type LogActivityEnum =
  * Log metadata
  */
 
-interface LogDetailsGQLBase {
-  __typename: string;
-  id: string;
-  type: any;
-  activity: any;
-  notes: string;
-}
-
 interface LogMetadataBase {
   __before: any;
-  childOrg: never;
-  childOrgId: never;
-  referenceNumber: never;
+  item: string;
   date: string;
   time: string;
+  otherParty?: string;
+  referenceNumber?: string;
+  // locationDetails?: string;
 
+  // Interface specific
+  values?: LabelAndValue[];
+  voided?: boolean;
+
+  // Below are DEPRECATED; and safe to delete when old AI Tasks feature is removed
   recurFromLogId?: number;
   recurredCount?: number;
-  summary?: string;
+  // summary?: string; // DEPRECATED - used only in old ai work flows - safe to remove
+  location?: string;
+  fieldLocation?: string;
+  tax?: number; // Need to be removed and replaced by values[#].tax -- but this will require some logic changes
 }
 
-/**
- * Log details - Arable
- */
-
-export type LogArableMetadata = LogMetadataBase & {
-  item: string;
+export interface LogArableMetadata extends LogMetadataBase {
   quantity: number;
   unit: string;
   concentration: number;
   concentrationUnit: string;
-  location: string;
-  fieldLocation?: string;
-  otherParty?: string;
-  referenceNumber?: string;
-  values?: LabelAndValue[];
-  tax: number;
-};
-
-export interface LogArableObj {
-  reportId?: never;
-  type?: LogArableTypeEnum; // Only set in server if manually extended
-  activity: LogArableActivityEnum;
-  notes: string | null;
-  translation?: string | null;
-  metadata?: Partial<LogArableMetadata> | null;
 }
 
-export interface LogArableDetailsObj extends LogArableObj {
-  __table: "logs_arable";
-  id: number | bigint;
-  childOrg: never;
+export interface LogFarmersMarketMetadata extends LogMetadataBase {
+  childOrgId?: number; // deprecated - "almost" safe to remove, but not yet
+  values: LabelAndValue[];
 }
 
-export type LogArableMetadataGQL =
-  & Omit<LogArableMetadata, "date" | "time">
-  & LogDetailsGQLBase;
+export interface LogGrowerNetworkMetadata extends LogMetadataBase {}
+
+export interface LogLivestockMetadata extends LogMetadataBase {}
 
 /**
- * Log details - Farmers Market
+ * Log *_details table
  */
 
-export type LogFarmersMarketMetadata = LogMetadataBase & {
-  referenceNumber: string;
-  voided: boolean;
-  childOrgId?: number;
-  values: LabelAndValue[];
-};
-
-export interface LogFarmersMarketObj {
-  reportId?: never;
-  childOrgId: number | bigint;
-  type?: LogFarmersMarketTypeEnum; // Only set in server if manually extended
-  activity: LogFarmersMarketActivityEnum;
-  notes: string | null;
-  translation?: string | null;
-  metadata?: Partial<LogFarmersMarketMetadata> | null;
-}
-
-export interface LogFarmersMarketDetailsObj extends LogFarmersMarketObj {
-  __table: "logs_farmers_market";
+export interface LogDetailsBase {
   id: number | bigint;
-  childOrg: {
+  childOrg?: {
     id: number | bigint;
     name: string;
   };
+  childOrgId?: number | bigint | null;
+  reportId?: number | bigint | null;
+  siteId?: number | bigint | null;
+  site?: {
+    id: number | bigint;
+    name: string;
+  };
+  notes: string | null;
+  translation: string | null;
 }
 
-export type LogFarmersMarketMetadataGQL =
-  & Omit<LogFarmersMarketMetadata, "date" | "time">
-  & LogDetailsGQLBase;
+export interface LogArableDetailsData extends LogDetailsBase {
+  __table: 'logs_arable';
+  activity: LogArableActivityEnum;
+  metadata?: Partial<LogArableMetadata> | null;
+}
 
-/**
- * Log details - Grower Network
- */
+export interface LogFarmersMarketDetailsData extends LogDetailsBase {
+  __table: 'logs_farmers_market';
+  activity: LogFarmersMarketActivityEnum;
+  metadata?: Partial<LogFarmersMarketMetadata> | null;
+}
 
-export type LogGrowerNetworkMetadata = LogMetadataBase & {
-  childOrgId?: number;
-  otherParty?: string;
-  item: string;
-  location?: string;
-  fieldLocation?: string;
-};
-
-export interface LogGrowerNetworkObj {
-  childOrgId?: number | bigint;
-  reportId?: number | null;
-  siteId?: number | null;
-  type?: LogGrowerNetworkTypeEnum; // Only set in server if manually extended
+export interface LogGrowerNetworkDetailsData extends LogDetailsBase {
+  __table: 'logs_grower_network';
   activity: LogGrowerNetworkActivityEnum;
-  notes: string | null;
-  translation?: string | null;
   metadata?: Partial<LogGrowerNetworkMetadata> | null;
 }
 
-export interface LogGrowerNetworkDetailsObj extends LogGrowerNetworkObj {
-  __table: "logs_grower_network";
-  id: number | bigint;
-  childOrg: never;
-}
-
-export type LogGrowerNetworkMetadataGQL =
-  & Omit<LogGrowerNetworkMetadata, "date" | "time">
-  & LogDetailsGQLBase;
-
-/**
- * Log details - Livestock
- */
-
-export type LogLivestockMetadata = LogMetadataBase & {
-  damIdentifier?: string;
-  livestockIdentifiers: string[];
-  livestockGroup?: string;
-  livestock: string;
-  otherParty?: string;
-  referenceNumber?: string;
-  values?: LabelAndValue[];
-  item: string;
-  quantity: number;
-  unit: string;
-  location: string;
-  fieldLocation?: string;
-  price: number;
-  tax: number;
-};
-
-export interface LogLivestockObj {
-  reportId?: never;
-  type?: LogLivestockTypeEnum; // Only set in server if manually extended
+export interface LogLivestockDetailsData extends LogDetailsBase {
+  __table: 'logs_livestock';
   activity: LogLivestockActivityEnum;
-  notes: string | null;
-  translation?: string | null;
-  damIdentifier?: string;
-  livestockIdentifiers: string[];
-  livestockGroup?: string;
   metadata?: Partial<LogLivestockMetadata> | null;
 }
 
-export interface LogLivestockDetailsObj extends LogLivestockObj {
-  __table: "logs_livestock";
-  id: number | bigint;
-  childOrg: never;
+/**
+ * Log details union - GraphQL
+ */
+
+interface LogDetailsBaseGQL {
+  id: string;
+  type: LogTypeEnum;
+  activity: LogActivityEnum;
+  notes: string;
+  // locationDetails?: string | null;
 }
 
-export type LogLivestockMetadataGQL =
-  & Omit<LogLivestockMetadata, "date" | "time">
-  & LogDetailsGQLBase;
+export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
+  __typename: 'LogArable';
+
+  item: string | null;
+  quantity: number | null;
+  unit: string | null;
+  concentration: number | null;
+  concentrationUnit: string | null;
+  otherParty: string | null;
+  referenceNumber: string | null;
+  values: LabelAndValue[] | null;
+  tax: number | null;
+  voided: boolean | null;
+
+  // Soon to be deprecated fields
+  location: string | null;
+  fieldLocation: string | null;
+}
+
+export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
+  __typename: 'LogFarmersMarket';
+
+  childOrgId: string | null;
+  childOrganizationName: string | null;
+  item: string | null;
+  otherParty: string | null;
+  referenceNumber: string | null;
+  values: LabelAndValue[] | null;
+  tax: number | null;
+  voided: boolean | null;
+}
+
+export interface LogGrowerNetworkDetailsGQL extends LogDetailsBaseGQL {
+  __typename: 'LogGrowerNetwork';
+
+  childOrgId: string | null;
+  reportId: string | null;
+  siteId: string | null;
+  otherParty: string | null;
+  item: string | null;
+  location: string | null;
+}
+
+export interface LogLivestockDetailsGQL extends LogDetailsBaseGQL {
+  __typename: 'LogLivestock';
+
+  livestock: string | null;
+  livestockIdentifiers: string[] | null;
+  livestockGroup: string | null;
+  damIdentifier: string | null;
+  otherParty: string | null;
+  referenceNumber: string | null;
+  values: LabelAndValue[] | null;
+  tax: number | null;
+  voided: boolean | null;
+  item: string | null;
+  quantity: number | null;
+  unit: string | null;
+  price: number | null;
+  location: string | null;
+  fieldLocation: string | null;
+}
 
 /**
  * Union type for log details
  */
 
-export type LogDetailsObj =
-  | LogArableObj
-  | LogFarmersMarketObj
-  | LogGrowerNetworkObj
-  | LogLivestockObj;
 export type LogMetadataGQL =
-  | LogArableMetadataGQL
-  | LogFarmersMarketMetadataGQL
-  | LogGrowerNetworkMetadataGQL
-  | LogLivestockMetadataGQL;
+  | LogArableDetailsGQL
+  | LogFarmersMarketDetailsGQL
+  | LogGrowerNetworkDetailsGQL
+  | LogLivestockDetailsGQL;
 
 /**
  * GQL data interfaces
  */
 
 export interface LogEntryGQL {
+  __typename: string;
   __deleted?: boolean;
 
   id: string;
@@ -313,10 +300,10 @@ export interface LogEntryData {
   status: LogActionStatusEnum | null;
   distance?: number; // For vector search
   details:
-    | LogArableDetailsObj
-    | LogFarmersMarketDetailsObj
-    | LogGrowerNetworkDetailsObj
-    | LogLivestockDetailsObj;
+    | LogArableDetailsData
+    | LogFarmersMarketDetailsData
+    | LogGrowerNetworkDetailsData
+    | LogLivestockDetailsData;
   date: Date;
   createdAt: Date;
   updatedAt: Date;

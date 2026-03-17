@@ -77,7 +77,6 @@ export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on Lo
 
   item
   location
-  fieldLocation
 
   summary
   notes

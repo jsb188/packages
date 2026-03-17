@@ -11,11 +11,11 @@ import {
   LIVESTOCK_ACTIVITIES_GROUPED
 } from '../constants/log.ts';
 import type {
-  LogArableMetadataGQL,
+  LogArableDetailsGQL,
   LogEntryGQL,
-  LogFarmersMarketMetadataGQL,
-  LogGrowerNetworkMetadataGQL,
-  LogLivestockMetadataGQL,
+  LogFarmersMarketDetailsGQL,
+  LogGrowerNetworkDetailsGQL,
+  LogLivestockDetailsGQL,
   LogTypeEnum
 } from '../types/log.d.ts';
 import { getLogCategoryColor, getLogTypeFromActivity } from '../utils/log.ts';
@@ -45,7 +45,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
 
   switch (logEntry.details?.__typename) {
     case 'LogArable': {
-      const details = logEntry.details as LogArableMetadataGQL;
+      const details = logEntry.details as LogArableDetailsGQL;
       formValues.arableDetails = {
         activity: details.activity,
         quantity: details.quantity,
@@ -62,7 +62,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
       };
     } break;
     case 'LogFarmersMarket': {
-      const details = logEntry.details as LogFarmersMarketMetadataGQL;
+      const details = logEntry.details as LogFarmersMarketDetailsGQL;
       formValues.farmersMarketDetails = {
         activity: details.activity,
         referenceNumber: details.referenceNumber,
@@ -72,19 +72,18 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
       };
     } break;
     case 'LogGrowerNetwork': {
-      const details = logEntry.details as LogGrowerNetworkMetadataGQL;
+      const details = logEntry.details as LogGrowerNetworkDetailsGQL;
       formValues.growerNetworkDetails = {
         activity: details.activity,
         childOrgId: details.childOrgId,
         otherParty: details.otherParty,
         item: details.item,
         location: details.location,
-        fieldLocation: details.fieldLocation,
         notes: details.notes,
       };
     } break;
     case 'LogLivestock': {
-      const details = logEntry.details as LogLivestockMetadataGQL;
+      const details = logEntry.details as LogLivestockDetailsGQL;
       formValues.livestockDetails = {
         activity: details.activity,
         livestock: details.livestock,

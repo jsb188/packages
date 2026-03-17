@@ -324,7 +324,8 @@ type BuildSingleTextConditionalLineGroup = BuildSingleTextConditionalLine[];
 interface BuildSingleTextFeatureMap {
   [key: string]: BuildSingleTextLine | BuildSingleTextLine[];
 }
-type BuildSingleTextLine =
+
+export type BuildSingleTextLine =
   | AnyLineItem
   | BuildSingleTextFeatureMap
   | BuildSingleTextConditionalLine
@@ -470,7 +471,8 @@ export function buildSingleText(
       return acc;
     }, [] as string[])
     .join(delemiter)
-    .trim();
+    .trim()
+    .replace(/^[ \t]+(?=[A-Za-z0-9])/gm, '');
 }
 
 /**
