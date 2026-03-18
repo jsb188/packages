@@ -1,4 +1,5 @@
 import { REPORT_ROW_PRESETS, REPORT_SORT_OPTS, REPORT_STATUS_ENUMS } from '../constants/report.ts';
+import type { OrganizationSiteData } from './organization.d.ts';
 import type { StorageData, StorageGQL } from './storage.d.ts';
 
 /**
@@ -213,6 +214,7 @@ export interface ReportSubmissionData {
 	id: number;
 	childOrgId?: number | bigint | null;
 	siteId?: number | bigint | null;
+	site?: Pick<OrganizationSiteData, 'id' | 'name'> | null;
 	childOrg?: {
 		id: number | bigint;
 		name: string;
