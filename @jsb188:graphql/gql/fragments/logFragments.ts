@@ -5,6 +5,7 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   organizationId
   childOrgId
   reportId
+  reportSubmissionId
   siteId
   cursor
   status
@@ -49,7 +50,6 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
   type
   activity
 
-  childOrgId
   item
 
   otherParty

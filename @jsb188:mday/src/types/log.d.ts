@@ -122,7 +122,6 @@ export interface LogArableMetadata extends LogMetadataBase {
 }
 
 export interface LogFarmersMarketMetadata extends LogMetadataBase {
-  childOrgId?: number; // deprecated - "almost" safe to remove, but not yet
   values: LabelAndValue[];
 }
 
@@ -142,6 +141,7 @@ export interface LogDetailsBase {
   };
   childOrgId?: number | bigint | null;
   reportId?: number | bigint | null;
+  reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
   site?: {
     id: number | bigint;
@@ -209,7 +209,6 @@ export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
 export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
   __typename: 'LogFarmersMarket';
 
-  childOrgId: string | null;
   childOrganizationName: string | null;
   item: string | null;
   otherParty: string | null;
@@ -270,6 +269,7 @@ export interface LogEntryGQL {
   organizationId: string;
   childOrgId: string | null;
   reportId: string | null;
+  reportSubmissionId: string | null;
   siteId: string | null;
   details: LogMetadataGQL;
   status: LogActionStatusEnum | null;
@@ -289,6 +289,7 @@ export interface LogEntryInsertObj {
   organizationId: number | bigint;
   childOrgId?: number | bigint | null;
   reportId?: number | bigint | null;
+  reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
   status?: LogActionStatusEnum | null;
   details: any;
@@ -302,6 +303,7 @@ export interface LogEntryData {
   organizationId: number | bigint;
   childOrgId?: number | bigint | null;
   reportId?: number | bigint | null;
+  reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
   status: LogActionStatusEnum | null;
   distance?: number; // For vector search
