@@ -37,7 +37,6 @@ export interface ReportFieldsObj {
 	gridLayoutStyle?: string;
 	aside?: ReportFieldsAsideItem[];
 	sections?: ReportFieldsSection[];
-	rows?: ReportFieldsRow[];
 	metadata?: ReportFieldsRow[];
 	variables?: ReportFieldsVariables;
 }
