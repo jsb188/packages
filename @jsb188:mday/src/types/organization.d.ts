@@ -191,6 +191,8 @@ export interface OrganizationSiteGQL {
 	parentId?: string | null;
 	name: string;
 	note?: string | null;
+	organizationName?: string | null;
+	parentName?: string | null;
 }
 
 export interface OrganizationRelAccountGQL {

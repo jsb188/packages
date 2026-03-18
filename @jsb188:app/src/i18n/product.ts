@@ -85,7 +85,6 @@ export default {
 
 		report: {
 			GLOBAL_GAP: 'GLOBALG.A.P.',
-			CLEANING: 'Cleaning logs',
 		},
 
 		back_to_globalgap: 'Back to GLOBALG.A.P.',

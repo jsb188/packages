@@ -3,6 +3,7 @@ import { intersection } from '@jsb188/app/utils/object.ts';
 import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone.ts';
 import { FEATURES_BY_OPERATION } from '../constants/product.ts';
 import type {
+  ACLPermissionEnum,
   MergedOrgContact,
   OrgContact,
   OrganizationFeatureEnum,
@@ -15,6 +16,16 @@ import type {
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
+
+type OperationPermissionTuple = readonly [PermissionCheckFor, ACLPermissionEnum, string];
+type OperationPermissionsMap = Record<string, OperationPermissionTuple>;
+
+export const OPERATION_PERMISSIONS = {
+	org_sites_update: ['orgManagement', 'WRITE', 'You do not have permission to update organization sites.'],
+  org_management: ['orgManagement', 'WRITE', 'You do not have permission to manage this organization\'s data.'],
+} as const satisfies OperationPermissionsMap;
+
+export type OperationName = keyof typeof OPERATION_PERMISSIONS;
 
 export const PERMISSION_TO_INT = {
 	NONE: 0,
@@ -148,6 +159,22 @@ export function checkACLPermission(
 	const acccountPermissionInt = PERMISSION_TO_INT[permission] || 0; // If invalid, it will always return false
 
 	return acccountPermissionInt >= requiredInt;
+}
+
+/**
+ * Check ACL permission from pre-defined constants
+ */
+
+export function checkACL(
+	orgRel: OrganizationRelGQL | OrganizationRelData | ViewerOrganization | null | undefined,
+  opName: OperationName,
+) {
+  const [permissionCheckFor, requiredPermission] = OPERATION_PERMISSIONS[opName] || [];
+  if (!permissionCheckFor || !requiredPermission) {
+    console.warn(`Operation ${opName} not found in permissions map.`);
+    return null;
+  }
+  return checkACLPermission(orgRel, permissionCheckFor, requiredPermission);
 }
 
 /**

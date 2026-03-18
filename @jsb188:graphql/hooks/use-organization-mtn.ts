@@ -1,5 +1,5 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
-import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
+import { checkACL, checkACLPermission, type OperationName } from '@jsb188/mday/utils/organization.ts';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
 import { useMemo } from 'react';
 import { updateFragment } from '../cache/index';
@@ -175,15 +175,16 @@ export function useDeleteChildOrganization(
 
 export function useEditOrganizationWithACL(
   params?: UseMutationParams | null,
-  openModalPopUp?: OpenModalPopUpFn
+  openModalPopUp?: OpenModalPopUpFn,
+  aclOpName: OperationName = 'org_management'
 ) {
   const { primaryOrganizationId } = useCurrentAccount();
   const { organizationRelationship } = useOrgRelFromMyOrganizations(primaryOrganizationId);
-	const allowEdit = useMemo(() =>
-		checkACLPermission(organizationRelationship, 'orgManagement', 'MANAGE'),
-		[organizationRelationship?.acl, organizationRelationship?.role]
-	);
   const mtnHook = useEditOrganization(params, openModalPopUp);
+
+  const allowEdit = useMemo(() => {
+		return checkACL(organizationRelationship, aclOpName);
+  }, [organizationRelationship?.acl, organizationRelationship?.role]);
 
   return {
     allowEdit,

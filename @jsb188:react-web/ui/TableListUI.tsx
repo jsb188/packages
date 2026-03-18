@@ -66,6 +66,7 @@ interface TDColProps extends ReactDivElement {
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
   // flexClassName?: string;
+  parentHeader?: string;
   placeholderText?: string;
   iconName?: string;
   iconClassName?: string;
@@ -74,7 +75,7 @@ interface TDColProps extends ReactDivElement {
 export const TDCol = memo((p: TDColProps & {
   doNotApplyGridToRows?: boolean;
 }) => {
-  const { className, doNotApplyGridToRows, removeLeftPadding, removeRightPadding, iconName, iconClassName, children, ...rest } = p;
+  const { className, doNotApplyGridToRows, removeLeftPadding, removeRightPadding, parentHeader: _parentHeader, iconName, iconClassName, children, ...rest } = p;
   const placeholderText = p.placeholderText ?? '-';
 
   return <div

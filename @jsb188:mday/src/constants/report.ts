@@ -3,6 +3,7 @@
  */
 
 export const REPORT_SORT_OPTS = [
+	'PERIOD_DESC',
 	'ACTIVITY_DESC',
 ];
 
@@ -18,7 +19,6 @@ export const REPORT_ROW_PRESETS = [
 	'Q_AND_A',
   'LONG_TEXTS', // Same as "TEXTS" but has a different function in <FileBrowserPlus>
 	'HEADINGS',
-	'REPORT_STATEMENTS_OVERVIEW',
   'EVIDENCES',
 ];
 

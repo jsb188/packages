@@ -23,7 +23,6 @@ export default {
 		members_ct: '%{smart_count} member||||%{smart_count} members',
 		administration: 'Administration',
 		billing: 'Billing',
-		plans: 'Plans',
     department_req_msg: 'Please select a department for this contact.',
     contact_phone_or_email_req_msg: 'Please provide a phone number or email for this contact.',
 		address_notice_msg: 'This information will appear on the invoices you generate for your customers and to others in your network.',

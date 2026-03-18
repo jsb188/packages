@@ -62,11 +62,6 @@ export function AppLayout(p: ReactDivElement & {
       <div className='h_f f z4 v_spread shadow_line rel of bg'>
         {ToolbarComponent}
 
-        {AsideComponent &&
-        <aside className='app_aside z3 y_scr_hidden'>
-          {AsideComponent}
-        </aside>}
-
         <main
           // {key} fixes the scroll position problem when switching routes
           key={scrollResetKey}
@@ -74,7 +69,7 @@ export function AppLayout(p: ReactDivElement & {
           id={DOM_IDS.mainBodyScrollArea}
           className={cn('app_scr h_f rel', contentFlexClassName ?? 'v_top')}
         >
-          <div className='pattern_grid_fade_down alt_bf abs_t h_450 -z5' />
+          {/* <div className='pattern_grid_fade_down alt_bf abs_t h_450 -z5' /> */}
           {AsideComponent
           ? <div className='cw lg pr_md h_f'>
             <div className='w_app_side h_top h_f'>
@@ -85,6 +80,12 @@ export function AppLayout(p: ReactDivElement & {
           </div>
           : children}
         </main>
+
+        {AsideComponent &&
+        <aside className='app_aside z3 y_scr_hidden'>
+          {AsideComponent}
+        </aside>}
+
       </div>
     </div>
   </div>;

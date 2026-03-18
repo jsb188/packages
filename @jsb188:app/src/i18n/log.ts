@@ -4,7 +4,6 @@ export default {
 		log: 'Log',
 		logs: 'Logs',
 		all_logs: 'All logs',
-    cleaning_logs: 'Cleaning logs',
 		related_logs: 'Related logs',
 		nothing_found: 'No logs found.',
 		log_missing: 'Log missing',

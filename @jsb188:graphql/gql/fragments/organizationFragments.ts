@@ -71,6 +71,8 @@ export const organizationSiteFragment = `fragment organizationSiteFragment on Or
   parentId
   name
   note
+  organizationName
+  parentName
 }`;
 
 export const organizationChildFragment = `fragment organizationChildFragment on OrganizationChild {

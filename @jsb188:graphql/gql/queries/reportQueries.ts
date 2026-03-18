@@ -41,16 +41,6 @@ query reports (
       }
     }
 
-    # This needs to be deprecated and merged to sections
-    # Its only used for cleaning logs right now
-
-    rows {
-      ...reportRowDataFragment
-
-      columns {
-        ...reportColumnDataFragment
-      }
-    }
   }
 }
 
@@ -97,13 +87,6 @@ query report (
       }
     }
 
-    rows {
-      ...reportRowDataFragment
-
-      columns {
-        ...reportColumnDataFragment
-      }
-    }
   }
 }
 

@@ -118,11 +118,12 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   server_outage: 'database-warning',
   not_pinned: 'pinned-off',
   org_info: 'office-building-double',
+  site_locations: 'map-marks',
+  location: 'pin-location-1',
   owner: 'crown',
   pensive: 'mood-sad-filled',
   pinned: 'pinned',
   phone: 'phone', // Tabler version
-  plans: 'map',
   plus: 'plus',
   plus_circle: 'circle-plus',
   plus_circle_filled: 'circle-plus-filled',

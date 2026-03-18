@@ -100,7 +100,7 @@ export interface ReportColumnGQL extends ReportFieldsColumn {
 
 export type ReportRowGQL = Omit<ReportFieldsRow, 'key' | 'columns'> & {
 	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
-	columns?: (ReportColumnGQL | null)[] | null;
+	columns?: ReportColumnGQL[] | null;
 };
 
 export interface ReportGroupLayoutObj {
@@ -162,7 +162,6 @@ export interface ReportGQL {
 
 	aside?: ReportFieldsAsideItem[];
 	sections?: ReportSectionGQL[];
-	rows?: ReportRowGQL[];
 }
 
 export interface ReportSectionGQL {

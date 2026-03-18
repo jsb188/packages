@@ -9,6 +9,7 @@ export default {
     unknown: 'Unknown',
     void: 'Void', // Use uppercase if needed
     location: 'Location',
+    site_location: 'Site location',
     warning: 'Warning',
     cancel: 'Cancel',
     continue: 'Continue',
@@ -267,6 +268,7 @@ export default {
     monthly: 'Monthly',
     schedule: 'Schedule',
     scheduled: 'Scheduled',
+    added_by: 'Added by',
     created_by: 'Created by',
     tasked_by: 'Tasked by',
     updated: 'Updated',
