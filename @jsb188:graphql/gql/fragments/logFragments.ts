@@ -3,6 +3,9 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   id
   accountId
   organizationId
+  childOrgId
+  reportId
+  siteId
   cursor
   status
   flagColor
@@ -70,9 +73,6 @@ export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on Lo
   type
   activity
 
-  childOrgId
-  reportId
-  siteId
   otherParty
 
   item

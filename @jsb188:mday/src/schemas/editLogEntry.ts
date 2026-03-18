@@ -75,7 +75,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
       const details = logEntry.details as LogGrowerNetworkDetailsGQL;
       formValues.growerNetworkDetails = {
         activity: details.activity,
-        childOrgId: details.childOrgId,
+        childOrgId: logEntry.childOrgId,
         otherParty: details.otherParty,
         item: details.item,
         location: details.location,

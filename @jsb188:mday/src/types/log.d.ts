@@ -222,9 +222,6 @@ export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
 export interface LogGrowerNetworkDetailsGQL extends LogDetailsBaseGQL {
   __typename: 'LogGrowerNetwork';
 
-  childOrgId: string | null;
-  reportId: string | null;
-  siteId: string | null;
   otherParty: string | null;
   item: string | null;
   location: string | null;
@@ -271,6 +268,9 @@ export interface LogEntryGQL {
   id: string;
   accountId: string;
   organizationId: string;
+  childOrgId: string | null;
+  reportId: string | null;
+  siteId: string | null;
   details: LogMetadataGQL;
   status: LogActionStatusEnum | null;
   flagColor?: string | null;
@@ -287,6 +287,9 @@ export interface LogEntryInsertObj {
   id?: number | bigint; // Only for edits
   accountId: number | bigint;
   organizationId: number | bigint;
+  childOrgId?: number | bigint | null;
+  reportId?: number | bigint | null;
+  siteId?: number | bigint | null;
   status?: LogActionStatusEnum | null;
   details: any;
   date: Date;
@@ -297,6 +300,9 @@ export interface LogEntryData {
   id: number | bigint;
   accountId: number | bigint;
   organizationId: number | bigint;
+  childOrgId?: number | bigint | null;
+  reportId?: number | bigint | null;
+  siteId?: number | bigint | null;
   status: LogActionStatusEnum | null;
   distance?: number; // For vector search
   details:

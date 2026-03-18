@@ -34,6 +34,7 @@ export const reportColumnDataFragment = `fragment reportColumnDataFragment on Re
   className
   label
   text
+  note
   placeholder
   checked
 }`;
