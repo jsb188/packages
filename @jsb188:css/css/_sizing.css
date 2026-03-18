@@ -97,14 +97,13 @@ h1.ft_normal, h2.ft_normal, h3.ft_normal, h4.ft_normal, h5.ft_normal, h6.ft_norm
   text-indent: -.0375em;
 }
 
-h1, h2, h3, h4, h5, h6, .ft_bold {
-  font-family: var(--font-sans-bold);
+h1, h2, h3, h4, h5, h6, strong, .ft_semibold {
+  font-family: var(--font-sans-semibold);
   font-weight: normal;
 }
 
-strong, .ft_semibold {
-  font-family: var(--font-sans-semibold);
-  font-weight: normal;
+.ft_bold {
+  font-family: var(--font-sans-bold);
 }
 
 strong, .ft_bold, .ft_semibold {
@@ -365,6 +364,26 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .py_50 { padding-top: 50px; padding-bottom: 50px; }
 .px_50 { padding-left: 50px; padding-right: 50px; }
 
+.p_55 { padding: 55px; }
+.py_55 { padding-top: 55px; padding-bottom: 55px; }
+.px_55 { padding-left: 55px; padding-right: 55px; }
+
+.p_60 { padding: 60px; }
+.py_60 { padding-top: 60px; padding-bottom: 60px; }
+.px_60 { padding-left: 60px; padding-right: 60px; }
+
+.p_65 { padding: 65px; }
+.py_65 { padding-top: 65px; padding-bottom: 65px; }
+.px_65 { padding-left: 65px; padding-right: 65px; }
+
+.p_70 { padding: 70px; }
+.py_70 { padding-top: 70px; padding-bottom: 70px; }
+.px_70 { padding-left: 70px; padding-right: 70px; }
+
+.p_75 { padding: 75px; }
+.py_75 { padding-top: 75px; padding-bottom: 75px; }
+.px_75 { padding-left: 75px; padding-right: 75px; }
+
 .p_100 { padding: 100px; }
 .py_100 { padding-top: 100px; padding-bottom: 100px; }
 .px_100 { padding-left: 100px; padding-right: 100px; }
@@ -544,6 +563,31 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .pb_50 { padding-bottom: 50px; }
 .pl_50 { padding-left: 50px; }
 
+.pt_55 { padding-top: 55px; }
+.pr_55 { padding-right: 55px; }
+.pb_55 { padding-bottom: 55px; }
+.pl_55 { padding-left: 55px; }
+
+.pt_60 { padding-top: 60px; }
+.pr_60 { padding-right: 60px; }
+.pb_60 { padding-bottom: 60px; }
+.pl_60 { padding-left: 60px; }
+
+.pt_65 { padding-top: 65px; }
+.pr_65 { padding-right: 65px; }
+.pb_65 { padding-bottom: 65px; }
+.pl_65 { padding-left: 65px; }
+
+.pt_70 { padding-top: 70px; }
+.pr_70 { padding-right: 70px; }
+.pb_70 { padding-bottom: 70px; }
+.pl_70 { padding-left: 70px; }
+
+.pt_75 { padding-top: 75px; }
+.pr_75 { padding-right: 75px; }
+.pb_75 { padding-bottom: 75px; }
+.pl_75 { padding-left: 75px; }
+
 .pt_100 { padding-top: 100px; }
 .pr_100 { padding-right: 100px; }
 .pb_100 { padding-bottom: 100px; }
@@ -709,6 +753,26 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .m_50 { margin: 50px; }
 .my_50 { margin-top: 50px; margin-bottom: 50px; }
 .mx_50 { margin-left: 50px; margin-right: 50px; }
+
+.m_55 { margin: 55px; }
+.my_55 { margin-top: 55px; margin-bottom: 55px; }
+.mx_55 { margin-left: 55px; margin-right: 55px; }
+
+.m_60 { margin: 60px; }
+.my_60 { margin-top: 60px; margin-bottom: 60px; }
+.mx_60 { margin-left: 60px; margin-right: 60px; }
+
+.m_65 { margin: 65px; }
+.my_65 { margin-top: 65px; margin-bottom: 65px; }
+.mx_65 { margin-left: 65px; margin-right: 65px; }
+
+.m_70 { margin: 70px; }
+.my_70 { margin-top: 70px; margin-bottom: 70px; }
+.mx_70 { margin-left: 70px; margin-right: 70px; }
+
+.m_75 { margin: 75px; }
+.my_75 { margin-top: 75px; margin-bottom: 75px; }
+.mx_75 { margin-left: 75px; margin-right: 75px; }
 
 .m_100 { margin: 100px; }
 .my_100 { margin-top: 100px; margin-bottom: 100px; }
@@ -888,6 +952,31 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .mr_50 { margin-right: 50px; }
 .mb_50 { margin-bottom: 50px; }
 .ml_50 { margin-left: 50px; }
+
+.mt_55 { margin-top: 55px; }
+.mr_55 { margin-right: 55px; }
+.mb_55 { margin-bottom: 55px; }
+.ml_55 { margin-left: 55px; }
+
+.mt_60 { margin-top: 60px; }
+.mr_60 { margin-right: 60px; }
+.mb_60 { margin-bottom: 60px; }
+.ml_60 { margin-left: 60px; }
+
+.mt_65 { margin-top: 65px; }
+.mr_65 { margin-right: 65px; }
+.mb_65 { margin-bottom: 65px; }
+.ml_65 { margin-left: 65px; }
+
+.mt_70 { margin-top: 70px; }
+.mr_70 { margin-right: 70px; }
+.mb_70 { margin-bottom: 70px; }
+.ml_70 { margin-left: 70px; }
+
+.mt_75 { margin-top: 75px; }
+.mr_75 { margin-right: 75px; }
+.mb_75 { margin-bottom: 75px; }
+.ml_75 { margin-left: 75px; }
 
 .mt_100 { margin-top: 100px; }
 .mr_100 { margin-right: 100px; }
@@ -1852,7 +1941,7 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
   padding-left: 1.15em;
   padding-right: 1.15em;
   padding-bottom: 2px;
-  font-size: var(--text-xlarge);
+  font-size: var(--text-xxlarge);
 }
 
 /* .pill_lg:before {

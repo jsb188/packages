@@ -558,7 +558,8 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
 .cl_black { color: rgb(var(--color-darker-rgb)) !important; }
 .cl_white { color: rgb(var(--color-lighter-rgb)) !important; }
 
-.bg, .bg_subtle { background-color: rgb(var(--color-bg)); }
+.bg { background-color: rgb(var(--color-bg)); }
+.bg_fade { background-color: rgb(var(--color-bg-fade)); }
 .bg_alt { background-color: rgb(var(--color-bg-alt)); }
 .bg_active { background-color: rgb(var(--color-bg-active)); }
 .bg_medium { background-color: rgb(var(--color-bg-medium)); }
@@ -582,13 +583,6 @@ a.pill.bg_active:not(:disabled):hover, a.pill.bg_alt:not(:disabled):hover, a.pil
 button.pill.bg_active:not(:disabled):hover, button.pill.bg_alt:not(:disabled):hover, button.pill.bg:not(:disabled):hover {
   color: var(--color-text) !important;
   background-color: rgb(var(--color-bg-medium)) !important;
-}
-
-.pill.bg_subtle[role="button"]:not(:disabled):hover,
-a.pill.bg_subtle:not(:disabled):hover,
-button.pill.bg_subtle:not(:disabled):hover {
-  color: var(--color-text-bold);
-  background-color: rgb(var(--color-bg-alt)) !important;
 }
 
 .pill.bg_active[role="button"]:not(:disabled):active, .pill.bg_alt[role="button"]:not(:disabled):active, .pill.bg[role="button"]:not(:disabled):active,

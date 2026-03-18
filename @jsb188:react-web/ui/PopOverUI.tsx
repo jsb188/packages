@@ -264,7 +264,7 @@ export const POListItemPicker = memo((p: PONavItemBase & {
           key={`${name}_${String(opt.value)}_${i}`}
           name={name}
           // saving={saving && selected}
-          onClick={() => onClickItem(name, opt.value, false)}
+          onClick={!selected ? () => onClickItem(name, opt.value, false) : undefined}
           className={cn('p_4 r_xs v_center bg_alt_hv ic_xs bd_1', opt.className, !selected && 'bd_invis')}
         >
           <Icon name={selected && opt.selectedIconName ? opt.selectedIconName : opt.iconName} />

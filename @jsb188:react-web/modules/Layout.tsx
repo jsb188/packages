@@ -574,6 +574,10 @@ export function ErrorMessage(p: ErrorMessageProps) {
         message = i18n.t('error.server_outage_msg');
       }
     }
+
+    if (titleIconName === 'alert-circle' && /\baccess\b/.test(message)) {
+      // titleIconName = 'lock-circle';
+    }
   }
 
   return (

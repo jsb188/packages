@@ -1984,6 +1984,18 @@ export const Lock = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon
 <path d="M8 11v-4a4 4 0 1 1 8 0v4" stroke="currentColor" />
 </svg>;
 
+export const LockCircle = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-lock-circle">
+<path fill="#66e1ff" d="M12 23.45c6.324 0 11.45 -5.126 11.45 -11.45C23.45 5.676 18.324 0.55 12 0.55 5.677 0.55 0.55 5.676 0.55 12c0 6.324 5.127 11.45 11.45 11.45Z" strokeWidth="1" />
+<path fill="#c2f3ff" d="M3.94 20.134A11.45 11.45 0 1 1 20.061 3.869L3.941 20.134Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 23.45c6.324 0 11.45 -5.126 11.45 -11.45C23.45 5.676 18.324 0.55 12 0.55 5.677 0.55 0.55 5.676 0.55 12c0 6.324 5.127 11.45 11.45 11.45Z" strokeWidth="1" />
+<path fill="#ffef5e" d="M7.516 10.511a0.996 0.996 0 0 1 0.995 -1l6.976 0.005a0.995 0.995 0 0 1 0.996 0.99v4.959a0.995 0.995 0 0 1 -0.991 0.995l-6.97 0.032a0.996 0.996 0 0 1 -0.995 -0.995l-0.011 -4.986Z" strokeWidth="1" />
+<path fill="#fff9bf" d="M11.996 9.513h-3.49a0.996 0.996 0 0 0 -0.996 1l0.007 4.994a0.996 0.996 0 0 0 0.995 0.995l3.484 -0.022V9.513Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M7.516 10.511a0.996 0.996 0 0 1 0.995 -1l6.976 0.005a0.995 0.995 0 0 1 0.996 0.99v4.959a0.995 0.995 0 0 1 -0.991 0.995l-6.97 0.032a0.996 0.996 0 0 1 -0.995 -0.995l-0.011 -4.986Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.01 14.49 12 11.75" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.02 9.51v-0.98a2.987 2.987 0 0 1 5.973 -0.028v1.009" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.996 11.502a0.248 0.248 0 0 1 0.25 0.248v0a0.247 0.247 0 0 1 -0.25 0.25v0a0.246 0.246 0 0 1 -0.23 -0.152 0.25 0.25 0 0 1 0.23 -0.346" strokeWidth="1" />
+</svg>;
+
 export const LockFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-lock">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 2a5 5 0 0 1 5 5v3a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-10a3 3 0 0 1 -3 -3v-6a3 3 0 0 1 3 -3v-3a5 5 0 0 1 5 -5m0 12a2 2 0 0 0 -1.995 1.85l-.005 .15a2 2 0 1 0 2 -2m0 -10a3 3 0 0 0 -3 3v3h6v-3a3 3 0 0 0 -3 -3" />
