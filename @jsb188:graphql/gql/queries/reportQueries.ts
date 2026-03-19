@@ -54,9 +54,11 @@ ${reportColumnDataFragment}
 
 export const reportQry = gql`
 query report (
+  $organizationId: GenericID!
   $reportSubmissionId: CursorToIDs!
 ) {
   report (
+    organizationId: $organizationId
     reportSubmissionId: $reportSubmissionId
   ) {
     ...reportFragment

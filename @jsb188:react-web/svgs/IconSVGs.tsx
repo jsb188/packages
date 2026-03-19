@@ -1028,16 +1028,6 @@ export const CropInfoBiotech1 = <svg xmlns="http://www.w3.org/2000/svg" classNam
 <path d="M18.683 20.738a11 11 0 0 1 -2.413 1.4" />
 </svg>
 
-export const Crown = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-crown" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4z" stroke="currentColor" />
-</svg>;
-
-export const CrownFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-crown-filled" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4z" stroke="none" fill="currentColor" />
-</svg>;
-
 export const DatabaseWarningColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-database-warning-color">
 <path fill="#b2b2b2" d="M0.5 4.5v13c0 2.21 4.254 4 9.5 4s9.5 -1.79 9.5 -4v-13H0.5Z" strokeWidth="1"/>
 <path fill="#e3e3e3" d="M10 4.5H0.5v13c0 2.21 4.254 4 9.5 4v-17Z" strokeWidth="1"/>

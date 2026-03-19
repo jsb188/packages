@@ -237,6 +237,10 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .gap_3 { gap: 3px; }
 .gap_4 { gap: 4px; }
 .gap_5 { gap: 5px; }
+.gap_6 { gap: 6px; }
+.gap_7 { gap: 7px; }
+.gap_8 { gap: 8px; }
+.gap_9 { gap: 9px; }
 .gap_10 { gap: 10px; }
 .gap_15 { gap: 15px; }
 .gap_20 { gap: 20px; }
@@ -1492,6 +1496,29 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .w_1200 { width: 1200px; }
 
 .min_h_f { min-height: 100%; }
+.min_h_5_pc { min-height: 5%; }
+.min_h_10_pc { min-height: 10%; }
+.min_h_15_pc { min-height: 15%; }
+.min_h_20_pc { min-height: 20%; }
+.min_h_25_pc { min-height: 25%; }
+.min_h_30_pc { min-height: 30%; }
+.min_h_33_pc { min-height: 33.33%; }
+.min_h_35_pc { min-height: 35%; }
+.min_h_40_pc { min-height: 40%; }
+.min_h_45_pc { min-height: 45%; }
+.min_h_50_pc { min-height: 50%; }
+.min_h_55_pc { min-height: 55%; }
+.min_h_60_pc { min-height: 60%; }
+.min_h_65_pc { min-height: 65%; }
+.min_h_66_pc { min-height: 66.66%; }
+.min_h_70_pc { min-height: 70%; }
+.min_h_75_pc { min-height: 75%; }
+.min_h_80_pc { min-height: 80%; }
+.min_h_85_pc { min-height: 85%; }
+.min_h_90_pc { min-height: 90%; }
+.min_h_95_pc { min-height: 95%; }
+.min_h_100_pc { min-height: 100%; }
+
 .min_h_10 { min-height: 10px; }
 .min_h_11 { min-height: 11px; }
 .min_h_12 { min-height: 12px; }
@@ -1551,6 +1578,29 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .min_h_1200 { min-height: 1200px; }
 
 .max_h_f { max-height: 100%; }
+.max_h_5_pc { max-height: 5%; }
+.max_h_10_pc { max-height: 10%; }
+.max_h_15_pc { max-height: 15%; }
+.max_h_20_pc { max-height: 20%; }
+.max_h_25_pc { max-height: 25%; }
+.max_h_30_pc { max-height: 30%; }
+.max_h_33_pc { max-height: 33.33%; }
+.max_h_35_pc { max-height: 35%; }
+.max_h_40_pc { max-height: 40%; }
+.max_h_45_pc { max-height: 45%; }
+.max_h_50_pc { max-height: 50%; }
+.max_h_55_pc { max-height: 55%; }
+.max_h_60_pc { max-height: 60%; }
+.max_h_65_pc { max-height: 65%; }
+.max_h_66_pc { max-height: 66.66%; }
+.max_h_70_pc { max-height: 70%; }
+.max_h_75_pc { max-height: 75%; }
+.max_h_80_pc { max-height: 80%; }
+.max_h_85_pc { max-height: 85%; }
+.max_h_90_pc { max-height: 90%; }
+.max_h_95_pc { max-height: 95%; }
+.max_h_100_pc { max-height: 100%; }
+
 .max_h_10 { max-height: 10px; }
 .max_h_11 { max-height: 11px; }
 .max_h_12 { max-height: 12px; }
@@ -1610,6 +1660,29 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .max_h_1200 { max-height: 1200px; }
 
 .min_w_f { min-width: 100%; }
+.min_w_5_pc { min-width: 5%; }
+.min_w_10_pc { min-width: 10%; }
+.min_w_15_pc { min-width: 15%; }
+.min_w_20_pc { min-width: 20%; }
+.min_w_25_pc { min-width: 25%; }
+.min_w_30_pc { min-width: 30%; }
+.min_w_33_pc { min-width: 33.33%; }
+.min_w_35_pc { min-width: 35%; }
+.min_w_40_pc { min-width: 40%; }
+.min_w_45_pc { min-width: 45%; }
+.min_w_50_pc { min-width: 50%; }
+.min_w_55_pc { min-width: 55%; }
+.min_w_60_pc { min-width: 60%; }
+.min_w_65_pc { min-width: 65%; }
+.min_w_66_pc { min-width: 66.66%; }
+.min_w_70_pc { min-width: 70%; }
+.min_w_75_pc { min-width: 75%; }
+.min_w_80_pc { min-width: 80%; }
+.min_w_85_pc { min-width: 85%; }
+.min_w_90_pc { min-width: 90%; }
+.min_w_95_pc { min-width: 95%; }
+.min_w_100_pc { min-width: 100%; }
+
 .min_w_10 { min-width: 10px; }
 .min_w_11 { min-width: 11px; }
 .min_w_12 { min-width: 12px; }
@@ -1664,6 +1737,29 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .min_w_1200 { min-width: 1200px; }
 
 .max_w_f { max-width: 100%; }
+.max_w_5_pc { max-width: 5%; }
+.max_w_10_pc { max-width: 10%; }
+.max_w_15_pc { max-width: 15%; }
+.max_w_20_pc { max-width: 20%; }
+.max_w_25_pc { max-width: 25%; }
+.max_w_30_pc { max-width: 30%; }
+.max_w_33_pc { max-width: 33.33%; }
+.max_w_35_pc { max-width: 35%; }
+.max_w_40_pc { max-width: 40%; }
+.max_w_45_pc { max-width: 45%; }
+.max_w_50_pc { max-width: 50%; }
+.max_w_55_pc { max-width: 55%; }
+.max_w_60_pc { max-width: 60%; }
+.max_w_65_pc { max-width: 65%; }
+.max_w_66_pc { max-width: 66.66%; }
+.max_w_70_pc { max-width: 70%; }
+.max_w_75_pc { max-width: 75%; }
+.max_w_80_pc { max-width: 80%; }
+.max_w_85_pc { max-width: 85%; }
+.max_w_90_pc { max-width: 90%; }
+.max_w_95_pc { max-width: 95%; }
+.max_w_100_pc { max-width: 100%; }
+
 .max_w_10 { max-width: 10px; }
 .max_w_11 { max-width: 11px; }
 .max_w_12 { max-width: 12px; }

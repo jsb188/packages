@@ -67,22 +67,20 @@ export function AppLayout(p: ReactDivElement & {
           key={scrollResetKey}
           // ref={contentAreaRef}
           id={DOM_IDS.mainBodyScrollArea}
-          className={cn('app_scr h_f rel', contentFlexClassName ?? 'v_top')}
+          className={cn('app_scr h_f rel', AsideComponent ? 'w_app_side bd_r_1 bd_lt' : '', contentFlexClassName ?? 'v_top')}
         >
           {/* <div className='pattern_grid_fade_down alt_bf abs_t h_450 -z5' /> */}
           {AsideComponent
-          ? <div className='cw lg pr_md h_f'>
-            <div className='w_app_side h_top h_f'>
-              <div className='f max_w_950 cw h_f'>
-                {children}
-              </div>
+          ? <div className='cw lg h_f'>
+            <div className='f max_w_950 cw h_f'>
+              {children}
             </div>
           </div>
           : children}
         </main>
 
         {AsideComponent &&
-        <aside className='app_aside z3 y_scr_hidden'>
+        <aside className='app_aside h_f bg_fade z3 y_scr_hidden'>
           {AsideComponent}
         </aside>}
 
@@ -576,7 +574,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
     }
 
     if (titleIconName === 'alert-circle' && /\baccess\b/.test(message)) {
-      // titleIconName = 'lock-circle';
+      titleIconName = 'lock-circle';
     }
   }
 
@@ -751,21 +749,23 @@ FloatingMessage.displayName = 'FloatingMessage';
 export const AsideNavList = memo((p: AsideNavProps) => {
   const { pathname, autoSelectFirstItem, addPageNumbers, addEllipsis, title, isScrollIndicator, viewportAnchor, nullText, navList, onClickItem } = p;
 
-  return <nav className='my_lg ft_sm lh_1'>
+  return <nav className='pb_10 mx_5 my_25 ft_sm bd_1 bd_lt bg r_sm'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
 
-    {(title || title === undefined) &&
-    <p className='ft_semibold cl_md pl_40 pt_df pb_xs'>
-      {title ?? i18n.t('form.table_of_contents')}
-    </p>}
+    {(title || title === undefined) && <>
+      <p className='ft_medium cl_bd pt_15 pb_4 px_df'>
+        {title ?? i18n.t('form.table_of_contents')}
+      </p>
+      <div className='h_10 pattern_texture texture_bf rel mb_8' />
+    </>}
 
     {navList?.map((navItem, i) => {
       const { label, text, to, anchor, rightIconName, rightIconClassName, rightIconClassNameSelected } = navItem;
-      const pageNumber = addPageNumbers ? i + 1 : null;
       const hasLabel = !!label || label === '';
       const textClassName = cn(!text ? 'cl_lt' : hasLabel ? 'cl_df' : '', addEllipsis ? 'ellip' : undefined);
+      // const pageNumber = addPageNumbers ? i + 1 : null;
 
       let selected: boolean;
       if (isScrollIndicator) {
@@ -777,13 +777,13 @@ export const AsideNavList = memo((p: AsideNavProps) => {
       return <SmartLink
         key={i}
         // className={cn('bl mb_df h_left', selected ? 'cl_df' : 'cl_lt')}
-        className={cn('bl py_xs h_left', selected ? 'cl_df' : 'cl_md')}
+        className={cn('bl px_df py_4 h_left', selected ? 'cl_df' : 'cl_bd')}
         to={to}
         onClick={onClickItem ? () => onClickItem(navItem) : undefined}
         buttonElement='div'
         role='button'
       >
-        <div className={cn('rel w_30 h_2 mt_6 mr_10 f_shrink trans_color spd_2', selected ? 'bg_primary cl_primary' : 'bg_active')}>
+        {/* <div className={cn('rel w_30 h_2 mt_6 mr_10 f_shrink trans_color spd_2', selected ? 'bg_primary cl_primary' : 'bg_active')}>
           {pageNumber &&
           <span
             className='ft_semibold ft_tn bg a_r abs_r -mt_5'
@@ -791,7 +791,7 @@ export const AsideNavList = memo((p: AsideNavProps) => {
           >
             {String(pageNumber).padStart(2, '0')}
           </span>}
-        </div>
+        </div> */}
         {rightIconName
         ? <div className='h_spread f pr_20'>
           {hasLabel &&
@@ -890,12 +890,12 @@ export function AsideNav(p: AsideNavProps) {
 
 export function AsideNavMock() {
 
-  return <nav className='my_lg ft_sm lh_1'>
+  return <nav className='pb_10 mx_5 my_25 ft_sm bd_1 bd_lt bg r_sm'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
 
-    <p className='ft_semibold cl_md pl_40 pt_df pb_xs'>
+    <p className='ft_semibold cl_md px_df pt_df pb_xs'>
       <span className='mock active'>
         .... .... .... .... ... ...
       </span>
@@ -904,9 +904,8 @@ export function AsideNavMock() {
       return <span
         // @ts-ignore -- this is just a mock component, so we don't care about the missing "to" prop
         key={i}
-        className={cn('bl py_xs h_left cl_lt')}
+        className={cn('bl px_df py_xs h_left cl_lt')}
       >
-        <div className={cn('w_30 h_2 mt_6 mr_10 f_shrink bg_active')} />
         <span className='mock alt h_20 -mt_3'>
           {i % 2 ? '.... .... .... ....' : '.... .... .... .... .... .... ....'}
         </span>

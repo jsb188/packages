@@ -12,6 +12,7 @@ export default {
 		// Report
 		collected_total_ct_evidences: 'Collected a total of %{smart_count} evidence.||||Collected a total of %{smart_count} evidences.',
     reporting_year: 'Reporting year',
+    not_answered_msg: 'This question hasn\'t been answered yet.',
 
 		// Content names
 		view_document: 'View document',

@@ -1137,6 +1137,9 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 /* This shadow drops downward, with a top down perspective */
 .shadow_bg_drop_lg, .shadow_bg_drop_lg_hv:hover { box-shadow: 0 20px 40px rgb(var(--color-bg)); }
 
+/* Shadow - colored lines (use this to immitate a "highlighted border" effect */
+.shadow_primary { box-shadow: 0 0 0 1px rgb(var(--color-primary)); }
+
 /* Transitions */
 
 .trans { transition: all .25s ease-in-out; }

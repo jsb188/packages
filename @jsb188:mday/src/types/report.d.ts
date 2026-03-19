@@ -81,6 +81,7 @@ export interface ReportFieldsColumn {
 	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key?: string; // Key is used to map column to answers
 	className?: string;
+	iconName?: string;
 	labelClassName?: string;
 	label?: string; // Typically, this is the "question" the AI Agent/human must answer
 	text?: string; // This the answer provided by the AI Agent/human

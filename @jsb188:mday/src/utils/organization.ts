@@ -23,6 +23,8 @@ type OperationPermissionsMap = Record<string, OperationPermissionTuple>;
 export const OPERATION_PERMISSIONS = {
 	org_sites_update: ['orgManagement', 'WRITE', 'You do not have permission to update organization sites.'],
   org_management: ['orgManagement', 'WRITE', 'You do not have permission to manage this organization\'s data.'],
+  general_write: ['viewData', 'WRITE', 'You do not have permission to write data in this organization.'],
+  general_read: ['viewData', 'READ', 'You do not have permission to view this organization\'s data.'],
 } as const satisfies OperationPermissionsMap;
 
 export type OperationName = keyof typeof OPERATION_PERMISSIONS;
@@ -115,7 +117,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 				orgManagement: acl.orgManagement || 'NONE',
 				products: acl.products || 'READ', // products = reports
 				settings: acl.settings || 'NONE',
-				viewData: acl.viewData || 'NONE',
+				viewData: acl.viewData || 'READ',
 			};
 		case 'MEMBER':
 		default:
@@ -132,7 +134,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 		orgManagement: acl.orgManagement || 'READ',
 		products: acl.products || 'READ', // products = reports
 		settings: acl.settings || 'READ',
-		viewData: acl.viewData || 'NONE', // This blocks access from users being able to read other people's logs
+		viewData: acl.viewData || 'WRITE',
 	};
 }
 

@@ -136,14 +136,16 @@ body.p_auth {
 /* Content with right <aside /> sticky sidebar */
 
 .w_app_side {
-  padding-right: calc(var(--aside-wt) + 30px);
+  margin-right: calc(var(--aside-wt));
 }
 
 .app_aside {
   position: absolute;
   width: var(--aside-wt);
-  max-height: calc(100vh - var(--toolbar-ht));
-  top: var(--toolbar-ht); right: 0;
+  max-height: 100vh;
+  top: 0; right: 0;
+  padding-top: var(--toolbar-ht);
+  /* top: var(--toolbar-ht); right: 0; */
 
   /* position: fixed;
   width: var(--aside-wt);

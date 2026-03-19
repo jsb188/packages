@@ -282,6 +282,7 @@ export default {
     settings: 'Settings',
     note: 'Note',
     notes: 'Notes',
+    answer: 'Answer',
     details: 'Details',
     directory: 'Directory',
     temperature: 'Temperature',
