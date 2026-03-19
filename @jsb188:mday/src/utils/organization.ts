@@ -23,6 +23,7 @@ type OperationPermissionsMap = Record<string, OperationPermissionTuple>;
 export const OPERATION_PERMISSIONS = {
 	org_sites_update: ['orgManagement', 'WRITE', 'You do not have permission to update organization sites.'],
   org_management: ['orgManagement', 'WRITE', 'You do not have permission to manage this organization\'s data.'],
+  org_directory: ['orgManagement', 'READ', 'You do not have permission to manage this organization\'s directory book.'],
   general_write: ['viewData', 'WRITE', 'You do not have permission to write data in this organization.'],
   general_read: ['viewData', 'READ', 'You do not have permission to view this organization\'s data.'],
 } as const satisfies OperationPermissionsMap;
@@ -131,7 +132,7 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 		integrations: acl.integrations || 'NONE',
 		logs: acl.logs || 'WRITE', // "READ" for logs does nothing
 		members: acl.members || 'READ',
-		orgManagement: acl.orgManagement || 'READ',
+		orgManagement: acl.orgManagement || 'READ', // "READ" allows members to update directory; being a member of any kind allows generic read access
 		products: acl.products || 'READ', // products = reports
 		settings: acl.settings || 'READ',
 		viewData: acl.viewData || 'WRITE',
