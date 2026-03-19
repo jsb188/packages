@@ -754,12 +754,10 @@ export const AsideNavList = memo((p: AsideNavProps) => {
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
 
-    {(title || title === undefined) && <>
-      <p className='ft_medium cl_bd pt_15 pb_4 px_df'>
-        {title ?? i18n.t('form.table_of_contents')}
-      </p>
-      <div className='h_10 pattern_texture texture_bf rel mb_8' />
-    </>}
+    {(title || title === undefined) &&
+    <p className='ft_medium cl_bd pt_15 pb_4 px_df bd_b_1 bd_lt pb_13 mb_15'>
+      {title ?? i18n.t('form.table_of_contents')}
+    </p>}
 
     {navList?.map((navItem, i) => {
       const { label, text, to, anchor, rightIconName, rightIconClassName, rightIconClassNameSelected } = navItem;

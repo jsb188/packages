@@ -108,7 +108,6 @@ interface LogMetadataBase {
   // Below are DEPRECATED; and safe to delete when old AI Tasks feature is removed
   recurFromLogId?: number;
   recurredCount?: number;
-  // summary?: string; // DEPRECATED - used only in old ai work flows - safe to remove
   location?: string;
   fieldLocation?: string;
   tax?: number; // Need to be removed and replaced by values[#].tax -- but this will require some logic changes
@@ -209,7 +208,6 @@ export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
 export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
   __typename: 'LogFarmersMarket';
 
-  childOrganizationName: string | null;
   item: string | null;
   otherParty: string | null;
   referenceNumber: string | null;

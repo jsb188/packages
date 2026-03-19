@@ -1,5 +1,4 @@
 import type { ReportsFilterArgs, ReportsSortEnum } from '@jsb188/mday/types/report.d.ts';
-import { useCurrentAccount } from '@jsb188/react/states';
 import { useQuery, useReactiveFragment } from '../client';
 import { reportGroupsQry, reportQry, reportsQry, reportSubmissionsQry } from '../gql/queries/reportQueries';
 import type { UseQueryParams } from '../types';
@@ -64,17 +63,17 @@ export function useReports(
  */
 
 export function useReport(
+  organizationId: string | null,
   reportSubmissionId: string | null,
   params: UseQueryParams = {},
 ) {
-  const { primaryOrganizationId } = useCurrentAccount();
   const { skip, ...restParams } = params;
   const { data, ...rest } = useQuery(reportQry, {
     variables: {
-      organizationId: primaryOrganizationId,
+      organizationId,
       reportSubmissionId,
     },
-    skip: skip || !primaryOrganizationId || !reportSubmissionId,
+    skip: skip || !organizationId || !reportSubmissionId,
     ...restParams,
   });
 

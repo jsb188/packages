@@ -39,7 +39,6 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   }
   tax
 
-  summary
   notes
 }`;
 
@@ -62,7 +61,6 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
   tax
   voided
 
-  summary
   notes
 }`;
 
@@ -78,7 +76,6 @@ export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on Lo
   item
   location
 
-  summary
   notes
 }`;
 
@@ -110,6 +107,5 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
   location
   fieldLocation
 
-  summary
   notes
 }`;
