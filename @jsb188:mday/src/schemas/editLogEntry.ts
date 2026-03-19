@@ -54,7 +54,6 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         concentration: details.concentration,
         concentrationUnit: details.concentrationUnit,
         location: details.location,
-        fieldLocation: details.fieldLocation,
         referenceNumber: details.referenceNumber,
         otherParty: details.otherParty,
         values: details.values,
@@ -96,7 +95,6 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         quantity: details.quantity,
         unit: details.unit,
         location: details.location,
-        fieldLocation: details.fieldLocation,
         price: details.price,
         tax: details.tax,
         notes: details.notes,
@@ -176,7 +174,6 @@ export type ValidMetadataFieldName =
   | 'price'
   | 'crop'
   | 'purchased_item'
-  | 'fieldLocation'
   | 'location_water'
   | 'location_arable'
 
@@ -319,16 +316,6 @@ function makeMetadataSchema(
             name: `${namespace}.location`,
             maxLength: 100,
             placeholder: isCreateNew ? i18n.t('log.location_livestock_ph') : '',
-          }
-        };
-      case 'fieldLocation':
-        return {
-          __type: 'input',
-          label: i18n.t('log.fieldLocation'),
-          item: {
-            name: `${namespace}.fieldLocation`,
-            maxLength: 100,
-            placeholder: isCreateNew ? i18n.t('log.fieldLocation_ph') : '',
           }
         };
       case 'price':
@@ -595,7 +582,6 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         isSaleOrPurchase ? 'invoiceItems' : null,
         isSaleOrPurchase ? 'tax' : null,
         isSaleOrPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
-        isSaleOrPurchase ? null : 'fieldLocation',
       ];
     } break;
     case 'LogFarmersMarket': {
@@ -615,7 +601,6 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         'otherParty',
         'crop',
         'location_arable',
-        'fieldLocation',
       ];
     } break;
     case 'LogLivestock': {
@@ -637,7 +622,6 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         isLivestock || isSupplyPurchase ? null : 'unit',
         !isSupplyPurchase ? 'location_livestock' : null,
         isLivestock ? 'price' : null,
-        isLivestock ? null : 'fieldLocation',
       ];
     } break;
     default:

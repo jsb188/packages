@@ -239,7 +239,7 @@ export function getLogEntryTitle(d: any, isServer?: boolean, logType_?: string, 
 		case 'LogGrowerNetwork':
 			return textWithBrackets(
 				ucFirst(md.item),
-				joinReadable([md.location, md.fieldLocation], ', ', ', '),
+				md.location,
 				[' - ', ''],
 			);
 		case 'LIVESTOCK':

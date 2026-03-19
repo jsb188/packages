@@ -109,7 +109,6 @@ interface LogMetadataBase {
   recurFromLogId?: number;
   recurredCount?: number;
   location?: string;
-  fieldLocation?: string;
   tax?: number; // Need to be removed and replaced by values[#].tax -- but this will require some logic changes
 }
 
@@ -202,7 +201,6 @@ export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
 
   // Soon to be deprecated fields
   location: string | null;
-  fieldLocation: string | null;
 }
 
 export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
@@ -241,7 +239,6 @@ export interface LogLivestockDetailsGQL extends LogDetailsBaseGQL {
   unit: string | null;
   price: number | null;
   location: string | null;
-  fieldLocation: string | null;
 }
 
 /**

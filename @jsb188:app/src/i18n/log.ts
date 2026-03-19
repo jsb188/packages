@@ -19,8 +19,6 @@ export default {
 		livestockIdentifier: 'Livestock ID',
 		livestockIdentifiers: 'Livestock IDs',
 		livestock_ph: 'Cattle, goat, chicken, etc.',
-		fieldLocation: 'Field',
-		fieldLocation_ph: 'Field A, Section 1, etc.',
 		purchases: 'Purchases',
 		supply_purchases: 'Supply purchases',
 		note_from_ai: 'Note from AI',
