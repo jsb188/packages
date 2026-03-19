@@ -557,7 +557,7 @@ export function Pill(p: Partial<{
   let size: ButtonSize | null, presetClassNames: string | undefined, colorClassName: string | undefined;
   switch (preset) {
     case 'outline_lg':
-      presetClassNames = 'bd_main_bd bg_alt_hv bd_10 ft_semibold';
+      presetClassNames = 'bd_main_bd bg_alt_hv bd_10 ft_semibold ls_5';
       size = 'lg';
       break;
     default:
