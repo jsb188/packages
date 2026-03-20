@@ -29,6 +29,7 @@ type ValidRoutePath =
   | '/app/c/'
   | '/app/workflows'
   | '/app/logs'
+  | '/app/greenhouse'
   | '/app/seeding'
   | '/app/transplanting'
   | '/app/field-work'
@@ -108,6 +109,15 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
 
   // Arable
+
+  '/app/greenhouse': {
+    to: '/app/greenhouse',
+    text: 'log.greenhouse',
+    iconName: COMMON_ICON_NAMES.GREENHOUSE_SEEDING,
+
+    allowedOperations: ['ARABLE'],
+    requiredFeature: F.normal_logging,
+  },
 
   '/app/seeding': {
     to: '/app/seeding',
@@ -501,6 +511,7 @@ export function getNavigationList(
         {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
+            ROUTES_DICT['/app/greenhouse'],
             ROUTES_DICT['/app/seeding'],
             ROUTES_DICT['/app/transplanting'],
             ROUTES_DICT['/app/field-work'],

@@ -145,6 +145,9 @@ export interface LogDetailsBase {
     id: number | bigint;
     name: string;
   };
+  location?: {
+    name: string;
+  } | null;
   notes: string | null;
   translation: string | null;
 }
@@ -198,9 +201,6 @@ export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
   values: LabelAndValue[] | null;
   tax: number | null;
   voided: boolean | null;
-
-  // Soon to be deprecated fields
-  location: string | null;
 }
 
 export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
@@ -219,7 +219,6 @@ export interface LogGrowerNetworkDetailsGQL extends LogDetailsBaseGQL {
 
   otherParty: string | null;
   item: string | null;
-  location: string | null;
 }
 
 export interface LogLivestockDetailsGQL extends LogDetailsBaseGQL {
@@ -238,7 +237,6 @@ export interface LogLivestockDetailsGQL extends LogDetailsBaseGQL {
   quantity: number | null;
   unit: string | null;
   price: number | null;
-  location: string | null;
 }
 
 /**
@@ -266,6 +264,7 @@ export interface LogEntryGQL {
   reportId: string | null;
   reportSubmissionId: string | null;
   siteId: string | null;
+  location: string | null;
   details: LogMetadataGQL;
   status: LogActionStatusEnum | null;
   flagColor?: string | null;
@@ -300,6 +299,9 @@ export interface LogEntryData {
   reportId?: number | bigint | null;
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
+  location?: {
+    name: string;
+  } | null;
   status: LogActionStatusEnum | null;
   distance?: number; // For vector search
   details:

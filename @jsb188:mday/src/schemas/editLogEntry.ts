@@ -53,7 +53,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         unit: details.unit,
         concentration: details.concentration,
         concentrationUnit: details.concentrationUnit,
-        location: details.location,
+        location: logEntry.location,
         referenceNumber: details.referenceNumber,
         otherParty: details.otherParty,
         values: details.values,
@@ -77,7 +77,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         childOrgId: logEntry.childOrgId,
         otherParty: details.otherParty,
         item: details.item,
-        location: details.location,
+        location: logEntry.location,
         notes: details.notes,
       };
     } break;
@@ -94,7 +94,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         item: details.item,
         quantity: details.quantity,
         unit: details.unit,
-        location: details.location,
+        location: logEntry.location,
         price: details.price,
         tax: details.tax,
         notes: details.notes,

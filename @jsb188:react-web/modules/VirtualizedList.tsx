@@ -124,6 +124,7 @@ interface VirtualizedListProps extends ReactDivElement {
   // Fetch props
   limit: number;
   refreshKey?: string | number; // Use {updatedCount} and/or loading state and/or variables key from useQuery() hook to keep startOfListItems[] up to date
+  resetKey?: string | number; // Use this to fully reset the current list window when the backing dataset changes
   maxFetchLimit?: number; // Max number of items user can load by scrolling
 
   // Callbacks & handler props
@@ -500,13 +501,37 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
 
 function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzState: VirtualizedState) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
-  const { refreshKey, limit, fetchMore, openModalPopUp } = p;
+  const { refreshKey, resetKey, limit, fetchMore, openModalPopUp } = p;
   const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
   const listRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [startOfListItems, setStartOfListItems] = useState<any[] | undefined | null>(p.startOfListItems || null);
   const eolLen = startOfListItems?.length;
+
+  useLayoutEffect(() => {
+    if (typeof resetKey === 'undefined') {
+      return;
+    }
+
+    const nextStartOfListItems = p.startOfListItems || null;
+    setStartOfListItems(nextStartOfListItems);
+
+    referenceObj.current.itemIds = null;
+    referenceObj.current.startOfListItemId = null;
+    referenceObj.current.endOfListItemId = undefined;
+    referenceObj.current.lastItemIdOnMount = null;
+    referenceObj.current.topCursor = null;
+    referenceObj.current.bottomCursor = null;
+
+    if (nextStartOfListItems?.length) {
+      const getItemId = p.getItemId || ((item: any) => item.id);
+      referenceObj.current.itemIds = mergeItemIds(referenceObj.current, nextStartOfListItems, false, true, p);
+      referenceObj.current.lastItemIdOnMount = getItemId(nextStartOfListItems[nextStartOfListItems.length - 1]);
+    }
+
+    setCursorPosition( getCursorPosition(null, true, listRef.current, p) );
+  }, [resetKey]);
 
   useEffect(() => {
     if (!startOfListItems && p.startOfListItems) {

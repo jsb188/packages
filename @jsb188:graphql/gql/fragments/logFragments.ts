@@ -7,6 +7,7 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   reportId
   reportSubmissionId
   siteId
+  location
   cursor
   status
   flagColor
@@ -27,7 +28,6 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   item
   quantity
   unit
-  location
 
   otherParty
   referenceNumber
@@ -73,7 +73,6 @@ export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on Lo
   otherParty
 
   item
-  location
 
   notes
 }`;
@@ -103,7 +102,6 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
 	quantity
 	unit
   price
-  location
 
   notes
 }`;

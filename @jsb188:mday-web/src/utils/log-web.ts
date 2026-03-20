@@ -38,6 +38,7 @@ const PRODUCE_WORDS = [
 	'radish',
 	'bean',
 	'stringbean',
+  'oliv',
 	'stinging kettle',
 	'radicchio',
 	'braci ardenti',
@@ -103,6 +104,8 @@ const PRODUCE_WORDS = [
 	'marciano',
 	'spretnak',
 	'newham',
+  'bokchoy',
+  'bok choy',
 	'red butter',
 	'frisee',
 	'cresta',
@@ -198,6 +201,8 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'gems':
 				case 'spretnak':
 				case 'newham':
+				case 'bokchoy':
+				case 'bok choy':
 					return 'vegetable-lettuce-top';
 				case 'lettuce':
 				case 'red oak':
@@ -356,6 +361,8 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 				case 'shallot':
 				case 'matador':
 					return 'vegetable-onion';
+        case 'oliv':
+          return 'vegetable-black-bean';
 				case 'bean':
 				case 'stringbean':
 					return 'vegetable-stringbean-1';
