@@ -30,7 +30,7 @@ export default {
 		market: 'Market',
 		marketCredits: 'Market credits',
 		marketCredits_ph: '$25 MC, $5 EBT, etc.',
-		greenhouse: 'Greenhouse seeding',
+		greenhouse_seeding: 'Greenhouse seeding',
 		seeding: 'Seeding',
 		transplanting: 'Transplanting',
 		field_work: 'Field work',

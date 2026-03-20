@@ -112,7 +112,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
   '/app/greenhouse': {
     to: '/app/greenhouse',
-    text: 'log.greenhouse',
+    text: 'log.greenhouse_seeding',
     iconName: COMMON_ICON_NAMES.GREENHOUSE_SEEDING,
 
     allowedOperations: ['ARABLE'],
