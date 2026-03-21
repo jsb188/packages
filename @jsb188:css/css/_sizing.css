@@ -88,13 +88,11 @@ h1, h2, h3, h4, h5, h6 {
 h1, h2, h3, h4, h5, h6,
 h1.ft_semibold, h2.ft_semibold, h3.ft_semibold, h4.ft_semibold, h5.ft_semibold, h6.ft_semibold {
   letter-spacing: -.04em;
-  text-indent: -.04em;
 }
 
 h1.ft_medium, h2.ft_medium, h3.ft_medium, h4.ft_medium, h5.ft_medium, h6.ft_medium,
 h1.ft_normal, h2.ft_normal, h3.ft_normal, h4.ft_normal, h5.ft_normal, h6.ft_normal {
   letter-spacing: -.0375em;
-  text-indent: -.0375em;
 }
 
 h1, h2, h3, h4, h5, h6, strong, .ft_semibold {
@@ -108,7 +106,6 @@ h1, h2, h3, h4, h5, h6, strong, .ft_semibold {
 
 strong, .ft_bold, .ft_semibold {
   letter-spacing: -.0075em;
-  text-indent: -.0075em;
 }
 
 .ft_medium {
@@ -2070,11 +2067,11 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .lh_4 { line-height: 1.5; }
 .lh_5 { line-height: 1.7; }
 
-.ls_1 { letter-spacing: -.08em; text-indent: -.08em; }
-.ls_2 { letter-spacing: -.0425em; text-indent: -.0425em; } /* Use this when heading is .ft_normal */
-.ls_3 { letter-spacing: -.03em; text-indent: -.03em; }
-.ls_4 { letter-spacing: -.0175em; text-indent: -.0175em; }
-.ls_5 { letter-spacing: -.01em; text-indent: -.01em; }
+.ls_1 { letter-spacing: -.08em; }
+.ls_2 { letter-spacing: -.0425em; } /* Use this when heading is .ft_normal */
+.ls_3 { letter-spacing: -.03em; }
+.ls_4 { letter-spacing: -.0175em; }
+.ls_5 { letter-spacing: -.01em; }
 
 /* Grid */
 

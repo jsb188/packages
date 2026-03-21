@@ -35,6 +35,7 @@ type MarkdownPreset = keyof typeof PRESET_REGEX;
 const TAG_REGEX = /{{(.*?)}}|%{(.*?)}/gmi;
 const HIGHLIGHT_TAG_REGEX = /^\[hl\]([\s\S]*?)\[\/hl\]$/i;
 const SPAN_MARKUP_REGEX = /^\[(.*?)##(.*?)\]$/;
+const INLINE_MARKDOWN_TRIGGER_REGEX = /(\[hl\][\s\S]*?\[\/hl\]|\*\*[^*\n]+\*\*|\*[^*\n]+\*|\b_[^_\n]+_\b|:([^:\n ])+:|\[(.*?)##(.*?)\])/;
 const HEADING_DOM_MAP = {
   '#': 'h1',
   '##': 'h2',
@@ -309,15 +310,19 @@ const getListEl = (
   MappedCodeComponent?: RenderMappedCodeFn,
   as?: React.ElementType,
 ): any => {
+  const listText = matchedStr.substring(2);
+
   return [
-    parseMarkdownParagraph(
-      matchedStr.substring(2),
-      preset,
-      fullText,
-      codeUriMap,
-      MappedCodeComponent,
-      as,
-    ),
+    INLINE_MARKDOWN_TRIGGER_REGEX.test(listText)
+      ? parseMarkdownParagraph(
+        listText,
+        preset,
+        fullText,
+        codeUriMap,
+        MappedCodeComponent,
+        as,
+      )
+      : listText,
     'ul_li',
     'span',
     'span',
