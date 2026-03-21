@@ -2025,8 +2025,8 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .pill_md {
   min-width: 4rem;
   height: 4rem;
-  padding-left: 1.15em;
-  padding-right: 1.15em;
+  padding-left: 1.05em;
+  padding-right: 1.05em;
   font-size: var(--text-medium);
 }
 
@@ -2034,10 +2034,10 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
   position: relative;
   min-width: 5rem;
   height: 5rem;
-  padding-left: 1.15em;
-  padding-right: 1.15em;
+  padding-left: 1.05em;
+  padding-right: 1.05em;
   padding-bottom: 2px;
-  font-size: var(--text-xxlarge);
+  font-size: var(--text-xlarge);
 }
 
 /* .pill_lg:before {

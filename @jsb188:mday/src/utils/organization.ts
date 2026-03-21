@@ -21,9 +21,9 @@ type OperationPermissionTuple = readonly [PermissionCheckFor, ACLPermissionEnum,
 type OperationPermissionsMap = Record<string, OperationPermissionTuple>;
 
 export const OPERATION_PERMISSIONS = {
-	org_sites_update: ['orgManagement', 'WRITE', 'You do not have permission to update organization sites.'],
+	org_sites_update: ['logs', 'WRITE', 'You do not have permission to update organization sites.'],
   org_management: ['orgManagement', 'WRITE', 'You do not have permission to manage this organization\'s data.'],
-  org_directory: ['orgManagement', 'READ', 'You do not have permission to manage this organization\'s directory book.'],
+  org_directory: ['logs', 'WRITE', 'You do not have permission to manage this organization\'s directory book.'],
   general_write: ['viewData', 'WRITE', 'You do not have permission to write data in this organization.'],
   general_read: ['viewData', 'READ', 'You do not have permission to view this organization\'s data.'],
 } as const satisfies OperationPermissionsMap;
@@ -130,9 +130,9 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 		digests: acl.digests || 'NONE', // 2/3 = receive digests, 1 = only see from web app
 		finances: acl.finances || 'NONE',
 		integrations: acl.integrations || 'NONE',
-		logs: acl.logs || 'WRITE', // "READ" for logs does nothing
+		logs: acl.logs || 'WRITE', // "READ" for logs does nothing, also "WRITE" is required for directory/site management
 		members: acl.members || 'READ',
-		orgManagement: acl.orgManagement || 'READ', // "READ" allows members to update directory; being a member of any kind allows generic read access
+		orgManagement: acl.orgManagement || 'READ',
 		products: acl.products || 'READ', // products = reports
 		settings: acl.settings || 'READ',
 		viewData: acl.viewData || 'WRITE',
@@ -156,7 +156,6 @@ export function checkACLPermission(
 	}
 
 	const acl = getDefaultPermissionsByRole(orgRel);
-
 	const requiredInt = PERMISSION_TO_INT[requiredPermission] || 4; // If invalid, it will always return false
 	const permission = acl[check] as ACLPermissionCheck;
 	const acccountPermissionInt = PERMISSION_TO_INT[permission] || 0; // If invalid, it will always return false

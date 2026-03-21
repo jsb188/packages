@@ -96,6 +96,8 @@ export default {
     20051: 'We couldn\'t find an account associated with that phone number. (%{value})',
     20052: 'You do not have access to this organization\'s data.',
     20053: 'You haven\'t verified your account yet.',
+    '20054_icon': 'lock-circle',
+    '20054_title': 'Invite required',
     20054: 'You need an invitation to create an account.',
     20055: 'You are sending too many verification codes. Please slow down.',
     20056: 'Account associated with "%{value}" has been banned. If this is an error, please send us an email.',

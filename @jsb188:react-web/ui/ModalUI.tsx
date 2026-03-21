@@ -85,7 +85,7 @@ export const ModalContentContainer = forwardRef<HTMLDivElement, ModalContentCont
   return (
     <div
       ref={ref}
-      className={cn('mw_content r_df', addYOverflow ? 'scr_area' : '', addFooterPadding ? 'w_pad' : '', className, notReady ? 'v_center' : '')}
+      className={cn('mw_content r_df', addFooterPadding ? 'w_pad' : '', className, notReady ? 'v_center' : '')}
       {...other}
     >
       {notReady ? <BigLoading color='alt' /> : other.children}
@@ -426,7 +426,7 @@ export function AlertPopUp(p: AlertDataProps) {
   return (
     <>
       {iconName !== null
-      ? <div className={cn('pt_lg pb_xs ic_xxxl', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
+      ? <div className={cn('pt_lg pb_xs ic_xxxl ft_1', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
         <Icon
           tryColor
           name={iconName || 'alert-circle'}
@@ -435,7 +435,7 @@ export function AlertPopUp(p: AlertDataProps) {
       : <div className='h_40' />}
 
       <div className='w_f'>
-        <h3 className='ft_sm a_c px_25'>
+        <h3 className='ft_medium ft_sm a_c px_25'>
           {title}
         </h3>
         <div className='px_30'>

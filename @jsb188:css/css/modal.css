@@ -4,6 +4,7 @@
 .mw_content {
   flex: 1;
   height: 100%;
+  overflow-y: auto;
 }
 
 .mw_content.w_pad {

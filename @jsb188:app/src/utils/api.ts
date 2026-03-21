@@ -28,8 +28,7 @@ export function getAuthToken(): string | null {
  */
 
 function i18nErrCodeExists(errorCode: string): boolean {
-  return !!(i18n.has(`error.${errorCode}`) ||
-    i18n.has(`error.${errorCode}_other`));
+  return i18n.has(`error.${errorCode}`) || i18n.has(`error.${errorCode}_other`);
 }
 
 /**
@@ -51,22 +50,20 @@ export function normalizeServerError(error?: any): ServerErrorObj {
     }
   }
 
-  if (!errorCode) {
-    if (error?.errors?.length) {
-      const loggedError = error.errors.find((gErr: ServerErrorObj) =>
-        gErr.errorCode &&
-        i18nErrCodeExists(gErr.errorCode)
-      );
+  if (!errorCode && error?.errors?.length) {
+    const loggedError = error.errors.find((gErr: ServerErrorObj) =>
+      gErr.errorCode &&
+      i18nErrCodeExists(gErr.errorCode)
+    );
 
-      if (loggedError) {
-        statusCode = loggedError.statusCode;
-        errorCode = loggedError.errorCode;
-        errorValue = loggedError.variableWord;
-      } else {
-        statusCode = error.errors[0].statusCode;
-        errorCode = error.errors[0].errorCode;
-        errorValue = error.errors[0].variableWord;
-      }
+    if (loggedError) {
+      statusCode = loggedError.statusCode;
+      errorCode = loggedError.errorCode;
+      errorValue = loggedError.variableWord;
+    } else {
+      statusCode = error.errors[0].statusCode;
+      errorCode = error.errors[0].errorCode;
+      errorValue = error.errors[0].variableWord;
     }
   }
 
@@ -87,6 +84,10 @@ export function normalizeServerError(error?: any): ServerErrorObj {
   }
 
   const title = i18n.has(`error.${errorCode}_title`) ? i18n.t(`error.${errorCode}_title`) : i18n.t('error.error');
+  if (i18n.has(`error.${errorCode}_icon`)) {
+    iconName = i18n.t(`error.${errorCode}_icon`);
+  }
+
   return {
     statusCode,
     errorCode,

@@ -524,7 +524,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
       containerClassName = 'ic_xxxl';
       titleClassName = 'ft_df';
       messageClassName = 'ft_md';
-      buttonClassName = 'cl_secondary';
+      buttonClassName = 'cl_df';
       // buttonClassName = 'bg_active ft_medium cl_bd';
       buttonPreset = 'outline_lg' as const;
       buttonSize = null;
@@ -586,7 +586,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
           name={titleIconName}
         />
       </span>
-      <h1 className={cn('ft_semibold ls_2 cl_secondary', titleClassName)}>
+      <h1 className={cn('ft_normal ls_2', titleClassName)}>
         {title}
       </h1>
       <Markdown

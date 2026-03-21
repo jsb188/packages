@@ -1961,7 +1961,7 @@ export const Lock = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon
 <path d="M8 11v-4a4 4 0 1 1 8 0v4" stroke="currentColor" />
 </svg>;
 
-export const LockCircle = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-lock-circle">
+export const LockCircleColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-lock-circle">
 <path fill="#66e1ff" d="M12 23.45c6.324 0 11.45 -5.126 11.45 -11.45C23.45 5.676 18.324 0.55 12 0.55 5.677 0.55 0.55 5.676 0.55 12c0 6.324 5.127 11.45 11.45 11.45Z" strokeWidth="1" />
 <path fill="#c2f3ff" d="M3.94 20.134A11.45 11.45 0 1 1 20.061 3.869L3.941 20.134Z" strokeWidth="1" />
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 23.45c6.324 0 11.45 -5.126 11.45 -11.45C23.45 5.676 18.324 0.55 12 0.55 5.677 0.55 0.55 5.676 0.55 12c0 6.324 5.127 11.45 11.45 11.45Z" strokeWidth="1" />
