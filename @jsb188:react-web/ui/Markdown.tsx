@@ -21,9 +21,9 @@ const PRESET_REGEX = {
   // chat: /\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gi,
 
   // article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gmi,
-  article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
+  article: /^#.*|\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
   content_description: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
-  message: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:/gmi,
+  message: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:/gmi,
 
   // NOTE: Next time you do mobile, check if this regex works in mobile
   // I added ":emoji_style:" tags to the regex
@@ -119,11 +119,13 @@ const parseMarkdownParagraph = (
   codeUriMap?: Map<string, string>,
   MappedCodeComponent?: RenderMappedCodeFn,
   as?: React.ElementType,
-) => {
-  const regex = PRESET_REGEX[preset];
-  if (!regex) {
+): any => {
+  const presetRegex = PRESET_REGEX[preset];
+  if (!presetRegex) {
     return text;
   }
+
+  const regex = new RegExp(presetRegex.source, presetRegex.flags);
 
   const arr = [];
   let match;
@@ -141,7 +143,14 @@ const parseMarkdownParagraph = (
       arr.push([str1]);
     }
 
-    arr.push(getMarkdownEl(matchedStr, fullText, codeUriMap, MappedCodeComponent, as));
+    arr.push(getMarkdownEl(
+      matchedStr,
+      preset,
+      fullText,
+      codeUriMap,
+      MappedCodeComponent,
+      as,
+    ));
     strPos = end;
   }
 
@@ -292,9 +301,23 @@ const getHeadingEl = (matchedStr: string) => {
  * Parse list markdown tokens.
  */
 
-const getListEl = (matchedStr: string, as?: React.ElementType) => {
+const getListEl = (
+  matchedStr: string,
+  preset: MarkdownPreset,
+  fullText: string,
+  codeUriMap?: Map<string, string>,
+  MappedCodeComponent?: RenderMappedCodeFn,
+  as?: React.ElementType,
+): any => {
   return [
-    matchedStr.substring(2),
+    parseMarkdownParagraph(
+      matchedStr.substring(2),
+      preset,
+      fullText,
+      codeUriMap,
+      MappedCodeComponent,
+      as,
+    ),
     'ul_li',
     'span',
     'span',
@@ -394,11 +417,12 @@ const getBracketEl = (matchedStr: string) => {
 
 const getMarkdownEl = (
   matchedStr: string,
+  preset: MarkdownPreset,
   fullText: string,
   codeUriMap?: Map<string, string>,
   MappedCodeComponent?: RenderMappedCodeFn,
   as?: React.ElementType,
-) => {
+): any => {
 
   const letter = matchedStr[0];
   switch (letter) {
@@ -411,7 +435,14 @@ const getMarkdownEl = (
     }
     case '-':
     case '•':
-      return getListEl(matchedStr, as);
+      return getListEl(
+        matchedStr,
+        preset,
+        fullText,
+        codeUriMap,
+        MappedCodeComponent,
+        as,
+      );
     case '*':
       return getAsteriskEl(matchedStr);
     case '_': {
@@ -431,6 +462,54 @@ const getMarkdownEl = (
   }
 
   return [matchedStr];
+};
+
+/**
+ * Render parsed markdown fragments.
+ */
+
+const renderMarkdownParts = (
+  mds: any[],
+  noWrap: boolean | undefined,
+  NewLineElement: React.ElementType,
+  isBlockedMD = false,
+) => {
+  const lastMdPos = mds.length - 1;
+
+  return mds.map((md: string[] | React.ReactNode, i: number) => {
+    if (!Array.isArray(md)) {
+      return <Fragment key={i}>
+        {md}
+      </Fragment>;
+    }
+
+    const fragmentContent = lastMdPos === i && typeof md[0]?.trimEnd === 'function'
+      ? md[0].trimEnd()
+      : md[0];
+
+    if (!fragmentContent) {
+      // Do not trim() here; sometimes empty spaces are necessary;
+      // ie. between RP markdowns and %{a|b|c}
+      return null;
+    }
+
+    if (Array.isArray(fragmentContent)) {
+      return <Fragment key={i}>
+        {renderMarkdownParts(fragmentContent, noWrap, NewLineElement)}
+      </Fragment>;
+    }
+
+    return (
+      <MarkdownText
+        key={i}
+        noWrap={noWrap}
+        className={isBlockedMD ? undefined : md[1]}
+        as={md[2] as React.ElementType || NewLineElement}
+      >
+        {fragmentContent}
+      </MarkdownText>
+    );
+  });
 };
 
 /**
@@ -575,7 +654,7 @@ function MarkdownCmp(p: MarkdownProps) {
   } = p;
 
   const Element = as || 'div';
-  const NewLineElement = newLineAs || 'span';
+  const NewLineElement: React.ElementType = newLineAs || 'span';
   const preset = preset_ || 'message';
   const needsTagRegex = TAG_REGEX_PRESETS.includes(preset);
 
@@ -651,7 +730,6 @@ function MarkdownCmp(p: MarkdownProps) {
     // ][];
 
     const isParts = Array.isArray(mds);
-    const lastMdPos = isParts && (mds.length - 1);
     const isBlockedMD = isParts && mds[0][4];
     const Block = ((isParts || isBlockedMD) && mds[0][3]) || Element;
     const isEndOfList = n === endOfListPos;
@@ -668,32 +746,7 @@ function MarkdownCmp(p: MarkdownProps) {
               {mds.trim()}
             </MarkdownText>
           )
-          : mds.map((md: string[] | React.ReactNode, i: number) => {
-            if (!Array.isArray(md)) {
-              return <Fragment key={i}>
-                {md}
-              </Fragment>;
-            }
-
-            const fragmentText = lastMdPos === i && typeof md[0]?.trimEnd === 'function' ? md[0].trimEnd() : md[0];
-            if (!fragmentText) {
-              // Do not trim() here; sometimes empty spaces are necessary;
-              // ie. between RP markdowns and %{a|b|c}
-              return null;
-            }
-
-            return (
-              <MarkdownText
-                key={i}
-                noWrap={noWrap}
-                // doLog={doLog}
-                className={isBlockedMD ? undefined : md[1]}
-                as={md[2] as React.ElementType || NewLineElement}
-              >
-                {fragmentText}
-              </MarkdownText>
-            );
-          })
+          : renderMarkdownParts(mds, noWrap, NewLineElement, isBlockedMD)
         }
 
         {isEndOfList && <>
@@ -735,7 +788,7 @@ type MarkdownProps = Partial<{
   noWrap: boolean;
   preset: MarkdownPreset;
   as: React.ElementType;
-  newLineAs: string;
+  newLineAs: React.ElementType;
   codesMap: [string, string][]; // [code, imageUri]
   MappedCodeComponent: RenderMappedCodeFn;
   LastComponent: React.ReactNode;
