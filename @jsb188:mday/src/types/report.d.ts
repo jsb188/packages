@@ -1,4 +1,4 @@
-import { REPORT_ROW_PRESETS, REPORT_SORT_OPTS, REPORT_STATUS_ENUMS } from '../constants/report.ts';
+import { REPORT_FREQUENCY_ENUMS, REPORT_ROW_PRESETS, REPORT_SORT_OPTS, REPORT_STATUS_ENUMS } from '../constants/report.ts';
 import type { OrganizationSiteData } from './organization.d.ts';
 import type { StorageData, StorageGQL } from './storage.d.ts';
 
@@ -8,6 +8,7 @@ import type { StorageData, StorageGQL } from './storage.d.ts';
 
 export type ReportRowPresetEnum = typeof REPORT_ROW_PRESETS[number];
 export type ReportsSortEnum = typeof REPORT_SORT_OPTS[number];
+export type ReportFrequencyEnum = typeof REPORT_FREQUENCY_ENUMS[number];
 export type ReportSubmissionStatusEnum = typeof REPORT_STATUS_ENUMS[number];
 
 /**
@@ -131,7 +132,7 @@ export interface ReportData {
 	documentName: string;
 	title: string;
 	description: string;
-	frequency: string;
+	frequency: ReportFrequencyEnum;
 	order: number;
 
 	fields: ReportFieldsObj;
@@ -153,7 +154,7 @@ export interface ReportGQL {
 	documentName: string;
 	title: string;
 	description: string;
-	frequency?: string | null;
+	frequency?: ReportFrequencyEnum | null;
 	reportGroupId: string;
 	groupName: string;
 	groupShortName?: string | null;
@@ -181,9 +182,11 @@ export interface ReportSubmissionGQL {
 
 	id: string;
 	reportId: string;
+	frequency: ReportFrequencyEnum;
 	reportSubmissionIdEnc?: string | null;
 	organizationId: string;
 	organizationIdEnc?: string | null;
+	location?: string | null;
 	childOrgId: string | null;
 	childOrgIdEnc?: string | null;
 	childOrgName: string | null;
@@ -214,6 +217,7 @@ export interface ReportSubmissionData {
 	id: number;
 	childOrgId?: number | bigint | null;
 	siteId?: number | bigint | null;
+	report?: Pick<ReportData, 'id' | 'frequency'> | null;
 	site?: Pick<OrganizationSiteData, 'id' | 'name'> | null;
 	childOrg?: {
 		id: number | bigint;

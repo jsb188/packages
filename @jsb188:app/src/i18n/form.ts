@@ -19,6 +19,7 @@ export default {
     overview: 'Overview',
     latest: 'Latest',
     latest_activity: 'Latest Activity',
+    incomplete: 'Incomplete',
     dob: 'DOB',
     date_of_birth: 'Date of birth',
     deceased: 'Deceased',

@@ -121,11 +121,17 @@ export function useReportSubmissions(
   params: UseQueryParams = {},
 ) {
 
-  const { organizationId, filter, limit = 100 } = variables;
+  const {
+    organizationId,
+    filter,
+    sort = 'PERIOD_DESC',
+    limit = 100,
+  } = variables;
   const { skip, ...restParams } = params;
   const { data, ...rest } = useQuery(reportSubmissionsQry, {
     variables: {
       ...variables,
+      sort,
       limit,
     },
     skip: skip || !organizationId || !filter,

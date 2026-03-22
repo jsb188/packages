@@ -319,6 +319,76 @@ export function getReadableCalDate(d_: string | Date, timeZone?: string | null, 
 }
 
 /**
+ * Get report period DateTime value with timezone support.
+ */
+
+function getReportPeriodDateTime(period: string | Date, timeZone: string | null) {
+	const zone = timeZone || undefined;
+
+	if (typeof period === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(period)) {
+		const dt = DateTime.fromISO(period, zone ? { zone } : undefined);
+		return dt.isValid ? dt : null;
+	}
+
+	if (period instanceof Date) {
+		let dt = DateTime.fromJSDate(period, zone ? { zone } : undefined);
+		if (!dt.isValid) {
+			dt = DateTime.fromJSDate(period);
+		}
+		return dt.isValid ? dt : null;
+	}
+
+	const dt = DateTime.fromISO(String(period), zone ? { zone } : undefined);
+	return dt.isValid ? dt : null;
+}
+
+/**
+ * Format report period range label.
+ */
+
+function formatReportPeriodRange(start: DateTime, end: DateTime, separator: string) {
+	if (start.year !== end.year) {
+		return `${start.toFormat('MMM d, yyyy')}${separator}${end.toFormat('MMM d, yyyy')}`;
+	}
+
+	if (start.month !== end.month) {
+		return `${start.toFormat('MMM d')}${separator}${end.toFormat('MMM d, yyyy')}`;
+	}
+
+	return `${start.toFormat('MMM d')}${separator}${end.toFormat('d, yyyy')}`;
+}
+
+/**
+ * Get formatted report period label from period start and frequency.
+ */
+
+export function getReportPeriod(
+	period: string | Date,
+	frequency: any,
+	timeZone: string | null,
+) {
+	const start = getReportPeriodDateTime(period, timeZone);
+	if (!start) {
+		return null;
+	}
+
+	switch (frequency) {
+		case 'DAILY':
+			return start.toFormat('MMM d, yyyy');
+		case 'WEEKLY':
+			return formatReportPeriodRange(start, start.plus({ days: 6 }), '–');
+		case 'MONTHLY':
+			return formatReportPeriodRange(start, start.plus({ months: 1 }).minus({ days: 1 }), '-');
+		case 'QUARTERLY':
+			return formatReportPeriodRange(start, start.plus({ months: 3 }).minus({ days: 1 }), '-');
+		case 'ANNUALLY':
+			return formatReportPeriodRange(start, start.plus({ years: 1 }).minus({ days: 1 }), '-');
+		default:
+			return start.toFormat('MMM d, yyyy');
+	}
+}
+
+/**
  * Date objects create different calendar dates based on timezone,
  * to avoid such issue, use this funciton to convert JS date to string format.
  */
@@ -466,87 +536,81 @@ export function isFutureCalDate(
 }
 
 /**
+ * Get timezone-aware DateTime object from one date input.
+ */
+
+function getDateTimeWithTimeZone(
+	date: string | Date,
+	timeZone: string | null,
+) {
+	const zone = timeZone && isValidTimeZone(timeZone) ? timeZone : undefined;
+
+	if (date instanceof Date) {
+		const dt = DateTime.fromJSDate(date, zone ? { zone } : undefined);
+		return dt.isValid ? dt : null;
+	}
+
+	let dt = DateTime.fromISO(date, zone ? { zone } : undefined);
+	if (dt.isValid) {
+		return dt;
+	}
+
+	dt = DateTime.fromJSDate(new Date(date), zone ? { zone } : undefined);
+	return dt.isValid ? dt : null;
+}
+
+/**
  * Convert date time "time" ago
- * @param d_ - Date to convert
- * @param params - Optional parameters for time ago conversion
+ * @param date - Date to convert
+ * @param timeZone - Optional timezone for day boundary checks
  */
 
 export function getTimeAgo(
-	d_: Date | string | number | null,
-	params?: Partial<TimeAgoParams>,
+	date: string | Date,
+	timeZone: string | null,
 ) {
-	const {
-		locales = 'en-US',
-		justNowThresh = 300000, // 5 minutes
-		nowThresh = 8.64e+7,
-		disableFuture = false,
-		isToday,
-		skipTodayCheck,
-	} = params || {};
-
-	let d;
-	if (d_ instanceof Date) {
-		d = d_;
-	} else if (!isNaN(Number(d_))) {
-		d = new Date(Number(d_));
-	} else {
-		// Make sure date is not null, before using this function
-		d = d_ ? new Date(d_) : new Date(-1);
+	const dt = getDateTimeWithTimeZone(date, timeZone);
+	if (!dt) {
+		return null;
 	}
 
-	const ts = d.getTime();
-	const now = Date.now();
-	const diff = now - ts;
-	const isFuture = diff < 0;
+	const now = timeZone && isValidTimeZone(timeZone)
+		? DateTime.now().setZone(timeZone)
+		: DateTime.now();
+	const diffMs = now.toMillis() - dt.toMillis();
 
-	if (isFuture && !disableFuture) {
-		// Future date
-
-		const minutesFromNow = Math.round(diff / 60000 * -1);
-		if (minutesFromNow < 60) {
-			return i18n.t('datetime.in_minutes_ct', { smart_count: minutesFromNow });
-		}
-
-		const fromIsToday = isToday || (!skipTodayCheck && getDatePeriod(d, new Date()) === 'TODAY');
-		if (fromIsToday) {
-			const hoursFromNow = Math.round(diff / 3600000 * -1);
-			if (hoursFromNow <= 8) {
-				return i18n.t('datetime.in_hours_ct', { smart_count: hoursFromNow });
-			}
-
-			return getFullDateTime(d, {
-				locales,
-				hideDate: true,
-			});
-		}
+	if (diffMs < 0) {
+		return getFullDateTime(dt.toJSDate(), {
+			timeZone,
+			alwaysShowYear: true,
+			textDateStyle: 'short',
+		});
 	}
 
-	if (!isFuture && diff < nowThresh) {
-		if (diff < justNowThresh) {
-			return i18n.t('datetime.just_now');
-		}
-
-		const minutesAgo = Math.round(diff / 60000);
-		if (minutesAgo < 60) {
-			return i18n.t('datetime.minutes_ago_ct', { smart_count: minutesAgo });
-		}
-
-		const agoIsToday = isToday || (!skipTodayCheck && getDatePeriod(d, new Date()) === 'TODAY');
-		if (agoIsToday) {
-			const hoursAgo = Math.round(diff / 3600000);
-			if (hoursAgo <= 8) {
-				return i18n.t('datetime.hours_ago_ct', { smart_count: hoursAgo });
-			}
-
-			return getFullDateTime(d, {
-				locales,
-				hideDate: true,
-			});
-		}
+	const diffMinutes = Math.floor(diffMs / 60000);
+	if (diffMinutes < 60) {
+		return diffMinutes <= 0
+			? i18n.t('datetime.just_now')
+			: i18n.t('datetime.minutes_ago_ct', { smart_count: diffMinutes });
 	}
 
-	return getFullDateTime(d, {
-		locales,
+	if (dt.hasSame(now, 'day')) {
+		const diffHours = Math.floor(diffMs / 3600000);
+		if (diffHours < 8) {
+			return i18n.t('datetime.hours_ago_ct', { smart_count: diffHours });
+		}
+
+		return i18n.t('datetime.period_TODAY');
+	}
+
+	if (dt.hasSame(now.minus({ days: 1 }), 'day')) {
+		return i18n.t('datetime.period_YESTERDAY');
+	}
+
+	return getFullDateTime(dt.toJSDate(), {
+		timeZone,
+		alwaysShowYear: true,
+		textDateStyle: 'short',
 	});
 }
 

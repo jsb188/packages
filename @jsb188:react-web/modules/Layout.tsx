@@ -80,7 +80,7 @@ export function AppLayout(p: ReactDivElement & {
         </main>
 
         {AsideComponent &&
-        <aside className='app_aside h_f bg_fade z3 y_scr_hidden'>
+        <aside className='app_aside h_f z3 y_scr_hidden'>
           {AsideComponent}
         </aside>}
 
@@ -525,7 +525,6 @@ export function ErrorMessage(p: ErrorMessageProps) {
       titleClassName = 'ft_df';
       messageClassName = 'ft_md';
       buttonClassName = 'cl_df';
-      // buttonClassName = 'bg_active ft_medium cl_bd';
       buttonPreset = 'outline_lg' as const;
       buttonSize = null;
   }
@@ -749,13 +748,13 @@ FloatingMessage.displayName = 'FloatingMessage';
 export const AsideNavList = memo((p: AsideNavProps) => {
   const { pathname, autoSelectFirstItem, addPageNumbers, addEllipsis, title, isScrollIndicator, viewportAnchor, nullText, navList, onClickItem } = p;
 
-  return <nav className='pb_10 mx_5 my_25 ft_sm bd_1 bd_lt bg r_sm'>
+  return <nav className='pb_10 mx_5 my_25 ft_sm bd_1 bd_lt bg r_sm of'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
 
     {(title || title === undefined) &&
-    <p className='ft_medium cl_bd pt_15 pb_4 px_df bd_b_1 bd_lt pb_13 mb_15'>
+    <p className='cl_md pt_15 pb_4 px_df bd_b_1 bd_lt pb_13 mb_15 bg_fade'>
       {title ?? i18n.t('form.table_of_contents')}
     </p>}
 
