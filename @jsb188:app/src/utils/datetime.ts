@@ -560,6 +560,35 @@ function getDateTimeWithTimeZone(
 }
 
 /**
+ * Convert today/yesterday date time into a label with time
+ * @param dt - Parsed Luxon date time
+ * @param timeZone - Optional timezone for time formatting
+ */
+
+function getTodayYesterdayTime(
+	dt: DateTime,
+	timeZone: string | null,
+) {
+	const now = timeZone && isValidTimeZone(timeZone)
+		? DateTime.now().setZone(timeZone)
+		: DateTime.now();
+	const timeText = getFullDateTime(dt.toJSDate(), {
+		timeZone,
+		hideDate: true,
+	});
+
+	if (dt.hasSame(now, 'day')) {
+		return `${i18n.t('datetime.period_TODAY')}, ${timeText}`;
+	}
+
+	if (dt.hasSame(now.minus({ days: 1 }), 'day')) {
+		return `${i18n.t('datetime.period_YESTERDAY')}, ${timeText}`;
+	}
+
+	return null;
+}
+
+/**
  * Convert date time "time" ago
  * @param date - Date to convert
  * @param timeZone - Optional timezone for day boundary checks
@@ -577,6 +606,12 @@ export function getTimeAgo(
 	const now = timeZone && isValidTimeZone(timeZone)
 		? DateTime.now().setZone(timeZone)
 		: DateTime.now();
+	const todayYesterdayTime = getTodayYesterdayTime(dt, timeZone);
+
+	if (todayYesterdayTime) {
+		return todayYesterdayTime;
+	}
+
 	const diffMs = now.toMillis() - dt.toMillis();
 
 	if (diffMs < 0) {
@@ -585,26 +620,6 @@ export function getTimeAgo(
 			alwaysShowYear: true,
 			textDateStyle: 'short',
 		});
-	}
-
-	const diffMinutes = Math.floor(diffMs / 60000);
-	if (diffMinutes < 60) {
-		return diffMinutes <= 0
-			? i18n.t('datetime.just_now')
-			: i18n.t('datetime.minutes_ago_ct', { smart_count: diffMinutes });
-	}
-
-	if (dt.hasSame(now, 'day')) {
-		const diffHours = Math.floor(diffMs / 3600000);
-		if (diffHours < 8) {
-			return i18n.t('datetime.hours_ago_ct', { smart_count: diffHours });
-		}
-
-		return i18n.t('datetime.period_TODAY');
-	}
-
-	if (dt.hasSame(now.minus({ days: 1 }), 'day')) {
-		return i18n.t('datetime.period_YESTERDAY');
 	}
 
 	return getFullDateTime(dt.toJSDate(), {

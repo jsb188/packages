@@ -23,6 +23,10 @@ export const REPORT_ROW_PRESETS = [
   'EVIDENCES',
 ];
 
+export const REPORT_NUMBERED_PRESETS = [
+  'LINE_ITEMS',
+];
+
 export const REPORT_FREQUENCY_ENUMS = [
   'DAILY',
   'WEEKLY',

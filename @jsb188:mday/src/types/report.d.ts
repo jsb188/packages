@@ -98,6 +98,7 @@ export interface ReportFieldsColumn {
 
 export interface ReportColumnGQL extends ReportFieldsColumn {
 	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	lineNumber?: string | null;
 }
 
 export type ReportRowGQL = Omit<ReportFieldsRow, 'key' | 'columns'> & {

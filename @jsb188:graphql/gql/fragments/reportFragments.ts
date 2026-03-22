@@ -31,6 +31,7 @@ export const reportRowDataFragment = `fragment reportRowDataFragment on ReportRo
 
 export const reportColumnDataFragment = `fragment reportColumnDataFragment on ReportColumnData {
   id
+  lineNumber
   className
   iconName
   label

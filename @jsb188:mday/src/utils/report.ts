@@ -1,4 +1,5 @@
-import type { ReportFieldsObj, ReportSectionGQL } from '@jsb188/mday/types/report.d.ts';
+import type { ReportFieldsObj, ReportFieldsRow, ReportSectionGQL } from '@jsb188/mday/types/report.d.ts';
+import { REPORT_NUMBERED_PRESETS } from '../constants/report.ts';
 
 /**
  * Get report sections file status
@@ -14,6 +15,26 @@ export interface ReportSectionsFileStatus {
 export interface ReportSectionsFilesCount {
 	required: number;
 	hasFile: number;
+}
+
+/*
+ * Check whether one report row should contribute to automated line numbering.
+ */
+
+export function isReportNumberedRow(row?: Pick<ReportFieldsRow, 'preset' | '__notAutomated'> | null): boolean {
+	return !!row && !row.__notAutomated && !!row.preset && REPORT_NUMBERED_PRESETS.includes(row.preset);
+}
+
+/*
+ * Build one report line number using the numbered row index and column index.
+ */
+
+export function getReportLineNumber(lineIndex?: number | null, colIndex?: number | null): string | null {
+	if (!lineIndex || colIndex == null) {
+		return null;
+	}
+
+	return `${lineIndex}.${colIndex + 1}`;
 }
 
 export function getReportFilesCount(sections?: ReportSectionGQL[]): ReportSectionsFilesCount {
