@@ -1,6 +1,6 @@
 import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d.ts';
 import { useQuery, useReactiveFragment } from '../client';
-import { logEntriesQry } from '../gql/queries/logQueries';
+import { logEntriesForReportQry, logEntriesQry } from '../gql/queries/logQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';
 
 /**
@@ -54,6 +54,29 @@ export function useLogEntries(
   return {
     logEntries: data?.logEntries,
     ...rest
+  };
+}
+
+/**
+ * Fetch all log entries for one report submission.
+ */
+
+export function useLogEntriesForReport(
+  variables: {
+    organizationId?: string | null;
+    reportSubmissionId?: string | null;
+  },
+  params: UseQueryParams = {}
+) {
+  const { data, ...rest } = useQuery(logEntriesForReportQry, {
+    ...params,
+    variables,
+    skip: !variables.organizationId || !variables.reportSubmissionId || params.skip,
+  });
+
+  return {
+    logEntriesForReport: data?.logEntriesForReport,
+    ...rest,
   };
 }
 

@@ -7,7 +7,6 @@ import {
   logGrowerNetworkFragment,
   logLivestockFragment
 } from '../fragments/logFragments';
-import { workflowActionFragment } from '../fragments/workflowFragments';
 import { storageFileFragment } from '../fragments/storageFragments';
 
 export const logEntryFragmentStatement = `...logEntryFragment
@@ -59,9 +58,26 @@ query logEntries (
   ) {
     ${logEntryFragmentStatement}
 
-    actions {
-      ...workflowActionFragment
+    files {
+      ...storageFileFragment
     }
+  }
+}
+
+${storageFileFragment}
+${logEntryFragmentImports}
+`;
+
+export const logEntriesForReportQry = gql`
+query logEntriesForReport (
+  $organizationId: GenericID!
+  $reportSubmissionId: CursorToIDs!
+) {
+  logEntriesForReport (
+    organizationId: $organizationId
+    reportSubmissionId: $reportSubmissionId
+  ) {
+    ${logEntryFragmentStatement}
 
     files {
       ...storageFileFragment
@@ -69,7 +85,6 @@ query logEntries (
   }
 }
 
-${workflowActionFragment}
 ${storageFileFragment}
 ${logEntryFragmentImports}
 `;
