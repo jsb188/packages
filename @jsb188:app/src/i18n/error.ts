@@ -2,6 +2,7 @@ export default {
   en: {
     error: 'Error',
     invalid: 'Invalid',
+    not_found_title: 'Not found',
     network_error_title: 'Network error',
     server_outage_title: 'Service disruption',
     server_outage_msg: 'Our servers are experiencing a disruption or we may be deploying an update. Please try again in a moment.',
@@ -72,7 +73,6 @@ export default {
     20027: 'Your IP has been banned. If this is an error, please send us an email.',
     20028: 'Please disable your VPN and try again.',
     20029: 'Your request failed the profanity test.',
-    20030: 'The persona you tried to edit could not be found.',
     20031: 'You reached the maximum number of personas (%{value}).',
     20032: 'You reached the maximum number of live chats (%{value}).',
     20033: 'You do not have permissions to edit this chat.',
@@ -110,6 +110,7 @@ export default {
     20063: 'You cannot change your email to the same email address.',
     20064: '"%{value}" is not a valid phone number.',
     20065: 'You cannot edit this information because this organization has been claimed by its owner.',
+    20066: 'Report submission data could not be found.',
 
     // 3x
 

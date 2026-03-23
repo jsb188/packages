@@ -1329,6 +1329,18 @@ export const FolderOpen = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 <path d="M19.05506151,9.70428453v-1.14388438c0-.70840974-.57429665-1.28268943-1.28272504-1.28268943H5.7980173c-.70840974,0-1.28268943.57427969-1.28268943,1.28268943v11.45848307"/>
 </svg>;
 
+export const FolderQuestionColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-folder-question-color">
+<path fill="#ffef5e" d="M19.5 17.5a1 1 0 0 0 1 -1v-12a1 1 0 0 0 -1 -1H9.618a1 1 0 0 1 -0.894 -0.553l-0.948 -1.894A1 1 0 0 0 6.882 0.5H1.5a1 1 0 0 0 -1 1v15a1 1 0 0 0 1 1h18Z" strokeWidth="1"/>
+<path fill="#fff9bf" d="M9.618 3.5a1 1 0 0 1 -0.894 -0.553l-0.948 -1.894A1 1 0 0 0 6.882 0.5H1.5a1 1 0 0 0 -1 1v15a1 1 0 0 0 1 1h0.7l14 -14H9.618Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 8.5v-4a1 1 0 0 0 -1 -1H9.618a1 1 0 0 1 -0.894 -0.553l-0.948 -1.894A1 1 0 0 0 6.882 0.5H1.5a1 1 0 0 0 -1 1v15a1 1 0 0 0 1 1h7" strokeWidth="1"/>
+<path fill="#ffef5e" d="M17.5 23.5a6 6 0 1 0 0 -12 6 6 0 0 0 0 12Z" strokeWidth="1"/>
+<path fill="#fff9bf" d="M17.5 11.5a6 6 0 0 0 -3.943 10.516l8.458 -8.458A5.977 5.977 0 0 0 17.5 11.5Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5 23.5a6 6 0 1 0 0 -12 6 6 0 0 0 0 12Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.625 16.044a1.875 1.875 0 1 1 1.875 1.875v1" strokeWidth="1"/>
+<path stroke="#191919" d="M17.5 21.419a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
+<path stroke="#191919" d="M17.5 21.419a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+</svg>;
+
 export const FeatherFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-feather">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M8 9.585v6.415h6.414l-2.707 2.707a1 1 0 0 1 -.112 .097l-.11 .071l-.114 .054l-.105 .035l-.149 .03l-.117 .006h-4.586l-1.707 1.707a1 1 0 1 1 -1.414 -1.414l1.707 -1.709v-4.584l.003 -.075l.017 -.126l.03 -.111l.044 -.111l.052 -.098l.067 -.096l.08 -.09z" />

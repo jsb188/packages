@@ -83,9 +83,19 @@ export function normalizeServerError(error?: any): ServerErrorObj {
     console.warn(error);
   }
 
-  const title = i18n.has(`error.${errorCode}_title`) ? i18n.t(`error.${errorCode}_title`) : i18n.t('error.error');
+  let title;
+  if (i18n.has(`error.${errorCode}_title`)) {
+    title = i18n.t(`error.${errorCode}_title`);
+  } else if (statusCode == 404) {
+    title = i18n.t('error.not_found_title');
+  } else {
+    title = i18n.t('error.error');
+  }
+
   if (i18n.has(`error.${errorCode}_icon`)) {
     iconName = i18n.t(`error.${errorCode}_icon`);
+  } else if (statusCode == 404) {
+    iconName = 'folder-question';
   }
 
   return {
