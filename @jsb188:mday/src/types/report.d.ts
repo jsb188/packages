@@ -92,6 +92,7 @@ export interface ReportFieldsColumn {
 	checked?: boolean | null;
 	options?: string[]; // If set, user provided inputs *must* be one of these options (ie. for dropdowns, radios, etc.)
 	__allowMultiples?: boolean; // If true, multiple selections are allowed (for options[])
+  __allowCorrectiveActions?: boolean; // If true, AI Agents are allowed to provide corrective actions for this column if the user adds one
 	__notAutomated?: boolean; // If true, this column is not filled during automation
   __doNotAllowNotes?: boolean; // If true, AI will NOT leave notes for this column
 }

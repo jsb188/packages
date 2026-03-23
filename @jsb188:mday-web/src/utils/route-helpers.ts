@@ -51,8 +51,6 @@ type ValidRoutePath =
 
   // Reports
   | '/app/r/'
-  | '/app/r/globalgap/'
-  | '/app/r/cleaning'
   | '/app/s/';
   // | '/app/r/water-source/';
 
@@ -280,29 +278,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     hasPhysicalToolbar: 'NEVER',
     hasAsideNav: 'NEVER',
   },
-  '/app/r/globalgap/': {
-    to: ('/app/r/globalgap/' + CURRENT_YEAR) as ValidRoutePath,
-    text: 'product.report.GLOBAL_GAP',
-    iconName: COMMON_ICON_NAMES.generic_report,
-
-    allowedOperations: OP.FARMING,
-    requiredFeature: ['GLOBAL_GAP'],
-    scrollResetKey: (parts: string[], pathname: string) => {
-      const reportId = parts[5];
-      return reportId ? pathname : parts.slice(0, parts.length - 1).join('/');
-    },
-
-    hasPhysicalToolbar: (parts: string[]) => !!parts[5],
-    hasAsideNav: (parts: string[]) => !!parts[5],
-  },
-  '/app/r/cleaning': {
-    to: '/app/r/cleaning',
-    text: 'product.report.CLEANING',
-    iconName: COMMON_ICON_NAMES.SANITATION,
-
-    allowedOperations: OP.FARMING,
-    requiredFeature: F.food_safety,
-  },
   '/app/s/': {
     to: '/app/s/',
     text: 'form.reports',
@@ -310,17 +285,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     hasPhysicalToolbar: 'NEVER',
     hasAsideNav: 'ALWAYS',
   },
-  // '/app/r/water-source/': {
-  //   to: '/app/r/water-source/',
-  //   text: 'product.report.WATER_SOURCE',
-  //   iconName: COMMON_ICON_NAMES.generic_report,
-
-  //   allowedOperations: OP.GROWER_NETWORK,
-  //   requiredFeature: ['WATER_SOURCE'],
-
-  //   hasPhysicalToolbar: 'ALWAYS',
-  //   hasAsideNav: 'ALWAYS',
-  // }
 };
 
 /**
@@ -569,7 +533,6 @@ export function getNavigationList(
   const reportsSection = {
     text: i18n.t('form.reports'),
     navList: [
-      // ROUTES_DICT['/app/r/globalgap/'],
     ]
   };
 
