@@ -32,7 +32,6 @@ export interface ReportFieldsVariables {
 }
 
 export interface ReportFieldsObj {
-	__allowMultiples?: boolean; // Allow multiple copies of the same report (from 1 report template)
 	__notAutomated?: boolean; // If true, report is not skipped during automation
 	__prompt?: string; // Server-only, this prompt used on the entire report as a whole (ie. OSP generation)
 	gridLayoutStyle?: string;
@@ -88,10 +87,10 @@ export interface ReportFieldsColumn {
 	text?: string; // This the answer provided by the AI Agent/human
 	hint?: string; // Additional instructions or context for this column, typically only shown to AI Agents for more guidance.
 	note?: string; // Additional notes in relation to the user's answer for this column
+	warningNote?: string; // GraphQL-facing warning field used by mapped report data
 	placeholder?: string | null;
 	checked?: boolean | null;
 	options?: string[]; // If set, user provided inputs *must* be one of these options (ie. for dropdowns, radios, etc.)
-	__allowMultiples?: boolean; // If true, multiple selections are allowed (for options[])
   __allowCorrectiveActions?: boolean; // If true, AI Agents are allowed to provide corrective actions for this column if the user adds one
 	__notAutomated?: boolean; // If true, this column is not filled during automation
   __doNotAllowNotes?: boolean; // If true, AI will NOT leave notes for this column

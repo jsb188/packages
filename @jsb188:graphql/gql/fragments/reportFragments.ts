@@ -38,6 +38,7 @@ export const reportColumnDataFragment = `fragment reportColumnDataFragment on Re
   label
   text
   note
+  warningNote
   placeholder
   checked
 }`;
