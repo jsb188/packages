@@ -158,6 +158,7 @@ export default {
     'order_#': 'Order #',
     order_details: 'Order details',
     record_details: 'Record details',
+    images: 'Images',
     type: 'Type',
     pin_to_top: 'Pin to top',
     create_new: 'Create new',

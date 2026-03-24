@@ -58,20 +58,22 @@ export function useLogEntries(
 }
 
 /**
- * Fetch all log entries for one report submission.
+ * Fetch all log entries for one report source.
  */
 
 export function useLogEntriesForReport(
   variables: {
     organizationId?: string | null;
-    reportSubmissionId?: string | null;
+    reportSourceId?: string | null;
+    reportSubmissionId: string | null;
   },
   params: UseQueryParams = {}
 ) {
+  const { organizationId, reportSourceId, reportSubmissionId } = variables;
   const { data, ...rest } = useQuery(logEntriesForReportQry, {
     ...params,
     variables,
-    skip: !variables.organizationId || !variables.reportSubmissionId || params.skip,
+    skip: !organizationId || !reportSourceId || !reportSubmissionId || params.skip,
   });
 
   return {

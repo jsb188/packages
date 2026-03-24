@@ -183,6 +183,7 @@ export interface ReportSubmissionGQL {
 	__deleted?: boolean;
 
 	id: string;
+	reportSubmissionId: string;
 	reportId: string;
 	frequency: ReportFrequencyEnum;
 	reportSubmissionIdEnc?: string | null;

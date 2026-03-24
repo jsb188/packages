@@ -57,6 +57,7 @@ export const reportGroupFragment = `fragment reportGroupFragment on ReportGroup 
 
 export const reportSubmissionFragment = `fragment reportSubmissionFragment on ReportSubmission {
   id
+  reportSubmissionId
   reportId
   frequency
   reportSubmissionIdEnc

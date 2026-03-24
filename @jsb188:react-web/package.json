@@ -12,6 +12,7 @@
     "./modules/AuthForm": "./modules/Auth/AuthForm.tsx",
     "./modules/Calendar": "./modules/Calendar.tsx",
     "./modules/Carousel": "./modules/Carousel.tsx",
+    "./modules/Aside": "./modules/Aside.tsx",
     "./modules/Scroll": "./modules/Scroll.tsx",
     "./modules/Form": "./modules/Form.tsx",
     "./modules/Layout": "./modules/Layout.tsx",

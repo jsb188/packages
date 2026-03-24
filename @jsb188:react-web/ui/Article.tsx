@@ -12,7 +12,7 @@ import i18n from '@jsb188/app/i18n/index.ts';
  * Constants
  */
 
-const NO_SEPARATOR_Y_PADDING = 'py_10';
+const NO_SEPARATOR_Y_PADDING = 'py_9';
 
 /**
  * Condensed group title

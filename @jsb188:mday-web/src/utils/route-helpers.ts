@@ -65,7 +65,7 @@ interface RouteDictObj {
   // These values prevent rendering flickers when calculating TOC/breadcrumbs between page renders
   scrollResetKey?: string | ((parts: string[], pathname: string) => string);
   hasPhysicalToolbar?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
-  hasAsideNav?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
+  hasAside?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
   toolbarShadowStyle?: string;
 }
 
@@ -87,7 +87,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.chat,
 
     hasPhysicalToolbar: 'ALWAYS',
-    hasAsideNav: 'NEVER',
+    hasAside: 'NEVER',
     toolbarShadowStyle: 'shadow_bg_drop_lg',
   },
 
@@ -97,7 +97,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app/workflows',
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
-    hasAsideNav: 'NEVER',
+    hasAside: 'NEVER',
   },
 
   '/app/logs': {
@@ -276,14 +276,14 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'form.reports',
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',
-    hasAsideNav: 'NEVER',
+    hasAside: 'NEVER',
   },
   '/app/s/': {
     to: '/app/s/',
     text: 'form.reports',
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',
-    hasAsideNav: 'ALWAYS',
+    hasAside: 'ALWAYS',
   },
 };
 
@@ -326,12 +326,12 @@ export function isRouteValid(routePath: ValidRoutePath, pathSegment?: string | n
 
 const ROUTES_DICT_ORDERED = Object.keys(ROUTES_DICT).sort((a, b) => b.length - a.length);
 
-interface RouteConfigObj extends Omit<RouteDictObj, 'hasPhysicalToolbar' | 'hasAsideNav'> {
+interface RouteConfigObj extends Omit<RouteDictObj, 'hasPhysicalToolbar' | 'hasAside'> {
   routeName: ValidRoutePath;
   scrollResetKey: string;
   allowed: boolean;
   hasPhysicalToolbar: boolean;
-  hasAsideNav: boolean;
+  hasAside: boolean;
 }
 
 export function getRouteConfigs(
@@ -362,9 +362,9 @@ export function getRouteConfigs(
         scrollResetKey = pathParts.slice(0, 3).join('/');
       }
 
-      const hasAsideNav = !!routeDict.hasAsideNav && routeDict.hasAsideNav !== 'NEVER' && (
-        routeDict.hasAsideNav === 'ALWAYS' ||
-        (typeof routeDict.hasAsideNav === 'function' && routeDict.hasAsideNav(pathParts))
+      const hasAside = !!routeDict.hasAside && routeDict.hasAside !== 'NEVER' && (
+        routeDict.hasAside === 'ALWAYS' ||
+        (typeof routeDict.hasAside === 'function' && routeDict.hasAside(pathParts))
       );
 
       const hasPhysicalToolbar = !!routeDict.hasPhysicalToolbar && routeDict.hasPhysicalToolbar !== 'NEVER' && (
@@ -379,7 +379,7 @@ export function getRouteConfigs(
         scrollResetKey,
         allowed: isRouteAllowed(pathname, operation, orgFeatures),
         hasPhysicalToolbar,
-        hasAsideNav,
+        hasAside,
       };
     }
   }
@@ -389,7 +389,7 @@ export function getRouteConfigs(
     scrollResetKey: '',
     allowed: false,
     hasPhysicalToolbar: false,
-    hasAsideNav: false,
+    hasAside: false,
   } as any;
 }
 

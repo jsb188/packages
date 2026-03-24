@@ -13,6 +13,7 @@ import {
   LOG_SORT_ENUMS,
 } from "../constants/log.ts";
 import type { OrganizationOperationEnum } from "../types/organization.d.ts";
+import type { StorageGQL } from "./storage";
 
 /**
  * Enums
@@ -271,6 +272,7 @@ export interface LogEntryGQL {
 
   account: any;
   actions?: WorkflowActionGQL[];
+  files: StorageGQL[];
 
   date: string; // ISO date string
   createdAt: string; // ISO date string

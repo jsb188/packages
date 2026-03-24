@@ -71,10 +71,12 @@ ${logEntryFragmentImports}
 export const logEntriesForReportQry = gql`
 query logEntriesForReport (
   $organizationId: GenericID!
-  $reportSubmissionId: CursorToIDs!
+  $reportSourceId: CursorToIDs!
+  $reportSubmissionId: GenericID!
 ) {
   logEntriesForReport (
     organizationId: $organizationId
+    reportSourceId: $reportSourceId
     reportSubmissionId: $reportSubmissionId
   ) {
     ${logEntryFragmentStatement}

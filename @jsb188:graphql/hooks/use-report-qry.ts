@@ -59,21 +59,21 @@ export function useReports(
 }
 
 /**
- * Fetch one report by report submission id
+ * Fetch one report by report source id
  */
 
 export function useReport(
   organizationId: string | null,
-  reportSubmissionId: string | null,
+  reportSourceId: string | null,
   params: UseQueryParams = {},
 ) {
   const { skip, ...restParams } = params;
   const { data, ...rest } = useQuery(reportQry, {
     variables: {
       organizationId,
-      reportSubmissionId,
+      reportSourceId,
     },
-    skip: skip || !organizationId || !reportSubmissionId,
+    skip: skip || !organizationId || !reportSourceId,
     ...restParams,
   });
 
