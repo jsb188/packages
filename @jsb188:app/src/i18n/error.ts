@@ -2,7 +2,6 @@ export default {
   en: {
     error: 'Error',
     invalid: 'Invalid',
-    not_found_title: 'Not found',
     network_error_title: 'Network error',
     server_outage_title: 'Service disruption',
     server_outage_msg: 'Our servers are experiencing a disruption or we may be deploying an update. Please try again in a moment.',
@@ -19,6 +18,24 @@ export default {
     invalid_link: 'Invalid link',
     link_expired_msg: 'This link expired. Please try again by\n requesting another link.',
     invalid_link_msg: 'This link is invalid. Please try again by\n requesting another link.',
+
+    // Status code errors
+    '401_title': 'Unauthorized',
+    '402_title': 'Payment required',
+    '403_title': 'Forbidden',
+    '404_title': 'Not found',
+    '405_title': 'Not allowed',
+    '406_title': 'Not acceptable',
+    '407_title': 'Proxy error',
+    '408_title': 'Request timeout',
+    '410_title': 'Content is gone',
+    '413_title': 'Payload too large',
+    '422_title': 'Unprocessable entity',
+    '429_title': 'Too many requests',
+    '500_title': 'Server error',
+    '502_title': 'Bad gateway',
+    '503_title': 'Service unavailable',
+    '504_title': 'Gateway timeout',
 
     // 1x
     '10000_title': 'App updated!',

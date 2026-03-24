@@ -49,7 +49,6 @@ export interface ReportFieldsSection {
 	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
 	key: string; // Every section must have a unique string UID
 	isGroupTitle?: boolean;
-	sectionKey?: string; // Derived from "key" for client-facing GraphQL data
 	title?: string;
 	description?: string;
 	rows?: ReportFieldsRow[];
@@ -79,11 +78,12 @@ export interface ReportFieldsRow {
 
 export interface ReportFieldsColumn {
 	id?: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
-	key?: string; // Key is used to map column to answers
+	key: string; // Key is used to map column to answers
 	className?: string;
 	iconName?: string;
 	labelClassName?: string;
 	label?: string; // Typically, this is the "question" the AI Agent/human must answer
+	answer?: string | null; // GraphQL-facing saved answer value used for realtime updates
 	text?: string; // This the answer provided by the AI Agent/human
 	hint?: string; // Additional instructions or context for this column, typically only shown to AI Agents for more guidance.
 	note?: string; // Additional notes in relation to the user's answer for this column
@@ -170,7 +170,6 @@ export interface ReportGQL {
 export interface ReportSectionGQL {
 	id: string;
 	isGroupTitle?: boolean;
-	sectionKey: string;
 	title?: string | null;
 	description?: string | null;
 	rows?: ReportRowGQL[];

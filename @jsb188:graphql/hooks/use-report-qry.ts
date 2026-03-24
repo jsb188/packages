@@ -1,5 +1,5 @@
 import type { ReportsFilterArgs, ReportsSortEnum } from '@jsb188/mday/types/report.d.ts';
-import { useQuery, useReactiveFragment } from '../client';
+import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '../client';
 import { reportGroupsQry, reportQry, reportsQry, reportSubmissionsQry } from '../gql/queries/reportQueries';
 import type { UseQueryParams } from '../types';
 
@@ -29,6 +29,14 @@ export function useReactiveReportSubmissionFragment(reportSubmissionId: string, 
     ],
     queryCount,
   );
+}
+
+/**
+ * Get reactive report column fragments for a row of report columns.
+ */
+
+export function useReactiveReportColumnFragmentMap(currentData?: any[] | null) {
+  return useReactiveFragmentMap(currentData || null, 'reportColumnDataFragment');
 }
 
 /**

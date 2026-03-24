@@ -1,4 +1,4 @@
-import type { ReportFieldsObj, ReportFieldsRow, ReportSectionGQL } from '@jsb188/mday/types/report.d.ts';
+import type { ReportFieldsRow, ReportSectionGQL } from '@jsb188/mday/types/report.d.ts';
 import { REPORT_NUMBERED_PRESETS } from '../constants/report.ts';
 
 /**
@@ -86,34 +86,4 @@ export function getReportFileStatus(sections: ReportSectionGQL[] | undefined): R
 		isComplete: totalRequiring > 0 && totalWithFile === totalRequiring,
 		isEmpty: totalWithFile === 0,
 	};
-}
-
-/**
- * Get gridLayoutStyle CSS value for client
- */
-
-export function makeGridLayoutStyle(fields: ReportFieldsObj, period: string) {
-	const firstHeaderRow = fields.rows?.find((r) => r.isHeader) || fields.rows?.[0];
-	const firstPreset = firstHeaderRow?.preset;
-
-	let gridLayoutStyle = fields.gridLayoutStyle || '';
-	switch (firstPreset) {
-		case 'MONTH':
-			{
-				const year = fields.variables?.year ?? period.split('-')[0];
-				const month = fields.variables?.month ?? 0; // Defaults to January, so always make sure the report Object has this info
-				const numberOfDays = new Date(Number(year), month + 1, 0).getDate();
-
-				gridLayoutStyle += ' ' + Array.from({ length: numberOfDays }, (_) => {
-					return '50px'; // 50px per column
-				}).join(' ');
-			}
-			break;
-		default:
-	}
-
-	// console.log('gridLayoutStyle', gridLayoutStyle);
-	// console.log('firstPreset', firstPreset);
-
-	return gridLayoutStyle;
 }

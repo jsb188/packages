@@ -16,7 +16,6 @@ export const reportFragment = `fragment reportFragment on Report {
 export const reportSectionFragment = `fragment reportSectionFragment on ReportSection {
   id
   isGroupTitle
-  sectionKey
   title
   description
   requireFileUploads
@@ -31,11 +30,11 @@ export const reportRowDataFragment = `fragment reportRowDataFragment on ReportRo
 
 export const reportColumnDataFragment = `fragment reportColumnDataFragment on ReportColumnData {
   id
-  key
   lineNumber
   className
   iconName
   label
+  answer
   text
   note
   warningNote

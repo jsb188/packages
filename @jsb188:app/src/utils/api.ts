@@ -86,8 +86,8 @@ export function normalizeServerError(error?: any): ServerErrorObj {
   let title;
   if (i18n.has(`error.${errorCode}_title`)) {
     title = i18n.t(`error.${errorCode}_title`);
-  } else if (statusCode == 404) {
-    title = i18n.t('error.not_found_title');
+  } else if (i18n.has(`error.${statusCode}_title`)) {
+    title = i18n.t(`error.${statusCode}_title`);
   } else {
     title = i18n.t('error.error');
   }
