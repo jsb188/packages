@@ -1,5 +1,5 @@
 import { REPORT_FREQUENCY_ENUMS, REPORT_ROW_PRESETS, REPORT_SORT_OPTS, REPORT_STATUS_ENUMS } from '../constants/report.ts';
-import type { OrganizationSiteData } from './organization.d.ts';
+import type { OrganizationData, OrganizationSiteData } from './organization.d.ts';
 import type { StorageData, StorageGQL } from './storage.d.ts';
 
 /**
@@ -220,11 +220,8 @@ export interface ReportSubmissionData {
 	siteId?: number | bigint | null;
 	report?: Pick<ReportData, 'id' | 'frequency'> | null;
 	site?: Pick<OrganizationSiteData, 'id' | 'name'> | null;
-	childOrg?: {
-		id: number | bigint;
-		name: string;
-		operation?: string | null;
-	} | null;
+	childOrg?: OrganizationData;
+  organization?: OrganizationData;
 	organizationId: number;
 	reportId: number;
 	period: Date; // YYYY-MM-DD in database, Date object in server via ORM
