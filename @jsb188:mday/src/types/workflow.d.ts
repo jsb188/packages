@@ -66,6 +66,7 @@ export interface WorkflowRunData {
   id: number | bigint;
   workflowId: number | bigint;
   logId: number | bigint | null;
+  reportSubmissionId?: number | bigint | null;
   runKey: string;
   iterations: number;
   values:
