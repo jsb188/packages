@@ -15,12 +15,6 @@ query reports (
   ) {
     ...reportFragment
 
-    aside {
-      className
-      label
-      text
-    }
-
     submission {
       ...reportSubmissionFragment
     }
@@ -64,9 +58,13 @@ query report (
     ...reportFragment
 
     aside {
-      className
-      label
-      text
+      title
+
+      items {
+        className
+        label
+        text
+      }
     }
 
     submission {

@@ -35,7 +35,7 @@ export interface ReportFieldsObj {
 	__notAutomated?: boolean; // If true, report is not skipped during automation
 	__prompt?: string; // Server-only, this prompt used on the entire report as a whole (ie. OSP generation)
 	gridLayoutStyle?: string;
-	aside?: ReportFieldsAsideItem[];
+	aside?: ReportFieldsAsideBlock[];
 	sections?: ReportFieldsSection[];
 	metadata?: ReportFieldsRow[];
 	variables?: ReportFieldsVariables;
@@ -58,6 +58,11 @@ export interface ReportFieldsSection {
 	__prompt_section?: string; // Server-only; full prompt for this section - this is the only prompt that allows {{variable}} regex
 	__prompt_examples?: string; // Server-only; for examples of what the output should be
 	__prompt_topics?: string; // Server-only; for topics this section should cover
+}
+
+export interface ReportFieldsAsideBlock {
+  title: string;
+  items?: ReportFieldsAsideItem[];
 }
 
 export interface ReportFieldsAsideItem {
@@ -163,7 +168,7 @@ export interface ReportGQL {
 	submission?: ReportSubmissionGQL | null;
 	gridLayoutStyle?: string | null;
 
-	aside?: ReportFieldsAsideItem[];
+	aside?: ReportFieldsAsideBlock[];
 	sections?: ReportSectionGQL[];
 }
 
