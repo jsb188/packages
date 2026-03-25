@@ -62,7 +62,8 @@ export interface ReportFieldsSection {
 
 export interface ReportFieldsAsideBlock {
   title: string;
-  items?: ReportFieldsAsideItem[];
+  nullText?: string;
+  items: ReportFieldsAsideItem[];
 }
 
 export interface ReportFieldsAsideItem {

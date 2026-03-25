@@ -98,6 +98,7 @@ interface LogMetadataBase {
   item: string;
   date: string;
   time: string;
+  fieldLocation?: string;
   otherParty?: string;
   referenceNumber?: string;
   // locationDetails?: string;
@@ -266,6 +267,7 @@ export interface LogEntryGQL {
   reportSubmissionId: string | null;
   siteId: string | null;
   location: string | null;
+  fieldLocation?: string | null;
   details: LogMetadataGQL;
   status: LogActionStatusEnum | null;
   flagColor?: string | null;

@@ -59,6 +59,7 @@ query report (
 
     aside {
       title
+      nullText
 
       items {
         className

@@ -8,6 +8,7 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   reportSubmissionId
   siteId
   location
+  fieldLocation
   cursor
   status
   flagColor
