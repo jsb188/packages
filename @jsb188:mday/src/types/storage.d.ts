@@ -13,6 +13,7 @@ export type StorageIntentEnum = typeof STORAGE_INTENT_ENUMS[number];
 export interface StorageData {
 	__table: 'storage';
 	id: number;
+	oaiFileId: string | null;
 	organizationId: number | null;
 	accountId: number | null;
 	uri: string;
@@ -45,7 +46,8 @@ export interface StorageGQL {
 }
 
 export type StorageUploadObj = Partial<{
-	uploaderAccountId: number;
+	oaiFileId: string;
+	uploaderAccountId: number | bigint | string;
 	values: Partial<{
 		name: string;
 		description: string;
