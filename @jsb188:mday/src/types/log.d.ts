@@ -110,6 +110,7 @@ interface LogMetadataBase {
   // Below are DEPRECATED; and safe to delete when old AI Tasks feature is removed
   recurFromLogId?: number;
   recurredCount?: number;
+  summary?: string;
   location?: string;
   tax?: number; // Need to be removed and replaced by values[#].tax -- but this will require some logic changes
 }
@@ -155,25 +156,25 @@ export interface LogDetailsBase {
 }
 
 export interface LogArableDetailsData extends LogDetailsBase {
-  __table: 'logs_arable';
+  __table: "logs_arable";
   activity: LogArableActivityEnum;
   metadata?: Partial<LogArableMetadata> | null;
 }
 
 export interface LogFarmersMarketDetailsData extends LogDetailsBase {
-  __table: 'logs_farmers_market';
+  __table: "logs_farmers_market";
   activity: LogFarmersMarketActivityEnum;
   metadata?: Partial<LogFarmersMarketMetadata> | null;
 }
 
 export interface LogGrowerNetworkDetailsData extends LogDetailsBase {
-  __table: 'logs_grower_network';
+  __table: "logs_grower_network";
   activity: LogGrowerNetworkActivityEnum;
   metadata?: Partial<LogGrowerNetworkMetadata> | null;
 }
 
 export interface LogLivestockDetailsData extends LogDetailsBase {
-  __table: 'logs_livestock';
+  __table: "logs_livestock";
   activity: LogLivestockActivityEnum;
   metadata?: Partial<LogLivestockMetadata> | null;
 }
@@ -186,12 +187,13 @@ interface LogDetailsBaseGQL {
   id: string;
   type: LogTypeEnum;
   activity: LogActivityEnum;
+  summary: string | null;
   notes: string;
   // locationDetails?: string | null;
 }
 
 export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
-  __typename: 'LogArable';
+  __typename: "LogArable";
 
   item: string | null;
   quantity: number | null;
@@ -206,7 +208,7 @@ export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
 }
 
 export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
-  __typename: 'LogFarmersMarket';
+  __typename: "LogFarmersMarket";
 
   item: string | null;
   otherParty: string | null;
@@ -217,14 +219,14 @@ export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
 }
 
 export interface LogGrowerNetworkDetailsGQL extends LogDetailsBaseGQL {
-  __typename: 'LogGrowerNetwork';
+  __typename: "LogGrowerNetwork";
 
   otherParty: string | null;
   item: string | null;
 }
 
 export interface LogLivestockDetailsGQL extends LogDetailsBaseGQL {
-  __typename: 'LogLivestock';
+  __typename: "LogLivestock";
 
   livestock: string | null;
   livestockIdentifiers: string[] | null;
@@ -270,6 +272,7 @@ export interface LogEntryGQL {
   fieldLocation?: string | null;
   details: LogMetadataGQL;
   status: LogActionStatusEnum | null;
+  summary: string | null;
   flagColor?: string | null;
 
   account: any;
@@ -289,6 +292,7 @@ export interface LogEntryInsertObj {
   reportId?: number | bigint | null;
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
+  summary: string;
   status?: LogActionStatusEnum | null;
   details: any;
   date: Date;
@@ -303,6 +307,7 @@ export interface LogEntryData {
   reportId?: number | bigint | null;
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
+  summary: string | null;
   location?: {
     name: string;
   } | null;

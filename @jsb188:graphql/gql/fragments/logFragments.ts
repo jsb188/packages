@@ -1,6 +1,7 @@
 
 export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   id
+  cursor
   accountId
   organizationId
   childOrgId
@@ -9,8 +10,8 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   siteId
   location
   fieldLocation
-  cursor
   status
+  summary
   flagColor
   date
   createdAt
