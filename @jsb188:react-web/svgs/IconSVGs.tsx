@@ -364,6 +364,15 @@ export const BeverageFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0
 <path d="M13 1a2 2 0 0 1 1.995 1.85l.005 .15v.5c0 1.317 .381 2.604 1.094 3.705l.17 .25l.05 .072a9.093 9.093 0 0 1 1.68 4.92l.006 .354v6.199a3 3 0 0 1 -2.824 2.995l-.176 .005h-6a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-6.2a9.1 9.1 0 0 1 1.486 -4.982l.2 -.292l.05 -.069a6.823 6.823 0 0 0 1.264 -3.957v-.5a2 2 0 0 1 1.85 -1.995l.15 -.005h2zm.362 5h-2.724a8.827 8.827 0 0 1 -1.08 2.334l-.194 .284l-.05 .069a7.091 7.091 0 0 0 -1.307 3.798l-.003 .125a3.33 3.33 0 0 1 1.975 -.61a3.4 3.4 0 0 1 2.833 1.417c.27 .375 .706 .593 1.209 .583a1.4 1.4 0 0 0 1.166 -.583a3.4 3.4 0 0 1 .81 -.8l.003 .183c0 -1.37 -.396 -2.707 -1.137 -3.852l-.228 -.332a8.827 8.827 0 0 1 -1.273 -2.616z" />
 </svg>;
 
+export const BookOpenText = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-book-open-text" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path d="M12 22.125V4.712S9.545 1.985 1.268 1.875a0.506 0.506 0 0 0 -0.366 0.15 0.522 0.522 0 0 0 -0.152 0.369v16.375a0.515 0.515 0 0 0 0.5 0.519C9.543 19.4 12 22.125 12 22.125"/>
+<path d="M9 11.18a21.258 21.258 0 0 0 -5.26 -1.055"/>
+<path d="M9 15.375a21.258 21.258 0 0 0 -5.26 -1.055"/>
+<path d="M15 11.18a21.258 21.258 0 0 1 5.26 -1.055"/>
+<path d="M15 15.375a21.258 21.258 0 0 1 5.26 -1.055"/>
+<path d="M12 22.125V4.712s2.455 -2.727 10.732 -2.837a0.506 0.506 0 0 1 0.366 0.15 0.522 0.522 0 0 1 0.152 0.369v16.375a0.515 0.515 0 0 1 -0.5 0.519C14.457 19.4 12 22.125 12 22.125"/>
+</svg>;
+
 // "logout" in Tabler
 export const BoxArrowRight = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-box-arrow-right" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -906,12 +915,30 @@ export const CoinFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 <path d="M17 3.34a10 10 0 1 1 -15 8.66l.005 -.324a10 10 0 0 1 14.995 -8.336zm-5 2.66a1 1 0 0 0 -1 1a3 3 0 1 0 0 6v2a1.024 1.024 0 0 1 -.866 -.398l-.068 -.101a1 1 0 0 0 -1.732 .998a3 3 0 0 0 2.505 1.5h.161a1 1 0 0 0 .883 .994l.117 .007a1 1 0 0 0 1 -1l.176 -.005a3 3 0 0 0 -.176 -5.995v-2c.358 -.012 .671 .14 .866 .398l.068 .101a1 1 0 0 0 1.732 -.998a3 3 0 0 0 -2.505 -1.501h-.161a1 1 0 0 0 -1 -1zm1 7a1 1 0 0 1 0 2v-2zm-2 -4v2a1 1 0 0 1 0 -2z" />
 </svg>;
 
+export const CommonFileTextCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-common-file-text-check" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M11.25 17.25a6 6 0 1 0 12 0 6 6 0 1 0 -12 0Z" />
+<path d="m19.924 15.506 -2.905 3.873a0.752 0.752 0 0 1 -1.131 0.081l-1.5 -1.5" />
+<path d="m3.75 6.75 10.5 0" />
+<path d="m3.75 11.25 6 0" />
+<path d="m3.75 15.75 3.75 0" />
+<path d="M7.5 20.25H2.25a1.5 1.5 0 0 1 -1.5 -1.5V2.25a1.5 1.5 0 0 1 1.5 -1.5h10.629a1.5 1.5 0 0 1 1.06 0.439l2.872 2.872a1.5 1.5 0 0 1 0.439 1.06V7.5" />
+</svg>;
+
 export const CommonFileTextEdit = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-common-file-text-edit" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M22.63 14.87 15 22.5l-3.75 0.75 0.75 -3.75 7.63 -7.63a2.114 2.114 0 0 1 2.992 0l0.008 0.008a2.114 2.114 0 0 1 0 2.992Z" />
 <path d="m3.75 6.75 10.5 0" />
 <path d="m3.75 11.25 10.5 0" />
 <path d="m3.75 15.75 5.25 0" />
 <path d="M7.5 20.25H2.25a1.5 1.5 0 0 1 -1.5 -1.5V2.25a1.5 1.5 0 0 1 1.5 -1.5h10.629a1.5 1.5 0 0 1 1.06 0.439l2.872 2.872a1.5 1.5 0 0 1 0.439 1.06V8.25" />
+</svg>;
+
+export const CommonFileTextSearch = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-common-file-text-search" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="m3.75 6.75 10.5 0" />
+<path d="m3.75 11.25 3.75 0" />
+<path d="m3.75 15.75 3.75 0" />
+<path d="M7.5 20.25H2.25a1.5 1.5 0 0 1 -1.5 -1.5V2.25a1.5 1.5 0 0 1 1.5 -1.5h10.629a1.5 1.5 0 0 1 1.06 0.439l2.872 2.872a1.5 1.5 0 0 1 0.439 1.06V7.5" />
+<path d="M10.514 15.75a5.25 5.25 0 1 0 10.5 0 5.25 5.25 0 1 0 -10.5 0Z" />
+<path d="m23.25 23.25 -3.773 -3.788" />
 </svg>;
 
 export const CommonFileView = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-common-file-view" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeWidth="1.5">
