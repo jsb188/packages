@@ -58,6 +58,8 @@ export const CondensedArticleItem = memo((p: {
   id?: string;
   preset?: 'modal' | 'card' | 'default' | 'default_spaced';
   rightComponentClassName?: string;
+  horizontalPaddingClassName?: string;
+  horizontalMarginClassName?: string;
   onClick?: ((itemId?: string) => void) | null;
   disabled?: boolean;
   hideSeparator?: boolean;
@@ -74,7 +76,7 @@ export const CondensedArticleItem = memo((p: {
   avatarColor?: string | null;
   rightIcons?: LabelsAndIconsItemProps[];
 }) => {
-  const { __deleted, voided, hideSeparator, preset, domIdPrefix, id, onClick, rightIcons, RightComponent, labelsClassName, rightIconsClassName, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
+  const { __deleted, horizontalPaddingClassName, horizontalMarginClassName, voided, hideSeparator, preset, domIdPrefix, id, onClick, rightIcons, RightComponent, labelsClassName, rightIconsClassName, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
   const useAltLabelColors = !['modal','card'].includes(preset!);
@@ -88,25 +90,25 @@ export const CondensedArticleItem = memo((p: {
     case 'modal':
       addDivSeparator = true;
       linkHoverClassName = 'bg_lighter_hv_4';
-      xPaddingClassName = 'px_md -mx_5';
+      xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_md', horizontalMarginClassName ?? '-mx_5');
       yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
       break;
     case 'card':
       addDivSeparator = false;
       linkHoverClassName = 'bg_lighter_hv_4';
-      xPaddingClassName = 'px_sm -mx_sm';
+      xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_sm', horizontalMarginClassName ?? '-mx_sm');
       yPaddingClassName = 'py_xs';
       break;
     case 'default_spaced':
       addDivSeparator = false;
       linkHoverClassName = 'bg_primary_fd_hv';
-      xPaddingClassName = 'px_20 -mx_20';
+      xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_20', horizontalMarginClassName ?? '-mx_20');
       yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
       break;
     default:
       addDivSeparator = false;
       linkHoverClassName = 'bg_primary_fd_hv';
-      xPaddingClassName = 'px_xs -mx_xs';
+      xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_xs', horizontalMarginClassName ?? '-mx_xs');
       yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
       break;
   }

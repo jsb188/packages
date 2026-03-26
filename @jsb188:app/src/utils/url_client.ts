@@ -17,24 +17,18 @@ type LinkType = 'USER' | 'KAJI' | 'DATASET' | 'VOICE' | 'FEED' | 'ROOM' | 'THREA
 
 export function makeUploadsUrl(
   urlPath?: string | null,
-  size?: string,
-  animateGifs?: boolean,
+  size?: 'small' | 'medium' | 'original',
 ): string {
   if (!urlPath) {
     return '';
   }
 
-  const isGif = urlPath.substring(urlPath.lastIndexOf('.')).toLowerCase() === '.gif';
-
-  let prefix = '';
-  if (isGif && animateGifs) {
-    // Do gif path here
-    prefix = '';
-  } else {
-    // Do size paths here
+  let searchPath = '';
+  if (size) {
+    searchPath += `?size=${size}`;
   }
 
-  return 'https://assets.chiefhappiness.co/marketday/' + prefix + urlPath;
+  return 'https://assets.chiefhappiness.co/marketday/' + urlPath + searchPath;
 }
 
 /**

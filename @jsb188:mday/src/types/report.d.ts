@@ -104,6 +104,7 @@ export interface ReportFieldsColumn {
 
 export interface ReportColumnGQL extends ReportFieldsColumn {
 	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+	referenceIds?: string[] | null;
 	lineNumber?: string | null;
 }
 
@@ -151,6 +152,10 @@ export interface ReportData {
 		fields: ReportFieldsObj;
 		description: string | null;
 	};
+
+  site?: Pick<OrganizationSiteData, 'id' | 'name'> | null;
+  childOrg?: OrganizationData;
+  organization?: OrganizationData;
 }
 
 export interface ReportGQL {
@@ -166,6 +171,7 @@ export interface ReportGQL {
 	groupName: string;
 	groupShortName?: string | null;
 	period: string; // YYYY-MM-DD
+	summary?: string | null;
 	submission?: ReportSubmissionGQL | null;
 	gridLayoutStyle?: string | null;
 

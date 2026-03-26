@@ -13,6 +13,7 @@ export default {
 		collected_total_ct_evidences: 'Collected a total of %{smart_count} evidence.||||Collected a total of %{smart_count} evidences.',
     reporting_year: 'Reporting year',
     not_answered_msg: 'This question hasn\'t been answered yet.',
+    report_summary_not_done: 'AI is still generating the report summary.',
 
 		// Content names
 		view_document: 'View document',

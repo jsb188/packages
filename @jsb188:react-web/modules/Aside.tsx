@@ -4,6 +4,7 @@ import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import { memo } from 'react';
 import { Icon } from '../svgs/Icon';
 import { SmartLink } from '../ui/Button';
+import Markdown from '@jsb188/react-web/ui/Markdown';
 
 /**
  * Switch case interface for <AsideNav />
@@ -50,7 +51,7 @@ export const AsideListBlock = memo((p: AsideListBlockObj & {
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
 
     {(title || title === undefined) &&
-    <div className='cl_md h_item h_50 px_df bd_b_1 bd_lt mb_15 bg_fade'>
+    <div className='cl_md h_item h_50 px_df bd_b_1 bd_lt mb_12 bg_fade'>
       <span className='shift_down'>
         {title ?? i18n.t('form.table_of_contents')}
       </span>
@@ -61,6 +62,8 @@ export const AsideListBlock = memo((p: AsideListBlockObj & {
       const hasLabel = !!label || label === '';
       const textClassName = cn(!text ? 'cl_lt' : hasLabel ? 'cl_df' : '');
       const selected = !!(pathname && pathname === to);
+      const lineText = text || nullText;
+      const hasMarkdown = /\[(.*?)##(.*?)\]|\*]/.test(lineText || '');
 
       return <SmartLink
         key={i}
@@ -77,9 +80,17 @@ export const AsideListBlock = memo((p: AsideListBlockObj & {
           <span className='bl'>
             {label}:
           </span>}
-          <span className={textClassName}>
-            {text || nullText}
-          </span>
+          {hasMarkdown
+          ? <Markdown
+            as='span'
+            preset='label'
+            className={textClassName}
+          >
+            {lineText}
+          </Markdown>
+          : <span className={textClassName}>
+            {lineText}
+          </span>}
 
           <span className={cn('-mr_2 abs_r_center', selected ? rightIconClassNameSelected : rightIconClassName)}>
             <Icon name={rightIconName} />
@@ -90,9 +101,17 @@ export const AsideListBlock = memo((p: AsideListBlockObj & {
           <span className='bl'>
             {label}:
           </span>}
-          <span className={textClassName}>
-            {text || nullText}
-          </span>
+          {hasMarkdown
+          ? <Markdown
+            as='span'
+            preset='label'
+            className={textClassName}
+          >
+            {lineText}
+          </Markdown>
+          : <span className={textClassName}>
+            {lineText}
+          </span>}
         </div>}
       </SmartLink>;
     })}
