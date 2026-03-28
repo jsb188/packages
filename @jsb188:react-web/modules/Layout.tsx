@@ -67,7 +67,7 @@ export function AppLayout(p: ReactDivElement & {
           key={scrollResetKey}
           // ref={contentAreaRef}
           id={DOM_IDS.mainBodyScrollArea}
-          className={cn('app_scr h_f rel', AsideComponent ? 'w_app_side bd_r_1 bd_lt' : '', contentFlexClassName ?? 'v_top')}
+          className={cn('app_scr h_f rel', AsideComponent ? 'w_app_side' : '', contentFlexClassName ?? 'v_top')}
         >
           {/* <div className='pattern_grid_fade_down alt_bf abs_t h_450 -z5' /> */}
           {AsideComponent
@@ -80,7 +80,7 @@ export function AppLayout(p: ReactDivElement & {
         </main>
 
         {AsideComponent &&
-        <aside className='app_aside h_f z3 y_scr_hidden'>
+        <aside className='app_aside z3 y_scr_hidden'>
           {AsideComponent}
         </aside>}
 

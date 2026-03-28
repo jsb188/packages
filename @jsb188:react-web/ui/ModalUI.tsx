@@ -1,8 +1,8 @@
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { ColorEnum, ServerErrorObj } from '@jsb188/app/types/app.d.ts';
+import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { forwardRef, Fragment, memo } from 'react';
-import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
+import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
@@ -197,7 +197,7 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
     </span>
 
     {title &&
-    <h1 className='ft_sm ft_semibold ls_2 mt_sm'>
+    <h1 className='ft_sm ft_normal ls_2 mt_sm'>
       {title}
     </h1>}
 
@@ -503,17 +503,19 @@ export interface ModalToolbarBreadcrumb {
 }
 
 export function ModalToolbar(p: {
+  className?: string;
   hideSeparator?: boolean;
   paddingClassName?: string;
+  title?: string;
   breadcrumbs?: ModalToolbarBreadcrumb[];
   onCloseModal?: () => void;
 }) {
-  const { hideSeparator, paddingClassName, breadcrumbs, onCloseModal } = p;
+  const { className, hideSeparator, paddingClassName, title, breadcrumbs, onCloseModal } = p;
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
-  return <div className={cn('of w_f rt_smw f_shrink', !hideSeparator && 'bd_b_1 bd_lt')}>
+  return <div className={cn('of w_f rt_smw f_shrink', !hideSeparator && 'bd_b_1 bd_lt', className)}>
     <nav className='mw_toolbar_ht h_spread shadow_bg shift_down'>
       <div className={cn('ft_medium h_item', paddingClassName ?? 'px_df')}>
         {!breadcrumbs ? null : breadcrumbs.map((item, i) => {
@@ -554,6 +556,86 @@ export function ModalToolbar(p: {
 }
 
 /**
+ * Modal toolbar area with title
+ */
+
+export function ModalToolbarTitle(p: {
+  didScroll: boolean;
+  onCloseModal?: () => void;
+  className?: string;
+  hideSeparator?: boolean;
+  title?: string;
+  titleExtra?: string;
+}) {
+  const { didScroll, className, hideSeparator, title, titleExtra, onCloseModal } = p;
+
+  // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
+
+  // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
+  return <div
+    className={cn(
+      'w_f h_item rt_smw f_shrink px_df mw_toolbar_ht abs_t z4',
+      'trans_transform_opacity spd_3 gr_modal_content',
+      !hideSeparator && 'shadow_soft',
+      className
+    )}
+    style={{
+      transform: didScroll ? 'translateY(0)' : 'translateY(-100px)',
+      opacity: didScroll ? 1 : 0,
+    }}
+  >
+    {title &&
+    <div className='shift_down'>
+      <span>
+        {title}
+      </span>
+      {titleExtra && <span className='cl_darker_2 ml_sm'>
+        {titleExtra}
+      </span>}
+    </div>}
+
+    <div className='abs_corner mw_toolbar_ht h_right'>
+      {!onCloseModal ? null : (
+        <button
+          className='link av_xs r bg_darker_hv_1 v_center mr_xs'
+          onClick={onCloseModal}
+        >
+          <Icon name='x' />
+        </button>
+      )}
+    </div>
+  </div>;
+}
+
+/**
+ * Modal toolbar with breadcrumbs inside screen or popup
+ */
+
+export function ModalTitle(p: {
+  className?: string;
+  title?: string;
+  titleExtra?: string;
+  children?: React.ReactNode;
+}) {
+  const { className, title, titleExtra, children } = p;
+
+  // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
+
+  // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
+  return <div className={cn('w_f rt_smw f_shrink rel px_50', title ? 'pt_md pb_sm' : 'mw_toolbar_ht', className)}>
+    {title &&
+    <h4 className='ft_normal'>
+      {title}
+      {titleExtra && <span className='ml_df cl_darker_2'>
+        {titleExtra}
+      </span>}
+    </h4>}
+
+    {children}
+  </div>;
+}
+
+/**
  * Modal tabs navigation
  */
 
@@ -570,27 +652,53 @@ export const ModalTabsNav = memo((p: {
   const { switchCase, tabs, setSwitchCase } = p;
 
   return (
-    <nav className='mw_tabs_nav px_xs h_item h_45 bd_b_1 bd_lt gap_xs sticky_top z2'>
-      {tabs.map((tab) => {
-        if (tab.hidden) {
-          return null;
-        }
+    <nav className='mw_tabs_nav f_stretch f_shrink px_50 bd_b_1 bd_lt sticky_top z2'>
+      <div className='-mx_xs gap_xs h_item h_45'>
+        {tabs.map((tab) => {
+          if (tab.hidden) {
+            return null;
+          }
 
-        const selected = switchCase === tab.value;
-        return <button
-          key={tab.value}
-          disabled={tab.disabled}
-          className={cn('tab_item px_xs v_item f_stretch link', selected ? '' : 'cl_lt')}
-          onClick={() => setSwitchCase(tab.value)}
-        >
-          <span className='f h_item pt_3'>
-            {tab.text}
-          </span>
-          <div className={cn('h_3 -mb_1 f_stretch indicator trans_color spd_1', selected ? 'bg_primary' : 'bg_')} />
-        </button>;
-      })}
+          const selected = switchCase === tab.value;
+          return <button
+            key={tab.value}
+            disabled={tab.disabled}
+            className={cn('tab_item px_xs v_item f_stretch link', selected ? '' : 'cl_md cl_md_hv')}
+            onClick={() => setSwitchCase(tab.value)}
+          >
+            <span className='f h_item pt_3'>
+              {tab.text}
+            </span>
+            <div className={cn('h_3 -mb_1 f_stretch indicator trans_color spd_1', selected ? 'bg_primary' : '')} />
+          </button>;
+        })}
+      </div>
     </nav>
   );
 });
 
 ModalTabsNav.displayName = 'ModalTabsNav';
+
+/**
+ * Modal block component
+ */
+
+export const ModalBlock = memo((p: {
+  className?: string;
+  titleClassName?: string;
+  title?: string;
+  children: React.ReactNode;
+}) => {
+  const { className, title, titleClassName, children } = p;
+
+  // return <div className={cn('r_df px_lg pt_df pb_lg bg_alt', className)}>
+  // return <div className={cn('r_df mx_df my_df px_50 py_md bg', className)}>
+  return <div className={cn('r_df px_50 pt_md pb_df', className)}>
+    <h4 className={cn('ft_normal ft_tn pt_n', titleClassName)}>
+      {title}
+    </h4>
+    {children}
+  </div>;
+});
+
+ModalBlock.displayName = 'ModalBlock';

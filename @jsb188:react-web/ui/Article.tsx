@@ -338,13 +338,13 @@ export function ArticleCard(p: {
 }) {
   const { title, TitleComponent, children, designClassName, className, titleClassName, titleStyle, contentClassName } = p;
 
-  return <div className={cn('r_sm', designClassName ?? 'bg_alt', className)}>
+  return <div className={cn('r_sm', designClassName ?? 'bg_darker_1', className)}>
     {(title || TitleComponent) && (
-      <div className={cn('py_9 px_sm rt_sm', titleClassName ?? 'bg_active')} style={titleStyle}>
+      <div className={cn('py_9 px_df rt_sm', titleClassName ?? 'bg_active')} style={titleStyle}>
         {TitleComponent || title}
       </div>
     )}
-    <div className={contentClassName ?? 'pt_4 pb_sm px_sm'}>
+    <div className={contentClassName ?? 'pt_4 pb_sm px_df'}>
       {children}
     </div>
   </div>;

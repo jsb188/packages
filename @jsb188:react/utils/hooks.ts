@@ -313,3 +313,38 @@ export function useImagesLoadStatus(
 
   return loaded;
 }
+
+/*
+ * Track whether a referenced div's scroll position has passed a pixel offset.
+ */
+
+export function useScrollPastPosition(
+  pixels: number,
+) {
+  const divRef = useRef<HTMLDivElement>(null);
+  const [hasScrolledPast, setHasScrolledPast] = useState(false);
+
+  useEffect(() => {
+    const element = divRef.current;
+    if (!element) {
+      return;
+    }
+
+    const handleScroll = () => {
+      const nextValue = element.scrollTop > pixels;
+
+      setHasScrolledPast((currentValue) => {
+        return currentValue === nextValue ? currentValue : nextValue;
+      });
+    };
+
+    element.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      element.removeEventListener('scroll', handleScroll);
+    };
+  }, [pixels]);
+
+  return [divRef, hasScrolledPast] as const;
+}

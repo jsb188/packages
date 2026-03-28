@@ -6,51 +6,6 @@ import { TimelineDot } from '../ui/TimelineUI';
 import { TooltipButton } from './PopOver';
 
 /**
- * Horizontal Timeline
- */
-
-export const HorizontalTimeline = memo((p: {
-  removeLine?: boolean;
-  positionIndex?: number;
-  items: Partial<TimelineItem>[];
-  className?: string;
-  color?: string;
-}) => {
-  const { removeLine, items, className } = p;
-  const color = p.color || 'strong';
-  const positionIndex = Number(p.positionIndex);
-  const len = items.length - 1;
-
-  return <div className={cn('px_15 py_30', className)}>
-    <div
-      className={cn('rel x_timeline horizontal bg_alt h_8 r')}
-    >
-      {items.map((item, i) => {
-        return <TimelineDot
-          key={i}
-          left={(i / len) * 100 + '%'}
-          position={i === 0 ? 'start' : i === len ? 'end' : 'middle'}
-          selected={i <= positionIndex}
-          lastSelected={i === positionIndex}
-          size={10}
-          color={color}
-          {...item}
-        />;
-      })}
-
-      {!removeLine && positionIndex > 0 && (
-        <span
-          className={`abs tl_progress bg_${color}`}
-          style={{ width: Math.min(100, (positionIndex / len) * 100) + '%' }}
-        />
-      )}
-    </div>
-  </div>;
-});
-
-HorizontalTimeline.displayName = 'HorizontalTimeline'
-
-/**
  * Calculate last line gradient
  */
 

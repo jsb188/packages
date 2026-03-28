@@ -8,6 +8,9 @@ export default {
     n_a: 'N/A',
     unknown: 'Unknown',
     void: 'Void', // Use uppercase if needed
+    void_status: 'Void status',
+    voided: 'Voided',
+    valid: 'Valid',
     location: 'Location',
     site_location: 'Site location',
     warning: 'Warning',
@@ -261,6 +264,7 @@ export default {
     attended_: 'Attended?',
     ct_attending: '%{count} / %{total} attending',
     ct_attended: '%{count} / %{total} attended',
+    at_: 'at %{time}',
     day: 'Day',
     all_day: 'All day',
     date: 'Date',

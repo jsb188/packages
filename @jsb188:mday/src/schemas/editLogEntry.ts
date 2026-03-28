@@ -101,6 +101,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
       };
     } break;
     default:
+      // @ts-expect-error
       console.log(`${logEntry.details?.__typename} is not done yet.`);
   }
 
@@ -162,7 +163,11 @@ export function formatFormValuesForMutation(formValues: Record<string, any>) {
  */
 
 export type ValidMetadataFieldName =
+  | 'break'
   | 'activity'
+  | 'childOrgName'
+  | 'location'
+  | 'fieldLocation'
 
   // ARABLE
   | 'water_testing'
@@ -286,6 +291,16 @@ function makeMetadataSchema(
             name: `${namespace}.unit`,
             maxLength: 40,
             placeholder: isCreateNew ? i18n.t('log.unit_arable_ph') : '',
+          }
+        };
+      case 'fieldLocation':
+        return {
+          __type: 'input',
+          label: i18n.t('log.fieldLocation'),
+          item: {
+            name: `${namespace}.fieldLocation`,
+            maxLength: 64,
+            placeholder: '',
           }
         };
       case 'location_arable':
@@ -573,15 +588,16 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
       schemaFields = [
         'activity',
         isWaterTesting ? 'water_testing' : null,
-        isWaterTesting ? 'concentration_unit' : null,
-        isWaterTesting ? 'water_quantity' : isSaleOrPurchase ? null : 'quantity',
-        isWaterTesting ? 'water_unit' : isSaleOrPurchase ? null : 'unit',
+        isWaterTesting ? 'concentration_unit' : null, // unit will be ignored in view mode
         isWaterTesting ? null : isSaleOrPurchase ? 'purchased_item' : 'crop',
+        isWaterTesting ? 'water_quantity' : isSaleOrPurchase ? null : 'quantity',
+        isWaterTesting ? 'water_unit' : isSaleOrPurchase ? null : 'unit', // unit will be ignored in view mode
         isSaleOrPurchase ? 'otherParty' : null,
         isSaleOrPurchase ? 'invoiceNumber' : null,
         isSaleOrPurchase ? 'invoiceItems' : null,
         isSaleOrPurchase ? 'tax' : null,
         isSaleOrPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
+        isSaleOrPurchase ? null : 'fieldLocation',
       ];
     } break;
     case 'LogFarmersMarket': {
@@ -598,9 +614,10 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
     case 'LogGrowerNetwork': {
       schemaFields = [
         'activity',
-        'otherParty',
-        'crop',
-        'location_arable',
+        'childOrgName',
+        'break',
+        'location',
+        'fieldLocation'
       ];
     } break;
     case 'LogLivestock': {

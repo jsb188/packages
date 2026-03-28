@@ -566,17 +566,19 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
 .bg_strong { background-color: rgb(var(--color-bg-strong)); }
 
 .bg_invis { background-color: rgba(0,0,0,0); }
-.bg_darker_1 { background-color: rgba(var(--color-darker-rgb),.1); }
-.bg_darker_2 { background-color: rgba(var(--color-darker-rgb),.25); }
-.bg_darker_3 { background-color: rgba(var(--color-darker-rgb),.5); }
-.bg_darker_4 { background-color: rgba(var(--color-darker-rgb),.75); }
-.bg_darker_5 { background-color: rgba(var(--color-darker-rgb),.9); }
+.bg_darker_1 { background-color: rgba(var(--color-darker-rgb),.03); }
+.bg_darker_2 { background-color: rgba(var(--color-darker-rgb),.1); }
+.bg_darker_3 { background-color: rgba(var(--color-darker-rgb),.25); }
+.bg_darker_4 { background-color: rgba(var(--color-darker-rgb),.5); }
+.bg_darker_5 { background-color: rgba(var(--color-darker-rgb),.75); }
+.bg_darker_6 { background-color: rgba(var(--color-darker-rgb),.9); }
 
-.bg_lighter_1 { background-color: rgba(var(--color-lighter-rgb),.1); }
-.bg_lighter_2 { background-color: rgba(var(--color-lighter-rgb),.25); }
-.bg_lighter_3 { background-color: rgba(var(--color-lighter-rgb),.5); }
-.bg_lighter_4 { background-color: rgba(var(--color-lighter-rgb),.75); }
-.bg_lighter_5 { background-color: rgba(var(--color-lighter-rgb),.9); }
+.bg_lighter_1 { background-color: rgba(var(--color-lighter-rgb),.03); }
+.bg_lighter_2 { background-color: rgba(var(--color-lighter-rgb),.1); }
+.bg_lighter_3 { background-color: rgba(var(--color-lighter-rgb),.25); }
+.bg_lighter_4 { background-color: rgba(var(--color-lighter-rgb),.5); }
+.bg_lighter_5 { background-color: rgba(var(--color-lighter-rgb),.75); }
+.bg_lighter_6 { background-color: rgba(var(--color-lighter-rgb),.9); }
 
 .pill.bg_active[role="button"]:not(:disabled):hover, .pill.bg_alt[role="button"]:not(:disabled):hover, .pill.bg[role="button"]:not(:disabled):hover,
 a.pill.bg_active:not(:disabled):hover, a.pill.bg_alt:not(:disabled):hover, a.pill.bg:not(:disabled):hover,
@@ -1145,6 +1147,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .trans { transition: all .25s ease-in-out; }
 .trans_link, button:not(:disabled), .link[role="button"]:not(.disabled), a:not(.disabled) { transition: color .125s ease-in-out, background-color .125s ease-in-out, border-color .125s ease-in-out, opacity .125s ease-in-out; }
 .trans_transform { transition: transform .1s ease-in-out; }
+.trans_transform_opacity { transition: transform .1s ease-in-out, opacity .1s ease-in-out; }
 .trans_none, .trans_none *, .trans_none_inner * { transition: none !important; }
 
 .link_float {
@@ -1177,9 +1180,9 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .spd_0 { transition-duration: 70ms !important; animation-duration: 70ms !important; }
 .spd_1 { transition-duration: 150ms !important; animation-duration: 150ms !important; }
 .spd_2 { transition-duration: 250ms !important; animation-duration: 250ms !important; }
-.spd_3 { transition-duration: 500ms !important; animation-duration: 500ms !important; }
-.spd_4 { transition-duration: 750ms !important; animation-duration: 750ms !important; }
-.spd_5 { transition-duration: 1250ms !important; animation-duration: 1250ms !important; }
+.spd_3 { transition-duration: 400ms !important; animation-duration: 400ms !important; }
+.spd_4 { transition-duration: 640ms !important; animation-duration: 640ms !important; }
+.spd_5 { transition-duration: 1000ms !important; animation-duration: 1000ms !important; }
 
 /* These are used for animation transitions, ecetera */
 

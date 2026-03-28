@@ -1,5 +1,5 @@
 
-/* Timeline; horizontal */
+/* Timeline */
 
 .x_timeline {
   position: relative;
@@ -8,10 +8,6 @@
 .x_timeline .tl_dot_cnt {
   position: absolute;
   top: 50%;
-}
-
-.x_timeline.horizontal .tl_dot_cnt {
-  transform: translate(-50%, -50%);
 }
 
 .x_timeline.compact .tl_dot_cnt {

@@ -80,7 +80,7 @@
 /* Modal tabs nav */
 
 .mw_tabs_nav .tab_item:hover .indicator {
-  background-color: rgba(var(--color-darker-rgb),.1);
+  background-color: rgba(var(--color-darker-rgb), .1);
 }
 
 /* Modal side nav */

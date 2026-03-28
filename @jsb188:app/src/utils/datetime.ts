@@ -681,7 +681,7 @@ export function getFullDate(
 	}
 
 	switch (outputStyle) {
-		case 'NUMERIC':
+    case 'NUMERIC':
 			// Expected output: "9/1/2024"
 			return new Intl.DateTimeFormat(locales, {
 				timeZone: timeZone || undefined, // null is not allowed, it will throw error

@@ -519,6 +519,14 @@ const renderMarkdownParts = (
 };
 
 /**
+ * Identify markdown paragraphs that represent list items.
+ */
+
+const isListParagraph = (mds: any) => {
+  return Array.isArray(mds) && mds[0]?.[1] === 'ul_li' && mds[0]?.[4];
+};
+
+/**
  * Markdown; text chunks
  */
 
@@ -721,10 +729,43 @@ function MarkdownCmp(p: MarkdownProps) {
   // console.log(paragraphs);
   // console.log(paragraphs[endOfListPos]);
 
-  return paragraphs.map((
-    mds: any,
-    n: number
-  ) => {
+  const renderedParagraphs = [];
+
+  for (let n = 0; n < paraLen; n += 1) {
+    const mds: any = paragraphs[n];
+    const isEndOfList = n === endOfListPos;
+
+    if (isListParagraph(mds)) {
+      const listGroup = [mds];
+      const startPos = n;
+
+      while (n + 1 < paraLen && isListParagraph(paragraphs[n + 1])) {
+        n += 1;
+        listGroup.push(paragraphs[n]);
+      }
+
+      renderedParagraphs.push(
+        <Element
+          key={startPos}
+          {...other}
+          className={cn('ul', other.className)}
+        >
+          {listGroup.map((listMds, i) => {
+            return (
+              <span key={i} className={listMds[0][1]}>
+                {renderMarkdownParts(listMds, noWrap, NewLineElement, true)}
+              </span>
+            );
+          })}
+
+          {n === endOfListPos && <>
+            {LastComponent}
+          </>}
+        </Element>
+      );
+
+      continue;
+    }
 
     // Lazy typing:
     // mds = [
@@ -738,9 +779,8 @@ function MarkdownCmp(p: MarkdownProps) {
     const isParts = Array.isArray(mds);
     const isBlockedMD = isParts && mds[0][4];
     const Block = ((isParts || isBlockedMD) && mds[0][3]) || Element;
-    const isEndOfList = n === endOfListPos;
 
-    return (
+    renderedParagraphs.push(
       <Block
         key={n}
         {...other}
@@ -766,7 +806,9 @@ function MarkdownCmp(p: MarkdownProps) {
         </>}
       </Block>
     );
-  });
+  }
+
+  return renderedParagraphs;
 }
 
 // MarkdownCmp.propTypes = {

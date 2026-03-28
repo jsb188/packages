@@ -98,7 +98,6 @@ interface LogMetadataBase {
   item: string;
   date: string;
   time: string;
-  fieldLocation?: string;
   otherParty?: string;
   referenceNumber?: string;
   // locationDetails?: string;
@@ -116,6 +115,7 @@ interface LogMetadataBase {
 }
 
 export interface LogArableMetadata extends LogMetadataBase {
+  fieldLocation?: string;
   quantity: number;
   unit: string;
   concentration: number;
@@ -126,9 +126,13 @@ export interface LogFarmersMarketMetadata extends LogMetadataBase {
   values: LabelAndValue[];
 }
 
-export interface LogGrowerNetworkMetadata extends LogMetadataBase {}
+export interface LogGrowerNetworkMetadata extends LogMetadataBase {
+  fieldLocation?: string;
+}
 
-export interface LogLivestockMetadata extends LogMetadataBase {}
+export interface LogLivestockMetadata extends LogMetadataBase {
+  fieldLocation?: string;
+}
 
 /**
  * Log *_details table
@@ -139,6 +143,7 @@ export interface LogDetailsBase {
   childOrg?: {
     id: number | bigint;
     name: string;
+    operation?: OrganizationOperationEnum | null;
   };
   childOrgId?: number | bigint | null;
   reportId?: number | bigint | null;
@@ -200,6 +205,7 @@ export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
   unit: string | null;
   concentration: number | null;
   concentrationUnit: string | null;
+  fieldLocation: string | null;
   otherParty: string | null;
   referenceNumber: string | null;
   values: LabelAndValue[] | null;
@@ -223,6 +229,7 @@ export interface LogGrowerNetworkDetailsGQL extends LogDetailsBaseGQL {
 
   otherParty: string | null;
   item: string | null;
+  fieldLocation: string | null;
 }
 
 export interface LogLivestockDetailsGQL extends LogDetailsBaseGQL {
@@ -241,6 +248,7 @@ export interface LogLivestockDetailsGQL extends LogDetailsBaseGQL {
   quantity: number | null;
   unit: string | null;
   price: number | null;
+  fieldLocation: string | null;
 }
 
 /**
@@ -265,11 +273,11 @@ export interface LogEntryGQL {
   accountId: string;
   organizationId: string;
   childOrgId: string | null;
+  childOrgName: string | null;
   reportId: string | null;
   reportSubmissionId: string | null;
   siteId: string | null;
   location: string | null;
-  fieldLocation?: string | null;
   details: LogMetadataGQL;
   status: LogActionStatusEnum | null;
   summary: string | null;
@@ -304,6 +312,11 @@ export interface LogEntryData {
   accountId: number | bigint;
   organizationId: number | bigint;
   childOrgId?: number | bigint | null;
+  childOrg?: {
+    id: number | bigint;
+    name: string;
+    operation?: OrganizationOperationEnum | null;
+  } | null;
   reportId?: number | bigint | null;
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;

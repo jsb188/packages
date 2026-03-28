@@ -5,11 +5,11 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   accountId
   organizationId
   childOrgId
+  childOrgName
   reportId
   reportSubmissionId
   siteId
   location
-  fieldLocation
   status
   summary
   flagColor
@@ -26,6 +26,7 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   activity
   concentration
   concentrationUnit
+  fieldLocation
 
   item
   quantity
@@ -75,6 +76,7 @@ export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on Lo
   otherParty
 
   item
+  fieldLocation
 
   notes
 }`;
@@ -104,6 +106,7 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
 	quantity
 	unit
   price
+  fieldLocation
 
   notes
 }`;

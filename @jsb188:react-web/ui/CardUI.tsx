@@ -38,7 +38,7 @@ export const GradientCardItem = memo((p: {
   >
     {/* {label &&
     <div className='h_item mt_8 mb_4'>
-      <span className='r_xs h_item ft_medium bg_lighter_2 ft_sm px_6 py_5'>
+      <span className='r_xs h_item ft_medium bg_lighter_3 ft_sm px_6 py_5'>
         <Icon name={iconName} />
         <span className='ml_8'>
           {label}

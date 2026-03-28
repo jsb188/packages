@@ -13,6 +13,7 @@ export default {
 		location_water_ph: 'Water source A, etc.',
 		location_livestock: 'Location',
 		location_livestock_ph: 'Pasture A, Barn B, etc.',
+    fieldLocation: 'Field',
 		livestockGroup: 'Group',
 		crop_ph: 'Tomato, broccoli, etc.',
 		livestock: 'Livestock',
@@ -26,7 +27,10 @@ export default {
 		id_tags_ph: '121, 212, 444, etc',
 		group: 'Livestock group',
 		group_ph: 'Herd A, Pasture B Group, etc',
+    logType: 'Log type',
 		receipt_for: 'Receipt for',
+    otherParty: 'For',
+    childOrgName: 'For',
 		market: 'Market',
 		marketCredits: 'Market credits',
 		marketCredits_ph: '$25 MC, $5 EBT, etc.',
@@ -94,25 +98,25 @@ export default {
 			// #### ARABLE
 			SEED: 'Seed purchase',
 			PLANTING: 'Seeding & transplanting',
-			FIELD: 'Field activity',
-			HARVEST: 'Harvest activity',
-			POST_HARVEST: 'Post-harvest activity',
-			SALES: 'Sales & purchase order',
+			FIELD: 'Field work',
+			HARVEST: 'Harvest',
+			POST_HARVEST: 'Post-harvest',
+			SALES: 'Sales & purchase',
 			WATER: 'Water testing',
 
 			// #### ARABLE - FOOD SAFETY
 			HYGIENE: 'Hygiene procedures',
 			SANITATION: 'Sanitation infrastructure',
-			EQUIPMENTS: 'Materials & food containers/equipments',
+			EQUIPMENTS: 'Materials, containers, equipments',
 			BIOSECURITY: 'Environment & biosecurity',
-			EMPLOYEES: 'Employee & operation notes',
+			EMPLOYEES: 'Employees & operation',
 
 			// #### FARMERS_MARKET
 			MARKET_RECEIPTS: 'Receipt',
 			MARKET_OPERATIONS: 'Operation',
 
 			// #### GROWER_NETWORK
-			SITE_INSPECTION: 'Site inspection',
+			SITE_INSPECTION: 'Inspection',
 
 			// #### LIVESTOCK
 			SUPPLY_PURCHASE: 'Supply purchase',
@@ -255,8 +259,8 @@ export default {
 			// #### GROWER NETWORK
 
 			// # Site inspection activities
-			INSPECTION_NOTES: 'Site inspection notes',
-      GROWER_NOTES: 'Grower network notes',
+			INSPECTION_NOTES: 'Inspection notes',
+      GROWER_NOTES: 'Grower notes',
 
 			// #### LIVESTOCK
 

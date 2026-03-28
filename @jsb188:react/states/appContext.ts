@@ -1,7 +1,7 @@
 import { clearAppCache, fetchLightModeSetting, isSystemDarkMode, saveAuthTokenToPlatform } from '@jsb188/app/platform.ts';
 import type { AccountData, AccountSettings, AuthenticationData, LightModeEnum } from '@jsb188/app/types/auth.d.ts';
 import { setAuthToken } from '@jsb188/app/utils/api.ts';
-import { buildSingleText, guessFirstName } from '@jsb188/app/utils/string.ts';
+import { buildSingleText, getDisplayName, guessFirstName } from '@jsb188/app/utils/string.ts';
 import { createContext, useContext } from 'react';
 
 /**
@@ -375,8 +375,7 @@ export const AppContext = createContext({
 export function useCurrentAccount() {
   const { appState: { activated, hasPassword, webVersion, alertUpdatesOnMount, account, settings, primaryOrganizationId }, dispatchApp } = useContext(AppContext);
   const hasName = !!account?.profile?.firstName || !!account?.profile?.lastName;
-  const fullName = buildSingleText([account?.profile?.firstName, account?.profile?.lastName], ' ');
-  const displayName = guessFirstName(fullName, 8);
+  const { fullName, displayName } = getDisplayName(account?.profile?.firstName, account?.profile?.lastName);
 
   return {
     // Dispatch

@@ -267,7 +267,6 @@ interface AvatarProps {
   displayName?: string | null;
   size?: AvatarSize | null;
   role?: 'button';
-  urlSize?: 'small' | 'medium' | 'large';
   urlPath?: string | null;
   url?: string | null;
   square?: boolean;
@@ -302,9 +301,8 @@ export function Avatar(p: AvatarProps) {
   // Use <AvatarImg /> if you want custom radius <Avatar />
 
   const size = p.size || 'default';
-  const urlSize = p.urlSize || 'small';
   const sizeClass = getSizeClassName('av', size);
-  const avatarUrl = url || makeUploadsUrl(urlPath, urlSize, animateGifs);
+  const avatarUrl = url || makeUploadsUrl(urlPath, 'small');
   const hasImg = !!avatarUrl;
   const hasStatusIcon = !!status || !!typing;
 
@@ -393,15 +391,14 @@ export function AvatarImg(p: AvatarProps & {
   } = p;
 
   const size = p.size || 'default';
-  const urlSize = p.urlSize || 'small';
   const sizeClass = getSizeClassName('av', size);
-  const avatarUrl = url || makeUploadsUrl(urlPath, urlSize, animateGifs);
+  const avatarUrl = url || makeUploadsUrl(urlPath, 'small');
   const hasImg = !!avatarUrl;
 
   let radiusClassName, letterClassName, letterBackgroundClassName;
   if (square) {
     radiusClassName = p.radiusClassName || 'r_sm';
-    letterBackgroundClassName = (p.letterBackgroundClassName ?? 'bg_lighter_3') + ' bd_2 bd_lt';
+    letterBackgroundClassName = (p.letterBackgroundClassName ?? 'bg_lighter_4') + ' bd_2 bd_lt';
 
     if (p.letterBackgroundClassName && !['bg','bg_alt','bg_active'].includes(p.letterBackgroundClassName)) {
       letterClassName = p.letterClassName ?? 'ft_bold';

@@ -2,7 +2,15 @@
 /* Modal cover for alerts & screens */
 
 .gr_modal {
-  background: linear-gradient(360deg, rgba(var(--color-modal), 1) 0%, rgba(var(--color-modal), .5) 50%);
+  background: linear-gradient(360deg, rgba(var(--color-modal), 1) 0%, rgba(var(--color-modal), .58) 50%);
+  backdrop-filter: saturate(125%) blur(1px);
+}
+
+.gr_modal_content {
+  background-image: url("/img/modal-content.jpg");
+  background-position: top center;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
 }
 
 .modal_main_content {

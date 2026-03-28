@@ -729,3 +729,18 @@ export function makeAddressText(
     countryName,
   ].filter(Boolean).join("\n");
 }
+
+/**
+ * Get display name from first and last name
+ * @returns Formatted display name
+ */
+
+export function getDisplayName(firstName?: string | null, lastName?: string | null) {
+  const fullName = buildSingleText([firstName, lastName], ' ');
+  const displayName = guessFirstName(fullName, 8) || '?';
+
+  return {
+    fullName,
+    displayName
+  };
+}

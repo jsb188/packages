@@ -50,7 +50,7 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
     </>
     : <>
       <div className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
-        <span className='av_xs v_center r_xs bg_lighter_3 bd_2 bd_lt'>
+        <span className='av_xs v_center r_xs bg_lighter_4 bd_2 bd_lt'>
           <span className='shift_down ft_df'>
             <EmojiWrapper>
               {emoji || getAvatarLetters(title!) || '🌟'}
