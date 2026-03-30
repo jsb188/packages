@@ -72,9 +72,7 @@ export function AppLayout(p: ReactDivElement & {
           {/* <div className='pattern_grid_fade_down alt_bf abs_t h_450 -z5' /> */}
           {AsideComponent
           ? <div className='cw lg h_f'>
-            <div className='f max_w_950 cw h_f'>
-              {children}
-            </div>
+            {children}
           </div>
           : children}
         </main>
