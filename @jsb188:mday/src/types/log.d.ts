@@ -100,7 +100,6 @@ interface LogMetadataBase {
   time: string;
   otherParty?: string;
   referenceNumber?: string;
-  // locationDetails?: string;
 
   // Interface specific
   values?: LabelAndValue[];
@@ -194,7 +193,6 @@ interface LogDetailsBaseGQL {
   activity: LogActivityEnum;
   summary: string | null;
   notes: string;
-  // locationDetails?: string | null;
 }
 
 export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
