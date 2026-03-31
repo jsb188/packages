@@ -116,22 +116,6 @@ export function useMounted() {
   return mounted;
 }
 
-/*
- * Return the current key when not loading, or the last non-loading key while loading.
- */
-
-export function useNotLoadingKey(loading: boolean, key: string): string {
-  const notLoadingKey = useRef(key);
-
-  useEffect(() => {
-    if (!loading) {
-      notLoadingKey.current = key;
-    }
-  }, [loading, key]);
-
-  return loading ? notLoadingKey.current : key;
-}
-
 /**
  * Watch form value change and run action when the ouput is different
  */
