@@ -278,7 +278,7 @@ export interface LogEntryGQL {
   location: string | null;
   details: LogMetadataGQL;
   status: LogActionStatusEnum | null;
-  summary: string | null;
+  summary: string;
   flagColor?: string | null;
 
   account: any;
@@ -318,7 +318,7 @@ export interface LogEntryData {
   reportId?: number | bigint | null;
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
-  summary: string | null;
+  summary: string;
   location?: {
     name: string;
   } | null;
