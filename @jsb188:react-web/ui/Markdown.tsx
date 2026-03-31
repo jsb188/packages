@@ -23,7 +23,7 @@ const PRESET_REGEX = {
   // article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gmi,
   article: /^#.*|\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
   label: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|\[(.*?)##(.*?)\]/gmi,
-  content_description: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
+  content_description: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
   message: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:/gmi,
 
   // NOTE: Next time you do mobile, check if this regex works in mobile
@@ -83,6 +83,42 @@ const parsePresetTags = (text: string, needsTagRegex: boolean) => {
 };
 
 /**
+ * Push buffered markdown paragraph text if it contains visible content.
+ */
+
+const pushMarkdownParagraph = (
+  paragraphTexts: string[],
+  paragraphLines: string[],
+) => {
+  if (!paragraphLines.length) {
+    return;
+  }
+
+  const paragraphText = paragraphLines.join('\n');
+  if (paragraphText.trim()) {
+    paragraphTexts.push(paragraphText);
+  }
+
+  paragraphLines.length = 0;
+};
+
+/**
+ * Check whether a line should start a list paragraph.
+ */
+
+const isListMarkdownLine = (text: string) => {
+  return /^[-•] /.test(text);
+};
+
+/**
+ * Check whether an article line should be treated as a heading paragraph.
+ */
+
+const isArticleHeadingLine = (text: string) => {
+  return /^#.* /.test(text);
+};
+
+/**
  * Split markdown text into paragraphs per preset rules.
  */
 
@@ -95,19 +131,34 @@ const splitMarkdownParagraphs = (
     return [text];
   }
 
-  let paragraphTexts = (text.split(/\n{2,}|(?=^[-•] )/gm) || []).filter(Boolean);
+  const normalizedText = text.replace(/\r\n?/g, '\n');
+  const paragraphTexts: string[] = [];
+  const paragraphLines: string[] = [];
 
-  if (preset === 'article') {
-    paragraphTexts = paragraphTexts.reduce((acc: string[], str: string) => {
-      const isHeading = /^#.* /.test(str);
-      if (isHeading) {
-        return acc.concat(str.split('\n'));
-      }
-      return acc.concat(str);
-    }, []).filter(Boolean);
+  for (const line of normalizedText.split('\n')) {
+    if (!line.trim()) {
+      pushMarkdownParagraph(paragraphTexts, paragraphLines);
+      continue;
+    }
+
+    if (isListMarkdownLine(line)) {
+      pushMarkdownParagraph(paragraphTexts, paragraphLines);
+      paragraphTexts.push(line);
+      continue;
+    }
+
+    if (preset === 'article' && isArticleHeadingLine(line)) {
+      pushMarkdownParagraph(paragraphTexts, paragraphLines);
+      paragraphTexts.push(line);
+      continue;
+    }
+
+    paragraphLines.push(line);
   }
 
-  return paragraphTexts;
+  pushMarkdownParagraph(paragraphTexts, paragraphLines);
+
+  return paragraphTexts.filter(Boolean);
 };
 
 /**

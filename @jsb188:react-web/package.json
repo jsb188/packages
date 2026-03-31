@@ -55,7 +55,12 @@
     "jotai": "^2.13.1",
     "react": "^19.1.1"
   },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "react-dom": "^19.1.1",
+    "vitest": "^3.2.4"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run --config ./vitest.config.ts"
   }
 }
