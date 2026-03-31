@@ -7,8 +7,8 @@ export default {
 		email_from_name: 'Marketday',
 		from_: 'From: %{name}',
 		sent_by_ai_msg: (
-      'This email was sent by <a href="https://marketday.ai">Marketday AI</a>. Contact us to automate your ' +
-      'operations with AI.'
+      'This email was sent by <a href="https://marketday.ai">Marketday AI</a>.<br />' +
+      'Contact us to automate your business operations with AI.'
     ),
 	},
 };
