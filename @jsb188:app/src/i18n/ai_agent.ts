@@ -8,6 +8,7 @@ export default {
 		// Response texts
 		thinking_: '💭 Thinking...',
 		processing_request_: '⚙️ Processing your request...',
+    creating_link_: '🔗 Creating a link...',
 		getting_new_id_: '🆔 Creating new ID number...',
 		saving_memories_: '💾 Saving memories...',
 		reading_stored_memories_: '🧠 Reading stored memories...',
