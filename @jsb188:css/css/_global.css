@@ -464,12 +464,12 @@ a.u, button.u {
 .bg_err { background-color: rgb(var(--color-error)) !important; color: #FFF; }
 a.bg_err:active, button.bg_err:active, .bg_err_av { background-color: rgb(var(--color-error-active)) !important; color: rgba(255, 255, 255, .64); }
 .bg_err_hv:hover { background-color: rgb(var(--color-error-active)) !important; }
-.bg_err_fd_hv:hover { background-color: rgb(var(--color-error-faded), .1) !important; }
+.bg_err_fd, .bg_err_fd_hv:hover { background-color: rgb(var(--color-error-faded), .02) !important; }
 
 .bg_warn { background-color: rgb(var(--color-warn)) !important; color: #FFF; }
 a.bg_warn:active, button.bg_warn:active, .bg_warn_av { background-color: rgb(var(--color-warn-active)) !important; color: rgba(255, 255, 255, .64); }
 .bg_warn_hv:hover { background-color: rgb(var(--color-warn-active)) !important; }
-.bg_warn_fd_hv:hover { background-color: rgb(var(--color-warn-faded), .1) !important; }
+.bg_warn_fd, .bg_warn_fd_hv:hover { background-color: rgb(var(--color-warn-faded), .02) !important; }
 
 .bg_pass { background-color: rgb(var(--color-pass)) !important; color: #FFF; }
 a.bg_pass:active, button.bg_pass:active { background-color: rgb(var(--color-pass-active)) !important; }
@@ -1141,6 +1141,8 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 
 /* Shadow - colored lines (use this to immitate a "highlighted border" effect */
 .shadow_primary { box-shadow: 0 0 0 1px rgb(var(--color-primary)); }
+.shadow_err { box-shadow: 0 0 0 1px rgb(var(--color-error)); }
+.shadow_warn { box-shadow: 0 0 0 1px rgb(var(--color-warn)); }
 
 /* Transitions */
 
