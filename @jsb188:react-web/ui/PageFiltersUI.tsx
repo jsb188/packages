@@ -106,9 +106,10 @@ export const PageFiltersBar = memo((p: PageFiltersBarProps) => {
 
       {titleBreadcrumbs?.map((breadcrumb, index) => (
         <Fragment key={index}>
-          <span className='mx_xs shift_up cl_darker_2'>/</span>
-
-          <span className='h_item cl_md'>
+          <span className='mx_xs shift_up cl_darker_2 phone:hidden'>
+            /
+          </span>
+          <span className='h_item cl_md phone:hidden'>
             {breadcrumb}
           </span>
         </Fragment>

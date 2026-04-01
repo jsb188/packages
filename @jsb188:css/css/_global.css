@@ -1,4 +1,6 @@
 @import url("./_sizing.css");
+@import url("./_responsive.css");
+@import url("./_responsive.generated.css");
 
 /* Main elements */
 
@@ -287,10 +289,6 @@ p:last-child {
 
 /* Miscelaneous */
 
-.scroll_lock { overscroll-behavior-x: none; } /* Use this on <body> when Modal is used */
-.of { overflow: hidden; }
-.hidden { display: none !important; }
-
 .-z5 { z-index: -5; }
 .-z4 { z-index: -4; }
 .-z3 { z-index: -3; }
@@ -312,8 +310,6 @@ p:last-child {
 .cs_back { cursor: w-resize; }
 .unsel, .unsel * { user-select: none; }
 .noclick, .noclick * { pointer-events: none; }
-.bl { display: block; }
-.ib { display: inline-block; }
 
 /* Ellipsis */
 

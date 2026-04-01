@@ -145,13 +145,6 @@ body.p_auth {
   max-height: 100vh;
   top: 0; right: 0;
   padding-top: var(--toolbar-ht);
-  /* top: var(--toolbar-ht); right: 0; */
-
-  /* position: fixed;
-  width: var(--aside-wt);
-  padding-right: 20px;
-  max-height: calc(100vh - var(--toolbar-ht));
-  top: var(--toolbar-ht); left: var(--sidebar-wt); */
 }
 
 /* Floating message */
@@ -219,7 +212,7 @@ body.p_auth {
 
 /* App layout; sidebar mobile responsive design */
 
-@media (max-width: 1024px) {
+@media (--responsive-mobile-portrait) {
   #app_sidebar {
     width: 0;
   }
@@ -231,40 +224,45 @@ body.p_auth {
   /* position: relative; */
   overflow-x: hidden;
   overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
-  /* scroll-behavior: smooth; */
-  /* After a recent update, this no longer works in Chrome */
-  /* overflow-y: overlay; */
-  scrollbar-gutter: auto;
-  /* In "new" Google Chrome, this will make the scrollbar invisible, so we must turn it off. */
-  /* scrollbar-width: thin; */
-
-  /* This is for bottom-up chat style virtualized list */
-  overflow-anchor: none;
 }
 
-.app_scr::-webkit-scrollbar {
-  width: 18px;
-  /* background-color: rgb(var(--color-bg-alt)); */
-}
+@media (--gte-mobile-portrait) {
+  .app_scr {
+    -webkit-overflow-scrolling: touch;
+    /* scroll-behavior: smooth; */
+    /* After a recent update, this no longer works in Chrome */
+    /* overflow-y: overlay; */
+    scrollbar-gutter: auto;
+    /* In "new" Google Chrome, this will make the scrollbar invisible, so we must turn it off. */
+    /* scrollbar-width: thin; */
 
-.app_scr::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 0 5px rgb(var(--color-bg));
-  border-radius: 9px;
-}
+    /* This is for bottom-up chat style virtualized list */
+    overflow-anchor: none;
+  }
 
-.app_scr::-webkit-scrollbar-thumb {
-  z-index: -1;
-  /* Use this for invisible style */
-  /* background-color: rgb(var(--color-bg-active)); */
-  background-color: transparent;
-  box-shadow: inset 0 0 0 5px rgb(var(--color-bg));
-  /* transform: scale(.5); */
-  border-radius: 9px;
-  min-height: 100px;
-}
+  .app_scr::-webkit-scrollbar {
+    width: 18px;
+    /* background-color: rgb(var(--color-bg-alt)); */
+  }
 
-.app_scr:hover::-webkit-scrollbar-thumb {
-  /* background-color: rgb(var(--color-bg-medium)); */
-  background-color: rgb(var(--color-bg-active));
+  .app_scr::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 0 5px rgb(var(--color-bg));
+    border-radius: 9px;
+  }
+
+  .app_scr::-webkit-scrollbar-thumb {
+    z-index: -1;
+    /* Use this for invisible style */
+    /* background-color: rgb(var(--color-bg-active)); */
+    background-color: transparent;
+    box-shadow: inset 0 0 0 5px rgb(var(--color-bg));
+    /* transform: scale(.5); */
+    border-radius: 9px;
+    min-height: 100px;
+  }
+
+  .app_scr:hover::-webkit-scrollbar-thumb {
+    /* background-color: rgb(var(--color-bg-medium)); */
+    background-color: rgb(var(--color-bg-active));
+  }
 }

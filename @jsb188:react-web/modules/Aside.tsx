@@ -45,7 +45,7 @@ export const AsideListBlock = memo((p: AsideListBlockObj & {
 }) => {
   const { pathname, title, nullText, items } = p;
 
-  return <nav className='pb_10 mx_10 my_25 ft_sm bd_1 bd_lt bg r_sm of'>
+  return <nav className='pb_10 mx_10 landscape:-mx_10 my_25 ft_sm bd_1 bd_lt bg r_sm of'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}
@@ -139,7 +139,7 @@ const MAX_ASIDE_GALLERY_ITEMS = 16;
     overflowCount = Math.max(0, items.length - MAX_ASIDE_GALLERY_ITEMS);
   }
 
-  return <nav className='mx_10 my_25 ft_sm bd_1 bd_lt bg r_sm of'>
+  return <nav className='mx_10 landscape:-mx_10 my_25 ft_sm bd_1 bd_lt bg r_sm of'>
 
     {(title || title === undefined) &&
     <div className='bd_b_1 bd_lt bg_fade cl_md h_item h_50 px_df'>
@@ -150,7 +150,7 @@ const MAX_ASIDE_GALLERY_ITEMS = 16;
 
     <div className='grid size_4 gap_5 p_5'>
       {visibleItems?.map((item, i) => {
-        const imageUrl = makeUploadsUrl(item.uri, 'tiny', true);
+        const imageUrl = makeUploadsUrl(item.uri, 'tiny');
         const showOverflowCount = !!overflowCount && i === visibleItems.length - 1;
 
         return <span
@@ -225,7 +225,7 @@ export function AsideBlocks(p: {
  */
 
 export function AsideNavMock() {
-  return <nav className='pb_10 mx_10 my_25 ft_sm bd_1 bd_lt bg r_sm'>
+  return <nav className='pb_10 mx_10 landscape:-mx_10 my_25 ft_sm bd_1 bd_lt bg r_sm'>
     {/* <div className='h_40' /> */}
     {/* <div className='pattern_texture texture_bf rel my_df h_4' /> */}
     {/* <div className='bd_t_2 bd_lt my_df h_6' /> */}

@@ -19,6 +19,7 @@
     "./popover.css": "./css/popover.css"
   },
   "scripts": {
+    "gen:responsive-css": "node ./scripts/generateResponsiveCss.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }

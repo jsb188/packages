@@ -1,4 +1,4 @@
-import { DOM_IDS } from '@jsb188/app/constants/app.ts';
+import { COMMON_CLASSNAMES, DOM_IDS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
@@ -67,18 +67,22 @@ export function AppLayout(p: ReactDivElement & {
           key={scrollResetKey}
           // ref={contentAreaRef}
           id={DOM_IDS.mainBodyScrollArea}
-          className={cn('app_scr h_f rel', AsideComponent ? 'w_app_side' : '', contentFlexClassName ?? 'v_top')}
+          className={cn('app_scr h_f rel', AsideComponent ? 'w_app_side landscape:mr_n' : '', contentFlexClassName ?? 'v_top')}
         >
           {/* <div className='pattern_grid_fade_down alt_bf abs_t h_450 -z5' /> */}
           {AsideComponent
           ? <div className='cw lg h_f'>
             {children}
+
+            <aside className='hidden landscape:bl w_f responsive px_lg pb_lg'>
+              {AsideComponent}
+            </aside>
           </div>
           : children}
         </main>
 
         {AsideComponent &&
-        <aside className='app_aside z3 y_scr_hidden'>
+        <aside className='app_aside landscape:hidden z3 y_scr_hidden'>
           {AsideComponent}
         </aside>}
 
@@ -159,7 +163,7 @@ export const AppToolbarTitle = memo((p: {
           addBreak={i <= 0}
           isFirstItem={i === 0}
           isLastItem={lastIx === i}
-        />
+        />;
       })}
     </div>
   </div>;
