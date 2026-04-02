@@ -147,7 +147,7 @@ export const CondensedArticleItem = memo((p: {
       }
 
       {labels?.length && (
-        <div className={cn('h_item f_shrink mr_3', yPaddingClassName, labelsClassName)}>
+        <div className={cn('h_item no_shrink mr_3', yPaddingClassName, labelsClassName)}>
           {labels.map((label, i) => (
             <InlineBlockLabel
               key={i}
@@ -162,7 +162,7 @@ export const CondensedArticleItem = memo((p: {
         </div>
       )}
 
-      {title && !hasDescriptionOrRightIcons && <span className={cn('f f_shrink shift_down', yPaddingClassName)}>
+      {title && !hasDescriptionOrRightIcons && <span className={cn('f no_shrink shift_down', yPaddingClassName)}>
         <span className='ellip'>
           {title}
         </span>
@@ -211,7 +211,7 @@ export const CondensedArticleItem = memo((p: {
       : null}
 
       {!RightComponent ? null
-      : <div className={cn('h_right gap_xs ml_xs f_shrink', rightComponentClassName)}>
+      : <div className={cn('h_right gap_xs ml_xs no_shrink', rightComponentClassName)}>
         {RightComponent}
       </div>}
     </div>
@@ -250,7 +250,7 @@ export function CondensedArticleItemMock(p: {
     )}
 
     <div className='h_item gap_xs'>
-      <div className={cn('h_item f_shrink mr_3', separatorHidden ? NO_SEPARATOR_Y_PADDING : 'py_sm')}>
+      <div className={cn('h_item no_shrink mr_3', separatorHidden ? NO_SEPARATOR_Y_PADDING : 'py_sm')}>
         <InlineBlockLabel
           as='span'
           outline
@@ -264,7 +264,7 @@ export function CondensedArticleItemMock(p: {
         />
       </div>
 
-      <span className={cn('f_shrink shift_down', separatorHidden ? NO_SEPARATOR_Y_PADDING : 'py_sm')}>
+      <span className={cn('no_shrink shift_down', separatorHidden ? NO_SEPARATOR_Y_PADDING : 'py_sm')}>
         <span className='mock alt'>
           ...... ...... ......
         </span>

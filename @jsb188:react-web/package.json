@@ -23,6 +23,7 @@
     "./modules/Table": "./modules/Table.tsx",
     "./modules/Timeline": "./modules/Timeline.tsx",
     "./modules/Toaster": "./modules/Toaster.tsx",
+    "./modules/Toolbar": "./modules/Toolbar.tsx",
     "./modules/VirtualizedList": "./modules/VirtualizedList.tsx",
     "./ui/Article": "./ui/Article.tsx",
     "./ui/Avatar": "./ui/Avatar.tsx",

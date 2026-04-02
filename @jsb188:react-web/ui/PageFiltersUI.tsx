@@ -1,9 +1,8 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
-import { Fragment, memo } from 'react';
+import { memo } from 'react';
 import { PopOverButton } from '../modules/PopOver';
-import { Icon } from '../svgs/Icon';
-import { PillButton, SmartLink } from './Button';
+import { PillButton } from './Button';
 
 /**
  * Filter pill button; renders a pill with optional PopOver dropdown
@@ -26,7 +25,7 @@ interface FilterPillButtonProps {
 
 export const FilterPillButton = memo((p: FilterPillButtonProps) => {
   const { id, open, hasValue, alwaysSelected, text, popOverClassName, popOverName, options, initialState, disablePopOverButton, footerButtonText, onClickLeftIcon } = p;
-  const designClassName = cn('bd_double', hasValue || open ? 'bg_alt' : 'bg_alt_hv cl_bd_hv cl_md bd_md');
+  const designClassName = cn('bd_1 bd_lt', hasValue || open ? 'bg_alt' : 'bg_alt_hv cl_bd_hv cl_md');
 
   if (options) {
     return <PopOverButton
@@ -68,56 +67,3 @@ export const FilterPillButton = memo((p: FilterPillButtonProps) => {
 });
 
 FilterPillButton.displayName = 'FilterPillButton';
-
-/**
- * Page filters bar; horizontal container with optional title and icon
- */
-
-interface PageFiltersBarProps {
-  className?: string;
-  title?: string;
-  titleIconName?: string;
-  titleTo?: string;
-  titleBreadcrumbs?: string[];
-  children?: React.ReactNode;
-}
-
-export const PageFiltersBar = memo((p: PageFiltersBarProps) => {
-  const { className, title, titleIconName, titleTo, titleBreadcrumbs, children } = p;
-  const hasBreadcrumbs = titleBreadcrumbs && titleBreadcrumbs.length > 0;
-
-  return <div className={cn('h_item gap_15', className)}>
-      <div className='h_item pill_xs'>
-      {title && (
-        <SmartLink
-          className='h_item rel r -ml_7 cl_df'
-          to={titleTo}
-        >
-          {titleIconName &&
-            <span className='ft_lg shift_up_2 mr_8'>
-              <Icon tryColor name={titleIconName} />
-            </span>
-          }
-          <span className={cn('ft_medium', !hasBreadcrumbs && 'pr_5')}>
-            {title}
-          </span>
-        </SmartLink>
-      )}
-
-      {titleBreadcrumbs?.map((breadcrumb, index) => (
-        <Fragment key={index}>
-          <span className='mx_xs shift_up cl_darker_2 phone:hidden'>
-            /
-          </span>
-          <span className='h_item cl_md phone:hidden'>
-            {breadcrumb}
-          </span>
-        </Fragment>
-      ))}
-    </div>
-
-    {children}
-  </div>;
-});
-
-PageFiltersBar.displayName = 'PageFiltersBar';

@@ -188,7 +188,7 @@ const FileBrowserFolder = memo((p: FBPFolderObj & {
     >
       <div className='h_item py_8'>
         {iconName && !isSubtitle &&
-        <span className='mr_10 f_shrink'>
+        <span className='mr_10 no_shrink'>
           <Icon name={iconName} />
         </span>}
         <span className={cn('ellip', isSubtitle && 'ft_xs ft_semibold cl_lt')}>

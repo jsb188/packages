@@ -199,7 +199,7 @@ export const TDColMain = memo((p: Partial<{
     )}
 
     {labelIcons && (
-      <span className={cn('f_shrink h_item gap_1', hasAvatar || title || showPlaceholder ? 'ml_10' : undefined)}>
+      <span className={cn('no_shrink h_item gap_1', hasAvatar || title || showPlaceholder ? 'ml_10' : undefined)}>
         <LabelsAndIcons
           items={labelIcons}
         />
@@ -362,7 +362,7 @@ export const InlineTableOptions = memo((p: {
       placeholderText={placeholder || '-'}
     />
 
-    <span className={cn('f_shrink ml_4', !selectedOption?.text && 'cl_darker_2')}>
+    <span className={cn('no_shrink ml_4', !selectedOption?.text && 'cl_darker_2')}>
       <Icon name='caret-down' />
     </span>
   </PopOverButton>;

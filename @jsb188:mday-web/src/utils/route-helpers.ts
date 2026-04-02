@@ -4,7 +4,7 @@ import type { ReportGroupGQL } from '@jsb188/mday/types/report.d.ts';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 
 // Use this for report periods, etc
-const CURRENT_YEAR = String(new Date().getFullYear());
+// const CURRENT_YEAR = String(new Date().getFullYear());
 
 /**
  * Constants; Re-usable rules
@@ -62,11 +62,8 @@ interface RouteDictObj {
   notAllowedOperations?: OrganizationOperationEnum[];
   requiredFeature?: OrganizationFeatureEnum[];
 
-  // These values prevent rendering flickers when calculating TOC/breadcrumbs between page renders
-  scrollResetKey?: string | ((parts: string[], pathname: string) => string);
   hasPhysicalToolbar?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
   hasAside?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
-  toolbarShadowStyle?: string;
 }
 
 const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
@@ -88,7 +85,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
     hasPhysicalToolbar: 'ALWAYS',
     hasAside: 'NEVER',
-    toolbarShadowStyle: 'shadow_bg_drop_lg',
   },
 
   // Advanced
@@ -328,7 +324,6 @@ const ROUTES_DICT_ORDERED = Object.keys(ROUTES_DICT).sort((a, b) => b.length - a
 
 interface RouteConfigObj extends Omit<RouteDictObj, 'hasPhysicalToolbar' | 'hasAside'> {
   routeName: ValidRoutePath;
-  scrollResetKey: string;
   allowed: boolean;
   hasPhysicalToolbar: boolean;
   hasAside: boolean;
@@ -350,18 +345,6 @@ export function getRouteConfigs(
       const routeDict = ROUTES_DICT[routeName as ValidRoutePath];
       const pathParts = pathname.split('/');
 
-      let scrollResetKey: string;
-      if (typeof routeDict.scrollResetKey === 'function') {
-        scrollResetKey = routeDict.scrollResetKey(pathParts, pathname);
-      } else if (typeof routeDict.scrollResetKey === 'string') {
-        scrollResetKey = routeDict.scrollResetKey;
-      } else if (pathParts.length >= 3) {
-        // scroll reset key here is full path minus last part
-        scrollResetKey = pathParts.slice(0, pathParts.length - 1).join('/');
-      } else {
-        scrollResetKey = pathParts.slice(0, 3).join('/');
-      }
-
       const hasAside = !!routeDict.hasAside && routeDict.hasAside !== 'NEVER' && (
         routeDict.hasAside === 'ALWAYS' ||
         (typeof routeDict.hasAside === 'function' && routeDict.hasAside(pathParts))
@@ -376,7 +359,6 @@ export function getRouteConfigs(
         ...routeDict,
         text: i18n.has(routeDict.text) ? i18n.t(routeDict.text) : routeDict.text,
         routeName: routeName as ValidRoutePath,
-        scrollResetKey,
         allowed: isRouteAllowed(pathname, operation, orgFeatures),
         hasPhysicalToolbar,
         hasAside,
@@ -386,7 +368,6 @@ export function getRouteConfigs(
 
   return {
     routeName: '/__unknown',
-    scrollResetKey: '',
     allowed: false,
     hasPhysicalToolbar: false,
     hasAside: false,

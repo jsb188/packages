@@ -336,7 +336,7 @@ export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
   const El = p.as || 'span';
   const isLightBackground = ['bg', 'alt', 'active'].includes(String(color));
 
-  return <El className={cn('ib_label f_shrink', outline && 'outline', !fillTextColor && (color && `${color}_bf`), className)}>
+  return <El className={cn('ib_label no_shrink', outline && 'outline', !fillTextColor && (color && `${color}_bf`), className)}>
     <span
       className={cn(
         'rel z2 h_item ft_xs',
@@ -344,7 +344,7 @@ export const InlineBlockLabel = memo((p: InlineBlockLabelProps) => {
         !colorIndicator && 'px_1'
       )}
     >
-      {colorIndicator && <span className={`indicator f_shrink bg_${colorIndicator}`} />}
+      {colorIndicator && <span className={`indicator no_shrink bg_${colorIndicator}`} />}
       {iconName &&
       <span className={cn(text ? 'mr_5' : '')}>
         <Icon name={iconName} />
@@ -398,7 +398,7 @@ export const SimpleLabel = memo((p: {
 
   return <El
     className={cn(
-      'f_shrink ft_tn r_xs',
+      'no_shrink ft_tn r_xs',
       colorClassName,
       designClassName,
       className

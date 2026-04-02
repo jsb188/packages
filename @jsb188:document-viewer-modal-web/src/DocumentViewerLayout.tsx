@@ -84,7 +84,7 @@ const DVNavItem = memo((p: {
         <Link
           to={pathname}
           onClick={onCloseModal}
-          className='target op_0 anim_inner gap_2 h_right link cl_primary f_shrink -mr_3'
+          className='target op_0 anim_inner gap_2 h_right link cl_primary no_shrink -mr_3'
         >
           {i18n.t('form.open')}
           <Icon name='box-arrow-right' />
@@ -105,7 +105,7 @@ const DVNavItem = memo((p: {
       )}
       onClick={() => setSelectedFile(item as DVItemFile)}
     >
-      <span className='f_shrink'>
+      <span className='no_shrink'>
         <FileTypeIcon contentType={file.contentType} fileName={file.name} />
       </span>
       <span className='ellip'>{file.name || file.contentType}</span>
@@ -142,7 +142,7 @@ const DocumentPreviewToolbar = memo((p: {
       __html: (
         '<div class="py_2">' +
           '<p class="h_left pt_2">' +
-            '<span class="ib w_50 f_shrink cl_md">' +
+            '<span class="ib w_50 no_shrink cl_md">' +
               i18n.t('form.name') + ':' +
             '</span>' +
             '<span class="ellixp">' +
@@ -150,7 +150,7 @@ const DocumentPreviewToolbar = memo((p: {
             '</span>' +
           '</p>' +
           '<p class="h_left">' +
-            '<span class="ib w_50 f_shrink cl_md">' +
+            '<span class="ib w_50 no_shrink cl_md">' +
               i18n.t('form.type') + ':' +
             '</span>' +
             '<span class="ellip">' +
@@ -158,7 +158,7 @@ const DocumentPreviewToolbar = memo((p: {
             '</span>' +
           '</p>' +
           '<p class="h_left">' +
-            '<span class="ib w_50 f_shrink cl_md">' +
+            '<span class="ib w_50 no_shrink cl_md">' +
               i18n.t('form.desc') + ':' +
             '</span>' +
             `<span${file.description ? '' : ' class="cl_md"'}>` +

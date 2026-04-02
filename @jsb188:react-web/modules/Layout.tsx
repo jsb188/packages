@@ -1,8 +1,8 @@
-import { COMMON_CLASSNAMES, DOM_IDS } from '@jsb188/app/constants/app.ts';
+import { DOM_IDS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import { Pill, SmartLink } from '@jsb188/react-web/ui/Button';
+import { Pill } from '@jsb188/react-web/ui/Button';
 import { useOnlineStatus } from '@jsb188/react-web/utils/dom';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
 import { memo } from 'react';
@@ -25,25 +25,13 @@ export type ContainerSizeEnum = 'tn' | 'xxs' | 'xs' | 'sm' | 'df' | 'md' | 'lg' 
 
 export function AppLayout(p: ReactDivElement & {
   open: boolean;
-  hasPhysicalToolbar?: boolean;
-  scrollResetKey: string;
   routeName: string;
-  contentFlexClassName?: string;
+  notReadyOrError: boolean;
   AsideComponent?: React.ReactNode;
   SidebarComponent?: React.ReactNode;
   ToolbarComponent?: React.ReactNode;
 }) {
-  const { hasPhysicalToolbar, scrollResetKey, routeName, children, open, className, contentFlexClassName, AsideComponent, SidebarComponent, ToolbarComponent, ...other } = p;
-
-  // This is not necessary because key={pathname} handles the scroll
-  // const contentAreaRef = useRef<HTMLDivElement>(null);
-  // useEffect(() => {
-  //   if (globalThis?.window) {
-  //     // Scroll to top of content area
-  //     console.log('scrollTo:', pathname);
-  //     contentAreaRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-  //   }
-  // }, [pathname]);
+  const { routeName, children, open, className, notReadyOrError, AsideComponent, SidebarComponent, ToolbarComponent, ...other } = p;
 
   return <div
     className={cn('h_f bg_alt', open ? 'open' : '', className)}
@@ -59,17 +47,20 @@ export function AppLayout(p: ReactDivElement & {
         </div>
       </aside>
 
-      <div className='h_f f z4 v_spread shadow_line rel of bg'>
+      <div className='h_f f z4 v_spread shadow_line_soft rel of bg'>
         {ToolbarComponent}
 
-        <main
-          // {key} fixes the scroll position problem when switching routes
-          key={scrollResetKey}
+        {notReadyOrError
+        ? <AppContentArea flexClassName='v_center pb_xl'>
+          {children}
+        </AppContentArea>
+        : children}
+
+        {/* <main
           // ref={contentAreaRef}
           id={DOM_IDS.mainBodyScrollArea}
           className={cn('app_scr h_f rel', AsideComponent ? 'w_app_side landscape:mr_n' : '', contentFlexClassName ?? 'v_top')}
         >
-          {/* <div className='pattern_grid_fade_down alt_bf abs_t h_450 -z5' /> */}
           {AsideComponent
           ? <div className='cw lg h_f'>
             {children}
@@ -79,7 +70,7 @@ export function AppLayout(p: ReactDivElement & {
             </aside>
           </div>
           : children}
-        </main>
+        </main> */}
 
         {AsideComponent &&
         <aside className='app_aside landscape:hidden z3 y_scr_hidden'>
@@ -92,97 +83,23 @@ export function AppLayout(p: ReactDivElement & {
 }
 
 /**
- * App layout toolbar title
+ * App content area
+ * NOTE: Always use this as a wrapper for every route
  */
 
-// * Toolbar title breadcrumb item
+export function AppContentArea(p: {
+  hasAside?: boolean;
+  flexClassName?: string;
+  children: React.ReactNode;
+}) {
+  const { hasAside, children, flexClassName } = p;
 
-export interface BreadcrumbItemObj {
-  to: string | null;
-  text: string;
-  iconName?: string | null;
-  tryColoredIcon?: boolean;
-}
-
-const BreadcrumbItem = memo((p: BreadcrumbItemObj & {
-  addBreak: boolean;
-  isFirstItem?: boolean;
-  isLastItem?: boolean;
-}) => {
-  const { to, iconName, tryColoredIcon, text, addBreak, isFirstItem, isLastItem } = p;
-
-  // NOTE: Here in the top-left flushed Toolbar title area;
-  // we use .mr_10 for <Icon /> spacing
-  // But in the inside-content <LogsPageFilter /> area,
-  // we use .mr_8 for <Icon /> spacing
-  // This was done intentionally to visually balance the different positioning.
-
-  return <>
-    {addBreak ? null : (
-      <span className='mx_xs shift_up cl_darker_2'>
-        /
-      </span>
-    )}
-    <SmartLink
-      to={isLastItem ? undefined : to!}
-      className={cn('h_item', isFirstItem ? 'ft_medium cl_df' : 'cl_md')}
-    >
-      {iconName && (
-        <span className='ft_lg shift_up mr_10'>
-          <Icon
-            name={iconName}
-            tryColor={tryColoredIcon !== false}
-          />
-        </span>
-      )}
-      {text}
-    </SmartLink>
-  </>;
-});
-
-BreadcrumbItem.displayName = 'BreadcrumbItem';
-
-// * App toolbar title with breadcrumbs
-
-export const AppToolbarTitle = memo((p: {
-  breadcrumbs?: BreadcrumbItemObj[] | null;
-  toolbarShadowStyle?: string;
-}) => {
-  const { breadcrumbs, toolbarShadowStyle = 'shadow_line_alt' } = p;
-  const lastIx = breadcrumbs ? breadcrumbs.length - 1 : -1;
-
-  return <div
-    id='app_toolbar_title'
-    className={cn('h_spread f_shrink px_sm bg rel z4', toolbarShadowStyle)}
-  >
-    <div className='px_xs h_item mt_1'>
-      {breadcrumbs?.map((item, i) => {
-        return <BreadcrumbItem
-          key={i}
-          {...item}
-          addBreak={i <= 0}
-          isFirstItem={i === 0}
-          isLastItem={lastIx === i}
-        />;
-      })}
-    </div>
-  </div>;
-});
-
-AppToolbarTitle.displayName = 'AppToolbarTitle';
-
-/**
- * App toolbar "right-side" content area
- */
-
-export function AppToolbarContent(p: { children: React.ReactNode }) {
-  const { children } = p;
-  return <nav
-    id='app_toolbar_right'
-    className='h_right pl_sm pr_20 gap_10'
+  return <main
+    id={DOM_IDS.mainBodyScrollArea}
+    className={cn('app_scr h_f rel', hasAside ? 'w_app_side landscape:mr_n' : '', flexClassName ?? 'v_top')}
   >
     {children}
-  </nav>;
+  </main>;
 }
 
 /**

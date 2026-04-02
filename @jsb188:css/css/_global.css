@@ -343,7 +343,7 @@ p:last-child {
 
 .f_stretch { align-self: stretch; }
 .f_wrap { flex-wrap: wrap; }
-.f_shrink { flex-shrink: 0; }
+.no_shrink { flex-shrink: 0; }
 
 .h_spread { display: flex; justify-content: space-between; align-items: center; }
 .h_top { display: flex; justify-content: space-between; align-items: flex-start; }
@@ -1124,6 +1124,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .shadow_soft_lg, .shadow_soft_lg_hv:hover { box-shadow: var(--shadow-soft-lg); }
 .shadow_line, .shadow_line_hv:hover { box-shadow: var(--shadow-line); }
 .shadow_line_alt, .shadow_line_alt_hv:hover { box-shadow: var(--shadow-line-alt); }
+.shadow_line_soft, .shadow_line_soft_hv:hover { box-shadow: 0 0 15px rgba(0,0,0,.0175), 0 0 0 1px rgba(0,0,0,.025); }
 .shadow_light, .shadow_light_hv:hover { box-shadow: var(--shadow-light); }
 .shadow_float, .shadow_float_hv:hover { box-shadow: var(--shadow-float); }
 .shadow_bg, .shadow_bg_hv:hover { box-shadow: 0 0 7px rgb(var(--color-bg)); }

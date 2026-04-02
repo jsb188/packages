@@ -1086,10 +1086,10 @@ export const DeliveryTruck4 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0
 </svg>;
 
 export const DocumentAi = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-document-ai" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path d="M4.2,2.4h15.6c0,0,1.2,0,1.2,1.4v15.6s0,1.3-1.2,1.3H4.2c0,0-1.2,0-1.2-1.4V3.7s0-1.3,1.2-1.3" />
-<path d="M16.2,16V7.5" />
-<path d="M7.8,16v-6.8c0-.9.8-1.7,1.7-1.7s1.7.8,1.7,1.7v6.8"/>
-<path d="M7.8,12.6h3.4"/>
+<path d="M4.19999981,2.84999967h15.59999943s1.20000076,0,1.20000076,1.4000001v15.60000134s0,1.29999924-1.20000076,1.29999924H4.19999981s-1.20000005,0-1.20000005-1.39999962V4.14999962s0-1.29999995,1.20000005-1.29999995"/>
+<path d="M16.20000076,16.44999957V7.94999957"/>
+<path d="M7.80000019,16.44999957v-6.80000019c0-.89999962.80000019-1.69999981,1.69999981-1.69999981s1.69999981.80000019,1.69999981,1.69999981v6.80000019"/>
+<path d="M7.80000019,13.04999995h3.40000057"/>
 </svg>;
 
 export const DocumentAiColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-0.98 -0.5 24 24" className="icon icon-document-ai-color">

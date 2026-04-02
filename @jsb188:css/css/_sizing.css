@@ -258,6 +258,7 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 /* Dimensions */
 
 .h_toolbar { height: var(--toolbar-ht); }
+
 .h_f { height: 100%; }
 .h_10_pc { height: 10%; }
 .h_15_pc { height: 15%; }
@@ -419,8 +420,20 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .h_19 { height: 19px; }
 .h_20 { height: 20px; }
 .h_25 { height: 25px; }
+.h_26 { height: 26px; }
+.h_27 { height: 27px; }
+.h_28 { height: 28px; }
+.h_29 { height: 29px; }
 .h_30 { height: 30px; }
+.h_31 { height: 31px; }
+.h_32 { height: 32px; }
+.h_33 { height: 33px; }
+.h_34 { height: 34px; }
 .h_35 { height: 35px; }
+.h_36 { height: 36px; }
+.h_37 { height: 37px; }
+.h_38 { height: 38px; }
+.h_39 { height: 39px; }
 .h_40 { height: 40px; }
 .h_45 { height: 45px; }
 .h_50 { height: 50px; }
@@ -514,8 +527,20 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .w_19 { width: 19px; }
 .w_20 { width: 20px; }
 .w_25 { width: 25px; }
+.w_26 { width: 26px; }
+.w_27 { width: 27px; }
+.w_28 { width: 28px; }
+.w_29 { width: 29px; }
 .w_30 { width: 30px; }
+.w_31 { width: 31px; }
+.w_32 { width: 32px; }
+.w_33 { width: 33px; }
+.w_34 { width: 34px; }
 .w_35 { width: 35px; }
+.w_36 { width: 36px; }
+.w_37 { width: 37px; }
+.w_38 { width: 38px; }
+.w_39 { width: 39px; }
 .w_40 { width: 40px; }
 .w_45 { width: 45px; }
 .w_50 { width: 50px; }

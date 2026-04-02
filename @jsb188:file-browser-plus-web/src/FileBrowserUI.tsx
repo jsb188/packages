@@ -56,7 +56,7 @@ export const FileBrowserItemUI = memo((p: {
     )}
   >
     <div className={cn('h_item', disabled ? 'cl_md' : '')}>
-      <span className='mr_10 f_shrink'>
+      <span className='mr_10 no_shrink'>
         <FileTypeIcon
           iconName={iconName}
           contentType={contentType}
@@ -68,8 +68,8 @@ export const FileBrowserItemUI = memo((p: {
       </span>
     </div>
 
-    <div className={cn('h_right gap_5 f_shrink ml_sm', deleted ? 'cl_lt' : errored ? 'cl_err' : 'cl_md')}>
-			<span className={cn('ft_xs f_shrink', errored ? 'cl_err' : rightTextClassName)}>
+    <div className={cn('h_right gap_5 no_shrink ml_sm', deleted ? 'cl_lt' : errored ? 'cl_err' : 'cl_md')}>
+			<span className={cn('ft_xs no_shrink', errored ? 'cl_err' : rightTextClassName)}>
 				{deleted ? i18n.t('form.deleted') : errored ? i18n.t('error.error') : (rightText || dateText)}
 			</span>
       <button

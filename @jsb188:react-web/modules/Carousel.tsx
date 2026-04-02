@@ -49,7 +49,7 @@ export const HorizontalCarousel = memo((p: HorizontalCarouselProps) => {
       doNotAnimate && 'horizontal_carousel_track_no_animation',
       trackClassName
     )}>
-      <div className='h_left f_shrink'>
+      <div className='h_left no_shrink'>
         {slides.map((slide, index) => {
           return <div
             className={cn('horizontal_carousel_slide', slideClassName)}
@@ -62,7 +62,7 @@ export const HorizontalCarousel = memo((p: HorizontalCarouselProps) => {
         })}
       </div>
 
-      {!doNotAnimate && <div className='h_left f_shrink' aria-hidden>
+      {!doNotAnimate && <div className='h_left no_shrink' aria-hidden>
         {slides.map((slide, index) => {
           return <div
             className={cn('horizontal_carousel_slide', slideClassName)}

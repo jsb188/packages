@@ -6,13 +6,15 @@ import { memo, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import { SmartLink } from './Button';
 
+const SIDEBAR_AVATAR_CLASSNAME = 'w_28 h_center mr_4 lh_1 ic_abs move_left';
+
 /**
  * Sidebar header area
  */
 
 export function SidebarHeaderArea(p: any) {
   const { children, ...rest } = p;
-  return <div className='shadow_float ft_sm hv_area' {...rest}>
+  return <div className='shadow_float hv_area' {...rest}>
     {children}
 
     <div className='p_2 rel mt_sm bd_t_1 bd_b_1 bd_lt bg_alt'>
@@ -36,7 +38,7 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
   return <div className='shift_left h_item'>
     {notReady
     ? <>
-      <div className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
+      <div className={SIDEBAR_AVATAR_CLASSNAME}>
         <MockAvatar
           size='xxs'
           roundedClassName='r_xs'
@@ -49,9 +51,9 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
       </MockText>
     </>
     : <>
-      <div className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
-        <span className='av_xs v_center r_xs bg_lighter_4 bd_2 bd_lt'>
-          <span className='shift_down ft_df'>
+      <div className={SIDEBAR_AVATAR_CLASSNAME}>
+        <span className='w_26 h_26 v_center r_xs ft_normal bg_active'>
+          <span className='shift_down ft_sm'>
             <EmojiWrapper>
               {emoji || getAvatarLetters(title!) || '🌟'}
             </EmojiWrapper>
@@ -63,7 +65,7 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
         {title}
       </div>
 
-      <span className='ml_xs h_center ic_xs cl_md f_shrink'>
+      <span className='ml_6 h_center ic_xs cl_md no_shrink'>
         <Icon name='chevron-right-filled' />
       </span>
     </>}
@@ -94,13 +96,13 @@ export const SidebarSubtitle = memo((p: {
     onClick={onClick}
     className={cn(
       'cl_md ft_xs h_item lh_1 r_xs',
-      paddingClassName ?? 'px_sm py_5',
-      marginClassName ?? 'mx_xs',
+      paddingClassName ?? 'px_12 py_5',
+      marginClassName ?? 'mx_6',
       onClick && 'bg_active_hv link'
     )}
   >
     {iconName && (
-      <span className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
+      <span className={SIDEBAR_AVATAR_CLASSNAME}>
         <Icon name={iconName} />
       </span>
     )}
@@ -138,7 +140,7 @@ export const SidebarNestedNavItem = memo((p: {
       // rightIconClassName={cn('trans_op spd_1 target op_0', !expanded && 'shift_left')}
       rightIconClassName={cn('trans_op spd_1', expanded ? 'target op_0' : 'shift_left')}
       // paddingClassName=''
-      marginClassName='mx_xs my_2'
+      marginClassName='mx_6 my_2'
       text={text}
       rightIconName={expanded ? 'chevron-down-filled' : 'chevron-right-filled'}
       onClick={() => setExpanded(!expanded)}
@@ -181,7 +183,7 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
   const { text, iconName, rightIconName, currentPath, to, selected, onClick, className } = p;
   return <SmartLink
     className={cn(
-      'mx_xs my_2 py_3 r_xs bl cl_df',
+      'mx_6 my_2 py_3 r_xs bl ft_sm cl_df',
       selected ? 'bg_active disabled' : 'bg_active_hv',
       className
     )}
@@ -189,9 +191,9 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
     to={to}
     onClick={onClick}
   >
-    {/* <div className='h_item px_sm py_2 ic_df lh_3'> */}
-    <div className='h_item px_sm pt_3 pb_2 ic_df lh_2'>
-      {iconName && <div className='av_w_xs h_center mr_5 lh_1 ic_abs move_left'>
+    {/* <div className='h_item px_12 py_2 ic_df lh_3'> */}
+    <div className='h_item px_11 pt_3 pb_2 ic_df lh_2'>
+      {iconName && <div className={SIDEBAR_AVATAR_CLASSNAME}>
         <Icon name={iconName} />
       </div>}
 
@@ -202,7 +204,7 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
       </div>
 
       {rightIconName && (
-        <div className='px_xs h_center lh_1 ic_abs ic_sm cl_darker_4'>
+        <div className='px_6 h_center lh_1 ic_abs ic_sm cl_darker_4'>
           <Icon name={rightIconName} />
         </div>
       )}

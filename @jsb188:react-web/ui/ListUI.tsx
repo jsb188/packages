@@ -454,7 +454,7 @@ export const LineListItem = memo((p: LineListItemProps) => {
       onClick={onClick}
       {...linkProps}
     >
-      <div className={cn('f_shrink av_w_df h_center', avatarContainerClassName)}>
+      <div className={cn('no_shrink av_w_df h_center', avatarContainerClassName)}>
         {!photoUri && !displayName ? null : (
           <AvatarImg
             size='tiny'
@@ -519,7 +519,7 @@ export function LineListMockItem(p: any) {
   const { textClassName } = p;
   return (
     <div className='ln_item h_item'>
-      <div className='f_shrink av_w_df h_center'>
+      <div className='no_shrink av_w_df h_center'>
         <span className='av av_xs r mock_av' />
       </div>
 

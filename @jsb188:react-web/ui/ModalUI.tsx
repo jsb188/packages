@@ -115,6 +115,7 @@ export function ModalErrorMessage(p: ModalErrorProps) {
         <span className='mr_5'>
           <Icon
             name={iconName || 'alert-circle-filled'}
+            backupName='alert-circle-filled'
           />
         </span>
         <strong className='shift_down'>
@@ -515,8 +516,8 @@ export function ModalToolbar(p: {
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
-  return <div className={cn('of w_f rt_smw f_shrink', !hideSeparator && 'bd_b_1 bd_lt', className)}>
-    <nav className='mw_toolbar_ht h_spread shadow_bg shift_down'>
+  return <div className={cn('of w_f rt_smw no_shrink', !hideSeparator && 'bd_b_1 bd_lt', className)}>
+    <nav className='h_toolbar h_spread shadow_bg shift_down'>
       <div className={cn('ft_medium h_item', paddingClassName ?? 'px_df')}>
         {!breadcrumbs ? null : breadcrumbs.map((item, i) => {
           const { onClick, iconName, text } = item;
@@ -574,7 +575,7 @@ export function ModalToolbarTitle(p: {
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
   return <div
     className={cn(
-      'w_f h_item rt_smw f_shrink px_df mw_toolbar_ht abs_t z4',
+      'w_f h_item rt_smw no_shrink px_df h_toolbar abs_t z4',
       'trans_transform_opacity spd_3 gr_modal_content',
       !hideSeparator && 'shadow_soft',
       className
@@ -594,7 +595,7 @@ export function ModalToolbarTitle(p: {
       </span>}
     </div>}
 
-    <div className='abs_corner mw_toolbar_ht h_right'>
+    <div className='abs_corner h_toolbar h_right'>
       {!onCloseModal ? null : (
         <button
           className='link av_xs r bg_darker_hv_1 v_center mr_xs'
@@ -622,7 +623,7 @@ export function ModalTitle(p: {
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
-  return <div className={cn('w_f rt_smw f_shrink rel px_50', title ? 'pt_md pb_sm' : 'mw_toolbar_ht', className)}>
+  return <div className={cn('w_f rt_smw no_shrink rel px_50', title ? 'pt_md pb_sm' : 'h_toolbar', className)}>
     {title &&
     <h4 className='ft_normal'>
       {title}
@@ -652,7 +653,7 @@ export const ModalTabsNav = memo((p: {
   const { switchCase, tabs, setSwitchCase } = p;
 
   return (
-    <nav className='mw_tabs_nav f_stretch f_shrink px_50 bd_b_1 bd_lt sticky_top z2'>
+    <nav className='mw_tabs_nav f_stretch no_shrink px_50 bd_b_1 bd_lt sticky_top z2'>
       <div className='-mx_xs gap_xs h_item h_45'>
         {tabs.map((tab) => {
           if (tab.hidden) {

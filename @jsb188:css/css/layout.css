@@ -48,7 +48,6 @@ body.p_auth {
 
 /* Special sizing for mobile */
 
-.mw_toolbar_ht { height: var(--toolbar-ht); }
 .max_h_extend_bottom { max-height: 87.5vh; }
 .mw_page .max_h_extend_bottom { max-height: calc(94vh - var(--toolbar-ht) + 10); padding-bottom: 10px; }
 
@@ -172,13 +171,6 @@ body.p_auth {
 
 .max_h_toolbar_screen {
   max-height: calc(100vh - var(--toolbar-ht));
-}
-
-/* App layout; toolbar title */
-
-#app_toolbar_title {
-  height: var(--toolbar-ht);
-  flex-shrink: 0;
 }
 
 /* App layout; account nav */

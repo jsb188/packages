@@ -401,9 +401,9 @@ export function AvatarImg(p: AvatarProps & {
     letterBackgroundClassName = (p.letterBackgroundClassName ?? 'bg_lighter_4') + ' bd_2 bd_lt';
 
     if (p.letterBackgroundClassName && !['bg','bg_alt','bg_active'].includes(p.letterBackgroundClassName)) {
-      letterClassName = p.letterClassName ?? 'ft_bold';
+      letterClassName = p.letterClassName ?? 'ft_semibold';
     } else {
-      letterClassName = p.letterClassName ?? 'cl_df ft_bold';
+      letterClassName = p.letterClassName ?? 'cl_df ft_semibold';
     }
   } else {
     radiusClassName = p.radiusClassName || 'r';

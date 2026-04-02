@@ -45,6 +45,7 @@ const ICON_MAP = Object.entries(IconSVGs).reduce((acc, [key, IconComponent]) => 
 
 interface IconProps {
   name: string;
+  backupName?: string; // This is useful when name is a colroed icon but colroed icon doesn't exist for that icon
 }
 
 interface SpecialIconProps extends IconProps {
@@ -316,10 +317,11 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
 export const Icon = memo((p: IconProps & {
   tryColor?: boolean;
 }) => {
-  const { name: iconName, tryColor } = p;
+  const { name: iconName, backupName, tryColor } = p;
   const IconComponent = (
     (tryColor && ICON_MAP[iconName + '-color']) ||
-    ICON_MAP[iconName]
+    ICON_MAP[iconName] ||
+    ICON_MAP[backupName || '']
   );
 
   if (!IconComponent) {

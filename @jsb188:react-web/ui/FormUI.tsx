@@ -82,7 +82,7 @@ export function LabelValue(p: {
 
   return (
     <div className={cn('h_left py_5', className)}>
-      <div className={cn('ft_medium f_shrink', labelClassName)}>
+      <div className={cn('ft_medium no_shrink', labelClassName)}>
         {label}{separator}
       </div>
 
