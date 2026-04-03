@@ -50,7 +50,7 @@ export function AppLayout(p: ReactDivElement & {
         {ToolbarComponent}
 
         {notReadyOrError
-        ? <AppContentArea flexClassName='v_center pb_xl'>
+        ? <AppContentArea className='v_center pb_xl'>
           {children}
         </AppContentArea>
         : children}
@@ -82,14 +82,14 @@ export function AppLayout(p: ReactDivElement & {
 
 export function AppContentArea(p: {
   hasAside?: boolean;
-  flexClassName?: string;
+  className?: string;
   children: React.ReactNode;
 }) {
-  const { hasAside, children, flexClassName } = p;
+  const { hasAside, children, className } = p;
 
   return <main
     id={DOM_IDS.mainBodyScrollArea}
-    className={cn('app_scr h_f rel', hasAside ? 'w_app_side landscape:mr_n' : '', flexClassName)}
+    className={cn('app_scr h_f rel', hasAside ? 'w_app_side landscape:mr_n' : '', className)}
   >
     {children}
   </main>;
