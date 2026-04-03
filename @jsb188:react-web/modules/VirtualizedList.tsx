@@ -146,7 +146,6 @@ type TableListProps = {
   cellClassNames?: string | (string | undefined)[];
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
-  doNotApplyGridToRows?: boolean;
   headers?: Partial<TableHeaderObj>[] | null;
   listData: Omit<VZListItemObj, 'lastItemIdOnMount'>[] | null;
   mapListData: MapTableListDataFn;
@@ -867,7 +866,7 @@ const TableListItem = (p: TableListProps & {
   i: number;
   list: VZListItemObj[];
 }) => {
-  const { disableOnClickRow, item, i, list, gridLayoutStyle, mapListData, doNotApplyGridToRows, trowClassName, removeLeftPadding, removeRightPadding, onClickRow } = p;
+  const { disableOnClickRow, item, i, list, gridLayoutStyle, mapListData, trowClassName, removeLeftPadding, removeRightPadding, onClickRow } = p;
   const rowData = mapListData(item, i, list);
   if (isValidElement(rowData)) {
     // If rowData is a valid React element, return it directly
@@ -898,7 +897,6 @@ const TableListItem = (p: TableListProps & {
     return <TDCol
       key={j}
       className={(typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[j]) ?? 'py_6 min_h_40'}
-      doNotApplyGridToRows={doNotApplyGridToRows}
       removeLeftPadding={removeLeftPaddingCell}
       removeRightPadding={removeRightPaddingCell}
       iconName={iconName}
@@ -919,12 +917,12 @@ const TableListItem = (p: TableListProps & {
 
     {rowData.rowHeaders && (
       <THead
+        addHorizontalPadding
         borderStyle='BORDER'
         className={trowClassName}
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
-        doNotApplyGridToRows={doNotApplyGridToRows}
-        gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
+        gridLayoutStyle={gridLayoutStyle}
         headers={rowData.rowHeaders}
         cellClassNames={cellClassNames}
       />
@@ -935,9 +933,9 @@ const TableListItem = (p: TableListProps & {
         __deleted={rowData.__deleted}
         onClick={rowData.__deleted || !onClickRow || disableOnClickRow ? undefined : () => onClickRow(item, null, rowData.onClickProps)}
         removeBorderLine
+        addHorizontalPadding
         className={trowClassName}
-        doNotApplyGridToRows={doNotApplyGridToRows}
-        gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
+        gridLayoutStyle={gridLayoutStyle}
       >
         {rowData.columns.map(renderCell)}
       </TRow>
@@ -950,10 +948,10 @@ const TableListItem = (p: TableListProps & {
         return <TRow
           key={k}
           removeBorderLine={!k}
+          addHorizontalPadding
           className={cn('rel z1', trowClassName)}
           onClick={onClickRow && !disableOnClickRow ? () => onClickRow(item, subRowItem.value, subRowItem.onClickProps) : undefined}
-          doNotApplyGridToRows={doNotApplyGridToRows}
-          gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
+          gridLayoutStyle={gridLayoutStyle}
         >
           {subRowItem.columns.map(renderCell)}
         </TRow>;
@@ -986,7 +984,7 @@ const ReactiveTableListItem = (p: any) => {
  */
 
 export const VZTable = memo((p: TableListProps) => {
-  const { borderStyle, disableOnClickRow, reactiveFragmentFn, gridLayoutStyle, headers, listData, cellClassNames, doNotApplyGridToRows, removeLeftPadding, removeRightPadding } = p;
+  const { borderStyle, disableOnClickRow, reactiveFragmentFn, gridLayoutStyle, headers, listData, cellClassNames, removeLeftPadding, removeRightPadding } = p;
 
   return <>
     {headers && (
@@ -994,8 +992,8 @@ export const VZTable = memo((p: TableListProps) => {
         borderStyle={borderStyle ?? 'BORDER'}
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
-        doNotApplyGridToRows={doNotApplyGridToRows}
-        gridLayoutStyle={doNotApplyGridToRows ? undefined : gridLayoutStyle}
+        addHorizontalPadding
+        gridLayoutStyle={gridLayoutStyle}
         headers={headers}
         cellClassNames={cellClassNames}
       />
@@ -1032,14 +1030,13 @@ VZTable.displayName = 'VZTable';
 export function VirtualizedTableList(p: VirtualizedListOmit & {
   disableOnClickRow?: boolean;
   onClickRow?: (vzItem?: VZListItemObj) => void;
-  doNotApplyGridToRows?: boolean;
   gridLayoutStyle?: string;
   cellClassNames?: string | (string | undefined)[];
   headers?: Partial<TableHeaderObj>[] | null;
   // Use this to map list data to table row cells data
   mapListData: MapTableListDataFn;
 }) {
-  const { disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, doNotApplyGridToRows, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
+  const { disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
   const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
@@ -1051,21 +1048,19 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
 
   // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
   return <>
-    <div className={cn('-mx_xs', className)}>
+    <div className={className}>
       <div ref={topRef}>
         {hasMoreTop ? MockComponent : HeaderComponent}
       </div>
 
       <div
         ref={listRef}
-        style={doNotApplyGridToRows && gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
         className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns)}
       >
         <VZTable
           disableOnClickRow={disableOnClickRow}
           reactiveFragmentFn={reactiveFragmentFn}
           gridLayoutStyle={gridLayoutStyle}
-          doNotApplyGridToRows={doNotApplyGridToRows}
           listData={listData}
           mapListData={mapListData}
           headers={headers}

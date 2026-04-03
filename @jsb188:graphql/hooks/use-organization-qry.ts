@@ -1,7 +1,7 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
+import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationSitesQry, organizationWorkflowsQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
-import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 
 const ORG_CHILDREN_LIMIT = 250;
 

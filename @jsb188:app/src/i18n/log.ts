@@ -190,20 +190,20 @@ export default {
 			PROTECT_CROP: 'Crop protection (weeds, pests, diseases)',
 			MONITOR_CROP: 'Crop monitoring, observations',
 			PRUNING: 'Pruning',
-			STRUCTURE_MAINTENANCE: 'Trellising, structure maintenance',
+			STRUCTURE_MAINTENANCE: 'Trellising/structure maintenance',
 			PREPARE_HARVEST: 'Preparing crops for harvest',
 			OTHER_FIELD_ACTIVITY: 'General field notes',
 
 			// # Harvest activities
 			HARVEST_CROP: 'Harvested crops',
-			HARVEST_COUNT: 'Counting, weighing harvested crops',
-			SORT_GRADE: 'Sorting, grading crops',
+			HARVEST_COUNT: 'Counting/weighing harvested crops',
+			SORT_GRADE: 'Sorting/grading crops',
 			YIELD_LOSS_ESTIMATE: 'Estimating yield or loss',
 			OTHER_HARVEST_ACTIVITY: 'Other harvest activities',
 
 			// # Post-harvest activities
-			POST_HARVEST_HANDLING: 'Handling or grading produce',
-			POST_HARVEST_PACKAGING: 'Packaging or moving produce to storage',
+			POST_HARVEST_HANDLING: 'Handling/grading produce',
+			POST_HARVEST_PACKAGING: 'Packaging/moving to storage',
 			COLD_STORAGE_TEMPERATURE: 'Cold storage temperature',
 			OTHER_POST_HARVEST_ACTIVITY: 'Other post-harvest activities',
 
@@ -461,15 +461,14 @@ export default {
 		// Search filters
 		filter: {
 			logType: 'Activities',
+      logType_all: 'Activities',
 			logType_ct: 'Activities (%{count})',
 			dateRange: 'Date range',
-			weeks_5: '5 weeks',
+			WEEKS_5: '5 weeks',
 			search: 'Search',
       sort_options: 'Sort by',
 
-			INCLUDE_AI_TASKS: 'Show all logs',
-			AI_TASKS: 'AI tasks only',
-			HIDE_AI_TASKS: 'Hide AI tasks',
+			AI_TASKS: 'AI tasks only'
 		},
 
 		// Search filter popover options
@@ -477,7 +476,7 @@ export default {
 			preset: 'Filter by Preset',
 			activity: 'Filter by Activity',
 			date_range: 'Filter by Dates',
-			weeks_5: '5 weeks',
+			WEEKS_5: '5 weeks',
 			ai_tasks_only: 'AI tasks only',
 			search: 'Search for Keywords',
 		},

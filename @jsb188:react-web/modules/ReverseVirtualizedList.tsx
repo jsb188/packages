@@ -97,7 +97,7 @@ interface ReverseVZListProps extends ReactDivElement {
 export function StaticListContainer(p: ReactDivElement) {
   const { className, ...other } = p;
   return <section
-    className={cn('px_lg pt_df pb_xl fs', className)}
+    className={cn('px_lg pt_df pb_xl fs h_f', className)}
     {...other}
   />;
 }

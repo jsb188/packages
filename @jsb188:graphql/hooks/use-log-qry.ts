@@ -13,20 +13,6 @@ import type { PaginationArgs, UseQueryParams } from '../types';
 const LOG_ENTRIES_LIMIT = 250;
 
 /**
- * Helper; use this to get/use same filter for logEntries() query everywhere
- */
-
-export function getDefaultLogEntriesFilter(operation: FilterLogEntriesArgs['operation']): FilterLogEntriesArgs {
-  return {
-    operation,
-    types: null,
-    startDate: null,
-    endDate: null,
-    query: ''
-  };
-}
-
-/**
  * Fetch log entries
  */
 
@@ -48,7 +34,7 @@ export function useLogEntries(
       limit: LOG_ENTRIES_LIMIT
     },
     // If this query is used for virtualized list pagination, set {params.skip=true}
-    skip: !variables.organizationId || !variables.filter?.operation || params.skip,
+    skip: !variables.organizationId || params.skip,
   });
 
   return {

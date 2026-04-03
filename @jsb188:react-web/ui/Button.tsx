@@ -494,7 +494,7 @@ export const PillButton = memo((p: PillButtonProps) => {
       {!leftIconName ? null : (
         <SmartLink
           buttonElement='span'
-          className={cn('move_left mr_2', leftIconClassName)}
+          className={cn('shift_left_3 mr_2', leftIconClassName)}
           to={to}
           onClick={onClickLeftIcon}
         >
@@ -557,7 +557,7 @@ export function Pill(p: Partial<{
   let size: ButtonSize | null, presetClassNames: string | undefined, colorClassName: string | undefined;
   switch (preset) {
     case 'outline_lg':
-      presetClassNames = 'bd_main_bd bg_alt_hv bd_10 ft_medium ls_5';
+      presetClassNames = 'bd_main_bd bg_alt_hv bd_9 ls_5';
       size = 'lg';
       break;
     default:

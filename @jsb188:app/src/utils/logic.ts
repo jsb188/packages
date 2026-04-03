@@ -1,4 +1,7 @@
+import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d.ts';
+import { isFutureCalDate, isValidCalDate } from './datetime.ts';
 import { sortObjectByKeys, stringifyJSON } from './object.ts';
+import { indexToTimeZone, isValidTimeZone } from './timeZone.ts';
 
 /**
  * Types
@@ -10,6 +13,11 @@ type DatabaseActionResult = {
 	action: DatabaseAction;
 	documentData: any;
 };
+
+export interface GetFiltersFromURLResult {
+	filter: Omit<Partial<FilterLogEntriesArgs>, 'operation'> | null;
+	sort: string | null;
+}
 
 /**
  * Check if database document needs an update, insert, or do nothing based on the user API arguments
@@ -101,6 +109,96 @@ export function checkLastSetTime(time?: number, minsThreshold: number = 5) {
 
 export function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Convert an indexed bit-string into a list of selected values.
+ */
+
+function getIndexedValues(
+	value: string | null,
+	options?: string[],
+) {
+	if (!value || !options?.length) {
+		return null;
+	}
+
+	const selectedValues = options.map((option, i) => {
+		return value.charAt(i) === '1' ? option : null;
+	}).filter(Boolean) as string[];
+
+	return selectedValues.length ? selectedValues : null;
+}
+
+/**
+ * Validate parsed URL filters using the same date and timezone rules as the logs filter schema.
+ */
+
+function parsedFilterIsValid(filter: Omit<Partial<FilterLogEntriesArgs>, 'operation'>) {
+	if (filter.startDate) {
+		if (!isValidCalDate(filter.startDate)) {
+			return false;
+		}
+	}
+
+	if (filter.endDate && !isValidCalDate(filter.endDate)) {
+		return false;
+	}
+
+	if (filter.endDate && !filter.startDate) {
+		return false;
+	}
+
+	if (filter.timeZone && !isValidTimeZone(filter.timeZone)) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Parse indexed filters and sort values from URL search params without including operation in the output.
+ */
+
+export function getFiltersFromURL(
+	searchQuery: string,
+	sortOptions?: string[],
+	types?: string[],
+	activities?: string[],
+): GetFiltersFromURLResult {
+	const urlParams = new URLSearchParams(searchQuery);
+
+	let startDate = urlParams.get('sd');
+	let endDate = urlParams.get('ed');
+	if (startDate && !endDate) {
+		endDate = startDate;
+	} else if (endDate && !startDate) {
+		startDate = endDate;
+	}
+
+	const filter: Omit<Partial<FilterLogEntriesArgs>, 'operation'> = {
+		types: getIndexedValues(urlParams.get('t'), types) as FilterLogEntriesArgs['types'],
+		activities: getIndexedValues(urlParams.get('a'), activities) as FilterLogEntriesArgs['activities'],
+		startDate,
+		endDate,
+		timeZone: indexToTimeZone(urlParams.get('z')),
+		query: urlParams.get('q') || '',
+	};
+
+	const sortIndex = urlParams.get('s');
+	const sort = sortOptions?.[Number(sortIndex) - 1] || null;
+
+	if (!parsedFilterIsValid(filter)) {
+		return {
+			filter: null,
+			sort,
+		};
+	}
+
+	return {
+		filter,
+		sort,
+	};
 }
 
 /**

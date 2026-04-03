@@ -139,8 +139,6 @@ body.p_auth {
 }
 
 .app_aside {
-  position: absolute;
-  width: var(--aside-wt);
   max-height: 100vh;
   top: 0; right: 0;
   padding-top: var(--toolbar-ht);
@@ -234,7 +232,7 @@ body.p_auth {
 
   .app_scr::-webkit-scrollbar {
     width: 18px;
-    /* background-color: rgb(var(--color-bg-alt)); */
+    background-color: rgb(var(--color-bg-alt));
   }
 
   .app_scr::-webkit-scrollbar-track {
@@ -251,6 +249,11 @@ body.p_auth {
     /* transform: scale(.5); */
     border-radius: 9px;
     min-height: 100px;
+  }
+
+  .app_scr::-webkit-scrollbar-thumb {
+    /* background-color: rgb(var(--color-bg-medium)); */
+    background-color: rgb(var(--color-bg-active));
   }
 
   .app_scr:hover::-webkit-scrollbar-thumb {

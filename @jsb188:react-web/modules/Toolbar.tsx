@@ -1,9 +1,9 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
+import { SmartLink } from '@jsb188/react-web/ui/Button';
+import { FilterPillButton } from '@jsb188/react-web/ui/PageFiltersUI';
 import { usePopOverState } from '@jsb188/react/states';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
-import { FilterPillButton } from '@jsb188/react-web/ui/PageFiltersUI';
-import { SmartLink } from '@jsb188/react-web/ui/Button';
 import React, { memo, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Icon } from '../svgs/Icon';
@@ -44,7 +44,7 @@ const BreadcrumbItem = memo((p: BreadcrumbItemObj & {
       className={cn('h_item gap_9', isFirstItem ? 'ft_medium cl_df' : 'cl_md')}
     >
       {iconName && (
-        <span className='shift_up ic_df'>
+        <span className='shift_up ft_sm ic_df'>
           <Icon
             name={iconName}
             tryColor={tryColoredIcon !== false}
@@ -77,7 +77,7 @@ export function ToolbarContent(p: { children: React.ReactNode }) {
   </nav>;
 }
 
-export interface ToolbarFilterItem {
+export interface ToolbarItemObj {
   id: string;
   text: string;
   hasValue?: boolean;
@@ -94,9 +94,12 @@ export interface ToolbarFilterItem {
   getSubmitTo?: (value: any) => string | null;
 }
 
-/* Render a single shared toolbar filter pill. */
-const ToolbarFilterPill = memo((p: {
-  item: ToolbarFilterItem;
+/**
+ * Render a single shared toolbar filter pill
+ */
+
+const ToolbarItem = memo((p: {
+  item: ToolbarItemObj;
   open: boolean;
   filterPrefix: string;
   onNavigate: (to?: string | null) => void;
@@ -129,11 +132,11 @@ const ToolbarFilterPill = memo((p: {
   />;
 });
 
-ToolbarFilterPill.displayName = 'ToolbarFilterPill';
+ToolbarItem.displayName = 'ToolbarItem';
 
 /* Render a shared toolbar filter row that navigates with search-param routes. */
-export const ToolbarFilters = memo((p: {
-  items: ToolbarFilterItem[];
+export const ToolbarItems = memo((p: {
+  items: ToolbarItemObj[];
   flexClassName?: string;
   className?: string;
   filterPrefix?: string;
@@ -182,7 +185,7 @@ export const ToolbarFilters = memo((p: {
         });
       };
 
-      return <ToolbarFilterPill
+      return <ToolbarItem
         key={item.id}
         item={item}
         open={popOver?.id === `${filterPrefix}${item.id}`}
@@ -193,7 +196,7 @@ export const ToolbarFilters = memo((p: {
   </div>;
 });
 
-ToolbarFilters.displayName = 'ToolbarFilters';
+ToolbarItems.displayName = 'ToolbarItems';
 
 /**
  * App toolbar
@@ -201,18 +204,16 @@ ToolbarFilters.displayName = 'ToolbarFilters';
 
 const AppToolbar = memo((p: {
   breadcrumbs?: BreadcrumbItemObj[] | null;
-  filterOptions?: ToolbarFilterItem[] | null;
-  toolbarShadowStyle?: string;
+  options?: ToolbarItemObj[] | null;
+  shadowStyle?: string;
 }) => {
-  // const { toolbarShadowStyle = 'shadow_line_alt' } = p;
-  const { filterOptions, toolbarShadowStyle = 'shadow_bg_drop_lg' } = p;
+  // const { shadowStyle = 'shadow_line_alt' } = p;
+  const { options, shadowStyle = 'shadow_bg_drop_lg' } = p;
   const breadcrumbs = p.breadcrumbs || [{ text: '.............. ..............', loading: true }];
   const lastIx = breadcrumbs.length - 1;
 
-  return <div className={cn('ft_sm bg rel z4', toolbarShadowStyle)}>
-    <div
-      className='h_toolbar h_item no_shrink px_20'
-    >
+  return <div className={cn('bg rel z4', shadowStyle)}>
+    <div className='h_toolbar h_item no_shrink px_24'>
       {breadcrumbs?.map((item, i) => {
         return <BreadcrumbItem
           key={i}
@@ -224,11 +225,13 @@ const AppToolbar = memo((p: {
       })}
     </div>
 
-    {!filterOptions?.length ? null : (
-      <ToolbarFilters
-        className='h_40 -mt_2 px_20 ft_xs'
+    {!options?.length ? null : (
+      <ToolbarItems
+        // className='h_toolbar h_item h_40__ -mt_2_______ px_20 ft_xs'
+        // x-padding should be .px_24 but for visual offset, I'm using .px_22
+        className='h_40 px_22 ft_xs'
         filterPrefix='app_toolbar_filter_'
-        items={filterOptions}
+        items={options}
       />
     )}
   </div>;

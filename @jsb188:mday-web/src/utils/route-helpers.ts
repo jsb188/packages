@@ -63,7 +63,6 @@ interface RouteDictObj {
   requiredFeature?: OrganizationFeatureEnum[];
 
   hasPhysicalToolbar?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
-  hasAside?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
 }
 
 const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
@@ -84,7 +83,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.chat,
 
     hasPhysicalToolbar: 'ALWAYS',
-    hasAside: 'NEVER',
   },
 
   // Advanced
@@ -93,7 +91,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app/workflows',
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
-    hasAside: 'NEVER',
   },
 
   '/app/logs': {
@@ -231,7 +228,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     requiredFeature: ['CAL_EVENTS'],
   },
   '/app/receipts': {
-    to: ('/app/receipts?s=1') as ValidRoutePath,
+    to: ('/app/receipts') as ValidRoutePath,
     text: 'form.market_receipts',
     iconName: COMMON_ICON_NAMES.market_receipt,
 
@@ -272,14 +269,12 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'form.reports',
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',
-    hasAside: 'NEVER',
   },
   '/app/s/': {
     to: '/app/s/',
     text: 'form.reports',
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',
-    hasAside: 'ALWAYS',
   },
 };
 
@@ -322,11 +317,10 @@ export function isRouteValid(routePath: ValidRoutePath, pathSegment?: string | n
 
 const ROUTES_DICT_ORDERED = Object.keys(ROUTES_DICT).sort((a, b) => b.length - a.length);
 
-interface RouteConfigObj extends Omit<RouteDictObj, 'hasPhysicalToolbar' | 'hasAside'> {
+interface RouteConfigObj extends Omit<RouteDictObj, 'hasPhysicalToolbar'> {
   routeName: ValidRoutePath;
   allowed: boolean;
   hasPhysicalToolbar: boolean;
-  hasAside: boolean;
 }
 
 export function getRouteConfigs(
@@ -345,11 +339,6 @@ export function getRouteConfigs(
       const routeDict = ROUTES_DICT[routeName as ValidRoutePath];
       const pathParts = pathname.split('/');
 
-      const hasAside = !!routeDict.hasAside && routeDict.hasAside !== 'NEVER' && (
-        routeDict.hasAside === 'ALWAYS' ||
-        (typeof routeDict.hasAside === 'function' && routeDict.hasAside(pathParts))
-      );
-
       const hasPhysicalToolbar = !!routeDict.hasPhysicalToolbar && routeDict.hasPhysicalToolbar !== 'NEVER' && (
         routeDict.hasPhysicalToolbar === 'ALWAYS' ||
         (typeof routeDict.hasPhysicalToolbar === 'function' && routeDict.hasPhysicalToolbar(pathParts))
@@ -361,7 +350,6 @@ export function getRouteConfigs(
         routeName: routeName as ValidRoutePath,
         allowed: isRouteAllowed(pathname, operation, orgFeatures),
         hasPhysicalToolbar,
-        hasAside,
       };
     }
   }
@@ -370,7 +358,6 @@ export function getRouteConfigs(
     routeName: '/__unknown',
     allowed: false,
     hasPhysicalToolbar: false,
-    hasAside: false,
   } as any;
 }
 
@@ -537,7 +524,7 @@ export function getNavigationList(
   // @ts-ignore
   ].concat(navListArr).concat([{
     text: i18n.t('form.advanced'),
-    initialExpanded: true,
+    initialExpanded: false,
     navList: [
       ROUTES_DICT['/app/workflows'],
       ROUTES_DICT['/app/logs']

@@ -254,7 +254,7 @@ export function ModalSideNavItem(p: ModalSideNavIface) {
       onClick={onClick && !selected ? () => onClick(value!) : undefined}
     >
       {!iconName ? null
-      : <span className='w_25 h_center shift_left mr_4'>
+      : <span className='w_25 h_center shift_left mr_4 ft_sm'>
         <Icon name={iconName} />
       </span>}
 

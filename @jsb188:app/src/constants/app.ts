@@ -21,7 +21,6 @@ export const DATE_AND_BUTTON_WIDTH = DATE_WIDTH + ' ' + END_BUTTON_WIDTH;
 // Common, repeatable classnames
 
 export const COMMON_CLASSNAMES = {
-	listContainer: 'cw lg responsive px_lg pt_md pb_lg',
 	listContainerFlushRight: 'cw lg responsive pl_lg pr_10 pt_md pb_lg',
 	leftSidebarContainer: 'cw lg pr_md',
 	modalScreenSplitForm: 'h_top px_lg pb_md gap_lg',

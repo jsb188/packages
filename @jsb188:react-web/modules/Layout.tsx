@@ -27,11 +27,10 @@ export function AppLayout(p: ReactDivElement & {
   open: boolean;
   routeName: string;
   notReadyOrError: boolean;
-  AsideComponent?: React.ReactNode;
   SidebarComponent?: React.ReactNode;
   ToolbarComponent?: React.ReactNode;
 }) {
-  const { routeName, children, open, className, notReadyOrError, AsideComponent, SidebarComponent, ToolbarComponent, ...other } = p;
+  const { routeName, children, open, className, notReadyOrError, SidebarComponent, ToolbarComponent, ...other } = p;
 
   return <div
     className={cn('h_f bg_alt', open ? 'open' : '', className)}
@@ -71,12 +70,6 @@ export function AppLayout(p: ReactDivElement & {
           </div>
           : children}
         </main> */}
-
-        {AsideComponent &&
-        <aside className='app_aside landscape:hidden z3 y_scr_hidden'>
-          {AsideComponent}
-        </aside>}
-
       </div>
     </div>
   </div>;
@@ -96,10 +89,25 @@ export function AppContentArea(p: {
 
   return <main
     id={DOM_IDS.mainBodyScrollArea}
-    className={cn('app_scr h_f rel', hasAside ? 'w_app_side landscape:mr_n' : '', flexClassName ?? 'v_top')}
+    className={cn('app_scr h_f rel', hasAside ? 'w_app_side landscape:mr_n' : '', flexClassName)}
   >
     {children}
   </main>;
+}
+
+/**
+ * Shared app aside container
+ */
+
+export function AsideContainer(p: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const { children, className } = p;
+
+  return <aside className={cn('app_aside pb_md fixed w_aside landscape:rel z3 y_scr_hidden', className)}>
+    {children}
+  </aside>;
 }
 
 /**

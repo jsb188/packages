@@ -25,7 +25,7 @@ interface FilterPillButtonProps {
 
 export const FilterPillButton = memo((p: FilterPillButtonProps) => {
   const { id, open, hasValue, alwaysSelected, text, popOverClassName, popOverName, options, initialState, disablePopOverButton, footerButtonText, onClickLeftIcon } = p;
-  const designClassName = cn('bd_1 bd_lt', hasValue || open ? 'bg_alt' : 'bg_alt_hv cl_bd_hv cl_md');
+  const designClassName = cn('unsel bd_1 bd_lt', hasValue || open ? 'bg_alt' : 'bg_alt_hv cl_bd_hv cl_md');
 
   if (options) {
     return <PopOverButton

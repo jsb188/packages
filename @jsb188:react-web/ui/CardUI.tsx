@@ -11,7 +11,6 @@ import { SmartLink } from './Button';
 
 export const GradientCardItem = memo((p: {
   className?: string;
-  titleEllipsisStyle?: 'single' | 'double' | 'none';
   title: string;
   label?: React.ReactNode;
   description?: React.ReactNode;
@@ -20,7 +19,7 @@ export const GradientCardItem = memo((p: {
   to?: To | string;
   onClick?: (e: React.MouseEvent) => void;
 }) => {
-  const { className, titleEllipsisStyle, label, title, description, iconName, color, to, onClick } = p;
+  const { className, label, title, description, iconName, color, to, onClick } = p;
   const gradientColor = color || 'lime';
   const gradientClassName = `gr_${gradientColor}_1`;
 
@@ -30,7 +29,7 @@ export const GradientCardItem = memo((p: {
     buttonElement='button'
     fallbackElement='div'
     className={cn(
-      'f px_20 py_20 r_dfw cl_contrast v_left shadow_line',
+      'f max_w_275 px_20 py_20 r_dfw cl_contrast v_left shadow_line',
       gradientClassName,
       className,
       (onClick || to) && 'link_float',
@@ -54,7 +53,7 @@ export const GradientCardItem = memo((p: {
     </div>}
 
     <div className='v_spread f'>
-      <h4 className='ft_semibold ft_3 lh_1'>
+      <h4 className='ft_3 lh_1'>
         <span className='ellip_dbl'>
           {title}
         </span>
