@@ -82,6 +82,7 @@ export interface ToolbarItemObj {
   text: string;
   hasValue?: boolean;
   alwaysSelected?: boolean;
+  hideClearIcon?: boolean;
   popOverClassName?: string;
   popOverName?: 'PO_LIST' | 'PO_CHECK_LIST';
   options?: POListIfaceItem[];
@@ -105,7 +106,7 @@ const ToolbarItem = memo((p: {
   onNavigate: (to?: string | null) => void;
 }) => {
   const { item, open, filterPrefix, onNavigate } = p;
-  const { id, text, hasValue, alwaysSelected, popOverClassName, popOverName, options, initialState, disablePopOverButton, footerButtonText, to, clearTo } = item;
+  const { id, text, hasValue, alwaysSelected, hideClearIcon, popOverClassName, popOverName, options, initialState, disablePopOverButton, footerButtonText, to, clearTo } = item;
 
   const onClickLeftIcon = clearTo ? (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -121,6 +122,7 @@ const ToolbarItem = memo((p: {
     open={open}
     hasValue={hasValue}
     alwaysSelected={alwaysSelected}
+    hideClearIcon={hideClearIcon}
     text={text}
     popOverClassName={popOverClassName}
     popOverName={popOverName}

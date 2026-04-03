@@ -13,6 +13,7 @@ interface FilterPillButtonProps {
   open: boolean;
   hasValue?: boolean;
   alwaysSelected?: boolean;
+  hideClearIcon?: boolean;
   text: string;
   popOverClassName?: string;
   popOverName?: string;
@@ -24,8 +25,10 @@ interface FilterPillButtonProps {
 }
 
 export const FilterPillButton = memo((p: FilterPillButtonProps) => {
-  const { id, open, hasValue, alwaysSelected, text, popOverClassName, popOverName, options, initialState, disablePopOverButton, footerButtonText, onClickLeftIcon } = p;
+  const { id, open, hasValue, alwaysSelected, hideClearIcon, text, popOverClassName, popOverName, options, initialState, disablePopOverButton, footerButtonText, onClickLeftIcon } = p;
   const designClassName = cn('unsel bd_1 bd_lt', hasValue || open ? 'bg_alt' : 'bg_alt_hv cl_bd_hv cl_md');
+  const useCheckIcon = !!alwaysSelected || (!!hasValue && !!hideClearIcon);
+  const showClearIcon = !!hasValue && !alwaysSelected && !hideClearIcon;
 
   if (options) {
     return <PopOverButton
@@ -49,9 +52,9 @@ export const FilterPillButton = memo((p: FilterPillButtonProps) => {
       <PillButton
         preset='xs'
         designClassName={designClassName}
-        leftIconName={alwaysSelected ? 'circle-check' : hasValue ? 'circle-x' : 'circle-plus'}
-        leftIconClassName={cn('disabled', hasValue && !alwaysSelected && 'cl_err_hv')}
-        onClickLeftIcon={alwaysSelected ? undefined : onClickLeftIcon}
+        leftIconName={useCheckIcon ? 'circle-check' : hasValue ? 'circle-x' : 'circle-plus'}
+        leftIconClassName={cn('disabled', showClearIcon && 'cl_err_hv')}
+        onClickLeftIcon={alwaysSelected || hideClearIcon ? undefined : onClickLeftIcon}
         text={text}
       />
     </PopOverButton>;
