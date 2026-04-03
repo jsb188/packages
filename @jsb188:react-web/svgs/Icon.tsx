@@ -321,6 +321,7 @@ export const Icon = memo((p: IconProps & {
   const IconComponent = (
     (tryColor && ICON_MAP[iconName + '-color']) ||
     ICON_MAP[iconName] ||
+    (tryColor && ICON_MAP[backupName + '-color']) ||
     ICON_MAP[backupName || '']
   );
 

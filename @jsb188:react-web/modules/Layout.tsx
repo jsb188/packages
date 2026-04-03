@@ -419,6 +419,7 @@ export interface ErrorMessageProps {
 export function ErrorMessage(p: ErrorMessageProps) {
   const { authHref, errorCode, statusCode, doNotRefreshIfNotLoggedIn, hideButtonIfNotRetriable, preset, iconName, buttonHref, buttonText, loading, containerSize, onClickButton } = p;
   const isAuthError = errorCode == '20019';
+  const isTokenError = errorCode == '20011';
   const onlineStatus = useOnlineStatus();
 
   let title: string;
@@ -474,7 +475,10 @@ export function ErrorMessage(p: ErrorMessageProps) {
   }
 
   let titleIconName: string, iconSizeClassName: string;
-  if (isAuthError) {
+  if (isTokenError) {
+    titleIconName = 'password-key';
+    iconSizeClassName = 'ft_xxl';
+  } else if (isAuthError) {
     titleIconName = COMMON_ICON_NAMES.login_related;
     iconSizeClassName = 'ft_xxl';
   } else {
@@ -510,6 +514,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
         <Icon
           tryColor
           name={titleIconName}
+          backupName='alert-circle'
         />
       </span>
       <h1 className={cn('ft_normal ls_2', titleClassName)}>
@@ -523,7 +528,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
         {message}
       </Markdown>
 
-      {isAuthError
+      {isAuthError || isTokenError
       ? <Pill
         // No need t o use "from" url param because we're using referrer
         // href={authHref ?? '/auth/check?from=' + encodeURIComponent(globalThis.location.pathname)}

@@ -7,7 +7,6 @@
   "type": "module",
   "exports": {
     "./svgs/Icon": "./svgs/Icon.tsx",
-    "./svgs/Element": "./svgs/Element.tsx",
     "./hooks/use-contentEditable": "./hooks/use-contentEditable.tsx",
     "./modules/AuthForm": "./modules/Auth/AuthForm.tsx",
     "./modules/Calendar": "./modules/Calendar.tsx",
