@@ -1,7 +1,11 @@
+import { getErrorMessageContent } from '@jsb188/react-web/modules/Layout';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
+import Markdown from '@jsb188/react-web/ui/Markdown';
 import { ModalContentContainer, ModalFloatingSaveButton, ModalSideNav, ModalSideNavIface } from '@jsb188/react-web/ui/ModalUI';
+import { TableListMockClient } from '@jsb188/react-web/ui/TableListUI';
 import type { ModalHandlerProps, OpenModalPopUpFn } from '@jsb188/react/states';
 import { useClosePopOver, useKeyDown } from '@jsb188/react/states';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 /**
  * Types
@@ -19,6 +23,61 @@ export interface AppSettingsSwitchCaseProps extends ControllerState {
   onSave: () => void;
   onChangeDiff: (hasChanges?: boolean, saving?: boolean) => void;
   openModalPopUp: OpenModalPopUpFn;
+}
+
+export interface AppSettingsTableContentProps {
+  notReady?: boolean;
+  gridLayoutStyle: string;
+  children?: ReactNode;
+  error?: any;
+}
+
+/**
+ * App settings table content helper with a built-in loading table state
+ */
+
+export function AppSettingsTableContent(p: AppSettingsTableContentProps) {
+  const { notReady, gridLayoutStyle, children, error } = p;
+
+  if (notReady) {
+    if (error) {
+      const errObj = getErrorMessageContent(error);
+      return <div className='h_item gap_df'>
+        <div className='bd_2 bd_lt w_80 h_80 v_center r_df ic_lg ft_md rel pattern_texture medium_bf of'>
+          <span className='rel'>
+            <Icon
+              tryColor
+              name={errObj.titleIconName}
+              backupName='alert-circle'
+            />
+          </span>
+        </div>
+
+        <div className='lh_2'>
+          <div className='ft_medium ft_df mt_1 mb_4'>
+            {errObj.title}
+          </div>
+          <Markdown
+            as='p'
+            preset='article'
+            className='ft_sm cl_lt'
+          >
+            {errObj.message}
+          </Markdown>
+        </div>
+      </div>;
+    }
+
+    return <TableListMockClient
+      removeHorizontalPadding
+      removeAvatarElement
+      isSmallerRows
+      removeBorderLine
+      gridLayoutStyle={gridLayoutStyle}
+    />;
+  }
+
+  return children;
 }
 
 /**

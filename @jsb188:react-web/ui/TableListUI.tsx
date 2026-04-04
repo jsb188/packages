@@ -452,8 +452,9 @@ export function TableListItemMock(p: Partial<TableRowProps> & {
   index?: number;
   className?: string;
   addHorizontalPadding?: boolean;
+  removeAvatarElement?: boolean;
 }) {
-  const { addHorizontalPadding, removeBorderLine, index, className, ...rest } = p;
+  const { addHorizontalPadding, removeBorderLine, index, className, removeAvatarElement, ...rest } = p;
   const colCount = (rest.gridLayoutStyle?.split(' ') || []).length || 3;
   const modulus = index !== undefined ? (index % 4) * 10 : 0;
 
@@ -469,7 +470,7 @@ export function TableListItemMock(p: Partial<TableRowProps> & {
         // className={cellClassNames?.[i]}
       >
         {
-        colIx
+        colIx || removeAvatarElement
         ? <span className='mock alt min_w_20' style={{width: (100 - modulus * colIx) + '%'}}>
           ....
         </span>
@@ -526,12 +527,14 @@ interface TableListMockProps extends Partial<TableRowProps> {
   isSmallerRows?: boolean;
   mockHeaderRows?: boolean;
   removeBorderLine?: boolean;
+  removeHorizontalPadding?: boolean;
   cellClassNames?: string | (string | undefined)[];
   browserHeightRatio?: number;
+  removeAvatarElement?: boolean;
 }
 
 export const TableListMockClient = memo((p: TableListMockProps) => {
-  const { mockHeaderRows, isSmallerRows, removeBorderLine, browserHeightRatio, cellClassNames, isInnerContent, ...rest } = p;
+  const { removeAvatarElement, mockHeaderRows, isSmallerRows, removeBorderLine, browserHeightRatio, cellClassNames, removeHorizontalPadding, isInnerContent, ...rest } = p;
   const browserHeight = globalThis?.window?.innerHeight || 800; // Fallback to 800 if window is not available
   const hasRatio = browserHeightRatio && browserHeightRatio > 0;
 
@@ -540,18 +543,22 @@ export const TableListMockClient = memo((p: TableListMockProps) => {
   // Without <AvatarImg>, item height is 51px
   const mockCount = Math.floor(browserHeight * (hasRatio ? browserHeightRatio : 1) / 57);
 
-  return <div className={isInnerContent ? undefined : 'py_25'}>
+  return <div className={cn(removeHorizontalPadding && '-mx_8', isInnerContent ? undefined : 'py_25')}>
     <div className='w_f rel table'>
       {/* I don't think I need this. Delete it later after confirming its unnecessary. */}
-      {mockHeaderRows ? <TableListHeaderMock addHorizontalPadding gridLayoutStyle={rest.gridLayoutStyle} /> : null}
+      {mockHeaderRows && <TableListHeaderMock
+        addHorizontalPadding={!removeHorizontalPadding}
+        gridLayoutStyle={rest.gridLayoutStyle}
+      />}
 
       {[...Array(mockCount)].map((_, i) => (
         <TableListItemMock
           key={i}
           index={i}
           className={cn(isSmallerRows && 'min_h_40', typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[i])}
+          removeAvatarElement={removeAvatarElement}
           removeBorderLine={removeBorderLine || (!isInnerContent && i === 0)}
-          addHorizontalPadding
+          addHorizontalPadding={!removeHorizontalPadding}
           {...rest}
         />
       ))}

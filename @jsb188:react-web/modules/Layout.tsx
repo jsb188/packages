@@ -396,7 +396,7 @@ function isRetriableError(statusCode: number) {
 }
 
 /**
- * Simple error component with icon and message
+ * Error message props
  */
 
 export interface ErrorMessageProps {
@@ -416,11 +416,27 @@ export interface ErrorMessageProps {
   onClickButton?: () => void;
 }
 
-export function ErrorMessage(p: ErrorMessageProps) {
-  const { authHref, errorCode, statusCode, doNotRefreshIfNotLoggedIn, hideButtonIfNotRetriable, preset, iconName, buttonHref, buttonText, loading, containerSize, onClickButton } = p;
+export interface ErrorMessageContentProps extends Partial<ServerErrorObj> {
+  onlineStatus?: boolean;
+}
+
+export interface ErrorMessageContentObj {
+  isAuthError: boolean;
+  isTokenError: boolean;
+  title: string;
+  message: string;
+  titleIconName: string;
+  iconSizeClassName: string;
+}
+
+/**
+ * Resolve shared title, message, and icon values for an error message UI
+ */
+
+export function getErrorMessageContent(p: ErrorMessageContentProps): ErrorMessageContentObj {
+  const { errorCode, statusCode, iconName, onlineStatus } = p;
   const isAuthError = errorCode == '20019';
   const isTokenError = errorCode == '20011';
-  const onlineStatus = useOnlineStatus();
 
   let title: string;
   if (p.title) {
@@ -435,6 +451,66 @@ export function ErrorMessage(p: ErrorMessageProps) {
   } else {
     message = i18n.t('error.unknown_error_msg');
   }
+
+  let titleIconName: string, iconSizeClassName: string;
+  if (isTokenError) {
+    titleIconName = 'password-key';
+    iconSizeClassName = 'ft_xxl';
+  } else if (isAuthError) {
+    titleIconName = COMMON_ICON_NAMES.login_related;
+    iconSizeClassName = 'ft_xxl';
+  } else {
+    titleIconName = iconName || 'alert-circle';
+    iconSizeClassName = 'ft_lg';
+
+    const isNetworkError = ['network_error', 'app_error'].includes(errorCode!);
+    if (
+      onlineStatus && (
+        isNetworkError ||
+        (statusCode === 500 && !iconName)
+      )
+    ) {
+      titleIconName = COMMON_ICON_NAMES.server_outage;
+
+      if (title === i18n.t('error.network_error_title')) {
+        title = i18n.t('error.server_outage_title');
+      }
+
+      if (message === i18n.t('error.network_error_msg')) {
+        message = i18n.t('error.server_outage_msg');
+      }
+    }
+
+    if (titleIconName === 'alert-circle' && /\baccess\b/.test(message)) {
+      titleIconName = 'lock-circle';
+    }
+  }
+
+  return {
+    isAuthError,
+    isTokenError,
+    title,
+    message,
+    titleIconName,
+    iconSizeClassName,
+  };
+}
+
+/**
+ * Simple error component with icon and message
+ */
+
+export function ErrorMessage(p: ErrorMessageProps) {
+  const { authHref, errorCode, statusCode, doNotRefreshIfNotLoggedIn, hideButtonIfNotRetriable, preset, iconName, buttonHref, buttonText, loading, containerSize, onClickButton } = p;
+  const onlineStatus = useOnlineStatus();
+  const { isAuthError, isTokenError, title, message, titleIconName, iconSizeClassName } = getErrorMessageContent({
+    errorCode,
+    statusCode,
+    iconName,
+    title: p.title,
+    message: p.message,
+    onlineStatus,
+  });
 
   let containerClassName: string, titleClassName: string, messageClassName: string, buttonClassName: string, buttonPreset: any;
   let buttonSize: any;
@@ -472,40 +548,6 @@ export function ErrorMessage(p: ErrorMessageProps) {
     // (hideButtonIfNotRetriable && statusCode && !isRetriableError(statusCode))
   ) {
     buttonHandler = onClickButton;
-  }
-
-  let titleIconName: string, iconSizeClassName: string;
-  if (isTokenError) {
-    titleIconName = 'password-key';
-    iconSizeClassName = 'ft_xxl';
-  } else if (isAuthError) {
-    titleIconName = COMMON_ICON_NAMES.login_related;
-    iconSizeClassName = 'ft_xxl';
-  } else {
-    titleIconName = iconName || 'alert-circle';
-    iconSizeClassName = 'ft_lg';
-
-    const isNetworkError = ['network_error', 'app_error'].includes(errorCode!);
-    if (
-      onlineStatus && (
-        isNetworkError ||
-        (statusCode === 500 && !iconName)
-      )
-    ) {
-      titleIconName = COMMON_ICON_NAMES.server_outage;
-
-      if (title === i18n.t('error.network_error_title')) {
-        title = i18n.t('error.server_outage_title');
-      }
-
-      if (message === i18n.t('error.network_error_msg')) {
-        message = i18n.t('error.server_outage_msg');
-      }
-    }
-
-    if (titleIconName === 'alert-circle' && /\baccess\b/.test(message)) {
-      titleIconName = 'lock-circle';
-    }
   }
 
   return (
