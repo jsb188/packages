@@ -29,7 +29,6 @@
     "./ui/Button": "./ui/Button.tsx",
     "./ui/CardUI": "./ui/CardUI.tsx",
     "./ui/Form": "./ui/FormUI.tsx",
-    "./ui/ListUI": "./ui/ListUI.tsx",
     "./ui/Loading": "./ui/Loading.tsx",
     "./ui/Markdown": "./ui/Markdown.tsx",
     "./ui/ModalUI": "./ui/ModalUI.tsx",

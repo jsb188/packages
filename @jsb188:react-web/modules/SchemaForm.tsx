@@ -3,7 +3,6 @@ import type { FormSchemaObj, FormValueSetter } from '@jsb188/app/types/form.d.ts
 import { cn } from '@jsb188/app/utils/string.ts';
 import { FormItem } from '@jsb188/react-web/modules/Form';
 import { type ButtonPresetEnum, FullWidthButton } from '@jsb188/react-web/ui/Button';
-import { StickyFooterArea } from '@jsb188/react-web/ui/ListUI';
 import { formValuesAreDiff } from '@jsb188/react/hooks';
 import { makeFormValues, useSchema } from '@jsb188/react/schema';
 import { FormEventHandler, forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
@@ -38,7 +37,6 @@ interface SchemaFormProps {
   disabled?: boolean;
   disabledButton?: boolean;
   hideButton?: boolean;
-  stickyFooter?: boolean;
   onError?: (error: any) => void;
   onSubmit: (formValues: any, currentData: any, setFormValues: SetFormValuesFunc) => any; // Return "true" to post form; async mutation payloads are also allowed
   onFormValuesChange?: (formValues: any, currentValues: any, setFormValues: SetFormValuesFunc) => void;
@@ -82,7 +80,6 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
     children,
     FooterComponent,
     hideButton,
-    stickyFooter,
     buttonClassName,
   } = p;
 
@@ -281,7 +278,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
       {FooterComponent}
 
       {hideButton ? null : (
-        <StickyFooterArea sticky={!!stickyFooter}>
+        <div className='pt_df fs z2'>
           <FullWidthButton
             className={cn(buttonClassName || 'mt_sm', !disabledButton && 'shadow')}
             disabled={disabledButton}
@@ -292,7 +289,7 @@ const SchemaForm = forwardRef((p: SchemaFormProps, ref: React.ForwardedRef<Schem
           >
             {buttonText}
           </FullWidthButton>
-        </StickyFooterArea>
+        </div>
       )}
     </form>
   );

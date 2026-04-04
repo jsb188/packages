@@ -330,9 +330,9 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .rtr_lg { border-top-right-radius: var(--radius-large); }
 .rbr_lg { border-bottom-right-radius: var(--radius-large); }
 .rt_lg { border-top-left-radius: var(--radius-large); border-top-right-radius: var(--radius-large); }
-.rb_lg { border-bottom-left-radius: var(--radius-large); border-bottom-right-radius: var(--radius-large);}
-.rl_lg { border-top-left-radius: var(--radius-large); border-bottom-left-radius: var(--radius-large);}
-.rr_lg { border-top-right-radius: var(--radius-large); border-bottom-right-radius: var(--radius-large);}
+.rb_lg { border-bottom-left-radius: var(--radius-large); border-bottom-right-radius: var(--radius-large); }
+.rl_lg { border-top-left-radius: var(--radius-large); border-bottom-left-radius: var(--radius-large); }
+.rr_lg { border-top-right-radius: var(--radius-large); border-bottom-right-radius: var(--radius-large); }
 
 /* Avatar */
 
@@ -400,6 +400,11 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 
 .av_btn_text_shift {
   padding-bottom: 10%;
+}
+
+.th_item {
+  position: relative;
+  padding: 100% 0 0;
 }
 
 /* Typing dots */

@@ -485,7 +485,7 @@ export function buildSingleText(
  */
 
 export function joinReadable(
-  texts: string[],
+  texts: (string | null | undefined)[],
   separator: string = ", ",
   lastSeparator: string = " and ",
 ) {

@@ -1268,44 +1268,6 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
   -ms-overflow-style: none; /* IE 10+ */
 }
 
-/* Status colors */
-
-.s_typing_dots.ONLINE {
-  background-color: #23a55a;
-}
-
-.s_typing_dots.APPEAR_OFFLINE, .s_typing_dots.OFFLINE {
-  background-color: #80848e;
-}
-
-.s_typing_dots.AWAY {
-  background-color: #f0b232;
-}
-
-.s_typing_dots.BUSY {
-  background-color: #f23f43;
-}
-
-rect.s_dot_online {
-  fill: #23a55a;
-}
-
-rect.s_dot_offline {
-  fill: #80848e;
-}
-
-rect.s_dot_busy {
-  fill: #f23f43;
-}
-
-rect.s_dot_away {
-  fill: #df7b00;
-}
-
-[data-mode="dark"] rect.s_dot_away {
-  fill: #f0b232;
-}
-
 /* Patterns */
 
 .pattern_dots_1:before,
@@ -1314,9 +1276,14 @@ rect.s_dot_away {
   position: absolute; z-index: 0;
   inset: 0;
   mask-image: url('https://assets.chiefhappiness.co/marketday/static/dot.svg');
+  /* mask-image: url('/svg/dot-stagger.svg'); */
   mask-repeat: repeat;
   mask-size: auto;
   mask-position: center;
+}
+
+.pattern_dots_1:before {
+  mask-size: 20px 20px;
 }
 
 .pattern_dots_2:before {
@@ -1373,21 +1340,6 @@ rect.s_dot_away {
 
   /* Flip upside down */
   /* transform: rotate(180deg); */
-}
-
-/* Double border */
-
-.bd_double {
-  border: solid 1px rgba(var(--color-darker-rgb), .125);
-}
-
-.bd_double:before {
-  content: ' ';
-  position: absolute;
-  top: -4px; left: -4px; right: -4px; bottom: -4px;
-  border: solid 1px rgba(var(--color-darker-rgb), .125);
-  pointer-events: none;
-  border-radius: 100vmax;
 }
 
 /* :before element colors */
@@ -1517,11 +1469,3 @@ rect.s_dot_away {
 .slate_bf:before { background-color: var(--color-slate-default); }
 .zinc_bf:before { background-color: var(--color-zinc-default); }
 .stone_bf:before { background-color: var(--color-stone-default); }
-
-/* Temporary for demo */
-
-.doc_tag {
-  position: absolute;
-  top: 1rem;
-  right: 0;
-}

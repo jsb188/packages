@@ -12,7 +12,6 @@
     "./colors.css": "./css/colors.css",
     "./form.css": "./css/form.css",
     "./layout.css": "./css/layout.css",
-    "./list.css": "./css/list.css",
     "./loading.css": "./css/loading.css",
     "./misc.css": "./css/misc.css",
     "./modal.css": "./css/modal.css",
