@@ -601,7 +601,7 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
       ];
     } break;
     case 'LogFarmersMarket': {
-      const isReceipt = ['MARKET_RECEIPTS'].includes(logType);
+      const isReceipt = ['MARKET_RECEIPT'].includes(logType);
 
       schemaFields = [
         'activity',

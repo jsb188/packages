@@ -33,7 +33,7 @@ export const RULES = {
   myOrganizations: true,
   organizationMembers: true,
   organizationRelationship: true,
-  organizationWorkflows: true,
+  organizationSites: true,
   platformProducts: true,
   productAttendanceList: true,
   productsList: true,

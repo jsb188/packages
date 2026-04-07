@@ -149,7 +149,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 		],
 	],
 	[
-		'EQUIPMENTS',
+		'EQUIPMENT',
 		[
 			'EQUIPMENTS_MATERIALS_RISK',
 			'EQUIPMENTS_MATERIALS_CLEANING',
@@ -170,7 +170,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 		],
 	],
 	[
-		'EMPLOYEES',
+		'EMPLOYEE',
 		[
 			'EMPLOYEE_ORIENTATION',
 			'EMPLOYEE_TRAINING',
@@ -202,9 +202,9 @@ export const ARABLE_TYPES_TO_TEXT = {
 export const ARABLE_FOOD_SAFETY_TYPES_TO_TEXT = {
 	HYGIENE: 'hygiene procdedures',
 	SANITATION: 'sanitation infrastructure & practices',
-	EQUIPMENTS: 'equipments & materials sanitation',
+	EQUIPMENT: 'equipments & materials sanitation',
 	BIOSECURITY: 'environment & biosecurity measures',
-	EMPLOYEES: 'employee & operation notes',
+	EMPLOYEE: 'employee & operation notes',
 	EVERYTHING: 'all food safety logs', // Not part of enums
 };
 
@@ -222,13 +222,13 @@ export const LOG_ARABLE_ACTIVITY_ENUMS = ARABLE_ACTIVITIES_GROUPED.reduce(
 export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 	AI_TASKS_GROUP,
 	[
-		'MARKET_RECEIPTS',
+		'MARKET_RECEIPT',
 		[
 			'MARKET_CREDIT_RECEIPT',
 		],
 	],
 	[
-		'MARKET_OPERATIONS',
+		'MARKET_OPERATION',
 		[
 			'MARKET_ATTENDANCE',
 			'MARKET_LOAD_LIST',
@@ -242,8 +242,8 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 export const LOG_FARMERS_MARKET_TYPE_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUPED.map(([type]) => type);
 
 export const FARMERS_MARKET_TYPES_TO_TEXT = {
-	MARKET_RECEIPTS: 'market credit receipts and coins redemption',
-	MARKET_OPERATIONS: 'notes about farmers and markets',
+	MARKET_RECEIPT: 'market credit receipts and coins redemption',
+	MARKET_OPERATION: 'notes about farmers and markets',
 	EVERYTHING: 'all market activities', // Not part of enums
 };
 

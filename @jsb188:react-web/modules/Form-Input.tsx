@@ -2,7 +2,7 @@ import { setObject } from '@jsb188/app/utils/object.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { usePopOverState } from '@jsb188/react/states';
 import { DateTime } from 'luxon';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { InputFocusStyle, InputPresetName, LabelType } from '../ui/FormUI';
 import { Label, getHtmlFor } from '../ui/FormUI';
@@ -32,6 +32,155 @@ function checkTimeError(value: string, field: TimeFormField): boolean {
     default:
   }
   return false;
+}
+
+/**
+ * SMS verification code input
+ */
+
+interface SMSCodeInputProps {
+  saving?: boolean;
+  error?: any;
+  codeLength?: number;
+  onChangeCode?: (code: string) => void;
+  onSubmit: (code: string) => void;
+}
+
+export function SMSCodeInput(p: SMSCodeInputProps) {
+
+  const { saving, error, onChangeCode, onSubmit } = p;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [code, setCode] = useState('');
+  const [focused, setFocused] = useState(false);
+  const codeLength = p.codeLength || 5;
+
+  /**
+   * Check if the user is already typing into a text-entry element.
+   */
+
+  const hasActiveTextInput = () => {
+    const activeEl = document.activeElement as HTMLElement | null;
+    if (!activeEl) {
+      return false;
+    }
+
+    const tagName = activeEl.tagName;
+    return (
+      tagName === 'INPUT' ||
+      tagName === 'TEXTAREA' ||
+      tagName === 'SELECT' ||
+      activeEl.isContentEditable
+    );
+  };
+
+  /**
+   * Apply a single keyboard event directly to the SMS code state.
+   */
+
+  const applyTypedKey = (key: string) => {
+    if (key === 'Backspace') {
+      setCode((currentCode) => currentCode.slice(0, -1));
+      return;
+    }
+
+    if (isNaN(Number(key))) {
+      return;
+    }
+
+    setCode((currentCode) => {
+      const nextCode = (currentCode + key).slice(0, codeLength);
+      if (nextCode.length >= codeLength) {
+        onSubmit(nextCode);
+      }
+      return nextCode;
+    });
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) || e.metaKey) {
+      // Do nothing for these keys
+      e.preventDefault();
+      return;
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (code.length === codeLength) {
+        onSubmit(code);
+      }
+    }
+  };
+
+  const onChange = (value: string) => {
+    if (!saving) {
+      setCode(value);
+
+      if (value.length >= codeLength) {
+        onSubmit(value);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!focused && !saving) {
+      const keyDownListener = (e: KeyboardEvent) => {
+        if (hasActiveTextInput()) {
+          return;
+        }
+
+        if (
+          (e.key === 'Backspace' || !isNaN(Number(e.key))) &&
+          !e.metaKey &&
+          !e.altKey &&
+          !e.ctrlKey
+        ) {
+          e.preventDefault();
+          inputRef.current?.focus();
+          applyTypedKey(e.key);
+        }
+      };
+
+      addEventListener('keydown', keyDownListener, false);
+      return () => {
+        removeEventListener('keydown', keyDownListener, false);
+      };
+    }
+  }, [focused, saving]);
+
+  useEffect(() => {
+    if (!saving && error) {
+      setCode('');
+    }
+  }, [saving, error]);
+
+  useEffect(() => {
+    onChangeCode?.(code);
+  }, [code, onChangeCode]);
+
+  return <div className={cn('p_5 r_df trans_color spd_1', focused ? 'bg_main' : 'bg_alt')}>
+    <div className={cn('bg px_df py_df r_sm rel h_spread ft_xxl a_c', saving ? 'cl_lt' : 'cl_df')}>
+      {[...Array(codeLength)].map((_, i) => {
+        const letter = code.charAt(i);
+        return <span
+          key={i}
+          className={cn('f', letter ? undefined : 'cl_lt')}
+        >
+          {letter || '#'}
+        </span>;
+      })}
+      <input
+        ref={inputRef}
+        id='verification_code'
+        type='number'
+        className='abs_full invis_input z2'
+        disabled={saving}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onKeyDown={onKeyDown}
+        onChange={(e) => onChange(e.target.value)}
+        value={code}
+        maxLength={codeLength}
+      />
+    </div>
+  </div>;
 }
 
 /**

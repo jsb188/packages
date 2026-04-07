@@ -88,13 +88,3 @@ export const organizationChildFragment = `fragment organizationChildFragment on 
     phoneNumber
   }
 }`;
-
-export const organizationInstructionsFragment = `fragment organizationInstructionsFragment on OrganizationInstructions {
-  id
-  organizationId
-  logType
-  summary
-  instructions
-  createdAt
-  updatedAt
-}`;

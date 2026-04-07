@@ -13,8 +13,10 @@ import { createElement, forwardRef, memo, useEffect, useRef, useState } from 're
 import { Icon } from '../svgs/Icon';
 import type { InputFocusStyle, InputPresetName, LabelType } from '../ui/FormUI';
 import { FormSectionTitle, Label, getHtmlFor } from '../ui/FormUI';
-import { InputTimeFromDate } from './Form-InputTime';
+import { InputTimeFromDate, SMSCodeInput } from './Form-Input';
 import { PopOverButton } from './PopOver';
+
+export { SMSCodeInput };
 
 // const cssPath = '/css/form.css';
 

@@ -29,3 +29,25 @@ mutation requestChangeEmail (
   )
 }
 `;
+
+export const requestChangePhoneMtn = gql`
+mutation requestChangePhone (
+  $phone: String!
+) {
+  requestChangePhone (
+    phone: $phone
+  )
+}
+`;
+
+export const changePhoneMtn = gql`
+mutation changePhone (
+  $code: String!
+  $phone: String!
+) {
+  changePhone (
+    code: $code
+    phone: $phone
+  )
+}
+`;

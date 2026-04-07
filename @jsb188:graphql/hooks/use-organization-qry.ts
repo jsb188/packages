@@ -1,6 +1,5 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
-import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
-import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationSitesQry, organizationWorkflowsQry } from '../gql/queries/organizationQueries';
+import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationSitesQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
 
 const ORG_CHILDREN_LIMIT = 250;
@@ -14,25 +13,6 @@ export function useMyOrganizations(params: UseQueryParams = {}) {
 
   return {
     myOrganizations: data?.myOrganizations,
-    ...rest
-  };
-}
-
-/**
- * Fetch organization workflows
- */
-
-export function useOrganizationWorkflows(organizationId: string | null, operation: OrganizationOperationEnum | null) {
-  const { data, ...rest } = useQuery(organizationWorkflowsQry, {
-    variables: {
-      organizationId,
-      operation,
-    },
-    skip: !organizationId || !operation,
-  });
-
-  return {
-    organizationWorkflows: data?.organizationWorkflows,
     ...rest
   };
 }
@@ -87,22 +67,6 @@ export function useOrganizationSites(
     ...rest
   };
 }
-
-/**
- * Get reactive organization fragment
- */
-
-export function useReactiveOrganizationWorkflowFragment(workflowId: string, currentData?: any, queryCount?: number) {
-  return useReactiveFragment(
-    currentData,
-    [`$organizationInstructionsFragment:${workflowId}`],
-    queryCount,
-  );
-}
-
-/**
- * Get reactive organization fragment
- */
 
 export function useReactiveOrganization(orgId: string, currentData?: any, queryCount?: number) {
   return useReactiveFragment(

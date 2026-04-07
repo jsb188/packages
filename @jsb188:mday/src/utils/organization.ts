@@ -71,10 +71,10 @@ export function getDefaultPermissionsByRole(orgRel: OrganizationRelGQL | Organiz
 
 	// Also keep this synced with [resolvers/organizationTypeResolvers.ts]
 
-	// 0 = "NONE"
-	// 1 = "READ"
-	// 2 = "WRITE"
 	// 3 = "MANAGE"
+	// 2 = "WRITE"
+	// 1 = "READ"
+	// 0 = "NONE"
 
 	switch (role) {
 		case 'ADMIN':

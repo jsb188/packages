@@ -107,13 +107,13 @@ export default {
 			// #### ARABLE - FOOD SAFETY
 			HYGIENE: 'Hygiene procedures',
 			SANITATION: 'Sanitation infrastructure',
-			EQUIPMENTS: 'Materials, containers, equipments',
+			EQUIPMENT: 'Materials, containers, equipments',
 			BIOSECURITY: 'Environment & biosecurity',
-			EMPLOYEES: 'Employees & operation',
+			EMPLOYEE: 'Employees & operation',
 
 			// #### FARMERS_MARKET
-			MARKET_RECEIPTS: 'Receipt',
-			MARKET_OPERATIONS: 'Operation',
+			MARKET_RECEIPT: 'Receipt',
+			MARKET_OPERATION: 'Operation',
 
 			// #### GROWER_NETWORK
 			SITE_INSPECTION: 'Inspection',
@@ -142,14 +142,14 @@ export default {
 			// #### ARABLE - FOOD SAFETY
 			HYGIENE: 'Hygiene',
 			SANITATION: 'Sanitation',
-			EQUIPMENTS: 'Materials',
+			EQUIPMENT: 'Materials',
 			BIOSECURITY: 'Biosecurity',
-			EMPLOYEES: 'Employee',
+			EMPLOYEE: 'Employee',
 
 			// #### FARMERS_MARKET
-			MARKET_RECEIPTS: 'Receipt',
-			MARKET_OPERATIONS: 'Operation',
-			VOID_MARKET_RECEIPTS: 'Void receipt',
+			MARKET_RECEIPT: 'Receipt',
+			MARKET_OPERATION: 'Operation',
+			VOID_MARKET_RECEIPT: 'Void receipt',
 
 			// #### GROWER_NETWORK
 			SITE_INSPECTION: 'Inspection',

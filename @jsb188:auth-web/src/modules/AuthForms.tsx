@@ -1,6 +1,7 @@
 import { APP_EMAILS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
 import { useCheckUsernameOrEmail, useConfirmPhoneVerificationCode, useRequestTokenizedEmail, useSendPhoneVerificationCode, useSignUpWithEmail } from '@jsb188/graphql/hooks/use-auth-mtn';
+import { SMSCodeInput } from '@jsb188/react-web/modules/Form';
 import SchemaForm from '@jsb188/react-web/modules/SchemaForm';
 import { FullWidthButton } from '@jsb188/react-web/ui/Button';
 import { FormBreak } from '@jsb188/react-web/ui/Form';
@@ -10,7 +11,6 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import type { AuthPageName } from './_helpers';
 import { getAuthRoute } from './_helpers';
-import { VerificationCodeInput } from './AuthFormUI';
 import { ContinueWithGoogle, ContinueWithPhone } from './OtherAuthButtons';
 import { makeRequestTokenizedEmailSchema, makeSendPhoneVerificationSchema, makeSignInSchema, makeSignUpSchema } from './schemas';
 
@@ -433,9 +433,10 @@ function ConfirmPhoneVerificationCode(p: ConfirmPhoneVerificationCodeProps) {
         resetErrors={resetErrors}
       />
     )}
-    <VerificationCodeInput
+    <SMSCodeInput
       key={retryCount}
       saving={saving}
+      error={error}
       onSubmit={onSubmit}
     />
     <p className='a_c p_n mt_md mb_df rel'>

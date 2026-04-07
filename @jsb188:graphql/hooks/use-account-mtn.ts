@@ -1,6 +1,6 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
-import { requestChangeEmailMtn, editAccountMtn } from '../gql/mutations/accountMutations';
+import { changePhoneMtn, requestChangeEmailMtn, requestChangePhoneMtn, editAccountMtn } from '../gql/mutations/accountMutations';
 import { useMutation } from './index';
 
 /**
@@ -62,6 +62,54 @@ export function useRequestChangeEmail(
 
   return {
     requestChangeEmail,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Change logged in user's phone number
+ */
+
+export function useRequestChangePhone(
+  params?: UseMutationParams | null,
+  openModalPopUp?: OpenModalPopUpFn
+) {
+
+  const [requestChangePhone, mtnValues, mtnHandlers] = useMutation(
+    requestChangePhoneMtn,
+    {
+      openModalPopUp,
+      ...params,
+    },
+  );
+
+  return {
+    requestChangePhone,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Confirm logged in user's phone number change
+ */
+
+export function useChangePhone(
+  params?: UseMutationParams | null,
+  openModalPopUp?: OpenModalPopUpFn
+) {
+
+  const [changePhone, mtnValues, mtnHandlers] = useMutation(
+    changePhoneMtn,
+    {
+      openModalPopUp,
+      ...params,
+    },
+  );
+
+  return {
+    changePhone,
     ...mtnValues,
     ...mtnHandlers,
   };

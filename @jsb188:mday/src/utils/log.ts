@@ -63,13 +63,13 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 		// #### ARABLE - Food Safety
 		HYGIENE: 'teal',
 		SANITATION: 'sky',
-		EQUIPMENTS: 'indigo',
+		EQUIPMENT: 'indigo',
 		BIOSECURITY: 'green',
-		EMPLOYEES: 'yellow',
+		EMPLOYEE: 'yellow',
 
 		// #### FARMERS_MARKET
-		MARKET_RECEIPTS: 'blue',
-		MARKET_OPERATIONS: 'rose',
+		MARKET_RECEIPT: 'blue',
+		MARKET_OPERATION: 'rose',
 
 		// #### GROWER_NETWORK
 		SITE_INSPECTION: 'emerald',

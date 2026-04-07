@@ -1,6 +1,6 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments';
-import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationInstructionsFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments';
 import { emailFragment, phoneFragment } from '../fragments/otherFragments';
 import { storageFileFragment } from '../fragments/storageFragments';
 
@@ -112,22 +112,6 @@ ${organizationChildFragment}
 ${organizationFragment}
 ${organizationComplianceFragment}
 ${storageFileFragment}
-`;
-
-export const organizationWorkflowsQry = gql`
-query organizationWorkflows (
-  $organizationId: GenericID!
-  $operation: OrganizationOperation!
-) {
-  organizationWorkflows (
-    organizationId: $organizationId
-    operation: $operation
-  ) {
-    ...organizationInstructionsFragment
-  }
-}
-
-${organizationInstructionsFragment}
 `;
 
 export const organizationMembersQry = gql`

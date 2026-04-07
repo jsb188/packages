@@ -124,6 +124,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   pensive: 'mood-sad-filled',
   pinned: 'pinned',
   phone: 'phone', // Tabler version
+  phone_change: 'phone-circle',
+  phone_type: 'phone-type',
   plus: 'plus',
   plus_circle: 'circle-plus',
   plus_circle_filled: 'circle-plus-filled',
@@ -207,11 +209,11 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   SANITATION: 'cleanser-scrubbing-1',
   MATERIALS: 'shipment-container',
   BIOSECURITY: 'ecology-leaf-shield',
-  EMPLOYEES: 'avatar-farmer-man-4',
+  EMPLOYEE: 'avatar-farmer-man-4',
 
   // Farmers Market types
-  MARKET_RECEIPTS: 'farming-sell-vegetable',
-  MARKET_OPERATIONS: 'notes-tasks',
+  MARKET_RECEIPT: 'farming-sell-vegetable',
+  MARKET_OPERATION: 'notes-tasks',
 
   // Grower Network types
   SITE_INSPECTION: 'task-list-search',

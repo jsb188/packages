@@ -128,6 +128,8 @@ export default {
     20064: '"%{value}" is not a valid phone number.',
     20065: 'You cannot edit this information because this organization has been claimed by its owner.',
     20066: 'Report submission data could not be found.',
+    20067: 'Another account already exists with that phone number. (%{value})',
+    20068: 'Your new phone number cannot be the same as your current phone number.',
 
     // 3x
 

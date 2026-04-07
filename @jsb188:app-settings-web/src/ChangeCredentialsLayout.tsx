@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { useConfirmPassword } from '@jsb188/graphql/hooks/use-auth-mtn';
-import { FormOptions, Input } from '@jsb188/react-web/modules/Form';
+import { FormOptions, Input, SMSCodeInput } from '@jsb188/react-web/modules/Form';
 import { AlertPopUp, ModalErrorMessage } from '@jsb188/react-web/ui/ModalUI';
 import type { ModalPopUpComponentProps } from '@jsb188/react/states';
 import { useState } from 'react';
@@ -12,6 +12,7 @@ import { useState } from 'react';
 export interface ConfirmPasswordProps extends ModalPopUpComponentProps {
 	confirmPasswordTitle?: string;
 	confirmPasswordMessage?: string;
+  onPasswordVerified?: (password: string) => void;
 }
 
 export interface ChangeCredentialsFinishedProps extends ModalPopUpComponentProps {
@@ -35,14 +36,17 @@ export interface ChangeCredentialsProps extends ConfirmPasswordProps {
   verifyMessage?: string;
 
   confirmText?: string;
-  status: 'WAITING_FOR_INPUT' | 'WAITING_FOR_VERIFICATION' | 'WAITING_FOR_CODE' | 'FINISHED';
-  onSubmit: (values: string[]) => void;
+  confirmSMSCodeText?: string;
+  status: 'WAITING_FOR_INPUT' | 'WAITING_FOR_VERIFICATION' | 'WAITING_FOR_SMS_CODE' | 'FINISHED';
+  onSubmit: (values: string[], confirmedPassword?: string) => void;
+  onSubmitSMSCode?: (smsCode: string, values: string[], confirmedPassword?: string) => void;
 
   loading?: boolean;
   error: any;
   resetErrors: () => void;
   inputs: ({
     __type: 'TEXT_INPUT';
+    type?: 'text' | 'password';
     label: string;
     placeholder?: string;
   } | {
@@ -64,12 +68,13 @@ export interface ChangeCredentialsProps extends ConfirmPasswordProps {
 function ConfirmPasswordForm(p: ConfirmPasswordProps & {
   setPasswordVerified: (verified: boolean) => void;
 }) {
-	const { setPasswordVerified, onCloseModal, confirmPasswordTitle, confirmPasswordMessage } = p;
+	const { setPasswordVerified, onCloseModal, confirmPasswordTitle, confirmPasswordMessage, onPasswordVerified } = p;
   const [password, setPassword] = useState('');
 
   const { confirmPassword, error, resetErrors, saving } = useConfirmPassword({
     onCompleted: (data: any) => {
       if (data.confirmPassword) {
+        onPasswordVerified?.(password);
         setPasswordVerified(true);
       }
     },
@@ -94,7 +99,7 @@ function ConfirmPasswordForm(p: ConfirmPasswordProps & {
 
 	return <AlertPopUp
     loading={saving}
-		iconName='password-lock-1'
+		iconName='password-lock-2'
 		confirmText={i18n.t('form.authenticate')}
     cancelText={i18n.t('form.cancel')}
     onConfirm={onConfirmPassword}
@@ -132,13 +137,15 @@ function ConfirmPasswordForm(p: ConfirmPasswordProps & {
 
 export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
 	const {
-    iconName, skipPassword, title, message, confirmText, loading, error, resetErrors, inputs, onSubmit, status,
+    iconName, skipPassword, title, message, confirmText, confirmSMSCodeText, loading, error, resetErrors, inputs, onSubmit, onSubmitSMSCode, status,
     finishedIconName, finishedTitle, finishedMessage,
     verifyIconName, verifyTitle, verifyMessage,
     ...rest
   } = p;
   const { onCloseModal } = rest;
 	const [passwordVerified, setPasswordVerified] = useState(false);
+  const [confirmedPassword, setConfirmedPassword] = useState('');
+  const [smsCode, setSMSCode] = useState('');
   const [values, setValues] = useState(() => inputs.map((input) =>
     input.__type === 'OPTIONS_LIST'
       ? (input.defaultValue || '')
@@ -154,8 +161,6 @@ export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
         title={finishedTitle || i18n.t('form.success_')}
         message={finishedMessage || i18n.t('form.your_request_is_completed_msg')}
       />;
-    case 'WAITING_FOR_CODE':
-      return 'waiting for code';
     case 'WAITING_FOR_VERIFICATION':
       return <AlertPopUp
         onCloseModal={onCloseModal}
@@ -164,6 +169,45 @@ export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
         title={verifyTitle || i18n.t('form.please_verify')}
         message={verifyMessage || i18n.t('form.request_will_complete_once_verified_msg')}
       />;
+    case 'WAITING_FOR_SMS_CODE': {
+      const hasSMSCode = !!smsCode.trim();
+
+      return <AlertPopUp
+        iconName={verifyIconName || iconName}
+        loading={loading}
+        onCloseModal={onCloseModal}
+        onCancel={onCloseModal}
+        doNotExitOnConfirm
+        onConfirm={() => {
+          onSubmitSMSCode?.(smsCode.trim(), values, confirmedPassword);
+        }}
+        title={verifyTitle || i18n.t('form.please_verify')}
+        message={verifyMessage || i18n.t('form.request_will_complete_once_verified_msg')}
+        confirmText={confirmSMSCodeText || i18n.t('form.ok')}
+        cancelText={i18n.t('form.cancel')}
+        disabledConfirm={!hasSMSCode}
+      >
+        {error && (
+          <div className='px_md mt_md -mb_df'>
+            <ModalErrorMessage
+              error={error}
+              resetErrors={resetErrors}
+            />
+          </div>
+        )}
+
+        <div className='mt_md mx_md'>
+          <SMSCodeInput
+            saving={loading}
+            error={error}
+            onChangeCode={setSMSCode}
+            onSubmit={(smsCode) => {
+              onSubmitSMSCode?.(smsCode.trim(), values, confirmedPassword);
+            }}
+          />
+        </div>
+      </AlertPopUp>;
+    }
     case 'WAITING_FOR_INPUT':
     default:
   }
@@ -172,6 +216,7 @@ export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
 		return <ConfirmPasswordForm
 			{...rest}
       setPasswordVerified={setPasswordVerified}
+      onPasswordVerified={setConfirmedPassword}
 		/>;
 	}
 
@@ -180,7 +225,7 @@ export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
 
   const onPressEnter = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && hasValidInputs) {
-      onSubmit(values);
+      onSubmit(values, confirmedPassword);
     }
   };
 
@@ -189,7 +234,7 @@ export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
 		doNotExitOnConfirm
     loading={loading}
 		onCloseModal={onCloseModal}
-    onConfirm={() => onSubmit(values)}
+    onConfirm={() => onSubmit(values, confirmedPassword)}
     title={title}
     message={message}
     confirmText={confirmText}
@@ -227,7 +272,7 @@ export function ChangeCredentialsLayout(p: ChangeCredentialsProps) {
 
         return <Input
           key={i}
-          type='text'
+          type={obj.type || 'text'}
           {...obj}
           value={values[i]}
           onChange={(e) => {
