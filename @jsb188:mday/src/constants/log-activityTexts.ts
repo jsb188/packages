@@ -134,8 +134,29 @@ export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {
  */
 
 export const GROWER_NETWORK_INSPECTION_TO_TEXT = {
-  INSPECTION_NOTES: 'site inspection or audit related notes',
-  GROWER_NOTES: 'notes about a grower in the network',
+  // # WORKER_PRACTICE
+	HYGIENE_PROCEDURE: 'worker hygiene procedures',
+	SANITATION_PRACTICE: 'sanitation conditions and cleanliness',
+	PERSONNEL_PRACTICE: 'PPE compliance, worker practices, training, illness',
+
+  // # EQUIPMENT
+	EQUIPMENT_MATERIAL: 'production and harvest equipments/tools/materials',
+	PACKAGING_STORAGE: 'packaging and storage of produce',
+
+  // # FIELD
+	ENVIRONMENT: 'environmental exposure and wildlife activity',
+	FIELD_CONDITION: 'field conditions, flood zones, erosion',
+	ADJACENT_LAND: 'adjacent land observations, risks',
+
+  // # PRODUCTION_INPUT
+	WATER_INPUT: 'water source, quality, treatment, testing, and application',
+	CHEMICAL_INPUT: 'chemical inputs handling and application',
+	FERTILIZER_INPUT: 'fertilizer inputs handling and application',
+
+  // # OPERATION
+	RECORDKEEPING: 'document control, record availability, and accuracy',
+	FACILITIES: 'facilities, physical infrastructure, and maintenance',
+	OPERATION_NOTES: 'general operation notes',
 };
 
 export const GROWER_NETWORK_ACTIVITIES_TO_TEXT = {

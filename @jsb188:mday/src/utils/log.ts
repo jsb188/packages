@@ -72,7 +72,9 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 		MARKET_OPERATION: 'rose',
 
 		// #### GROWER_NETWORK
-		SITE_INSPECTION: 'emerald',
+		WORKER_PRACTICE: 'purple',
+		PRODUCTION_INPUT: 'sky',
+		OPERATION: 'yellow',
 
 		// #### LIVESTOCK
 		SUPPLY_PURCHASE: 'brown',

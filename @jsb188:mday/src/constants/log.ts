@@ -177,7 +177,7 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 			'SICK_EMPLOYEE',
 			'EMPLOYEE_INJURED',
 			'EMPLOYEE_NOTES',
-			'OPERATION_NOTES',
+			'OPERATION_NOTES', // need to change to singular form
 		],
 		[
 			'FOOD_SAFETY',
@@ -261,19 +261,55 @@ export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUP
 export const GROWER_NETWORK_ACTIVITIES_GROUPED: [string, string[]][] = [
 	AI_TASKS_GROUP,
 	[
-		'SITE_INSPECTION',
-		[
-			'INSPECTION_NOTES',
-      'GROWER_NOTES',
-		],
-	],
+    'WORKER_PRACTICE',
+    [
+      'HYGIENE_PROCEDURE', // Hygiene, Handwashing
+      'SANITATION_PRACTICE', // Sanitation risk, cleanliness/food-contact, and conditions
+      'PERSONNEL_PRACTICE' // PPE, training, illness, work practices, break area compliance
+    ],
+  ],
+  [
+    'EQUIPMENT',
+    [
+      'EQUIPMENT_MATERIAL', // Equipment, tools and materials risk, handling practices, and conditions
+      'PACKAGING_STORAGE', // Packaging, storage, and handling practices
+    ],
+  ],
+  [
+    'PRODUCTION_INPUT',
+    [
+      'WATER_INPUT', // Water source, quality, treatment, testing, and application
+      'CHEMICAL_INPUT', // Chemical storage, handling, and application
+      'FERTILIZER_INPUT', // Fertilizer storage, handling, and application
+    ],
+  ],
+  [
+    'FIELD',
+    [
+      'ENVIRONMENT', // Environmental exposure, risks
+      'FIELD_CONDITION', // Field conditions, flood zone, errosion risk, and control measures
+      'ADJACENT_LAND', // Adjacent land contamination risks and control measures
+    ],
+  ],
+  [
+    'OPERATION',
+    [
+      'RECORDKEEPING', // Notes/issues with document control, record availability and accuracy
+      'FACILITIES', // Notes/issues with facilities, physical infrastructure, and maintenance
+      'OPERATION_NOTE', // Other notes/issues with operations, management, and general observations
+    ]
+  ]
 ];
 
 export const LOG_GROWER_NETWORK_TYPE_ENUMS = GROWER_NETWORK_ACTIVITIES_GROUPED.map(([type]) => type);
 
 export const GROWER_NETWORK_TYPES_TO_TEXT = {
-	SITE_INSPECTION: 'site inspection notes',
-	EVERYTHING: 'all network activities', // Not part of enums
+	WORKER_PRACTICE: 'hygiene, sanitation, and worker practices',
+	EQUIPMENT: 'equipments, materials, packaging, storage',
+	PRODUCTION_INPUT: 'water, chemical, and fertilizer inputs',
+	FIELD: 'field/land conditions, control measures and environmental risks',
+	OPERATION: 'recordkeeping, documentation, facilities, and general operations',
+	EVERYTHING: 'all grower network activities', // Not part of enums
 };
 
 export const LOG_GROWER_NETWORK_ACTIVITY_ENUMS = GROWER_NETWORK_ACTIVITIES_GROUPED.reduce(

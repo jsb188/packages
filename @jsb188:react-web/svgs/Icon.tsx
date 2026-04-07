@@ -63,7 +63,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   account_remove: 'single-neutral-actions-subtract',
   account_switch: 'switch-account-2',
   ai_avatar: 'reward-stars-4',
-  ai_magic: 'reward-stars-3',
   ai_workflow: 'document-ai',
   address_book: 'address-book',
   alert_error: 'alert-circle',
@@ -216,7 +215,9 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   MARKET_OPERATION: 'notes-tasks',
 
   // Grower Network types
-  SITE_INSPECTION: 'task-list-search',
+  WORKER_PRACTICE: 'avatar-farmer-man-4',
+  PRODUCTION_INPUT: 'organic-flask',
+  OPERATION: 'notes-tasks',
 
   // Livestock types
   SUPPLY_PURCHASE: 'accounting-invoice-dollar',
@@ -279,7 +280,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   SICK_EMPLOYEE: 'medical-condition-flu',
   EMPLOYEE_INJURED: 'bandage-shoulder-head',
   EMPLOYEE_NOTES: 'notes-tasks',
-  OPERATION_NOTES: 'notes-tasks',
+  OPERATION_NOTE: 'notes-tasks',
 
   // FARMERS MARKET - Icon Names for each log activity
   MARKET_CREDIT_RECEIPT: 'farming-sell-vegetable',
@@ -287,6 +288,20 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   MARKET_LOAD_LIST: 'notes-tasks',
   VENDOR_NOTES: 'notes-tasks',
   FARMERS_MARKET_NOTES: 'notes-tasks',
+
+  // GROWER NETWORK - Icon Names for each log activity
+  SANITATION_PRACTICE: 'cleanser-scrubbing-1',
+  PERSONNEL_PRACTICE: 'single-man-statics-3',
+  EQUIPMENT_MATERIAL: 'shipment-container',
+  PACKAGING_STORAGE: 'warehouse-storage',
+  ENVIRONMENT: 'outdoors-tree-valley',
+  FIELD_CONDITION: 'farming-barn-sun',
+  ADJACENT_LAND: 'barbed-wire-fence',
+  WATER_INPUT: 'water-protection-drop-1',
+  CHEMICAL_INPUT: 'anti-bacterial-1',
+  FERTILIZER_INPUT: 'organic-bag-leaf',
+  RECORDKEEPING: 'notes-tasks',
+  FACILITIES: 'warehouse-storage',
 
   // LIVESTOCK - Icon Names for each log activity
   FEED_PURCHASE: 'accounting-invoice-dollar',

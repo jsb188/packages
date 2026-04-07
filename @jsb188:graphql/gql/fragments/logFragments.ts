@@ -73,6 +73,14 @@ export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on Lo
   type
   activity
 
+  animalRisk
+  equipmentRisk
+  fieldRisk
+  contaminationRisk
+  hygieneRisk
+  pestsRisk
+  sanitationRisk
+
   otherParty
 
   item

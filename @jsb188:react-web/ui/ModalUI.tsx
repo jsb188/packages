@@ -546,7 +546,7 @@ export function ModalToolbar(p: {
 
       {!onCloseModal ? null : (
         <button
-          className='link av_xs r bg_darker_hv_1 v_center mr_xs'
+          className='link av_xs r bg_darker_hv_2 v_center mr_xs'
           onClick={onCloseModal}
         >
           <Icon name='x' />
@@ -598,7 +598,7 @@ export function ModalToolbarTitle(p: {
     <div className='abs_corner h_toolbar h_right'>
       {!onCloseModal ? null : (
         <button
-          className='link av_xs r bg_darker_hv_1 v_center mr_xs'
+          className='link av_xs r bg_darker_hv_2 v_center mr_xs'
           onClick={onCloseModal}
         >
           <Icon name='x' />

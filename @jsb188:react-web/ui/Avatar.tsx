@@ -1,6 +1,6 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
-import React, { createElement, useState } from 'react';
+import React, { createElement } from 'react';
 import { Icon } from '../svgs/Icon';
 import { ActivityDots } from './Loading';
 
@@ -13,7 +13,6 @@ type OnlineStatusEnums = 'ONLINE' | 'AWAY' | 'BUSY' | 'APPEAR_OFFLINE' | 'OFFLIN
 export type AvatarSize = 'xtiny' | 'tiny' | 'small' | 'default' | 'medium' | 'large' | 'xlarge';
 
 type AvatarButtonProps = {
-  animateGifs?: boolean;
   disabled?: boolean;
   urlPath?: string | null;
   size?: AvatarSize | null;
@@ -270,7 +269,6 @@ interface AvatarProps {
   urlPath?: string | null;
   url?: string | null;
   square?: boolean;
-  animateGifs?: boolean;
   radiusClassName?: string;
   imageClassName?: string;
   containerClassName?: string;
@@ -291,7 +289,6 @@ export function Avatar(p: AvatarProps) {
     imageClassName,
     containerClassName,
     className,
-    animateGifs,
     letterAs,
     removeTypographyAdjustment
   } = p;
@@ -383,7 +380,6 @@ export function AvatarImg(p: AvatarProps & {
     urlPath,
     className,
     imageClassName,
-    animateGifs,
     square,
     removeTypographyAdjustment,
     outline,
@@ -453,7 +449,7 @@ export function AvatarImg(p: AvatarProps & {
  */
 
 export function AvatarButton(p: AvatarButtonProps) {
-  const { animateGifs, urlPath, size, text, disabled, className, iconName, radiusClassName, buttonColorClassName, onClick, onMouseEnter, onMouseLeave } = p;
+  const { urlPath, size, text, disabled, className, iconName, radiusClassName, buttonColorClassName, onClick, onMouseEnter, onMouseLeave } = p;
   const IconComponent = p.IconComponent || Icon;
   const isBig = ['large', 'xlarge'].includes(size!);
 
@@ -479,7 +475,6 @@ export function AvatarButton(p: AvatarButtonProps) {
     >
       <AvatarImg
         radiusClassName={radiusClassName}
-        animateGifs={animateGifs}
         size={size}
         urlPath={urlPath}
       />
@@ -521,14 +516,5 @@ export function AvatarButton(p: AvatarButtonProps) {
  */
 
 export function AvatarButtonGif(p: AvatarButtonProps) {
-  const [animateGifs, setAnimateGifs] = useState(false);
-
-  return (
-    <AvatarButton
-      {...p}
-      animateGifs={animateGifs}
-      onMouseEnter={() => setAnimateGifs(true)}
-      onMouseLeave={() => setAnimateGifs(false)}
-    />
-  );
+  return <AvatarButton {...p} />;
 }

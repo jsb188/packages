@@ -524,7 +524,7 @@ export function getNavigationList(
   // @ts-ignore
   ].concat(navListArr).concat([{
     text: i18n.t('form.advanced'),
-    initialExpanded: false,
+    initialExpanded: true,
     navList: [
       ROUTES_DICT['/app/workflows'],
       ROUTES_DICT['/app/logs']

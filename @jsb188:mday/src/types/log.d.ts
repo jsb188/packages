@@ -1,9 +1,9 @@
-import type { AccountObj } from "@jsb188/app/types/account.d.ts";
-import type { LabelAndValue } from "@jsb188/app/types/other.d.ts";
+import type { AccountObj } from '@jsb188/app/types/account.d.ts';
+import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
 import type {
   WorkflowActionGQL,
   WorkflowActionObj,
-} from "@jsb188/mday/types/action.d.ts";
+} from '@jsb188/mday/types/action.d.ts';
 import {
   LOG_ACTION_STATUS_ENUMS,
   LOG_ARABLE_ACTIVITY_ENUMS,
@@ -11,16 +11,16 @@ import {
   LOG_GROWER_NETWORK_ACTIVITY_ENUMS,
   LOG_LIVESTOCK_ACTIVITY_ENUMS,
   LOG_SORT_ENUMS,
-} from "../constants/log.ts";
-import type { OrganizationOperationEnum } from "../types/organization.d.ts";
-import type { StorageGQL } from "./storage";
+} from '../constants/log.ts';
+import type { OrganizationOperationEnum } from '../types/organization.d.ts';
+import type { StorageGQL } from './storage';
 
 /**
  * Enums
  */
 
 export type LogActionStatusEnum = (typeof LOG_ACTION_STATUS_ENUMS)[number];
-export type LogContentName = "log" | "ai_task" | "invoice" | "receipt"; // For UI visuals, client-side only
+export type LogContentName = 'log' | 'ai_task' | 'invoice' | 'receipt'; // For UI visuals, client-side only
 export type LogSortEnum = typeof LOG_SORT_ENUMS[number];
 
 /**
@@ -28,25 +28,25 @@ export type LogSortEnum = typeof LOG_SORT_ENUMS[number];
  */
 
 export type LogArableTypeEnum =
-  | "SEED"
-  | "PLANTING"
-  | "FIELD"
-  | "HARVEST"
-  | "POST_HARVEST"
-  | "SALES"
-  | "WATER"
-  | "HYGIENE"
-  | "SANITATION"
-  | "EQUIPMENTS"
-  | "BIOSECURITY"
-  | "EMPLOYEES";
+  | 'SEED'
+  | 'PLANTING'
+  | 'FIELD'
+  | 'HARVEST'
+  | 'POST_HARVEST'
+  | 'SALES'
+  | 'WATER'
+  | 'HYGIENE'
+  | 'SANITATION'
+  | 'EQUIPMENT'
+  | 'BIOSECURITY'
+  | 'EMPLOYEE';
 export type LogArableActivityEnum = typeof LOG_ARABLE_ACTIVITY_ENUMS[number];
 
 /**
  * Farmers Market
  */
 
-export type LogFarmersMarketTypeEnum = "MARKET_RECEIPTS" | "MARKET_OPERATIONS";
+export type LogFarmersMarketTypeEnum = 'MARKET_RECEIPT' | 'MARKET_OPERATION';
 export type LogFarmersMarketActivityEnum =
   typeof LOG_FARMERS_MARKET_ACTIVITY_ENUMS[number];
 
@@ -54,7 +54,12 @@ export type LogFarmersMarketActivityEnum =
  * Grower Network
  */
 
-export type LogGrowerNetworkTypeEnum = "SITE_INSPECTION";
+export type LogGrowerNetworkTypeEnum =
+  | 'WORKER_PRACTICE'
+  | 'EQUIPMENT'
+  | 'FIELD'
+  | 'PRODUCTION_INPUT'
+  | 'OPERATION';
 export type LogGrowerNetworkActivityEnum =
   typeof LOG_GROWER_NETWORK_ACTIVITY_ENUMS[number];
 
@@ -63,12 +68,12 @@ export type LogGrowerNetworkActivityEnum =
  */
 
 export type LogLivestockTypeEnum =
-  | "SUPPLY_PURCHASE"
-  | "LIVESTOCK_LIFE_CYCLE"
-  | "LIVESTOCK_TRACKING"
-  | "PASTURE_LAND_MANAGEMENT"
-  | "LIVESTOCK_HEALTHCARE"
-  | "LIVESTOCK_SALE";
+  | 'SUPPLY_PURCHASE'
+  | 'LIVESTOCK_LIFE_CYCLE'
+  | 'LIVESTOCK_TRACKING'
+  | 'PASTURE_LAND_MANAGEMENT'
+  | 'LIVESTOCK_HEALTHCARE'
+  | 'LIVESTOCK_SALE';
 export type LogLivestockActivityEnum =
   typeof LOG_LIVESTOCK_ACTIVITY_ENUMS[number];
 
@@ -81,7 +86,7 @@ export type LogTypeEnum =
   | LogFarmersMarketTypeEnum
   | LogGrowerNetworkTypeEnum
   | LogLivestockTypeEnum
-  | "AI_TASK";
+  | 'AI_TASK';
 
 export type LogActivityEnum =
   | LogArableActivityEnum
@@ -160,25 +165,32 @@ export interface LogDetailsBase {
 }
 
 export interface LogArableDetailsData extends LogDetailsBase {
-  __table: "logs_arable";
+  __table: 'logs_arable';
   activity: LogArableActivityEnum;
   metadata?: Partial<LogArableMetadata> | null;
 }
 
 export interface LogFarmersMarketDetailsData extends LogDetailsBase {
-  __table: "logs_farmers_market";
+  __table: 'logs_farmers_market';
   activity: LogFarmersMarketActivityEnum;
   metadata?: Partial<LogFarmersMarketMetadata> | null;
 }
 
 export interface LogGrowerNetworkDetailsData extends LogDetailsBase {
-  __table: "logs_grower_network";
+  __table: 'logs_grower_network';
   activity: LogGrowerNetworkActivityEnum;
+  animalRisk: boolean;
+  equipmentRisk: boolean;
+  fieldRisk: boolean;
+  contaminationRisk: boolean;
+  hygieneRisk: boolean;
+  pestsRisk: boolean;
+  sanitationRisk: boolean;
   metadata?: Partial<LogGrowerNetworkMetadata> | null;
 }
 
 export interface LogLivestockDetailsData extends LogDetailsBase {
-  __table: "logs_livestock";
+  __table: 'logs_livestock';
   activity: LogLivestockActivityEnum;
   metadata?: Partial<LogLivestockMetadata> | null;
 }
@@ -196,7 +208,7 @@ interface LogDetailsBaseGQL {
 }
 
 export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
-  __typename: "LogArable";
+  __typename: 'LogArable';
 
   item: string | null;
   quantity: number | null;
@@ -212,7 +224,7 @@ export interface LogArableDetailsGQL extends LogDetailsBaseGQL {
 }
 
 export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
-  __typename: "LogFarmersMarket";
+  __typename: 'LogFarmersMarket';
 
   item: string | null;
   otherParty: string | null;
@@ -223,15 +235,22 @@ export interface LogFarmersMarketDetailsGQL extends LogDetailsBaseGQL {
 }
 
 export interface LogGrowerNetworkDetailsGQL extends LogDetailsBaseGQL {
-  __typename: "LogGrowerNetwork";
+  __typename: 'LogGrowerNetwork';
 
+  animalRisk: boolean;
+  equipmentRisk: boolean;
+  fieldRisk: boolean;
+  contaminationRisk: boolean;
+  hygieneRisk: boolean;
+  pestsRisk: boolean;
+  sanitationRisk: boolean;
   otherParty: string | null;
   item: string | null;
   fieldLocation: string | null;
 }
 
 export interface LogLivestockDetailsGQL extends LogDetailsBaseGQL {
-  __typename: "LogLivestock";
+  __typename: 'LogLivestock';
 
   livestock: string | null;
   livestockIdentifiers: string[] | null;
@@ -305,7 +324,7 @@ export interface LogEntryInsertObj {
 }
 
 export interface LogEntryData {
-  __table: "logs";
+  __table: 'logs';
   id: number | bigint;
   accountId: number | bigint;
   organizationId: number | bigint;
@@ -344,7 +363,7 @@ export interface LogEntryData {
 
 export interface FilterLogEntriesArgs {
   accountId?: string | null; // Account ID to filter logs by account
-  preset?: "WEEKS_5" | "AI_TASKS" | null;
+  preset?: 'WEEKS_5' | 'AI_TASKS' | null;
   types?: LogTypeEnum[] | null;
   activities?: LogActivityEnum[] | null;
   startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)

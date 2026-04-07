@@ -145,6 +145,7 @@ export interface POListIface {
   variables: {
     notReady?: boolean;
     designClassName?: string;
+    shadowClassName?: string;
     className?: string;
     savingValue?: string;
     iconName?: string;
@@ -167,6 +168,7 @@ export interface POCheckListIface {
     notReady?: boolean;
     className?: string;
     designClassName?: string;
+    shadowClassName?: string;
     savingValue?: string;
     iconName?: string;
     title?: string;
@@ -194,6 +196,7 @@ export interface POLabelsAndValuesIface {
   variables: {
     name: string; // Name for form, for formValues object
     designClassName?: string;
+    shadowClassName?: string;
     className?: string;
     addFooterButton?: boolean;
     footerButtonText?: string;

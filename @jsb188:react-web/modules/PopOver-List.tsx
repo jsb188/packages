@@ -265,6 +265,7 @@ export function PopOverList(p: PopOverHandlerProps & {
     notReady,
     className,
     designClassName,
+    shadowClassName,
     options,
     savingValue,
     addFooterButton,
@@ -321,6 +322,7 @@ export function PopOverList(p: PopOverHandlerProps & {
   return (
     <PopOverListContainer
       ref={divRef}
+      shadowClassName={shadowClassName}
       className={designClassName}
     >
       <div className={cn('inside y_scr_hidden gap_2', className)} style={remainingHeight ? { maxHeight: remainingHeight } : undefined}>
@@ -372,6 +374,7 @@ export function PopOverCheckList(p: PopOverHandlerProps & {
     notReady,
     className,
     designClassName,
+    shadowClassName,
     options,
     savingValue,
     addFooterButton,
@@ -404,6 +407,7 @@ export function PopOverCheckList(p: PopOverHandlerProps & {
   return (
     <PopOverListContainer
       ref={divRef}
+      shadowClassName={shadowClassName}
       className={designClassName}
     >
       <div className={cn('inside y_scr_hidden gap_2', className)}>
@@ -451,6 +455,7 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
   const {
     notReady,
     designClassName,
+    shadowClassName,
     className,
     gridLayoutStyle,
     name,
@@ -514,6 +519,7 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
   return (
     <PopOverListContainer
       ref={divRef}
+      shadowClassName={shadowClassName}
       className={designClassName}
     >
       <div className={cn('inside y_scr_hidden gap_2', className)}>

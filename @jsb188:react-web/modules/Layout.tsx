@@ -33,7 +33,7 @@ export function AppLayout(p: ReactDivElement & {
   const { routeName, children, open, className, notReadyOrError, SidebarComponent, ToolbarComponent, ...other } = p;
 
   return <div
-    className={cn('h_f bg_alt', open ? 'open' : '', className)}
+    className={cn('h_f bg_fade', open ? 'open' : '', className)}
     {...other}
   >
     <div className='h_f h_spread'>

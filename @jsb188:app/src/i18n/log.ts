@@ -98,7 +98,7 @@ export default {
 			// #### ARABLE
 			SEED: 'Seed purchase',
 			PLANTING: 'Seeding & transplanting',
-			FIELD: 'Field work',
+			FIELD: 'Field',
 			HARVEST: 'Harvest',
 			POST_HARVEST: 'Post-harvest',
 			SALES: 'Sales & purchase',
@@ -107,7 +107,7 @@ export default {
 			// #### ARABLE - FOOD SAFETY
 			HYGIENE: 'Hygiene procedures',
 			SANITATION: 'Sanitation infrastructure',
-			EQUIPMENT: 'Materials, containers, equipments',
+			EQUIPMENT: 'Equipment & materials',
 			BIOSECURITY: 'Environment & biosecurity',
 			EMPLOYEE: 'Employees & operation',
 
@@ -116,7 +116,9 @@ export default {
 			MARKET_OPERATION: 'Operation',
 
 			// #### GROWER_NETWORK
-			SITE_INSPECTION: 'Inspection',
+			WORKER_PRACTICE: 'Personnel practices',
+			PRODUCTION_INPUT: 'Production inputs',
+			OPERATION: 'Operations',
 
 			// #### LIVESTOCK
 			SUPPLY_PURCHASE: 'Supply purchase',
@@ -133,7 +135,7 @@ export default {
 			// #### ARABLE
 			SEED: 'Seed purchase',
 			PLANTING: 'Planting',
-			FIELD: 'Field work',
+			FIELD: 'Field',
 			HARVEST: 'Harvest',
 			POST_HARVEST: 'Post-harvest',
 			SALES: 'Sale',
@@ -142,7 +144,7 @@ export default {
 			// #### ARABLE - FOOD SAFETY
 			HYGIENE: 'Hygiene',
 			SANITATION: 'Sanitation',
-			EQUIPMENT: 'Materials',
+			EQUIPMENT: 'Equipment',
 			BIOSECURITY: 'Biosecurity',
 			EMPLOYEE: 'Employee',
 
@@ -152,7 +154,9 @@ export default {
 			VOID_MARKET_RECEIPT: 'Void receipt',
 
 			// #### GROWER_NETWORK
-			SITE_INSPECTION: 'Inspection',
+			WORKER_PRACTICE: 'Personnel',
+			PRODUCTION_INPUT: 'Inputs',
+			OPERATION: 'Operations',
 
 			// #### LIVESTOCK
 			SUPPLY_PURCHASE: 'Supply purchase',
@@ -258,9 +262,19 @@ export default {
 
 			// #### GROWER NETWORK
 
-			// # Site inspection activities
-			INSPECTION_NOTES: 'Inspection notes',
-      GROWER_NOTES: 'Grower notes',
+			// # Grower network activities
+			SANITATION_PRACTICE: 'Sanitation',
+			PERSONNEL_PRACTICE: 'Personnel practices',
+			EQUIPMENT_MATERIAL: 'Equipment & materials',
+			PACKAGING_STORAGE: 'Packaging & storage',
+			ENVIRONMENT: 'Environment',
+			FIELD_CONDITION: 'Field conditions',
+			ADJACENT_LAND: 'Adjacent land',
+			WATER_INPUT: 'Water inputs',
+			CHEMICAL_INPUT: 'Chemical inputs',
+			FERTILIZER_INPUT: 'Fertilizer inputs',
+			RECORDKEEPING: 'Recordkeeping',
+			FACILITIES: 'Facilities',
 
 			// #### LIVESTOCK
 
@@ -395,9 +409,19 @@ export default {
 
 			// #### GROWER NETWORK
 
-			// # Site inspection activities
-			INSPECTION_NOTES: 'Inspection notes',
-      GROWER_NOTES: 'Grower notes',
+			// # Grower network activities
+			SANITATION_PRACTICE: 'Sanitation',
+			PERSONNEL_PRACTICE: 'Personnel',
+			EQUIPMENT_MATERIAL: 'Equipment',
+			PACKAGING_STORAGE: 'Storage',
+			ENVIRONMENT: 'Environment',
+			FIELD_CONDITION: 'Field',
+			ADJACENT_LAND: 'Adjacent land',
+			WATER_INPUT: 'Water',
+			CHEMICAL_INPUT: 'Chemical',
+			FERTILIZER_INPUT: 'Fertilizer',
+			RECORDKEEPING: 'Records',
+			FACILITIES: 'Facilities',
 
 			// #### LIVESTOCK
 

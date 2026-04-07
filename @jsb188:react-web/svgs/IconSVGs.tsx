@@ -2816,12 +2816,6 @@ export const RestaurantDishesColor = <svg xmlns="http://www.w3.org/2000/svg" fil
 <path fill="#ff808c" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.692 18.751a0.5 0.5 0 0 0 0.615 0c0.832 -0.649 3.063 -2.528 3.063 -3.991 0 -2.074 -2.757 -2.73 -3.37 -0.207 -0.613 -2.523 -3.37 -1.867 -3.37 0.207 0 1.462 2.23 3.34 3.062 3.991Z" strokeWidth="1"/>
 </svg>;
 
-export const RewardStars3 = <svg xmlns="http://www.w3.org/2000/svg" strokeWidth="1.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" fill="none" viewBox="0 0 24 24" className="icon icon-reward-stars-3">
-<path d="M16.625 13.7238c-4.9877 1.6808 -6.63196 3.5523 -7.8478 8.2136 -1.21584 -4.6613 -2.86007 -6.5328 -7.847794 -8.2136C5.91713 12.0431 7.56136 10.1716 8.7772 5.51025c1.21584 4.66135 2.8601 6.53285 7.8478 8.21355Z" />
-<path d="M22.8125 5.94817c-2.8135 0.94428 -3.7409 1.99579 -4.4268 4.61463 -0.6858 -2.61884 -1.6133 -3.67035 -4.4267 -4.61463 2.8134 -0.94428 3.7409 -1.99579 4.4267 -4.61467 0.6859 2.61888 1.6133 3.67039 4.4268 4.61467Z" />
-<path d="M23.1782 19.5622c-2.0824 0.6842 -2.7689 1.4462 -3.2766 3.3439 -0.5076 -1.8977 -1.1941 -2.6597 -3.2766 -3.3439 2.0825 -0.6843 2.769 -1.4462 3.2766 -3.3439 0.5077 1.8977 1.1942 2.6596 3.2766 3.3439Z" />
-</svg>;
-
 // Stroke width must be 1.25; to match the avatar display name letters and be slightly less imposing
 export const RewardStars4 = <svg xmlns="http://www.w3.org/2000/svg" strokeWidth="1.25" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" fill="none" viewBox="0 0 24 24" className="icon icon-reward-stars-4">
 <path d="M19 12c-4.4489 1.4324 -5.9155 3.0274 -7 7 -1.0845 -3.9726 -2.5511 -5.5676 -7 -7 4.4489 -1.4324 5.9155 -3.02741 7 -7 1.0845 3.97259 2.5511 5.5676 7 7Z" />

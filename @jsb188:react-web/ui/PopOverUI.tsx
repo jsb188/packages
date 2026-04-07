@@ -377,14 +377,17 @@ PONavAvatarItem.displayName = 'PONavAvatarItem';
  */
 
 export const PopOverListContainer = forwardRef((
-  p: ReactDivElement,
+  p: ReactDivElement & {
+    shadowClassName?: string;
+  },
   ref: React.ForwardedRef<HTMLDivElement>
 ) => {
-  const { className, ...other } = p;
+  const { className, shadowClassName, ...other } = p;
   return <div
     ref={ref}
     className={cn(
-      'po_list shadow bg of',
+      'po_list bg of',
+      shadowClassName ?? 'shadow',
       className || 'ft_sm',
     )}
     {...other}

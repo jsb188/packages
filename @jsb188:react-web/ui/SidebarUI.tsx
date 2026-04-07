@@ -52,8 +52,12 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
     </>
     : <>
       <div className={SIDEBAR_AVATAR_CLASSNAME}>
-        <span className='w_26 h_26 v_center r_xs ft_normal bg_active'>
-          <span className='shift_down ft_sm'>
+        <span
+          className='w_26 h_26 v_center r_xs ft_normal'
+          // If .bg_fade or .bg_darker_2 colors ever change, you have to change this hex too
+          style={{backgroundColor: '#E9E8E8'}}
+        >
+          <span className='shift_down ft_xs'>
             <EmojiWrapper>
               {emoji || getAvatarLetters(title!) || '🌟'}
             </EmojiWrapper>
@@ -98,7 +102,7 @@ export const SidebarSubtitle = memo((p: {
       'cl_md ft_xs h_item lh_1 r_xs',
       paddingClassName ?? 'px_12 py_5',
       marginClassName ?? 'mx_6',
-      onClick && 'bg_active_hv link'
+      onClick && 'bg_darker_hv_2 link'
     )}
   >
     {iconName && (
@@ -184,7 +188,7 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
   return <SmartLink
     className={cn(
       'mx_6 my_2 py_3 r_xs bl ft_sm cl_df',
-      selected ? 'bg_active disabled' : 'bg_active_hv',
+      selected ? 'bg_darker_2 disabled' : 'bg_darker_hv_2',
       className
     )}
     disabled={currentPath === to}

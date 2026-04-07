@@ -197,7 +197,7 @@ body.p_auth {
 }
 
 .app_sidebar_inside_width {
-  width: calc(var(--sidebar-wt) - 27px);
+  width: calc(var(--sidebar-wt) - 23px);
 }
 
 /* App layout; sidebar mobile responsive design */
