@@ -50,6 +50,7 @@ export default {
 
     feature_short: {
       NORMAL_LOGGING: 'Logs',
+      SITE_INSPECTION: 'Site inspection',
       FOOD_SAFETY: 'Food safety',
       GLOBAL_GAP: 'GLOBALG.A.P.',
       CAL_EVENTS: 'Events',
@@ -60,6 +61,7 @@ export default {
 
 		feature_title: {
       NORMAL_LOGGING: 'Logs',
+      SITE_INSPECTION: 'Site inspection',
       FOOD_SAFETY: 'Food safety',
       GLOBAL_GAP: 'GLOBALG.A.P.',
       CAL_EVENTS: 'Events',

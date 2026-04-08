@@ -9,7 +9,6 @@ import { PRODUCT_FEATURES } from '../constants/product.ts';
 
 import type { AddressObj } from '@jsb188/app/types/other.d.ts';
 import type { StorageData, StorageGQL } from './storage.d.ts';
-import type { LogTypeEnum } from '../types/log.d.ts';
 
 /*
  * Enums
@@ -272,31 +271,4 @@ export interface OrganizationComplianceData extends Omit<OrganizationComplianceO
 	documents: OrganizationComplianceFileData[] | null;
 	createdAt: Date;
 	updatedAt: Date;
-}
-
-/**
- * Workflow instructions
- */
-
-export interface OrganizationInstructionsData {
-	__table: 'organization_instructions';
-	id: bigint | number;
-	organizationId: bigint | number;
-	logType: LogTypeEnum;
-	instructions: string;
-	summary: string;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-export interface OrganizationInstructionsGQL {
-	__deleted?: boolean;
-
-	id: string;
-	organizationId: string;
-	logType: LogTypeEnum;
-	instructions: string;
-	summary: string;
-	createdAt: string; // ISO date string
-	updatedAt: string; // ISO date string
 }

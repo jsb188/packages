@@ -168,6 +168,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
 
   // Org features
   NORMAL_LOGGING: 'notes-tasks',
+  SITE_INSPECTION: 'task-list-search',
   FOOD_SAFETY: 'washing-hand',
   GLOBAL_GAP: 'ui-webpage-check',
   CAL_EVENTS: 'calendar-3',
