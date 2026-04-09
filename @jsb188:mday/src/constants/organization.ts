@@ -20,6 +20,10 @@ export const PARENT_ORG_OPERATIONS = [
 	'GROWER_NETWORK',
 ];
 
+export const AUDITOR_ORG_OPERATIONS = [
+	'GROWER_NETWORK',
+];
+
 // Membership roles
 // Order of roles matter (for visualization)
 // second item is default value
