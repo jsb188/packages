@@ -156,7 +156,7 @@ export const GROWER_NETWORK_INSPECTION_TO_TEXT = {
   // # OPERATION
 	RECORDKEEPING: 'document control, record availability, and accuracy',
 	FACILITIES: 'facilities, physical infrastructure, and maintenance',
-	OPERATION_NOTES: 'general operation notes',
+	OPERATION_NOTE: 'general operation notes',
 };
 
 export const GROWER_NETWORK_ACTIVITIES_TO_TEXT = {
