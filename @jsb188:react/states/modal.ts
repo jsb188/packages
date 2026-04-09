@@ -17,6 +17,7 @@ interface ModalRequestParams {
 export interface ModalProps {
   name: string;
   preset: string | null;
+  modalSessionKey?: string;
   [key: string]: any;
 }
 
@@ -136,6 +137,7 @@ class ModalScreen {
         color,
         ...values,
         ...props,
+        modalSessionKey: getModalScreenSessionKey(),
       };
     }
 
@@ -145,6 +147,14 @@ class ModalScreen {
   close() {
     return null;
   }
+}
+
+/*
+ * Create a unique session key for each fresh modal screen open request.
+ */
+
+function getModalScreenSessionKey() {
+  return `modal-screen-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 /**
@@ -243,7 +253,17 @@ function composeOpenModalScreenFn(
   prevScreen: ModalProps | null
 ) {
   return (data: ModalRequestParams | ModalPropsFn) => {
-    const nextScreenState = typeof data === 'function' ? data(prevScreen) : screenClass.open(data);
+    const isStateUpdater = typeof data === 'function';
+    const nextScreenValue = isStateUpdater ? data(prevScreen) : screenClass.open(data);
+    const nextScreenState = (
+      isStateUpdater &&
+      nextScreenValue &&
+      prevScreen?.modalSessionKey &&
+      !nextScreenValue.modalSessionKey
+    ) ? {
+      ...nextScreenValue,
+      modalSessionKey: prevScreen.modalSessionKey,
+    } : nextScreenValue;
     // console.log(nextScreenState);
 
     if (nextScreenState) {

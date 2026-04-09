@@ -268,8 +268,13 @@
 }
 
 @keyframes keyframes_zoom_in_fade {
-  from { transform: scale3d(0.95, 0.95, 0.95); opacity: 0; }
+  from { transform: scale3d(0.97, 0.97, 0.97); opacity: 0; }
   to { transform: scale3d(1, 1, 1); opacity: 1; }
+}
+
+@keyframes keyframes_zoom_in {
+  from { transform: scale3d(0.97, 0.97, 0.97); }
+  to { transform: scale3d(1, 1, 1); }
 }
 
 .anim_zoom_in.on_mount, .anim_zoom_in.reverse {
@@ -279,9 +284,29 @@
   animation-fill-mode: both;
 }
 
-@keyframes keyframes_zoom_in {
-  from { transform: scale3d(0.9, 0.9, 0.9); }
-  to { transform: scale3d(1, 1, 1); }
+/* Slide in from right */
+
+.anim_slide_from_right .target:not(.anim_inner), .anim_slide_from_right.target {
+  transition-property: transform;
+  transition-timing-function: ease-in-out;
+  transition-duration: 150ms;
+  transform: translate(100%);
+}
+
+.anim_slide_from_right.visible .target:not(.anim_inner), .anim_slide_from_right.visible.target {
+  transform: translate(0%);
+}
+
+@keyframes keyframes_slide_from_right {
+  from { transform: translate(100%); }
+  to { transform: translate(0%); }
+}
+
+.anim_slide_from_right.on_mount, .anim_slide_from_right.reverse {
+  animation-name: keyframes_slide_from_right;
+  animation-duration: 125ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
 }
 
 /* Drop & fade down from slightly elevated position */

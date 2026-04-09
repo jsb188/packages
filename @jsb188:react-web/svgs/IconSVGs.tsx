@@ -2219,6 +2219,12 @@ export const MessageOff = <svg xmlns="http://www.w3.org/2000/svg" className="ico
 <path d="M3 3l18 18" stroke="currentColor" />
 </svg>;
 
+export const MoveRight1 = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-move-right-1" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M16.5 11.99800014H2.5"/>
+<path d="M12.75 8.24800014l3.75 3.75 -3.75 3.75"/>
+<path d="M20.5 2.74800003v18.49999917"/>
+</svg>;
+
 export const MilkCarton = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-milk-carton" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M18 5.25H6L3.158 9.433A1.5 1.5 0 0 0 3 10.1v11.65a1.5 1.5 0 0 0 1.5 1.5h15a1.5 1.5 0 0 0 1.5 -1.5V10.1a1.5 1.5 0 0 0 -0.158 -0.671Z"/>
 <path d="M18 2.25a1.5 1.5 0 0 0 -1.5 -1.5h-9A1.5 1.5 0 0 0 6 2.25v3h12Z"/>

@@ -1,7 +1,6 @@
 
 /* Misc */
 
-.scroll_lock { overscroll-behavior-x: none; } /* Use this on <body> when Modal is used */
 .of { overflow: hidden; }
 .hidden { display: none !important; }
 .bl { display: block !important; }

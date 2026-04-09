@@ -287,6 +287,7 @@ export default {
     end_date: 'End date',
     event: 'Event',
     esc: 'ESC',
+    esc_to_close: 'Press ESC to close',
     settings: 'Settings',
     note: 'Note',
     notes: 'Notes',

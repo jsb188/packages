@@ -6,7 +6,7 @@
 
 html, body {
   height: 100%;
-  overscroll-behavior-y: none;
+  /* overscroll-behavior-y: none; */
 }
 
 /*
@@ -924,17 +924,17 @@ button.pill.bg_active:not(:disabled):active, button.pill.bg_alt:not(:disabled):a
 
 .cl_invis { color: rgba(0,0,0,0); }
 
-.cl_darker_1 { color: rgba(var(--color-darker-rgb),.1); }
-.cl_darker_2, input::placeholder, textarea::placeholder { color: rgba(var(--color-darker-rgb),.2); }
-.cl_darker_3 { color: rgba(var(--color-darker-rgb),.3); }
-.cl_darker_4 { color: rgba(var(--color-darker-rgb),.42); }
-.cl_darker_5 { color: rgba(var(--color-darker-rgb),.64); }
+.cl_darker_1, .cl_darker_hv_1:hover { color: rgba(var(--color-darker-rgb),.1); }
+.cl_darker_2, .cl_darker_hv_2:hover, input::placeholder, textarea::placeholder { color: rgba(var(--color-darker-rgb),.2); }
+.cl_darker_3, .cl_darker_hv_3:hover { color: rgba(var(--color-darker-rgb),.3); }
+.cl_darker_4, .cl_darker_hv_4:hover { color: rgba(var(--color-darker-rgb),.42); }
+.cl_darker_5, .cl_darker_hv_5:hover { color: rgba(var(--color-darker-rgb),.64); }
 
-.cl_lighter_1 { color: rgba(var(--color-lighter-rgb),.1); }
-.cl_lighter_2 { color: rgba(var(--color-lighter-rgb),.2); }
-.cl_lighter_3 { color: rgba(var(--color-lighter-rgb),.3); }
-.cl_lighter_4 { color: rgba(var(--color-lighter-rgb),.5); }
-.cl_lighter_5 { color: rgba(var(--color-lighter-rgb),.64); }
+.cl_lighter_1, .cl_lighter_hv_1:hover { color: rgba(var(--color-lighter-rgb),.1); }
+.cl_lighter_2, .cl_lighter_hv_2:hover { color: rgba(var(--color-lighter-rgb),.2); }
+.cl_lighter_3, .cl_lighter_hv_3:hover { color: rgba(var(--color-lighter-rgb),.3); }
+.cl_lighter_4, .cl_lighter_hv_4:hover { color: rgba(var(--color-lighter-rgb),.5); }
+.cl_lighter_5, .cl_lighter_hv_5:hover { color: rgba(var(--color-lighter-rgb),.64); }
 
 .cl_lt { color: var(--color-text-light); }
 .cl_md { color: var(--color-text-medium); }
@@ -1148,17 +1148,23 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 
 .trans { transition: all .25s ease-in-out; }
 .trans_link, button:not(:disabled), .link[role="button"]:not(.disabled), a:not(.disabled) { transition: color .125s ease-in-out, background-color .125s ease-in-out, border-color .125s ease-in-out, opacity .125s ease-in-out; }
-.trans_transform { transition: transform .1s ease-in-out; }
 .trans_transform_opacity { transition: transform .1s ease-in-out, opacity .1s ease-in-out; }
 .trans_none, .trans_none *, .trans_none_inner * { transition: none !important; }
 
 .link_float {
   transition: transform .15s ease, box-shadow .15s ease !important;
 }
+
 .link_float:hover,
 .link_float:active {
   transform: translateY(-8px) !important;
   box-shadow: 0 7px 21px rgba(0, 0, 0, 0.15);
+}
+
+.trans_transform {
+  transition-property: transform;
+  transition-duration: 0.25s;
+  transition-timing-function: ease-in-out;
 }
 
 .trans_op {
@@ -1193,6 +1199,12 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .delay_3 { animation-delay: 1s; }
 .delay_4 { animation-delay: 2s; }
 .delay_5 { animation-delay: 4s; }
+
+/* Scroll related utilities */
+
+.scr_lock { overscroll-behavior-x: none; } /* Use this on <body> when Modal is used */
+.scr_over_bounce { overscroll-behavior-y: auto; }
+.scr_over_none { overscroll-behavior: none; }
 
 /* Y-axis scroller */
 

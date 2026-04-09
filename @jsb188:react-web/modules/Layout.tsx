@@ -33,7 +33,8 @@ export function AppLayout(p: ReactDivElement & {
   const { routeName, children, open, className, notReadyOrError, SidebarComponent, ToolbarComponent, ...other } = p;
 
   return <div
-    className={cn('h_f bg_fade', open ? 'open' : '', className)}
+    // .scr_over_none here allows master layout to handle scroll locking while allowing inner scroll areas to have bounce effect
+    className={cn('h_f bg_fade scr_over_none y_scr', open ? 'open' : '', className)}
     {...other}
   >
     <div className='h_f h_spread'>
@@ -154,15 +155,15 @@ interface FullPageLayoutProps {
 
 export function FullPageLayout(p: FullPageLayoutProps) {
   const { children, hideFooter, className } = p;
-  return (
-    <main>
-      <div className={cn('v_center min_h_100vh', className)}>
-        {children}
-      </div>
 
-      {hideFooter ? null : <AppFooter />}
-    </main>
-  );
+  // This allows scroll behavior to lock
+  return <main className='of scr_over_none'>
+    <div className={cn('v_center min_h_100vh', className)}>
+      {children}
+    </div>
+
+    {hideFooter ? null : <AppFooter />}
+  </main>;
 }
 
 /**
@@ -197,6 +198,7 @@ interface ModalCoverProps {
   domId?: string;
   visible: 0 | .5 | 1 | 2;
   className?: string;
+  animateFromSide?: boolean;
   animationName?: 'anim_drop_center' | 'anim_zoom_in' | 'anim_zoom_in_fade';
   onCloseModal?: () => void;
   onMouseDown?: (e: React.MouseEvent) => void;
@@ -211,6 +213,7 @@ export function ModalCover(p: ModalCoverProps) {
     domId,
     visible,
     className,
+    animateFromSide,
     animationName,
     onCloseModal,
     closePopOver,
@@ -226,6 +229,9 @@ export function ModalCover(p: ModalCoverProps) {
   if (animationName) {
     visibleCn = 'visible';
     notVisibleCn = '';
+  } else if (animateFromSide) {
+    visibleCn = 'visible';
+    notVisibleCn = '';
   } else {
     visibleCn = 'visible op_100';
     notVisibleCn = 'op_0';
@@ -237,7 +243,7 @@ export function ModalCover(p: ModalCoverProps) {
       className={cn(
         // 'fixed_full',
         // visible === 2 ? 'visible' : '',
-        'fixed_full gr_modal trans_op',
+        animateFromSide ? 'fixed_r trans_transform' : 'fixed_full gr_modal trans_op',
         visible === 2 ? visibleCn : notVisibleCn,
         animationName ? `target ${animationName}` : '',
         onCloseModal ? 'cs_back' : '',
@@ -261,11 +267,12 @@ export function ModalCover(p: ModalCoverProps) {
 
 export function ModalCoverAnimation(p: ModalCoverProps & {
   backgroundClassName?: string;
+  sizeClassName?: string;
   containerClassName?: string;
   containerAnimationName?: string;
   closePopOver?: () => void;
 }) {
-  const { children, backgroundClassName, containerAnimationName, containerClassName, ...other } = p;
+  const { children, sizeClassName, backgroundClassName, containerAnimationName, containerClassName, ...other } = p;
   const { visible } = p;
 
   return <ModalCover {...other}>
@@ -275,7 +282,8 @@ export function ModalCoverAnimation(p: ModalCoverProps & {
       )}
       <div
         className={cn(
-          'w_f h_f target spd_1 anim_inner rel z2',
+          'target spd_1 anim_inner rel z2',
+          sizeClassName ?? 'w_f h_f',
           containerAnimationName || 'anim_move_up_center',
           visible === 2 ? 'visible' : visible === .5 ? 'reverse' : '',
           containerClassName ?? 'v_center'
@@ -327,6 +335,7 @@ export function FixedAnimationLayout(p: ModalCoverProps) {
 interface ModalWrapperProps {
   domId?: string;
   className?: string;
+  wrapperClassName?: string;
   containerClassName?: string;
   outlineColor?: 'error' | 'default';
   size: ContainerSizeEnum | string; // allow custom sizes like max_w_#### etc
@@ -339,7 +348,7 @@ interface ModalWrapperProps {
 }
 
 export function ModalWrapper(p: ModalWrapperProps) {
-  const { ToolbarComponent, domId, className, containerClassName, outlineColor, children, closePopOver, onCloseModal, addScrollArea, ...other } = p;
+  const { ToolbarComponent, domId, className, wrapperClassName, containerClassName, outlineColor, children, closePopOver, onCloseModal, addScrollArea, ...other } = p;
   const size = p.size || 'df';
   const closeText = p.closeText || i18n.t('form.esc');
 
@@ -351,7 +360,8 @@ export function ModalWrapper(p: ModalWrapperProps) {
         closePopOver?.();
       }}
       className={cn(
-        `mw modal_main_content of alert_shadow_${outlineColor || 'default'}`,
+        `modal_main_content of alert_shadow_${outlineColor || 'default'}`,
+        wrapperClassName ?? 'mw',
         size,
         className
       )}

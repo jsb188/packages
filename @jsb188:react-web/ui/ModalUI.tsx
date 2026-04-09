@@ -8,6 +8,7 @@ import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
 import Markdown, { EmojiWrapper, TextWithLinks } from './Markdown';
 import { ShortcutKey } from './OtherUI';
+import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
 
 /**
  * Types
@@ -557,54 +558,60 @@ export function ModalToolbar(p: {
 }
 
 /**
- * Modal toolbar area with title
+ * Modal toolbar navigation
  */
 
-export function ModalToolbarTitle(p: {
-  didScroll: boolean;
-  onCloseModal?: () => void;
+export function ModalToolbarNav(p: {
+  onCloseModal: () => void;
   className?: string;
-  hideSeparator?: boolean;
+  didScroll?: boolean;
   title?: string;
   titleExtra?: string;
 }) {
-  const { didScroll, className, hideSeparator, title, titleExtra, onCloseModal } = p;
+  const { className, title, titleExtra, onCloseModal, didScroll } = p;
+  const btnClassName = 'link av_xs r_xs v_center bg_darker_hv_2 cl_darker_2 cl_darker_hv_3';
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
   return <div
     className={cn(
-      'w_f h_item rt_smw no_shrink px_df h_toolbar abs_t z4',
-      'trans_transform_opacity spd_3 gr_modal_content',
-      !hideSeparator && 'shadow_soft',
+      'w_f h_spread no_shrink px_6 h_toolbar',
+      'trans_transform_opacity spd_3 bd_b_1',
+      didScroll ? 'bd_lt' : 'bd_invis',
       className
     )}
-    style={{
-      transform: didScroll ? 'translateY(0)' : 'translateY(-100px)',
-      opacity: didScroll ? 1 : 0,
-    }}
   >
-    {title &&
-    <div className='shift_down'>
-      <span>
-        {title}
-      </span>
-      {titleExtra && <span className='cl_darker_2 ml_sm'>
-        {titleExtra}
-      </span>}
-    </div>}
+    <div className='h_item gap_4'>
+      <TooltipButton
+        position='bottom'
+        message={i18n.t('form.esc_to_close')}
+        className={btnClassName}
+        onClick={onCloseModal}
+        offsetY={6}
+      >
+        <Icon name='move-right-1' />
+      </TooltipButton>
 
-    <div className='abs_corner h_toolbar h_right'>
-      {!onCloseModal ? null : (
-        <button
-          className='link av_xs r bg_darker_hv_2 v_center mr_xs'
-          onClick={onCloseModal}
-        >
-          <Icon name='x' />
-        </button>
-      )}
+      {title &&
+      <div className={cn('shift_down ml_4 trans_op spd_2 unsel', didScroll ? 'op_100' : 'op_0')}>
+        <span>
+          {title}
+        </span>
+        {titleExtra && <span className='cl_darker_2 ml_sm'>
+          {titleExtra}
+        </span>}
+      </div>}
     </div>
+
+    {/* <div className='h_toolbar h_center'>
+      <button
+        className={btnClassName}
+        onClick={() => console.log('??')}
+      >
+        <Icon name='dots' />
+      </button>
+    </div> */}
   </div>;
 }
 
@@ -623,7 +630,7 @@ export function ModalTitle(p: {
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
-  return <div className={cn('w_f rt_smw no_shrink rel px_50', title ? 'pt_md pb_sm' : 'h_toolbar', className)}>
+  return <div className={cn('w_f rt_smw no_shrink rel px_45', title ? 'pt_md pb_sm' : 'h_toolbar', className)}>
     {title &&
     <h4 className='ft_normal'>
       {title}
@@ -653,7 +660,7 @@ export const ModalTabsNav = memo((p: {
   const { switchCase, tabs, setSwitchCase } = p;
 
   return (
-    <nav className='mw_tabs_nav f_stretch no_shrink px_50 bd_b_1 bd_lt sticky_top z2'>
+    <nav className='mw_tabs_nav f_stretch no_shrink px_45 bd_b_1 bd_lt sticky_top z2'>
       <div className='-mx_xs gap_xs h_item h_45'>
         {tabs.map((tab) => {
           if (tab.hidden) {
@@ -693,8 +700,8 @@ export const ModalBlock = memo((p: {
   const { className, title, titleClassName, children } = p;
 
   // return <div className={cn('r_df px_lg pt_df pb_lg bg_alt', className)}>
-  // return <div className={cn('r_df mx_df my_df px_50 py_md bg', className)}>
-  return <div className={cn('r_df px_50 pt_md pb_df', className)}>
+  // return <div className={cn('r_df mx_df my_df px_45 py_md bg', className)}>
+  return <div className={cn('r_df px_45 pt_md pb_df', className)}>
     <h4 className={cn('ft_normal ft_tn pt_n', titleClassName)}>
       {title}
     </h4>
