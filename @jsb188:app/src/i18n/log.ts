@@ -246,8 +246,9 @@ export default {
 			EMPLOYEE_TRAINING: 'Employee training',
 			SICK_EMPLOYEE: 'Sick employee',
 			EMPLOYEE_INJURED: 'Injured employee',
-			EMPLOYEE_NOTES: 'Notes on employees',
-			OPERATION_NOTES: 'General operation notes',
+			EMPLOYEE_NOTES: 'Notes on employees', // "S" is deprecated, but need database migration
+			OPERATION_NOTES: 'General operation notes', // "S" is deprecated, but need database migration
+			OPERATION_NOTE: 'General operation notes',
 
 			// #### FARMERS MARKET
 
@@ -274,7 +275,7 @@ export default {
 			CHEMICAL_INPUT: 'Chemical inputs',
 			FERTILIZER_INPUT: 'Fertilizer inputs',
 			RECORDKEEPING: 'Recordkeeping',
-			FACILITIES: 'Facilities',
+			FACILITIES: 'Infrastructure (physical)',
 
 			// #### LIVESTOCK
 
@@ -421,7 +422,7 @@ export default {
 			CHEMICAL_INPUT: 'Chemical',
 			FERTILIZER_INPUT: 'Fertilizer',
 			RECORDKEEPING: 'Records',
-			FACILITIES: 'Facilities',
+			FACILITIES: 'Infrastructure',
 
 			// #### LIVESTOCK
 

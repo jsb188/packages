@@ -1,6 +1,7 @@
+import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
 import type { BuildSingleTextLine } from '@jsb188/app/utils/string.ts';
 import type { LogActionStatusEnum, LogTypeEnum } from '../types/log.d.ts';
-import type { OrganizationFeatureEnum } from '../types/organization.d.ts';
+import type { OrganizationData, OrganizationFeatureEnum } from '../types/organization.d.ts';
 
 /**
  * Workflow prompt instructions
@@ -44,6 +45,9 @@ export interface WorkflowData {
   scheduleInterval: number;
   active: boolean;
   values: Partial<{
+    model: 'advanced' | 'standard' | 'basic' | 'lesser' | 'smallest';
+    effort: 'minimal' | 'low' | 'medium' | 'high';
+    verbosity: 'low' | 'medium' | 'high';
     steps: WorkflowStep[];
     config: Record<string, string | number | boolean | null> & {
       endTime: string; // HHMM format
