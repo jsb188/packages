@@ -1,6 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
+import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
 import { forwardRef, Fragment, memo } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
@@ -8,7 +9,6 @@ import { FullWidthButton } from './Button';
 import { ActivityDots, BigLoading } from './Loading';
 import Markdown, { EmojiWrapper, TextWithLinks } from './Markdown';
 import { ShortcutKey } from './OtherUI';
-import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
 
 /**
  * Types
@@ -504,46 +504,64 @@ export interface ModalToolbarBreadcrumb {
   variables?: any;
 }
 
+interface ModalToolbarBreadcrumbsProps {
+  breadcrumbs?: ModalToolbarBreadcrumb[];
+  className?: string;
+}
+
+/*
+ * Modal toolbar breadcrumb content shared across toolbar variants
+ */
+
+function ModalToolbarBreadcrumbs(p: ModalToolbarBreadcrumbsProps) {
+  const { breadcrumbs, className } = p;
+
+  return <div className={className}>
+    {breadcrumbs?.map((item, i) => {
+      const { onClick, iconName, text } = item;
+
+      return <Fragment key={i}>
+        <span
+          className={cn('h_item', i ? 'cl_darker_3' : 'ft_medium', onClick ? 'link' : '')}
+          role={onClick ? 'button' : undefined}
+          onClick={onClick}
+          // do modal change with variables here
+        >
+          {!iconName ? null : (
+            <span className='mr_8 shift_up_2 ft_lg'>
+              <Icon name={iconName} tryColor />
+            </span>
+          )}
+          {text}
+        </span>
+
+        {i < (breadcrumbs.length - 1) && (
+          <span className='mx_xs cl_darker_2'>/</span>
+        )}
+      </Fragment>;
+    })}
+  </div>;
+}
+
 export function ModalToolbar(p: {
   className?: string;
   hideSeparator?: boolean;
+  heightClassName?: string;
   paddingClassName?: string;
-  title?: string;
   breadcrumbs?: ModalToolbarBreadcrumb[];
   onCloseModal?: () => void;
 }) {
-  const { className, hideSeparator, paddingClassName, title, breadcrumbs, onCloseModal } = p;
+  const { className, hideSeparator, heightClassName, paddingClassName, breadcrumbs, onCloseModal } = p;
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
   return <div className={cn('of w_f rt_smw no_shrink', !hideSeparator && 'bd_b_1 bd_lt', className)}>
-    <nav className='h_toolbar h_spread shadow_bg shift_down'>
-      <div className={cn('ft_medium h_item', paddingClassName ?? 'px_df')}>
-        {!breadcrumbs ? null : breadcrumbs.map((item, i) => {
-          const { onClick, iconName, text } = item;
-
-          return <Fragment key={i}>
-            <span
-              className={cn('h_item', onClick ? 'link' : '')}
-              role={onClick ? 'button' : undefined}
-              onClick={onClick}
-              // do modal change with variables here
-            >
-              {!iconName ? null : (
-                <span className='mr_8 shift_up_2 ft_lg'>
-                  <Icon name={iconName} tryColor />
-                </span>
-              )}
-              {text}
-            </span>
-
-            {i < (breadcrumbs.length - 1) && (
-              <span className='mx_xs cl_darker_2'>/</span>
-            )}
-          </Fragment>;
-        })}
-      </div>
+    <nav className={cn('h_spread shadow_bg shift_down', heightClassName ?? 'h_toolbar')}>
+      <ModalToolbarBreadcrumbs
+        breadcrumbs={breadcrumbs}
+        className={cn('h_item', paddingClassName ?? 'px_df')}
+      />
 
       {!onCloseModal ? null : (
         <button
@@ -558,6 +576,46 @@ export function ModalToolbar(p: {
 }
 
 /**
+ * Modal toolbar title
+ */
+
+export function ModalToolbarTitle(p: {
+  onCloseModal: () => void;
+  className?: string;
+  didScroll?: boolean;
+  hideSeparator?: boolean;
+  breadcrumbs?: ModalToolbarBreadcrumb[];
+}) {
+  const { className, breadcrumbs, onCloseModal, didScroll, hideSeparator } = p;
+  const btnClassName = 'link av_xs r v_center bg_darker_hv_2';
+
+  return <div
+    className={cn(
+      'w_f h_spread no_shrink px_10 h_toolbar',
+      'trans_transform_opacity spd_3',
+      hideSeparator || !didScroll ? '' : 'shadow_soft',
+      className
+    )}
+  >
+    <ModalToolbarBreadcrumbs
+      breadcrumbs={breadcrumbs}
+      className={cn('h_item shift_down ml_4 trans_op spd_2 unsel', didScroll ? 'op_100' : 'op_0')}
+    />
+
+
+    <TooltipButton
+      position='bottom'
+      message={i18n.t('form.esc_to_close')}
+      className={btnClassName}
+      onClick={onCloseModal}
+      offsetY={6}
+    >
+      <Icon name='x' />
+    </TooltipButton>
+  </div>;
+}
+
+/**
  * Modal toolbar navigation
  */
 
@@ -565,20 +623,18 @@ export function ModalToolbarNav(p: {
   onCloseModal: () => void;
   className?: string;
   didScroll?: boolean;
+  hideSeparator?: boolean;
   title?: string;
   titleExtra?: string;
 }) {
-  const { className, title, titleExtra, onCloseModal, didScroll } = p;
-  const btnClassName = 'link av_xs r_xs v_center bg_darker_hv_2 cl_darker_2 cl_darker_hv_3';
+  const { className, title, titleExtra, onCloseModal, didScroll, hideSeparator } = p;
+  const btnClassName = 'link av_xs r v_center bg_darker_hv_2 cl_darker_3 cl_df_hv';
 
-  // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
-
-  // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
   return <div
     className={cn(
       'w_f h_spread no_shrink px_6 h_toolbar',
-      'trans_transform_opacity spd_3 bd_b_1',
-      didScroll ? 'bd_lt' : 'bd_invis',
+      'trans_transform_opacity spd_3',
+      hideSeparator || !didScroll ? '' : 'shadow_soft',
       className
     )}
   >
@@ -595,10 +651,10 @@ export function ModalToolbarNav(p: {
 
       {title &&
       <div className={cn('shift_down ml_4 trans_op spd_2 unsel', didScroll ? 'op_100' : 'op_0')}>
-        <span>
+        <span className='ft_medium'>
           {title}
         </span>
-        {titleExtra && <span className='cl_darker_2 ml_sm'>
+        {titleExtra && <span className='cl_darker_3 ml_sm'>
           {titleExtra}
         </span>}
       </div>}
@@ -621,16 +677,17 @@ export function ModalToolbarNav(p: {
 
 export function ModalTitle(p: {
   className?: string;
+  titleClassName?: string;
   title?: string;
   titleExtra?: string;
   children?: React.ReactNode;
 }) {
-  const { className, title, titleExtra, children } = p;
+  const { className, titleClassName, title, titleExtra, children } = p;
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
   // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
-  return <div className={cn('w_f rt_smw no_shrink rel px_45', title ? 'pt_md pb_sm' : 'h_toolbar', className)}>
+  return <div className={cn('w_f rt_smw no_shrink rel px_45', titleClassName ?? (title ? 'pt_md pb_sm' : 'h_toolbar'), className)}>
     {title &&
     <h4 className='ft_normal'>
       {title}
@@ -650,6 +707,8 @@ export function ModalTitle(p: {
 export const ModalTabsNav = memo((p: {
   switchCase: string;
   setSwitchCase: (value: string) => void;
+  paddingClassName?: string;
+  sticky?: boolean;
   tabs: {
     value: string;
     text: string;
@@ -657,32 +716,30 @@ export const ModalTabsNav = memo((p: {
     disabled?: boolean;
   }[];
 }) => {
-  const { switchCase, tabs, setSwitchCase } = p;
+  const { switchCase, tabs, paddingClassName, setSwitchCase, sticky } = p;
 
-  return (
-    <nav className='mw_tabs_nav f_stretch no_shrink px_45 bd_b_1 bd_lt sticky_top z2'>
-      <div className='-mx_xs gap_xs h_item h_45'>
-        {tabs.map((tab) => {
-          if (tab.hidden) {
-            return null;
-          }
+  return <nav className={cn('mw_tabs_nav f_stretch no_shrink bd_b_1 bd_lt', sticky !== false ? 'sticky_top z2' : '', paddingClassName ?? 'px_45')}>
+    <div className='-mx_xs gap_xs h_item h_45'>
+      {tabs.map((tab) => {
+        if (tab.hidden) {
+          return null;
+        }
 
-          const selected = switchCase === tab.value;
-          return <button
-            key={tab.value}
-            disabled={tab.disabled}
-            className={cn('tab_item px_xs v_item f_stretch link', selected ? '' : 'cl_md cl_md_hv')}
-            onClick={() => setSwitchCase(tab.value)}
-          >
-            <span className='f h_item pt_3'>
-              {tab.text}
-            </span>
-            <div className={cn('h_3 -mb_1 f_stretch indicator trans_color spd_1', selected ? 'bg_primary' : '')} />
-          </button>;
-        })}
-      </div>
-    </nav>
-  );
+        const selected = switchCase === tab.value;
+        return <button
+          key={tab.value}
+          disabled={tab.disabled}
+          className={cn('tab_item px_xs v_item f_stretch link', selected ? '' : 'cl_md cl_md_hv')}
+          onClick={() => setSwitchCase(tab.value)}
+        >
+          <span className='f h_item pt_3'>
+            {tab.text}
+          </span>
+          <div className={cn('h_3 -mb_1 f_stretch indicator trans_color spd_1', selected ? 'bg_primary' : '')} />
+        </button>;
+      })}
+    </div>
+  </nav>;
 });
 
 ModalTabsNav.displayName = 'ModalTabsNav';

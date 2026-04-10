@@ -33,8 +33,7 @@ export function AppLayout(p: ReactDivElement & {
   const { routeName, children, open, className, notReadyOrError, SidebarComponent, ToolbarComponent, ...other } = p;
 
   return <div
-    // .scr_over_none here allows master layout to handle scroll locking while allowing inner scroll areas to have bounce effect
-    className={cn('h_f bg_fade scr_over_none y_scr', open ? 'open' : '', className)}
+    className={cn('h_f bg_fade', open ? 'open' : '', className)}
     {...other}
   >
     <div className='h_f h_spread'>

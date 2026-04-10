@@ -158,8 +158,9 @@ export default {
 		},
 
 		children: {
-			GROWER_NETWORK: 'Farms',
+			GROWER_NETWORK: 'Farms/Ranches',
 			FARMERS_MARKET: 'Vendors',
+      default: 'Organizations',
 		},
 
 		view: {
