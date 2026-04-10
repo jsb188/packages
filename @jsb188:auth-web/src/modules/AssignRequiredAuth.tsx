@@ -212,7 +212,7 @@ export function AssignRequiredAuth(p: {
     }
   };
 
-  return <FullPageLayout className='pattern_dots_1 active_bf bg_fade'>
+  return <FullPageLayout className='pattern_dot active_bf bg_fade'>
     <AuthFormContainer
       title={i18n.t('auth.one_last_step_')}
       className='bd_5 bd_main'

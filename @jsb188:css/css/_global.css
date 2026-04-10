@@ -1284,24 +1284,25 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 
 /* Patterns */
 
-.pattern_dots_1:before,
-.pattern_dots_2:before {
+.pattern_speckle:before {
+  content: ' ';
+  position: absolute; z-index: 0;
+  inset: 0;
+  mask-image: url('https://assets.chiefhappiness.co/marketday/static/speckle.svg');
+  /* mask-image: url('/svg/dot-compact.svg'); */
+  mask-repeat: repeat;
+  mask-size: 7px 7px;
+  mask-position: center;
+}
+
+.pattern_dot:before {
   content: ' ';
   position: absolute; z-index: 0;
   inset: 0;
   mask-image: url('https://assets.chiefhappiness.co/marketday/static/dot.svg');
-  /* mask-image: url('/svg/dot-stagger.svg'); */
   mask-repeat: repeat;
-  mask-size: auto;
-  mask-position: center;
-}
-
-.pattern_dots_1:before {
   mask-size: 20px 20px;
-}
-
-.pattern_dots_2:before {
-  mask-size: 42px 42px;
+  mask-position: center;
 }
 
 .pattern_stripes:before {

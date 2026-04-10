@@ -555,8 +555,7 @@ export function ModalToolbar(p: {
 
   // NOTE: I haven't tested this design with breadcrumbs with links/onClick() yet
 
-  // return <div className='of w_f rt_smw bd_b_1 bd_lt rel pattern_texture medium_bf'>
-  return <div className={cn('of w_f rt_smw no_shrink', !hideSeparator && 'bd_b_1 bd_lt', className)}>
+  return <div className={cn('of w_f no_shrink', !hideSeparator && 'bd_b_1 bd_lt', className)}>
     <nav className={cn('h_spread shadow_bg shift_down', heightClassName ?? 'h_toolbar')}>
       <ModalToolbarBreadcrumbs
         breadcrumbs={breadcrumbs}

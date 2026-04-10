@@ -1,7 +1,7 @@
 import { clearAppCache, fetchLightModeSetting, isSystemDarkMode, saveAuthTokenToPlatform } from '@jsb188/app/platform.ts';
 import type { AccountData, AccountSettings, AuthenticationData, LightModeEnum } from '@jsb188/app/types/auth.d.ts';
 import { setAuthToken } from '@jsb188/app/utils/api.ts';
-import { buildSingleText, getDisplayName, guessFirstName } from '@jsb188/app/utils/string.ts';
+import { getDisplayName } from '@jsb188/app/utils/string.ts';
 import { createContext, useContext } from 'react';
 
 /**

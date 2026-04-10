@@ -15,6 +15,9 @@ import {
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useCallback } from 'react';
 
+type SetPopOverAtomStateValue = PopOverProps | null | ((prev: PopOverProps | null) => PopOverProps | null);
+type SetPopOverAtomFn = (value: SetPopOverAtomStateValue) => void;
+
 /**
  * Pop over class
  */
@@ -54,9 +57,12 @@ class PopOver {
     if (
       !prev || !prev.animationClassName ||
       !this.lastOpenId
-      // || prev.id !== this.lastOpenId
     ) {
       return null;
+    }
+
+    if ((prev.id || prev.name) !== this.lastOpenId) {
+      return prev;
     }
 
     let nextAnimClassName = prev.animationClassName || '';
@@ -154,16 +160,18 @@ function composeOpenPopOverFn( setPopOver: (value: PopOverProps | null) => void)
 }
 
 function composeClosePopOverFn(
-  setPopOver: (value: PopOverProps | null) => void,
-  setPopOverIsHover: (update: boolean | ((prev: boolean) => boolean)) => void,
-  popOver: PopOverProps | null
+  setPopOver: SetPopOverAtomFn,
+  setPopOverIsHover: (update: boolean | ((prev: boolean) => boolean)) => void
 ): ClosePopOverFn {
   return (dismissIfName?: string) => {
-    if (!popOver || (typeof dismissIfName === 'string' && popOver.name !== dismissIfName)) {
-      return;
-    }
     setPopOverIsHover(false);
-    setPopOver(popOverClass.close(popOver));
+    setPopOver((prev: PopOverProps | null) => {
+      if (!prev || (typeof dismissIfName === 'string' && prev.name !== dismissIfName)) {
+        return prev;
+      }
+
+      return popOverClass.close(prev);
+    });
   };
 }
 
@@ -202,7 +210,7 @@ export function usePopOver() {
   const setPopOverIsHover = useSetAtom(popOverIsHoverState);
 
   const openPopOver = useCallback( composeOpenPopOverFn(setPopOver), []);
-  const closePopOver = useCallback( composeClosePopOverFn(setPopOver, setPopOverIsHover, popOver), [popOver]);
+  const closePopOver = useCallback( composeClosePopOverFn(setPopOver, setPopOverIsHover), []);
   const updatePopOver = useCallback( composeUpdatePopOverFn(setPopOver), []);
   const setPopOverState = useCallback( composeSetPopOverState(setPopOver), []);
 
@@ -223,7 +231,7 @@ export function usePopOverState() {
   const [popOver, setPopOver] = useAtom<PopOverProps | null>(popOverClass.state);
   const setPopOverIsHover = useSetAtom(popOverIsHoverState);
   const updatePopOver = useCallback( composeUpdatePopOverFn(setPopOver), []);
-  const closePopOver = useCallback( composeClosePopOverFn(setPopOver, setPopOverIsHover, popOver), [popOver]);
+  const closePopOver = useCallback( composeClosePopOverFn(setPopOver, setPopOverIsHover), []);
 
   return {
     popOver: popOver?.globalState,
@@ -237,10 +245,10 @@ export function usePopOverState() {
  */
 
 export function useClosePopOver(): ClosePopOverFn {
-  const [popOver, setPopOver] = useAtom<PopOverProps | null>(popOverClass.state);
+  const [, setPopOver] = useAtom<PopOverProps | null>(popOverClass.state);
   const setPopOverIsHover = useSetAtom(popOverIsHoverState);
 
-  return useCallback( composeClosePopOverFn(setPopOver, setPopOverIsHover, popOver), [popOver]);
+  return useCallback( composeClosePopOverFn(setPopOver, setPopOverIsHover), []);
 }
 
 /**
