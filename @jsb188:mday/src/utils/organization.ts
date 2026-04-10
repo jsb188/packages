@@ -21,11 +21,12 @@ type OperationPermissionTuple = readonly [PermissionCheckFor, ACLPermissionEnum,
 type OperationPermissionsMap = Record<string, OperationPermissionTuple>;
 
 export const OPERATION_PERMISSIONS = {
-	org_sites_update: ['logs', 'WRITE', 'You do not have permission to update organization sites.'],
-  org_management: ['orgManagement', 'WRITE', 'You do not have permission to manage this organization\'s data.'],
-  org_directory: ['logs', 'WRITE', 'You do not have permission to manage this organization\'s directory book.'],
-  general_write: ['viewData', 'WRITE', 'You do not have permission to write data in this organization.'],
   general_read: ['viewData', 'READ', 'You do not have permission to view this organization\'s data.'],
+  general_write: ['viewData', 'WRITE', 'You do not have permission to write data in this organization.'],
+  logs_write: ['logs', 'WRITE', 'You do not have permission to write logs in this organization.'],
+  org_directory: ['logs', 'WRITE', 'You do not have permission to manage this organization\'s directory book.'],
+  org_management: ['orgManagement', 'WRITE', 'You do not have permission to manage this organization\'s data.'],
+	org_sites_update: ['logs', 'WRITE', 'You do not have permission to update organization sites.'],
 } as const satisfies OperationPermissionsMap;
 
 export type OperationName = keyof typeof OPERATION_PERMISSIONS;
