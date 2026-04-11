@@ -1,5 +1,4 @@
 import { isFutureCalDate, isValidCalDate } from '@jsb188/app/utils/datetime.ts';
-import { isValidTimeZone } from '@jsb188/app/utils/timeZone.ts';
 import { z } from 'zod';
 import { LOG_ANY_ACTIVITY_ENUMS, LOG_ANY_TYPE_ENUMS, LOG_SORT_ENUMS, LOG_TYPES_BY_OPERATION } from '../constants/log.ts';
 import type { FilterLogEntriesArgs, LogTypeEnum } from '../types/log.d.ts';
@@ -24,9 +23,6 @@ export const FilterLogEntriesSchema = z.object({
 		.nullable(),
 	endDate: z.string()
 		.refine((ed) => isValidCalDate(ed), { message: 'END_DATE_INVALID' })
-		.nullable(),
-	timeZone: z.string()
-		.refine((tz) => isValidTimeZone(tz), { message: 'INVALID_TIMEZONE' })
 		.nullable(),
 	query: z.string()
 		.nullable(),

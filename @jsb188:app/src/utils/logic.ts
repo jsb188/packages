@@ -1,7 +1,6 @@
 import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d.ts';
 import { isFutureCalDate, isValidCalDate } from './datetime.ts';
 import { sortObjectByKeys, stringifyJSON } from './object.ts';
-import { indexToTimeZone, isValidTimeZone } from './timeZone.ts';
 
 /**
  * Types
@@ -149,10 +148,6 @@ function parsedFilterIsValid(filter: Omit<Partial<FilterLogEntriesArgs>, 'operat
 		return false;
 	}
 
-	if (filter.timeZone && !isValidTimeZone(filter.timeZone)) {
-		return false;
-	}
-
 	return true;
 }
 
@@ -181,7 +176,6 @@ export function getFiltersFromURL(
 		activities: getIndexedValues(urlParams.get('a'), activities) as FilterLogEntriesArgs['activities'],
 		startDate,
 		endDate,
-		timeZone: indexToTimeZone(urlParams.get('z')),
 		query: urlParams.get('q') || '',
 	};
 

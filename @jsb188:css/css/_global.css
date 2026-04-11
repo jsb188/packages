@@ -313,7 +313,7 @@ p:last-child {
   max-width: 100%;
 }
 
-.nowrap {
+.no_wrap {
   white-space: nowrap;
 }
 

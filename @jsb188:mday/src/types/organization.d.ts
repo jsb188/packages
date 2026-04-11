@@ -76,7 +76,6 @@ export interface OrganizationData {
 	name: string;
 	commodities: string[] | null;
 	operation: OrganizationOperationEnum;
-	dailyDigestTime: string | null;
 	features: OrganizationFeatureEnum[];
 	settings?: OrganizationSettingsObj | null;
 	address?:

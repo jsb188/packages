@@ -28,7 +28,7 @@ export const TopNavItem = memo((p: TopNavItemProps) => {
     to={to}
     target={target}
     className={cn(
-      'h_40 h_item px_sm lh_1 nowrap link ic_md',
+      'h_40 h_item px_sm lh_1 no_wrap link ic_md',
       designClassName || 'cl_lighter_5 bg_contrast_hv cl_solid_hv',
       className
     )}

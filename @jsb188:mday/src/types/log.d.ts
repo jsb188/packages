@@ -368,6 +368,5 @@ export interface FilterLogEntriesArgs {
   activities?: LogActivityEnum[] | null;
   startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
   endDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)
-  timeZone?: string | null; // Timezone string, e.g., 'America/New_York'
   query?: string | null;
 }

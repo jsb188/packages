@@ -20,7 +20,6 @@ export function useLogEntries(
   variables: PaginationArgs & {
     organizationId?: string | null;
     accountId?: string;
-    timeZone: string | null;
     filter: FilterLogEntriesArgs;
   },
   params: UseQueryParams = {}

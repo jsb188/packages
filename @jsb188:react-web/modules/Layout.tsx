@@ -336,7 +336,7 @@ interface ModalWrapperProps {
   className?: string;
   wrapperClassName?: string;
   containerClassName?: string;
-  outlineColor?: 'error' | 'default';
+  shadowOutlineStyle?: 'error' | 'default' | 'drawer';
   size: ContainerSizeEnum | string; // allow custom sizes like max_w_#### etc
   addScrollArea?: boolean;
   onCloseModal?: () => void;
@@ -347,7 +347,7 @@ interface ModalWrapperProps {
 }
 
 export function ModalWrapper(p: ModalWrapperProps) {
-  const { ToolbarComponent, domId, className, wrapperClassName, containerClassName, outlineColor, children, closePopOver, onCloseModal, addScrollArea, ...other } = p;
+  const { ToolbarComponent, domId, className, wrapperClassName, containerClassName, shadowOutlineStyle, children, closePopOver, onCloseModal, addScrollArea, ...other } = p;
   const size = p.size || 'df';
   const closeText = p.closeText || i18n.t('form.esc');
 
@@ -359,7 +359,7 @@ export function ModalWrapper(p: ModalWrapperProps) {
         closePopOver?.();
       }}
       className={cn(
-        `modal_main_content of alert_shadow_${outlineColor || 'default'}`,
+        `modal_main_content of alert_shadow_${shadowOutlineStyle || 'default'}`,
         wrapperClassName ?? 'mw',
         size,
         className

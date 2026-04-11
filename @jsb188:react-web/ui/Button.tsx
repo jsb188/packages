@@ -398,7 +398,7 @@ export const SimpleLabel = memo((p: {
 
   return <El
     className={cn(
-      'no_shrink ft_tn r_xs',
+      'no_shrink no_wrap ft_tn r_xs',
       colorClassName,
       designClassName,
       className

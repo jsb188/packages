@@ -5,8 +5,6 @@ export const organizationFragment = `fragment organizationFragment on Organizati
   name
   commodities
   operation
-
-  dailyDigestTime
   activated
 
   address {
