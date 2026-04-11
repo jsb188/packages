@@ -6,7 +6,7 @@ import { loadFragment } from '@jsb188/graphql/cache';
 import type { TableHeaderObj } from '@jsb188/react-web/ui/TableListUI';
 import { TDCol, THead, TRow } from '@jsb188/react-web/ui/TableListUI';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
-import { Fragment, isValidElement, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, isValidElement, memo, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { ReactDivElement, ReactSpanElement } from '../types/dom.d';
 
@@ -76,6 +76,10 @@ export type MapTableListDataFn = (
 interface VZReferenceObj {
   mounted: boolean;
   loading?: boolean;
+  fetchingTop?: boolean;
+  fetchingBottom?: boolean;
+  blockedTopCursor?: string | null;
+  blockedBottomCursor?: string | null;
   itemIds: string[] | null;
   startOfListItemId: string | null;
   endOfListItemId: string | null | undefined;
@@ -101,6 +105,11 @@ interface VirtualizedState {
   hasMoreBottom: boolean;
   referenceObj: React.MutableRefObject<VZReferenceObj>;
   // forceUpdate: () => void;
+}
+
+interface VirtualizedRenderWindow {
+  listData: VZListItemObj[] | null;
+  renderIsDeferred: boolean;
 }
 
 interface VirtualizedListProps extends ReactDivElement {
@@ -366,7 +375,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
   const { otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
   const [cursorPosition, setCursorPosition] = useState<CursorPositionObj | null>(null);
   // const [, forceUpdate] = useReducer(x => x + 1, 0);
-  const referenceObj = useRef<VZReferenceObj>({ loading, startOfListItemId: null, endOfListItemId: undefined, lastItemIdOnMount: null, mounted: true, itemIds: null, topCursor: null, bottomCursor: null });
+  const referenceObj = useRef<VZReferenceObj>({ loading, fetchingTop: false, fetchingBottom: false, blockedTopCursor: null, blockedBottomCursor: null, startOfListItemId: null, endOfListItemId: undefined, lastItemIdOnMount: null, mounted: true, itemIds: null, topCursor: null, bottomCursor: null });
   const itemIds = referenceObj.current.itemIds;
 
   // List data
@@ -495,10 +504,23 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
 }
 
 /**
+ * Keep the last committed row window visible while React prepares a heavier next window.
+ */
+
+function useVirtualizedRenderWindow(listData: VZListItemObj[] | null): VirtualizedRenderWindow {
+  const deferredListData = useDeferredValue(listData);
+
+  return {
+    listData: deferredListData,
+    renderIsDeferred: !!listData && deferredListData !== listData,
+  };
+}
+
+/**
  * Re-position list as needed
  */
 
-function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzState: VirtualizedState) {
+function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzState: VirtualizedState, renderIsDeferred = false) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
   const { refreshKey, resetKey, limit, fetchMore, openModalPopUp } = p;
   const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
@@ -522,6 +544,10 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
     referenceObj.current.lastItemIdOnMount = null;
     referenceObj.current.topCursor = null;
     referenceObj.current.bottomCursor = null;
+    referenceObj.current.fetchingTop = false;
+    referenceObj.current.fetchingBottom = false;
+    referenceObj.current.blockedTopCursor = null;
+    referenceObj.current.blockedBottomCursor = null;
 
     if (nextStartOfListItems?.length) {
       const getItemId = p.getItemId || ((item: any) => item.id);
@@ -546,6 +572,12 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
   const fetchMoreList = useCallback(async(after: boolean) => {
 
     if (fetchMore && !referenceObj.current.loading) {
+      const fetchingKey = after ? 'fetchingTop' : 'fetchingBottom';
+      const blockedCursorKey = after ? 'blockedTopCursor' : 'blockedBottomCursor';
+      if (referenceObj.current[fetchingKey]) {
+        return;
+      }
+
       const position = after ? referenceObj.current.topCursor : referenceObj.current.bottomCursor;
       // console.log('fetch more?:' , ((after && hasMoreBottom) || (!after || hasMoreTop)));
 
@@ -553,6 +585,9 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
         position &&
         ((after && hasMoreBottom) || (!after || hasMoreTop))
       ) {
+        if (referenceObj.current[blockedCursorKey] === position[1]) {
+          return;
+        }
 
         // Check if there's enough (limit) data from memory in itemIds array
 
@@ -573,43 +608,70 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
           }
         }
 
-        const { data, error } = await fetchMore(after, position[1], limit);
+        referenceObj.current[fetchingKey] = true;
 
-        if (referenceObj.current.mounted) {
+        try {
+          const { data, error } = await fetchMore(after, position[1], limit);
 
-          console.dev(`FETCHED: ${limit} ${after ? 'ABOVE' : 'BELOW'} ${position[1] || "no cursor"}`, 'em', data);
+          if (referenceObj.current.mounted) {
 
-          if (Array.isArray(data)) {
-            if (!after && limit > data.length) {
+            console.dev(`FETCHED: ${limit} ${after ? 'ABOVE' : 'BELOW'} ${position[1] || "no cursor"}`, 'em', {
+              count: Array.isArray(data) ? data.length : 0,
+              cursor: position[1],
+            });
 
-              // If the list ends at exactly 0 items, then the next end of list item should be the last item in the current listData
-              const nextEndOfListItemId = data[data.length - 1]?.id || listData?.[listData.length - 1]?.item?.id;
+            if (Array.isArray(data)) {
+              if (!after && limit > data.length) {
 
-              // console.log('next eol', listData);
-              // console.log('END?:', limit > data.length, limit, data.length);
-              // console.log('next eol', nextEndOfListItemId);
+                // If the list ends at exactly 0 items, then the next end of list item should be the last item in the current listData
+                const nextEndOfListItemId = data[data.length - 1]?.id || listData?.[listData.length - 1]?.item?.id;
 
-              if (nextEndOfListItemId) {
-                referenceObj.current.endOfListItemId = nextEndOfListItemId;
+                // console.log('next eol', listData);
+                // console.log('END?:', limit > data.length, limit, data.length);
+                // console.log('next eol', nextEndOfListItemId);
+
+                if (nextEndOfListItemId) {
+                  referenceObj.current.endOfListItemId = nextEndOfListItemId;
+                }
+              }
+
+              if (data.length) {
+                const currentItemIds = referenceObj.current.itemIds || [];
+                const getItemId = p.getItemId || ((item: any) => item.id);
+                const hasNewItems = data.some((item) => !currentItemIds.includes(getItemId(item)));
+
+                if (!hasNewItems) {
+                  referenceObj.current[blockedCursorKey] = position[1];
+                  if (!after) {
+                    referenceObj.current.endOfListItemId = position[0];
+                  }
+                  return;
+                }
+
+                referenceObj.current[blockedCursorKey] = null;
+                referenceObj.current.itemIds = mergeItemIds(referenceObj.current, data, false, after, p);
+                if (!after && data.length < limit) {
+                  referenceObj.current.startOfListItemId = referenceObj.current.itemIds[0];
+                }
+
+                console.dev('REPOSITION ON FETCH');
+                setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
+              } else {
+                referenceObj.current[blockedCursorKey] = position[1];
+                if (!after) {
+                  referenceObj.current.endOfListItemId = position[0];
+                }
               }
             }
 
-            if (data.length) {
-              referenceObj.current.itemIds = mergeItemIds(referenceObj.current, data, false, after, p);
-              if (!after && data.length < limit) {
-                referenceObj.current.startOfListItemId = referenceObj.current.itemIds[0];
-              }
-
-              console.dev('REPOSITION ON FETCH');
-              setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
+            if (error) {
+              openModalPopUp(null, error);
             }
+          } else if (process.env.NODE_ENV === 'development') {
+            console.dev('FETCHED: ' + (after ? 'BELOW' : 'ABOVE'), 'BUT COMPONENT IS *NOT* MOUNTED');
           }
-
-          if (error) {
-            openModalPopUp(null, error);
-          }
-        } else if (process.env.NODE_ENV === 'development') {
-          console.dev('FETCHED: ' + (after ? 'BELOW' : 'ABOVE'), 'BUT COMPONENT IS *NOT* MOUNTED');
+        } finally {
+          referenceObj.current[fetchingKey] = false;
         }
       }
     }
@@ -675,6 +737,10 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
   // Reposition list when the current cursorPosition updates
 
   useLayoutEffect(() => {
+    if (renderIsDeferred) {
+      return;
+    }
+
     if (cursorPosition?.[0] && listData) {
       const [cPosId, cDomId,, cAfter, cRefresh] = cursorPosition;
       if (cDomId) {
@@ -717,7 +783,7 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
 
       }
     }
-  }, [cursorPosition?.[0], cursorPosition?.[1], cursorPosition?.[4], cursorPosition?.[4] !== 1]);
+  }, [cursorPosition?.[0], cursorPosition?.[1], cursorPosition?.[4], cursorPosition?.[4] !== 1, renderIsDeferred]);
 
   // console.log(cursorPosition);
 
@@ -794,8 +860,9 @@ const ReactiveVZListItem = (p: any) => {
 export function VirtualizedList(p: VirtualizedListProps) {
   const { ItemComponent, GroupTitleComponent, MockComponent, HeaderComponent, FooterComponent, groupItems, maxFetchLimit, reactiveFragmentFn, onClickItem } = p;
   const vzState = useVirtualizedState(p);
-  const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
-  const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
+  const { listData: nextListData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
+  const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData);
+  const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState, renderIsDeferred);
 
   const mappedListData = useMemo(() => {
     if (groupItems && listData) {
@@ -830,7 +897,7 @@ export function VirtualizedList(p: VirtualizedListProps) {
 
   return <>
     <div ref={topRef}>
-      {hasMoreTop ? MockComponent : HeaderComponent}
+      {hasMoreTop || renderIsDeferred ? MockComponent : HeaderComponent}
     </div>
 
     <div ref={listRef}>
@@ -845,10 +912,10 @@ export function VirtualizedList(p: VirtualizedListProps) {
     </div>
 
     <div ref={bottomRef}>
-      {hasMoreBottom && MockComponent}
+      {(hasMoreBottom || renderIsDeferred) && MockComponent}
     </div>
 
-    {!hasMoreBottom && FooterComponent &&
+    {!hasMoreBottom && !renderIsDeferred && FooterComponent &&
       <FooterComponent
         maxFetchLimit={maxFetchLimit}
         loadedDataSize={referenceObj.current.itemIds!?.length}
@@ -1038,8 +1105,9 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
 }) {
   const { disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
-  const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState);
-  const { listData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
+  const { listData: nextListData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
+  const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData);
+  const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState, renderIsDeferred);
   const numColumns = headers?.length || 1;
 
   // useEffect(() => {
@@ -1050,7 +1118,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   return <>
     <div className={className}>
       <div ref={topRef}>
-        {hasMoreTop ? MockComponent : HeaderComponent}
+        {hasMoreTop || renderIsDeferred ? MockComponent : HeaderComponent}
       </div>
 
       <div
@@ -1070,10 +1138,10 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
       </div>
 
       <div ref={bottomRef}>
-        {hasMoreBottom && MockComponent}
+        {(hasMoreBottom || renderIsDeferred) && MockComponent}
       </div>
 
-      {!hasMoreBottom && FooterComponent &&
+      {!hasMoreBottom && !renderIsDeferred && FooterComponent &&
         <FooterComponent
           maxFetchLimit={maxFetchLimit}
           loadedDataSize={referenceObj.current.itemIds!?.length}

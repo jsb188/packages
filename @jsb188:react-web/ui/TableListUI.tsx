@@ -541,7 +541,8 @@ export const TableListMockClient = memo((p: TableListMockProps) => {
   // NOTE:
   // With <AvatarImg>, item height is 57px
   // Without <AvatarImg>, item height is 51px
-  const mockCount = Math.floor(browserHeight * (hasRatio ? browserHeightRatio : 1) / 57);
+  // Flat size (defualt) is 40px
+  const mockCount = Math.floor(browserHeight * (hasRatio ? browserHeightRatio : 1) / 40);
 
   return <div className={cn(removeHorizontalPadding && '-mx_8', isInnerContent ? undefined : 'py_25')}>
     <div className='w_f rel table'>
@@ -602,7 +603,7 @@ export const TablePageMock = memo((p: {
     removeBorderLine={removeBorderLine ?? true}
     cellClassNames={cellClassNames}
     gridLayoutStyle={gridLayoutStyle}
-    browserHeightRatio={browserHeightRatio || .85}
+    browserHeightRatio={browserHeightRatio || 1}
   />;
 });
 
