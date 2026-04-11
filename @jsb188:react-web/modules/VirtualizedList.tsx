@@ -263,6 +263,7 @@ function scrollToTop(rootElementQuery_: string, instant = false) {
     globalThis?.requestAnimationFrame(() => {
       const rootElement = globalThis?.document.querySelector(rootElementQuery);
       if (rootElement) {
+        // console.log('---- 1');
         rootElement.scrollTop = 0;
       }
     });
@@ -274,6 +275,7 @@ function scrollToTop(rootElementQuery_: string, instant = false) {
       const rootElement = globalThis?.document.querySelector(rootElementQuery);
       if (rootElement) {
         // Scroll to bottom of root element
+        // console.log('---- 2');
         rootElement.scrollTo({ top: 0, behavior: 'smooth' });
         // listElement.lastElementChild?.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'smooth' });
       }
@@ -303,6 +305,21 @@ function scrollToTop(rootElementQuery_: string, instant = false) {
       doScroll();
     }
   }, 550);
+}
+
+/**
+ * Checks whether the target element is the first rendered list item element.
+ */
+
+function isFirstListItemElement(
+  itemElement: HTMLElement,
+  listElement: HTMLDivElement,
+): boolean {
+  const firstListItemElement = Array.from(listElement.children).find((child) => {
+    return !!child.id;
+  });
+
+  return firstListItemElement === itemElement;
 }
 
 /**
@@ -342,13 +359,20 @@ function repositionList(
       // @ts-expect-error - React Ref
       const backupScrollEl = backupScrollRef?.current;
       if (backupScrollEl) {
+        // console.log('---- 3');
         rootElement.scrollTo({ top: rootElement.scrollHeight - (backupScrollEl.clientHeight || 0) * 2, behavior: 'instant' });
       }
 
       return;
     }
 
+    if (isFirstListItemElement(itemElement, listElement)) {
+      return;
+    }
+
+    // console.log('---- 4');
     itemElement.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
+    // console.log('---- 5');
     itemElement.scrollTop = topOffset;
   });
 
@@ -507,12 +531,16 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
  * Keep the last committed row window visible while React prepares a heavier next window.
  */
 
-function useVirtualizedRenderWindow(listData: VZListItemObj[] | null): VirtualizedRenderWindow {
+function useVirtualizedRenderWindow(
+  listData: VZListItemObj[] | null,
+  skipDeferredRender = false,
+): VirtualizedRenderWindow {
   const deferredListData = useDeferredValue(listData);
+  const renderListData = skipDeferredRender ? listData : deferredListData;
 
   return {
-    listData: deferredListData,
-    renderIsDeferred: !!listData && deferredListData !== listData,
+    listData: renderListData,
+    renderIsDeferred: !skipDeferredRender && !!listData && deferredListData !== listData,
   };
 }
 
@@ -683,6 +711,7 @@ function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzStat
   useLayoutEffect(() => {
     if (listData) {
       console.dev('SCROLLING TO TOP (1)', 'em');
+      // console.log('---- 6');
       scrollToTop(rootElementQuery, true);
     }
   }, [!!listData, rootElementQuery]);
@@ -861,7 +890,7 @@ export function VirtualizedList(p: VirtualizedListProps) {
   const { ItemComponent, GroupTitleComponent, MockComponent, HeaderComponent, FooterComponent, groupItems, maxFetchLimit, reactiveFragmentFn, onClickItem } = p;
   const vzState = useVirtualizedState(p);
   const { listData: nextListData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
-  const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData);
+  const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData, !hasMoreTop);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState, renderIsDeferred);
 
   const mappedListData = useMemo(() => {
@@ -1106,7 +1135,7 @@ export function VirtualizedTableList(p: VirtualizedListOmit & {
   const { disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
   const vzState = useVirtualizedState(p);
   const { listData: nextListData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
-  const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData);
+  const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData, !hasMoreTop);
   const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState, renderIsDeferred);
   const numColumns = headers?.length || 1;
 
