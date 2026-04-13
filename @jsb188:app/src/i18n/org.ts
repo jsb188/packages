@@ -16,6 +16,8 @@ export default {
 		edit_child_org_operation_finished_msg: '[hl]%{name}[/hl]\'s business operation is set to **%{operation}**.',
 		edit_child_org_info_msg: 'Update the information for\n [hl]%{name}[/hl].',
 		edit_child_org_info_finished_msg: 'Information has been updated for\n [hl]%{name}[/hl].',
+		edit_site_location_msg: 'Update the information for\n [hl]%{name}[/hl].',
+		edit_site_location_finished_msg: 'Information has been updated for\n [hl]%{name}[/hl].',
     delete_child_org_msg: 'Are you sure you want to remove\n [hl]%{name}[/hl]?',
 		manage_team: 'Manage team',
 		site_locations: 'Site locations',

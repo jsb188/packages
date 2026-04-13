@@ -32,7 +32,8 @@
 }
 
 .alert_shadow_drawer {
-  box-shadow: 0 0 0 3px rgba(0,0,0,.04), 0 0 40px rgb(var(--color-modal)), -100px 0 100px rgba(255,255,255, 1);
+  /* box-shadow: 0 0 0 3px rgba(0,0,0,.04), 0 0 40px rgb(var(--color-modal)), -75px 0 75px rgba(255,255,255, 1); */
+  box-shadow: 0 0 0 3px rgba(var(--color-modal),.5), 0 0 30px rgb(var(--color-bg-medium)), -75px 0 75px rgba(255,255,255, 1);
   /* box-shadow: 0 0 0 3px rgba(0,0,0,.04), 0 20px 40px rgb(var(--color-modal)), 0 0 100px rgba(255,255,255, 1); */
 }
 
