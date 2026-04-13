@@ -70,7 +70,16 @@ export default {
 			'You reached the end of this list with %{smart_count} entries.'
 		),
 
-    log_type_is_created: 'When %{type} log is created.',
+		log_type_is_created: 'When %{type} log is created.',
+		risk_flags: 'Potential risks',
+		no_potential_risks: 'This log does not indicate any potential risks.',
+		animalRisk: 'Animal risk',
+		equipmentRisk: 'Equipment risk',
+		fieldRisk: 'Field risk',
+		contaminationRisk: 'Contamination risk',
+		hygieneRisk: 'Hygiene risk',
+		pestsRisk: 'Pests risk',
+		sanitationRisk: 'Sanitation risk',
 
 		// Need one of each for every {contentName} for log
 		inline_log: 'log',

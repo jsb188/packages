@@ -166,7 +166,9 @@ export type ValidMetadataFieldName =
   | 'break'
   | 'activity'
   | 'childOrgName'
+  | 'childOrgName*fill'
   | 'location'
+  | 'location*fill'
   | 'fieldLocation'
 
   // ARABLE
@@ -614,9 +616,9 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
     case 'LogGrowerNetwork': {
       schemaFields = [
         'activity',
-        'childOrgName',
-        'break',
-        'location',
+        'childOrgName*fill',
+        // 'break',
+        'location*fill',
         'fieldLocation'
       ];
     } break;
