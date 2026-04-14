@@ -524,7 +524,9 @@ export default {
 		// Accounting number
 		accounting_number: {
 			INVOICE: 'Invoice number',
+			INVOICE_short: 'Invoice No.',
 			RECEIPT: 'Receipt number',
+			RECEIPT_short: 'Receipt No.',
 		},
 
 		// Task status

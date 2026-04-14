@@ -21,6 +21,7 @@ type OperationPermissionTuple = readonly [PermissionCheckFor, ACLPermissionEnum,
 type OperationPermissionsMap = Record<string, OperationPermissionTuple>;
 
 export const OPERATION_PERMISSIONS = {
+  chat: ['viewData', 'READ', 'You do not have permission to chat with AI in this organization.'],
   general_read: ['viewData', 'READ', 'You do not have permission to view this organization\'s data.'],
   general_write: ['viewData', 'WRITE', 'You do not have permission to write data in this organization.'],
   logs_write: ['logs', 'WRITE', 'You do not have permission to write logs in this organization.'],

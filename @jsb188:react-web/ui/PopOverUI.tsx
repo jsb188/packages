@@ -176,7 +176,7 @@ export const POListItem = memo((p: PONavItemBase & {
   item: POListItemObj;
 }) => {
   const { name, item, saving } = p;
-  const { colorIndicator, preset, className, textClassName, disabled, allowDisabledOnClick, to, text, value, iconName, rightIconName, rightIconClassName, photoUri, avatarDisplayName, selected } = item;
+  const { colorIndicator, preset, className, textClassName, disabled, allowDisabledOnClick, to, text, description, value, iconName, rightIconName, rightIconClassName, photoUri, avatarDisplayName, selected } = item;
   const hasAvatar = !!photoUri || !!avatarDisplayName;
   // const hasLink = !!(to || !undefinedValue);
   const hasRightComponent = saving || !!rightIconName || !!selected;
@@ -221,6 +221,10 @@ export const POListItem = memo((p: PONavItemBase & {
 
       <span className={cn('f', textClassName || 'shift_down', !hasRightComponent && 'pr_xs')}>
         {text}
+
+        {description != null && <span className='cl_lt ml_8'>
+          {description}
+        </span>}
       </span>
 
       {hasRightComponent && (

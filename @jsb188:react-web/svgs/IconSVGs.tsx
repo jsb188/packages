@@ -2120,6 +2120,19 @@ export const MapMarks = <svg xmlns="http://www.w3.org/2000/svg" className="icon 
 <path d="M8.18954 5.52545c0.15812 0 0.28629 -0.12817 0.28629 -0.28628 0 -0.15811 -0.12817 -0.28629 -0.28629 -0.28629"/>
 </svg>;
 
+export const MapMarksColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-map-marks-color">
+<path fill="#78eb7b" d="M0.545 19.671A1 1 0 0 0 1.3 20.7l4.945 1.236a1 1 0 0 0 0.506 -0.005l4.985 -1.359a1 1 0 0 1 0.526 0l4.985 1.359a1 1 0 0 0 0.506 0.005L22.7 20.7a1 1 0 0 0 0.756 -1.024l-0.888 -16.44a0.999 0.999 0 0 0 -1.262 -0.91l-4.029 1.1a0.989 0.989 0 0 1 -0.55 -0.007l-4.44 -1.338a1 1 0 0 0 -0.574 0L7.274 3.412a0.989 0.989 0 0 1 -0.55 0.007L2.7 2.321a1 1 0 0 0 -1.262 0.91l-0.893 16.44Z" strokeWidth="1"/>
+<path fill="#c9f7ca" d="M11.713 2.081 7.274 3.412a0.982 0.982 0 0 1 -0.284 0.042l-0.421 18.5c0.062 -0.005 0.123 -0.016 0.183 -0.032l4.985 -1.359a0.976 0.976 0 0 1 0.263 -0.032V2.039a1 1 0 0 0 -0.287 0.042Z" strokeWidth="1"/>
+<path fill="#c9f7ca" d="M17.754 21.931 22.7 20.7a1 1 0 0 0 0.757 -1.024l-0.889 -16.44a1 1 0 0 0 -1.262 -0.91l-4.029 1.1a0.958 0.958 0 0 1 -0.266 0.035l0.421 18.5a0.979 0.979 0 0 0 0.322 -0.03Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M0.545 19.671A1 1 0 0 0 1.3 20.7l4.945 1.236a1 1 0 0 0 0.506 -0.005l4.985 -1.359a1 1 0 0 1 0.526 0l4.985 1.359a1 1 0 0 0 0.506 0.005L22.7 20.7a1 1 0 0 0 0.756 -1.024l-0.888 -16.44a0.999 0.999 0 0 0 -1.262 -0.91l-4.029 1.1a0.989 0.989 0 0 1 -0.55 -0.007l-4.44 -1.338a1 1 0 0 0 -0.574 0L7.274 3.412a0.989 0.989 0 0 1 -0.55 0.007L2.7 2.321a1 1 0 0 0 -1.262 0.91l-0.893 16.44Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m15.501 7.495 4 4" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m15.501 11.495 4 -4" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m4 12.495 1.583 -0.375" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m7.731 13.341 0.769 1.154" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10.5 16.495H12" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m13.5 14.995 1 -1" strokeWidth="1"/>
+</svg>;
+
 export const MedicalConditionFlu = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-medical-condition-flu" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="#000000" strokeLinecap="round" strokeLinejoin="round" d="M19.151 23.25v-6.265c1.3818 -1.2801 2.3454 -2.9471 2.7651 -4.7833 0.4197 -1.8362 0.2759 -3.75636 -0.4125 -5.50962 -0.6885 -1.75326 -1.8896 -3.25818 -3.4466 -4.31823C16.5 1.3138 14.6596 0.747884 12.776 0.750006 5.63699 0.750006 4.09999 6.62801 1.55099 13.23c-0.0436 0.1137 -0.05892 0.2362 -0.04465 0.3571 0.01428 0.1209 0.05773 0.2365 0.12661 0.3369 0.06888 0.1003 0.16112 0.1824 0.26879 0.2392 0.10766 0.0568 0.22752 0.0866 0.34925 0.0868h1.9v3c0 0.7957 0.31607 1.5587 0.87868 2.1213 0.56261 0.5626 1.32567 0.8787 2.12132 0.8787h1.5v3" strokeWidth="1.5"/>
 <path stroke="#000000" d="M8.651 15.375c-0.20711 0 -0.375 -0.1679 -0.375 -0.375s0.16789 -0.375 0.375 -0.375" strokeWidth="1.5"/>

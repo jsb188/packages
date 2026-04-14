@@ -10,6 +10,7 @@ import {
   editComplianceDocumentMtn,
   editMembershipMtn,
   editOrganizationMtn,
+  editSiteLocationMtn,
   removeMembershipMtn,
   switchOrganizationMtn
 } from '../gql/mutations/organizationMutations';
@@ -164,6 +165,43 @@ export function useDeleteChildOrganization(
 
   return {
     deleteChildOrganization,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/**
+ * Edit an organization site location.
+ */
+
+export function useEditSiteLocation(
+  params: UseMutationParams = {},
+  openModalPopUp?: OpenModalPopUpFn
+) {
+  const { onCompleted, ...rest } = params;
+
+  const [editSiteLocation, mtnValues, mtnHandlers, updateObservers] = useMutation(editSiteLocationMtn, {
+    openModalPopUp,
+    onCompleted: (data, error, variables) => {
+      const updatedSiteLocation = data?.editSiteLocation;
+
+      if (updatedSiteLocation?.id) {
+        updateFragment(
+          `$organizationSiteFragment:${updatedSiteLocation.id}`,
+          updatedSiteLocation,
+          null,
+          false,
+          updateObservers
+        );
+      }
+
+      onCompleted?.(updatedSiteLocation, error, variables);
+    },
+    ...rest,
+  });
+
+  return {
+    editSiteLocation,
     ...mtnValues,
     ...mtnHandlers,
   };

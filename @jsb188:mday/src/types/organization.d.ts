@@ -185,6 +185,7 @@ export interface OrganizationSiteGQL {
 	__deleted?: boolean;
 
 	id: string;
+	readableId?: string | null;
 	organizationId: string;
 	parentId?: string | null;
 	name: string;

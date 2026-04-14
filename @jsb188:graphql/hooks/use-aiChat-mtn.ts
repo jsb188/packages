@@ -1,7 +1,7 @@
-import { resetQuery, updateQuery } from '../cache/';
+import { resetQuery, updateFragment, updateQuery } from '../cache/';
 import { useMutation } from '../client';
 import { updateAIChats } from './use-aiChat-qry';
-import { sendAIChatMessageMtn, startAIChatMtn, stopAIChatMessageMtn } from '../gql/mutations/aiChatMutations';
+import { deleteAIChatMtn, sendAIChatMessageMtn, startAIChatMtn, stopAIChatMessageMtn } from '../gql/mutations/aiChatMutations';
 import type { UseMutationParams } from '../types.d';
 import { useOpenModalPopUp } from '@jsb188/react/states';
 import { useEffect, useRef } from 'react';
@@ -108,5 +108,36 @@ export function useAIChatTextarea(variablesKey: string, params: UseMutationParam
       stopAIChatMessage,
       ...mtnValues2,
     }
+  };
+}
+
+/**
+ * Delete AI chat
+ */
+
+export function useDeleteAIChat(params: UseMutationParams = {}) {
+
+  const { onCompleted, onError } = params;
+  const openModalPopUp = useOpenModalPopUp();
+
+  const [deleteAIChat, mtnValues, mtnHandlers, updateObservers] = useMutation(
+    deleteAIChatMtn,
+    {
+      openModalPopUp,
+      onCompleted: (data: any, err: any, variables: any) => {
+        if (data?.deleteAIChat) {
+          updateFragment(`$aiChatFragment:${variables.aiChatId}`, { __deleted: true }, null, false, updateObservers);
+        }
+
+        onCompleted?.(data, err, variables);
+      },
+      onError,
+    },
+  );
+
+  return {
+    deleteAIChat,
+    ...mtnValues,
+    ...mtnHandlers,
   };
 }

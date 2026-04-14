@@ -65,6 +65,7 @@ export const organizationRelationshipFragment = `fragment organizationRelationsh
 
 export const organizationSiteFragment = `fragment organizationSiteFragment on OrganizationSite {
   id
+  readableId
   organizationId
   parentId
   name

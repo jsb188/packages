@@ -38,6 +38,7 @@ export interface POListItemObj {
   name?: string; // Name for form, for formValues object; if not set, index will be used
   value?: string | boolean | null;
   text: string;
+  description?: string | null;
   className?: string;
   textClassName?: string;
   colorIndicator?: ColorEnum;

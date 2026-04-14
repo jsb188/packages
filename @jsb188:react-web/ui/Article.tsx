@@ -1,12 +1,12 @@
+import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { memo } from 'react';
 import type { LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { LabelsAndIcons } from '../modules/ListFeatures';
 import { AvatarImg } from './Avatar';
 import type { InlineBlockLabelProps } from './Button';
 import { InlineBlockLabel } from './Button';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
-import i18n from '@jsb188/app/i18n/index.ts';
 
 /**
  * Constants
@@ -82,6 +82,7 @@ export const CondensedArticleItem = memo((p: {
   const useAltLabelColors = !['modal','card'].includes(preset!);
   const hasDescription = !!(description || descriptionPlaceholder);
   const hasDescriptionOrRightIcons = hasDescription || (rightIcons && rightIcons?.length > 0);
+  const visibleTitle = title && voided ? `(${i18n.t('form.void').toUpperCase()}) ${title}` : title;
 
   // paddingClassName='px_df -mx_5'
 
@@ -124,7 +125,7 @@ export const CondensedArticleItem = memo((p: {
       'article_item rel',
       !addDivSeparator && !hideSeparator ? 'bd_lt bd_t_1' : undefined,
       xPaddingClassName,
-      hasLink ? 'link ' + linkHoverClassName : undefined
+      hasLink ? 'link ' + linkHoverClassName : undefined,
     )}
     role={hasLink ? 'button' : undefined}
     onClick={hasLink ? () => onClick(id) : undefined}
@@ -133,7 +134,7 @@ export const CondensedArticleItem = memo((p: {
       <div className='bd_t_1 bd_lt' />
     )}
 
-    <div className={cn('h_item gap_xs', __deleted ? '__deleted' : '')}>
+    <div className={cn('h_item gap_xs', __deleted || voided ? '__deleted' : '')}>
 
       {(avatarDisplayName || avatarPhotoUri) &&
         <AvatarImg
@@ -162,9 +163,9 @@ export const CondensedArticleItem = memo((p: {
         </div>
       )}
 
-      {title && !hasDescriptionOrRightIcons && <span className={cn('f no_shrink shift_down', yPaddingClassName)}>
+      {visibleTitle && !hasDescriptionOrRightIcons && <span className={cn('f no_shrink shift_down', yPaddingClassName)}>
         <span className='ellip'>
-          {title}
+          {visibleTitle}
         </span>
       </span>}
 
@@ -180,9 +181,9 @@ export const CondensedArticleItem = memo((p: {
         >
           {hasDescription ? (
             <span className='shift_down ib ellip'>
-              {title && (
-                <span className={cn('mr_xs cl_df', voided ? 'strikethrough' : undefined)}>
-                  {title}
+              {visibleTitle && (
+                <span className={cn('mr_xs cl_df')}>
+                  {visibleTitle}
                 </span>
               )}
 
@@ -191,9 +192,9 @@ export const CondensedArticleItem = memo((p: {
                 {description || descriptionPlaceholder}
               </span>
             </span>
-          ) : title ? (
+          ) : visibleTitle ? (
             <span className='shift_down ib ellip cl_df'>
-              {title}
+              {visibleTitle}
             </span>
           ) : null}
 
@@ -206,7 +207,7 @@ export const CondensedArticleItem = memo((p: {
           )}
         </span>
       )
-      : !title
+      : !visibleTitle
       ? <span className='f' />
       : null}
 

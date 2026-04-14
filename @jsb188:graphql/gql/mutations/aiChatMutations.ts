@@ -53,3 +53,13 @@ mutation stopAIChatMessage (
   )
 }
 `;
+
+export const deleteAIChatMtn = gql`
+mutation deleteAIChat (
+  $aiChatId: GenericID!
+) {
+  deleteAIChat (
+    aiChatId: $aiChatId
+  )
+}
+`;
