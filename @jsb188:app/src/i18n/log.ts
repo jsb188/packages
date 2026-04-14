@@ -188,20 +188,19 @@ export default {
 			OTHER_SUPPLY_PURCHASE_ACTIVITY: 'Other supply purchase',
 
 			// # Transplanting activities
-			SEEDING: 'Seeding crops',
-			DIRECT_SEEDING: 'Direct seeding crops',
-      GREENHOUSE_SEEDING: 'Greenhouse seeding crops',
-			TRANSPLANTING: 'Transplanting crops',
-			SEED_COMPLIANCE_NOTE: 'Seeding compliance notes',
+			SEEDING: 'Seeding',
+			DIRECT_SEEDING: 'Direct seeding',
+      GREENHOUSE_SEEDING: 'Greenhouse seeding',
+			TRANSPLANTING: 'Transplanting',
+			SEED_COMPLIANCE_NOTE: 'Seeding compliance',
 			OTHER_TRANSPLANT_ACTIVITY: 'Other seeding/transplanting activities',
 
 			// # Field activities
-			PREPARE_SOIL: 'Soil, bed preparation',
-			PLANTING: 'Seeding, transplanting', // Deprecated & moved to "PLANTING" category
+			PREPARE_SOIL: 'Soil/bed preparation',
 			IRRIGATION: 'Irrigation, water management',
 			FERTILIZATION_COMPOST: 'Fertilization, compost',
 			PROTECT_CROP: 'Crop protection (weeds, pests, diseases)',
-			MONITOR_CROP: 'Crop monitoring, observations',
+			MONITOR_CROP: 'Crop monitoring',
 			PRUNING: 'Pruning',
 			STRUCTURE_MAINTENANCE: 'Trellising/structure maintenance',
 			PREPARE_HARVEST: 'Preparing crops for harvest',
@@ -209,7 +208,7 @@ export default {
 
 			// # Harvest activities
 			HARVEST_CROP: 'Harvested crops',
-			HARVEST_COUNT: 'Counting/weighing harvested crops',
+			HARVEST_COUNT: 'Counting/weighing crops',
 			SORT_GRADE: 'Sorting/grading crops',
 			YIELD_LOSS_ESTIMATE: 'Estimating yield or loss',
 			OTHER_HARVEST_ACTIVITY: 'Other harvest activities',

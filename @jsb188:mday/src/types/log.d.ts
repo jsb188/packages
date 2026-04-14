@@ -311,7 +311,7 @@ export interface LogEntryGQL {
 
 export interface LogEntryInsertObj {
   id?: number | bigint; // Only for edits
-  accountId: number | bigint;
+  accountId: number | bigint | null;
   organizationId: number | bigint;
   childOrgId?: number | bigint | null;
   reportId?: number | bigint | null;

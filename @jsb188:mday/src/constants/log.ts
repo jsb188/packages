@@ -77,7 +77,6 @@ export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
 		'FIELD',
 		[
 			'PREPARE_SOIL',
-			// 'PLANTING', // <!--------------------------------- Deprecated & moved to "PLANTING" category
 			'IRRIGATION',
 			'FERTILIZATION_COMPOST',
 			'PROTECT_CROP',
