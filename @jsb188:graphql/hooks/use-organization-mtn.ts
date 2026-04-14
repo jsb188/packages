@@ -1,5 +1,5 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
-import { checkACL, checkACLPermission, type OperationName } from '@jsb188/mday/utils/organization.ts';
+import { checkACL, type OperationName } from '@jsb188/mday/utils/organization.ts';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
 import { useMemo } from 'react';
 import { updateFragment } from '../cache/index';

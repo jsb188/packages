@@ -37,18 +37,46 @@ export function getReportLineNumber(lineIndex?: number | null, colIndex?: number
 	return `${lineIndex}.${colIndex + 1}`;
 }
 
+/*
+ * Build the stable row identifier used by report answers and column fragment keys.
+ */
+
+export function getReportRowIdentifier(answerKey?: string | null, rowKey?: string | null): string {
+	return `${answerKey || '__'}.${rowKey || 'ERROR'}`;
+}
+
+/*
+ * Build the stable column identifier used inside one report row.
+ */
+
+export function getReportColumnIdentifier(rowIdentifier: string, columnKey: string): string {
+	return `${rowIdentifier}.${columnKey}`;
+}
+
+/*
+ * Build the realtime fragment data ID for one report submission question column.
+ */
+
+export function getReportColumnFragmentDataId(
+	reportSubmissionIdKey: string | number | bigint,
+	rowIdentifier: string,
+	columnKey: string,
+): string {
+	return `${reportSubmissionIdKey}:${getReportColumnIdentifier(rowIdentifier, columnKey)}`;
+}
+
 export function getReportFilesCount(sections?: ReportSectionGQL[]): ReportSectionsFilesCount {
 	return (sections || []).reduce((acc, section) => {
 		if (section.requireFileUploads) {
 			acc.required++;
-			if (section.files?.filter(file => !file.__deleted)?.length) {
+			if (section.files?.filter((file) => !file.__deleted)?.length) {
 				acc.hasFile++;
 			}
 		}
 		return acc;
 	}, {
 		required: 0,
-		hasFile: 0
+		hasFile: 0,
 	});
 }
 
