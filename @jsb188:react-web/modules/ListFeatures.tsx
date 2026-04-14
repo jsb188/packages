@@ -29,7 +29,7 @@ export const LabelsAndIcons = memo((p: {
     return <TooltipButton
       key={i}
       className={cn('pr_2', className, iconName && color ? `cl_${color}` : text ? 'h_item mx_3' : '')}
-      tooltipClassName='a_c max_w_200'
+      tooltipClassName={cn('a_c', tooltipText!?.length > 64 ? 'max_w_300' : 'max_w_200')}
       as='div'
       position='top'
       message={tooltipText}

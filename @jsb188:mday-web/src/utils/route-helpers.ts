@@ -475,7 +475,7 @@ export function getNavigationList(
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['/app/vendors'],
-            ROUTES_DICT['/app/markets'],
+            // ROUTES_DICT['/app/markets'],
             ROUTES_DICT['/app/receipts'],
           ]
         },

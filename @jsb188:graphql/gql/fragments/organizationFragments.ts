@@ -70,6 +70,7 @@ export const organizationSiteFragment = `fragment organizationSiteFragment on Or
   parentId
   name
   note
+  createdAt
   organizationName
   parentName
 }`;

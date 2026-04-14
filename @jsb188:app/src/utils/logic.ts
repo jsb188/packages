@@ -130,10 +130,27 @@ function getIndexedValues(
 }
 
 /**
+ * Check whether a URL search-param value is a serialized generic ID.
+ */
+
+export function isValidGenericIdSearchParam(value?: string | number | bigint | null) {
+	if (!value) {
+		return true;
+	}
+
+	const stringValue = String(value);
+	return stringValue !== '0' && /^\d+$/.test(stringValue);
+}
+
+/**
  * Validate parsed URL filters using the same date and timezone rules as the logs filter schema.
  */
 
 function parsedFilterIsValid(filter: Omit<Partial<FilterLogEntriesArgs>, 'operation'>) {
+	if (!isValidGenericIdSearchParam(filter.siteId)) {
+		return false;
+	}
+
 	if (filter.startDate) {
 		if (!isValidCalDate(filter.startDate)) {
 			return false;
@@ -172,6 +189,7 @@ export function getFiltersFromURL(
 	}
 
 	const filter: Omit<Partial<FilterLogEntriesArgs>, 'operation'> = {
+		siteId: urlParams.get('sid') || null,
 		types: getIndexedValues(urlParams.get('t'), types) as FilterLogEntriesArgs['types'],
 		activities: getIndexedValues(urlParams.get('a'), activities) as FilterLogEntriesArgs['activities'],
 		startDate,

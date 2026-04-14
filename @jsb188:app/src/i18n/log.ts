@@ -507,12 +507,13 @@ export default {
 
 		// Search filter popover options
 		filter_by: {
-			preset: 'Filter by Preset',
-			activity: 'Filter by Activity',
-			date_range: 'Filter by Dates',
+			preset: 'Filter by preset',
+			activity: 'Filter by activity',
+			date_range: 'Filter by date range',
+      site_location: 'Filter by location',
 			WEEKS_5: '5 weeks',
 			ai_tasks_only: 'AI tasks only',
-			search: 'Search for Keywords',
+			search: 'Search for keywords',
 		},
 
 		// Accounting dates

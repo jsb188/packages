@@ -278,6 +278,7 @@ export default {
     schedule: 'Schedule',
     scheduled: 'Scheduled',
     added_by: 'Added by',
+    created: 'Created',
     created_by: 'Created by',
     tasked_by: 'Tasked by',
     updated: 'Updated',

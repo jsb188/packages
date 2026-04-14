@@ -21,6 +21,7 @@ export default {
     delete_child_org_msg: 'Are you sure you want to remove\n [hl]%{name}[/hl]?',
 		manage_team: 'Manage team',
 		site_locations: 'Site locations',
+		all_site_locations: 'All locations',
 		invite_members: 'Invite members',
 		members_ct: '%{smart_count} member||||%{smart_count} members',
 		administration: 'Administration',

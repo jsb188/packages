@@ -363,6 +363,7 @@ export interface LogEntryData {
 
 export interface FilterLogEntriesArgs {
   accountId?: string | null; // Account ID to filter logs by account
+  siteId?: string | number | bigint | null; // Site ID to filter logs by site
   preset?: 'WEEKS_5' | 'AI_TASKS' | null;
   types?: LogTypeEnum[] | null;
   activities?: LogActivityEnum[] | null;

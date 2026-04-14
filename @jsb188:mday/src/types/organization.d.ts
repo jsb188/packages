@@ -94,6 +94,7 @@ export interface OrganizationSiteData {
 	parentId?: bigint | null;
 	name: string;
 	note?: string | null;
+	createdAt: Date;
 }
 
 export interface OrgContact {
@@ -190,6 +191,7 @@ export interface OrganizationSiteGQL {
 	parentId?: string | null;
 	name: string;
 	note?: string | null;
+	createdAt: string;
 	organizationName?: string | null;
 	parentName?: string | null;
 }

@@ -4,7 +4,7 @@ import { SmartLink } from '@jsb188/react-web/ui/Button';
 import { FilterPillButton } from '@jsb188/react-web/ui/PageFiltersUI';
 import { usePopOverState } from '@jsb188/react/states';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
-import React, { memo, useEffect } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Icon } from '../svgs/Icon';
 
@@ -146,9 +146,26 @@ export const ToolbarItems = memo((p: {
   const { items, flexClassName, className, filterPrefix = 'toolbar_filter_' } = p;
   const navigate = useNavigate();
   const { popOver, closePopOver } = usePopOverState();
+  const itemsRef = useRef(items);
+  const filterPrefixRef = useRef(filterPrefix);
+  const handledPopOverRef = useRef<typeof popOver | null>(null);
 
   useEffect(() => {
-    const toolbarItem = items.find((item) => `${filterPrefix}${item.id}` === popOver?.id);
+    itemsRef.current = items;
+    filterPrefixRef.current = filterPrefix;
+  }, [filterPrefix, items]);
+
+  useEffect(() => {
+    if (!popOver) {
+      handledPopOverRef.current = null;
+      return;
+    }
+
+    if (handledPopOverRef.current === popOver) {
+      return;
+    }
+
+    const toolbarItem = itemsRef.current.find((item) => `${filterPrefixRef.current}${item.id}` === popOver.id);
     if (!toolbarItem) {
       return;
     }
@@ -164,11 +181,12 @@ export const ToolbarItems = memo((p: {
       return;
     }
 
+    handledPopOverRef.current = popOver;
     closePopOver();
     navigate(nextTo, {
       preventScrollReset: true,
     });
-  }, [closePopOver, filterPrefix, items, navigate, popOver]);
+  }, [closePopOver, navigate, popOver]);
 
   if (!items.length) {
     return null;

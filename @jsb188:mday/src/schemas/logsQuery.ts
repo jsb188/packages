@@ -9,6 +9,9 @@ import type { OrganizationOperationEnum } from '../types/organization.d.ts';
  */
 
 export const FilterLogEntriesSchema = z.object({
+  siteId: z.string()
+    .optional()
+    .nullable(),
   preset: z.string()
     .optional()
     .nullable(),
