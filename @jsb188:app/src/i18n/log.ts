@@ -123,6 +123,7 @@ export default {
 			// #### FARMERS_MARKET
 			MARKET_RECEIPT: 'Receipt',
 			MARKET_OPERATION: 'Operation',
+      VOID_MARKET_RECEIPT: 'Void receipt',
 
 			// #### GROWER_NETWORK
 			WORKER_PRACTICE: 'Personnel practices',
@@ -266,8 +267,6 @@ export default {
 			// # Market operation activities
 			MARKET_ATTENDANCE: 'Event attendance',
 			MARKET_LOAD_LIST: 'Market load list',
-			VENDOR_NOTES: 'Notes on vendors',
-			FARMERS_MARKET_NOTES: 'General operation notes',
 
 			// #### GROWER NETWORK
 
@@ -413,8 +412,6 @@ export default {
 			// # Market operation activities
 			MARKET_ATTENDANCE: 'Attendance',
 			MARKET_LOAD_LIST: 'Load list',
-			VENDOR_NOTES: 'Notes',
-			FARMERS_MARKET_NOTES: 'Operation',
 
 			// #### GROWER NETWORK
 

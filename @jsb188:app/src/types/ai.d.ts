@@ -24,7 +24,7 @@ export type AIEventErrorName =
 
 // AI chat
 
-export interface AIChatObj {
+export interface AIChatData {
   id: string;
   calDate: string;
   summary: string;

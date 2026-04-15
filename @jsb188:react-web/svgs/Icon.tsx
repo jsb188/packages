@@ -287,8 +287,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   MARKET_CREDIT_RECEIPT: 'farming-sell-vegetable',
   MARKET_ATTENDANCE: 'notes-tasks',
   MARKET_LOAD_LIST: 'notes-tasks',
-  VENDOR_NOTES: 'notes-tasks',
-  FARMERS_MARKET_NOTES: 'notes-tasks',
 
   // GROWER NETWORK - Icon Names for each log activity
   SANITATION_PRACTICE: 'cleanser-scrubbing-1',

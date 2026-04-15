@@ -109,17 +109,13 @@ export const ARABLE_ACTIVITIES_TO_TEXT = {
  */
 
 export const FARMERS_MARKET_RECEIPT_TO_TEXT = {
-	MARKET_CREDIT_RECEIPT: 'market credits, coins, or voucher receipts',
+	MARKET_CREDIT_RECEIPT: 'receipts for market credits, coins, or voucher redemption',
 };
 
 export const FARMERS_MARKET_OPERATION_TO_TEXT = {
 	MARKET_ATTENDANCE: 'attendance for vendor',
 	MARKET_LOAD_LIST: 'vendor load list',
-	VENDOR_NOTES: 'notes about a vendor',
-	// All texts for same activity names must be same across all operations
-	// ie. ARABLE vs FARMERS_MARKET
-	EMPLOYEE_NOTES: 'notes about an employee',
-	FARMERS_MARKET_NOTES: 'notes about farmers market',
+	OPERATION_NOTE: 'general operation notes',
 };
 
 export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {

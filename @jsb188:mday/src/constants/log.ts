@@ -231,9 +231,7 @@ export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
 		[
 			'MARKET_ATTENDANCE',
 			'MARKET_LOAD_LIST',
-			'VENDOR_NOTES',
-			'EMPLOYEE_NOTES',
-			'FARMERS_MARKET_NOTES',
+      'OPERATION_NOTE'
 		],
 	],
 ];
