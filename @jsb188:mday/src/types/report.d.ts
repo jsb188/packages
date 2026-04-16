@@ -78,6 +78,11 @@ export interface ReportFieldsRow {
 	preset?: ReportRowPresetEnum;
 	className?: string;
 	isHeader?: boolean;
+	defaultPlaceholder?: string | null;
+	defaultCheckedShortText?: string | null;
+	defaultNotCheckedShortText?: string | null;
+	defaultCheckedText?: string | null;
+	defaultNotCheckedText?: string | null;
 	columns: ReportFieldsColumn[];
 	__notAutomated?: boolean; // If true, this column is not filled during automation
 }
@@ -91,12 +96,16 @@ export interface ReportFieldsColumn {
 	label?: string; // Typically, this is the "question" the AI Agent/human must answer
 	answer?: string | null; // GraphQL-facing saved answer value used for realtime updates
 	text?: string; // This the answer provided by the AI Agent/human
+	shortText?: string | null;
+	checkedText?: string | null;
+	checkedShortText?: string | null;
+	notCheckedText?: string | null;
+	notCheckedShortText?: string | null;
   confirmationNeeded?: boolean;
   doNotAllowNotes?: boolean; // If true, AI will NOT leave notes for this column
   allowMultipleAnswers?: boolean;
   allowCorrectiveActions?: boolean; // If true, AI Agents are allowed to provide corrective actions for this column if the user adds one
 	hint?: string; // Additional instructions or context for this column, typically only shown to AI Agents for more guidance.
-	note?: string; // Additional notes in relation to the user's answer for this column
 	warningNote?: string; // GraphQL-facing warning field used by mapped report data
 	placeholder?: string | null;
 	checked?: boolean | null;
@@ -106,6 +115,7 @@ export interface ReportFieldsColumn {
 
 export interface ReportColumnGQL extends ReportFieldsColumn {
 	id: string; // GraphQL Cursor, client-side only, but if present in Server, it will be an Array
+  entityId?: string | null;
 	referenceIds?: string[] | null;
 	lineNumber?: string | null;
 }

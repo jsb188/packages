@@ -601,6 +601,14 @@ export const CheckBadgeColor = <svg xmlns="http://www.w3.org/2000/svg" fill="non
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m15.9817 9.51245 -4.0514 5.40115c-0.0656 0.0874 -0.1491 0.1597 -0.2451 0.2121 -0.0959 0.0523 -0.2019 0.0834 -0.3109 0.0913 -0.109 0.0078 -0.2184 -0.0079 -0.3208 -0.0459 -0.1024 -0.0381 -0.1955 -0.0978 -0.2729 -0.1749l-2.43081 -2.4318" strokeWidth="1"/>
 </svg>;
 
+export const Checklist = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-checklist" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M2.89999994,1.49900013h18.19999988s1.40000012,0,1.40000012,1.40000012v18.20000012s0,1.40000012-1.40000012,1.40000012H2.89999994s-1.4,0-1.4-1.40000012V2.89900049s0-1.4,1.4-1.4"/>
+<path d="M12,4.99899994l-4.19999988,5.60000049-2.79999976-2.80000024"/>
+<path d="M14.10000018,8.49899927h4.19999939"/>
+<path d="M12,13.3989997l-4.19999988,5.60000147-2.79999976-2.80000024"/>
+<path d="M14.10000018,16.89900001h4.19999939"/>
+</svg>;
+
 export const LikeBubble = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-like-bubble" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <g>
 <path d="M23.25 12a3.75 3.75 0 0 0 -2.62 -3.58 3.75 3.75 0 0 0 -5 -5 3.76 3.76 0 0 0 -7.16 0 3.75 3.75 0 0 0 -5 5.05 3.76 3.76 0 0 0 0 7.16 3.75 3.75 0 0 0 5.05 5 3.76 3.76 0 0 0 7.16 0 3.75 3.75 0 0 0 5 -5A3.75 3.75 0 0 0 23.25 12Z"/>
@@ -618,14 +626,6 @@ export const LikeBubbleColor = <svg xmlns="http://www.w3.org/2000/svg" fill="non
 <path fill="#66e1ff" d="M6.918 9.6h1.5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-1.5" strokeWidth="1"/>
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.918 9.6h1.5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-1.5" strokeWidth="1"/>
 </g>
-</svg>;
-
-export const Checklist = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-checklist" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M9.615 20h-2.615a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8" stroke="currentColor" />
-<path d="M14 19l2 2l4 -4" stroke="currentColor" />
-<path d="M9 8h4" stroke="currentColor" />
-<path d="M9 12h2" stroke="currentColor" />
 </svg>;
 
 export const CherryFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-cherry-filled">

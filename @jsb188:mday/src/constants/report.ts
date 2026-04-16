@@ -12,6 +12,7 @@ export const REPORT_ROW_PRESETS = [
   'REPORT_SUMMARY',
   'LINE_TITLE',
   'LINE_ITEMS',
+  'ORGS_LIST',
   'TEXTS',
 
   // All deprecated below

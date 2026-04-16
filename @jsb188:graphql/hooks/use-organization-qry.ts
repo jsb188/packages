@@ -1,4 +1,5 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
+import type { ChildOrgsFilterArgs } from '@jsb188/mday/types/organization.d.ts';
 import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationSitesQry } from '../gql/queries/organizationQueries';
 import type { PaginationArgs, UseQueryParams } from '../types.d';
 
@@ -102,7 +103,7 @@ export function useOrgRelFromMyOrganizations(organizationId: string | null) {
 
 export function useChildOrganizations(variables: PaginationArgs & {
   organizationId?: string | null;
-  // filters: ? not ready yet
+  filter?: ChildOrgsFilterArgs;
 }, params: UseQueryParams = {}) {
   const { data, ...rest } = useQuery(childOrganizationsQry, {
     variables: {

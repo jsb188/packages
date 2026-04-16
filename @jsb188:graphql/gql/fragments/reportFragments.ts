@@ -31,6 +31,7 @@ export const reportRowDataFragment = `fragment reportRowDataFragment on ReportRo
 
 export const reportColumnDataFragment = `fragment reportColumnDataFragment on ReportColumnData {
   id
+  entityId
   referenceIds
   lineNumber
   className
@@ -38,6 +39,7 @@ export const reportColumnDataFragment = `fragment reportColumnDataFragment on Re
   label
   answer
   text
+  shortText
   note
   warningNote
   placeholder

@@ -132,7 +132,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   progress: 'progress',
   progress_check: 'progress-check',
   progress_error: 'progress-x',
-  read: 'checklist',
   receipt: 'receipt-dollar',
   seeding: 'organic-seedling-grow',
   smile: 'confetti',
