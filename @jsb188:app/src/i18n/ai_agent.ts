@@ -80,9 +80,7 @@ export default {
 
 		// Features
 		features: {
-			AI_TASK: '"AI tasks", "AI workflows", "sending an email", "sending a message", "reminders", "work check-ins"',
-			CAL_EVENTS: '"events", "market days"',
-			CAL_EVENTS_ATTENDANCE: '', // This must return an empty string
+			AI_TASK: '"AI tasks", "AI workflows", "sending an email", "sending a message", "reminders", "work check-ins"'
 		},
 
 		// Real-time data update messages

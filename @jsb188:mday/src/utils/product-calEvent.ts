@@ -4,7 +4,7 @@ import { getFullDate } from '@jsb188/app/utils/datetime.ts';
 import { convertToMilitaryTime } from '@jsb188/app/utils/number.ts';
 import { DEFAULT_TIMEZONE, formatCalDateInTimeZone, getDayOfWeekInTimeZone, hhmmFromDateOrTime, parseBoundaryDateInTimezone } from '@jsb188/app/utils/timeZone.ts';
 import { DateTime } from 'luxon';
-import type { ProductAttendanceData, ProductCalEventData, ProductCalEventGQL } from '../types/product.d.ts';
+import type { ProductCalEventData, ProductCalEventGQL } from '../types/product.d.ts';
 
 /**
  * Get the address in a single line text format
@@ -384,59 +384,6 @@ export function getTimeFromSchedule(
     hhmmFromDateOrTime(startTime, null, true, timeZone),
     endTime && hhmmFromDateOrTime(endTime, null, true, timeZone)
   ];
-}
-
-/**
- * Filter org event attendance based on manual check & edit history
- * @param attendance - Array of organization event attendance data objects
- * @param calDate - Calendar date in string format (YYYY-MM-DD)
- * @returns Filtered array of organization event attendance data objects
- */
-
-export function filterEventAttendance(
-	attendance_: ProductAttendanceData[],
-	calDate: string,
-): ProductAttendanceData[] {
-	const targetJSDate = new Date(calDate);
-  const targetTimestamp = targetJSDate.getTime();
-  const attendance = attendance_.filter((item) => !item.calDate || new Date(item.calDate).getTime() === targetTimestamp);
-
-	const checkedAttendance = new Set<number | bigint>();
-	for (const item of attendance) {
-		if (item.attended !== null) {
-			checkedAttendance.add(item.organizationId);
-		}
-	}
-
-	const isActiveOnDate = (item: ProductAttendanceData): boolean => {
-		if (
-			item.calDate || // If "calDate" is set, this was a manual override by a human, so history is ignored
-			!item.history || item.history.length === 0
-		) {
-			return true;
-		}
-
-		// Sort history by date to be safe
-		// NOTE: item.history.sort() will mutate the original array, but that's acceptable for our application
-		const sorted = item.history.sort((a: any, b: any) => new Date(a[0]).getTime() - new Date(b[0]).getTime());
-
-		let active = false;
-		for (const [hDate, status] of sorted) {
-			if (new Date(hDate) > targetJSDate) {
-				break;
-			}
-			active = status === '1';
-		}
-		return active;
-	};
-
-	const filteredList = attendance.filter((item) =>
-		!(item.attended === null && checkedAttendance.has(item.organizationId)) &&
-		isActiveOnDate(item)
-	);
-
-	// Sort by organization.name
-	return filteredList.sort((a, b) => a.organization.name.localeCompare(b.organization.name));
 }
 
 /**

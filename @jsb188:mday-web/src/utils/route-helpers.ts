@@ -45,7 +45,6 @@ type ValidRoutePath =
   | '/app/vendors'
   | '/app/markets'
   | '/app/receipts'
-  | '/app/livestock'
   | '/app/growers'
   | '/app/foreign-growers'
 
@@ -225,7 +224,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.shop_market,
 
     allowedOperations: ['FARMERS_MARKET'],
-    requiredFeature: ['CAL_EVENTS'],
   },
   '/app/receipts': {
     to: ('/app/receipts') as ValidRoutePath,
@@ -233,16 +231,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.market_receipt,
 
     allowedOperations: ['FARMERS_MARKET'],
-    requiredFeature: F.normal_logging
-  },
-
-  // Livestock
-  '/app/livestock': {
-    to: '/app/livestock',
-    text: 'form.livestock',
-    iconName: COMMON_ICON_NAMES.livestock,
-
-    allowedOperations: ['LIVESTOCK'],
     requiredFeature: F.normal_logging
   },
 
@@ -463,7 +451,6 @@ export function getNavigationList(
         {
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
-            ROUTES_DICT['/app/livestock'],
             { ...ROUTES_DICT['/app/purchases'], text: i18n.t('log.supply_purchases') },
           ]
         },

@@ -3,8 +3,6 @@
  */
 
 export const PRODUCT_TYPES = [
-	'LIVESTOCK',
-	'CAL_EVENTS',
 	'FOOD_SAFETY',
 	'GLOBAL_GAP',
 ];
@@ -21,14 +19,9 @@ export const FEATURES_BY_OPERATION = {
 	],
 	FARMERS_MARKET: [
 		'NORMAL_LOGGING',
-		'CAL_EVENTS',
-		'CAL_EVENTS_ATTENDANCE',
-		'CAL_EVENTS_LOAD_LIST',
 	],
 	LIVESTOCK: [
 		'NORMAL_LOGGING',
-		'LIVESTOCK', // DEPRECATED
-    'LIVESTOCK_MANAGEMENT',
 	],
   GROWER_NETWORK: [
     'NORMAL_LOGGING',
@@ -44,31 +37,5 @@ export const PRODUCT_FEATURES = [
 ].filter((value, index, self) => self.indexOf(value) === index);
 
 export const PRODUCT_FEATURES_WORKFLOW = PRODUCT_FEATURES.filter((feature) =>
-  !['NORMAL_LOGGING', 'LIVESTOCK'].includes(feature)
+  !['NORMAL_LOGGING'].includes(feature)
 );
-
-export const ACTIVITY_TO_FEATURE_MAP = {
-	CAL_EVENTS_ATTENDANCE: ['MARKET_ATTENDANCE'],
-	CAL_EVENTS_LOAD_LIST: ['MARKET_LOAD_LIST'],
-};
-
-/**
- * Products; Livestock
- */
-
-export const PRODUCT_LIVESTOCK_TYPES = [
-	'CATTLE',
-	'HORSE',
-	'GOAT',
-	'SHEEP',
-	'POULTRY',
-	'PIG',
-	'OTHER_LIVESTOCK',
-];
-
-export const PRODUCT_LIVESTOCK_STATUS = [
-	'ALIVE',
-	'SICK',
-	'SOLD',
-	'DECEASED',
-];

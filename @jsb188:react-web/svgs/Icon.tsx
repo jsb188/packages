@@ -170,9 +170,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   SITE_INSPECTION: 'task-list-search',
   FOOD_SAFETY: 'washing-hand',
   GLOBAL_GAP: 'ui-webpage-check',
-  CAL_EVENTS: 'calendar-3',
-  CAL_EVENTS_ATTENDANCE: 'task-list-check-1',
-  CAL_EVENTS_LOAD_LIST: 'farmers-market-kiosk',
   LIVESTOCK_MANAGEMENT: 'outdoors-horse',
 
   // Operation types

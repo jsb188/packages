@@ -1,10 +1,7 @@
-import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
 import type { ProductsFilterArgs } from '@jsb188/mday/types/product.d.ts';
-import { useMemo } from 'react';
 import { useQuery, useReactiveFragment } from '../client';
-import { productAttendanceListQry, productsListQry } from '../gql/queries/productQueries';
+import { productsListQry } from '../gql/queries/productQueries';
 import type { PaginationArgs, UseQueryParams } from '../types';
-import { useOrgRelFromMyOrganizations } from './use-organization-qry';
 
 /**
  * Constants
@@ -67,43 +64,4 @@ export function useReactiveProductFragment(productId: string, currentData?: any,
     ],
     queryCount,
   );
-}
-
-/**
- * Fetch Org Event attendance, ACL, and Org Event fragment from cache
- */
-
-export function useProductAttendance(
-  variables: {
-    organizationId: string;
-    productId: string;
-    calDate: string;
-  },
-  params: UseQueryParams = {},
-) {
-
-  const { organizationId, productId, calDate } = variables;
-  const { organizationRelationship } = useOrgRelFromMyOrganizations(organizationId);
-
-  const { data, ...rest } = useQuery(productAttendanceListQry, {
-    variables,
-    skip: !productId || !calDate || !organizationId,
-    ...params,
-  });
-
-  const productAttendanceList = data?.productAttendanceList;
-  const notReady = !organizationRelationship || !productAttendanceList;
-
-  const allowEdit = useMemo(() => {
-    return checkACLPermission(organizationRelationship, 'products', 'MANAGE');
-  }, [organizationRelationship?.acl, organizationRelationship?.role]);
-
-  // console.log('viewerAccountId', viewerAccountId, organizationEvent?.accountId, isMyDocument, allowEdit);
-
-  return {
-    productAttendanceList,
-    notReady,
-    allowEdit,
-    ...rest
-  };
 }

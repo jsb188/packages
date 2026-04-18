@@ -1,15 +1,13 @@
-import { PRODUCT_LIVESTOCK_STATUS, PRODUCT_LIVESTOCK_TYPES, PRODUCT_TYPES } from '../constants/product.ts';
 import type { AccountData } from '@jsb188/app/types/account.d.ts';
-import type { OrganizationData, OrganizationGQL } from './types/organization.d';
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d.ts';
+import { PRODUCT_TYPES } from '../constants/product.ts';
+import type { OrganizationData, OrganizationGQL } from './organization.d.ts';
 
 /**
  * Enums
  */
 
 export type ProductTypeEnum = typeof PRODUCT_TYPES[number];
-export type ProductLivestockTypeEnum = typeof PRODUCT_LIVESTOCK_TYPES[number];
-export type ProductLivestockStatusEnum = typeof PRODUCT_LIVESTOCK_STATUS[number];
 
 /**
  * Filters
@@ -21,49 +19,6 @@ export interface ProductsFilterArgs {
 	query?: string | null;
 	calDate?: string | null; // "YYYY-MM-DD"
 	timeZone?: string | null; // Server only for now
-	// status: ProductLivestockStatusEnum;
-}
-
-/**
- * Product details; Livestock
- */
-
-export interface ProductLivestockObj {
-	// This interface is not ready yet; old system has to be migrated.
-	'?': '?';
-}
-
-export interface ProductLivestockData {
-	__table: 'products_livestock';
-	id?: number | bigint;
-	productId: number | bigint;
-	type: ProductLivestockTypeEnum;
-	status: ProductLivestockStatusEnum;
-	birthDate?: string | null; // "YYYY-MM-DD"
-	deathDate?: string | null; // "YYYY-MM-DD"
-	damIdentifier?: string | null;
-	livestockIdentifier: string;
-	livestockGroup?: string | null;
-	metadata: {
-		overview: string;
-	};
-}
-
-export interface ProductLivestockGQL {
-	__typename: 'ProductLivestock';
-
-	id: string;
-	organizationId: string;
-	damIdentifier: string | null;
-	livestockIdentifier: string | null;
-	livestockGroup: string | null;
-
-	type: ProductLivestockTypeEnum;
-	status: ProductLivestockStatusEnum;
-	livestockClass: string;
-
-	birthDate: string | null; // "YYYY-MM-DD"
-	deathDate: string | null; // "YYYY-MM-DD"
 }
 
 /**
@@ -99,53 +54,9 @@ export interface ProductCalEventGQL {
 	endAt: Date;
 }
 
-export type ProductDetailsObj = ProductLivestockObj | ProductCalEventObj;
-export type ProductDetailsData = ProductLivestockData | ProductCalEventData;
-export type ProductDetailsGQL = ProductLivestockGQL | ProductCalEventGQL;
-
-/**
- * CalEvent; attendance
- */
-
-export interface ProductAttendanceObj {
-	productId: number | bigint;
-	organizationId: number | bigint;
-	accountId: number | bigint;
-	attended: boolean | null;
-	calDate: string; // "YYYY-MM-DD" format
-	history?: [string, '0' | '1'][] | null; // [YYYY-MM-DD, '0' | '1'][]
-}
-
-export interface ProductAttendanceData extends ProductAttendanceObj {
-	__table: 'products_attendance';
-	organization: OrganizationData;
-	account: AccountData; // account data
-}
-
-export interface ProductAttendanceGQL {
-	__deleted: boolean; // For client-side only
-	id: string;
-	productId: string;
-	organizationId: string;
-	attended: boolean | null;
-	calDate: string; // "YYYY-MM-DD" format
-	organization: OrganizationGQL;
-	checkedBy: any; // account data
-}
-
-/**
- * CalEvent; load list
- */
-
-export interface ProductLoadListData {
-  __table: 'products_load_list';
-  organizationId: number | bigint;
-  productId: number | bigint;
-  calDate: Date; // Postgres returns "date" as JS Date, but it's safe to convert "YYYY-MM-DD" without time zone.
-  items: string[][]; // [ [itemName, quantity, unit], ... ]
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type ProductDetailsObj = ProductCalEventObj;
+export type ProductDetailsData = ProductCalEventData;
+export type ProductDetailsGQL = ProductCalEventGQL;
 
 /**
  * Product data objects

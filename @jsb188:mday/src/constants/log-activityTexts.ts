@@ -112,15 +112,19 @@ export const FARMERS_MARKET_RECEIPT_TO_TEXT = {
 	MARKET_CREDIT_RECEIPT: 'receipts for market credits, coins, or voucher redemption',
 };
 
-export const FARMERS_MARKET_OPERATION_TO_TEXT = {
+export const FARMERS_MARKET_MANAGEMENT_TO_TEXT = {
 	MARKET_ATTENDANCE: 'attendance for vendor',
 	MARKET_LOAD_LIST: 'vendor load list',
+};
+
+export const FARMERS_MARKET_NOTE_TO_TEXT = {
 	OPERATION_NOTE: 'general operation notes',
 };
 
 export const FARMERS_MARKET_ACTIVITIES_TO_TEXT = {
 	...FARMERS_MARKET_RECEIPT_TO_TEXT,
-	...FARMERS_MARKET_OPERATION_TO_TEXT,
+	...FARMERS_MARKET_MANAGEMENT_TO_TEXT,
+  ...FARMERS_MARKET_NOTE_TO_TEXT,
 };
 
 /**

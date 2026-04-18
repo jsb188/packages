@@ -41,6 +41,7 @@ export const reportColumnDataFragment = `fragment reportColumnDataFragment on Re
   text
   shortText
   note
+  warningIfNotChecked
   warningNote
   placeholder
   checked

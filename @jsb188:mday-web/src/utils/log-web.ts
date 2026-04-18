@@ -428,65 +428,6 @@ export function getIconNameForArable(crop?: string | undefined, note?: string | 
 }
 
 /**
- * Get the icon name for livestock using regex
- * @param purchasedItem - The name of the purchased item
- * @param note - Additional note that may contain livestock type
- * @param defaultIcon - The default icon to return if no match is found
- * @returns The icon name or a default icon if no match is found
- */
-
-export function getIconNameForLivestock(
-	purchasedItem?: string | null,
-	note?: string | null,
-	defaultIcon?: string,
-): string {
-	if (purchasedItem) {
-		// return 'seedling';
-		const LIVESTOCK_WORDS = [
-			'hay\\b',
-			'cow',
-			'calf',
-			'cattle',
-			'bull',
-			'sheep',
-		];
-
-		const regex = new RegExp(`\\b(${LIVESTOCK_WORDS.join('|')})`, 'gi');
-		const match = purchasedItem.replace('-', ' ').match(regex);
-		if (match) {
-			let matchedWord;
-			if (match.length === 1) {
-				matchedWord = match[0].toLowerCase();
-			} else {
-				// If multiple matches, choose the first match from produce words
-				const lcMatch = match.map((m) => m.toLowerCase());
-				matchedWord = LIVESTOCK_WORDS.find((word) => lcMatch.includes(word));
-			}
-
-			switch (matchedWord) {
-				case 'hay':
-					return 'farming-hay';
-				case 'cow':
-				case 'calf':
-				case 'cattle':
-				case 'bull':
-					return 'livestock-cow-body';
-				default:
-					console.log('Missing switchcase for crop:', purchasedItem);
-			}
-		}
-
-		console.log('No match found for crop:', purchasedItem);
-	}
-
-	if (note) {
-		return getIconNameForLivestock(note, null, defaultIcon);
-	}
-
-	return defaultIcon || 'oat-2';
-}
-
-/**
  * Get the icon name for farmers market using regex
  * @param purchasedItem - The name of the purchased item
  * @param note - Additional note that may contain livestock type
@@ -575,9 +516,6 @@ export function getIconNameForWord(
     case 'ARABLE':
 		case 'LogArable':
 			return getIconNameForArable(text1, text2, defaultIcon);
-    case 'LIVESTOCK':
-		case 'LogLivestock':
-			return getIconNameForLivestock(text1, text2, defaultIcon);
     case 'FARMERS_MARKET':
 		case 'LogFarmersMarket':
 			return getIconNameForFarmersMarket(text1, text2, defaultIcon);

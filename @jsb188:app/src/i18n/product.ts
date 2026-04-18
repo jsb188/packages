@@ -53,9 +53,6 @@ export default {
       SITE_INSPECTION: 'Site inspection',
       FOOD_SAFETY: 'Food safety',
       GLOBAL_GAP: 'GLOBALG.A.P.',
-      CAL_EVENTS: 'Events',
-      CAL_EVENTS_ATTENDANCE: 'Attendance',
-      CAL_EVENTS_LOAD_LIST: 'Load list',
       LIVESTOCK_MANAGEMENT: 'Livestock',
     },
 
@@ -64,25 +61,7 @@ export default {
       SITE_INSPECTION: 'Site inspection',
       FOOD_SAFETY: 'Food safety',
       GLOBAL_GAP: 'GLOBALG.A.P.',
-      CAL_EVENTS: 'Events',
-      CAL_EVENTS_ATTENDANCE: 'Attendance',
-      CAL_EVENTS_LOAD_LIST: 'Load list',
       LIVESTOCK_MANAGEMENT: 'Livestock management',
-		},
-
-		feature_instructions: {
-			// This object is the "instruction" field of "actions" database document.
-			// It's used as visualization purposes only, in front-end UI.
-			CAL_EVENTS_ATTENDANCE: "Read the log and record the vendor's attendance.",
-			CAL_EVENTS_LOAD_LIST: "Save the vendor's load list for the market day.",
-		},
-
-		feature_notification: {
-			// This object is the "top right corner" toaster notification messages in the front-end UI.
-			CAL_EVENTS_ATTENDANCE_success: 'Vendor attendance has been recorded.',
-			CAL_EVENTS_ATTENDANCE_failed: 'Failed to record vendor attendance.',
-			CAL_EVENTS_LOAD_LIST_success: 'Load list has been saved.',
-			CAL_EVENTS_LOAD_LIST_failed: 'Failed to save load list.',
 		},
 
 		// Reports

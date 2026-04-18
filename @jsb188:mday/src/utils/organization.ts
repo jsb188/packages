@@ -264,11 +264,6 @@ export function getOrganizationFeatureColor(feature?: OrganizationFeatureEnum | 
 	const featureToColor = {
 		FOOD_SAFETY: 'sky',
 		GLOBAL_GAP: 'brown',
-		CAL_EVENTS: 'cyan',
-		CAL_EVENTS_ATTENDANCE: 'cyan',
-		CAL_EVENTS_LOAD_LIST: 'amber',
-		LIVESTOCK: 'brown',
-		LIVESTOCK_MANAGEMENT: 'brown',
 	} as Record<OrganizationFeatureEnum, string>;
 
 	return (feature && featureToColor[feature]) || 'stone';
