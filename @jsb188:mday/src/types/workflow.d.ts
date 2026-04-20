@@ -11,6 +11,7 @@ export interface WorkflowPrompts {
   main: BuildSingleTextLine[];
   identity?: BuildSingleTextLine[];
   progressReport?: BuildSingleTextLine[];
+  summary?: BuildSingleTextLine[];
 }
 
 /**

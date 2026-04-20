@@ -599,7 +599,8 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         isSaleOrPurchase ? 'invoiceItems' : null,
         isSaleOrPurchase ? 'tax' : null,
         isSaleOrPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
-        isSaleOrPurchase ? null : 'fieldLocation',
+        'location',
+        'fieldLocation',
       ];
     } break;
     case 'LogFarmersMarket': {
@@ -611,6 +612,8 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         // 'childOrgId', // not editable
         isReceipt ? 'void' : null,
         isReceipt ? 'marketCredits' : null,
+        'location*fill',
+        'fieldLocation',
       ];
     } break;
     case 'LogGrowerNetwork': {

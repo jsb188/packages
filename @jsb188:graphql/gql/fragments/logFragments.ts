@@ -32,7 +32,6 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
   quantity
   unit
 
-  otherParty
   referenceNumber
   values {
     label
@@ -53,7 +52,6 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
 
   item
 
-  otherParty
   referenceNumber
   values {
     label
@@ -81,8 +79,6 @@ export const logGrowerNetworkFragment = `fragment logGrowerNetworkFragment on Lo
   pestsRisk
   sanitationRisk
 
-  otherParty
-
   item
   fieldLocation
 
@@ -101,7 +97,6 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
   livestockGroup
   damIdentifier
 
-  otherParty
   referenceNumber
   values {
     label
