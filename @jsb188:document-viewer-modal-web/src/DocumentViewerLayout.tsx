@@ -284,11 +284,19 @@ const DocumentPreviewArea = memo((p: {
     case 'image/gif':
     case 'image/webp':
       return (
-        <img
-          src={fileUrl}
-          alt={fileName}
-          className='w_f h_f img_contain noclick'
-        />
+        <div className='w_f h_f v_center'>
+          <img
+            src={fileUrl}
+            alt={fileName}
+            className='noclick'
+            style={{
+              width: 'auto',
+              height: 'auto',
+              maxWidth: '100vw',
+              maxHeight: '100vh',
+            }}
+          />
+        </div>
       );
 
     default:

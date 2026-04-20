@@ -26,6 +26,7 @@ export const REPORT_ROW_PRESETS = [
 
 export const REPORT_NUMBERED_PRESETS = [
   'LINE_ITEMS',
+  'ORGS_LIST',
 ];
 
 export const REPORT_FREQUENCY_ENUMS = [

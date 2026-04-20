@@ -56,7 +56,7 @@ export const CondensedArticleItem = memo((p: {
   voided?: boolean;
   domIdPrefix?: string;
   id?: string;
-  preset?: 'modal' | 'card' | 'default' | 'default_spaced';
+  preset?: 'modal' | 'default' | 'default_spaced';
   rightComponentClassName?: string;
   horizontalPaddingClassName?: string;
   horizontalMarginClassName?: string;
@@ -79,7 +79,6 @@ export const CondensedArticleItem = memo((p: {
   const { __deleted, horizontalPaddingClassName, horizontalMarginClassName, voided, hideSeparator, preset, domIdPrefix, id, onClick, rightIcons, RightComponent, labelsClassName, rightIconsClassName, avatarDisplayName, avatarPhotoUri, avatarColor, title, description, descriptionPlaceholder, labels, rightComponentClassName } = p;
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
-  const useAltLabelColors = !['modal','card'].includes(preset!);
   const hasDescription = !!(description || descriptionPlaceholder);
   const hasDescriptionOrRightIcons = hasDescription || (rightIcons && rightIcons?.length > 0);
   const visibleTitle = title && voided ? `(${i18n.t('form.void').toUpperCase()}) ${title}` : title;
@@ -93,12 +92,6 @@ export const CondensedArticleItem = memo((p: {
       linkHoverClassName = 'bg_lighter_hv_4';
       xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_md', horizontalMarginClassName ?? '-mx_5');
       yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
-      break;
-    case 'card':
-      addDivSeparator = false;
-      linkHoverClassName = 'bg_lighter_hv_4';
-      xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_sm', horizontalMarginClassName ?? '-mx_sm');
-      yPaddingClassName = 'py_xs';
       break;
     case 'default_spaced':
       addDivSeparator = false;
@@ -154,7 +147,7 @@ export const CondensedArticleItem = memo((p: {
               key={i}
               as='span'
               outline
-              color={useAltLabelColors ? 'alt' : 'bg'}
+              color='alt'
               // className='red_light_bf'
               // textColorClassName='cl_primary'
               {...label}

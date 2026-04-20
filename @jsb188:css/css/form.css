@@ -495,6 +495,10 @@ fieldset input[type="radio"] {
   border: solid 1px var(--color-darker-light);
 }
 
+.ib_label.outline.bg_bf:before {
+  border-color: var(--color-darker-medium);
+}
+
 /* Color indicators */
 
 .ib_label .indicator, .color_indicator {

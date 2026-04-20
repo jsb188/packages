@@ -1,6 +1,8 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
+import type { ModalProps } from '@jsb188/react/states';
+import { useOpenModalPopUp } from '@jsb188/react/states';
 import { memo } from 'react';
 import { Icon } from '../svgs/Icon';
 import { SmartLink } from '../ui/Button';
@@ -31,6 +33,7 @@ interface AsideGalleryBlockObj {
   items: {
     uri: string;
     name: string;
+    modalVariables?: ModalProps | null;
   }[] | null;
 }
 
@@ -128,7 +131,8 @@ export const AsideGalleryBlock = memo((p: AsideGalleryBlockObj & {
   pathname?: string;
 }) => {
   const { title, items } = p;
-const MAX_ASIDE_GALLERY_ITEMS = 16;
+  const openModalPopUp = useOpenModalPopUp();
+  const MAX_ASIDE_GALLERY_ITEMS = 16;
 
   let visibleItems, overflowCount;
   if (!items?.length) {
@@ -153,12 +157,11 @@ const MAX_ASIDE_GALLERY_ITEMS = 16;
         const imageUrl = makeUploadsUrl(item.uri, 'tiny');
         const showOverflowCount = !!overflowCount && i === visibleItems.length - 1;
 
-        return <span
+        return <SmartLink
           key={i}
-          // href={imageUrl}
-          // target='_blank'
-          // rel='noreferrer'
-          className='bl'
+          className={cn('bl', item.modalVariables ? 'pointer' : '')}
+          buttonElement='span'
+          onClick={item.modalVariables ? () => openModalPopUp(item.modalVariables!) : undefined}
         >
           <figure className='th_item r_sm bg_alt rel of'>
             {!imageUrl || showOverflowCount ? null : <img
@@ -179,7 +182,7 @@ const MAX_ASIDE_GALLERY_ITEMS = 16;
               </span>
             </>}
           </figure>
-        </span>;
+        </SmartLink>;
       })}
     </div>
   </nav>;
