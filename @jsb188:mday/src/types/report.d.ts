@@ -42,6 +42,7 @@ export interface ReportFieldsVariables {
 export interface ReportFieldsObj {
   __notAutomated?: boolean; // If true, report is not skipped during automation
   __prompt?: string; // Server-only, this prompt used on the entire report as a whole (ie. OSP generation)
+  valueRule?: string;
   gridLayoutStyle?: string;
   aside?: ReportFieldsAsideBlock[];
   sections?: ReportFieldsSection[];
@@ -223,6 +224,7 @@ export interface ReportSubmissionGQL {
   id: string;
   reportSubmissionId: string;
   reportId: string;
+  value?: string | null;
   frequency: ReportFrequencyEnum;
   reportSubmissionIdEnc?: string | null;
   organizationId: string;
@@ -258,6 +260,7 @@ export interface ReportSubmissionData {
   id: number;
   childOrgId?: number | bigint | null;
   siteId?: number | bigint | null;
+  value?: string | null;
   report?: Pick<ReportData, "id" | "frequency"> | null;
   site?: Pick<OrganizationSiteData, "id" | "name"> | null;
   childOrg?: OrganizationData;

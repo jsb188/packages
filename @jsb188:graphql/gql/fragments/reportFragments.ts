@@ -64,6 +64,7 @@ export const reportSubmissionFragment = `fragment reportSubmissionFragment on Re
   id
   reportSubmissionId
   reportId
+  value
   frequency
   reportSubmissionIdEnc
 
