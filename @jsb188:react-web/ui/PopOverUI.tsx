@@ -67,7 +67,7 @@ export const TooltipText = memo((p: TooltipProps) => {
       )}
       {__html
         ? <div className='shift_up' dangerouslySetInnerHTML={{ __html }} />
-        : <div className={cn('shift_up', leftIconName || rightIconName && 'h_center')}>
+        : <div className={cn('shift_up', (leftIconName || rightIconName) && 'h_center')}>
           {leftIconName && <span className='-ml_3'><Icon name={leftIconName} /></span>}
           {!leftIconName && !rightIconName ? messageComponent
           : <div className={cn(leftIconName ? 'ml_3' : '', rightIconName ? 'mr_3' : '')}>
@@ -313,10 +313,10 @@ export const POListItemCopy = memo((p: PONavItemBase & {
    */
 
   const handleClick = () => {
-    copyTextToClipboard(String(item.value || ''));
+    copyTextToClipboard(String(item.value ?? ''));
     setCloneItem({ ...item, className: 'cl_primary ft_medium', text: copiedText });
-    onClickItem(name, item.value || null);
-  }
+    onClickItem(name, item.value ?? null);
+  };
 
   return <POListItem
     {...p}

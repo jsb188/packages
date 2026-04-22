@@ -37,6 +37,10 @@ interface FullWidthButtonProps {
   to?: string;
 }
 
+function getDisabledButtonPreset(preset: ButtonPresetEnum, disabled?: boolean) {
+  return disabled && preset.startsWith('bg_') ? 'subtle' : preset;
+}
+
 function FullWidthButtonContent(p: FullWidthButtonProps) {
   const { children, iconName, photoUri, iconClassName, textClassName, loading } = p;
   const hasSides = !!iconName || !!photoUri;
@@ -93,12 +97,7 @@ export const FullWidthButton = memo((p: FullWidthButtonProps) => {
   const hasSides = !!iconName || !!photoUri;
   const preset = p.preset || 'subtle';
 
-  let buttonPreset: FullWidthButtonProps['preset'];
-  if (disabled && preset.startsWith('bg_')) {
-    buttonPreset = 'subtle';
-  } else {
-    buttonPreset = preset;
-  }
+  const buttonPreset = getDisabledButtonPreset(preset, disabled);
 
   // This Component does not support <a>, due to design reasons
   // If {href} is needed, use onClick() handler with raw javascript actions
@@ -160,21 +159,12 @@ export const FullWidthLink = memo((p: FullWidthLinkProps) => {
   const hasSides = !!iconName || !!photoUri;
   const preset = p.preset || 'subtle';
 
-  let buttonPreset: string;
-  if (disabled && ['bg_main'].includes(preset)) {
-    buttonPreset = 'subtle';
-  } else {
-    buttonPreset = preset;
-  }
-
-  let onClickLink: FullWidthButtonProps['onClick'] | undefined;
-  if (onClick) {
-    onClickLink = onClick;
-  } else if (disabled || loading) {
-    onClickLink = (e: React.MouseEvent) => {
-      e.preventDefault();
-    };
-  }
+  const buttonPreset = getDisabledButtonPreset(preset, disabled);
+  const onClickLink = onClick || (disabled || loading
+    ? (e: React.MouseEvent) => {
+        e.preventDefault();
+      }
+    : undefined);
 
   return (
     <Link
@@ -295,7 +285,7 @@ interface NormalButtonLinkProps {
 }
 
 export function InlineButtonLink(p: NormalButtonLinkProps) {
-  const { preset, text, iconSizeClassName, className, leftIconName, onClick, to, target } = p;
+  const { preset, text, iconSizeClassName, className, leftIconName, rightIconName, onClick, to, target } = p;
   return (
     <Link
       className={cn('btn il h_item', iconSizeClassName || 'ic_sm', className, preset)}
@@ -310,6 +300,12 @@ export function InlineButtonLink(p: NormalButtonLinkProps) {
       )}
 
       {text}
+
+      {!rightIconName ? null : (
+        <span className='ml_3'>
+          <Icon name={rightIconName} />
+        </span>
+      )}
     </Link>
   );
 }
@@ -455,7 +451,7 @@ export function SmartLink(p: {
   } else if (onClick) {
     // Use this to avoid situations where <button> is nested inside another <button>
     const ButtonEl = buttonElement || 'button';
-    return <ButtonEl {...other} onClick={onClick} className={cnStr} />;
+    return <ButtonEl {...other} type={ButtonEl === 'button' ? 'button' : other.type} onClick={onClick} className={cnStr} />;
   }
 
   const SpanEl = fallbackElement || 'span';

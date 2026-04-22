@@ -2,9 +2,9 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import type { StorageGQL } from '@jsb188/mday/types/storage.d.ts';
+import { useKeyDown } from '@jsb188/react/states';
 import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
 import { COMMON_ICON_NAMES, FileTypeIcon, getFileTypeIconName, Icon } from '@jsb188/react-web/svgs/Icon';
-import { useKeyDown } from '@jsb188/react/states';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 
@@ -15,7 +15,6 @@ import { Link, useLocation } from 'react-router';
 const DVRightToolbar = memo((p: {
   title: string | null;
   titleIconName?: string;
-  pathname: string | null;
   onCloseModal: () => void;
 }) => {
   const { title, titleIconName, onCloseModal } = p;
@@ -63,11 +62,10 @@ DVRightToolbar.displayName = 'DVRightToolbar';
 const DVNavItem = memo((p: {
   item: DVItem;
   selected: boolean;
-  isPDF: boolean;
   setSelectedFile: (file: DVItemFile | null) => void;
   onCloseModal: () => void;
 }) => {
-  const { item, selected, isPDF, setSelectedFile, onCloseModal } = p;
+  const { item, selected, setSelectedFile, onCloseModal } = p;
   const { isSubtitle } = item as DVItemSubtitle;
 
   if (isSubtitle) {
@@ -93,7 +91,8 @@ const DVNavItem = memo((p: {
     );
   }
 
-  const { file } = item as DVItemFile;
+  const fileItem = item as DVItemFile;
+  const { file } = fileItem;
   return (
     <div
       role='button'
@@ -103,7 +102,7 @@ const DVNavItem = memo((p: {
         // selected ? 'bd_primary' : isPDF ? 'bd_darker_4' : 'bd_lt'
         selected ? 'bd_primary' : 'bd_md'
       )}
-      onClick={() => setSelectedFile(item as DVItemFile)}
+      onClick={() => setSelectedFile(fileItem)}
     >
       <span className='no_shrink'>
         <FileTypeIcon contentType={file.contentType} fileName={file.name} />
@@ -121,17 +120,15 @@ DVNavItem.displayName = 'DVNavItem';
 
 const DocumentPreviewToolbar = memo((p: {
   selectedFile?: DVItemFile | null;
-  isPDF?: boolean;
   backText?: string;
   onCloseModal: () => void;
   onSelectAdjacentFile: (direction: 'prev' | 'next') => void;
   hasPrevDocument: boolean;
   hasNextDocument: boolean;
 }) => {
-  const { backText = i18n.t('form.go_back'), selectedFile, isPDF, onCloseModal, onSelectAdjacentFile, hasPrevDocument, hasNextDocument } = p;
+  const { backText = i18n.t('form.go_back'), selectedFile, onCloseModal, onSelectAdjacentFile, hasPrevDocument, hasNextDocument } = p;
   const file = selectedFile?.file;
   const fileTypeIconName = file ? getFileTypeIconName(file.contentType, file.name) : null;
-  // const btnColor = isPDF ? 'bg_contrast' : 'bg_medium';
   const btnClassName = `bg_alt w_25 h_25 r v_center shadow_line rel z9 cl_df shadow_line_alt`;
 
   const toolbarItems = useMemo(() => [
@@ -187,7 +184,7 @@ const DocumentPreviewToolbar = memo((p: {
       disabled: !hasNextDocument,
       onClick: hasNextDocument ? () => onSelectAdjacentFile('next') : undefined,
     },
-  ], [file, fileTypeIconName, onCloseModal, onSelectAdjacentFile, hasPrevDocument, hasNextDocument]);
+  ], [file, fileTypeIconName, onSelectAdjacentFile, hasPrevDocument, hasNextDocument]);
 
   return <header className='abs_t h_35 h_spread ft_tn z9'>
     <div className='h_item gap_5 px_10'>
@@ -382,7 +379,7 @@ export const DocumentViewerLayout = memo((p: {
       return;
     }
     onCloseModal();
-  }, [pathname]);
+  }, [onCloseModal, pathname]);
 
   // Arrow controls
 
@@ -430,14 +427,13 @@ export const DocumentViewerLayout = memo((p: {
     setKeyDown({ pressed: null });
   }, [keyDownValue.pressed]);
 
-  const isPDF = selectedFile?.file.contentType === 'application/pdf';
+  const selectedStorageFile = selectedFile?.file;
 
   return (
     <div className='h_spread'>
       <div className='of fs h_100vh rel'>
         <DocumentPreviewToolbar
           selectedFile={selectedFile}
-          isPDF={isPDF}
           backText={backText}
           onCloseModal={onCloseModal}
           onSelectAdjacentFile={onSelectAdjacentFile}
@@ -445,14 +441,13 @@ export const DocumentViewerLayout = memo((p: {
           hasNextDocument={hasNextDocument}
         />
         <DocumentPreviewArea
-          file={selectedFile?.file}
+          file={selectedStorageFile}
         />
       </div>
       <div className='w_225 h_100vh bg ft_xs v_item of'>
         <DVRightToolbar
           title={fixedTitle || selectedFile?.title || null}
           titleIconName={titleIconName}
-          pathname={selectedFile?.pathname || null}
           onCloseModal={onCloseModal}
         />
         <div className='y_scr_hidden pt_10 pb_40 fs' ref={navRef}>
@@ -461,7 +456,6 @@ export const DocumentViewerLayout = memo((p: {
               key={item.id}
               item={item}
               selected={selectedFile?.id === item.id}
-              isPDF={isPDF}
               setSelectedFile={setSelectedFile}
               onCloseModal={onCloseModal}
             />

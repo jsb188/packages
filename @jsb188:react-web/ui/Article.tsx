@@ -80,7 +80,8 @@ export const CondensedArticleItem = memo((p: {
   const disabled = p.disabled || __deleted;
   const hasLink = !!onClick && !disabled;
   const hasDescription = !!(description || descriptionPlaceholder);
-  const hasDescriptionOrRightIcons = hasDescription || (rightIcons && rightIcons?.length > 0);
+  const hasRightIcons = !!rightIcons?.length;
+  const hasDescriptionOrRightIcons = hasDescription || hasRightIcons;
   const visibleTitle = title && voided ? `(${i18n.t('form.void').toUpperCase()}) ${title}` : title;
 
   // paddingClassName='px_df -mx_5'
@@ -140,7 +141,7 @@ export const CondensedArticleItem = memo((p: {
         />
       }
 
-      {labels?.length && (
+      {!!labels?.length && (
         <div className={cn('h_item no_shrink mr_3', yPaddingClassName, labelsClassName)}>
           {labels.map((label, i) => (
             <InlineBlockLabel
@@ -168,7 +169,7 @@ export const CondensedArticleItem = memo((p: {
           className={cn(
             'f',
             yPaddingClassName,
-            rightIcons && 'h_item',
+            hasRightIcons && 'h_item',
             description ? 'cl_lt' : 'cl_darker_2'
           )}
         >
@@ -191,7 +192,7 @@ export const CondensedArticleItem = memo((p: {
             </span>
           ) : null}
 
-          {rightIcons && (
+          {hasRightIcons && (
             <span className={cn('h_item gap_2 cl_lt', rightIconsClassName, hasDescription ? 'ml_10' : 'ml_5')}>
               <LabelsAndIcons
                 items={rightIcons}

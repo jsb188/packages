@@ -1,9 +1,9 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import { SmartLink } from '@jsb188/react-web/ui/Button';
-import { FilterPillButton } from '@jsb188/react-web/ui/PageFiltersUI';
 import { usePopOverState } from '@jsb188/react/states';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
+import { SmartLink } from '@jsb188/react-web/ui/Button';
+import { FilterPillButton } from '@jsb188/react-web/ui/PageFiltersUI';
 import React, { memo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Icon } from '../svgs/Icon';
@@ -192,19 +192,19 @@ export const ToolbarItems = memo((p: {
     return null;
   }
 
+  const navigateTo = (to?: string | null) => {
+    if (!to) {
+      return;
+    }
+
+    closePopOver();
+    navigate(to, {
+      preventScrollReset: true,
+    });
+  };
+
   return <div className={cn('gap_8', flexClassName ?? 'h_left', className)}>
     {items.map((item) => {
-      const navigateTo = (to?: string | null) => {
-        if (!to) {
-          return;
-        }
-
-        closePopOver();
-        navigate(to, {
-          preventScrollReset: true,
-        });
-      };
-
       return <ToolbarItem
         key={item.id}
         item={item}

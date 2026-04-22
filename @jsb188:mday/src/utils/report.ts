@@ -1,4 +1,6 @@
+import type { LogEntryGQL } from '@jsb188/mday/types/log.d.ts';
 import type { ReportFieldsRow, ReportSectionGQL } from '@jsb188/mday/types/report.d.ts';
+import type { StorageGQL } from '@jsb188/mday/types/storage.d.ts';
 import { REPORT_NUMBERED_PRESETS } from '../constants/report.ts';
 
 /**
@@ -63,6 +65,45 @@ export function getReportColumnFragmentDataId(
 	columnKey: string,
 ): string {
 	return `${reportSubmissionIdKey}:${getReportColumnIdentifier(rowIdentifier, columnKey)}`;
+}
+
+/*
+ * Check whether a report file can render as an image preview.
+ */
+
+export function isReportReferenceImageFile(file?: StorageGQL | null) {
+	return !file?.__deleted
+		&& !file?.uploadStatus
+		&& !!file?.uri
+		&& file.contentType?.startsWith('image/');
+}
+
+/*
+ * Resolve the logs and files referenced by one report row.
+ */
+
+export function getReportReferenceContent(
+	logEntriesForReport?: LogEntryGQL[] | null,
+	referenceIds?: (string | null | undefined)[] | null,
+) {
+	if (!logEntriesForReport?.length || !referenceIds?.length) {
+		return null;
+	}
+
+	const referenceIdSet = new Set(referenceIds.filter((referenceId): referenceId is string => !!referenceId));
+	if (!referenceIdSet.size) {
+		return null;
+	}
+
+	const logs = logEntriesForReport.filter((log) => referenceIdSet.has(log.id));
+	if (!logs.length) {
+		return null;
+	}
+
+	return {
+		files: logs.flatMap((log) => log.files || []),
+		logs,
+	};
 }
 
 export function getReportFilesCount(sections?: ReportSectionGQL[]): ReportSectionsFilesCount {

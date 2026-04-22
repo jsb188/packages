@@ -3,10 +3,10 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
 import type { ModalProps } from '@jsb188/react/states';
 import { useOpenModalPopUp } from '@jsb188/react/states';
+import Markdown from '@jsb188/react-web/ui/Markdown';
 import { memo } from 'react';
 import { Icon } from '../svgs/Icon';
 import { SmartLink } from '../ui/Button';
-import Markdown from '@jsb188/react-web/ui/Markdown';
 
 /**
  * Switch case interface for <AsideNav />
@@ -38,6 +38,7 @@ interface AsideGalleryBlockObj {
 }
 
 export type AsideBlock = AsideListBlockObj | AsideGalleryBlockObj;
+const MAX_ASIDE_GALLERY_ITEMS = 16;
 
 /**
  * Aside component; basic list
@@ -127,21 +128,11 @@ AsideListBlock.displayName = 'AsideListBlock';
  * Aside component; gallery list
  */
 
-export const AsideGalleryBlock = memo((p: AsideGalleryBlockObj & {
-  pathname?: string;
-}) => {
+export const AsideGalleryBlock = memo((p: AsideGalleryBlockObj) => {
   const { title, items } = p;
   const openModalPopUp = useOpenModalPopUp();
-  const MAX_ASIDE_GALLERY_ITEMS = 16;
-
-  let visibleItems, overflowCount;
-  if (!items?.length) {
-    visibleItems = items;
-    overflowCount = 0;
-  } else {
-    visibleItems = items.slice(0, MAX_ASIDE_GALLERY_ITEMS);
-    overflowCount = Math.max(0, items.length - MAX_ASIDE_GALLERY_ITEMS);
-  }
+  const visibleItems = !items?.length ? items : items.slice(0, MAX_ASIDE_GALLERY_ITEMS);
+  const overflowCount = !items?.length ? 0 : Math.max(0, items.length - MAX_ASIDE_GALLERY_ITEMS);
 
   return <nav className='mx_10 landscape:-mx_10 my_25 ft_sm bd_1 bd_lt bg r_sm of'>
 
@@ -203,12 +194,11 @@ export function AsideBlocks(p: {
     return <AsideNavMock />;
   }
 
-  return blocks.map((block: any, i: number) => {
+  return blocks.map((block, i) => {
     switch (block.__type) {
       case 'ASIDE_GALLERY':
         return <AsideGalleryBlock
           key={`block_${i}`}
-          {...rest}
           {...block}
         />;
       case 'ASIDE_LIST':
