@@ -52,7 +52,7 @@ function PopOverViewImage(p: PopOverViewImageProps) {
     <img
       ref={imgRef}
       className='pu_img r_df bl'
-      src={makeUploadsUrl(imageUri, 'tiny', true)}
+      src={makeUploadsUrl(imageUri, 'medium')}
       alt={alt}
 
     />

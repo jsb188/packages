@@ -37,8 +37,34 @@ interface FullWidthButtonProps {
   to?: string;
 }
 
+function preventDefaultClick(e: React.MouseEvent) {
+  e.preventDefault();
+}
+
 function getDisabledButtonPreset(preset: ButtonPresetEnum, disabled?: boolean) {
   return disabled && preset.startsWith('bg_') ? 'subtle' : preset;
+}
+
+function getFullWidthButtonClassName(p: {
+  hasSides: boolean;
+  fullWidth?: boolean;
+  buttonPreset: ButtonPresetEnum;
+  className?: string;
+  disabled?: boolean;
+  isLink?: boolean;
+}) {
+  const { hasSides, fullWidth, buttonPreset, className, disabled, isLink } = p;
+
+  return cn(
+    'btn fw',
+    isLink && 'link',
+    hasSides ? 'h_spread' : 'h_center',
+    fullWidth === false ? null : 'full',
+    buttonPreset,
+    'r_sm',
+    disabled && 'disabled',
+    className,
+  );
 }
 
 function FullWidthButtonContent(p: FullWidthButtonProps) {
@@ -105,16 +131,13 @@ export const FullWidthButton = memo((p: FullWidthButtonProps) => {
   return (
     <SmartLink
       // type='submit' // Careful when using this, it will submit the form
-      className={cn(
-        'btn fw',
-        hasSides ? 'h_spread' : 'h_center',
-        fullWidth === false ? null : 'full',
+      className={getFullWidthButtonClassName({
+        hasSides,
+        fullWidth,
         buttonPreset,
-        'r_sm',
-        disabled ? 'disabled' : '',
-        // preset === 'r' ? null : 'r_sm',
         className,
-      )}
+        disabled,
+      })}
       onClick={onClick}
       disabled={disabled || loading}
       fallbackElement='button'
@@ -160,25 +183,19 @@ export const FullWidthLink = memo((p: FullWidthLinkProps) => {
   const preset = p.preset || 'subtle';
 
   const buttonPreset = getDisabledButtonPreset(preset, disabled);
-  const onClickLink = onClick || (disabled || loading
-    ? (e: React.MouseEvent) => {
-        e.preventDefault();
-      }
-    : undefined);
+  const onClickLink = onClick || (disabled || loading ? preventDefaultClick : undefined);
 
   return (
     <Link
       // type='submit' // Careful when using this, it will submit the form
-      className={cn(
-        'btn fw link',
-        hasSides ? 'h_spread' : 'h_center',
-        fullWidth === false ? null : 'full',
+      className={getFullWidthButtonClassName({
+        hasSides,
+        fullWidth,
         buttonPreset,
-        'r_sm',
-        disabled ? 'disabled' : '',
-        // preset === 'r' ? null : 'r_sm',
         className,
-      )}
+        disabled,
+        isLink: true,
+      })}
       to={to}
       replace={replace}
       target={target}
@@ -446,7 +463,7 @@ export function SmartLink(p: {
       replace={replace}
       {...other}
       className={cnStr}
-      onClick={disabled && !onClick ? (e: React.MouseEvent) => e.preventDefault() : onClick}
+      onClick={disabled && !onClick ? preventDefaultClick : onClick}
     />;
   } else if (onClick) {
     // Use this to avoid situations where <button> is nested inside another <button>
@@ -542,13 +559,7 @@ export function Pill(p: Partial<{
 }>) {
   const { preset, disabled, loading, addLoadingIndicator, to, href, target, onClick, title, children, className } = p;
   const LinkComponent = p.as || (to ? Link : 'a');
-
-  let onClick_: (e: React.MouseEvent<any>) => void;
-  if (disabled || loading) {
-    onClick_ = (e: React.MouseEvent) => e.preventDefault();
-  } else {
-    onClick_ = onClick!;
-  }
+  const onClick_ = disabled || loading ? preventDefaultClick : onClick;
 
   let size: ButtonSize | null, presetClassNames: string | undefined, colorClassName: string | undefined;
   switch (preset) {

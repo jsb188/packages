@@ -27,7 +27,7 @@ export function makeInnerHTML(rawText: string | null, mappedImageCodes?: MappedI
       const stickerPhotoUri = mappedImageCodes.dict[match];
       // Not using self-closing "/>" syntax because that's a React convention;
       // In real JS generated DOM, it does not self-close.
-      return `<img src="${makeUploadsUrl(stickerPhotoUri, 'tiny')}" alt="${match}" class="cm_sticker">`;
+      return `<img src="${makeUploadsUrl(stickerPhotoUri, 'small')}" alt="${match}" class="cm_sticker">`;
     });
   }
   return htmlSafeText;

@@ -83,29 +83,24 @@ export const CondensedArticleItem = memo((p: {
   const hasRightIcons = !!rightIcons?.length;
   const hasDescriptionOrRightIcons = hasDescription || hasRightIcons;
   const visibleTitle = title && voided ? `(${i18n.t('form.void').toUpperCase()}) ${title}` : title;
+  const yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
+  const articleId = id ? (domIdPrefix ? `${domIdPrefix}_${id}` : id) : undefined;
 
   // paddingClassName='px_df -mx_5'
 
-  let linkHoverClassName, xPaddingClassName, yPaddingClassName, addDivSeparator;
+  let linkHoverClassName = 'bg_primary_fd_hv';
+  let xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_xs', horizontalMarginClassName ?? '-mx_xs');
+  let addDivSeparator = false;
   switch (preset) {
     case 'modal':
       addDivSeparator = true;
       linkHoverClassName = 'bg_lighter_hv_4';
       xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_md', horizontalMarginClassName ?? '-mx_5');
-      yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
       break;
     case 'default_spaced':
-      addDivSeparator = false;
-      linkHoverClassName = 'bg_primary_fd_hv';
       xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_20', horizontalMarginClassName ?? '-mx_20');
-      yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
       break;
     default:
-      addDivSeparator = false;
-      linkHoverClassName = 'bg_primary_fd_hv';
-      xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_xs', horizontalMarginClassName ?? '-mx_xs');
-      yPaddingClassName = hideSeparator ? NO_SEPARATOR_Y_PADDING : 'py_sm';
-      break;
   }
 
   if (typeof p.addDivSeparator === 'boolean') {
@@ -114,12 +109,13 @@ export const CondensedArticleItem = memo((p: {
 
   return <article
     // style={{height: 750}}
-    id={id ? `${domIdPrefix ? domIdPrefix + '_' : ''}${id}` : undefined}
+    id={articleId}
     className={cn(
       'article_item rel',
       !addDivSeparator && !hideSeparator ? 'bd_lt bd_t_1' : undefined,
       xPaddingClassName,
-      hasLink ? 'link ' + linkHoverClassName : undefined,
+      hasLink && 'link',
+      hasLink && linkHoverClassName,
     )}
     role={hasLink ? 'button' : undefined}
     onClick={hasLink ? () => onClick(id) : undefined}
@@ -231,7 +227,7 @@ export function CondensedArticleItemMock(p: {
 
   const description = (
     '.... .... .... .... .... .... .... .... .... .... .... .... .... ....' +
-    [...Array(3 - modulus)].map(_ => ' ..').join('')
+    ' ..'.repeat(3 - modulus)
   );
 
   return <article

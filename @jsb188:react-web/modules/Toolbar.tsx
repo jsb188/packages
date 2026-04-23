@@ -22,6 +22,8 @@ export interface BreadcrumbItemObj {
   tryColoredIcon?: boolean;
 }
 
+const LOADING_BREADCRUMBS: BreadcrumbItemObj[] = [{ text: '.............. ..............', loading: true }];
+
 /**
  * Toolbar breadcrumb item
  */
@@ -171,9 +173,9 @@ export const ToolbarItems = memo((p: {
     }
 
     let nextTo: string | null | undefined;
-    if (popOver?.action === 'ITEM') {
+    if (popOver.action === 'ITEM') {
       nextTo = toolbarItem.getItemTo?.(popOver.value);
-    } else if (popOver?.action === 'SUBMIT') {
+    } else if (popOver.action === 'SUBMIT') {
       nextTo = toolbarItem.getSubmitTo?.(popOver.value);
     }
 
@@ -229,14 +231,14 @@ const AppToolbar = memo((p: {
 }) => {
   // const { shadowStyle = 'shadow_line_alt' } = p;
   const { options, shadowStyle = 'shadow_bg_drop_lg' } = p;
-  const breadcrumbs = p.breadcrumbs || [{ text: '.............. ..............', loading: true }];
+  const breadcrumbs = p.breadcrumbs || LOADING_BREADCRUMBS;
   const lastIx = breadcrumbs.length - 1;
 
   return <div className={cn('bg rel z4', shadowStyle)}>
     <div className='h_toolbar h_item no_shrink px_24'>
       {breadcrumbs?.map((item, i) => {
         return <BreadcrumbItem
-          key={i}
+          key={item.to || `${item.text}_${i}`}
           {...item}
           addBreak={i <= 0}
           isFirstItem={i === 0}

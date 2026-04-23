@@ -440,7 +440,8 @@ export function POLabelsAndValues(p: {
   const { description, labels, inputs, gridLayoutStyle, flipInputOrder, includeQuantity, onChangeItem, maxItems } = p;
   const formClassName = 'form_el smaller rel lighter focus_outline';
   const inputClassName = 'bd_lt bd_1 r_sm lh_1';
-  const inputList: (keyof typeof inputs[0])[] = flipInputOrder ? ['value', 'quantity', 'label'] : ['quantity', 'label', 'value'];
+  const inputKeys = (flipInputOrder ? ['value', 'quantity', 'label'] : ['quantity', 'label', 'value'])
+    .filter((key) => includeQuantity || key !== 'quantity') as (keyof typeof inputs[0])[];
 
   return <>
     {description && (
@@ -460,16 +461,13 @@ export function POLabelsAndValues(p: {
         </div>;
       })}
 
-      {[...Array(maxItems)].map((_, i) => {
+      {Array.from({ length: maxItems }, (_, i) => {
         const item = inputs[i];
-        return inputList.map((key, j) => {
+        return inputKeys.map((key) => {
           const aVal = item?.[key] || '';
-          if (!includeQuantity && key === 'quantity') {
-            return null;
-          }
 
           return <div
-            key={j}
+            key={`${String(key)}_${i}`}
             className={cn(!item && i !== inputs.length ? 'hidden' : '', formClassName)}
           >
             <input

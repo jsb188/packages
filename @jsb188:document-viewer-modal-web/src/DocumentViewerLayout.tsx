@@ -5,8 +5,11 @@ import type { StorageGQL } from '@jsb188/mday/types/storage.d.ts';
 import { useKeyDown } from '@jsb188/react/states';
 import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
 import { COMMON_ICON_NAMES, FileTypeIcon, getFileTypeIconName, Icon } from '@jsb188/react-web/svgs/Icon';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
+
+const PDF_BACKGROUND_STYLE = { backgroundColor: '#282828' };
+const PDF_IFRAME_STYLE = { border: 'none', outline: 'none', backgroundColor: '#282828' };
 
 /**
  * Right Toolbar
@@ -262,12 +265,12 @@ const DocumentPreviewArea = memo((p: {
     case 'application/pdf':
       if (!showPDF) {
         // Delay during modal transition, for smoother user experience
-        return <div className='w_f h_f' style={{ backgroundColor: '#282828' }} />;
+        return <div className='w_f h_f' style={PDF_BACKGROUND_STYLE} />;
       }
 
       return (
         <iframe
-          style={{ border: 'none', outline: 'none', backgroundColor: '#282828' }}
+          style={PDF_IFRAME_STYLE}
           src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-height`}
           className='w_f h_f rel z1'
           title={fileName}
@@ -367,7 +370,7 @@ export const DocumentViewerLayout = memo((p: {
     const initialRendered = !firstRenderUrl.current;
     if (selectedFile && navRef.current) {
       const element = navRef.current.querySelector(`[data-file-id="${selectedFile.file.id}"]`);
-      element?.scrollIntoView({ behavior: initialRendered ? 'instant' : 'smooth', block: 'start' });
+      element?.scrollIntoView({ behavior: initialRendered ? 'auto' : 'smooth', block: 'start' });
     }
   }, [selectedFile]);
 
@@ -398,7 +401,7 @@ export const DocumentViewerLayout = memo((p: {
   const hasPrevDocument = selectedFileIndex > 0;
   const hasNextDocument = selectedFileIndex < fileItems.length - 1;
 
-  const onSelectAdjacentFile = (direction: 'prev' | 'next', jump?: boolean) => {
+  const onSelectAdjacentFile = useCallback((direction: 'prev' | 'next', jump?: boolean) => {
     if (!fileItems.length) return;
 
     setSelectedFile(prev => {
@@ -416,7 +419,7 @@ export const DocumentViewerLayout = memo((p: {
         return fileItems[currentIndex + 1];
       }
     });
-  };
+  }, [fileItems]);
 
   useEffect(() => {
     const { pressed, metaKey } = keyDownValue;
@@ -425,7 +428,7 @@ export const DocumentViewerLayout = memo((p: {
 
     onSelectAdjacentFile(pressed === 'ArrowUp' ? 'prev' : 'next', metaKey);
     setKeyDown({ pressed: null });
-  }, [keyDownValue.pressed]);
+  }, [keyDownValue, onSelectAdjacentFile, setKeyDown]);
 
   const selectedStorageFile = selectedFile?.file;
 

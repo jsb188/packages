@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
-import type { ModalProps } from '@jsb188/react/states';
+import type { OpenModalPopUpFn } from '@jsb188/react/states';
 import { useOpenModalPopUp } from '@jsb188/react/states';
 import Markdown from '@jsb188/react-web/ui/Markdown';
 import { memo } from 'react';
@@ -33,7 +33,7 @@ interface AsideGalleryBlockObj {
   items: {
     uri: string;
     name: string;
-    modalVariables?: ModalProps | null;
+    modalVariables?: Parameters<OpenModalPopUpFn>[0];
   }[] | null;
 }
 
@@ -68,6 +68,23 @@ export const AsideListBlock = memo((p: AsideListBlockObj & {
       const selected = !!(pathname && pathname === to);
       const lineText = text || nullText;
       const hasMarkdown = /\[(.*?)##(.*?)\]|\*]/.test(lineText || '');
+      const itemContent = <>
+        {hasLabel &&
+        <span className='bl'>
+          {label}:
+        </span>}
+        {hasMarkdown
+        ? <Markdown
+          as='span'
+          preset='label'
+          className={textClassName}
+        >
+          {lineText}
+        </Markdown>
+        : <span className={textClassName}>
+          {lineText}
+        </span>}
+      </>;
 
       return <SmartLink
         key={i}
@@ -78,45 +95,12 @@ export const AsideListBlock = memo((p: AsideListBlockObj & {
         buttonElement='div'
         role='button'
       >
-        {rightIconName
-        ? <div className='h_spread f pr_20'>
-          {hasLabel &&
-          <span className='bl'>
-            {label}:
-          </span>}
-          {hasMarkdown
-          ? <Markdown
-            as='span'
-            preset='label'
-            className={textClassName}
-          >
-            {lineText}
-          </Markdown>
-          : <span className={textClassName}>
-            {lineText}
-          </span>}
-
-          <span className={cn('-mr_2 abs_r_center', selected ? rightIconClassNameSelected : rightIconClassName)}>
+        <div className={cn('h_spread f', rightIconName && 'pr_20')}>
+          {itemContent}
+          {!rightIconName ? null : <span className={cn('-mr_2 abs_r_center', selected ? rightIconClassNameSelected : rightIconClassName)}>
             <Icon name={rightIconName} />
-          </span>
+          </span>}
         </div>
-        : <div className='h_spread f'>
-          {hasLabel &&
-          <span className='bl'>
-            {label}:
-          </span>}
-          {hasMarkdown
-          ? <Markdown
-            as='span'
-            preset='label'
-            className={textClassName}
-          >
-            {lineText}
-          </Markdown>
-          : <span className={textClassName}>
-            {lineText}
-          </span>}
-        </div>}
       </SmartLink>;
     })}
   </nav>;
@@ -145,24 +129,30 @@ export const AsideGalleryBlock = memo((p: AsideGalleryBlockObj) => {
 
     <div className='grid size_4 gap_5 p_5'>
       {visibleItems?.map((item, i) => {
-        const imageUrl = makeUploadsUrl(item.uri, 'tiny');
+        const { modalVariables, name, uri } = item;
+        const imageUrl = makeUploadsUrl(uri, 'small');
         const showOverflowCount = !!overflowCount && i === visibleItems.length - 1;
+        const onClick = modalVariables ? () => {
+          if (modalVariables) {
+            openModalPopUp(modalVariables);
+          }
+        } : undefined;
 
         return <SmartLink
           key={i}
-          className={cn('bl', item.modalVariables ? 'pointer' : '')}
+          className={cn('bl', modalVariables && 'pointer')}
           buttonElement='span'
-          onClick={item.modalVariables ? () => openModalPopUp(item.modalVariables!) : undefined}
+          onClick={onClick}
         >
           <figure className='th_item r_sm bg_alt rel of'>
             {!imageUrl || showOverflowCount ? null : <img
-              alt={item.name || 'gallery image'}
+              alt={name || 'gallery image'}
               className='abs_full r_sm img_auto'
               src={imageUrl}
             />}
             {!showOverflowCount ? null : <>
               {!imageUrl ? null : <img
-                alt={item.name || 'gallery image'}
+                alt={name || 'gallery image'}
                 className='abs_full r_sm img_auto op_40'
                 src={imageUrl}
               />}
@@ -228,7 +218,7 @@ export function AsideNavMock() {
         .... .... .... .... ... ...
       </span>
     </p>
-    {[...Array(6)].map((_, i) => {
+    {Array.from({ length: 6 }, (_, i) => {
       return <span
         // @ts-ignore -- this is just a mock component, so we don't care about the missing "to" prop
         key={i}

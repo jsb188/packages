@@ -429,7 +429,7 @@ const getCodeOrEmojiEl = (
 
     return <img
       className='md_img'
-      src={makeUploadsUrl(mappedCodeUri, 'small', true) as string}
+      src={makeUploadsUrl(mappedCodeUri, 'small') as string}
       alt={matchedStr}
     />;
   }

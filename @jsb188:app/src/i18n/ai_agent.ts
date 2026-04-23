@@ -47,6 +47,7 @@ export default {
 		saving_load_list_: '📋 Saving load list...',
 		searching_for_load_list_: '🔍 Searching for load list...',
 		writing_report_: '✍️ Writing report...',
+    processing_csv_request_: '⚙️ Processing CSV file request...',
 
 		// Digests
 		digest_for_: 'Digest for %{date}',

@@ -17,6 +17,14 @@ const AI_CHATS_LIMIT = 70; // Must match server code exactly
 const AI_CHAT_MESSAGES_LIMIT = 55; // Must match server code exactly
 
 /**
+ * Params for AI chat query hook with reactive SSE auth
+ */
+
+interface UseAIChatWithSSEParams extends UseQueryParams {
+  authToken?: string | null;
+}
+
+/**
  * Helper; build AI chats query key
  */
 
@@ -71,14 +79,16 @@ function getGeneratingFragmentId(sseData: PublishPayload) {
  * Fetch AI chat
  */
 
-export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string | null, params: UseQueryParams = {}) {
+export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string | null, params: UseAIChatWithSSEParams = {}) {
+
+  const { authToken, ...queryParams } = params;
 
   const { data, ...rest } = useQuery(aiChatQry, {
     variables: {
       aiChatId
     },
     skip: !aiChatId,
-    ...params,
+    ...queryParams,
   });
 
   const { updateObservers } = rest;
@@ -93,6 +103,8 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
     // So we have to write the logic to make it work without perpetual session.
 
     if (dataAIChatId && sessionKey) {
+      const currentAuthToken = authToken ?? getAuthToken();
+
       // Only listen to events if data is loaded
       const connection = new SSE({
         host: getENVVariable('SSE_SERVER') as string,
@@ -100,7 +112,7 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
         // path: 'test-sse',
         searchParams: {
           session_key: sessionKey,
-          auth_token: getAuthToken()
+          auth_token: currentAuthToken
         }
       });
 
@@ -126,7 +138,7 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
         // removeNetworkListeners();
       };
     }
-  }, [dataAIChatId, sessionKey]);
+  }, [authToken, dataAIChatId, sessionKey]);
 
   useEffect(() => {
     // Every time AIChat is fetched, check if it exists in lists cache
