@@ -126,6 +126,7 @@ export interface StorageGQL {
   name: string | null;
   description?: string | null;
   aiNote?: string | null;
+  cacheDuration?: number | null;
 }
 
 export type StorageUploadEvent = Partial<{
@@ -135,6 +136,7 @@ export type StorageUploadEvent = Partial<{
     name: string;
     description: string;
     aiNote: string;
+    cacheDuration: number;
 
     // For PDF only
     pageCount: number;
