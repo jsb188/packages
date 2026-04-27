@@ -54,4 +54,5 @@ export interface LabelAndValue {
 export interface FileObj {
 	buffer: Uint8Array;
 	contentType: string;
+	fileName?: string;
 }

@@ -171,7 +171,7 @@ const DocumentPreviewToolbar = memo((p: {
       iconName: 'download',
       message: i18n.t('form.download_file'),
       as: 'a' as const,
-      href: makeUploadsUrl(file.uri),
+      href: makeUploadsUrl(file.uri, undefined, true),
       target: '_blank',
       rel: 'noopener noreferrer',
       download: true

@@ -18,15 +18,21 @@ type LinkType = 'USER' | 'KAJI' | 'DATASET' | 'VOICE' | 'FEED' | 'ROOM' | 'THREA
 export function makeUploadsUrl(
   urlPath?: string | null,
   size?: 'small' | 'medium' | 'original',
+  download?: boolean,
 ): string {
   if (!urlPath) {
     return '';
   }
 
-  let searchPath = '';
+  const searchParams: string[] = [];
   if (size) {
-    searchPath += `?size=${size}`;
+    searchParams.push(`size=${encodeURIComponent(size)}`);
   }
+  if (download) {
+    searchParams.push('download=1');
+  }
+
+  const searchPath = searchParams.length ? `?${searchParams.join('&')}` : '';
 
   return 'https://assets.chiefhappiness.co/marketday/' + urlPath + searchPath;
 }
