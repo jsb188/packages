@@ -223,7 +223,7 @@ export const LIVESTOCK_ACTIVITIES_TO_TEXT = {
  */
 
 export const AI_TASKS_TO_TEXT = {
-	// NOTE: If updating this, update [functions-aiTasks.ts] too
+	// NOTE: If updating this, update [tools-aiTasks.ts] too
 	AI_SEND_MESSAGE: 'message',
 	AI_REMINDER: 'reminder message',
 	AI_SCHEDULED_TASK: 'scheduled task',

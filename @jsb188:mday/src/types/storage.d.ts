@@ -47,8 +47,8 @@ export interface CSVFileCreationRequest {
   maxRowsLength: number;
   dataStartDate: string;
   dataEndDate: string;
-  dataSearchQuery: string[];
   descriptionOfDataToSearch: string;
+  analysisGoal: string;
   columns: CSVColumnRequest[];
   footerSummaryRows?: CSVFooterSummaryRowRequest[];
   sentFromSMS?: boolean;
@@ -84,6 +84,22 @@ export interface StorageGeneratedData {
   accountId: number | bigint;
   organizationId: number | bigint;
   organization?: OrganizationData;
+  account?: {
+    id: number | bigint;
+    profile?: {
+      id: number | bigint;
+      firstName: string | null;
+      lastName: string | null;
+    } | null;
+    email?: {
+      id: number | bigint;
+      address: string | null;
+    } | null;
+    phone?: {
+      id: number | bigint;
+      number: string | null;
+    } | null;
+  };
   storageId: number | bigint | null;
   status: FileStatusEnum;
   generatedAt: Date | null;
@@ -112,7 +128,7 @@ export interface StorageGQL {
   aiNote?: string | null;
 }
 
-export type StorageUploadObj = Partial<{
+export type StorageUploadEvent = Partial<{
   oaiFileId: string;
   uploaderAccountId: number | bigint | string;
   values: Partial<{
