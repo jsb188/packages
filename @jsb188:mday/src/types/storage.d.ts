@@ -126,7 +126,6 @@ export interface StorageGQL {
   name: string | null;
   description?: string | null;
   aiNote?: string | null;
-  cacheDuration?: number | null;
 }
 
 export type StorageUploadEvent = Partial<{

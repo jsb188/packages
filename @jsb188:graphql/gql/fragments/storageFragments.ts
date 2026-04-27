@@ -1,4 +1,3 @@
-
 export const storageFileFragment = `fragment storageFileFragment on StorageFile {
   id
   uri
@@ -8,7 +7,6 @@ export const storageFileFragment = `fragment storageFileFragment on StorageFile 
   name
   description
   aiNote
-  cacheDuration
 
   # client-side required fields
   uploadStatus
