@@ -89,7 +89,8 @@ h1.ft_semibold, h2.ft_semibold, h3.ft_semibold, h4.ft_semibold, h5.ft_semibold, 
 }
 
 h1.ft_medium, h2.ft_medium, h3.ft_medium, h4.ft_medium, h5.ft_medium, h6.ft_medium,
-h1.ft_normal, h2.ft_normal, h3.ft_normal, h4.ft_normal, h5.ft_normal, h6.ft_normal {
+h1.ft_normal, h2.ft_normal, h3.ft_normal, h4.ft_normal, h5.ft_normal, h6.ft_normal,
+h1.ft_light, h2.ft_light, h3.ft_light, h4.ft_light, h5.ft_light, h6.ft_light {
   letter-spacing: -.0375em;
 }
 
@@ -115,6 +116,10 @@ strong, .ft_bold, .ft_semibold {
   font-family: var(--font-sans);
 }
 
+.ft_light {
+  font-family: var(--font-sans-light);
+}
+
 .ft_italic {
   font-style: italic;
 }
@@ -135,6 +140,7 @@ h1.ft_df, h2.ft_df, h3.ft_df, h4.ft_df, h5.ft_df, h6.ft_df, .ft_heading_df { fon
 h1.ft_md, h2.ft_md, h3.ft_md, h4.ft_md, h5.ft_md, h6.ft_md, .ft_heading_md { font-size: var(--heading-medium); }
 h1.ft_lg, h2.ft_lg, h3.ft_lg, h4.ft_lg, h5.ft_lg, h6.ft_lg, .ft_heading_lg { font-size: var(--heading-large); }
 h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { font-size: var(--heading-xlarge); }
+h1.ft_xxl, h2.ft_xxl, h3.ft_xxl, h4.ft_xxl, h5.ft_xxl, h6.ft_xxl, .ft_heading_xxl { font-size: var(--heading-xxlarge); }
 
 /* Icon */
 
@@ -470,8 +476,8 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
 .pill_md {
   min-width: 3.75rem;
   height: 3.75rem;
-  padding-left: .9em;
-  padding-right: .9em;
+  padding-left: 1em;
+  padding-right: 1em;
   font-size: var(--text-medium);
 }
 
@@ -479,8 +485,8 @@ h1.ft_xl, h2.ft_xl, h3.ft_xl, h4.ft_xl, h5.ft_xl, h6.ft_xl, .ft_heading_xl { fon
   position: relative;
   min-width: 4.75rem;
   height: 4.75rem;
-  padding-left: .95em;
-  padding-right: .95em;
+  padding-left: 1em;
+  padding-right: 1em;
   padding-bottom: 2px;
   font-size: var(--text-xlarge);
 }
@@ -639,7 +645,7 @@ NOTE: Do not change any of these media query widths because these values are use
 NOTE: var() doesn't work inside media queries, so we use fixed values.
 */
 
-@media (max-width: 1050px) {
+@media (max-width: 1100px) {
   .responsive.grid.size_3 { grid-template-columns: repeat(2, 1fr); }
 }
 

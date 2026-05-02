@@ -491,6 +491,16 @@ export const Bulb = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
 <path d="M9.7,16h4.6"/>
 </svg>;
 
+export const Calendar2 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-calendar-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M21 3 3 3 0.75 21l18 0L21 3z" />
+<path d="m21 3 2.25 18" />
+<path d="M9 3 6.75 21" />
+<path d="m15 3 -2.25 18" />
+<path d="m2.437 7.5 18 0" />
+<path d="m1.312 16.5 18 0" />
+<path d="m1.875 12 18 0" />
+</svg>;
+
 export const Calendar3 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-calendar-3">
 <g transform="translate(0 1)">
 <path d="M20.7,4.2H3.3c-.7,0-1.3.6-1.3,1.3v14.7c0,.7.6,1.3,1.3,1.3h17.3c.7,0,1.3-.6,1.3-1.3V5.5c0-.7-.6-1.3-1.3-1.3Z"/>
@@ -1085,6 +1095,17 @@ export const DeliveryTruck4 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0
 <path d="m23.25 12.5 -6.75 0"/>
 </svg>;
 
+export const DesignFileTextImage = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-design-file-text-image" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M22.25 14.2461h-7c-0.5523 0 -1 0.4477 -1 1v7c0 0.5523 0.4477 1 1 1h7c0.5523 0 1 -0.4477 1 -1v-7c0 -0.5523 -0.4477 -1 -1 -1Z"/>
+<path d="M17.344 17.5271c-0.2071 0 -0.375 -0.1679 -0.375 -0.375s0.1679 -0.375 0.375 -0.375"/>
+<path d="M17.344 17.5271c0.2071 0 0.375 -0.1679 0.375 -0.375s-0.1679 -0.375 -0.375 -0.375"/>
+<path d="m23.135 22.3231 -2.212 -3.317c-0.0708 -0.1066 -0.1676 -0.1933 -0.2814 -0.2518 -0.1137 -0.0585 -0.2406 -0.0869 -0.3684 -0.0825 -0.1278 0.0044 -0.2524 0.0415 -0.3619 0.1077 -0.1094 0.0662 -0.2001 0.1594 -0.2633 0.2706l-2.4 4.2"/>
+<path d="M11.25 23.25h-9c-0.39782 0 -0.77936 -0.158 -1.06066 -0.4393C0.908035 22.5294 0.75 22.1478 0.75 21.75V2.25c0 -0.39782 0.158035 -0.77936 0.43934 -1.06066C1.47064 0.908035 1.85218 0.75 2.25 0.75h15c0.3912 0.000039 0.7669 0.152905 1.047 0.426l3 2.883c0.1434 0.13973 0.2573 0.30675 0.3351 0.4912 0.0778 0.18445 0.1179 0.38261 0.1179 0.5828v6.117"/>
+<path d="M5.25 8.25h12"/>
+<path d="M5.25 12.75h6"/>
+<path d="M5.25 17.25h6"/>
+</svg>;
+
 export const DocumentAi = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-document-ai" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M4.19999981,2.84999967h15.59999943s1.20000076,0,1.20000076,1.4000001v15.60000134s0,1.29999924-1.20000076,1.29999924H4.19999981s-1.20000005,0-1.20000005-1.39999962V4.14999962s0-1.29999995,1.20000005-1.29999995"/>
 <path d="M16.20000076,16.44999957V7.94999957"/>
@@ -1345,6 +1366,17 @@ export const FarmingFieldSunColor = <svg xmlns="http://www.w3.org/2000/svg" fill
 
 export const Folder = <svg className="icon icon-folder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M21.75,8c0-.82842731-.67157364-1.5-1.5-1.5h-9.75l-1.80000019-2.4000001c-.28328133-.37770867-.72786379-.5999999-1.19999981-.5999999h-3.75c-.82842708,0-1.5.67157269-1.5,1.5v13.5c0,.82842636.67157292,1.5,1.5,1.5h16.5c.82842636,0,1.5-.67157364,1.5-1.5v-10.5Z"/>
+</svg>;
+
+export const FolderConnect = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-folder-connect" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M1.5 18.75a1.5 1.5 0 0 0 1.5 1.5h1.5" />
+<path d="m8.25 6.75 3.75 0" />
+<path d="m1.5 6.75 3 0" />
+<path d="m1.5 4.5 0 3.75" />
+<path d="m1.5 12 0 3" />
+<path d="m12 20.25 -3.75 0" />
+<path d="M21.75 2.25h-4.5L15.97 0.97a0.749 0.749 0 0 0 -0.53 -0.22h-2.69a0.75 0.75 0 0 0 -0.75 0.75V9a0.75 0.75 0 0 0 0.75 0.75h9A0.75 0.75 0 0 0 22.5 9V3a0.75 0.75 0 0 0 -0.75 -0.75Z" />
+<path d="M21.75 15.75h-4.5l-1.28 -1.28a0.749 0.749 0 0 0 -0.53 -0.22h-2.69A0.75 0.75 0 0 0 12 15v7.5a0.75 0.75 0 0 0 0.75 0.75h9a0.75 0.75 0 0 0 0.75 -0.75v-6a0.75 0.75 0 0 0 -0.75 -0.75Z" />
 </svg>;
 
 export const FolderEmpty = <svg className="icon icon-folder-empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
@@ -2772,6 +2804,12 @@ export const Refresh = <svg xmlns="http://www.w3.org/2000/svg" className="icon i
 <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" stroke="currentColor" />
 </svg>;
 
+export const RelationOrganize = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-relation-organize" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+<path d="M3.17188 17.2207c1.24264 0 2.25 -1.0074 2.25 -2.25s-1.00736 -2.25 -2.25 -2.25c-1.24265 0 -2.250005 1.0074 -2.250005 2.25s1.007355 2.25 2.250005 2.25Z" />
+<path d="M3.4375 12.7547c0.57898 -1.9866 1.85515 -3.69778 3.5942 -4.81925 1.73906 -1.12148 3.8243 -1.57802 5.8728 -1.28581 2.0486 0.29221 3.923 1.31355 5.2792 2.87653 1.3561 1.56293 2.103 3.56263 2.1034 5.63193v2.2032" />
+<path d="m23.0781 14.6455 -2.7912 2.7912 -2.7911 -2.7912" />
+</svg>;
+
 export const Reload = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-reload">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M19.933 13.041a8 8 0 1 1 -9.925 -8.788c3.899 -1 7.935 1.007 9.425 4.747" />
@@ -3582,6 +3620,23 @@ export const Target = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24
 <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
 </svg>;
 
+export const TeamChat = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-team-chat" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<g>
+<path d="M12.75 21h1.5v2.25l3 -2.25h4.5a1.5 1.5 0 0 0 1.5 -1.5V15a1.5 1.5 0 0 0 -1.5 -1.5h-9a1.5 1.5 0 0 0 -1.5 1.5v4.5a1.5 1.5 0 0 0 1.5 1.5Z"/>
+<g>
+<path d="M2.35 16.87a2.62 2.62 0 1 0 5.24 0 2.62 2.62 0 1 0 -5.24 0"/>
+<path d="M9.2 23.25a4.48 4.48 0 0 0 -8.45 0"/>
+</g>
+<g>
+<path d="M16.41 4.13a2.62 2.62 0 1 0 5.24 0 2.62 2.62 0 1 0 -5.24 0"/>
+<path d="M23.25 10.5a4.48 4.48 0 0 0 -8.45 0"/>
+</g>
+<path d="m14.75 17.25 4 0"/>
+<path d="M11.25 8.25h-1.5v2.25l-3 -2.25h-4.5a1.5 1.5 0 0 1 -1.5 -1.5v-4.5a1.5 1.5 0 0 1 1.5 -1.5h9a1.5 1.5 0 0 1 1.5 1.5v4.5a1.5 1.5 0 0 1 -1.5 1.5Z"/>
+<path d="m8.25 4.25 -4 0"/>
+</g>
+</svg>;
+
 export const TemperatureControlWarehouse1 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-temperature-control-warehouse-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10">
 <path d="M18.75 15.7499v5.6" strokeWidth="1.5" />
 <path d="m17.75 23.25 1 -1.9 0.9 1.9" strokeWidth="1.5" />
@@ -4221,6 +4276,15 @@ export const WorkflowAccountCircle = <svg xmlns="http://www.w3.org/2000/svg" vie
 <path d="M18.10977593,20.99938945c-.0004997-3.37433482-2.73634541-6.10937039-6.11068117-6.10887069-3.37363002.0004997-6.10837099,2.73524066-6.10887069,6.10887069"/>
 <path d="M8.32677131,9.61156272c-.00091923,1.99402852,1.61481333,3.61125272,3.60884185,3.61217381,1.99402852.00091923,3.61125459-1.61481333,3.61217381-3.60884185v-.00333103c.00091923-1.99402852-1.61481333-3.61125366-3.60884185-3.61217381s-3.61125459,1.61481333-3.61217381,3.60884185v.00333103"/>
 <path d="M.75,12c0,6.21320343,5.03679657,11.25,11.25,11.25s11.25-5.03679657,11.25-11.25S18.21320343.75,12,.75C5.78679609.75.75,5.78679609.75,12"/>
+</svg>;
+
+export const WorkflowGanttChart8 = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-workflow-gantt-chart-8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeWidth="1.5">
+<path d="M0.75 0.75v22.5h22.5" />
+<path d="M13.75 5.25h-8.5c-0.3 0 -0.5 -0.2 -0.5 -0.5v-2c0 -0.3 0.2 -0.5 0.5 -0.5h8.5c0.3 0 0.5 0.2 0.5 0.5v2c0 0.3 -0.2 0.5 -0.5 0.5Z" />
+<path d="M22.75 11.75h-8.5c-0.3 0 -0.5 -0.2 -0.5 -0.5v-2c0 -0.3 0.2 -0.5 0.5 -0.5h8.5c0.3 0 0.5 0.2 0.5 0.5v2c0 0.3 -0.2 0.5 -0.5 0.5Z" />
+<path d="M12.75 17.25h-8.5c-0.3 0 -0.5 -0.2 -0.5 -0.5v-2c0 -0.3 0.2 -0.5 0.5 -0.5h8.5c0.3 0 0.5 0.2 0.5 0.5v2c0 0.3 -0.2 0.5 -0.5 0.5Z" />
+<path d="M22.75 20.25h-5c-0.3 0 -0.5 -0.2 -0.5 -0.5v-2c0 -0.3 0.2 -0.5 0.5 -0.5h5c0.3 0 0.5 0.2 0.5 0.5v2c0 0.3 -0.2 0.5 -0.5 0.5Z" />
+<path d="M14.25 3.75h4c0.3 0 0.5 0.2 0.5 0.5v4.5" />
 </svg>;
 
 export const WorkflowTeammateCircle = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-workflow-teammate-circle" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">

@@ -2,8 +2,8 @@ export default {
   en: {
 
     // Site meta
-    schedule_call: 'Schedule a call',
-    copyright_text: 'Copyright © %{currentYear} %{companyName}. All rights reserved.',
+    schedule_demo: 'Schedule a demo',
+    copyright_text: '© %{currentYear} %{companyName}. All rights reserved.',
     privacy: 'Privacy Policy',
     tos: 'Terms of Service',
 

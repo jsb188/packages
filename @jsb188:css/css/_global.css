@@ -169,7 +169,7 @@ button.disabled, button:disabled, .link[role="button"]:disabled {
   cursor: auto;
 }
 
-main, section, article, aside, nav, div, p, button, input, textarea, ul, ol, li, span, i, a {
+main, header, section, article, aside, nav, div, p, button, input, textarea, ul, ol, li, span, i, a {
   box-sizing: border-box;
 }
 
@@ -1360,15 +1360,15 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 
 /* :before element colors */
 
-.darker_bf_1:before { background-color: rgba(var(--color-darker-rgb),.1); }
-.darker_bf_2:before { background-color: rgba(var(--color-darker-rgb),.25); }
-.darker_bf_3:before { background-color: rgba(var(--color-darker-rgb),.5); }
-.darker_bf_4:before { background-color: rgba(var(--color-darker-rgb),.75); }
+.darker_bf_1:before { background-color: rgba(var(--color-darker-rgb),.07); }
+.darker_bf_2:before { background-color: rgba(var(--color-darker-rgb),.2); }
+.darker_bf_3:before { background-color: rgba(var(--color-darker-rgb),.4); }
+.darker_bf_4:before { background-color: rgba(var(--color-darker-rgb),.6); }
 
-.lighter_bf_1:before { background-color: rgba(var(--color-lighter-rgb),.1); }
-.lighter_bf_2:before { background-color: rgba(var(--color-lighter-rgb),.25); }
-.lighter_bf_3:before { background-color: rgba(var(--color-lighter-rgb),.5); }
-.lighter_bf_4:before { background-color: rgba(var(--color-lighter-rgb),.75); }
+.lighter_bf_1:before { background-color: rgba(var(--color-lighter-rgb),.07); }
+.lighter_bf_2:before { background-color: rgba(var(--color-lighter-rgb),.2); }
+.lighter_bf_3:before { background-color: rgba(var(--color-lighter-rgb),.4); }
+.lighter_bf_4:before { background-color: rgba(var(--color-lighter-rgb),.6); }
 
 .strong_bf::before {
   background-color: rgb(var(--color-bg-strong));
