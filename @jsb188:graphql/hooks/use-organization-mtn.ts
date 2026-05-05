@@ -30,7 +30,7 @@ export function useSwitchOrganization(params: UseMutationParams = {}, openModalP
   const [switchOrganization, mtnValues, mtnHandlers] = useMutation(switchOrganizationMtn, {
     // checkMountedBeforeCallback: true,
     openModalPopUp,
-    onCompleted: (data, error, variables) => {
+    onCompleted: (data: any, error: any, variables: any) => {
       const result = data?.switchOrganization;
       if (result) {
         // navigate('/app', { replace: true });

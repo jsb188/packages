@@ -43,7 +43,7 @@ export async function loaderRequiresLogin(request: Request) {
   const authToken = session.get('auth_token');
 
   if (!authToken) {
-    return redirect('/auth/login');
+    return redirect('/auth/signin');
   }
 
   return null;

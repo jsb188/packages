@@ -351,6 +351,7 @@ export function ModalFloatingSaveButton(p: ModalFloatingSaveButtonProps) {
 interface AlertDataProps {
   preset?: string;
   __type?: string;
+  iconUrl?: string;
   iconName?: string | null;
   iconClassName?: string;
   title?: string;
@@ -377,6 +378,7 @@ interface AlertDataProps {
 
 export function AlertPopUp(p: AlertDataProps) {
   const {
+    iconUrl,
     iconName,
     iconClassName,
     title,
@@ -429,10 +431,16 @@ export function AlertPopUp(p: AlertDataProps) {
     <>
       {iconName !== null
       ? <div className={cn('pt_lg pb_xs ic_xxxl ft_1', iconClassName, isWarning ? 'cl_darker_2' : 'cl_secondary' )}>
-        <Icon
+        {iconUrl
+        ? <img
+          src={iconUrl}
+          alt=''
+          className='w_75 h_75'
+        />
+        : <Icon
           tryColor
           name={iconName || 'alert-circle'}
-        />
+        />}
       </div>
       : <div className='h_40' />}
 

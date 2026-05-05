@@ -381,7 +381,7 @@ function SendPhoneVerification(p: AuthFormProps) {
         onClick={() => setAuthIface(null)}
         className='text ft_sm cl_md link'
       >
-        {i18n.t('auth.log_in_other_methods')}
+        {i18n.t('auth.sign_in_other_methods')}
       </button>
     </div>
   </>;
@@ -581,7 +581,7 @@ function SignUpMain(p: SignUpMainProps) {
           replace
           className='text ft_sm cl_md link'
         >
-          {i18n.t('auth.log_in_w_existing')}
+          {i18n.t('auth.sign_in_w_existing')}
         </Link>
       </div>
     </>

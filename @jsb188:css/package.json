@@ -7,9 +7,10 @@
   "type": "module",
   "exports": {
     "./_global.css": "./css/_global.css",
+    "./_colors.css": "./css/_colors.generated.css",
+    "./_colors.generated.css": "./css/_colors.generated.css",
     "./alert.css": "./css/alert.css",
     "./animate.css": "./css/animate.css",
-    "./colors.css": "./css/colors.css",
     "./form.css": "./css/form.css",
     "./layout.css": "./css/layout.css",
     "./loading.css": "./css/loading.css",

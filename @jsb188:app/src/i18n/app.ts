@@ -31,6 +31,9 @@ export default {
 
     // Settings
     app: 'App',
+    account: 'Account',
+    features: 'Features',
+    connections: 'Connections',
     updates: 'Update notes',
     logout: 'Log out',
 
@@ -74,6 +77,22 @@ export default {
     roadmap: 'Roadmap',
 
     // Subscription related
-    sub_needed: 'You need a subscription to use this feature.'
+    sub_needed: 'You need a subscription to use this feature.',
+
+    // Integrations
+    integrations_desc: 'Grant your AI access to third-party apps and services.',
+    integrations_other_title: 'Looking for a different app connection?',
+    integrations_other_desc: '[Send us an e-mail](mailto:hello@marketday.ai). We decide what to build next based on your feedback.',
+    square_connected: 'Square is connected.',
+    square_disconnected: 'Square is not connected.',
+    connect_square_title: 'Connect Square',
+    connect_square_desc: 'Connect your Square account to\nunlock these features:',
+    connect_square_permission_1: 'Access your orders and sales data',
+    connect_square_permission_2: 'Create new orders and payment requests',
+    connect_square_permission_3: 'Edit an existing order',
+    connect_square_permission_4: "Charge a vendor/customer's credit card",
+    connect_square_button: 'Continue to Square',
+    square_permissions_sales: 'Sales data',
+    square_permissions_payments: 'Payment requests',
   },
 };

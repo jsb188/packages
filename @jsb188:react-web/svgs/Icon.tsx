@@ -82,6 +82,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   upload_button: 'upload-button',
   add_line: 'pencil-write-3',
   remove_line: 'remove-tab',
+  app_connections: 'plug-disconnected',
   view_document: 'common-file-view',
   edit_document: 'common-file-text-edit',
   edit: 'pencil-write-2',

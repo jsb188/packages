@@ -15,7 +15,7 @@ export function getAuthRoute(
   queryStr?: string
 ) {
   const defaultAuthRoutesMap: Record<AuthPageName, string> = {
-    signin: '/auth/login',
+    signin: '/auth/signin',
     signin_success: '/auth/success',
     signup: '/auth/signup',
     signup_success: '/auth/signup-finished',

@@ -588,7 +588,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
         preset={buttonPreset}
         size={buttonSize}
       >
-        {i18n.t('auth.log_in_again')}
+        {i18n.t('auth.sign_in_again')}
       </Pill>
       : buttonHandler ? (
         <Pill
