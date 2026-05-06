@@ -1,8 +1,8 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn } from '@jsb188/react/states';
-import { updateFragment } from '../cache/index';
-import { createSignedUploadUrlMtn, deleteStorageFileMtn } from '../gql/mutations/storageMutations';
-import { useMutation } from './index';
+import { updateFragment } from '../cache/index.ts';
+import { createSignedUploadUrlMtn, deleteStorageFileMtn } from '../gql/mutations/storageMutations.ts';
+import { useMutation } from './index.ts';
 
 /**
  * Get signed URL for file uploads

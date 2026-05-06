@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { productCalEventFragment, productFragment } from '../fragments/productFragments';
+import { productCalEventFragment, productFragment } from '../fragments/productFragments.ts';
 
 export const productsListQry = gql`
 query productsList (

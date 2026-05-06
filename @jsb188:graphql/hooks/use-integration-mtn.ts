@@ -1,50 +1,50 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 import {
-  createSquareAuthorizationUrlMtn,
+  createIntegrationAuthorizationUrlMtn,
   createSquarePaymentRequestMtn,
-  disconnectSquareMtn,
-} from '../gql/mutations/integrationMutations';
-import { useMutation } from './index';
+  disconnectIntegrationMtn,
+} from '../gql/mutations/integrationMutations.ts';
+import { useMutation } from './index.ts';
 
 /**
- * Create Square OAuth authorization URL.
+ * Create integration OAuth authorization URL.
  */
-export function useCreateSquareAuthorizationUrl(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
-  const [createSquareAuthorizationUrl, mtnValues, mtnHandlers] = useMutation(createSquareAuthorizationUrlMtn, {
+export function useCreateIntegrationAuthorizationUrl(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+  const [createIntegrationAuthorizationUrl, mtnValues, mtnHandlers] = useMutation(createIntegrationAuthorizationUrlMtn, {
     openModalPopUp,
     ...params,
   });
 
   return {
-    createSquareAuthorizationUrl,
+    createIntegrationAuthorizationUrl,
     ...mtnValues,
     ...mtnHandlers,
   };
 }
 
 /**
- * Disconnect Square integration.
+ * Disconnect an integration.
  */
-export function useDisconnectSquare(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+export function useDisconnectIntegration(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
   const { onCompleted, ...otherParams } = params;
-  const [disconnectSquare, mtnValues, mtnHandlers, updateObservers] = useMutation(disconnectSquareMtn, {
+  const [disconnectIntegration, mtnValues, mtnHandlers, updateObservers] = useMutation(disconnectIntegrationMtn, {
     openModalPopUp,
     onCompleted: (data: any, error: any, variables: any) => {
-      if (data?.disconnectSquare) {
+      if (data?.disconnectIntegration) {
         updateObservers({
-          queryId: '#squareConnection:',
+          queryId: '#integrationConnection:',
           forceRefetch: true,
         });
       }
 
-      onCompleted?.(data?.disconnectSquare, error, variables);
+      onCompleted?.(data?.disconnectIntegration, error, variables);
     },
     ...otherParams,
   });
 
   return {
-    disconnectSquare,
+    disconnectIntegration,
     ...mtnValues,
     ...mtnHandlers,
   };

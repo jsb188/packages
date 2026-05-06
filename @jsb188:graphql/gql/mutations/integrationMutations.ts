@@ -1,21 +1,25 @@
 import { gql } from 'graphql-tag';
 
-export const createSquareAuthorizationUrlMtn = gql`
-mutation createSquareAuthorizationUrl (
+export const createIntegrationAuthorizationUrlMtn = gql`
+mutation createIntegrationAuthorizationUrl (
   $organizationId: GenericID!
+  $provider: String!
 ) {
-  createSquareAuthorizationUrl (
+  createIntegrationAuthorizationUrl (
     organizationId: $organizationId
+    provider: $provider
   )
 }
 `;
 
-export const disconnectSquareMtn = gql`
-mutation disconnectSquare (
+export const disconnectIntegrationMtn = gql`
+mutation disconnectIntegration (
   $organizationId: GenericID!
+  $provider: String!
 ) {
-  disconnectSquare (
+  disconnectIntegration (
     organizationId: $organizationId
+    provider: $provider
   )
 }
 `;

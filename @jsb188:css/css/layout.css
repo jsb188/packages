@@ -141,16 +141,6 @@ body.p_auth {
 .floating_msg_cnt {
   transition: transform .2s ease-in-out, opacity .2s ease-in-out;
   transform: translateY(0);
-  opacity: 0;
-}
-
-.floating_msg_cnt.active {
-  transform: translateY(var(--toolbar-ht));
-  opacity: 1;
-}
-
-.floating_msg {
-  margin: 0 -1rem;
 }
 
 /* Helpers, to work with layout variables */

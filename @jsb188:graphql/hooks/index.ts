@@ -5,10 +5,10 @@ import { delay, makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import { isServerErrorGQL } from '@jsb188/graphql/utils';
 import { useConnectedToServerValue, useFragmentObserverValue, useQueryObserverValue, useScreenIsFocusedValue, useSetFragmentObserver, useSetQueryObserver } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { checkDataCompleteness, clearQueryResetStatus, fetchCachedData, getQueryRefreshTime, loadDataFromCache, loadFragment, removeStaleCache } from '../cache';
-import { QUERY_EXPIRE_TIMES } from '../cache/config';
-import { graphqlRequest } from '../client/request';
-import type { AnyModalPopUpFn, GraphQLHandlers, GraphQLQueryOptions, OnCompletedGQLFn, OnErrorGQLFn, UpdateDataObserverArgs, UpdateObserversFn } from '../types';
+import { checkDataCompleteness, clearQueryResetStatus, fetchCachedData, getQueryRefreshTime, loadDataFromCache, loadFragment, removeStaleCache } from '../cache/index.ts';
+import { QUERY_EXPIRE_TIMES } from '../cache/config.ts';
+import { graphqlRequest } from '../client/request.ts';
+import type { AnyModalPopUpFn, GraphQLHandlers, GraphQLQueryOptions, OnCompletedGQLFn, OnErrorGQLFn, UpdateDataObserverArgs, UpdateObserversFn } from '../types.d.ts';
 
 
 /**

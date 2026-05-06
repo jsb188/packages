@@ -4,9 +4,9 @@ import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
 import { AppContext, onGuestInit, useOpenModalPopUp } from '@jsb188/react/states';
 import React, { useContext, useEffect, useState } from 'react';
-import { changeAccountPasswordMtn, checkUsernameOrEmailMtn, confirmPasswordMtn, confirmPhoneVerificationCodeMtn, requestTokenizedEmailMtn, sendPhoneVerificationCodeMtn, signUpWithEmailMtn } from '../gql/mutations/authMutations';
-import { signOutMtn } from '../gql/mutations/userAuthMutations';
-import { useMutation } from './index';
+import { changeAccountPasswordMtn, checkUsernameOrEmailMtn, confirmPasswordMtn, confirmPhoneVerificationCodeMtn, requestTokenizedEmailMtn, sendPhoneVerificationCodeMtn, signUpWithEmailMtn } from '../gql/mutations/authMutations.ts';
+import { signOutMtn } from '../gql/mutations/userAuthMutations.ts';
+import { useMutation } from './index.ts';
 
 /**
  * Types

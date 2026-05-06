@@ -1,6 +1,6 @@
 import { gql } from 'graphql-tag';
-import { reportColumnDataFragment, reportFragment, reportGroupFragment, reportRowDataFragment, reportSectionFragment, reportSubmissionFragment } from '../fragments/reportFragments';
-import { storageFileFragment } from '../fragments/storageFragments';
+import { reportColumnDataFragment, reportFragment, reportGroupFragment, reportRowDataFragment, reportSectionFragment, reportSubmissionFragment } from '../fragments/reportFragments.ts';
+import { storageFileFragment } from '../fragments/storageFragments.ts';
 
 export const reportsQry = gql`
 query reports (

@@ -1,7 +1,7 @@
 import { gql } from 'graphql-tag';
-import { accountAuthFragment } from '../fragments/accountAuthFragments';
-import { emailFragment, phoneFragment } from '../fragments/otherFragments';
-import { accountFragment } from '../fragments/accountFragments';
+import { accountAuthFragment } from '../fragments/accountAuthFragments.ts';
+import { emailFragment, phoneFragment } from '../fragments/otherFragments.ts';
+import { accountFragment } from '../fragments/accountFragments.ts';
 
 const authenticateResultText = `...accountAuthFragment
 

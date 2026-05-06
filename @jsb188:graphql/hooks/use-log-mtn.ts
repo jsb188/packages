@@ -2,11 +2,11 @@ import { checkACLPermission } from '@jsb188/mday/utils/organization.ts';
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn } from '@jsb188/react/states';
 import { useMemo } from 'react';
-import { updateFragment } from '../cache/index';
-import { deleteLogEntryMtn, editLogEntryMtn } from '../gql/mutations/logMutations';
-import { useMutation } from './index';
-import { useReactiveLogFragment } from './use-log-qry';
-import { useOrgRelFromMyOrganizations } from './use-organization-qry';
+import { updateFragment } from '../cache/index.ts';
+import { deleteLogEntryMtn, editLogEntryMtn } from '../gql/mutations/logMutations.ts';
+import { useMutation } from './index.ts';
+import { useReactiveLogFragment } from './use-log-qry.ts';
+import { useOrgRelFromMyOrganizations } from './use-organization-qry.ts';
 
 /**
  * Fetch a single log entry,

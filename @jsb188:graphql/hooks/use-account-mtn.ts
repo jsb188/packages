@@ -1,7 +1,7 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
-import { changePhoneMtn, requestChangeEmailMtn, requestChangePhoneMtn, editAccountMtn } from '../gql/mutations/accountMutations';
-import { useMutation } from './index';
+import { changePhoneMtn, requestChangeEmailMtn, requestChangePhoneMtn, editAccountMtn } from '../gql/mutations/accountMutations.ts';
+import { useMutation } from './index.ts';
 
 /**
  * Edit logged in user's account

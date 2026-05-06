@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { accountFragment } from '../fragments/accountFragments';
+import { accountFragment } from '../fragments/accountFragments.ts';
 
 export const editAccountMtn = gql`
 mutation editAccount (

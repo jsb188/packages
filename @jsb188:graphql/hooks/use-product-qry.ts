@@ -1,7 +1,7 @@
 import type { ProductsFilterArgs } from '@jsb188/mday/types/product.d.ts';
-import { useQuery, useReactiveFragment } from '../client';
-import { productsListQry } from '../gql/queries/productQueries';
-import type { PaginationArgs, UseQueryParams } from '../types';
+import { useQuery, useReactiveFragment } from '../client/index.ts';
+import { productsListQry } from '../gql/queries/productQueries.ts';
+import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
 /**
  * Constants

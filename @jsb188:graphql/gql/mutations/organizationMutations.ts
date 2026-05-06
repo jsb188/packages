@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments.ts';
 
 export const switchOrganizationMtn = gql`
 mutation switchOrganization (

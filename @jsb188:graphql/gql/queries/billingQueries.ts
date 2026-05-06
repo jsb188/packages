@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { platformProductFragment } from '../fragments/billingFragments';
+import { platformProductFragment } from '../fragments/billingFragments.ts';
 
 export const platformProductsQry = gql`
 query platformProducts {

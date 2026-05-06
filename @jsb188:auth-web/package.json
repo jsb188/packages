@@ -12,12 +12,12 @@
   },
   "peerDependencies": {
     "@jsb188/app": "1.1.8",
-    "@jsb188/react-web": "1.1.8",
     "@jsb188/graphql": "1.1.8",
     "@jsb188/react": "1.1.8",
-    "react-router": "^7.8.2",
+    "@jsb188/react-web": "1.1.8",
     "jotai": "^2.13.1",
-    "react": "^19.1.1"
+    "react": "^19.1.1",
+    "react-router": "^7.15.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -1,24 +1,26 @@
 import { useQuery } from '@jsb188/graphql/client';
-import { squareConnectionQry, squareSalesTotalsQry } from '../gql/queries/integrationQueries';
-import type { UseQueryParams } from '../types.d';
+import { integrationConnectionQry, squareSalesTotalsQry } from '../gql/queries/integrationQueries.ts';
+import type { UseQueryParams } from '../types.d.ts';
 
 /**
- * Fetch Square connection status for an organization.
+ * Fetch integration connection status for an organization.
  */
-export function useSquareConnection(
+export function useIntegrationConnection(
   organizationId: string | null,
+  provider: string,
   params: UseQueryParams = {},
 ) {
-  const { data, ...rest } = useQuery(squareConnectionQry, {
+  const { data, ...rest } = useQuery(integrationConnectionQry, {
     variables: {
       organizationId,
+      provider,
     },
-    skip: !organizationId || params.skip,
+    skip: !organizationId || !provider || params.skip,
     ...params,
   });
 
   return {
-    squareConnection: data?.squareConnection,
+    integrationConnection: data?.integrationConnection,
     ...rest
   };
 }

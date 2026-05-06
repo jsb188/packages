@@ -2,7 +2,7 @@ import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { checkACL, type OperationName } from '@jsb188/mday/utils/organization.ts';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
 import { useMemo } from 'react';
-import { updateFragment } from '../cache/index';
+import { updateFragment } from '../cache/index.ts';
 import {
   deleteChildOrganizationMtn,
   deleteComplianceDocumentMtn,
@@ -13,9 +13,9 @@ import {
   editSiteLocationMtn,
   removeMembershipMtn,
   switchOrganizationMtn
-} from '../gql/mutations/organizationMutations';
-import { useMutation } from './index';
-import { useOrgRelFromMyOrganizations } from './use-organization-qry';
+} from '../gql/mutations/organizationMutations.ts';
+import { useMutation } from './index.ts';
+import { useOrgRelFromMyOrganizations } from './use-organization-qry.ts';
 
 /**
  * Fetch a single log entry,

@@ -3,11 +3,11 @@ import { getAuthToken } from '@jsb188/app/utils/api.ts';
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import SSE from '@jsb188/sse';
 import { useEffect, useState } from 'react';
-import { loadFragment, loadQuery, resetQuery, updateQuery } from '../cache/';
-import { useQuery } from '../client';
-import { aiChatMessagesQry, aiChatQry, aiChatsQry } from '../gql/queries/aiChatQueries';
-import handleSSEData, { type PublishPayload } from '../sse';
-import type { UpdateObserversFn, UseQueryParams } from '../types.d';
+import { loadFragment, loadQuery, resetQuery, updateQuery } from '../cache/index.ts';
+import { useQuery } from '../client/index.ts';
+import { aiChatMessagesQry, aiChatQry, aiChatsQry } from '../gql/queries/aiChatQueries.ts';
+import handleSSEData, { type PublishPayload } from '../sse.ts';
+import type { UpdateObserversFn, UseQueryParams } from '../types.d.ts';
 
 /**
  * Constants

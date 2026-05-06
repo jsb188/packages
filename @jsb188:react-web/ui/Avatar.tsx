@@ -394,7 +394,7 @@ export function AvatarImg(p: AvatarProps & {
   let radiusClassName, letterClassName, letterBackgroundClassName;
   if (square) {
     radiusClassName = p.radiusClassName || 'r_sm';
-    letterBackgroundClassName = (p.letterBackgroundClassName ?? 'bg_lighter_4') + ' bd_2 bd_lt';
+    letterBackgroundClassName = (p.letterBackgroundClassName ?? 'bg_lighter_5') + ' bd_2 bd_lt';
 
     if (p.letterBackgroundClassName && !['bg','bg_alt','bg_active'].includes(p.letterBackgroundClassName)) {
       letterClassName = p.letterClassName ?? 'ft_semibold';

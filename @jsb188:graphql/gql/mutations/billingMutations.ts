@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { platformProductPurchaseResultFragment } from '../fragments/billingFragments';
+import { platformProductPurchaseResultFragment } from '../fragments/billingFragments.ts';
 
 export const purchasePlatformProductMtn = gql`
 mutation purchasePlatformProduct (

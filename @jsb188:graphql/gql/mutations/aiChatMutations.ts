@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { aiChatFragment, aiChatMessageFragment } from '../fragments/aiChatFragments';
+import { aiChatFragment, aiChatMessageFragment } from '../fragments/aiChatFragments.ts';
 
 export const startAIChatMtn = gql`
 mutation startAIChat (

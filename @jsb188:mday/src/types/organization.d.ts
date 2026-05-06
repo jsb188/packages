@@ -8,6 +8,7 @@ import {
 import { PRODUCT_FEATURES } from '../constants/product.ts';
 
 import type { AddressObj } from '@jsb188/app/types/other.d.ts';
+import type { IntegrationConnectionData, IntegrationConnectionGQL } from './integration.d.ts';
 import type { StorageData, StorageGQL } from './storage.d.ts';
 
 /*
@@ -85,6 +86,7 @@ export interface OrganizationData {
 			__table: 'organization_addresses';
 			organizationId: bigint;
 		};
+	integrations?: IntegrationConnectionData[] | null;
 	activated: boolean;
 }
 
@@ -176,6 +178,7 @@ export interface OrganizationGQL {
 	address: AddressObj;
 	operation: OrganizationOperationEnum;
 	compliance: OrganizationComplianceGQL[] | null;
+	integrations: IntegrationConnectionGQL[] | null;
 	features: OrganizationFeatureEnum[];
 	settings?: OrganizationSettingsObj | null;
 	directory: OrgContact[];

@@ -1,8 +1,9 @@
 import { gql } from 'graphql-tag';
-import { accountFragment } from '../fragments/accountFragments';
-import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments';
-import { emailFragment, phoneFragment } from '../fragments/otherFragments';
-import { storageFileFragment } from '../fragments/storageFragments';
+import { accountFragment } from '../fragments/accountFragments.ts';
+import { integrationConnectionFragment } from '../fragments/integrationFragments.ts';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments.ts';
+import { emailFragment, phoneFragment } from '../fragments/otherFragments.ts';
+import { storageFileFragment } from '../fragments/storageFragments.ts';
 
 // Always use organizationRelationship() instead
 
@@ -66,6 +67,9 @@ query myOrganizations {
           ...storageFileFragment
         }
       }
+      integrations {
+        ...integrationConnectionFragment
+      }
     }
   }
 }
@@ -73,6 +77,7 @@ query myOrganizations {
 ${organizationFragment}
 ${organizationComplianceFragment}
 ${organizationRelationshipFragment}
+${integrationConnectionFragment}
 ${storageFileFragment}
 `;
 

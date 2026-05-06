@@ -1,7 +1,7 @@
 import type { ReportsFilterArgs, ReportsSortEnum } from '@jsb188/mday/types/report.d.ts';
-import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '../client';
-import { reportGroupsQry, reportQry, reportsQry, reportSubmissionsQry } from '../gql/queries/reportQueries';
-import type { UseQueryParams } from '../types';
+import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '../client/index.ts';
+import { reportGroupsQry, reportQry, reportsQry, reportSubmissionsQry } from '../gql/queries/reportQueries.ts';
+import type { UseQueryParams } from '../types.d.ts';
 
 /**
  * Get reactive report fragment

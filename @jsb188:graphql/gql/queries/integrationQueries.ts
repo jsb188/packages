@@ -1,18 +1,20 @@
 import { gql } from 'graphql-tag';
-import { squareConnectionFragment } from '../fragments/integrationFragments';
+import { integrationConnectionFragment } from '../fragments/integrationFragments.ts';
 
-export const squareConnectionQry = gql`
-query squareConnection (
+export const integrationConnectionQry = gql`
+query integrationConnection (
   $organizationId: GenericID!
+  $provider: String!
 ) {
-  squareConnection (
+  integrationConnection (
     organizationId: $organizationId
+    provider: $provider
   ) {
-    ...squareConnectionFragment
+    ...integrationConnectionFragment
   }
 }
 
-${squareConnectionFragment}
+${integrationConnectionFragment}
 `;
 
 export const squareSalesTotalsQry = gql`

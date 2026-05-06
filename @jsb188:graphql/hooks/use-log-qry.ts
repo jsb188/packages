@@ -1,7 +1,7 @@
 import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d.ts';
-import { useQuery, useReactiveFragment } from '../client';
-import { logEntriesForReportQry, logEntriesQry } from '../gql/queries/logQueries';
-import type { PaginationArgs, UseQueryParams } from '../types';
+import { useQuery, useReactiveFragment } from '../client/index.ts';
+import { logEntriesForReportQry, logEntriesQry } from '../gql/queries/logQueries.ts';
+import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
 /**
  * Constants

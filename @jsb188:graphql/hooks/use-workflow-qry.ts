@@ -1,6 +1,6 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
-import { workflowRunsQry, workflowsQry } from '../gql/queries/workflowQueries';
-import type { UseQueryParams } from '../types.d';
+import { workflowRunsQry, workflowsQry } from '../gql/queries/workflowQueries.ts';
+import type { UseQueryParams } from '../types.d.ts';
 
 /**
  * Fetch workflows for an organization

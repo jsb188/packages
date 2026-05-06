@@ -1,16 +1,17 @@
-import type { SquareConnectionStatusEnum } from '../constants/square.ts';
+import type { IntegrationConnectionStatusEnum } from '../constants/integration.ts';
 import type { SquareConnectionCapabilities } from '../utils/square.ts';
 
 /**
- * Square connection database object.
+ * Integration connection database object.
  */
-export interface SquareConnectionData {
-	__table: 'square_connections';
+export interface IntegrationConnectionData {
+	__table: 'integrations';
 	id: bigint;
 	organizationId: bigint;
-	merchantId: string | null;
+	provider: 'SQUARE';
+	externalAccountId: string | null;
 	scopes: string[];
-	status: SquareConnectionStatusEnum;
+	status: IntegrationConnectionStatusEnum;
 	expiresAt: Date | null;
 	refreshTokenExpiresAt: Date | null;
 	lastSyncedAt: Date | null;
@@ -21,14 +22,15 @@ export interface SquareConnectionData {
 }
 
 /**
- * GraphQL data for Square connection types.
+ * GraphQL data for integration connection types.
  */
-export interface SquareConnectionGQL {
+export interface IntegrationConnectionGQL {
 	id: string | null;
 	organizationId: string;
-	merchantId: string | null;
+	provider: 'SQUARE';
+	externalAccountId: string | null;
 	scopes: string[];
-	status: SquareConnectionStatusEnum;
+	status: IntegrationConnectionStatusEnum;
 	expiresAt: string | null;
 	refreshTokenExpiresAt: string | null;
 	lastSyncedAt: string | null;

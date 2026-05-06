@@ -1,6 +1,6 @@
 import { useQuery } from '@jsb188/graphql/client';
-import { updateNoteQry } from '../gql/queries/appQueries';
-import type { UseQueryParams } from '../types.d';
+import { updateNoteQry } from '../gql/queries/appQueries.ts';
+import type { UseQueryParams } from '../types.d.ts';
 
 /**
  * Fetch update notes

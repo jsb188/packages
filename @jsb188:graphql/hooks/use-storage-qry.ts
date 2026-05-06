@@ -1,4 +1,4 @@
-import { useReactiveFragment } from '../client';
+import { useReactiveFragment } from '../client/index.ts';
 
 /**
  * Get reactive log fragment

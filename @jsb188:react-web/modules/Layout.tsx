@@ -5,7 +5,7 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { Pill } from '@jsb188/react-web/ui/Button';
 import { useOnlineStatus } from '@jsb188/react-web/utils/dom';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom';
 import { BigLoading } from '../ui/Loading';
@@ -687,31 +687,40 @@ export function ContentGate(p: ContentGateProps) {
  */
 
 interface FloatingMessageProps {
+  pathname: string;
   text: string | null;
   onClose: () => void;
   className?: string;
 }
 
 export const FloatingMessage = memo((p: FloatingMessageProps) => {
-  const { className, text, onClose } = p;
+  const { pathname, className, text, onClose } = p;
   // const [innerState, setInnerState] = useState({ active: !!text, text });
   const [innerStateText, visibility] = useAnimationVisibility(text || '');
+  const visible = visibility >= 2;
+
+  if (!visibility) {
+    return null;
+  }
 
   return <div
     className={cn(
-      'floating_msg_cnt abs_t z4 cw df pt_sm',
-      visibility >= 2 ? 'active' : visibility ? '' : 'hidden',
+      'floating_msg_cnt abs_t z9 pt_20',
+      visible ? 'active op_100' : visibility ? 'op_0' : 'op_0 hidden',
       className
     )}
+    style={{
+      transform: visible ? 'translateY(0)' : 'translateY(-100%)'
+    }}
   >
-    <div className='floating_msg bg_secondary r h_40 pl_sm pr_5 shadow h_spread'>
+    <div className='floating_msg bg_contrast r h_45 pl_df pr_5 shadow h_spread cw max_w_400 ft_sm'>
       <span className='ellip f'>
         {innerStateText}
       </span>
 
       <button
         type='button'
-        className='av av_xs r v_center bg_secondary_active link'
+        className='av av_xs r v_center bg_lighter_3 link'
         onClick={onClose}
       >
         <Icon

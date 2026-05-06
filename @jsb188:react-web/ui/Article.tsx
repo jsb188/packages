@@ -94,7 +94,7 @@ export const CondensedArticleItem = memo((p: {
   switch (preset) {
     case 'modal':
       addDivSeparator = true;
-      linkHoverClassName = 'bg_lighter_hv_4';
+      linkHoverClassName = 'bg_lighter_5_hv';
       xPaddingClassName = cn(horizontalPaddingClassName ?? 'px_md', horizontalMarginClassName ?? '-mx_5');
       break;
     case 'default_spaced':
@@ -295,7 +295,7 @@ export const CondensedArticleBlock = memo((p: {
     className={cn(
       'article_item rel z2',
       `px_${paddingSize}`,
-      hasLink ? 'link bg_lighter_hv_4' : undefined,
+      hasLink ? 'link bg_lighter_5_hv' : undefined,
       className
     )}
     role={hasLink ? 'button' : undefined}

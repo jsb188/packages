@@ -1,5 +1,5 @@
-import { addFragmentToCache, updateFragment, updateQuery } from './cache/';
-import type { UpdateObserversFn } from './types.d';
+import { addFragmentToCache, updateFragment, updateQuery } from './cache/index.ts';
+import type { UpdateObserversFn } from './types.d.ts';
 
 /**
  * Types

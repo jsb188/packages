@@ -1,13 +1,13 @@
 import { gql } from 'graphql-tag';
-import { accountFragment } from '../fragments/accountFragments';
+import { accountFragment } from '../fragments/accountFragments.ts';
 import {
   logEntryFragment,
   logArableFragment,
   logFarmersMarketFragment,
   logGrowerNetworkFragment,
   logLivestockFragment
-} from '../fragments/logFragments';
-import { storageFileFragment } from '../fragments/storageFragments';
+} from '../fragments/logFragments.ts';
+import { storageFileFragment } from '../fragments/storageFragments.ts';
 
 export const logEntryFragmentStatement = `...logEntryFragment
 

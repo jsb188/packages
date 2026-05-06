@@ -2,9 +2,9 @@ import { getENVVariable } from '@jsb188/app';
 import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { getAuthToken, normalizeServerError } from '@jsb188/app/utils/api.ts';
 import { delay } from '@jsb188/app/utils/logic.ts';
-import { setDataToCache } from '../cache/';
-import type { OnCompletedGQLFn, OnErrorGQLFn, UpdateObserversFn } from '../types.d';
-import { apiRequestHeaders, isServerErrorGQL } from '../utils';
+import { setDataToCache } from '../cache/index.ts';
+import type { OnCompletedGQLFn, OnErrorGQLFn, UpdateObserversFn } from '../types.d.ts';
+import { apiRequestHeaders, isServerErrorGQL } from '../utils.ts';
 
 /**
  * Types

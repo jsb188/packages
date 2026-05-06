@@ -1,3 +1,6 @@
+import type { IntegrationConnectionStatusEnum } from './integration.ts';
+import { INTEGRATION_CONNECTION_STATUSES } from './integration.ts';
+
 export const SQUARE_OAUTH_SCOPES = [
   'MERCHANT_PROFILE_READ',
   'PAYMENTS_READ',
@@ -8,11 +11,6 @@ export const SQUARE_OAUTH_SCOPES = [
 
 export type SquareOAuthScope = typeof SQUARE_OAUTH_SCOPES[number];
 
-export const SQUARE_CONNECTION_STATUSES = [
-  'CONNECTED',
-  'DISCONNECTED',
-  'ERROR',
-  'REVOKED',
-] as const;
+export const SQUARE_CONNECTION_STATUSES = INTEGRATION_CONNECTION_STATUSES;
 
-export type SquareConnectionStatusEnum = typeof SQUARE_CONNECTION_STATUSES[number];
+export type SquareConnectionStatusEnum = IntegrationConnectionStatusEnum;

@@ -102,7 +102,7 @@ export const SidebarSubtitle = memo((p: {
       'cl_md ft_xs h_item lh_1 r_xs',
       paddingClassName ?? 'px_12 py_5',
       marginClassName ?? 'mx_6',
-      onClick && 'bg_darker_hv_2 link'
+      onClick && 'bg_darker_2_hv link'
     )}
   >
     {iconName && (
@@ -188,7 +188,7 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
   return <SmartLink
     className={cn(
       'mx_6 my_2 py_3 r_xs bl ft_sm cl_df',
-      selected ? 'bg_darker_2 disabled' : 'bg_darker_hv_2',
+      selected ? 'bg_darker_2 disabled' : 'bg_darker_2_hv',
       className
     )}
     disabled={currentPath === to}

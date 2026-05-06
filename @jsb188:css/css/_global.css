@@ -557,29 +557,35 @@ button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="tr
 .bg_invis { background-color: rgba(0,0,0,0); }
 .bg_darker_1 { background-color: rgba(var(--color-darker-rgb),.03); }
 .bg_darker_2 { background-color: rgba(var(--color-darker-rgb),.064); }
-.bg_darker_3 { background-color: rgba(var(--color-darker-rgb),.25); }
-.bg_darker_4 { background-color: rgba(var(--color-darker-rgb),.5); }
-.bg_darker_5 { background-color: rgba(var(--color-darker-rgb),.75); }
-.bg_darker_6 { background-color: rgba(var(--color-darker-rgb),.9); }
+.bg_darker_3 { background-color: rgba(var(--color-darker-rgb),.15); }
+.bg_darker_4 { background-color: rgba(var(--color-darker-rgb),.25); }
+.bg_darker_5 { background-color: rgba(var(--color-darker-rgb),.5); }
+.bg_darker_6 { background-color: rgba(var(--color-darker-rgb),.75); }
+.bg_darker_7 { background-color: rgba(var(--color-darker-rgb),.9); }
 
 .bg_lighter_1 { background-color: rgba(var(--color-lighter-rgb),.03); }
 .bg_lighter_2 { background-color: rgba(var(--color-lighter-rgb),.064); }
-.bg_lighter_3 { background-color: rgba(var(--color-lighter-rgb),.25); }
-.bg_lighter_4 { background-color: rgba(var(--color-lighter-rgb),.5); }
-.bg_lighter_5 { background-color: rgba(var(--color-lighter-rgb),.75); }
-.bg_lighter_6 { background-color: rgba(var(--color-lighter-rgb),.9); }
+.bg_lighter_3 { background-color: rgba(var(--color-lighter-rgb),.15); }
+.bg_lighter_4 { background-color: rgba(var(--color-lighter-rgb),.25); }
+.bg_lighter_5 { background-color: rgba(var(--color-lighter-rgb),.5); }
+.bg_lighter_6 { background-color: rgba(var(--color-lighter-rgb),.75); }
+.bg_lighter_7 { background-color: rgba(var(--color-lighter-rgb),.9); }
 
-.bg_lighter_hv_1:hover { background-color: rgba(var(--color-lighter-rgb),.03) !important; }
-.bg_lighter_hv_2:hover { background-color: rgba(var(--color-lighter-rgb),.064) !important; }
-.bg_lighter_hv_3:hover { background-color: rgba(var(--color-lighter-rgb),.25) !important; }
-.bg_lighter_hv_4:hover { background-color: rgba(var(--color-lighter-rgb),.5) !important; }
-.bg_lighter_hv_5:hover { background-color: rgba(var(--color-lighter-rgb),.75) !important; }
+.bg_lighter_1_hv:hover { background-color: rgba(var(--color-lighter-rgb),.03) !important; }
+.bg_lighter_2_hv:hover { background-color: rgba(var(--color-lighter-rgb),.064) !important; }
+.bg_lighter_3_hv:hover { background-color: rgba(var(--color-lighter-rgb),.15) !important; }
+.bg_lighter_4_hv:hover { background-color: rgba(var(--color-lighter-rgb),.25) !important; }
+.bg_lighter_5_hv:hover { background-color: rgba(var(--color-lighter-rgb),.5) !important; }
+.bg_lighter_6_hv:hover { background-color: rgba(var(--color-lighter-rgb),.75) !important; }
+.bg_lighter_7_hv:hover { background-color: rgba(var(--color-lighter-rgb),.9) !important; }
 
-.bg_darker_hv_1:hover { background-color: rgba(var(--color-darker-rgb),.03) !important; }
-.bg_darker_hv_2:hover { background-color: rgba(var(--color-darker-rgb),.064) !important; }
-.bg_darker_hv_3:hover { background-color: rgba(var(--color-darker-rgb),.25) !important; }
-.bg_darker_hv_4:hover { background-color: rgba(var(--color-darker-rgb),.5) !important; }
-.bg_darker_hv_5:hover { background-color: rgba(var(--color-darker-rgb),.75) !important; }
+.bg_darker_1_hv:hover { background-color: rgba(var(--color-darker-rgb),.03) !important; }
+.bg_darker_2_hv:hover { background-color: rgba(var(--color-darker-rgb),.064) !important; }
+.bg_darker_3_hv:hover { background-color: rgba(var(--color-darker-rgb),.15) !important; }
+.bg_darker_4_hv:hover { background-color: rgba(var(--color-darker-rgb),.25) !important; }
+.bg_darker_5_hv:hover { background-color: rgba(var(--color-darker-rgb),.5) !important; }
+.bg_darker_6_hv:hover { background-color: rgba(var(--color-darker-rgb),.75) !important; }
+.bg_darker_7_hv:hover { background-color: rgba(var(--color-darker-rgb),.9) !important; }
 
 .pill.bg_active[role="button"]:not(:disabled):hover, .pill.bg_alt[role="button"]:not(:disabled):hover, .pill.bg[role="button"]:not(:disabled):hover,
 a.pill.bg_active:not(:disabled):hover, a.pill.bg_alt:not(:disabled):hover, a.pill.bg:not(:disabled):hover,

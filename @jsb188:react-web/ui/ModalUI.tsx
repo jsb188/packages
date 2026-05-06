@@ -572,7 +572,7 @@ export function ModalToolbar(p: {
 
       {!onCloseModal ? null : (
         <button
-          className='link av_xs r bg_darker_hv_2 v_center mr_xs'
+          className='link av_xs r bg_darker_2_hv v_center mr_xs'
           onClick={onCloseModal}
         >
           <Icon name='x' />
@@ -594,7 +594,7 @@ export function ModalToolbarTitle(p: {
   breadcrumbs?: ModalToolbarBreadcrumb[];
 }) {
   const { className, breadcrumbs, onCloseModal, didScroll, hideSeparator } = p;
-  const btnClassName = 'link av_xs r v_center bg_darker_hv_2';
+  const btnClassName = 'link av_xs r v_center bg_darker_2_hv';
 
   return <div
     className={cn(
@@ -635,7 +635,7 @@ export function ModalToolbarNav(p: {
   titleExtra?: string;
 }) {
   const { className, title, titleExtra, onCloseModal, didScroll, hideSeparator } = p;
-  const btnClassName = 'link av_xs r v_center bg_darker_hv_2 cl_darker_3 cl_df_hv';
+  const btnClassName = 'link av_xs r v_center bg_darker_2_hv cl_darker_3 cl_df_hv';
 
   return <div
     className={cn(

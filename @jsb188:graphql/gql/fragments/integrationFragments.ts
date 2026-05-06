@@ -1,7 +1,8 @@
-export const squareConnectionFragment = `fragment squareConnectionFragment on SquareConnection {
+export const integrationConnectionFragment = `fragment integrationConnectionFragment on IntegrationConnection {
   id
   organizationId
-  merchantId
+  provider
+  externalAccountId
   scopes
   status
   expiresAt

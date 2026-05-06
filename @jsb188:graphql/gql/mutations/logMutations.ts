@@ -5,7 +5,7 @@ import {
   logFarmersMarketFragment,
   logGrowerNetworkFragment,
   logLivestockFragment
-} from '../fragments/logFragments';
+} from '../fragments/logFragments.ts';
 
 export const editLogEntryMtn = gql`
 mutation editLogEntry (

@@ -1,2 +1,2 @@
-export * from '../hooks/index';
-export * from './request';
+export * from '../hooks/index.ts';
+export * from './request.ts';

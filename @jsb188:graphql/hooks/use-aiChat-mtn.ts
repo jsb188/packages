@@ -1,8 +1,8 @@
-import { resetQuery, updateFragment, updateQuery } from '../cache/';
-import { useMutation } from '../client';
-import { updateAIChats } from './use-aiChat-qry';
-import { deleteAIChatMtn, sendAIChatMessageMtn, startAIChatMtn, stopAIChatMessageMtn } from '../gql/mutations/aiChatMutations';
-import type { UseMutationParams } from '../types.d';
+import { resetQuery, updateFragment, updateQuery } from '../cache/index.ts';
+import { useMutation } from '../client/index.ts';
+import { updateAIChats } from './use-aiChat-qry.ts';
+import { deleteAIChatMtn, sendAIChatMessageMtn, startAIChatMtn, stopAIChatMessageMtn } from '../gql/mutations/aiChatMutations.ts';
+import type { UseMutationParams } from '../types.d.ts';
 import { useOpenModalPopUp } from '@jsb188/react/states';
 import { useEffect, useRef } from 'react';
 
