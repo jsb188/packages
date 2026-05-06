@@ -3,7 +3,7 @@ import { gql } from 'graphql-tag';
 export const createIntegrationAuthorizationUrlMtn = gql`
 mutation createIntegrationAuthorizationUrl (
   $organizationId: GenericID!
-  $provider: String!
+  $provider: IntegrationProvider!
 ) {
   createIntegrationAuthorizationUrl (
     organizationId: $organizationId
@@ -15,7 +15,7 @@ mutation createIntegrationAuthorizationUrl (
 export const disconnectIntegrationMtn = gql`
 mutation disconnectIntegration (
   $organizationId: GenericID!
-  $provider: String!
+  $provider: IntegrationProvider!
 ) {
   disconnectIntegration (
     organizationId: $organizationId

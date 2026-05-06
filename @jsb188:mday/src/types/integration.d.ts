@@ -25,7 +25,7 @@ export interface IntegrationConnectionData {
  * GraphQL data for integration connection types.
  */
 export interface IntegrationConnectionGQL {
-	id: string | null;
+	id: string;
 	organizationId: string;
 	provider: 'SQUARE';
 	externalAccountId: string | null;

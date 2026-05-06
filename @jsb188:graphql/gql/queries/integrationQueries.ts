@@ -4,7 +4,7 @@ import { integrationConnectionFragment } from '../fragments/integrationFragments
 export const integrationConnectionQry = gql`
 query integrationConnection (
   $organizationId: GenericID!
-  $provider: String!
+  $provider: IntegrationProvider!
 ) {
   integrationConnection (
     organizationId: $organizationId
