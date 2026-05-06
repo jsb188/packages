@@ -583,7 +583,7 @@ function makeCacheObject(data: any, selections: any[], variables?: any, cacheMap
 
   for (const sel of selections) {
     const key = sel.name.value;
-    if (!data[key] && sel.kind !== 'FragmentSpread') {
+    if (data[key] === undefined && sel.kind !== 'FragmentSpread') {
       // console.log('~~~', key, sel.kind);
       continue;
     }
@@ -1132,11 +1132,131 @@ export function removeStaleCache() {
 }
 
 /**
+ * Build a lookup map for fragment definitions in a GraphQL document.
+ */
+
+function makeFragmentDefinitionMap(definitions: any[]) {
+  return definitions.reduce((acc, def) => {
+    if (def.kind === 'FragmentDefinition' && def.name?.value) {
+      acc[def.name.value] = def;
+    }
+
+    return acc;
+  }, {} as Record<string, any>);
+}
+
+/**
+ * Check whether an inline fragment applies to the current cached object type.
+ */
+function inlineFragmentMatchesCachedType(
+  value: any,
+  selection: any,
+) {
+  const typeName = selection.typeCondition?.name?.value;
+  if (!typeName || !value?.__typename) {
+    return true;
+  }
+
+  return value.__typename === typeName;
+}
+
+/**
+ * Check whether a cached value contains all fields requested by a selection.
+ */
+
+function hasCompleteSelectionData(
+  value: any,
+  selection: any,
+  fragmentDefinitions: Record<string, any>,
+): boolean {
+  if (value === null) {
+    return true;
+  }
+
+  if (value === undefined) {
+    return false;
+  }
+
+  if (selection.kind === 'FragmentSpread') {
+    const fragmentDef = fragmentDefinitions[selection.name?.value];
+    return fragmentDef
+      ? hasCompleteSelectionSetData(
+        value,
+        fragmentDef.selectionSet?.selections || [],
+        fragmentDefinitions,
+      )
+      : true;
+  }
+
+  if (selection.kind === 'InlineFragment') {
+    if (!inlineFragmentMatchesCachedType(value, selection)) {
+      return true;
+    }
+
+    return hasCompleteSelectionSetData(
+      value,
+      selection.selectionSet?.selections || [],
+      fragmentDefinitions,
+    );
+  }
+
+  if (selection.kind !== 'Field') {
+    return true;
+  }
+
+  const fieldName = selection.name?.value;
+  const fieldValue = value?.[fieldName];
+  if (fieldValue === undefined) {
+    return false;
+  }
+
+  const selections = selection.selectionSet?.selections;
+  if (!selections || fieldValue === null) {
+    return true;
+  }
+
+  if (Array.isArray(fieldValue)) {
+    return fieldValue.every((item) =>
+      hasCompleteSelectionSetData(item, selections, fragmentDefinitions)
+    );
+  }
+
+  return hasCompleteSelectionSetData(
+    fieldValue,
+    selections,
+    fragmentDefinitions,
+  );
+}
+
+/**
+ * Check whether a cached object contains all fields requested by a selection set.
+ */
+
+function hasCompleteSelectionSetData(
+  value: any,
+  selections: any[],
+  fragmentDefinitions: Record<string, any>,
+): boolean {
+  if (value === null) {
+    return true;
+  }
+
+  if (value === undefined) {
+    return false;
+  }
+
+  return selections.every((selection) =>
+    hasCompleteSelectionData(value, selection, fragmentDefinitions)
+  );
+}
+
+/**
  * Check if there is cache
  */
 
 export function fetchCachedData(gqlQuery: any, variablesKey: string, updateObservers: UpdateObserversFn) {
   const definitions = gqlQuery.definitions;
+  const fragmentDefinitions = makeFragmentDefinitionMap(definitions);
 
   for (const def of definitions) {
     if (def.kind === 'OperationDefinition') {
@@ -1159,6 +1279,17 @@ export function fetchCachedData(gqlQuery: any, variablesKey: string, updateObser
 
           return null;
         }
+
+        if (!hasCompleteSelectionData({ [qryName]: cachedData }, selection, fragmentDefinitions)) {
+          QUERIES.delete(queryId);
+
+          updateObservers({
+            queryId,
+          });
+
+          return null;
+        }
+
         return { [qryName]: cachedData };
       }
     }

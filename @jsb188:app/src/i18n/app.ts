@@ -83,10 +83,15 @@ export default {
     integrations_desc: 'Grant your AI access to third-party apps and services.',
     integrations_other_title: 'Looking for a different app connection?',
     integrations_other_desc: '[Send us an e-mail](mailto:hello@marketday.ai). We decide what to build next based on your feedback.',
+    integrations_disconnect_msg: 'Are you sure you want to disconnect?\n All related features will be disabled.',
+
+    // Square specific
     square_connected: 'Square is connected.',
     square_disconnected: 'Square is not connected.',
     connect_square_title: 'Connect Square',
     connect_square_desc: 'Connect your Square account to\nunlock these features:',
+    disconnect_square_title: 'Disconnect Square',
+    square_connection_desc: 'Access your data and create payment requests.',
     connect_square_permission_1: 'Access your orders and sales data',
     connect_square_permission_2: 'Create new orders and payment requests',
     connect_square_permission_3: 'Edit an existing order',

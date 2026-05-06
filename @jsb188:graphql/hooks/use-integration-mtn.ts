@@ -1,8 +1,8 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
+import { updateFragment } from '../cache/index.ts';
 import {
   createIntegrationAuthorizationUrlMtn,
-  createSquarePaymentRequestMtn,
   disconnectIntegrationMtn,
 } from '../gql/mutations/integrationMutations.ts';
 import { useMutation } from './index.ts';
@@ -31,36 +31,28 @@ export function useDisconnectIntegration(params: UseMutationParams = {}, openMod
   const [disconnectIntegration, mtnValues, mtnHandlers, updateObservers] = useMutation(disconnectIntegrationMtn, {
     openModalPopUp,
     onCompleted: (data: any, error: any, variables: any) => {
-      if (data?.disconnectIntegration) {
-        updateObservers({
-          queryId: '#integrationConnection:',
-          forceRefetch: true,
-        });
+      const disconnectedIntegrationId = data?.disconnectIntegration;
+
+      if (disconnectedIntegrationId) {
+        const organizationFragmentKey = `$organizationFragment:${variables.organizationId}`;
+
+        updateFragment(
+          `$integrationConnectionFragment:${disconnectedIntegrationId}`,
+          { status: 'DISCONNECTED' },
+          null,
+          false,
+          updateObservers,
+          [organizationFragmentKey],
+        );
       }
 
-      onCompleted?.(data?.disconnectIntegration, error, variables);
+      onCompleted?.(disconnectedIntegrationId, error, variables);
     },
     ...otherParams,
   });
 
   return {
     disconnectIntegration,
-    ...mtnValues,
-    ...mtnHandlers,
-  };
-}
-
-/**
- * Create a Square-hosted payment request link.
- */
-export function useCreateSquarePaymentRequest(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
-  const [createSquarePaymentRequest, mtnValues, mtnHandlers] = useMutation(createSquarePaymentRequestMtn, {
-    openModalPopUp,
-    ...params,
-  });
-
-  return {
-    createSquarePaymentRequest,
     ...mtnValues,
     ...mtnHandlers,
   };

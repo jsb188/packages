@@ -23,33 +23,3 @@ mutation disconnectIntegration (
   )
 }
 `;
-
-export const createSquarePaymentRequestMtn = gql`
-mutation createSquarePaymentRequest (
-  $organizationId: GenericID!
-  $locationId: String!
-  $name: String!
-  $amount: String!
-  $currency: String!
-  $description: String
-  $paymentNote: String
-  $idempotencyKey: String
-) {
-  createSquarePaymentRequest (
-    organizationId: $organizationId
-    locationId: $locationId
-    name: $name
-    amount: $amount
-    currency: $currency
-    description: $description
-    paymentNote: $paymentNote
-    idempotencyKey: $idempotencyKey
-  ) {
-    id
-    orderId
-    url
-    longUrl
-    createdAt
-  }
-}
-`;

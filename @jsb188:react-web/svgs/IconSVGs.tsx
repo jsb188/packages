@@ -30,6 +30,14 @@ export const AccountingInvoiceDollarColor = <svg xmlns="http://www.w3.org/2000/s
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.5 8.5h3a1 1 0 1 0 0 -2h-2a1 1 0 0 1 0 -2h3" strokeWidth="1"/>
 </svg>;
 
+export const AddWidgets = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-add-widgets" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M1.75 0.75h7.231s1 0 1 1v7.231s0 1 -1 1H1.75s-1 0 -1 -1V1.75s0 -1 1 -1"/>
+<path d="M15.019 0.75h7.231s1 0 1 1v7.231s0 1 -1 1h-7.231s-1 0 -1 -1V1.75s0 -1 1 -1"/>
+<path d="M1.75 14.019h7.231s1 0 1 1v7.231s0 1 -1 1H1.75s-1 0 -1 -1v-7.231s0 -1 1 -1"/>
+<path d="m18.635 15.173 0 6.923"/>
+<path d="m22.096 18.635 -6.923 0"/>
+</svg>;
+
 export const AddressBook = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-address-book" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z" stroke="currentColor" />
@@ -3241,15 +3249,6 @@ export const PlayerStop = <svg xmlns="http://www.w3.org/2000/svg" className="ico
 export const PlayerStopFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icons-tabler-filled icon-player-stop">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M17 4h-10a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3 -3v-10a3 3 0 0 0 -3 -3z" />
-</svg>;
-
-export const PlugDisconnected = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-plug-disconnected" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-<path d="M5.65548 18.3445c1.66501 1.665 4.36452 1.665 6.02952 0l1.4988 -1.4987 -6.02956 -6.0296 -1.49876 1.4988c-1.66501 1.665 -1.66501 4.3645 0 6.0295Z"/>
-<path d="M18.4151 5.58481c-1.665 -1.66501 -4.3645 -1.66501 -6.0295 0l-1.4987 1.49876 6.0295 6.02953 1.4987 -1.4988c1.6651 -1.66497 1.6651 -4.36448 0 -6.02949Z"/>
-<path d="M12.5573 8.75403 10.9624 10.349"/>
-<path d="m15.246 11.4427 -1.595 1.5949"/>
-<path d="M5.65546 18.3445 0.926025 23.074"/>
-<path d="M23.074 0.926025 18.4152 5.58483"/>
 </svg>;
 
 export const Plus = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-plus" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

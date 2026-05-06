@@ -88,9 +88,15 @@ export function useOrgRelFromMyOrganizations(organizationId: string | null) {
 
   const orgRel = myOrganizations?.find((orgRel: any) => orgRel.organization?.id === organizationId) || null;
   const organization = useReactiveOrganization(orgRel?.organization?.id, orgRel?.organization);
+  const organizationRelationship = orgRel && organization
+    ? {
+      ...orgRel,
+      organization,
+    }
+    : orgRel;
 
   return {
-    organizationRelationship: orgRel,
+    organizationRelationship,
     organization,
     myOrganizations,
     ...rest
