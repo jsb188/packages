@@ -1,6 +1,7 @@
 export default {
   en: {
     error: 'Error',
+    oauth_error: 'OAuth error',
     invalid: 'Invalid',
     network_error_title: 'Network error',
     server_outage_title: 'Service disruption',

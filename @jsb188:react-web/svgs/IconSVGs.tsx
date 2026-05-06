@@ -1252,6 +1252,13 @@ export const ExclamationCircle = <svg xmlns="http://www.w3.org/2000/svg" classNa
 <path stroke="currentColor" strokeWidth="2.5" d="M12,16.24499989v.01000023"/>
 </svg>;
 
+export const ExternalLink = <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-external-link">
+<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+<path d="M12 5h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" />
+<path d="M11 12l9 -9" />
+<path d="M15 3h5v5" />
+</svg>;
+
 export const Eye = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-eye" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" stroke="currentColor" />

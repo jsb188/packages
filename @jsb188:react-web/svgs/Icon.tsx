@@ -54,6 +54,15 @@ interface SpecialIconProps extends IconProps {
 }
 
 /**
+ * Brand icons
+ */
+
+export const BRAND_ICONS = {
+  google: '/img/google-icon.png',
+  square: '/img/square-icon.svg',
+};
+
+/**
  * Commonly used icon names
  */
 
@@ -428,7 +437,7 @@ export const SpecialIcon = memo((p: SpecialIconProps) => {
       return (
         <img
           alt='Google logo'
-          src='/img/google-icon.png'
+          src={BRAND_ICONS.google}
           className={className}
         />
       );

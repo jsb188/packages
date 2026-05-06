@@ -29,6 +29,7 @@ interface FullWidthButtonProps {
   IconComponent?: React.ComponentType<any>;
   iconName?: string;
   iconClassName?: string;
+  rightIconName?: string;
   textClassName?: string;
   disabled?: boolean;
   loading?: boolean;
@@ -68,8 +69,8 @@ function getFullWidthButtonClassName(p: {
 }
 
 function FullWidthButtonContent(p: FullWidthButtonProps) {
-  const { children, iconName, photoUri, iconClassName, textClassName, loading } = p;
-  const hasSides = !!iconName || !!photoUri;
+  const { children, iconName, photoUri, iconClassName, rightIconName, textClassName, loading } = p;
+  const hasSides = !!iconName || !!rightIconName || !!photoUri;
   const IconComponent = p.IconComponent || Icon;
 
   return <>
@@ -98,7 +99,12 @@ function FullWidthButtonContent(p: FullWidthButtonProps) {
       </span>
     )}
 
-    {hasSides ? <span className='bl' /> : null}
+    {!hasSides && !rightIconName ? null
+    : <span className={cn('bl', rightIconName ? 'ml_8' : '')}>
+      {rightIconName ? <IconComponent
+        name={rightIconName}
+      /> : null}
+    </span>}
   </>;
 }
 
@@ -122,7 +128,6 @@ export const FullWidthButton = memo((p: FullWidthButtonProps) => {
   // NOTE: Consider "right button" later too
   const hasSides = !!iconName || !!photoUri;
   const preset = p.preset || 'subtle';
-
   const buttonPreset = getDisabledButtonPreset(preset, disabled);
 
   // This Component does not support <a>, due to design reasons

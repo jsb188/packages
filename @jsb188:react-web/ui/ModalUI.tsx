@@ -364,7 +364,9 @@ interface AlertDataProps {
   inputType?: 'text' | 'password';
   messageHasHTML?: boolean;
   confirmText?: string;
-  confirmPreset?: 'main' | 'cancel';
+  confirmLink?: string;
+  confirmPreset?: 'main' | 'cancel' | string;
+  confirmIconName?: string;
   cancelText?: string;
   cancelPreset?: 'main' | 'cancel';
   onConfirm?: (inputValue?: string) => void;
@@ -385,6 +387,8 @@ export function AlertPopUp(p: AlertDataProps) {
     message,
     isWarning,
     messageHasHTML,
+    confirmIconName,
+    confirmLink,
     confirmText,
     cancelText,
     onConfirm,
@@ -419,7 +423,9 @@ export function AlertPopUp(p: AlertDataProps) {
   };
 
   let confirmPreset;
-  if (isWarning) {
+  if (p.confirmPreset) {
+    confirmPreset = p.confirmPreset;
+  } else if (isWarning) {
     confirmPreset = 'bg_err';
   } else if (cancelText && !disabledConfirm) {
     confirmPreset = 'bg_secondary';
@@ -478,8 +484,10 @@ export function AlertPopUp(p: AlertDataProps) {
             preset={confirmPreset}
             className={url ? undefined : 'mt_md'}
             onClick={onClickConfirm}
+            to={confirmLink}
             loading={loading}
             disabled={disabledConfirm}
+            rightIconName={loading ? undefined : confirmIconName}
           >
             {confirmText || i18n.t('form.ok')}
           </FullWidthButton>

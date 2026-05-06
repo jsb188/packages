@@ -350,6 +350,10 @@ fieldset input[type="radio"] {
   background-color: rgba(0,0,0,.1);
 }
 
+a.btn.subtle, a.btn.outline {
+  color: inherit;
+}
+
 .btn.subtle:disabled, .btn.subtle.disabled {
   color: var(--color-text-medium);
 }
