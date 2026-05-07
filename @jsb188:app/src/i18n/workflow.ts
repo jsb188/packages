@@ -3,6 +3,7 @@ export default {
 
     workflow_missing: 'Workflow is missing',
     workflow_missing_msg: 'The workflow you\'re looking for could not be found.',
+    workflows_not_found_msg: 'Automated workflows were not found for this organization.',
     not_active_msg: 'Not active – no upcoming jobs',
     active_msg: 'Active – waiting for %{logType} logs',
 

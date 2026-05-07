@@ -10,6 +10,7 @@ import {
   editComplianceDocumentMtn,
   editMembershipMtn,
   editOrganizationMtn,
+  editOrganizationInboundEmailMtn,
   editSiteLocationMtn,
   removeMembershipMtn,
   switchOrganizationMtn
@@ -119,6 +120,43 @@ export function useEditOrganization(
 
   return {
     editOrganization,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/*
+ * Edit an organization's inbound email handle.
+ */
+
+export function useEditOrganizationInboundEmail(
+  params: UseMutationParams = {},
+  openModalPopUp?: OpenModalPopUpFn
+) {
+  const { onCompleted, ...rest } = params;
+
+  const [editOrganizationInboundEmail, mtnValues, mtnHandlers, updateObservers] = useMutation(editOrganizationInboundEmailMtn, {
+    openModalPopUp,
+    onCompleted: (data, error, variables) => {
+      const updatedOrganization = data?.editOrganizationInboundEmail;
+
+      if (updatedOrganization?.id) {
+        updateFragment(
+          `$organizationFragment:${updatedOrganization.id}`,
+          updatedOrganization,
+          null,
+          false,
+          updateObservers
+        );
+      }
+
+      onCompleted?.(updatedOrganization, error, variables);
+    },
+    ...rest,
+  });
+
+  return {
+    editOrganizationInboundEmail,
     ...mtnValues,
     ...mtnHandlers,
   };

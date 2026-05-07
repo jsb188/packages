@@ -1,5 +1,6 @@
 import { COLORS } from '@jsb188/app/constants/app.ts';
 import { intersection } from '@jsb188/app/utils/object.ts';
+import { shortenToSpace } from '@jsb188/app/utils/string.ts';
 import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone.ts';
 import { FEATURES_BY_OPERATION } from '../constants/product.ts';
 import type {
@@ -39,6 +40,56 @@ export const PERMISSION_TO_INT = {
 	WRITE: 2,
 	MANAGE: 3,
 };
+
+export const ORGANIZATION_INBOUND_EMAIL_MAX_LENGTH = 40;
+
+const ORGANIZATION_INBOUND_EMAIL_ALLOWED_REGEX = /^[a-z0-9_-]+$/;
+
+/*
+ * Convert free-form input into the closest inbound email handle candidate.
+ */
+
+export function normalizeOrganizationInboundEmailHandle(value?: string | null): string {
+	return String(value || '')
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9_-]+/g, '')
+		.replace(/^[-_]+|[-_]+$/g, '')
+		.substring(0, ORGANIZATION_INBOUND_EMAIL_MAX_LENGTH);
+}
+
+/*
+ * Build the default inbound email handle placeholder from an organization name.
+ */
+
+export function buildOrganizationInboundEmailPlaceholder(orgName?: string | null): string {
+	return normalizeOrganizationInboundEmailHandle(shortenToSpace(String(orgName || ''), 20));
+}
+
+/*
+ * Keep typed input limited to the inbound email handle character set.
+ */
+
+export function sanitizeOrganizationInboundEmailHandleInput(value?: string | null): string {
+	return String(value || '')
+		.toLowerCase()
+		.replace(/[^a-z0-9_-]+/g, '')
+		.substring(0, ORGANIZATION_INBOUND_EMAIL_MAX_LENGTH);
+}
+
+/*
+ * Check whether a normalized inbound email handle is valid to store.
+ */
+
+export function isValidOrganizationInboundEmailHandle(value?: string | null): boolean {
+	const handle = String(value || '');
+
+	return !!(
+		handle &&
+		handle.length <= ORGANIZATION_INBOUND_EMAIL_MAX_LENGTH &&
+		ORGANIZATION_INBOUND_EMAIL_ALLOWED_REGEX.test(handle)
+	);
+}
 
 const INT_TO_PERMISSION = Object.keys(PERMISSION_TO_INT);
 

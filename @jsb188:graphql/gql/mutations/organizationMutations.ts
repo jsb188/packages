@@ -63,6 +63,22 @@ mutation editOrganization (
 ${organizationFragment}
 `;
 
+export const editOrganizationInboundEmailMtn = gql`
+mutation editOrganizationInboundEmail (
+  $organizationId: GenericID!
+  $inboundEmail: String!
+) {
+  editOrganizationInboundEmail (
+    organizationId: $organizationId
+    inboundEmail: $inboundEmail
+  ) {
+    ...organizationFragment
+  }
+}
+
+${organizationFragment}
+`;
+
 export const editChildOrganizationMtn = gql`
 mutation editChildOrganization (
   $organizationId: GenericID!

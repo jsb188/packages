@@ -1,8 +1,33 @@
 import { hhmmFromDateOrTime } from '@jsb188/app/utils/timeZone.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { CronExpressionParser } from 'cron-parser';
-import type { WorkflowRunData } from '../types/workflow';
+import type { WorkflowGQL, WorkflowRunData } from '../types/workflow';
+import { getLogCategoryColor } from './log.ts';
+import { getOrganizationFeatureColor } from './organization.ts';
 
 const DEFAULT_SCHEDULE_WINDOW_MS = 24 * 60 * 60 * 1000; // once per day
+
+/**
+ * Get the workflow display color from its trigger or feature.
+ */
+
+export function getWorkflowColor(workflow: Pick<WorkflowGQL, 'logType' | 'feature'>) {
+	return workflow.logType
+		? getLogCategoryColor(workflow.logType)
+		: getOrganizationFeatureColor(workflow.feature);
+}
+
+/**
+ * Get the short workflow label used in cards and headers.
+ */
+
+export function getWorkflowShortLabel(workflow: Pick<WorkflowGQL, 'logType' | 'feature'>) {
+	const { logType, feature } = workflow;
+
+	return logType
+		? i18n.t(`log.type_short.${logType}`)
+		: i18n.t(feature ? `product.feature_short.${feature}` : 'product.workflow');
+}
 
 /**
  * Replace workflow template values in text using {{key}} placeholders

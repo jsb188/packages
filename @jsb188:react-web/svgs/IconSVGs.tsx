@@ -48,6 +48,12 @@ export const AddressBook = <svg xmlns="http://www.w3.org/2000/svg" className="ic
 <path d="M4 16h3" stroke="currentColor" />
 </svg>;
 
+export const AiEmailGeneratorSpark = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-ai-email-generator-spark" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M13.8193 5.64709c2.3124 -0.46485 4.1741 -2.34918 4.6396 -4.721309 0.4656 2.372129 2.3268 4.256459 4.6391 4.721309m0 0.0027c-2.3123 0.46485 -4.174 2.34918 -4.6395 4.72131 -0.4656 -2.37213 -2.3268 -4.25646 -4.6392 -4.72131"/>
+<path d="M21.0442 13.1427v8.9315c0 0.5523 -0.4477 1 -1 1H1.90234c-0.55228 0 -0.999996 -0.4477 -0.999996 -1l0 -12.54686c0 -0.55228 0.447716 -1 0.999996 -1H12.5886"/>
+<path d="m1.21484 8.86719 8.28053 7.30251c0.40885 0.3606 0.93523 0.5596 1.48043 0.5596 0.5452 0 1.0716 -0.199 1.4804 -0.5596l4.1403 -3.6512"/>
+</svg>;
+
 export const AgricultureMachineSeeder = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-agriculture-machine-seeder" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M7.8,9.1l.6-4.4"/>
 <path d="M16.2,9.1l-.6-4.4"/>
@@ -2736,6 +2742,22 @@ export const ReadEmailAt1Color = <svg xmlns="http://www.w3.org/2000/svg" fill="n
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 23.5c6.351 0 11.5 -5.149 11.5 -11.5S18.351 0.5 12 0.5 0.5 5.649 0.5 12 5.649 23.5 12 23.5Z" strokeWidth="1" />
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 15.5a3.5 3.5 0 1 0 0 -7 3.5 3.5 0 0 0 0 7Z" strokeWidth="1" />
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15.5 18.063A7 7 0 1 1 12 5c9.5 0 9 10.5 5 10.5 -1.5 0 -1.5 -1 -1.5 -1.5V9" strokeWidth="1" />
+</svg>;
+
+export const ReadEmailCircle = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-read-email-circle" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M0.75 12a11.25 11.25 0 1 0 22.5 0 11.25 11.25 0 1 0 -22.5 0" />
+<path d="M6.75 6.75h10.5s1.5 0 1.5 1.5v7.5s0 1.5 -1.5 1.5H6.75s-1.5 0 -1.5 -1.5v-7.5s0 -1.5 1.5 -1.5" />
+<path d="M5.25 8.25 12 12l6.75 -3.75" />
+</svg>;
+
+export const ReadEmailCircleColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-read-email-circle">
+<path fill="#66e1ff" d="M12 23.5c6.351 0 11.5 -5.149 11.5 -11.5S18.351 0.5 12 0.5 0.5 5.649 0.5 12 5.649 23.5 12 23.5Z" strokeWidth="1" />
+<path fill="#c2f3ff" d="M3.868 20.132A11.5 11.5 0 0 1 20.132 3.868L3.868 20.132Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12 23.5c6.351 0 11.5 -5.149 11.5 -11.5S18.351 0.5 12 0.5 0.5 5.649 0.5 12 5.649 23.5 12 23.5Z" strokeWidth="1" />
+<path fill="#e3e3e3" d="M17.5 7.5h-11a1 1 0 0 0 -1 1v7a1 1 0 0 0 1 1h11a1 1 0 0 0 1 -1v-7a1 1 0 0 0 -1 -1Z" strokeWidth="1" />
+<path fill="#ffffff" d="M6.5 7.5a1 1 0 0 0 -1 1v7a1 1 0 0 0 1 1h1.024l9 -9H6.5Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18.5 9v6.5a1 1 0 0 1 -1 1h-11a1 1 0 0 1 -1 -1V9" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18.5 9v-0.5a1 1 0 0 0 -1 -1h-11a1 1 0 0 0 -1 1V9l5.705 3.253a1.5 1.5 0 0 0 1.59 0L18.5 9Z" strokeWidth="1" />
 </svg>;
 
 export const ReadLightIdeaColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-read-light-idea-color">
