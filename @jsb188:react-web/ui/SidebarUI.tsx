@@ -8,6 +8,27 @@ import { SmartLink } from './Button';
 
 const SIDEBAR_AVATAR_CLASSNAME = 'w_28 h_center mr_4 lh_1 ic_abs move_left';
 
+/*
+ * Check whether a sidebar item should be selected for the current pathname.
+ */
+
+export function isSidebarItemSelected(currentPath?: string, to?: string) {
+  if (!currentPath || !to) {
+    return false;
+  }
+
+  if (currentPath === to) {
+    return true;
+  }
+
+  if (to === '/app') {
+    return false;
+  }
+
+  const pathPrefix = to.endsWith('/') ? to : `${to}/`;
+  return currentPath.startsWith(pathPrefix);
+}
+
 /**
  * Sidebar header area
  */
@@ -158,7 +179,7 @@ export const SidebarNestedNavItem = memo((p: {
         : <SidebarItem
           key={i}
           currentPath={currentPath}
-          selected={item.to === currentPath || !!(item.to && currentPath?.startsWith(item.to + '/'))}
+          selected={isSidebarItemSelected(currentPath, item.to)}
           {...item}
         />
       ))}
