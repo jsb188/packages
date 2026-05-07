@@ -75,6 +75,7 @@ export interface OrganizationData {
 	__table: 'organizations';
 	id: bigint;
 	stripeCustomerId: string | null;
+	inboundEmail: string | null;
 	name: string;
 	commodities: string[] | null;
 	operation: OrganizationOperationEnum;
@@ -173,6 +174,7 @@ export interface OrganizationGQL {
 
 	id: string;
 	stripeCustomerId: string | null;
+	inboundEmail: string | null;
 	name: string;
 	commodities: string[] | null;
 	address: AddressObj;
