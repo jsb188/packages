@@ -104,7 +104,7 @@ export default {
     oauth_provider_google: 'Google',
     oauth_provider_logo_alt: '%{provider} logo',
     oauth_provider_square: 'Square',
-    oauth_success_message: 'Your organization is connected to %{provider}.',
+    oauth_success_message: 'You successfully connected your\n organization to %{provider}.',
     oauth_error_message: 'We could not connect your organization to %{provider}. Please try again later.',
   },
 };

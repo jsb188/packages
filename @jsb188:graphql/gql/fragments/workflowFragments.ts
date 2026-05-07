@@ -2,6 +2,7 @@
 export const workflowFragment = `fragment workflowFragment on Workflow {
   id
   organizationId
+  reportId
 
   logType
   feature

@@ -451,7 +451,7 @@ export function AlertPopUp(p: AlertDataProps) {
       : <div className='h_40' />}
 
       <div className='w_f'>
-        <h3 className='ft_medium ft_sm a_c px_25'>
+        <h3 className={cn('ft_medium a_c px_25', !title?.length || title.length <= 16 ? 'ft_sm' : '')}>
           {title}
         </h3>
         <div className='px_30'>

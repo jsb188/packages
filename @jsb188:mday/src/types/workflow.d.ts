@@ -34,7 +34,7 @@ export interface WorkflowData {
   id: number | bigint;
   organizationId: number | bigint;
   org?: OrganizationData; // Included if query joined with organization table
-  reportId?: number | null;
+  reportId: number | bigint | null;
 
   logType: LogTypeEnum;
   feature?: OrganizationFeatureEnum;
@@ -111,6 +111,7 @@ export interface WorkflowGQL {
 
   id: string;
   organizationId: string;
+  reportId: string | null;
 
   logType: LogTypeEnum;
   feature: OrganizationFeatureEnum | null;

@@ -8,6 +8,7 @@ export default {
 		markets_empty_msg: 'Talk to your AI to create farmers market events.',
 		event_not_scheduled_msg: 'This event is not scheduled for this date.',
 		attendance_list_empty_msg: 'Attendance list is empty for this date.',
+    workflow: 'Workflow',
 
 		// Report
 		collected_total_ct_evidences: 'Collected a total of %{smart_count} evidence.||||Collected a total of %{smart_count} evidences.',
