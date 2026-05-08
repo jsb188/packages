@@ -72,7 +72,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   account_remove: 'single-neutral-actions-subtract',
   account_switch: 'switch-account-2',
   ai_avatar: 'reward-stars-4',
-  ai_email: 'read-email-circle',
+  ai_inbox: 'read-email-circle',
   ai_workflow: 'document-ai',
   address_book: 'address-book',
   alert_error: 'alert-circle',

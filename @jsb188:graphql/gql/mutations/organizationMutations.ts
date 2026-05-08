@@ -66,7 +66,7 @@ ${organizationFragment}
 export const editOrganizationInboundEmailMtn = gql`
 mutation editOrganizationInboundEmail (
   $organizationId: GenericID!
-  $inboundEmail: String!
+  $inboundEmail: String
 ) {
   editOrganizationInboundEmail (
     organizationId: $organizationId

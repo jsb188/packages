@@ -31,11 +31,11 @@ export const AccountingInvoiceDollarColor = <svg xmlns="http://www.w3.org/2000/s
 </svg>;
 
 export const AddWidgets = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-add-widgets" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-<path d="M1.75 0.75h7.231s1 0 1 1v7.231s0 1 -1 1H1.75s-1 0 -1 -1V1.75s0 -1 1 -1"/>
-<path d="M15.019 0.75h7.231s1 0 1 1v7.231s0 1 -1 1h-7.231s-1 0 -1 -1V1.75s0 -1 1 -1"/>
-<path d="M1.75 14.019h7.231s1 0 1 1v7.231s0 1 -1 1H1.75s-1 0 -1 -1v-7.231s0 -1 1 -1"/>
-<path d="m18.635 15.173 0 6.923"/>
-<path d="m22.096 18.635 -6.923 0"/>
+<path d="M2.27774447,1.29996669h7.07031106s.97777778,0,.97777778.97777778v7.07031106s0,.97777778-.97777778.97777778H2.27774447s-.97777778,0-.97777778-.97777778V2.27774447s0-.97777778.97777778-.97777778"/>
+<path d="M14.65194447,1.29996669h7.07031106s.97777778,0,.97777778.97777778v7.07031106s0,.97777778-.97777778.97777778h-7.07031106s-.97777778,0-.97777778-.97777778V2.27774447s0-.97777778.97777778-.97777778"/>
+<path d="M2.27774447,13.67416669h7.07031106s.97777778,0,.97777778.97777778v7.07031106s0,.97777778-.97777778.97777778H2.27774447s-.97777778,0-.97777778-.97777778v-7.07031106s0-.97777778.97777778-.97777778"/>
+<path d="M18.33499973,14.87299983v6.92300034"/>
+<path d="M21.79600017,18.33499973h-6.92300034"/>
 </svg>;
 
 export const AddressBook = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-address-book" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

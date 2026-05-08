@@ -54,7 +54,7 @@ export function normalizeOrganizationInboundEmailHandle(value?: string | null): 
 		.trim()
 		.toLowerCase()
 		.replace(/[^a-z0-9_-]+/g, '')
-		.replace(/^[-_]+|[-_]+$/g, '')
+		.replace(/[-_]{2,}/g, (match) => match[0])
 		.substring(0, ORGANIZATION_INBOUND_EMAIL_MAX_LENGTH);
 }
 
@@ -74,6 +74,7 @@ export function sanitizeOrganizationInboundEmailHandleInput(value?: string | nul
 	return String(value || '')
 		.toLowerCase()
 		.replace(/[^a-z0-9_-]+/g, '')
+		.replace(/[-_]{2,}/g, (match) => match[0])
 		.substring(0, ORGANIZATION_INBOUND_EMAIL_MAX_LENGTH);
 }
 

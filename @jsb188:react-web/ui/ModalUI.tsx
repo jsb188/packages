@@ -367,14 +367,21 @@ interface AlertDataProps {
   confirmLink?: string;
   confirmPreset?: 'main' | 'cancel' | string;
   confirmIconName?: string;
+  removeText?: string;
+  removePreset?: 'main' | 'cancel' | string;
+  removeIconName?: string;
   cancelText?: string;
   cancelPreset?: 'main' | 'cancel';
   onConfirm?: (inputValue?: string) => void;
+  onRemove?: () => void;
   onCancel?: () => void;
   onCloseModal?: () => void;
   doNotExitOnConfirm?: boolean;
+  doNotExitOnRemove?: boolean;
   disabledConfirm?: boolean;
+  disabledRemove?: boolean;
   loading?: boolean;
+  removeLoading?: boolean;
   children?: React.ReactNode;
 }
 
@@ -390,14 +397,21 @@ export function AlertPopUp(p: AlertDataProps) {
     confirmIconName,
     confirmLink,
     confirmText,
+    removeIconName,
+    removePreset,
+    removeText,
     cancelText,
     onConfirm,
+    onRemove,
     onCancel,
     onCloseModal,
     doNotExitOnConfirm,
+    doNotExitOnRemove,
     disabledConfirm,
+    disabledRemove,
     url,
     loading,
+    removeLoading,
     children,
   } = p;
 
@@ -418,6 +432,18 @@ export function AlertPopUp(p: AlertDataProps) {
       globalThis?.open(url, '_blank')?.focus();
     }
     if (onCloseModal && !doNotExitOnConfirm) {
+      onCloseModal();
+    }
+  };
+
+  /*
+   * Run the optional remove action and close the popup when configured.
+   */
+  const onClickRemove = () => {
+    if (onRemove) {
+      onRemove();
+    }
+    if (onCloseModal && !doNotExitOnRemove) {
       onCloseModal();
     }
   };
@@ -491,6 +517,20 @@ export function AlertPopUp(p: AlertDataProps) {
           >
             {confirmText || i18n.t('form.ok')}
           </FullWidthButton>
+
+          {!removeText ? null : (
+            <FullWidthButton
+              // @ts-expect-error preset is correct
+              preset={removePreset || 'cl_err'}
+              className='mt_xs'
+              onClick={onClickRemove}
+              loading={removeLoading}
+              disabled={disabledRemove}
+              rightIconName={removeLoading ? undefined : removeIconName}
+            >
+              {removeText}
+            </FullWidthButton>
+          )}
 
           {!cancelText ? null : (
             <FullWidthButton

@@ -170,7 +170,7 @@ button.disabled, button:disabled, .link[role="button"]:disabled {
   cursor: auto;
 }
 
-main, header, section, article, aside, nav, div, p, button, input, textarea, ul, ol, li, span, i, a {
+main, header, section, article, fieldset, aside, nav, div, p, button, input, textarea, ul, ol, li, span, i, a {
   box-sizing: border-box;
 }
 

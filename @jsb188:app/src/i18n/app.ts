@@ -34,7 +34,8 @@ export default {
     account: 'Account',
     features: 'Features',
     connections: 'Connections',
-    ai_email: 'AI email',
+    ai_inbox: 'AI inbox',
+    ai_inboxes: 'AI inboxes',
     updates: 'Update notes',
     logout: 'Log out',
 
@@ -79,18 +80,6 @@ export default {
 
     // Subscription related
     sub_needed: 'You need a subscription to use this feature.',
-
-    // Integrations
-    ai_email_handle: 'AI email handle',
-    ai_email_handle_ph: 'acme-farms',
-    change_ai_email: 'Change AI email',
-    change_ai_email_msg: 'Choose the handle for your organization\'s AI email address.',
-    ai_email_updated: 'AI email updated',
-    ai_email_updated_msg: 'Your organization\'s AI email handle has been updated to:\n [hl]%{inboundEmail}[/hl].',
-    integrations_desc: 'Grant your AI access to third-party apps and services.',
-    integrations_other_title: 'Looking for a different app connection?',
-    integrations_other_desc: '[Send us an e-mail](mailto:hello@marketday.ai). We decide what to build next based on your feedback.',
-    integrations_disconnect_msg: 'Are you sure you want to disconnect?\n All related features will be disabled.',
 
     // Square specific
     square_connected: 'Square is connected.',

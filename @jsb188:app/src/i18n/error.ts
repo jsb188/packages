@@ -131,8 +131,8 @@ export default {
     20066: 'Report submission data could not be found.',
     20067: 'Another account already exists with that phone number. (%{value})',
     20068: 'Your new phone number cannot be the same as your current phone number.',
-    20069: '"%{value}" is not a valid AI email handle.',
-    20070: 'Another organization already uses the AI email handle "%{value}".',
+    20069: '"%{value}" is not a valid AI inbox handle.',
+    20070: 'Another organization already uses the AI inbox handle "%{value}".',
 
     // 3x
 

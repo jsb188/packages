@@ -52,7 +52,33 @@ export default {
 		// Digests
 		digest_for_: 'Digest for %{date}',
 
-		// Common errors
+		// AI inbox
+		ai_inbox_handle: 'Handle',
+		change_ai_inbox: 'AI inbox',
+		change_ai_inbox_msg: 'Choose the handle for your organization\'s\n AI inbox email address.',
+		remove_ai_inbox: 'Remove AI inbox',
+		ai_inbox_updated: 'AI inbox updated',
+		ai_inbox_updated_msg: 'AI inbox handle has been changed to:\n [hl]%{inboundEmail}[/hl].',
+		ai_inbox_removed_msg: 'AI inbox for your organization has been removed.',
+		ai_inbox_addresses_ready: (
+      'Emails sent to any of these addresses will automatically trigger AI workflows.'
+    ),
+		ai_inbox_addresses_empty: (
+      'AI inboxes handles requests from emails on your team\'s behalf. Choose a handle to activate AI inboxes.'
+    ),
+    ai_inbox_desc: {
+      orders: 'Handle incoming orders from customers.',
+      agent: 'Handle general requests.',
+	    },
+	    change_handle: 'Change inbox handle',
+
+		// Integrations
+		integrations_desc: 'Grant your AI access to third-party apps and services.',
+		integrations_other_title: 'Looking for a different app connection?',
+		integrations_other_desc: '[Send us an e-mail](mailto:hello@marketday.ai). We decide what to build next based on your feedback.',
+		integrations_disconnect_msg: 'Are you sure you want to disconnect?\n All related features will be disabled.',
+
+			// Common errors
 		invalid_id: '"%{field}" (%{value}) is not a valid ID.',
 		one_is_required: 'One of the following fields is required: %{fields}.',
 

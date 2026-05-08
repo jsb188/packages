@@ -124,6 +124,32 @@ export function Label(p: LabelType) {
 }
 
 /**
+ * Fieldset with a simple legend label and nested form content.
+ */
+
+export function Fieldset(p: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  labelClassName?: string;
+  backgroundClassName?: string;
+}) {
+  const { label, children, className, labelClassName, backgroundClassName } = p;
+
+  return (
+    <fieldset className={cn('form_cnt r_sm', className, backgroundClassName ?? 'bd_1 bd_lt')}>
+      {label
+      ? <legend className={cn('ft_sm cl_md', labelClassName)}>
+        {label}
+      </legend>
+      : <div className='h_8' />}
+
+      {children}
+    </fieldset>
+  );
+}
+
+/**
  * List of colors
  */
 

@@ -601,8 +601,8 @@ const FormOptionItem = memo((p: OptionType) => {
       onClick={disabled ? undefined : (e: React.MouseEvent<HTMLDivElement>) => onChange(e, name, value!)}
       className={cn(
         'r_xs h_item px_4 py_4 my_1',
-        disabled ? '' : 'link bg_active_hv',
-        checked ? 'cl_df' : disabled ? 'cl_darker_2' : 'cl_md',
+        disabled ? 'cl_darker_2' : 'link cl_df bg_active_hv',
+        // checked ? 'cl_df' : disabled ? 'cl_darker_2' : 'cl_md',
         className
       )}
     >

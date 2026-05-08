@@ -17,6 +17,10 @@
   padding: .58rem;
 }
 
+fieldset.form_cnt {
+  padding-bottom: 1rem;
+}
+
 .form_cnt.smaller,
 .form_el.smaller input, .form_el.smaller textarea, .form_el.smaller .tx_virtualizer {
   /* If less is needed, use .lh_1 .lh_2 to further flatten the height */
@@ -205,7 +209,11 @@ fieldset {
   padding: 0;
   margin: 0;
   border: none;
+}
 
+fieldset legend {
+  padding: 0 2px;
+  margin-left: -2px;
 }
 
 fieldset input[type="radio"] {

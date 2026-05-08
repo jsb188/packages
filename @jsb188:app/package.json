@@ -11,6 +11,7 @@
     ".": "./src/main.ts",
     "./platform.ts": "./src/platform.ts",
     "./i18n/index.ts": "./src/i18n/index.ts",
+    "./constants/agent.ts": "./src/constants/agent.ts",
     "./constants/app.ts": "./src/constants/app.ts",
     "./constants/billing.ts": "./src/constants/billing.ts",
     "./constants/emoji.ts": "./src/constants/emoji.ts",

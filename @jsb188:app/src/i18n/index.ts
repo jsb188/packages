@@ -4,7 +4,7 @@ import Polyglot from 'node-polyglot';
 import type NodePolyglot from '../types.d.ts';
 
 import account from './account.ts';
-import ai_agent from './ai_agent.ts';
+import agent from './agent.ts';
 import app from './app.ts';
 import auth from './auth.ts';
 import billing from './billing.ts';
@@ -20,7 +20,7 @@ import workflow from './workflow.ts';
 
 export const i18nTranslations = {
   account,
-  ai_agent,
+  agent,
   app,
   auth,
   billing,

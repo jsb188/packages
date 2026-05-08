@@ -190,7 +190,7 @@ function scrollToBottom(rootElementQuery_: string, instant: boolean) {
     globalThis?.requestAnimationFrame(() => {
       const rootElement = globalThis?.document.querySelector(rootElementQuery);
       if (rootElement) {
-        console.log('---- 7');
+        // console.log('---- 7');
         rootElement.scrollTop = rootElement.scrollHeight;
       }
     });
@@ -202,7 +202,7 @@ function scrollToBottom(rootElementQuery_: string, instant: boolean) {
       const rootElement = globalThis?.document.querySelector(rootElementQuery);
       if (rootElement) {
         // Scroll to bottom of root element
-        console.log('---- 8');
+        // console.log('---- 8');
         rootElement.scrollTo({ top: rootElement.scrollHeight, behavior: 'smooth' });
         // listElement.lastElementChild?.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'smooth' });
       }
@@ -259,9 +259,9 @@ function repositionList(
   }
 
   globalThis?.requestAnimationFrame(() => {
-    console.log('---- 9');
+    // console.log('---- 9');
     itemElement.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
-    console.log('---- 10');
+    // console.log('---- 10');
     itemElement.scrollTop = topOffset;
   });
 
@@ -456,7 +456,7 @@ function useVirtualizedDOM(p: ReverseVZListProps, vzState: VirtualizedState) {
   useLayoutEffect(() => {
     if (listData) {
       console.dev('SCROLLING TO BOTTOM (1)', 'em');
-      console.log('---- 11');
+      // console.log('---- 11');
       const scrollTimer = scrollToBottom(rootElementQuery, true);
       return () => clearTimeout(scrollTimer);
     }
@@ -500,7 +500,7 @@ function useVirtualizedDOM(p: ReverseVZListProps, vzState: VirtualizedState) {
     if (cursorPosition && listData) {
       if (cursorPosition[0] === null) {
         console.dev('SCROLLING TO BOTTOM (2)', 'em');
-        console.log('---- 12');
+        // console.log('---- 12');
         const scrollTimer = scrollToBottom(rootElementQuery, false);
         return () => clearTimeout(scrollTimer);
       } else {
