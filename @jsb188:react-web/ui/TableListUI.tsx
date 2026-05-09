@@ -1,3 +1,4 @@
+import { COMMON_CLASSNAMES } from '@jsb188/app/constants/app.ts';
 import { convertIntToCalDate, getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { usePopOver } from '@jsb188/react/states';
@@ -45,7 +46,7 @@ export function TRow(p: ReactDivElement & Partial<TableRowProps> & {
   return <div
     className={cn(
       'lh_1',
-      addHorizontalPadding ? 'px_16' : '',
+      addHorizontalPadding ? COMMON_CLASSNAMES.tableRowXPadding : '',
       !removeBorderLine ? 'bd_lt bd_t_1' : '',
       'grid gapy_n gapx_5',
       !__deleted && rest.onClick ? 'link bg_primary_fd_hv' : '',

@@ -74,6 +74,7 @@ export default {
 
 		// Integrations
 		integrations_desc: 'Grant your AI access to third-party apps and services.',
+		integrations_read_only_desc: 'You _do not_ have permissions to edit third-party apps and services for this organization.',
 		integrations_other_title: 'Looking for a different app connection?',
 		integrations_other_desc: '[Send us an e-mail](mailto:hello@marketday.ai). We decide what to build next based on your feedback.',
 		integrations_disconnect_msg: 'Are you sure you want to disconnect?\n All related features will be disabled.',

@@ -831,7 +831,6 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 /* Shadow - colored lines (use this to immitate a "highlighted border" effect */
 .shadow_primary { box-shadow: 0 0 0 1px rgb(var(--color-primary)); }
 .shadow_err { box-shadow: 0 0 0 1px rgb(var(--color-error)); }
-.shadow_warn { box-shadow: 0 0 0 1px rgb(var(--color-warn)); }
 
 /* Transitions */
 

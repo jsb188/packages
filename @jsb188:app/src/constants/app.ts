@@ -26,6 +26,11 @@ export const COMMON_CLASSNAMES = {
 	modalScreenSplitForm: 'h_top px_lg pb_md gap_lg',
 	modalScreenSplitContent: 'h_top px_md pb_md gap_lg',
 	modalScreenHeading: 'pt_lg pb_df ft_normal ft_xs cl_darker_2 ls_2',
+
+  // These are x-paddings used for consistency around content
+  tableRowXPadding: 'px_20',
+  contentXPadding: 'px_28',
+  contentXMargin: 'mx_28',
 };
 
 // Local storage

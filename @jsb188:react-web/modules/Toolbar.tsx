@@ -7,6 +7,7 @@ import { FilterPillButton } from '@jsb188/react-web/ui/PageFiltersUI';
 import React, { memo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Icon } from '../svgs/Icon';
+import { COMMON_CLASSNAMES } from '@jsb188/app/constants/app.ts';
 
 /**
  * App layout toolbar title
@@ -73,7 +74,7 @@ export function ToolbarContent(p: { children: React.ReactNode }) {
   const { children } = p;
   return <nav
     id='app_toolbar_right'
-    className='h_right pl_sm pr_20 gap_10'
+    className='h_right pl_sm pr_22 gap_10'
   >
     {children}
   </nav>;
@@ -235,7 +236,7 @@ const AppToolbar = memo((p: {
   const lastIx = breadcrumbs.length - 1;
 
   return <div className={cn('bg rel z4', shadowStyle)}>
-    <div className='h_toolbar h_item no_shrink px_24'>
+    <div className={cn('h_toolbar h_item no_shrink', COMMON_CLASSNAMES.contentXPadding)}>
       {breadcrumbs?.map((item, i) => {
         return <BreadcrumbItem
           key={item.to || `${item.text}_${i}`}
@@ -249,9 +250,7 @@ const AppToolbar = memo((p: {
 
     {!options?.length ? null : (
       <ToolbarItems
-        // className='h_toolbar h_item h_40__ -mt_2_______ px_20 ft_xs'
-        // x-padding should be .px_24 but for visual offset, I'm using .px_22
-        className='h_40 px_22 ft_xs'
+        className={cn('h_40 ft_xs -ml_2', COMMON_CLASSNAMES.contentXPadding)}
         filterPrefix='app_toolbar_filter_'
         items={options}
       />
