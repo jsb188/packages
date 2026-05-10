@@ -8,6 +8,7 @@ type QueryObserverObj = {
   count: number;
   name: string;
   forceRefetch: boolean;
+  resetOnly: boolean;
 };
 
 type FragmentObserverObj = {
@@ -22,7 +23,8 @@ type FragmentObserverObj = {
 const queryObserverState = atom<QueryObserverObj>({
   count: 0,
   name: '',
-  forceRefetch: false
+  forceRefetch: false,
+  resetOnly: false
 });
 
 /**

@@ -63,6 +63,7 @@ type GraphQLQueryResult = {
   queryName: string;
   queryKey: string;
   refreshTime: string;
+  resetOnlyTime: string;
   variablesKey: string;
   updatedCount: number;
   updateObservers: UpdateObserversFn;
@@ -109,6 +110,7 @@ export function useUpdateObservers(): UpdateObserversFn {
         count: (prev.name === args.queryId ? prev.count : 0) + 1,
         name: args.queryId as string,
         forceRefetch: !!args.forceRefetch,
+        resetOnly: !!args.resetOnly,
       }));
     }
 
@@ -130,7 +132,7 @@ export function useWatchQuery(
   variablesKey: string,
   lastUpdatedCount: number,
   loading: boolean,
-) { // [updatedCount, forceRefetch, qryReset]
+) {
 
   const qryObserver = useQueryObserverValue();
   const [qryReset, setQryReset] = useState({
@@ -139,7 +141,7 @@ export function useWatchQuery(
     refreshTimeActive: '', // This value resets when loading starts
   });
 
-  const queryWatcher = useMemo(() => {
+  const queryWatcher = useMemo<[number, boolean, string, string]>(() => {
     if (qryObserver.name) {
       const queryDefs = query.definitions.filter((d: any) => d.kind === 'OperationDefinition');
       const queryName = queryDefs?.[0]?.name?.value;
@@ -150,23 +152,39 @@ export function useWatchQuery(
         if (qryTriggerTime) {
           clearQueryResetStatus(queryName, variablesKey);
           console.dev(`... (1) Query [${queryName}:${variablesKey}] is being force refetched via observer.`);
-          return [lastUpdatedCount + 1, true, qryTriggerTime];
+          return [lastUpdatedCount + 1, true, qryTriggerTime, ''];
         }
       }
 
       const matchedQry = queryDefs
-        .find((d: any) =>
-          qryObserver.name.startsWith('#' + d.name.value) ||
-          ('#' + d.name.value + ':') === qryObserver.name
-        );
+        .find((d: any) => {
+          const queryName = d.name.value;
+          const fullQueryKey = `#${queryName}:${variablesKey}`;
+          const queryNameKey = `#${queryName}:`;
+
+          if (qryObserver.name.startsWith('^')) {
+            try {
+              return new RegExp(qryObserver.name).test(fullQueryKey);
+            } catch (_err) {
+              return false;
+            }
+          }
+
+          return (
+            qryObserver.name === fullQueryKey ||
+            qryObserver.name === queryNameKey ||
+            fullQueryKey.startsWith(qryObserver.name)
+          );
+        });
 
       if (!matchedQry) {
-        return [0, false, ''];
+        return [0, false, '', ''];
       }
 
       const matchedQueryName = matchedQry.name.value;
       const matchedQueryId = `#${matchedQueryName}:${variablesKey}`;
       const forceRefetch = !!qryObserver.forceRefetch;
+      const resetOnlyTime = qryObserver.resetOnly ? `${Date.now()}:${qryObserver.count}` : '';
 
       let newUpdatedCount = qryObserver.name === matchedQueryId || forceRefetch ? qryObserver.count : 0;
       if (forceRefetch) {
@@ -177,10 +195,10 @@ export function useWatchQuery(
         console.dev(`... (2) Query [${matchedQueryId}] is being force refetched via observer.`);
       }
 
-      return [newUpdatedCount, forceRefetch, ''];
+      return [newUpdatedCount, forceRefetch, '', resetOnlyTime];
     }
 
-    return [0, false, ''];
+    return [0, false, '', ''];
   }, [qryObserver]);
 
   useEffect(() => {
@@ -211,6 +229,7 @@ export function useWatchQuery(
   return {
     updatedCount: queryWatcher[0],
     forceRefetch: queryWatcher[1],
+    resetOnlyTime: queryWatcher[3],
     qryReset
   };
 }
@@ -710,7 +729,7 @@ export function useQuery(
     lastRefreshTriggerTime: '',
   });
 
-  const { updatedCount, forceRefetch, qryReset: { triggerTime, refreshTime } } = useWatchQuery(
+  const { updatedCount, forceRefetch, resetOnlyTime, qryReset: { triggerTime, refreshTime } } = useWatchQuery(
     query,
     variablesKey,
     qryValues.lastUpdatedCount,
@@ -971,6 +990,7 @@ export function useQuery(
     queryKey: queryOutput.queryKey,
     data: queryOutput.data || queryData,
     refreshTime: queryOutput.refreshTime,
+    resetOnlyTime,
     variablesKey,
     refetch,
     fetchMore,

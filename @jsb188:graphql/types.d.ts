@@ -21,6 +21,7 @@ export interface UpdateDataObserverArgs {
   queryId?: string | null;
   fragmentIds?: (string | null)[];
   forceRefetch?: boolean;
+  resetOnly?: boolean;
 }
 
 /**

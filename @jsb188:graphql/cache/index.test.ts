@@ -4,6 +4,7 @@ import {
 	fetchCachedData,
 	loadDataFromCache,
 	loadFragment,
+	resetQuery,
 	setDataToCache,
 } from './index.ts';
 
@@ -278,4 +279,41 @@ Deno.test('fetchCachedData ignores nonmatching inline fragments for union data',
 	);
 
 	assertDeepEqual(cachedData, requestData, 'cached union data should only require fields for the matching inline fragment type');
+});
+
+Deno.test('resetQuery reset-only clears matching query cache and notifies observers without force refetch', () => {
+	resetCacheState();
+
+	const gqlQuery = makeQuery('logEntries', [
+		makeField('id'),
+		makeField('status'),
+	]);
+	const variablesKey = makeVariablesKey({
+		organizationId: 'org-1',
+	});
+	const requestData = {
+		logEntries: [{
+			id: 'log-1',
+			status: 'COMPLETED',
+		}],
+	};
+	const observerArgs: any[] = [];
+
+	setDataToCache(requestData, gqlQuery, variablesKey);
+	resetQuery('#logEntries:', false, (args) => {
+		observerArgs.push(args);
+	}, true);
+
+	const cachedData = fetchCachedData(
+		gqlQuery,
+		variablesKey,
+		() => {},
+	);
+
+	assertDeepEqual(observerArgs, [{
+		queryId: '#logEntries:',
+		forceRefetch: false,
+		resetOnly: true,
+	}], 'reset-only should notify mounted query observers without force refetch');
+	assertDeepEqual(cachedData, null, 'reset-only should remove matching cached query data');
 });

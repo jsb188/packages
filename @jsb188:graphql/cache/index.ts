@@ -1334,15 +1334,56 @@ export function clearQueryResetStatus(queryName: string, variablesKey: string) {
 }
 
 /**
+ * Delete cached query data without setting query reset times.
+ */
+
+function deleteMatchingQueryCache(queryId: string) {
+  if (queryId.startsWith('^')) {
+    const regex = new RegExp(queryId);
+
+    for (const key of QUERIES.keys()) {
+      if (regex.test(key)) {
+        QUERIES.delete(key);
+        console.dev('✅ RESET ONLY ->', key);
+      }
+    }
+    return;
+  }
+
+  if (queryId.endsWith(':')) {
+    for (const key of QUERIES.keys()) {
+      if (key.startsWith(queryId)) {
+        QUERIES.delete(key);
+        console.dev('✅ RESET ONLY ->', key);
+      }
+    }
+    return;
+  }
+
+  QUERIES.delete(queryId);
+  console.dev('✅ RESET ONLY ->', queryId);
+}
+
+/**
  * Clear query cache
  * NOTE: If "queryId" is a name of query postfixed by ":" like this => "#queryName:"
  * it will reset all queries everywhere for the same GraphQL query.
  */
 
-export function resetQuery(queryId: string, forceRefetch?: boolean, updateObservers?: UpdateObserversFn) {
+export function resetQuery(queryId: string, forceRefetch?: boolean, updateObservers?: UpdateObserversFn, resetOnly?: boolean) {
   // if (forceRefetch) {
   //   QUERIES.delete(queryId);
   // }
+
+  if (resetOnly) {
+    deleteMatchingQueryCache(queryId);
+    updateObservers?.({
+      queryId,
+      forceRefetch,
+      resetOnly,
+    });
+    return;
+  }
 
   if (updateObservers) {
     if (queryId.startsWith('^')) {

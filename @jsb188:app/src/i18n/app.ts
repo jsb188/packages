@@ -18,6 +18,7 @@ export default {
     // General
     open_app: 'Open app',
     home: 'Home',
+    new_data_click_to_refresh: 'New data available. Click to refresh.',
     timezone_set_to_: 'Time zone is set to: %{timeZone}',
     latest_updates: 'Latest updates',
     update_notes: 'Update notes',
