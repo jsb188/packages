@@ -1,8 +1,7 @@
 
 // AI agent inboxes
 
-
-const INBOX_DOMAINS_BY_TYPE = {
+const GROUP_TO_INBOX_DOMAINS = {
   vendor: [
     'orders.marketday.ai',
     // 'agent.marketday.ai', // enable when ready
@@ -13,7 +12,22 @@ const INBOX_DOMAINS_BY_TYPE = {
 };
 
 export const OPERATION_INBOX_DOMAINS = {
-  ARABLE: INBOX_DOMAINS_BY_TYPE.vendor,
-  RESTAURANT: INBOX_DOMAINS_BY_TYPE.vendor,
-  DEFAULT: INBOX_DOMAINS_BY_TYPE.default,
+  ARABLE: GROUP_TO_INBOX_DOMAINS.vendor,
+  RESTAURANT: GROUP_TO_INBOX_DOMAINS.vendor,
+  DEFAULT: GROUP_TO_INBOX_DOMAINS.default,
 };
+
+
+export const DOMAIN_TO_INBOX = {
+  // Assistant
+  'agent.marketday.ai': 'ASSISTANT',
+  'assistant.marketday.ai': 'ASSISTANT',
+
+  // General inquiry
+  'general.marketday.ai': 'GENERAL_INQUIRY',
+  'info.marketday.ai': 'GENERAL_INQUIRY',
+  'inquiry.marketday.ai': 'GENERAL_INQUIRY',
+
+  // Orders
+  'orders.marketday.ai': 'ORDERS',
+} as const;
