@@ -55,7 +55,7 @@ export default {
 		// AI inbox
 		ai_inbox_handle: 'Handle',
 		change_ai_inbox: 'AI inbox',
-		change_ai_inbox_msg: 'Choose the handle for your organization\'s\n AI inbox email address.',
+		change_ai_inbox_msg: 'Choose a handle for your organization.\n This will become the address for your AI inbox email.',
 		remove_ai_inbox: 'Remove AI inbox',
 		ai_inbox_updated: 'AI inbox updated',
 		ai_inbox_updated_msg: 'AI inbox handle has been changed to:\n [hl]%{inboundEmail}[/hl].',

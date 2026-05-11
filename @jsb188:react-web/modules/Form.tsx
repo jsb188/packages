@@ -286,7 +286,7 @@ export function Input(p: Partial<InputType> & Omit<LabelType, 'children'> & {
         onClick={onClickItem}
         className={cn(
           'rel',
-          onClick ? 'link' : '',
+          onClick ? 'link form_el_hv' : '',
           locked ? 'strong_bf pattern_stripes' : ''
         )}
       >
@@ -375,14 +375,14 @@ export function InputWithButton(p: FormInputProps & {
 
   return <FVInput
     {...rest}
+    onClick={onClickButton}
     RightIconComponent={
       <div className='abs_r_center mr_5'>
-        <button
+        <span
           className='btn link bg_active lh_1 ft_xs ft_medium p_xs r_sm'
-          onClick={onClickButton}
         >
           {buttonText}
-        </button>
+        </span>
       </div>
     }
   >
