@@ -690,38 +690,23 @@ export function ContentGate(p: ContentGateProps) {
 
 export interface FloatingMessageObj {
   text: string;
-  clickToRefresh: boolean;
-  to: string;
-  iconName: string;
+  type: 'REFRESH' | 'WARNING' | 'NOTICE' | 'MESSAGE';
 }
 
 interface FloatingMessageProps {
   pathname: string;
   message: FloatingMessageObj | null;
-  onClose: () => void;
+  setFloatingMessage: (message: FloatingMessageObj | null) => void;
+  setRefreshKey: () => void;
   className?: string;
 }
 
 export const FloatingMessage = memo((p: FloatingMessageProps) => {
-  const { pathname, className, message, onClose } = p;
+  const { className, message, setFloatingMessage, setRefreshKey } = p;
   // const [innerState, setInnerState] = useState({ active: !!message, message });
   const [innerMessage, visibility] = useAnimationVisibility(message);
   const visible = visibility >= 2;
-  const href = innerMessage?.to || pathname;
-
-  const MessageContent = <>
-    {innerMessage?.iconName && (
-      <span className='av_xs v_center mr_xs'>
-        <Icon
-          name={innerMessage.iconName}
-        />
-      </span>
-    )}
-
-    <span className='ellip f'>
-      {innerMessage?.text}
-    </span>
-  </>;
+  const iconName = innerMessage?.type === 'REFRESH' ? 'reload' : 'x';
 
   if (!visibility) {
     return null;
@@ -737,28 +722,39 @@ export const FloatingMessage = memo((p: FloatingMessageProps) => {
       transform: visible ? 'translateY(0)' : 'translateY(-100%)'
     }}
   >
-    <div className='floating_msg bg_contrast r h_45 pl_df pr_5 shadow h_spread cw max_w_400 ft_sm'>
-      {innerMessage?.clickToRefresh || innerMessage?.to
-      ? <a
-        href={href}
-        className='h_spread f link cl_df'
-      >
-        {MessageContent}
-      </a>
-      : <div className='h_spread f'>
-        {MessageContent}
-      </div>}
+    <button
+      type='button'
+      className='floating_msg bg_contrast r h_45 pr_5 shadow h_spread mx_auto max_w_500 ft_sm'
+      onClick={innerMessage?.type === 'REFRESH' ? () => {
+        setRefreshKey();
+        setFloatingMessage(null);
+      } : undefined}
+    >
+      {/* {innerMessage?.iconName && (
+        <span className='av_xs v_center mr_xs'>
+          <Icon
+            name={innerMessage.iconName}
+          />
+        </span>
+      )} */}
 
-      <button
-        type='button'
+      <span className='ellip f px_18'>
+        {innerMessage?.text}
+      </span>
+
+      <span
         className='av av_xs r v_center bg_lighter_3 link'
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          setFloatingMessage(null);
+        }}
       >
         <Icon
-          name='x'
+          tryColor
+          name={iconName}
         />
-      </button>
-    </div>
+      </span>
+    </button>
   </div>;
 });
 

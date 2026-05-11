@@ -2851,7 +2851,7 @@ export const Reload = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M19.933 13.041a8 8 0 1 1 -9.925 -8.788c3.899 -1 7.935 1.007 9.425 4.747" />
 <path d="M20 4v5h-5" />
-</svg>
+</svg>;
 
 export const RemoveCircle = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-remove-circle" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M2.00000042 11.99899965c0 5.52284811 4.47715232 10.00000042 9.99999958 10.00000042s9.99999958 -4.47715232 9.99999958 -10.00000042c0 -5.52284726 -4.47715232 -9.99999958 -9.99999958 -9.99999958S2.00000042 6.47615239 2.00000042 11.99899965Z"/>
