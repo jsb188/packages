@@ -5,7 +5,7 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { Pill } from '@jsb188/react-web/ui/Button';
 import { useOnlineStatus } from '@jsb188/react-web/utils/dom';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
-import { memo, useEffect } from 'react';
+import { memo } from 'react';
 import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom';
 import { BigLoading } from '../ui/Loading';
