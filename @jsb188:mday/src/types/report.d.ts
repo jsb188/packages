@@ -88,7 +88,7 @@ export interface ReportFieldsRow {
   preset?: ReportRowPresetEnum;
   className?: string;
   isHeader?: boolean;
-  templateRule: string; // CARRY_OVER
+  templateRule: string; // COPY_FROM_CONFIG
   hintQuestion?: string;
   hintOptions?: string[];
   defaultOnlyBoolean?: boolean;

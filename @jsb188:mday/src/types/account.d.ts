@@ -7,7 +7,7 @@ import type { OrganizationACL, OrganizationRoleEnum } from './organization.d.ts'
 export interface AccountPhoneObj {
 	id: number;
 	number: string;
-  verified: boolean;
+	verified: boolean;
 }
 
 /**
@@ -15,7 +15,7 @@ export interface AccountPhoneObj {
  */
 
 export interface AccountObj {
-	id: number;
+	id: number | bigint;
 	readableId?: string | null;
 	settings: Record<string, any>;
 	profile: Partial<{
@@ -26,9 +26,22 @@ export interface AccountObj {
 	}>;
 }
 
-export interface AccountData extends AccountObj {
+export interface AccountData {
 	__table: 'accounts';
+
+	id: number | bigint;
+	readableId?: string | null;
+	settings: Record<string, any>;
+
+	profile: {
+		__table: 'account_profiles';
+		id: number | bigint;
+		firstName: string;
+		lastName: string;
+		storageId: number | bigint | null;
+	};
 	phone: {
+		__table: 'account_phones';
 		id: number;
 		number: string;
 		verified: boolean;
@@ -36,6 +49,7 @@ export interface AccountData extends AccountObj {
 		editAt: Date;
 	};
 	email: {
+		__table: 'account_emails';
 		id: number;
 		address: string;
 		verified: boolean;

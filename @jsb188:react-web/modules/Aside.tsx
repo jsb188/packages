@@ -64,13 +64,13 @@ export const AsideListBlock = memo((p: AsideListBlockObj & {
     {items?.map((navItem, i) => {
       const { label, text, to, anchor, rightIconName, rightIconClassName, rightIconClassNameSelected } = navItem;
       const hasLabel = !!label || label === '';
-      const textClassName = cn(!text ? 'cl_lt' : hasLabel ? 'cl_df' : '');
+      const textClassName = cn('ellip', !text ? 'cl_lt' : hasLabel ? 'cl_df' : '');
       const selected = !!(pathname && pathname === to);
       const lineText = text || nullText;
       const hasMarkdown = /\[(.*?)##(.*?)\]|\*]/.test(lineText || '');
       const itemContent = <>
         {hasLabel &&
-        <span className='bl'>
+        <span className='bl no_wrap mr_sm min_w_60'>
           {label}:
         </span>}
         {hasMarkdown

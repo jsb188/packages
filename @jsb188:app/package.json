@@ -30,7 +30,6 @@
     "./utils/string.ts": "./src/utils/string.ts",
     "./utils/timeZone.ts": "./src/utils/timeZone.ts",
     "./utils/url_client.ts": "./src/utils/url_client.ts",
-    "./types/account.d.ts": "./src/types/account.d.ts",
     "./types/ai.d.ts": "./src/types/ai.d.ts",
     "./types/app.d.ts": "./src/types/app.d.ts",
     "./types/auth.d.ts": "./src/types/auth.d.ts",

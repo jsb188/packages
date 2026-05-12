@@ -1,4 +1,4 @@
-import type { AccountObj } from '@jsb188/app/types/account.d.ts';
+import type { AccountObj } from './account.d.ts';
 import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
 import type {
   WorkflowActionGQL,
@@ -13,7 +13,7 @@ import {
   LOG_SORT_ENUMS,
 } from '../constants/log.ts';
 import type { OrganizationOperationEnum } from '../types/organization.d.ts';
-import type { StorageGQL } from './storage';
+import type { StorageGQL } from './storage.d.ts';
 
 /**
  * Enums

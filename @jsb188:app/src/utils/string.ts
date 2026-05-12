@@ -488,9 +488,9 @@ export function joinReadable(
   texts: (string | null | undefined)[],
   separator: string = ", ",
   lastSeparator: string = " and ",
-) {
+): string {
   const lastIx = texts.length - 1;
-  return texts.filter(Boolean).reduce((acc, text, i) => {
+  return texts.filter(Boolean).reduce<string>((acc, text, i) => {
     return acc + (!acc ? "" : i === lastIx ? lastSeparator : separator) + text;
   }, "");
 }

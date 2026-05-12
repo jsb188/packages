@@ -1,4 +1,4 @@
-import type { AccountData } from '@jsb188/app/types/account.d.ts';
+import type { AccountData } from './account.d.ts';
 import type { AddressObj, ScheduleObj } from '@jsb188/app/types/other.d.ts';
 import { PRODUCT_TYPES } from '../constants/product.ts';
 import type { OrganizationData, OrganizationGQL } from './organization.d.ts';
