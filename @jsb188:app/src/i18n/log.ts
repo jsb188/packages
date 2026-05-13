@@ -221,8 +221,8 @@ export default {
 			OTHER_POST_HARVEST_ACTIVITY: 'Other post-harvest activities',
 
 			// # Sales activities
-			SALE_PRODUCE_ORDER: 'Purchase order (produce)',
-			OTHER_SALE_ORDER: 'Purchase order (other)',
+			SALE_PRODUCE_ORDER: 'sales order (produce)',
+			OTHER_SALE_ORDER: 'sales order (other)',
 
 			// # Water testing activities
 			WATER_TESTING: 'Water testing (chlorine levels)',

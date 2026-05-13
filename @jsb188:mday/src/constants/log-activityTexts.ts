@@ -46,19 +46,22 @@ export const ARABLE_FARMING_TO_TEXT = {
 	OTHER_POST_HARVEST_ACTIVITY: 'other post-harvest activities such as cleaning, storage, and maintenance',
 };
 
-export const ARABLE_TRANSACTIONS_TO_TEXT = {
+export const ARABLE_PURCHASES_TO_TEXT = {
 	// # Seed purchase activities
 	SEED_PURCHASE_INFO: 'seed purchase',
 	OTHER_SUPPLY_PURCHASE_ACTIVITY: 'other supply purchase',
+};
 
+export const ARABLE_SALES_TO_TEXT = {
 	// # Sales activities
-	SALE_PRODUCE_ORDER: 'purchase order (produce)',
-	OTHER_SALE_ORDER: 'purchase order (other)',
+	SALE_PRODUCE_ORDER: 'sales order (produce)',
+	OTHER_SALE_ORDER: 'sales order (other)',
 };
 
 export const ARABLE_SEED_TO_SALE_TO_TEXT = {
 	COLD_STORAGE_TEMPERATURE: 'checking or changing temperature (cold storage)',
-	...ARABLE_TRANSACTIONS_TO_TEXT,
+	...ARABLE_PURCHASES_TO_TEXT,
+	...ARABLE_SALES_TO_TEXT,
 	...ARABLE_FARMING_TO_TEXT,
 	...WATER_TESTING_ACTIVITY_TO_TEXT,
 };

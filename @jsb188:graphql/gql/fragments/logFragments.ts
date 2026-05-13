@@ -39,6 +39,7 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
     quantity
   }
   tax
+  voided
 
   notes
 }`;

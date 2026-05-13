@@ -57,6 +57,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
         referenceNumber: details.referenceNumber,
         otherParty: details.otherParty,
         values: details.values,
+        voided: details.voided,
         notes: details.notes,
       };
     } break;
@@ -107,6 +108,7 @@ export function makeFormValuesFromData(logEntry: LogEntryGQL) {
 
   // input LogArableInput {
   //   activity: LogArableActivity
+  //   voided: Boolean
   //   item: String
   //   quantity: Float
   //   unit: String
@@ -463,7 +465,7 @@ function makeMetadataSchema(
             focused: focusedName === (formId + '_void'),
             name: `${namespace}.voided`,
             placeholder: isCreateNew ? i18n.t(`form.void_ph`) : '',
-            getter: (value: string) => i18n.t(value ? 'log.receipt_is_void' : 'log.receipt_is_not_void'),
+            getter: (value: string) => i18n.t(value ? 'form.voided' : 'form.valid'),
           },
           popOverProps: {
             id: formId + '_void',
@@ -475,14 +477,14 @@ function makeMetadataSchema(
                 className: 'max_h_40vh',
                 options: [{
                   __type: 'LIST_ITEM' as const,
-                  text: i18n.t('log.receipt_is_not_void'),
+                  text: i18n.t('form.valid'),
                   iconName: 'receipt-dollar',
                   selected: !formValues[namespace]?.voided,
                   name: `${namespace}.voided`,
                   value: false,
                 }, {
                   __type: 'LIST_ITEM' as const,
-                  text: i18n.t('log.receipt_is_void'),
+                  text: i18n.t('form.voided'),
                   iconName: 'receipt-off',
                   selected: formValues[namespace]?.voided === true,
                   name: `${namespace}.voided`,
@@ -598,6 +600,7 @@ export function getSchemaFieldsFromLog(__typename: string, logType: LogTypeEnum)
         isSaleOrPurchase ? 'invoiceNumber' : null,
         isSaleOrPurchase ? 'invoiceItems' : null,
         isSaleOrPurchase ? 'tax' : null,
+        isSaleOrPurchase ? 'void' : null,
         isSaleOrPurchase ? null : isWaterTesting ? 'location_water' : 'location_arable',
         'location',
         'fieldLocation',
