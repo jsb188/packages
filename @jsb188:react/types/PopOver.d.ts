@@ -207,11 +207,13 @@ export interface POLabelsAndValuesIface {
     flipInputOrder?: boolean;
     forceNumericValues?: boolean;
     includeQuantity?: boolean;
-    labels: [string, string][];
+    includeUnit?: boolean;
+    labels: string[];
     inputs: {
       label: string;
       value: string;
       quantity?: number;
+      unit?: string;
     }[];
   }
 }

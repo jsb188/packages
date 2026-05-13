@@ -507,7 +507,7 @@ function makeMetadataSchema(
             getter: (labelsAndValues: string[]) => {
               return labelsAndValues?.map((lv: any) => {
                 return textWithBrackets(
-                  `${lv.quantity ? `${lv.quantity} ` : ''}${lv.label}`,
+                  `${lv.quantity ? `${lv.quantity} ` : ''}${lv.unit ? `${lv.unit} ` : ''}${lv.label}`,
                   formatCurrency(lv.value, false),
                 );
               }).join(', ');
@@ -519,14 +519,15 @@ function makeMetadataSchema(
             iface: {
               name: 'PO_LABELS_AND_VALUES',
               variables: {
-                gridLayoutStyle: '70px 1fr 85px',
+                gridLayoutStyle: '70px 70px 1fr 85px',
                 designClassName: 'w_400',
                 className: 'max_h_40vh',
                 // flipInputOrder: true,
                 forceNumericValues: true,
                 includeQuantity: true,
+                includeUnit: true,
                 name: `${namespace}.values`,
-                labels: [i18n.t('form.quantity'), i18n.t('log.invoice_item'), `$ ${i18n.t('form.amount')}`],
+                labels: [i18n.t('form.quantity'), i18n.t('form.unit'), i18n.t('log.invoice_item'), `$ ${i18n.t('form.amount')}`],
                 inputs: formValues[namespace]?.values || [],
               }
             }

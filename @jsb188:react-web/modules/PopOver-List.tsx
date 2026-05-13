@@ -466,6 +466,7 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
     flipInputOrder,
     forceNumericValues,
     includeQuantity,
+    includeUnit,
   } = variables;
 
   const [formValues, setFormValues] = useState(inputs);
@@ -478,12 +479,12 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
     setPopOverState({
       action: 'ITEM',
       name,
-      value: formValues.filter(obj => obj.label || obj.value || (includeQuantity && obj.quantity)),
+      value: formValues.filter(obj => obj.label || obj.value || (includeQuantity && obj.quantity) || (includeUnit && obj.unit)),
       doNotClosePopOver: true,
     });
   }, [formValues]);
 
-  const onChangeItem = (name: 'label' | 'value' | 'quantity', value_: any, i: number) => {
+  const onChangeItem = (name: 'label' | 'value' | 'quantity' | 'unit', value_: any, i: number) => {
     const updatedValues = [...formValues];
     const value = name === 'value' && forceNumericValues ? String(value_).replace(/[^0-9.-]/g, '') : value_;
     if (i >= 0 && i < updatedValues.length) {
@@ -498,11 +499,13 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
           value: name === 'value' ? value : '',
           // @ts-expect-error - "quantity" is optional
           quantity: name === 'quantity' ? Number(value) : null, // If you use "", GraphQL will error out from Float scalar
+          unit: name === 'unit' ? value : '',
         });
       } else {
         updatedValues.push({
           label: name === 'label' ? value : '',
           value: name === 'value' ? value : '',
+          unit: name === 'unit' ? value : '',
         });
       }
     }
@@ -533,6 +536,7 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
             gridLayoutStyle={gridLayoutStyle}
             flipInputOrder={flipInputOrder}
             includeQuantity={includeQuantity}
+            includeUnit={includeUnit}
             labels={labels}
             inputs={formValues}
             onChangeItem={onChangeItem}

@@ -102,6 +102,11 @@ export default {
 		delete_invoice: 'Delete invoice',
 		delete_receipt: 'Delete receipt',
 
+    // Unit by log graphql type
+    unit: {
+      LogArable: 'Pack Size',
+    },
+
 		// Types
 		type: {
 			// #### ARABLE

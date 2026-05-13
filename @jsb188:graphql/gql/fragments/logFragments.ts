@@ -37,6 +37,7 @@ export const logArableFragment = `fragment logArableFragment on LogArable {
     label
     value
     quantity
+    unit
   }
   tax
   voided
@@ -58,6 +59,7 @@ export const logFarmersMarketFragment = `fragment logFarmersMarketFragment on Lo
     label
     value
     quantity
+    unit
   }
   tax
   voided
@@ -103,6 +105,7 @@ export const logLivestockFragment = `fragment logLivestockFragment on LogLivesto
     label
     value
     quantity
+    unit
   }
   tax
 

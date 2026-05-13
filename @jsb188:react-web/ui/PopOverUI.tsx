@@ -430,18 +430,20 @@ PopOverListFooterButton.displayName = 'PopOverListFooterButton';
 export function POLabelsAndValues(p: {
   maxItems: number;
   description?: string;
-  labels: [string, string][];
-  inputs: { label: string; value: string; quantity?: number; }[];
+  labels: string[];
+  inputs: { label: string; value: string; quantity?: number; unit?: string; }[];
   gridLayoutStyle?: string;
   flipInputOrder?: boolean;
   includeQuantity?: boolean;
-  onChangeItem: (name: 'label' | 'value' | 'quantity', value: any, i: number) => void;
+  includeUnit?: boolean;
+  onChangeItem: (name: 'label' | 'value' | 'quantity' | 'unit', value: any, i: number) => void;
 }) {
-  const { description, labels, inputs, gridLayoutStyle, flipInputOrder, includeQuantity, onChangeItem, maxItems } = p;
+  const { description, labels, inputs, gridLayoutStyle, flipInputOrder, includeQuantity, includeUnit, onChangeItem, maxItems } = p;
   const formClassName = 'form_el smaller rel lighter focus_outline';
   const inputClassName = 'bd_lt bd_1 r_sm lh_1';
-  const inputKeys = (flipInputOrder ? ['value', 'quantity', 'label'] : ['quantity', 'label', 'value'])
-    .filter((key) => includeQuantity || key !== 'quantity') as (keyof typeof inputs[0])[];
+  const inputKeys = (flipInputOrder ? ['value', 'unit', 'quantity', 'label'] : ['quantity', 'unit', 'label', 'value'])
+    .filter((key) => includeQuantity || key !== 'quantity')
+    .filter((key) => includeUnit || key !== 'unit') as (keyof typeof inputs[0])[];
 
   return <>
     {description && (
@@ -450,7 +452,7 @@ export function POLabelsAndValues(p: {
       </p>
     )}
     <div
-      className={cn('grid gap_5', `size_${includeQuantity ? 3 : 2}`, !description && 'mt_5')}
+      className={cn('grid gap_5', `size_${inputKeys.length}`, !description && 'mt_5')}
       style={gridLayoutStyle ? { gridTemplateColumns: gridLayoutStyle } : undefined}
     >
       {labels.map((text, i) => {

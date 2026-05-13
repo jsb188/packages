@@ -174,6 +174,10 @@ main, header, section, article, fieldset, aside, nav, div, p, button, input, tex
   box-sizing: border-box;
 }
 
+th {
+  text-align: left;
+}
+
 ul, ol, figure {
   padding: 0;
   margin: 0;

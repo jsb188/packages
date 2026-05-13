@@ -43,6 +43,7 @@ export interface LabelAndValue {
 	label: string;
 	value: string;
 	quantity?: number;
+  unit?: string;
   tax?: number
   note?: string;
 }

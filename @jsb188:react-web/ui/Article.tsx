@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
-import { memo } from 'react';
+import { Fragment, memo } from 'react';
 import type { LabelsAndIconsItemProps } from '../modules/ListFeatures';
 import { LabelsAndIcons } from '../modules/ListFeatures';
 import { AvatarImg } from './Avatar';
@@ -338,6 +338,89 @@ export function ArticleCard(p: {
     <div className={contentClassName ?? 'pt_4 pb_sm px_df'}>
       {children}
     </div>
+  </div>;
+}
+
+/**
+ * Article card styled table container
+ */
+
+export function ArticleTable(p: {
+  containerClassName?: string;
+  headers?: {
+    text: React.ReactNode;
+    className?: string;
+  }[];
+  data?: {
+    className?: string;
+    separatorClassName?: string;
+    cells: {
+      text: React.ReactNode;
+      className?: string;
+    }[];
+  }[];
+  cellClassName?: string;
+  contentClassName?: string;
+  designClassName?: string;
+}) {
+  const { headers, data, containerClassName, cellClassName, designClassName, contentClassName } = p;
+
+  return <div className={cn(containerClassName, designClassName ?? 'r_sm bg_darker_1')}>
+    <table
+      className={cn('min_w_f')}
+      style={{ borderCollapse: 'collapse', borderSpacing: 0 }}
+    >
+      {!!headers?.length && (
+        <thead className='rt_sm cl_lt'>
+          <tr>
+            {headers.map((header, i) => {
+              return <th
+                key={i}
+                className={cn(
+                  'ft_normal pt_16 pb_10 no_wrap',
+                  i === 0 ? 'pl_df' : 'pl_sm',
+                  i === headers.length - 1 ? 'pr_df' : 'pr_sm',
+                  header.className
+                )}
+              >
+                {header.text}
+              </th>;
+            })}
+          </tr>
+        </thead>
+      )}
+      <tbody className={contentClassName ?? 'pt_4 pb_sm mx_df'}>
+        {data?.map((row, rowIndex) => {
+          return <Fragment key={rowIndex}>
+            {row.separatorClassName && (
+              <tr className='p_n m_n'>
+                <td
+                  className='p_n m_n'
+                  colSpan={headers?.length || row.cells.length}
+                >
+                  <div className={row.separatorClassName} />
+                </td>
+              </tr>
+            )}
+            <tr className={row.className}>
+              {row.cells.map((cell, cellIndex) => {
+                return <td
+                  key={cellIndex}
+                  className={cn(
+                    cellClassName,
+                    cellIndex === 0 ? 'pl_df' : 'pl_sm',
+                    cellIndex === row.cells.length - 1 ? 'pr_df' : 'pr_sm',
+                    cell.className
+                  )}
+                >
+                  {cell.text}
+                </td>;
+              })}
+            </tr>
+          </Fragment>;
+        })}
+      </tbody>
+    </table>
   </div>;
 }
 
