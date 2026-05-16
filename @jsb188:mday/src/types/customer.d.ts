@@ -21,6 +21,7 @@ export interface CustomerData {
 	organizationId: bigint;
 	name: string | null;
 	context: string | null;
+	userInstructions: string | null;
 	contacts?: CustomerContactData[] | null;
 	createdAt: Date;
 	updatedAt: Date;

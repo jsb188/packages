@@ -125,6 +125,7 @@ export async function graphqlRequest(
   const { openModalPopUp, onCompleted, onError, authToken, cacheMap, ipAddress } = params || {};
 
   if (!gqlQuery?.definitions) {
+    console.log('GraphQL definitions is nullish. This likely means there is an issue with the gql parsing of the query/mutation. Check the query/mutation syntax and ensure it is being parsed correctly.');
     console.log(gqlQuery);
   }
 

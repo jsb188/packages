@@ -8,9 +8,11 @@
   "exports": {
     "./constants/log.ts": "./src/constants/log.ts",
     "./constants/log-activityTexts.ts": "./src/constants/log-activityTexts.ts",
+    "./constants/email.ts": "./src/constants/email.ts",
     "./constants/organization.ts": "./src/constants/organization.ts",
     "./constants/product.ts": "./src/constants/product.ts",
     "./constants/storage.ts": "./src/constants/storage.ts",
+    "./types/email.d.ts": "./src/types/email.d.ts",
     "./types/storage.d.ts": "./src/types/storage.d.ts",
     "./schemas/editLogEntry.ts": "./src/schemas/editLogEntry.ts",
     "./schemas/logsQuery.ts": "./src/schemas/logsQuery.ts",

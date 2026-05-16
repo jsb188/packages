@@ -1,7 +1,70 @@
 import { formatCurrency } from '@jsb188/app/utils/number.ts';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 
-const PRODUCE_WORDS = [
+const ARABLE_ICON_WORD_GROUPS: [string, string[]][] = [
+	['vegetable-lettuce-top', ['little gem', 'lil gem', 'marciano', 'red butter', 'green gem', 'red gem', 'gems\\b', 'spretnak', 'newham', 'bokchoy', 'bok choy']],
+	['vegetable-lettuce', ['lettuce', 'red oak', 'romaine', 'escarol', 'radicchio', 'braci ardenti', 'braci adenti', 'di lusia', 'di lusio', 'treviso', 'thaddeus', 'cruced\\b']],
+	['vegetable-lavender', ['lavendar', 'lavender', 'anise hyssop', 'alyssum']],
+	['vegetable-basil', ['basil']],
+	['vegetable-beet', ['chioggia', 'beet', 'yellow tooth']],
+	['vegetable-broccoli', ['cauliflow', 'broccoli', 'piracicab']],
+	['vegetable-pumpkin', ['pumpkin', 'pump\\b', 'cargo pump', 'bennings green', 'benning']],
+	['vegetable-spinach', ['mesclun', 'spinach', 'chard', 'mustard green', 'mix\\b']],
+	['vegetable-tomato', ['tomato']],
+	['fruit-grapes', ['grapes']],
+	['fruit-apricot', ['apricot', 'peach', 'plum']],
+	['raspberry', ['raspberr']],
+	['fruit-cloud-berry', ['blackberr', 'cloudberr', 'cloud berr']],
+	['fruit-billberry-blackberry-blueberry', ['blueberr', 'billberr', 'berry', '\\w*berr(?:y|ies)\\b']],
+	['vegetable-asparagus', ['asparagus']],
+	['vegetable-acornsquash', ['sunshine kabocha', 'acorn squash', 'acornsquash', 'yellow star patty', 'sweet pepper', 'bell pepper']],
+	['fruit-strawberry', ['strawberr']], // commented now for testing
+	['seasoning-chilli', ['pepper', 'chilli']],
+	['vegetable-delicata-squash', ['delicata', 'delicata squash']],
+	['vegetable-hubbard-squash', ['hubbard squash', 'hubbard', 'red kuri']],
+	['vegetable-cucumber', ['shinto', 'cucumber', 'pickle']],
+	['vegetable-butternutsquash', ['butternut squash', 'butternutsquash', 'butternut', 'squash', 'starry night']],
+	['vegetable-thyme', ['summar savor', 'summer savor', 'summery savor', 'summary savor', 'thyme', 'rosemary', 'savory']],
+	['vegetable-arugula', ['arugula', 'chicory', 'puntarelle', 'frisee', 'kale', 'dino', 'green curl']],
+	['vegetable-parsley', ['parsley', 'beoc raab', 'wasabina', 'chervil']],
+	['vegetable-carrot', ['carrot']],
+	['vegetable-artichoke', ['artichoke', 'romanesco', 'star\\b', 'stars\\b']],
+	['vegetable-cabbage', ['cabbag']],
+	['vegetable-kohlrabi', ['kohlrab']],
+	['vegetable-zucchini', ['zucchini', 'zuchini', 'midnight light']],
+	['vegetable-potato', ['potato']],
+	['vegetable-eggplant', ['eggplant']],
+	['vegetable-jalapeno', ['jalapeno', 'jalapeño']],
+	['vegetable-stinging-kettle', ['stinging kettle', 'nettle', 'cardoon', 'cynara cardunculus', 'cardunculus', 'cresta', 'shiso']],
+	['vegetable-okra', ['okra']],
+	['plant-1', ['sage\\b', 'sages\\b', 'marjoram', 'sorrel', 'mint']],
+	['vegetable-scallion', ['scallion', 'scalion', 'spring onion', 'springonion']],
+	['gardening-seed-bag', ['seed']],
+	['vegetable-onion', ['onion', 'shallot', 'matador']],
+	['vegetable-black-bean', ['oliv']],
+	['vegetable-stringbean-1', ['bean', 'stringbean']],
+	['vegetable-cilantro', ['cilantro', 'flor\\b']],
+	['vegetable-radish', ['raddish', 'radish']],
+	['vegetable-wasabi', ['wasabi']],
+	['flower', ['flower']],
+	['product-growth-tree-box', ['soil']],
+	['gardening-sprinkler', ['irrigation']],
+	['agriculture-machine-seeder', ['direct seed']],
+	['organic-bag-leaf', ['fertilization']],
+	['gardening-tools-1', ['crop protection']],
+	['farming-barn-sun', ['crop monitoring', 'field']],
+	['gardening-scissors', ['pruning']],
+	['barbed-wire-fence', ['trellising']],
+	['protein-gluten-wheat', ['preparing crops']],
+	['harvest-product', ['crops', 'grading produce', 'moving produce']],
+	['crop-info-biotech-1', ['estimating yield', 'other harvest']],
+	['warehouse-storage', ['post harvest']],
+	['temperature-control-warehouse-1', ['cold storage temperature']],
+	['receipt-dollar', ['sale']],
+	['organic-flask', ['water testing', 'chlorine level']],
+];
+
+const ARABLE_ICON_PRIORITY_WORDS = [
 	'little gem',
 	'lil gem',
 	'romaine',
@@ -38,7 +101,7 @@ const PRODUCE_WORDS = [
 	'radish',
 	'bean',
 	'stringbean',
-  'oliv',
+	'oliv',
 	'stinging kettle',
 	'radicchio',
 	'braci ardenti',
@@ -63,6 +126,7 @@ const PRODUCE_WORDS = [
 	'cargo pump',
 	'pumpkin',
 	'cucumber',
+	'pickle',
 	'shiso',
 	'shinto',
 	'thyme',
@@ -98,14 +162,15 @@ const PRODUCE_WORDS = [
 	'sweet pepper',
 	'bell pepper',
 	'strawberr',
+	'\\w*berr(?:y|ies)\\b',
 	'berry',
 
 	// Leave at end for backup
 	'marciano',
 	'spretnak',
 	'newham',
-  'bokchoy',
-  'bok choy',
+	'bokchoy',
+	'bok choy',
 	'red butter',
 	'frisee',
 	'cresta',
@@ -168,6 +233,33 @@ const PRODUCE_WORDS = [
 	'chlorine level',
 	'field',
 ];
+const ARABLE_ICON_BY_WORD = new Map(
+	ARABLE_ICON_WORD_GROUPS.flatMap(([iconName, words]) => words.map((word) => [normalizeIconMatchWord(word), iconName])),
+);
+const ARABLE_WORD_REGEX = new RegExp(`\\b(${ARABLE_ICON_PRIORITY_WORDS.join('|')})`, 'gi');
+const ARABLE_ICON_PRIORITY_MATCHERS = ARABLE_ICON_PRIORITY_WORDS.map((word) => [word, new RegExp(`^${word}$`, 'i')] as const);
+
+/*
+ * Normalize a matched icon word so regex-only word boundary markers do not affect map lookups.
+ */
+function normalizeIconMatchWord(word: string): string {
+	return word.replace(/\\b/g, '').toLowerCase();
+}
+
+/*
+ * Pick the highest-priority arable icon word from a list of regex matches.
+ */
+function getPreferredArableIconWord(matches: string[]): string {
+	if (matches.length === 1) {
+		const matchedPriorityWord = ARABLE_ICON_PRIORITY_MATCHERS.find(([, regex]) => regex.test(matches[0]))?.[0];
+
+		return normalizeIconMatchWord(matchedPriorityWord || matches[0]);
+	}
+
+	const preferredWord = ARABLE_ICON_PRIORITY_MATCHERS.find(([, regex]) => matches.some((match) => regex.test(match)))?.[0];
+
+	return preferredWord ? normalizeIconMatchWord(preferredWord) : normalizeIconMatchWord(matches[0]);
+}
 
 /**
  * Get the icon name from crop name by using regex
@@ -179,242 +271,16 @@ const PRODUCE_WORDS = [
 
 export function getIconNameForArable(crop?: string | undefined, note?: string | null, defaultIcon?: string): string {
 	if (crop) {
-		const regex = new RegExp(`\\b(${PRODUCE_WORDS.join('|')})`, 'gi');
-		const match = crop.replace('-', ' ').match(regex);
+		const match = crop.replace(/-/g, ' ').match(ARABLE_WORD_REGEX);
 		if (match) {
-			let matchedWord;
-			if (match.length === 1) {
-				matchedWord = match[0].toLowerCase();
-			} else {
-				// If multiple matches, choose the first match from produce words
-				const lcMatch = match.map((m) => m.toLowerCase());
-				matchedWord = PRODUCE_WORDS.find((word) => lcMatch.includes(word));
+			const matchedWord = getPreferredArableIconWord(match);
+			const iconName = ARABLE_ICON_BY_WORD.get(matchedWord);
+
+			if (iconName) {
+				return iconName;
 			}
 
-			switch (matchedWord) {
-				case 'little gem':
-				case 'lil gem':
-				case 'marciano':
-				case 'red butter':
-				case 'green gem':
-				case 'red gem':
-				case 'gems':
-				case 'spretnak':
-				case 'newham':
-				case 'bokchoy':
-				case 'bok choy':
-					return 'vegetable-lettuce-top';
-				case 'lettuce':
-				case 'red oak':
-				case 'romaine':
-				case 'escarol':
-				case 'radicchio':
-				case 'braci ardenti':
-				case 'braci adenti':
-				case 'di lusia':
-				case 'di lusio':
-				case 'treviso':
-				case 'thaddeus':
-				case 'cruced':
-					return 'vegetable-lettuce';
-				case 'lavendar':
-				case 'lavender':
-				case 'anise hyssop':
-				case 'alyssum':
-					return 'vegetable-lavender';
-				case 'basil':
-					return 'vegetable-basil';
-				case 'chioggia':
-				case 'beet':
-				case 'yellow tooth':
-					return 'vegetable-beet';
-				case 'cauliflow':
-				case 'broccoli':
-				case 'piracicab':
-					return 'vegetable-broccoli';
-				case 'pumpkin':
-				case 'pump':
-				case 'cargo pump':
-				case 'bennings green':
-				case 'benning':
-					return 'vegetable-pumpkin';
-				case 'mesclun':
-				case 'spinach':
-				case 'chard':
-				case 'mustard green':
-				case 'mix':
-					return 'vegetable-spinach';
-				case 'tomato':
-					return 'vegetable-tomato';
-				case 'grapes':
-					return 'fruit-grapes';
-				case 'apricot':
-				case 'peach':
-				case 'plum':
-					return 'fruit-apricot';
-				case 'raspberr':
-          return 'raspberry';
-				case 'blackberr':
-				case 'cloudberr':
-				case 'cloud berr':
-					return 'fruit-cloud-berry';
-				case 'blueberr':
-				case 'billberr':
-				case 'berry':
-					return 'fruit-billberry-blackberry-blueberry';
-				case 'asparagus':
-					return 'vegetable-asparagus';
-				case 'sunshine kabocha':
-				case 'acorn squash':
-				case 'acornsquash':
-				case 'yellow star patty':
-				case 'sweet pepper':
-				case 'bell pepper':
-					return 'vegetable-acornsquash';
-				case 'strawberr':
-					return 'fruit-strawberry';
-				case 'pepper':
-				case 'chilli':
-					return 'seasoning-chilli';
-				case 'delicata':
-				case 'delicata squash':
-					return 'vegetable-delicata-squash';
-				case 'hubbard squash':
-				case 'hubbard':
-				case 'red kuri':
-					return 'vegetable-hubbard-squash';
-				case 'shinto':
-				case 'cucumber':
-					return 'vegetable-cucumber';
-				case 'butternut squash':
-				case 'butternutsquash':
-				case 'butternut':
-				case 'squash':
-				case 'starry night':
-					return 'vegetable-butternutsquash';
-				case 'summar savor':
-				case 'summer savor':
-				case 'summery savor':
-				case 'summary savor':
-				case 'thyme':
-				case 'rosemary':
-				case 'savory':
-					return 'vegetable-thyme';
-				case 'arugula':
-				case 'chicory':
-				case 'puntarelle':
-				case 'frisee':
-				case 'kale':
-				case 'dino':
-				case 'green curl':
-					return 'vegetable-arugula';
-				case 'parsley':
-				case 'beoc raab':
-				case 'wasabina':
-				case 'chervil':
-					return 'vegetable-parsley';
-				case 'carrot':
-					return 'vegetable-carrot';
-				case 'artichoke':
-				case 'romanesco':
-				case 'star':
-				case 'stars':
-					return 'vegetable-artichoke';
-				case 'cabbag':
-					return 'vegetable-cabbage';
-				case 'kohlrab':
-					return 'vegetable-kohlrabi';
-				case 'zucchini':
-				case 'zuchini':
-				case 'midnight light':
-					return 'vegetable-zucchini';
-				case 'potato':
-					return 'vegetable-potato';
-				case 'eggplant':
-					return 'vegetable-eggplant';
-				case 'jalapeno':
-				case 'jalapeño':
-					return 'vegetable-jalapeno';
-				case 'stinging kettle':
-				case 'nettle':
-				case 'cardoon':
-				case 'cynara cardunculus':
-				case 'cardunculus':
-				case 'cresta':
-				case 'shiso':
-					return 'vegetable-stinging-kettle';
-				case 'okra':
-					return 'vegetable-okra';
-				case 'sage':
-				case 'marjoram':
-				case 'sorrel':
-				case 'mint':
-					return 'plant-1';
-				case 'scallion':
-				case 'scalion':
-				case 'spring onion':
-				case 'springonion':
-					return 'vegetable-scallion';
-				case 'seed':
-					return 'gardening-seed-bag';
-				case 'onion':
-				case 'shallot':
-				case 'matador':
-					return 'vegetable-onion';
-        case 'oliv':
-          return 'vegetable-black-bean';
-				case 'bean':
-				case 'stringbean':
-					return 'vegetable-stringbean-1';
-				case 'cilantro':
-				case 'flor':
-					return 'vegetable-cilantro';
-				case 'raddish':
-				case 'radish':
-					return 'vegetable-radish';
-				case 'wasabi':
-					return 'vegetable-wasabi';
-				case 'flower':
-					return 'flower';
-				case 'soil':
-					return 'product-growth-tree-box';
-				case 'irrigation':
-					return 'gardening-sprinkler';
-				case 'direct seed':
-					return 'agriculture-machine-seeder';
-				case 'fertilization':
-					return 'organic-bag-leaf';
-				case 'crop protection':
-					return 'gardening-tools-1';
-				case 'crop monitoring':
-				case 'field':
-					return 'farming-barn-sun';
-				case 'pruning':
-					return 'gardening-scissors';
-				case 'trellising':
-					return 'barbed-wire-fence';
-				case 'preparing crops':
-					return 'protein-gluten-wheat';
-				case 'crops':
-					return 'harvest-product';
-				case 'estimating yield':
-				case 'other harvest':
-					return 'crop-info-biotech-1';
-				case 'grading produce':
-				case 'moving produce':
-					return 'harvest-product';
-				case 'post harvest':
-					return 'warehouse-storage';
-				case 'cold storage temperature':
-					return 'temperature-control-warehouse-1';
-				case 'sale':
-					return 'receipt-dollar';
-				case 'water testing':
-				case 'chlorine level':
-					return 'organic-flask';
-				default:
-					console.log('Missing switchcase for crop:', crop);
-			}
+			console.log('Missing icon lookup for crop:', crop);
 		}
 
 		// console.log('No match found for crop:', crop);
