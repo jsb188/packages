@@ -59,6 +59,44 @@ const defaultRequestParams = {
 };
 
 /**
+ * Pick the client error code that best represents a failed HTTP response.
+ */
+
+function getHTTPErrorCode(statusCode: number): string {
+  switch (statusCode) {
+    case 401:
+    case 403:
+      return '30043';
+    case 429:
+      return '20055';
+    default:
+      return '30000';
+  }
+}
+
+/**
+ * Parse a fetch response without assuming the server always returned JSON.
+ */
+
+async function parseGraphQLResponse(response: Response): Promise<any> {
+  const contentType = response.headers.get('content-type') || '';
+  const isJSON = contentType.includes('application/json');
+  const data = isJSON ? await response.json() : {
+    errors: [{
+      errorCode: getHTTPErrorCode(response.status),
+      statusCode: response.status,
+      message: await response.text(),
+    }],
+  };
+
+  if (!response.ok) {
+    throw data;
+  }
+
+  return data;
+}
+
+/**
  * GraphQL request with retry support
  */
 
@@ -148,7 +186,7 @@ export async function graphqlRequest(
       operationName,
     }),
   })
-    .then((response) => response.json())
+    .then(parseGraphQLResponse)
     .then((data) => {
       let gqlError: ServerErrorObj | null = null;
       if (data.errors?.length) {

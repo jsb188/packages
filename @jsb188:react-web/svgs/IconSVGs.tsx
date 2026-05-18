@@ -4315,6 +4315,16 @@ export const WorkflowAccountCircle = <svg xmlns="http://www.w3.org/2000/svg" vie
 <path d="M.75,12c0,6.21320343,5.03679657,11.25,11.25,11.25s11.25-5.03679657,11.25-11.25S18.21320343.75,12,.75C5.78679609.75.75,5.78679609.75,12"/>
 </svg>;
 
+export const WorkflowDataTable2 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-workflow-data-table-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M2.75 2.75h18.5s2 0 2 2v14.5s0 2 -2 2H2.75s-2 0 -2 -2V4.75s0 -2 2 -2" />
+<path d="m0.75 7.25 22.5 0" />
+<path d="m0.75 14.25 22.5 0" />
+<path d="m8.25 7.25 0 14" />
+<path d="m15.75 7.25 0 14" />
+<path d="m3.5 10.75 2 0" />
+<path d="m3.5 17.75 2 0" />
+</svg>;
+
 export const WorkflowGanttChart8 = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-workflow-gantt-chart-8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeWidth="1.5">
 <path d="M0.75 0.75v22.5h22.5" />
 <path d="M13.75 5.25h-8.5c-0.3 0 -0.5 -0.2 -0.5 -0.5v-2c0 -0.3 0.2 -0.5 0.5 -0.5h8.5c0.3 0 0.5 0.2 0.5 0.5v2c0 0.3 -0.2 0.5 -0.5 0.5Z" />

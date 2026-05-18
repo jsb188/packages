@@ -236,6 +236,7 @@ export default {
     growers: 'Growers',
     domestic_growers: 'Domestic growers',
     foreign_growers: 'Foreign growers',
+    customer: 'Customer',
     vendors: 'Vendors',
     'vendors_#': 'Vendors #',
     vendor: 'Vendor',

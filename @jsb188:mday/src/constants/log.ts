@@ -193,7 +193,7 @@ export const ARABLE_TYPES_TO_TEXT = {
 	FIELD: 'field work',
 	HARVEST: 'harvest activities',
 	POST_HARVEST: 'post-harvest (cleaning, storage, maintenance, packaging produce, cold storage)',
-	SALES: 'sales & purchase orders',
+	SALES: 'sales orders',
 	WATER: 'water testing activities',
 	EVERYTHING: 'all farming activities', // Not part of enums
 };

@@ -70,7 +70,7 @@ export default {
 			'You reached the end of this list with %{smart_count} entries.'
 		),
 
-		log_type_is_created: 'When %{type} log is created.',
+		log_type_is_created_updated: 'When %{type} logs are created/updated.',
 		risk_flags: 'Potential risks',
 		no_potential_risks: 'This log does not indicate any potential risks.',
 		animalRisk: 'Animal risk',
@@ -115,7 +115,7 @@ export default {
 			FIELD: 'Field',
 			HARVEST: 'Harvest',
 			POST_HARVEST: 'Post-harvest',
-			SALES: 'Sales & purchase',
+			SALES: 'Sales order',
 			WATER: 'Water testing',
 
 			// #### ARABLE - FOOD SAFETY

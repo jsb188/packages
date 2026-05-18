@@ -63,9 +63,7 @@ export function isServerErrorGQL(apiResult: any): boolean {
 export function apiRequestHeaders(authorization?: string | null, ipAddress?: string | null): Headers {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json; charset=utf-8',
-    api_key: String(getENVVariable('GQL_API_KEY') || ''),
-    origin: String(getENVVariable('APP_URL') || ''),
-    'Access-Control-Allow-Origin': String(getENVVariable('APP_URL') || ''),
+    'x-api-key': String(getENVVariable('GQL_API_KEY') || ''),
     // recaptcha: ? // Not sure if we're going to do this later any more
   };
 

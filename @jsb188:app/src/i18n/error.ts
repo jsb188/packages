@@ -142,6 +142,7 @@ export default {
     30004: 'We made a mistake in our code. We will fix this soon.',
     30010: 'Google servers are not responding right now.',
     30011: 'Something went wrong with your Google authentication attempt.',
+    30043: 'This app is not authorized to connect from the current address.',
     30013: 'Our database is in maintenance. Please try again in a moment.',
     30014: 'Stripe CardElement is incorrect.',
     30015: 'Invalid payment form values.',

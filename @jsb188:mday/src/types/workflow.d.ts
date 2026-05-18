@@ -8,10 +8,10 @@ import type { OrganizationData, OrganizationFeatureEnum } from '../types/organiz
  */
 
 export interface WorkflowPrompts {
-  main: BuildSingleTextLine[];
-  identity?: BuildSingleTextLine[];
-  progressReport?: BuildSingleTextLine[];
-  summary?: BuildSingleTextLine[];
+	main: BuildSingleTextLine[];
+	identity?: BuildSingleTextLine[];
+	progressReport?: BuildSingleTextLine[];
+	summary?: BuildSingleTextLine[];
 }
 
 /**
@@ -19,9 +19,9 @@ export interface WorkflowPrompts {
  */
 
 export interface WorkflowStep extends LabelAndValue {
-  conditional?: Partial<LabelAndValue> & {
-    required?: string[]; // If this value doesn't exist or is not an array, that's a data error, and this object should be ignored
-  };
+	conditional?: Partial<LabelAndValue> & {
+		required?: string[]; // If this value doesn't exist or is not an array, that's a data error, and this object should be ignored
+	};
 }
 
 /**
@@ -29,36 +29,38 @@ export interface WorkflowStep extends LabelAndValue {
  */
 
 export interface WorkflowData {
-  __table: 'workflows';
+	__table: 'workflows';
 
-  id: number | bigint;
-  organizationId: number | bigint;
-  org?: OrganizationData; // Included if query joined with organization table
-  reportId: number | bigint | null;
+	id: number | bigint;
+	organizationId: number | bigint;
+	org?: OrganizationData; // Included if query joined with organization table
+	reportId: number | bigint | null;
 
-  logType: LogTypeEnum;
-  feature?: OrganizationFeatureEnum;
+	logType: LogTypeEnum;
+	feature?: OrganizationFeatureEnum;
 
-  title: string;
-  instructions?: null | WorkflowPrompts;
+	title: string;
+	instructions?: null | WorkflowPrompts;
 
-  schedule: string | null;
-  scheduleInterval: number;
-  active: boolean;
-  values: Partial<{
-    model: 'advanced' | 'standard' | 'basic' | 'lesser' | 'smallest';
-    effort: 'minimal' | 'low' | 'medium' | 'high';
-    verbosity: 'low' | 'medium' | 'high';
-    steps: WorkflowStep[];
-    config: Record<string, string | number | boolean | null> & {
-      endTime: string; // HHMM format
-    };
-  }>;
+	schedule: string | null;
+	scheduleInterval: number;
+	active: boolean;
+	values: Partial<{
+		model: 'advanced' | 'standard' | 'basic' | 'lesser' | 'smallest';
+		effort: 'minimal' | 'low' | 'medium' | 'high';
+		verbosity: 'low' | 'medium' | 'high';
+		steps: WorkflowStep[];
+		requireSheets?: boolean;
+		sheetRowIdentifier?: 'logId' | 'reportSubmissionId' | null;
+		config: Record<string, string | number | boolean | null> & {
+			endTime: string; // HHMM format
+		};
+	}>;
 
-  startedAt: Date | null;
-  nextAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+	startedAt: Date | null;
+	nextAt: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 /**
@@ -66,40 +68,74 @@ export interface WorkflowData {
  */
 
 export interface WorkflowRunData {
-  __table: 'workflow_runs';
+	__table: 'workflow_runs';
 
-  id: number | bigint;
-  workflowId: number | bigint;
-  logId: number | bigint | null;
-  reportSubmissionId?: number | bigint | null;
-  runKey: string;
-  iterations: number;
-  values:
-  | null
-  | Partial<{
-    progressReport: string;
-  }>;
-  message: string | null;
-  status: LogActionStatusEnum;
-  scheduledDate: Date | null;
-  followUpAt: Date | null;
-  activityAt: Date;
+	id: number | bigint;
+	workflowId: number | bigint;
+	logId: number | bigint | null;
+	reportSubmissionId?: number | bigint | null;
+	runKey: string;
+	iterations: number;
+	values:
+		| null
+		| Partial<{
+			progressReport: string;
+		}>;
+	message: string | null;
+	status: LogActionStatusEnum;
+	scheduledDate: Date | null;
+	followUpAt: Date | null;
+	activityAt: Date;
+}
+
+/**
+ * Workflow sheet target data object
+ */
+
+export interface WorkflowSheetTargetData {
+	__table: 'workflow_sheet_targets';
+
+	id: number | bigint;
+	workflowId: number | bigint;
+	sheetId: number | bigint;
+}
+
+/**
+ * Workflow sheet write receipt data object
+ */
+
+export interface WorkflowSheetRecordWriteData {
+	__table: 'workflow_sheet_record_writes';
+
+	id: number | bigint;
+	organizationId: number | bigint;
+	workflowId: number | bigint;
+	workflowRunId?: number | bigint | null;
+	logId?: number | bigint | null;
+	reportSubmissionId?: number | bigint | null;
+	sheetId: number | bigint;
+	sheetRowId?: number | bigint | null;
+	status: 'CREATED' | 'UPDATED' | 'SKIPPED' | 'FAILED';
+	error?: string | null;
+	metadata: Record<string, any>;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface WorkflowRunGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
-  id: string;
-  workflowId: string;
-  logId: string | null;
-  runKey: string;
-  iterations: number;
-  progressReport: string | null;
-  message: string | null;
-  status: LogActionStatusEnum;
-  scheduledDate: string | null;
-  followUpAt: string | null;
-  activityAt: string;
+	id: string;
+	workflowId: string;
+	logId: string | null;
+	runKey: string;
+	iterations: number;
+	progressReport: string | null;
+	message: string | null;
+	status: LogActionStatusEnum;
+	scheduledDate: string | null;
+	followUpAt: string | null;
+	activityAt: string;
 }
 
 /**
@@ -107,24 +143,24 @@ export interface WorkflowRunGQL {
  */
 
 export interface WorkflowGQL {
-  __deleted?: boolean;
+	__deleted?: boolean;
 
-  id: string;
-  organizationId: string;
-  reportId: string | null;
+	id: string;
+	organizationId: string;
+	reportId: string | null;
 
-  logType: LogTypeEnum;
-  feature: OrganizationFeatureEnum | null;
+	logType: LogTypeEnum;
+	feature: OrganizationFeatureEnum | null;
 
-  title: string;
-  steps: LabelAndValue[];
+	title: string;
+	steps: LabelAndValue[];
 
-  schedule: string | null;
-  scheduleInterval: number;
-  active: boolean;
+	schedule: string | null;
+	scheduleInterval: number;
+	active: boolean;
 
-  startedAt: string | null;
-  nextAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+	startedAt: string | null;
+	nextAt: string | null;
+	createdAt: string;
+	updatedAt: string;
 }

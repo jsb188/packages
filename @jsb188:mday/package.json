@@ -27,6 +27,7 @@
     "./types/organization.d.ts": "./src/types/organization.d.ts",
     "./types/product.d.ts": "./src/types/product.d.ts",
     "./types/report.d.ts": "./src/types/report.d.ts",
+    "./types/sheet.d.ts": "./src/types/sheet.d.ts",
     "./types/workflow.d.ts": "./src/types/workflow.d.ts",
     "./utils/log.ts": "./src/utils/log.ts",
     "./utils/organization.ts": "./src/utils/organization.ts",
