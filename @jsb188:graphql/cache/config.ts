@@ -42,6 +42,8 @@ export const RULES = {
   reportGroups: true,
   reports: true,
   reportSubmissions: true,
+  sheets: true,
+  sheetRows: true,
   searchUsers: true,
   updateNote: true,
   userIdToChatId: true,

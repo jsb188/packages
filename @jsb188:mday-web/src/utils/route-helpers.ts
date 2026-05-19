@@ -50,7 +50,7 @@ type ValidRoutePath =
 
   // Reports
   | '/app/r/'
-  | '/app/s/';
+  | '/app/p/';
   // | '/app/r/water-source/';
 
 interface RouteDictObj {
@@ -258,8 +258,8 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',
   },
-  '/app/s/': {
-    to: '/app/s/',
+  '/app/p/': {
+    to: '/app/p/',
     text: 'form.reports',
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',

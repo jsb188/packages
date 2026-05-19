@@ -4,4 +4,5 @@ export * from './billingQueries.ts';
 export * from './logQueries.ts';
 export * from './organizationQueries.ts';
 export * from './productQueries.ts';
+export * from './sheetQueries.ts';
 export * from './workflowQueries.ts';
