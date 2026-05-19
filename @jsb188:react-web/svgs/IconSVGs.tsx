@@ -4316,13 +4316,25 @@ export const WorkflowAccountCircle = <svg xmlns="http://www.w3.org/2000/svg" vie
 </svg>;
 
 export const WorkflowDataTable2 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-workflow-data-table-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-<path d="M2.75 2.75h18.5s2 0 2 2v14.5s0 2 -2 2H2.75s-2 0 -2 -2V4.75s0 -2 2 -2" />
-<path d="m0.75 7.25 22.5 0" />
-<path d="m0.75 14.25 22.5 0" />
-<path d="m8.25 7.25 0 14" />
-<path d="m15.75 7.25 0 14" />
-<path d="m3.5 10.75 2 0" />
-<path d="m3.5 17.75 2 0" />
+<path d="M3.16111111 3h17.67777778s1.91111111 0 1.91111111 1.94594595v14.10810811s0 1.94594595 -1.91111111 1.94594595H3.16111111s-1.91111111 0 -1.91111111 -1.94594595V4.94594595s0 -1.94594595 1.91111111 -1.94594595" />
+<path d="M1.25 7.37837838h21.5" />
+<path d="M1.25 14.18918919h21.5" />
+<path d="M8.41666667 7.37837838v13.62162162" />
+<path d="M15.58333333 7.37837838v13.62162162" />
+<path d="M3.87777778 10.78378378h1.91111111" />
+<path d="M3.87777778 17.59459459h1.91111111" />
+</svg>;
+
+export const WorkflowDataTable2Color = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-workflow-data-table-2-color">
+<path fill="#e3e3e3" d="M2.75 2.75h18.5s2 0 2 2v14.5s0 2 -2 2H2.75s-2 0 -2 -2V4.75s0 -2 2 -2"/>
+<path fill="#fff" d="M2.53063965 21.22998047 21.00817871 2.75H2.75C0.75 2.75 0.75 4.75 0.75 4.75v14.5c0 1.6027832 1.27044678 1.91674805 1.78063965 1.97998047Z"/>
+<path fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" d="M2.75 2.75h18.5s2 0 2 2v14.5s0 2 -2 2H2.75s-2 0 -2 -2V4.75s0 -2 2 -2"/>
+<path fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" d="M0.75 7.25h22.5"/>
+<path fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" d="M0.75 14.25h22.5"/>
+<path fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.25v14"/>
+<path fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" d="M15.75 7.25v14"/>
+<path fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" d="M3.5 10.75h2"/>
+<path fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" d="M3.5 17.75h2"/>
 </svg>;
 
 export const WorkflowGanttChart8 = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-workflow-gantt-chart-8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeWidth="1.5">

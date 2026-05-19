@@ -1,0 +1,402 @@
+// @vitest-environment jsdom
+
+import { readFileSync } from 'node:fs';
+import type { ComponentProps } from 'react';
+import { act } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+	SHEET_HEADER_HEIGHT,
+	SHEET_ROW_HEIGHT,
+	SHEET_ROW_NUMBER_WIDTH,
+	SHEET_STICKY_SPACER_SIZE,
+	SheetUI,
+	clampSheetColumnWidth,
+	getSheetColumnIndexAtOffset,
+	getSheetColumnMetrics,
+	getSheetMinimumRowCount,
+	getSheetVisibleRange,
+	type SheetUICell,
+	type SheetUIColumn,
+	type SheetUIFieldType,
+	type SheetUIRowSlot,
+} from '../ui/SheetUI';
+
+let currentRoot: Root | null = null;
+
+/*
+ * Build one generic UI column for SheetUI tests.
+ */
+
+function createColumn(key: string, fieldType: SheetUIFieldType = 'TEXT'): SheetUIColumn {
+	return {
+		id: key,
+		key,
+		label: key.toUpperCase(),
+		fieldType,
+		options: fieldType === 'SELECT'
+			? [
+				{ label: 'Open', value: 'open' },
+				{ label: 'Closed', value: 'closed' },
+			]
+			: [],
+	};
+}
+
+/*
+ * Build one generic UI cell for SheetUI tests.
+ */
+
+function createCell(cellKey: string, value: string, overrides: Partial<SheetUICell> = {}): SheetUICell {
+	return {
+		cellKey,
+		canEdit: true,
+		canOpen: false,
+		displayValue: value,
+		draftValue: value,
+		...overrides,
+	};
+}
+
+/*
+ * Build one visual row slot for SheetUI tests.
+ */
+
+function createRowSlot(rowId: string | null, rowIndex: number, cellsByKey: SheetUIRowSlot['cellsByKey'] = {}): SheetUIRowSlot {
+	return {
+		cellsByKey,
+		rowId,
+		rowIndex,
+		rowKey: rowId || `empty-${rowIndex}`,
+		rowNumber: rowIndex + 1,
+		rowTop: SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + rowIndex * SHEET_ROW_HEIGHT,
+		rowWidth: SHEET_ROW_NUMBER_WIDTH + 160,
+	};
+}
+
+/*
+ * Render SheetUI into a test root.
+ */
+
+async function renderSheetUI(props: Partial<ComponentProps<typeof SheetUI>> = {}) {
+	const host = document.getElementById('test-root');
+	if (!host) {
+		throw new Error('Missing test root element');
+	}
+
+	const columns = props.columns || getSheetColumnMetrics([createColumn('name')]).metrics;
+	const rows = props.rows || [
+		createRowSlot('row-1', 0, {
+			name: createCell('name', 'Alpha'),
+		}),
+		createRowSlot(null, 1),
+		createRowSlot(null, 2),
+		createRowSlot(null, 3),
+	];
+
+	currentRoot = createRoot(host);
+
+	await act(async () => {
+		currentRoot?.render(
+			<SheetUI
+				canvasHeight={160}
+				canvasWidth={SHEET_ROW_NUMBER_WIDTH + 160}
+				cellCount={rows.length * columns.length}
+				columnCount={columns.length}
+				columns={columns}
+				headerWidth={SHEET_ROW_NUMBER_WIDTH + 160}
+				rows={rows}
+				scrollLeft={0}
+				{...props}
+			/>,
+		);
+	});
+
+	return host;
+}
+
+beforeEach(() => {
+	globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+	document.body.innerHTML = '<div id="test-root"></div>';
+});
+
+afterEach(() => {
+	if (currentRoot) {
+		act(() => {
+			currentRoot?.unmount();
+		});
+		currentRoot = null;
+	}
+});
+
+describe('SheetUI helpers', () => {
+	it('calculates a buffered visible grid range', () => {
+		expect(getSheetVisibleRange({
+			bufferColumns: 1,
+			bufferRows: 2,
+			columnCount: 20,
+			containerHeight: 96,
+			containerWidth: 320,
+			rowCount: 100,
+			scrollLeft: 208,
+			scrollTop: 160,
+		})).toEqual({
+			rowStart: 2,
+			rowEnd: 9,
+			columnStart: 0,
+			columnEnd: 4,
+		});
+	});
+
+	it('calculates enough blank rows to fill the viewport', () => {
+		expect(getSheetMinimumRowCount(160)).toBe(4);
+		expect(getSheetMinimumRowCount(160, 64)).toBe(3);
+		expect(getSheetMinimumRowCount(33)).toBe(1);
+		expect(getSheetMinimumRowCount(20)).toBe(0);
+	});
+
+	it('calculates variable-width column offsets for visible ranges', () => {
+		const columns = [
+			createColumn('name'),
+			createColumn('status'),
+			createColumn('owner'),
+		];
+		const metrics = getSheetColumnMetrics(columns, {
+			name: 200,
+			status: 80,
+		});
+
+		expect(clampSheetColumnWidth(20)).toBe(72);
+		expect(metrics.offsets).toEqual([0, 200, 280, 440]);
+		expect(getSheetColumnIndexAtOffset(metrics.offsets, 199)).toBe(0);
+		expect(getSheetColumnIndexAtOffset(metrics.offsets, 200)).toBe(1);
+		expect(getSheetVisibleRange({
+			bufferColumns: 0,
+			bufferRows: 0,
+			columnOffsets: metrics.offsets,
+			columnCount: columns.length,
+			containerHeight: 96,
+			containerWidth: 80,
+			rowCount: 10,
+			scrollLeft: 253,
+			scrollTop: 32,
+		})).toMatchObject({
+			columnStart: 1,
+			columnEnd: 3,
+		});
+	});
+});
+
+describe('SheetUI rendering', () => {
+	it('renders generic visual data without GraphQL-shaped objects', async () => {
+		const host = await renderSheetUI();
+		const headerRow = host.querySelector('[data-sheet-header-row="true"]') as HTMLElement | null;
+		const headerSpacer = host.querySelector('[data-sheet-sticky-header-spacer="true"]') as HTMLElement | null;
+		const stickyColumnHeaderSpacer = host.querySelector('[data-sheet-sticky-column-header-spacer="true"]') as HTMLElement | null;
+		const stickyColumnSpacerSlots = host.querySelectorAll('[data-sheet-sticky-column-spacer-slot="true"]') as NodeListOf<HTMLElement>;
+		const stickyColumnSpacers = host.querySelectorAll('[data-sheet-sticky-column-spacer="true"]') as NodeListOf<HTMLElement>;
+		const stickyColumnSpacer = stickyColumnSpacers[0] || null;
+		const cornerCell = host.querySelector('[data-sheet-corner-cell="true"]') as HTMLElement | null;
+		const rowNumber = host.querySelector('.sheet_ui_row_number') as HTMLElement | null;
+		const rowNumberSlot = host.querySelector('[data-sheet-row-number-slot="true"]') as HTMLElement | null;
+		const firstCell = host.querySelector('[data-sheet-cell="true"]') as HTMLElement | null;
+		const fillerCell = host.querySelectorAll('[data-sheet-cell="true"]')[1] as HTMLElement | undefined;
+
+		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('NAME');
+		expect(headerRow?.className).toContain('rel');
+		expect(headerRow?.className).toContain('h_left');
+		expect(headerSpacer?.className).toContain('h_4');
+		expect(headerSpacer?.className).toContain('bg_darker_1');
+		expect(headerSpacer?.style.width).toBe('208px');
+		expect(headerRow?.nextElementSibling).toBe(headerSpacer);
+		expect(stickyColumnHeaderSpacer?.className).toContain('sheet_ui_header_cell');
+		expect(stickyColumnHeaderSpacer?.className).toContain('sticky');
+		expect(stickyColumnHeaderSpacer?.className).toContain('w_4');
+		expect(stickyColumnHeaderSpacer?.className).toContain('bg_darker_1');
+		expect(stickyColumnHeaderSpacer?.style.left).toBe('48px');
+		expect(stickyColumnHeaderSpacer?.style.position).toBe('sticky');
+		expect(stickyColumnSpacer?.className).toContain('w_4');
+		expect(stickyColumnSpacer?.style.left).toBe('48px');
+		expect(stickyColumnSpacer?.style.position).toBe('sticky');
+		expect(stickyColumnSpacer?.style.top).toBe('');
+		expect(stickyColumnSpacerSlots[0]?.style.top).toBe('36px');
+		expect(stickyColumnSpacerSlots[1]?.style.top).toBe('68px');
+		expect(stickyColumnSpacerSlots[2]?.style.top).toBe('100px');
+		expect(stickyColumnSpacerSlots[3]?.style.top).toBe('132px');
+		expect(host.querySelector('[data-sheet-sticky-header="true"]')?.className).toContain('sticky');
+		expect(cornerCell?.className).toContain('sticky');
+		expect(cornerCell?.className).toContain('bg');
+		expect(cornerCell?.style.left).toBe('0px');
+		expect(cornerCell?.style.position).toBe('sticky');
+		expect(rowNumber?.className).toContain('sticky');
+		expect(rowNumber?.className).toContain('bg');
+		expect(rowNumber?.style.left).toBe('0px');
+		expect(rowNumber?.style.position).toBe('sticky');
+		expect(rowNumberSlot?.style.top).toBe('36px');
+		expect(firstCell?.textContent).toBe('Alpha');
+		expect(fillerCell?.textContent).toBe('');
+		expect(fillerCell?.className).toContain('noclick');
+		expect(host.querySelector('.sheet_ui_canvas')?.getAttribute('data-cell-count')).toBe('4');
+		expect(host.querySelectorAll('.sheet_ui_row_number')).toHaveLength(4);
+		expect(host.querySelectorAll('[data-sheet-cell="true"]')).toHaveLength(4);
+		expect(stickyColumnSpacerSlots).toHaveLength(4);
+		expect(stickyColumnSpacers).toHaveLength(4);
+	});
+
+	it('renders sticky column spacers inside per-row positioning slots', async () => {
+		const host = await renderSheetUI();
+		const stickyColumnSpacerSlots = host.querySelectorAll('[data-sheet-sticky-column-spacer-slot="true"]') as NodeListOf<HTMLElement>;
+		const stickyColumnSpacers = host.querySelectorAll('[data-sheet-sticky-column-spacer="true"]') as NodeListOf<HTMLElement>;
+
+		expect(stickyColumnSpacerSlots).toHaveLength(stickyColumnSpacers.length);
+		expect(stickyColumnSpacerSlots[0]?.contains(stickyColumnSpacers[0])).toBe(true);
+		expect(stickyColumnSpacerSlots[1]?.contains(stickyColumnSpacers[1])).toBe(true);
+		expect(stickyColumnSpacers[0]?.style.top).toBe('');
+		expect(stickyColumnSpacers[1]?.style.top).toBe('');
+	});
+
+	it('adds the sticky background class to sticky row and column cells', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('name'),
+			createColumn('status'),
+		]).metrics;
+		const host = await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			columnCount: 2,
+			columns,
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			rows: [
+				createRowSlot('row-1', 0, {
+					name: createCell('name', 'Alpha'),
+					status: createCell('status', 'Open'),
+				}),
+			],
+			stickyColumnCount: 1,
+		});
+		const headerCells = host.querySelectorAll('[data-sheet-header-cell="true"]') as NodeListOf<HTMLElement>;
+		const gridCells = host.querySelectorAll('.sheet_ui_cell') as NodeListOf<HTMLElement>;
+
+		expect(headerCells[0]?.className).toContain('bg');
+		expect(headerCells[1]?.className).toContain('bg');
+		expect(gridCells[0]?.className).toContain('bg');
+		expect(gridCells[1]?.className).toContain('bg');
+	});
+
+	it('keeps sticky column spacer left position independent from horizontal scroll', async () => {
+		const host = await renderSheetUI({
+			scrollLeft: 120,
+			stickyColumnEndLeft: SHEET_ROW_NUMBER_WIDTH + 160,
+		});
+		const stickyColumnHeaderSpacer = host.querySelector('[data-sheet-sticky-column-header-spacer="true"]') as HTMLElement | null;
+		const stickyColumnSpacer = host.querySelector('[data-sheet-sticky-column-spacer="true"]') as HTMLElement | null;
+
+		expect(stickyColumnHeaderSpacer?.style.left).toBe('208px');
+		expect(stickyColumnHeaderSpacer?.style.position).toBe('sticky');
+		expect(stickyColumnSpacer?.style.left).toBe('208px');
+		expect(stickyColumnSpacer?.style.position).toBe('sticky');
+	});
+
+	it('renders editor markup from a generic edit state', async () => {
+		const host = await renderSheetUI({
+			editState: {
+				cellKey: 'name',
+				draftValue: 'Alpha',
+				rowId: 'row-1',
+			},
+		});
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement | null;
+
+		expect(input).not.toBeNull();
+		expect(input?.dataset.rowId).toBe('row-1');
+		expect(input?.dataset.cellKey).toBe('name');
+		expect(input?.value).toBe('Alpha');
+	});
+
+	it('renders header children above the spreadsheet header row', async () => {
+		const host = await renderSheetUI({
+			headerContent: <div data-testid='toolbar'>Toolbar</div>,
+		});
+		const headerContent = host.querySelector('[data-sheet-header-content="true"]');
+		const headerRow = host.querySelector('[data-sheet-header-row="true"]');
+		const scrollViewport = host.querySelector('[data-sheet-scroll-viewport="true"]');
+
+		expect(headerContent?.textContent).toBe('Toolbar');
+		expect(headerContent?.className).toContain('bd_b_1');
+		expect(headerContent?.nextElementSibling).toBe(scrollViewport);
+		expect(scrollViewport?.contains(headerRow)).toBe(true);
+	});
+
+	it('keeps the right border and resize handle on the actual right-most column cells', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('name'),
+			createColumn('status'),
+		]).metrics;
+		const host = await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			columnCount: 2,
+			columns,
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			rows: [
+				createRowSlot('row-1', 0, {
+					name: createCell('name', 'Alpha'),
+					status: createCell('status', 'Open'),
+				}),
+			],
+		});
+		const headerCells = host.querySelectorAll('[data-sheet-header-cell="true"]') as NodeListOf<HTMLElement>;
+		const gridCells = host.querySelectorAll('.sheet_ui_cell') as NodeListOf<HTMLElement>;
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="status"]') as HTMLElement | null;
+
+		expect(headerCells[0]?.style.borderRightStyle).toBe('');
+		expect(headerCells[1]?.style.borderRightStyle).toBe('');
+		expect(gridCells[0]?.style.borderRightStyle).toBe('');
+		expect(gridCells[1]?.style.borderRightStyle).toBe('');
+		expect(resizeHandle).not.toBeNull();
+		expect(resizeHandle?.style.left).toBe('358px');
+	});
+
+	it('renders the full-height column resize guide from container state', async () => {
+		const host = await renderSheetUI({
+			resizeGuide: {
+				columnKey: 'name',
+				height: 276,
+				left: SHEET_ROW_NUMBER_WIDTH + 160,
+			},
+			sheetSurfaceHeight: 276,
+			sheetSurfaceTop: 44,
+		});
+		const resizeLayer = host.querySelector('[data-sheet-resize-guide-layer="true"]') as HTMLElement | null;
+		const resizeGuide = host.querySelector('[data-sheet-column-resize-guide="name"]') as HTMLElement | null;
+		const resizeHandleLayer = host.querySelector('[data-sheet-column-resize-handle-layer="true"]') as HTMLElement | null;
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="name"]') as HTMLElement | null;
+		const headerCell = host.querySelector('[data-sheet-header-cell="true"]') as HTMLElement | null;
+
+		expect(resizeLayer?.style.height).toBe('276px');
+		expect(resizeLayer?.style.overflow).toBe('hidden');
+		expect(resizeLayer?.style.top).toBe('44px');
+		expect(resizeLayer?.style.zIndex).toBe('110');
+		expect(resizeHandleLayer?.style.pointerEvents).toBe('none');
+		expect(resizeHandle?.parentElement).toBe(resizeHandleLayer);
+		expect(resizeHandle?.parentElement).not.toBe(headerCell);
+		expect(resizeHandle?.className).toContain('hv_area');
+		expect(resizeHandle?.style.left).toBe('198px');
+		expect(resizeHandle?.style.pointerEvents).toBe('auto');
+		expect(resizeHandle?.style.width).toBe('18px');
+		expect(resizeHandle?.style.zIndex).toBe('110');
+		expect(resizeGuide?.className).toContain('bg_main');
+		expect(resizeGuide?.style.height).toBe('276px');
+		expect(resizeGuide?.style.left).toBe('208px');
+		expect(resizeGuide?.style.width).toBe('1px');
+		expect(resizeGuide?.style.zIndex).toBe('110');
+	});
+});
+
+describe('SheetUI static boundary', () => {
+	it('stays app agnostic and listener free', () => {
+		const source = readFileSync('ui/SheetUI.tsx', 'utf8');
+
+		expect(source).not.toContain('@jsb188/mday');
+		expect(source).not.toMatch(/\buse(Effect|Memo|Ref|State|Callback|Reducer|LayoutEffect)\b/);
+		expect(source).not.toMatch(/\son[A-Z][A-Za-z]*=/);
+	});
+});

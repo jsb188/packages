@@ -40,7 +40,7 @@ export interface SheetDesignObj {
 	instructions?: string;
 	humansCannotEdit?: boolean; // If true, humans cannot edit any cells in this sheet
 	stickyTop?: number;
-	stickLeft?: number;
+	stickyLeft?: number;
 }
 
 export interface SheetData {
@@ -99,7 +99,6 @@ export interface SheetDesignCellSourceGQL {
 }
 
 export interface SheetDesignCellGQL {
-	id: string;
 	key: string;
 	label: string;
 	fieldType: SheetFieldTypeGQL;
@@ -119,7 +118,7 @@ export interface SheetDesignGQL {
 	instructions?: string | null;
 	humansCannotEdit?: boolean | null;
 	stickyTop?: number | null;
-	stickLeft?: number | null;
+	stickyLeft?: number | null;
 }
 
 export interface SheetGQL {

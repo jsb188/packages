@@ -1,0 +1,39 @@
+.sheet_ui_scroll {
+  overflow: auto;
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
+.sheet_ui_canvas {
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.sheet_ui_corner {
+  position: absolute;
+  border-right: solid 1px var(--color-darker-light);
+  border-bottom: solid 1px var(--color-darker-light);
+}
+
+.sheet_ui_cell.active {
+  outline: 2px solid rgb(var(--color-main));
+  outline-offset: -2px;
+  z-index: 35;
+}
+
+.sheet_ui_editor {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-default));
+  outline: 2px solid rgb(var(--color-main));
+  outline-offset: -2px;
+}
+
+.sheet_ui_editor.error {
+  outline-color: rgb(var(--color-error));
+  background-color: rgba(var(--color-error-faded), .1);
+}

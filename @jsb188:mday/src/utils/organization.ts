@@ -31,6 +31,7 @@ export const OPERATION_PERMISSIONS = {
   org_directory: ['logs', 'WRITE', 'You do not have permission to manage this organization\'s directory book.'],
   org_management: ['orgManagement', 'WRITE', 'You do not have permission to manage this organization\'s data.'],
 	org_sites_update: ['logs', 'WRITE', 'You do not have permission to update organization sites.'],
+  sheets_edit: ['viewData', 'MANAGE', 'You do not have permission to edit sheets in this organization.'],
 } as const satisfies OperationPermissionsMap;
 
 export type OperationName = keyof typeof OPERATION_PERMISSIONS;

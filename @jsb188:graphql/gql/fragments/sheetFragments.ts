@@ -13,10 +13,9 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
     cellsOrder
     humansCannotEdit
     stickyTop
-    stickLeft
+    stickyLeft
 
     cells {
-      id
       key
       label
       fieldType

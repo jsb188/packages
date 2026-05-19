@@ -35,6 +35,7 @@
     "./ui/PopOverUI": "./ui/PopOverUI.tsx",
     "./ui/SidebarUI": "./ui/SidebarUI.tsx",
     "./ui/PageFiltersUI": "./ui/PageFiltersUI.tsx",
+    "./ui/SheetUI": "./ui/SheetUI.tsx",
     "./ui/TableListUI": "./ui/TableListUI.tsx",
     "./ui/TopNavUI": "./ui/TopNavUI.tsx",
     "./utils/dom": "./utils/dom.ts",

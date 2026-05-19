@@ -1,13 +1,13 @@
+import { COMMON_CLASSNAMES } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import { usePopOverState } from '@jsb188/react/states';
-import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import { SmartLink } from '@jsb188/react-web/ui/Button';
 import { FilterPillButton } from '@jsb188/react-web/ui/PageFiltersUI';
+import { usePopOverState } from '@jsb188/react/states';
+import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import React, { memo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Icon } from '../svgs/Icon';
-import { COMMON_CLASSNAMES } from '@jsb188/app/constants/app.ts';
 
 /**
  * App layout toolbar title
@@ -74,7 +74,7 @@ export function ToolbarContent(p: { children: React.ReactNode }) {
   const { children } = p;
   return <nav
     id='app_toolbar_right'
-    className='h_right pl_sm pr_22 gap_10'
+    className='h_right pl_sm pr_10 gap_10'
   >
     {children}
   </nav>;

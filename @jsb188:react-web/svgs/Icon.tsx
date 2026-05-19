@@ -168,6 +168,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   time_recurring: 'time-daily-2',
   upload: 'upload-bottom',
   general_workflow: 'workflow-teamwork-cog-hand',
+  sheet: 'workflow-data-table-2',
 
   // Org departments
   DIRECTORY_ACCOUNTS_RECEIVABLE: 'receipt-dollar',

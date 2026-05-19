@@ -1,6 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 import type { ReportGroupGQL } from '@jsb188/mday/types/report.d.ts';
+import type { SheetGQL } from '@jsb188/mday/types/sheet.d.ts';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 
 // Use this for report periods, etc
@@ -50,6 +51,7 @@ type ValidRoutePath =
 
   // Reports
   | '/app/r/'
+  | '/app/s/'
   | '/app/p/';
   // | '/app/r/water-source/';
 
@@ -258,6 +260,12 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',
   },
+  '/app/s/': {
+    to: '/app/s/',
+    text: 'form.reports',
+    iconName: COMMON_ICON_NAMES.sheet,
+    hasPhysicalToolbar: 'NEVER',
+  },
   '/app/p/': {
     to: '/app/p/',
     text: 'form.reports',
@@ -413,6 +421,7 @@ export function getNavigationList(
   operation: OrganizationOperationEnum | null,
   orgFeatures?: (OrganizationFeatureEnum | string)[], // This array contains available report groups also
   reportGroups?: ReportGroupGQL[] | null,
+  sheets?: SheetGQL[] | null,
 ): NavigationItem[] {
 
   const breakItem = {
@@ -500,7 +509,22 @@ export function getNavigationList(
     })));
   }
 
-  navListArr.push(reportsSection);
+  if (reportsSection.navList.length) {
+    navListArr.push(reportsSection);
+  }
+
+  if (sheets) {
+    const sheetsSection = {
+      text: i18n.t('form.sheets'),
+      navList: sheets.map((sheet) => ({
+        to: makePathname('/app/s/', sheet.id),
+        text: sheet.title || sheet.name,
+        iconName: COMMON_ICON_NAMES.sheet,
+      })),
+    };
+
+    navListArr.push(sheetsSection);
+  }
 
   // @ts-ignore
   navListArr = [{

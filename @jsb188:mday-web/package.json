@@ -6,6 +6,7 @@
   "author": "jsb188",
   "type": "module",
   "exports": {
+    "./Sheet": "./src/modules/Sheet.tsx",
     "./utils/route": "./src/utils/route-helpers.ts",
     "./utils/log-web": "./src/utils/log-web.ts",
     "./utils/org-web": "./src/utils/org-web.ts"
@@ -13,11 +14,12 @@
   "dependencies": {},
   "peerDependencies": {
     "@jsb188/app": "1.1.8",
+    "@jsb188/graphql": "1.1.8",
     "@jsb188/mday": "1.1.8",
     "@jsb188/react": "1.1.8",
     "@jsb188/react-web": "1.1.8"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run --config ./vitest.config.ts"
   }
 }
