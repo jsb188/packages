@@ -11,7 +11,6 @@ export default {
 
     // Actions related
     not_started_msg: 'Tasks haven\'t started',
-    disabled_msg: 'AI tasks are disabled',
     waiting_for_task_msg: 'Waiting for the task to start...',
     waiting_for_tasks_to_be_created: 'Waiting for tasks to be created...',
     view_workflow: 'View workflow',

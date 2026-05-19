@@ -200,9 +200,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   COMPLIANCE_EGG_HANDLER_LICENSE: 'animal-products-eggs',
   COMPLIANCE_NURSERY_LICENSE: 'orchid',
 
-  // AI Task types
-  AI_TASK: 'task-list-check-2',
-
   // Arable types
   SEED: 'accounting-invoice-dollar',
   PLANTING: 'organic-plant-grow',
@@ -235,11 +232,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   PASTURE_LAND_MANAGEMENT: 'outdoors-landscape-meadow',
   LIVESTOCK_HEALTHCARE: 'pets-hospital',
   LIVESTOCK_SALE: 'receipt-dollar',
-
-  // AI_TASK - Icon Names for each AI task activity
-  AI_SEND_MESSAGE: 'email-action-send-1',
-	AI_REMINDER: 'task-list-clock',
-  AI_SCHEDULED_TASK: 'calendar-date-mark-circle',
 
   // ARABLE - Icon Names for each log activity
   SEED_PURCHASE_INFO: 'accounting-invoice-dollar',

@@ -10,8 +10,10 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   reportSubmissionId
   siteId
   location
-  status
   summary
+  source
+  confidence
+  originalMessage
   flagColor
   date
   createdAt

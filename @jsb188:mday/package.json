@@ -21,7 +21,6 @@
     "./schemas/productsQuery.ts": "./src/schemas/productsQuery.ts",
     "./schemas/reportsQuery.ts": "./src/schemas/reportsQuery.ts",
     "./types/account.d.ts": "./src/types/account.d.ts",
-    "./types/action.d.ts": "./src/types/action.d.ts",
     "./types/integration.d.ts": "./src/types/integration.d.ts",
     "./types/log.d.ts": "./src/types/log.d.ts",
     "./types/organization.d.ts": "./src/types/organization.d.ts",

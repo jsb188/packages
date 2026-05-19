@@ -10,15 +10,6 @@ export const LOG_SORT_ENUMS = [
   'DATE_DESC',
 ];
 
-export const LOG_ACTION_STATUS_ENUMS = [
-	'STARTED',
-	'COMPLETED',
-	'COMPLETED_PARTIAL',
-	'ERRORED',
-	'QUEUED', // Used for AI Tasks
-	'CANCELED', // Used for AI Tasks
-];
-
 export const PURCHASE_ACTIVITIES = [
 	// # Arable
 	'SEED_PURCHASE_INFO',
@@ -35,17 +26,6 @@ export const SALE_ACTIVITIES = [
 	'MARKET_CREDIT_RECEIPT',
 ];
 
-export const AI_TASKS_GROUP: [string, string[]] = [
-	'AI_TASK',
-	[
-		'AI_SEND_MESSAGE',
-		'AI_REMINDER',
-		'AI_SCHEDULED_TASK', // It's scheduled "message" now, but kept as "task" because it's an enum
-	],
-];
-
-export const AI_TASK_ACTIVITIES = AI_TASKS_GROUP[1];
-
 /**
  * #### #### #### ####
  * Arable farming logs
@@ -54,7 +34,6 @@ export const AI_TASK_ACTIVITIES = AI_TASKS_GROUP[1];
  */
 
 export const ARABLE_ACTIVITIES_GROUPED: [string, string[], string[]?][] = [
-	AI_TASKS_GROUP,
 	[
 		'SEED',
 		[
@@ -219,7 +198,6 @@ export const LOG_ARABLE_ACTIVITY_ENUMS = ARABLE_ACTIVITIES_GROUPED.reduce(
  */
 
 export const FARMERS_MARKET_ACTIVITIES_GROUPED: [string, string[]][] = [
-	AI_TASKS_GROUP,
 	[
 		'MARKET_RECEIPT',
 		[
@@ -256,7 +234,6 @@ export const LOG_FARMERS_MARKET_ACTIVITY_ENUMS = FARMERS_MARKET_ACTIVITIES_GROUP
  */
 
 export const GROWER_NETWORK_ACTIVITIES_GROUPED: [string, string[]][] = [
-	AI_TASKS_GROUP,
 	[
     'WORKER_PRACTICE',
     [
@@ -321,7 +298,6 @@ export const LOG_GROWER_NETWORK_ACTIVITY_ENUMS = GROWER_NETWORK_ACTIVITIES_GROUP
  */
 
 export const LIVESTOCK_ACTIVITIES_GROUPED: [string, string[]][] = [
-	AI_TASKS_GROUP,
 	[
 		'SUPPLY_PURCHASE',
 		[

@@ -1,7 +1,14 @@
 import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
 import type { BuildSingleTextLine } from '@jsb188/app/utils/string.ts';
-import type { LogActionStatusEnum, LogTypeEnum } from '../types/log.d.ts';
+import type { LogTypeEnum } from '../types/log.d.ts';
 import type { OrganizationData, OrganizationFeatureEnum } from '../types/organization.d.ts';
+import type { WORKFLOW_RUN_STATUS_ENUMS } from '@jsb188/app/constants/agent.ts';
+
+/**
+ * Enums
+ */
+
+export type WorkflowStatusEnum = (typeof WORKFLOW_RUN_STATUS_ENUMS)[number];
 
 /**
  * Workflow prompt instructions
@@ -82,7 +89,7 @@ export interface WorkflowRunData {
 			progressReport: string;
 		}>;
 	message: string | null;
-	status: LogActionStatusEnum;
+	status: WorkflowStatusEnum;
 	scheduledDate: Date | null;
 	followUpAt: Date | null;
 	activityAt: Date;
@@ -132,7 +139,7 @@ export interface WorkflowRunGQL {
 	iterations: number;
 	progressReport: string | null;
 	message: string | null;
-	status: LogActionStatusEnum;
+	status: WorkflowStatusEnum;
 	scheduledDate: string | null;
 	followUpAt: string | null;
 	activityAt: string;

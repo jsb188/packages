@@ -31,3 +31,19 @@ export const DOMAIN_TO_INBOX = {
   // Orders
   'orders.marketday.ai': 'ORDERS',
 } as const;
+
+export const REQUEST_SOURCE_ENUMS = [
+  'SMS',
+  'WEB',
+  'EMAIL',
+  'WORKFLOW'
+] as const;
+
+export const WORKFLOW_RUN_STATUS_ENUMS = [
+	'STARTED',
+	'COMPLETED',
+	'COMPLETED_PARTIAL',
+	'ERRORED',
+	'QUEUED',
+	'CANCELED',
+];

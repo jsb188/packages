@@ -8,6 +8,8 @@ export default {
 		nothing_found: 'No logs found.',
 		log_missing: 'Log missing',
 		log_missing_msg: 'There was a problem loading this log.',
+		no_message_associated: 'There is no message associated with this log.',
+		original_message: 'Original message',
 		unit_arable_ph: 'lbs',
 		location_arable_ph: 'Field A, Row 4, etc.',
 		location_water_ph: 'Water source A, etc.',
@@ -83,24 +85,29 @@ export default {
 
 		// Need one of each for every {contentName} for log
 		inline_log: 'log',
-		inline_ai_task: 'task',
 		inline_invoice: 'invoice',
 		inline_receipt: 'receipt',
 
 		edit_log: 'Edit log',
-		edit_ai_task: 'Edit task',
 		edit_invoice: 'Edit invoice',
 		edit_receipt: 'Edit receipt',
 
 		view_edit_log: 'View or edit log',
-		view_edit_ai_task: 'View or edit task',
 		view_edit_invoice: 'View or edit invoice',
 		view_edit_receipt: 'View or edit receipt',
 
 		delete_log: 'Delete log',
-		delete_ai_task: 'Delete task',
 		delete_invoice: 'Delete invoice',
 		delete_receipt: 'Delete receipt',
+
+    // Source of log entry save
+
+    source: {
+			EMAIL: 'email',
+			SMS: 'SMS',
+			WEB: 'web',
+			WORKFLOW: 'workflow',
+		},
 
     // Unit by log graphql type
     unit: {
@@ -142,9 +149,6 @@ export default {
 			PASTURE_LAND_MANAGEMENT: 'Pasture management',
 			LIVESTOCK_HEALTHCARE: 'Livestock healthcare',
 			LIVESTOCK_SALE: 'Livestock sale',
-
-			// #### Merged into every operation
-			AI_TASK: 'AI task',
 		},
 		type_short: {
 			// #### ARABLE
@@ -180,9 +184,6 @@ export default {
 			PASTURE_LAND_MANAGEMENT: 'Pasture',
 			LIVESTOCK_HEALTHCARE: 'Healthcare',
 			LIVESTOCK_SALE: 'Sale',
-
-			// #### Merged into every operation
-			AI_TASK: 'AI task',
 		},
 
 		// Activities
@@ -325,11 +326,6 @@ export default {
 			// # Livestock sale activities
 			LIVESTOCK_SALE: 'Livestock sale',
 			OTHER_LIVESTOCK_SALE_ACTIVITY: 'Other sales activities',
-
-			// # AI Tasks
-			AI_SEND_MESSAGE: 'Send message',
-			AI_REMINDER: 'Reminder',
-			AI_SCHEDULED_TASK: 'Scheduled message',
 		},
 
 		// Short versions will override longer version for UI purposes
@@ -470,11 +466,6 @@ export default {
 			// # Livestock sale activities
 			LIVESTOCK_SALE: 'Sale',
 			OTHER_LIVESTOCK_SALE_ACTIVITY: 'Other sales',
-
-			// # AI Tasks
-			AI_SEND_MESSAGE: 'Send message',
-			AI_REMINDER: 'Reminder',
-			AI_SCHEDULED_TASK: 'Scheduled message',
 		},
 
     // Search sort
@@ -502,8 +493,6 @@ export default {
 			WEEKS_5: '5 weeks',
 			search: 'Search',
       sort_options: 'Sort by',
-
-			AI_TASKS: 'AI tasks only'
 		},
 
 		// Search filter popover options
@@ -513,7 +502,6 @@ export default {
 			date_range: 'Filter by date range',
       site_location: 'Filter by location',
 			WEEKS_5: '5 weeks',
-			ai_tasks_only: 'AI tasks only',
 			search: 'Search for keywords',
 		},
 

@@ -1,27 +1,23 @@
-import type { AccountObj } from './account.d.ts';
+import { REQUEST_SOURCE_ENUMS } from '@jsb188/app/constants/agent.ts';
 import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
-import type {
-  WorkflowActionGQL,
-  WorkflowActionObj,
-} from '@jsb188/mday/types/action.d.ts';
 import {
-  LOG_ACTION_STATUS_ENUMS,
   LOG_ARABLE_ACTIVITY_ENUMS,
   LOG_FARMERS_MARKET_ACTIVITY_ENUMS,
   LOG_GROWER_NETWORK_ACTIVITY_ENUMS,
   LOG_LIVESTOCK_ACTIVITY_ENUMS,
-  LOG_SORT_ENUMS,
+  LOG_SORT_ENUMS
 } from '../constants/log.ts';
 import type { OrganizationOperationEnum } from '../types/organization.d.ts';
+import type { AccountObj } from './account.d.ts';
 import type { StorageGQL } from './storage.d.ts';
 
 /**
  * Enums
  */
 
-export type LogActionStatusEnum = (typeof LOG_ACTION_STATUS_ENUMS)[number];
-export type LogContentName = 'log' | 'ai_task' | 'invoice' | 'receipt'; // For UI visuals, client-side only
+export type LogContentName = 'log' | 'invoice' | 'receipt'; // For UI visuals, client-side only
 export type LogSortEnum = typeof LOG_SORT_ENUMS[number];
+export type RequestSourceEnum = typeof REQUEST_SOURCE_ENUMS[number];
 
 /**
  * Arable
@@ -85,8 +81,7 @@ export type LogTypeEnum =
   | LogArableTypeEnum
   | LogFarmersMarketTypeEnum
   | LogGrowerNetworkTypeEnum
-  | LogLivestockTypeEnum
-  | 'AI_TASK';
+  | LogLivestockTypeEnum;
 
 export type LogActivityEnum =
   | LogArableActivityEnum
@@ -110,9 +105,6 @@ interface LogMetadataBase {
   values?: LabelAndValue[];
   voided?: boolean;
 
-  // Below are DEPRECATED; and safe to delete when old AI Tasks feature is removed
-  recurFromLogId?: number;
-  recurredCount?: number;
   summary?: string;
   location?: string;
   tax?: number; // Need to be removed and replaced by values[#].tax -- but this will require some logic changes
@@ -296,12 +288,13 @@ export interface LogEntryGQL {
   siteId: string | null;
   location: string | null;
   details: LogMetadataGQL;
-  status: LogActionStatusEnum | null;
   summary: string;
+  source?: RequestSourceEnum | null;
+  confidence?: number | null;
+  originalMessage?: string | null;
   flagColor?: string | null;
 
   account: any;
-  actions?: WorkflowActionGQL[];
   files: StorageGQL[];
 
   date: string; // ISO date string
@@ -318,7 +311,9 @@ export interface LogEntryInsertObj {
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
   summary: string;
-  status?: LogActionStatusEnum | null;
+  source?: RequestSourceEnum | null;
+  confidence?: number | null;
+  originalMessage?: string | null;
   details: any;
   date: Date;
 }
@@ -338,10 +333,12 @@ export interface LogEntryData {
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
   summary: string;
+  source?: RequestSourceEnum | null;
+  confidence?: number | null;
+  originalMessage?: string | null;
   location?: {
     name: string;
   } | null;
-  status: LogActionStatusEnum | null;
   distance?: number; // For vector search
   details:
     | LogArableDetailsData
@@ -354,7 +351,6 @@ export interface LogEntryData {
 
   // This is for outputs, but will never be set for inserts
   account?: AccountObj;
-  actions?: WorkflowActionObj[];
 }
 
 /**
@@ -364,7 +360,7 @@ export interface LogEntryData {
 export interface FilterLogEntriesArgs {
   accountId?: string | null; // Account ID to filter logs by account
   siteId?: string | number | bigint | null; // Site ID to filter logs by site
-  preset?: 'WEEKS_5' | 'AI_TASKS' | null;
+  preset?: 'WEEKS_5' | null;
   types?: LogTypeEnum[] | null;
   activities?: LogActivityEnum[] | null;
   startDate?: string | null; // CalDate, with dashes (YYYY-MM-DD)

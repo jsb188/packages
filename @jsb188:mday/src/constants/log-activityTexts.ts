@@ -220,19 +220,6 @@ export const LIVESTOCK_ACTIVITIES_TO_TEXT = {
 };
 
 /**
- * #### #### #### ####
- * AI tasks
- * #### #### #### ####
- */
-
-export const AI_TASKS_TO_TEXT = {
-	// NOTE: If updating this, update [tools-aiTasks.ts] too
-	AI_SEND_MESSAGE: 'message',
-	AI_REMINDER: 'reminder message',
-	AI_SCHEDULED_TASK: 'scheduled task',
-};
-
-/**
  * Combine all activity texts;
  * NOTE: If one of these Objects have same key and different value,
  * That would cause a *huge* problem in the agent functions.
@@ -244,6 +231,5 @@ export const AGENT_TEXT_TO_ACTIVITIES: Record<string, string> = Object.fromEntri
 		...FARMERS_MARKET_ACTIVITIES_TO_TEXT,
 		...GROWER_NETWORK_ACTIVITIES_TO_TEXT,
 		...LIVESTOCK_ACTIVITIES_TO_TEXT,
-		...AI_TASKS_TO_TEXT,
 	}).map(([key, value]) => [value, key]),
 );

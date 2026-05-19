@@ -2,15 +2,13 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import { formatCurrency, formatDecimal } from '@jsb188/app/utils/number.ts';
 import { formatReferenceNumber, joinReadable, textWithBrackets, ucFirst } from '@jsb188/app/utils/string.ts';
 import {
-  AI_TASK_ACTIVITIES,
   ARABLE_ACTIVITIES_GROUPED,
   FARMERS_MARKET_ACTIVITIES_GROUPED,
   GROWER_NETWORK_ACTIVITIES_GROUPED,
   LIVESTOCK_ACTIVITIES_GROUPED,
-  LOG_ACTIVITIES_BY_OPERATION,
   LOG_TYPES_BY_OPERATION
 } from '../constants/log.ts';
-import type { LogActivityEnum, LogContentName, LogEntryData, LogTypeEnum } from '../types/log.d.ts';
+import type { LogContentName, LogEntryData, LogTypeEnum } from '../types/log.d.ts';
 import type { OrganizationOperationEnum } from '../types/organization.d.ts';
 
 /**
@@ -83,9 +81,6 @@ export function getLogCategoryColor(type: LogTypeEnum) {
 		PASTURE_LAND_MANAGEMENT: 'green',
 		LIVESTOCK_HEALTHCARE: 'teal',
 		LIVESTOCK_SALE: 'blue',
-
-		// #### Merged into every operation
-		AI_TASK: 'slate',
 	} as Record<LogTypeEnum, string>;
 
 	// Default to zinc if type is not found
@@ -99,34 +94,9 @@ export function getLogCategoryColor(type: LogTypeEnum) {
  * @returns Array of log types for the operation
  */
 
-export function getLogTypesForOperation(operation: OrganizationOperationEnum, includeAITask: boolean): LogTypeEnum[] {
+export function getLogTypesForOperation(operation: OrganizationOperationEnum): LogTypeEnum[] {
 	const logTypes = (LOG_TYPES_BY_OPERATION[operation] || []) as LogTypeEnum[];
-	if (includeAITask) {
-		return logTypes;
-	}
-	return logTypes.filter((type) => type !== 'AI_TASK');
-}
-
-/**
- * Get all log activities for the given organization operation
- * @param operation - The operation of the organization
- * @returns Array of log activities for the operation
- */
-
-export function getLogActivitiesForOperation(
-	operation: OrganizationOperationEnum,
-	options?: {
-		excludeAITaskActivities?: boolean;
-	},
-): LogActivityEnum[] {
-	const activitiesGrouped = LOG_ACTIVITIES_BY_OPERATION[operation] || [];
-	const activities = activitiesGrouped.flatMap(([, values]: [string, LogActivityEnum[]]) => values);
-
-	if (options?.excludeAITaskActivities) {
-		return activities.filter((activity: LogActivityEnum) => !AI_TASK_ACTIVITIES.includes(activity));
-	}
-
-	return activities;
+  return logTypes;
 }
 
 /**

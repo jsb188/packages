@@ -42,8 +42,6 @@ export default {
 		updating_attendance_list_: '🙋 Updating attendance list...',
 		updating_database_: '🗄️ Updating database...',
 		sending_message_: '✉️ Sending message...',
-		handle_simple_task_: '📋 Handling task...',
-		schedule_next_ai_task_: '📋 Scheduling next task...',
 		saving_load_list_: '📋 Saving load list...',
 		searching_for_load_list_: '🔍 Searching for load list...',
 		writing_report_: '✍️ Writing report...',
@@ -107,11 +105,6 @@ export default {
 		log_deleted: 'Log was deleted.',
 		attendance_list_updated: 'Attendance list was updated.',
 		attendance_logged: 'Attendance record was logged.',
-
-		// Features
-		features: {
-			AI_TASK: '"AI tasks", "AI workflows", "sending an email", "sending a message", "reminders", "work check-ins"'
-		},
 
 		// Real-time data update messages
 		data_update: {
