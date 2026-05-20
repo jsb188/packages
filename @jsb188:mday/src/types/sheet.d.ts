@@ -32,6 +32,7 @@ export interface SheetDesignCellObj {
 	humansOnly?: boolean;
 	humansCannotEdit?: boolean; // If true, humans cannot edit this cell
 	indexed?: boolean;
+	width?: number | null;
 }
 
 export interface SheetDesignObj {
@@ -109,6 +110,7 @@ export interface SheetDesignCellGQL {
 	humansOnly?: boolean | null;
 	humansCannotEdit?: boolean | null;
 	indexed?: boolean | null;
+	width?: number | null;
 }
 
 export interface SheetDesignGQL {
@@ -149,6 +151,7 @@ export interface SheetRowGQL {
 	position: number;
 	metadata: string;
 	cells?: SheetCellGQL[];
+	updatedAt?: string | null;
 }
 
 export interface SheetCellGQL {

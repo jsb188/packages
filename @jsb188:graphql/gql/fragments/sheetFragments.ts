@@ -24,6 +24,7 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
       humansOnly
       humansCannotEdit
       indexed
+      width
 
       source {
         path

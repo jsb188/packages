@@ -95,6 +95,8 @@ export function AppContentArea(p: {
   </main>;
 }
 
+
+
 /**
  * Shared app aside container
  */
@@ -607,6 +609,17 @@ export function ErrorMessage(p: ErrorMessageProps) {
       ) : null}
     </div>
   );
+}
+
+/**
+ * Container for <ErrorMessage>
+ */
+
+export function ErrorMessageContainer(p: { children: React.ReactNode }) {
+  const { children } = p;
+  return <div className='f v_center pb_lg h_f'>
+    {children}
+  </div>;
 }
 
 /**

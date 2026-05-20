@@ -133,6 +133,8 @@ export default {
     20068: 'Your new phone number cannot be the same as your current phone number.',
     20069: '"%{value}" is not a valid AI inbox handle.',
     20070: 'Another organization already uses the AI inbox handle "%{value}".',
+    20071: 'This sheet was not found.\nIt may have been deleted.',
+    20072: 'The sheet design update was invalid.',
 
     // 3x
 

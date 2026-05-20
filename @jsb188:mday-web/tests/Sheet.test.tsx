@@ -9,6 +9,7 @@ import { Sheet } from '../src/modules/Sheet';
 
 const hookState = vi.hoisted(() => ({
 	editSheetCell: vi.fn(),
+	editSheetDesign: vi.fn(),
 	fetchMoreRows: vi.fn(),
 	getSheetRows: null as (() => any[]) | null,
 	sheetRows: [] as any[],
@@ -25,6 +26,9 @@ vi.mock('@jsb188/graphql/hooks/use-sheet-qry', () => ({
 vi.mock('@jsb188/graphql/hooks/use-sheet-mtn', () => ({
 	useEditSheetCell: () => ({
 		editSheetCell: hookState.editSheetCell,
+	}),
+	useEditSheetDesign: () => ({
+		editSheetDesign: hookState.editSheetDesign,
 	}),
 }));
 
@@ -135,6 +139,7 @@ async function renderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) {
 	await act(async () => {
 		currentRoot?.render(
 			<Sheet
+				allowEdit
 				sheet={createSheet()}
 				{...props}
 			/>,
@@ -151,6 +156,7 @@ beforeEach(() => {
 	globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 	document.body.innerHTML = '<div id="test-root"></div>';
 	hookState.editSheetCell.mockReset().mockResolvedValue({ data: {} });
+	hookState.editSheetDesign.mockReset().mockResolvedValue({ data: {} });
 	hookState.fetchMoreRows.mockReset().mockResolvedValue({ data: { sheetRows: [] } });
 	hookState.getSheetRows = null;
 	hookState.sheetRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
@@ -241,10 +247,34 @@ describe('Sheet container', () => {
 		const rowSlot = host.querySelector('[data-sheet-row-number-slot="true"]') as HTMLElement;
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
-		expect(canvas.style.width).toBe('436px');
-		expect(headerSpacer.style.width).toBe('372px');
-		expect(rowSlot.style.width).toBe('436px');
-		expect(statusCell.style.left).toBe('212px');
+		expect(canvas.style.width).toBe('432px');
+		expect(headerSpacer.style.width).toBe('368px');
+		expect(rowSlot.style.width).toBe('432px');
+		expect(statusCell.style.left).toBe('208px');
+		expect(statusCell.style.width).toBe('160px');
+	});
+
+	it('renders persisted design widths before local resize drafts', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'name'
+				? {
+					...cell,
+					width: 220,
+				}
+				: cell),
+		};
+		const host = await renderSheet({ sheet });
+		const canvas = host.querySelector('.sheet_ui_canvas') as HTMLElement;
+		const headerSpacer = host.querySelector('[data-sheet-sticky-header-spacer="true"]') as HTMLElement;
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"]') as HTMLElement;
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		expect(canvas.style.width).toBe('492px');
+		expect(headerSpacer.style.width).toBe('428px');
+		expect(nameHeader.style.width).toBe('220px');
+		expect(statusCell.style.left).toBe('268px');
 		expect(statusCell.style.width).toBe('160px');
 	});
 
@@ -376,6 +406,165 @@ describe('Sheet container', () => {
 
 		expect(nameHeader.style.width).toBe('210px');
 		expect(host.querySelector('[data-sheet-column-resize-guide="name"]')).toBeNull();
+	});
+
+	it('does not resize or save design changes when editing is denied', async () => {
+		const host = await renderSheet({ allowEdit: false });
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"]') as HTMLElement;
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="name"]') as HTMLElement;
+
+		await act(async () => {
+			resizeHandle.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 160,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 220,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 220,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(nameHeader.style.width).toBe('160px');
+		expect(hookState.editSheetDesign).not.toHaveBeenCalled();
+	});
+
+	it('saves one column width mutation when a resize finishes', async () => {
+		const host = await renderSheet();
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="name"]') as HTMLElement;
+
+		await act(async () => {
+			resizeHandle.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 160,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 210,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 210,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
+		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+			variables: {
+				design: {
+					cells: [{
+						key: 'name',
+						width: 210,
+					}],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
+	});
+
+	it('queues in-flight design saves and collapses pending width patches to the latest value', async () => {
+		let resolveFirstSave: ((value: unknown) => void) | null = null;
+		hookState.editSheetDesign.mockImplementationOnce(() => new Promise((resolve) => {
+			resolveFirstSave = resolve;
+		}));
+		const host = await renderSheet();
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="name"]') as HTMLElement;
+
+		await act(async () => {
+			resizeHandle.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 160,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 210,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 210,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		await act(async () => {
+			resizeHandle.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 210,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 260,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 260,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		await act(async () => {
+			resizeHandle.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 260,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 310,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 310,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
+
+		await act(async () => {
+			resolveFirstSave?.({ data: {} });
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(2);
+		expect(hookState.editSheetDesign).toHaveBeenLastCalledWith({
+			variables: {
+				design: {
+					cells: [{
+						key: 'name',
+						width: 310,
+					}],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
 	});
 
 });

@@ -313,7 +313,7 @@ function areSheetGridCellEditPropsEqual(
 
 const SheetCornerCell = memo(() => {
 	return <div
-		className={cn('sheet_ui_corner sticky z10', STICKY_CELL_BG_CSS)}
+		className={cn('sheet_ui_corner abs bd_r_1 bd_b_1 bd_lt sticky z10', STICKY_CELL_BG_CSS)}
 		data-sheet-corner-cell='true'
 		style={{
 			height: SHEET_HEADER_HEIGHT,
@@ -334,13 +334,10 @@ SheetCornerCell.displayName = 'SheetCornerCell';
 const SheetHeaderCell = memo((p: {
 	column: SheetUIColumn;
 	columnIndex: number;
-	columnLeft: number;
+	headerLeft: number;
 	columnWidth: number;
-	scrollLeft: number;
-	stickyColumnCount?: number | null;
+	isStickyLeft: boolean;
 }) => {
-	const isStickyLeft = isSheetColumnSticky(p.columnIndex, p.stickyColumnCount);
-
 	return <div
 		className={cn(
 			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_8 ft_medium cl_md no_wrap z3',
@@ -349,10 +346,10 @@ const SheetHeaderCell = memo((p: {
 		data-sheet-header-cell='true'
 		style={{
 			height: SHEET_HEADER_HEIGHT,
-			left: (isStickyLeft ? p.scrollLeft : 0) + SHEET_ROW_NUMBER_WIDTH + p.columnLeft,
+			left: p.headerLeft,
 			top: 0,
 			width: p.columnWidth,
-			zIndex: isStickyLeft ? 40 : undefined,
+			zIndex: p.isStickyLeft ? 40 : undefined,
 		}}
 	>
 		<span className='ellip'>{p.column.label}</span>
@@ -362,10 +359,9 @@ const SheetHeaderCell = memo((p: {
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
 	prev.columnIndex === next.columnIndex &&
-	prev.columnLeft === next.columnLeft &&
+	prev.headerLeft === next.headerLeft &&
 	prev.columnWidth === next.columnWidth &&
-	(!isSheetColumnSticky(next.columnIndex, next.stickyColumnCount) || prev.scrollLeft === next.scrollLeft) &&
-	prev.stickyColumnCount === next.stickyColumnCount
+	prev.isStickyLeft === next.isStickyLeft
 ));
 
 SheetHeaderCell.displayName = 'SheetHeaderCell';
@@ -377,13 +373,9 @@ SheetHeaderCell.displayName = 'SheetHeaderCell';
 const SheetColumnResizeHandle = memo((p: {
 	column: SheetUIColumn;
 	columnIndex: number;
-	columnLeft: number;
 	columnWidth: number;
-	scrollLeft: number;
-	stickyColumnCount?: number | null;
+	handleLeft: number;
 }) => {
-	const isStickyLeft = isSheetColumnSticky(p.columnIndex, p.stickyColumnCount);
-
 	return <div
 		aria-label={`Resize ${p.column.label}`}
 		aria-orientation='vertical'
@@ -393,12 +385,7 @@ const SheetColumnResizeHandle = memo((p: {
 		style={{
 			cursor: 'col-resize',
 			height: SHEET_HEADER_HEIGHT,
-			left: (isStickyLeft ? p.scrollLeft : 0) +
-				SHEET_ROW_NUMBER_WIDTH +
-				p.columnLeft +
-				p.columnWidth -
-				SHEET_COLUMN_RESIZE_HANDLE_WIDTH / 2 -
-				SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET,
+			left: p.handleLeft,
 			pointerEvents: 'auto',
 			top: 0,
 			width: SHEET_COLUMN_RESIZE_HANDLE_WIDTH,
@@ -410,10 +397,8 @@ const SheetColumnResizeHandle = memo((p: {
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
 	prev.columnIndex === next.columnIndex &&
-	prev.columnLeft === next.columnLeft &&
 	prev.columnWidth === next.columnWidth &&
-	(!isSheetColumnSticky(next.columnIndex, next.stickyColumnCount) || prev.scrollLeft === next.scrollLeft) &&
-	prev.stickyColumnCount === next.stickyColumnCount
+	prev.handleLeft === next.handleLeft
 ));
 
 SheetColumnResizeHandle.displayName = 'SheetColumnResizeHandle';
@@ -477,14 +462,18 @@ const SheetHeaderArea = memo((p: {
 			/>
 
 			{p.columns.map((columnMetric) => {
+				const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
+				const headerLeft = (isStickyLeft ? p.scrollLeft : 0) +
+					SHEET_ROW_NUMBER_WIDTH +
+					columnMetric.left;
+
 				return <SheetHeaderCell
 					key={columnMetric.column.key}
 					column={columnMetric.column}
 					columnIndex={columnMetric.columnIndex}
-					columnLeft={columnMetric.left}
+					headerLeft={headerLeft}
 					columnWidth={columnMetric.width}
-					scrollLeft={p.scrollLeft}
-					stickyColumnCount={p.stickyColumnCount}
+					isStickyLeft={isStickyLeft}
 				/>;
 			})}
 
@@ -501,14 +490,20 @@ const SheetHeaderArea = memo((p: {
 				}}
 			>
 				{p.columns.map((columnMetric) => {
+					const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
+					const handleLeft = (isStickyLeft ? p.scrollLeft : 0) +
+						SHEET_ROW_NUMBER_WIDTH +
+						columnMetric.left +
+						columnMetric.width -
+						SHEET_COLUMN_RESIZE_HANDLE_WIDTH / 2 -
+						SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET;
+
 					return <SheetColumnResizeHandle
 						key={columnMetric.column.key}
 						column={columnMetric.column}
 						columnIndex={columnMetric.columnIndex}
-						columnLeft={columnMetric.left}
 						columnWidth={columnMetric.width}
-						scrollLeft={p.scrollLeft}
-						stickyColumnCount={p.stickyColumnCount}
+						handleLeft={handleLeft}
 					/>;
 				})}
 			</div>
@@ -668,7 +663,7 @@ const SheetCellEditor = memo((p: {
 	error?: string | null;
 	rowId: string;
 }) => {
-	const editorClassName = cn('sheet_ui_editor stock px_6', p.error ? 'error' : '');
+	const editorClassName = cn('sheet_ui_editor bg stock px_6', p.error ? 'error' : '');
 	const sharedProps = {
 		autoFocus: true,
 		className: editorClassName,
@@ -733,27 +728,25 @@ SheetCellEditor.displayName = 'SheetCellEditor';
 
 const SheetGridCell = memo((p: {
 	cell?: SheetUICell;
+	cellLeft: number;
 	column: SheetUIColumn;
 	columnIndex: number;
-	columnLeft: number;
 	columnWidth: number;
 	editState?: SheetUIEditState | null;
+	isStickyLeft: boolean;
 	rowId?: string | null;
 	rowIndex: number;
 	rowTop: number;
-	scrollLeft: number;
-	stickyColumnCount?: number | null;
 }) => {
 	const isEditing = isSheetGridCellEditing(p);
-	const isStickyLeft = isSheetColumnSticky(p.columnIndex, p.stickyColumnCount);
 	const displayValue = p.cell?.displayValue || '';
 	const cellClassName = cn(
-		'sheet_ui_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_6 cl_df bg_primary_fd_hv',
+		'sheet_ui_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_6 cl_df bg_primary_fd_hv_solid',
 		isEditing ? 'active' : '',
 		p.cell?.canOpen ? 'link cl_primary' : '',
 		!p.rowId ? 'noclick' : '',
 		!displayValue ? 'cl_darker_2' : '',
-		isStickyLeft ? STICKY_CELL_BG_CSS : CELL_BG_CSS,
+		p.isStickyLeft ? STICKY_CELL_BG_CSS : CELL_BG_CSS,
 	);
 
 	return <div
@@ -765,10 +758,10 @@ const SheetGridCell = memo((p: {
 		data-sheet-cell-open-link={p.cell?.canOpen ? 'true' : undefined}
 		style={{
 			height: SHEET_ROW_HEIGHT,
-			left: (isStickyLeft ? p.scrollLeft : 0) + SHEET_ROW_NUMBER_WIDTH + p.columnLeft,
+			left: p.cellLeft,
 			top: p.rowTop,
 			width: p.columnWidth,
-			zIndex: isStickyLeft ? 30 : undefined,
+			zIndex: p.isStickyLeft ? 30 : undefined,
 		}}
 	>
 		{isEditing && p.rowId
@@ -783,19 +776,18 @@ const SheetGridCell = memo((p: {
 	</div>;
 }, (prev, next) => (
 	prev.cell === next.cell &&
+	prev.cellLeft === next.cellLeft &&
 	prev.column.id === next.column.id &&
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
 	prev.column.fieldType === next.column.fieldType &&
 	prev.columnIndex === next.columnIndex &&
-	prev.columnLeft === next.columnLeft &&
 	prev.columnWidth === next.columnWidth &&
 	areSheetGridCellEditPropsEqual(prev, next) &&
+	prev.isStickyLeft === next.isStickyLeft &&
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
-	prev.rowTop === next.rowTop &&
-	(!isSheetColumnSticky(next.columnIndex, next.stickyColumnCount) || prev.scrollLeft === next.scrollLeft) &&
-	prev.stickyColumnCount === next.stickyColumnCount
+	prev.rowTop === next.rowTop
 ));
 
 SheetGridCell.displayName = 'SheetGridCell';
@@ -898,19 +890,23 @@ export const SheetUI = memo((p: SheetUIProps) => {
 
 				{p.rows.map((rowSlot) => {
 					return p.columns.map((columnMetric) => {
+						const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
+						const cellLeft = (isStickyLeft ? p.scrollLeft : 0) +
+							SHEET_ROW_NUMBER_WIDTH +
+							columnMetric.left;
+
 						return <SheetGridCell
 							key={`${rowSlot.rowKey}:${columnMetric.column.key}`}
 							cell={rowSlot.cellsByKey[columnMetric.column.key]}
+							cellLeft={cellLeft}
 							column={columnMetric.column}
 							columnIndex={columnMetric.columnIndex}
-							columnLeft={columnMetric.left}
 							columnWidth={columnMetric.width}
 							editState={p.editState}
+							isStickyLeft={isStickyLeft}
 							rowId={rowSlot.rowId}
 							rowIndex={rowSlot.rowIndex}
 							rowTop={rowSlot.rowTop}
-							scrollLeft={p.scrollLeft}
-							stickyColumnCount={p.stickyColumnCount}
 						/>;
 					});
 				})}

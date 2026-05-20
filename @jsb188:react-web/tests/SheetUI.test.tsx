@@ -144,7 +144,7 @@ describe('SheetUI helpers', () => {
 			rowStart: 2,
 			rowEnd: 9,
 			columnStart: 0,
-			columnEnd: 4,
+			columnEnd: 5,
 		});
 	});
 
@@ -207,16 +207,16 @@ describe('SheetUI rendering', () => {
 		expect(headerRow?.className).toContain('h_left');
 		expect(headerSpacer?.className).toContain('h_4');
 		expect(headerSpacer?.className).toContain('bg_darker_1');
-		expect(headerSpacer?.style.width).toBe('208px');
+		expect(headerSpacer?.style.width).toBe(`${SHEET_ROW_NUMBER_WIDTH + 160}px`);
 		expect(headerRow?.nextElementSibling).toBe(headerSpacer);
 		expect(stickyColumnHeaderSpacer?.className).toContain('sheet_ui_header_cell');
 		expect(stickyColumnHeaderSpacer?.className).toContain('sticky');
 		expect(stickyColumnHeaderSpacer?.className).toContain('w_4');
 		expect(stickyColumnHeaderSpacer?.className).toContain('bg_darker_1');
-		expect(stickyColumnHeaderSpacer?.style.left).toBe('48px');
+		expect(stickyColumnHeaderSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH}px`);
 		expect(stickyColumnHeaderSpacer?.style.position).toBe('sticky');
 		expect(stickyColumnSpacer?.className).toContain('w_4');
-		expect(stickyColumnSpacer?.style.left).toBe('48px');
+		expect(stickyColumnSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH}px`);
 		expect(stickyColumnSpacer?.style.position).toBe('sticky');
 		expect(stickyColumnSpacer?.style.top).toBe('');
 		expect(stickyColumnSpacerSlots[0]?.style.top).toBe('36px');
@@ -290,9 +290,9 @@ describe('SheetUI rendering', () => {
 		const stickyColumnHeaderSpacer = host.querySelector('[data-sheet-sticky-column-header-spacer="true"]') as HTMLElement | null;
 		const stickyColumnSpacer = host.querySelector('[data-sheet-sticky-column-spacer="true"]') as HTMLElement | null;
 
-		expect(stickyColumnHeaderSpacer?.style.left).toBe('208px');
+		expect(stickyColumnHeaderSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 160}px`);
 		expect(stickyColumnHeaderSpacer?.style.position).toBe('sticky');
-		expect(stickyColumnSpacer?.style.left).toBe('208px');
+		expect(stickyColumnSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 160}px`);
 		expect(stickyColumnSpacer?.style.position).toBe('sticky');
 	});
 
@@ -352,7 +352,7 @@ describe('SheetUI rendering', () => {
 		expect(gridCells[0]?.style.borderRightStyle).toBe('');
 		expect(gridCells[1]?.style.borderRightStyle).toBe('');
 		expect(resizeHandle).not.toBeNull();
-		expect(resizeHandle?.style.left).toBe('358px');
+		expect(resizeHandle?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 320 - 10}px`);
 	});
 
 	it('renders the full-height column resize guide from container state', async () => {
@@ -379,13 +379,13 @@ describe('SheetUI rendering', () => {
 		expect(resizeHandle?.parentElement).toBe(resizeHandleLayer);
 		expect(resizeHandle?.parentElement).not.toBe(headerCell);
 		expect(resizeHandle?.className).toContain('hv_area');
-		expect(resizeHandle?.style.left).toBe('198px');
+		expect(resizeHandle?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 160 - 10}px`);
 		expect(resizeHandle?.style.pointerEvents).toBe('auto');
 		expect(resizeHandle?.style.width).toBe('18px');
 		expect(resizeHandle?.style.zIndex).toBe('110');
 		expect(resizeGuide?.className).toContain('bg_main');
 		expect(resizeGuide?.style.height).toBe('276px');
-		expect(resizeGuide?.style.left).toBe('208px');
+		expect(resizeGuide?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 160}px`);
 		expect(resizeGuide?.style.width).toBe('1px');
 		expect(resizeGuide?.style.zIndex).toBe('110');
 	});

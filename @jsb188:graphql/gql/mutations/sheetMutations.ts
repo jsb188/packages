@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { sheetCellFragment } from '../fragments/sheetFragments.ts';
+import { sheetCellFragment, sheetFragment } from '../fragments/sheetFragments.ts';
 
 export const editSheetCellMtn = gql`
 mutation editSheetCell (
@@ -21,4 +21,22 @@ mutation editSheetCell (
 }
 
 ${sheetCellFragment}
+`;
+
+export const editSheetDesignMtn = gql`
+mutation editSheetDesign (
+  $organizationId: GenericID!
+  $sheetId: GenericID!
+  $design: SheetDesignPatchInput!
+) {
+  editSheetDesign (
+    organizationId: $organizationId
+    sheetId: $sheetId
+    design: $design
+  ) {
+    ...sheetFragment
+  }
+}
+
+${sheetFragment}
 `;
