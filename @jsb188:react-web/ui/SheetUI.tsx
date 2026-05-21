@@ -1,5 +1,6 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, type CSSProperties, type ReactNode, type Ref } from 'react';
+import { Icon } from '../svgs/Icon';
 import './SheetUI.css';
 
 /**
@@ -62,6 +63,7 @@ export type SheetUICell = {
 	cellKey: string;
 	displayValue: string;
 	draftValue: string;
+	iconName?: string | null;
 	canEdit?: boolean;
 	canOpen?: boolean;
 	cellClassName?: string;
@@ -824,6 +826,7 @@ const SheetGridCell = memo((p: {
 }) => {
 	const isEditing = isSheetGridCellEditing(p);
 	const displayValue = p.cell?.displayValue || '';
+	const iconName = p.cell?.iconName || '';
 	const cellClassName = cn(
 		'sheet_ui_cell of abs h_item px_6 cl_df',
 		p.cell?.cellClassName || 'bg_primary_fd_hv_solid',
@@ -858,7 +861,14 @@ const SheetGridCell = memo((p: {
 				error={p.editState?.error}
 				rowId={p.rowId}
 			/>
-			: <span className={p.cell?.displayClassName || 'ellip'}>{displayValue}</span>}
+			: iconName
+				? <span className='h_item ellip'>
+					<span className='ic_xs mr_5 no_shrink'>
+						<Icon name={iconName} />
+					</span>
+					<span className={p.cell?.displayClassName || 'ellip'}>{displayValue}</span>
+				</span>
+				: <span className={p.cell?.displayClassName || 'ellip'}>{displayValue}</span>}
 	</div>;
 }, (prev, next) => (
 	prev.cell === next.cell &&

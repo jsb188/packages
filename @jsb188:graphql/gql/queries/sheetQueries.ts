@@ -23,12 +23,14 @@ query sheetRows (
   $organizationId: GenericID!
   $cursor: Cursor
   $limit: Int!
+  $filter: SheetRowsFilterInput
 ) {
   sheetRows (
     sheetId: $sheetId
     organizationId: $organizationId
     cursor: $cursor
     limit: $limit
+    filter: $filter
   ) {
     ...sheetRowFragment
 

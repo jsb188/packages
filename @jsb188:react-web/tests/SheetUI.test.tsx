@@ -313,6 +313,24 @@ describe('SheetUI rendering', () => {
 		expect(input?.value).toBe('Alpha');
 	});
 
+	it('renders a cell icon to the left of the display value', async () => {
+		const host = await renderSheetUI({
+			rows: [
+				createRowSlot('row-1', 0, {
+					name: createCell('name', 'Alpha', {
+						iconName: 'circle-check',
+					}),
+				}),
+			],
+		});
+		const firstCell = host.querySelector('[data-sheet-cell="true"]') as HTMLElement | null;
+		const icon = firstCell?.querySelector('.icon-circle-check');
+
+		expect(icon).not.toBeNull();
+		expect(firstCell?.textContent).toBe('Alpha');
+		expect(icon?.parentElement?.className).toContain('mr_5');
+	});
+
 	it('renders header children above the spreadsheet header row', async () => {
 		const host = await renderSheetUI({
 			headerContent: <div data-testid='toolbar'>Toolbar</div>,

@@ -18,15 +18,20 @@ const hookState = vi.hoisted(() => ({
 	editSheetDesign: vi.fn(),
 	fetchMoreRows: vi.fn(),
 	getSheetRows: null as (() => any[]) | null,
+	lastSheetRowsArgs: null as any[] | null,
 	sheetRows: [] as any[],
 }));
 
 vi.mock('@jsb188/graphql/hooks/use-sheet-qry', () => ({
 	useReactiveSheetRows: (rows: any[]) => rows,
-	useSheetRows: () => ({
+	useSheetRows: (...args: any[]) => {
+		hookState.lastSheetRowsArgs = args;
+
+		return {
 		fetchMore: hookState.fetchMoreRows,
 		sheetRows: hookState.getSheetRows ? hookState.getSheetRows() : hookState.sheetRows,
-	}),
+	};
+	},
 }));
 
 vi.mock('@jsb188/graphql/hooks/use-sheet-mtn', () => ({
@@ -58,7 +63,7 @@ function createDesignCell(key: string, overrides: Partial<SheetDesignCellGQL> = 
  * Build one sheet cell for Sheet container tests.
  */
 
-function createCell(rowId: string, cellKey: string, value: string): SheetCellGQL {
+function createCell(rowId: string, cellKey: string, value: string, overrides: Partial<SheetCellGQL> = {}): SheetCellGQL {
 	return {
 		id: `${rowId}:${cellKey}`,
 		sheetId: 'sheet-1',
@@ -68,6 +73,7 @@ function createCell(rowId: string, cellKey: string, value: string): SheetCellGQL
 		textValue: value,
 		createdAt: '2026-05-19T00:00:00.000Z',
 		updatedAt: '2026-05-19T00:00:00.000Z',
+		...overrides,
 	};
 }
 
@@ -158,6 +164,25 @@ async function renderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) {
 	return host;
 }
 
+/*
+ * Re-render the current Sheet test root with new props.
+ */
+
+async function rerenderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) {
+	await act(async () => {
+		currentRoot?.render(
+			<Sheet
+				allowEdit
+				sheet={createSheet()}
+				{...props}
+			/>,
+		);
+	});
+
+	await flushRender();
+	await flushRender();
+}
+
 beforeEach(() => {
 	globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 	document.body.innerHTML = '<div id="test-root"></div>';
@@ -165,6 +190,7 @@ beforeEach(() => {
 	hookState.editSheetDesign.mockReset().mockResolvedValue({ data: {} });
 	hookState.fetchMoreRows.mockReset().mockResolvedValue({ data: { sheetRows: [] } });
 	hookState.getSheetRows = null;
+	hookState.lastSheetRowsArgs = null;
 	hookState.sheetRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
 
 	Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
@@ -232,6 +258,53 @@ afterEach(() => {
 });
 
 describe('Sheet container', () => {
+	it('uses cell icon names before design fallback icon names', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'name'
+				? {
+					...cell,
+					iconName: 'circle',
+				}
+				: cell),
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha', {
+					iconName: 'circle-check',
+				}),
+				createCell('row-0', 'status', 'Open'),
+			],
+		}];
+
+		const host = await renderSheet({ sheet });
+		const firstCell = host.querySelector('[data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement | null;
+
+		expect(firstCell?.querySelector('.icon-circle-check')).not.toBeNull();
+		expect(firstCell?.querySelector('.icon-circle')).toBeNull();
+	});
+
+	it('uses design icon names when cells do not have icon names', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'name'
+				? {
+					...cell,
+					iconName: 'circle-check',
+				}
+				: cell),
+		};
+
+		const host = await renderSheet({ sheet });
+		const firstCell = host.querySelector('[data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement | null;
+
+		expect(firstCell?.querySelector('.icon-circle-check')).not.toBeNull();
+		expect(firstCell?.textContent).toContain('Alpha');
+	});
+
 	it('renders children inside the sticky sheet header above column labels', async () => {
 		const host = await renderSheet({
 			children: <div data-testid='toolbar'>Toolbar</div>,
@@ -261,6 +334,139 @@ describe('Sheet container', () => {
 		const nameHeader = host.querySelector('[data-sheet-header-cell="true"]') as HTMLElement;
 
 		expect(nameHeader.textContent).toBe('Human Name');
+	});
+
+	it('does not render hidden master sheet design cells', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'status'
+				? {
+					...cell,
+					hidden: true,
+				}
+				: cell),
+		};
+		const host = await renderSheet({ sheet });
+
+		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]')).not.toBeNull();
+		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]')).toBeNull();
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]')).toBeNull();
+	});
+
+	it('does not render view columns backed by hidden master cells', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'status'
+				? {
+					...cell,
+					hidden: true,
+				}
+				: cell),
+			views: [{
+				id: 'review',
+				name: 'Review',
+				layout: 'GRID',
+				columns: [{
+					key: 'review_name',
+					label: 'Name',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'MASTER_CELL',
+						cellKey: 'name',
+					},
+				}, {
+					key: 'review_status',
+					label: 'Hidden Status',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'MASTER_CELL',
+						cellKey: 'status',
+					},
+				}],
+				columnsOrder: ['review_name', 'review_status'],
+				filters: [],
+				sorts: [],
+				groups: [],
+			}],
+			viewsOrder: ['review'],
+		};
+		const host = await renderSheet({ sheet });
+		const reviewTab = host.querySelector('[data-sheet-view-tab="review"]') as HTMLElement;
+
+		await act(async () => {
+			reviewTab.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="review_name"]')).not.toBeNull();
+		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="review_status"]')).toBeNull();
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="review_status"]')).toBeNull();
+	});
+
+	it('always renders the database tab for the unfiltered master sheet', async () => {
+		const host = await renderSheet();
+		const databaseTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
+		const sheetWithViews = host.querySelector('[data-sheet-with-views="true"]') as HTMLElement;
+		const viewTabs = host.querySelector('[data-sheet-view-tabs="true"]') as HTMLElement;
+
+		expect(databaseTab).not.toBeNull();
+		expect(databaseTab.textContent).toBe('Database');
+		expect(sheetWithViews.className).toContain('pb_40');
+		expect(viewTabs.className).toContain('abs_b');
+		expect(viewTabs.className).toContain('h_40');
+		expect(hookState.lastSheetRowsArgs?.[4]).toBeNull();
+	});
+
+	it('renders saved views as bottom tabs and refetches rows with a view filter', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			views: [{
+				id: 'active_jobs',
+				name: 'Active Jobs',
+				layout: 'GRID',
+				columns: [{
+					key: 'job_name',
+					label: 'Job',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'MASTER_CELL',
+						cellKey: 'name',
+					},
+					width: 220,
+				}],
+				columnsOrder: ['job_name'],
+				filters: [],
+				sorts: [],
+				groups: [],
+			}],
+			viewsOrder: ['active_jobs'],
+		};
+		const host = await renderSheet({ sheet });
+		const viewTabs = host.querySelector('[data-sheet-view-tabs="true"]');
+		const databaseTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
+		const activeJobsTab = host.querySelector('[data-sheet-view-tab="active_jobs"]') as HTMLElement;
+
+		expect(viewTabs).not.toBeNull();
+		expect(databaseTab.textContent).toBe('Database');
+		expect(activeJobsTab.textContent).toBe('Active Jobs');
+		expect(hookState.lastSheetRowsArgs?.[4]).toBeNull();
+
+		await act(async () => {
+			activeJobsTab.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+		await flushRender();
+
+		expect(hookState.lastSheetRowsArgs?.[4]).toEqual({
+			viewId: 'active_jobs',
+		});
+		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('Job');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="job_name"]')?.textContent).toBe('Alpha');
 	});
 
 	it('renders select-style values as colored pills from sheet design options', async () => {
@@ -599,6 +805,7 @@ describe('Sheet container', () => {
 		expect(hookState.fetchMoreRows).toHaveBeenCalledWith({
 			variables: {
 				cursor: 'cursor-29',
+				filter: null,
 				limit: 30,
 				organizationId: 'org-1',
 				sheetId: 'sheet-1',
@@ -765,6 +972,74 @@ describe('Sheet container', () => {
 				sheetId: 'sheet-1',
 			},
 		});
+	});
+
+	it('keeps local column widths when refreshed sheet design returns stale widths', async () => {
+		const host = await renderSheet();
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="name"]') as HTMLElement;
+		const getNameHeader = () => host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			resizeHandle.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 160,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 210,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 210,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(getNameHeader().style.width).toBe('210px');
+
+		await rerenderSheet({
+			sheet: createSheet(),
+		});
+
+		expect(getNameHeader().style.width).toBe('210px');
+
+		const confirmedSheet = createSheet();
+		confirmedSheet.design = {
+			...confirmedSheet.design,
+			cells: confirmedSheet.design.cells.map((cell) => cell.key === 'name'
+				? {
+					...cell,
+					width: 210,
+				}
+				: cell),
+		};
+
+		await rerenderSheet({
+			sheet: confirmedSheet,
+		});
+
+		expect(getNameHeader().style.width).toBe('210px');
+
+		const newerSheet = createSheet();
+		newerSheet.design = {
+			...newerSheet.design,
+			cells: newerSheet.design.cells.map((cell) => cell.key === 'name'
+				? {
+					...cell,
+					width: 240,
+				}
+				: cell),
+		};
+
+		await rerenderSheet({
+			sheet: newerSheet,
+		});
+
+		expect(getNameHeader().style.width).toBe('240px');
 	});
 
 	it('queues in-flight design saves and collapses pending width patches to the latest value', async () => {

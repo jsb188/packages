@@ -77,6 +77,9 @@ export function useSheetRows(
 	organizationId?: string | null,
 	cursor?: string | null,
 	limit: number = SHEET_ROWS_LIMIT,
+	filter?: {
+		viewId?: string | null;
+	} | null,
 	params: UseQueryParams = {},
 ) {
 	const { data, ...rest } = useQuery(sheetRowsQry, {
@@ -85,6 +88,7 @@ export function useSheetRows(
 			organizationId,
 			cursor,
 			limit,
+			filter,
 		},
 		skip: !organizationId || !sheetId,
 		...params,
