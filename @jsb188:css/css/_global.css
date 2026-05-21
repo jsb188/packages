@@ -128,7 +128,7 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
   background-color: rgba(var(--color-primary), 0.075) !important;
 }
 
-.bg_primary_fd_hv_solid:hover {
+.bg_primary_fd_solid, .bg_primary_fd_hv_solid:hover {
   /* This is a special CSS class that is same as .bg_primary_fd_hv but it uses hex value if it was on top of a white background */
   background-color: var(--color-primary-faded-solid) !important;
 }

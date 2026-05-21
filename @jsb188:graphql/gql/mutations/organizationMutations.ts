@@ -112,11 +112,13 @@ export const editSiteLocationMtn = gql`
 mutation editSiteLocation (
   $siteLocationId: GenericID!
   $name: String
+  $region: String
   $note: String
 ) {
   editSiteLocation (
     siteLocationId: $siteLocationId
     name: $name
+    region: $region
     note: $note
   ) {
     ...organizationSiteFragment

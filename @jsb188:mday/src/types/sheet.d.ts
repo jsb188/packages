@@ -40,10 +40,15 @@ export interface SheetDesignCellObj {
 }
 
 export interface SheetDesignViewColumnSourceObj {
-	type: 'MASTER_CELL' | 'FORMULA' | 'STATIC' | 'DIMENSION' | 'CUSTOM';
+	type: 'MASTER_CELL' | 'FORMULA' | 'STATIC' | 'DIMENSION' | 'CUSTOM' | 'RELATED_RECORD' | 'COMPUTED';
 	cellKey?: string | null;
 	formulaKey?: string | null;
 	dimensionKey?: string | null;
+	table?: string | null;
+	path?: string | null;
+	sourceCellKey?: string | null;
+	sourceCellKeys?: string[];
+	operation?: 'SUM' | null;
 }
 
 export interface SheetDesignViewDimensionObj {
@@ -52,9 +57,54 @@ export interface SheetDesignViewDimensionObj {
 	source?: SheetDesignViewColumnSourceObj | null;
 }
 
+export interface SheetDesignViewGeneratorDateSeriesObj {
+	key: string;
+	label?: string | null;
+	sourceCellKey?: string | null;
+	grain: 'DAY' | 'WEEK';
+	weekStart?: 'MONDAY';
+	range: {
+		type: 'CURRENT_MONTH' | 'FIXED';
+		start?: string;
+		end?: string;
+	};
+}
+
+export interface SheetDesignViewGeneratorDimensionObj {
+	key: string;
+	label?: string | null;
+	source:
+		| {
+			type: 'MASTER_CELL_OPTIONS';
+			cellKey: string;
+		}
+		| {
+			type: 'STATIC_VALUES';
+			values: Array<{
+				value: string;
+				label?: string | null;
+			}>;
+		};
+}
+
+export interface SheetDesignViewGeneratorMeasureObj {
+	key: string;
+	label?: string | null;
+	operation: 'COUNT' | 'SUM';
+	sourceCellKey?: string | null;
+}
+
+export interface SheetDesignViewGeneratorObj {
+	keyPrefix: string;
+	dateSeries?: SheetDesignViewGeneratorDateSeriesObj;
+	dimensions?: SheetDesignViewGeneratorDimensionObj[];
+	measures?: SheetDesignViewGeneratorMeasureObj[];
+}
+
 export interface SheetDesignViewRowModelObj {
 	type: 'MASTER_ROWS' | 'GROUPED_ROWS';
 	dimensions?: SheetDesignViewDimensionObj[];
+	generator?: SheetDesignViewGeneratorObj | null;
 }
 
 export interface SheetDesignViewColumnObj {
@@ -62,6 +112,7 @@ export interface SheetDesignViewColumnObj {
 	label: string;
 	humanLabel?: string | null;
 	iconName?: string | null;
+	fieldType?: SheetFieldTypeEnum | null;
 	humanFieldType: SheetFieldTypeEnum;
 	source?: SheetDesignViewColumnSourceObj | null;
 	options?: SheetDesignCellOptionObj[];
@@ -195,10 +246,15 @@ export interface SheetDesignCellGQL {
 }
 
 export interface SheetDesignViewColumnSourceGQL {
-	type: 'MASTER_CELL' | 'FORMULA' | 'STATIC' | 'DIMENSION' | 'CUSTOM';
+	type: 'MASTER_CELL' | 'FORMULA' | 'STATIC' | 'DIMENSION' | 'CUSTOM' | 'RELATED_RECORD' | 'COMPUTED';
 	cellKey?: string | null;
 	formulaKey?: string | null;
 	dimensionKey?: string | null;
+	table?: string | null;
+	path?: string | null;
+	sourceCellKey?: string | null;
+	sourceCellKeys?: string[];
+	operation?: 'SUM' | null;
 }
 
 export interface SheetDesignViewDimensionGQL {
@@ -207,9 +263,54 @@ export interface SheetDesignViewDimensionGQL {
 	source?: SheetDesignViewColumnSourceGQL | null;
 }
 
+export interface SheetDesignViewGeneratorDateSeriesGQL {
+	key: string;
+	label?: string | null;
+	sourceCellKey?: string | null;
+	grain: 'DAY' | 'WEEK';
+	weekStart?: 'MONDAY' | null;
+	range: {
+		type: 'CURRENT_MONTH' | 'FIXED';
+		start?: string | null;
+		end?: string | null;
+	};
+}
+
+export interface SheetDesignViewGeneratorDimensionGQL {
+	key: string;
+	label?: string | null;
+	source:
+		| {
+			type: 'MASTER_CELL_OPTIONS';
+			cellKey: string;
+		}
+		| {
+			type: 'STATIC_VALUES';
+			values: Array<{
+				value: string;
+				label?: string | null;
+			}>;
+		};
+}
+
+export interface SheetDesignViewGeneratorMeasureGQL {
+	key: string;
+	label?: string | null;
+	operation: 'COUNT' | 'SUM';
+	sourceCellKey?: string | null;
+}
+
+export interface SheetDesignViewGeneratorGQL {
+	keyPrefix: string;
+	dateSeries?: SheetDesignViewGeneratorDateSeriesGQL | null;
+	dimensions?: SheetDesignViewGeneratorDimensionGQL[];
+	measures?: SheetDesignViewGeneratorMeasureGQL[];
+}
+
 export interface SheetDesignViewRowModelGQL {
 	type: 'MASTER_ROWS' | 'GROUPED_ROWS';
 	dimensions?: SheetDesignViewDimensionGQL[];
+	generator?: SheetDesignViewGeneratorGQL | null;
 }
 
 export interface SheetDesignViewColumnGQL {
@@ -217,6 +318,7 @@ export interface SheetDesignViewColumnGQL {
 	label: string;
 	humanLabel?: string | null;
 	iconName?: string | null;
+	fieldType?: SheetFieldTypeGQL | null;
 	humanFieldType: SheetFieldTypeGQL;
 	source?: SheetDesignViewColumnSourceGQL | null;
 	options?: SheetDesignCellOptionGQL[];

@@ -7,6 +7,8 @@ mutation editSheetCell (
   $sheetId: GenericID!
   $sheetRowId: GenericID!
   $cellKey: String!
+  $viewId: String
+  $viewCellKey: String
   $value: String
 ) {
   editSheetCell (
@@ -14,6 +16,8 @@ mutation editSheetCell (
     sheetId: $sheetId
     sheetRowId: $sheetRowId
     cellKey: $cellKey
+    viewId: $viewId
+    viewCellKey: $viewCellKey
     value: $value
   ) {
     ...sheetCellFragment

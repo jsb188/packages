@@ -97,6 +97,7 @@ export interface OrganizationSiteData {
 	organizationId: bigint;
 	parentId?: bigint | null;
 	name: string;
+	region?: string | null;
 	note?: string | null;
 	createdAt: Date;
 }
@@ -196,6 +197,7 @@ export interface OrganizationSiteGQL {
 	organizationId: string;
 	parentId?: string | null;
 	name: string;
+	region?: string | null;
 	note?: string | null;
 	createdAt: string;
 	organizationName?: string | null;

@@ -20,6 +20,7 @@ const hookState = vi.hoisted(() => ({
 	getSheetRows: null as (() => any[]) | null,
 	lastSheetRowsArgs: null as any[] | null,
 	sheetRows: [] as any[],
+	sheetRowsVariables: null as any,
 }));
 
 vi.mock('@jsb188/graphql/hooks/use-sheet-qry', () => ({
@@ -28,9 +29,16 @@ vi.mock('@jsb188/graphql/hooks/use-sheet-qry', () => ({
 		hookState.lastSheetRowsArgs = args;
 
 		return {
-		fetchMore: hookState.fetchMoreRows,
-		sheetRows: hookState.getSheetRows ? hookState.getSheetRows() : hookState.sheetRows,
-	};
+			fetchMore: hookState.fetchMoreRows,
+			sheetRows: hookState.getSheetRows ? hookState.getSheetRows() : hookState.sheetRows,
+			variables: hookState.sheetRowsVariables || {
+				sheetId: args[0],
+				organizationId: args[1],
+				cursor: args[2],
+				limit: args[3],
+				filter: args[4],
+			},
+		};
 	},
 }));
 
@@ -53,6 +61,7 @@ function createDesignCell(key: string, overrides: Partial<SheetDesignCellGQL> = 
 	return {
 		key,
 		label: key.toUpperCase(),
+		fieldType: 'TEXT',
 		humanFieldType: 'TEXT',
 		options: [],
 		...overrides,
@@ -192,6 +201,7 @@ beforeEach(() => {
 	hookState.getSheetRows = null;
 	hookState.lastSheetRowsArgs = null;
 	hookState.sheetRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
+	hookState.sheetRowsVariables = null;
 
 	Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
 		configurable: true,
@@ -305,6 +315,42 @@ describe('Sheet container', () => {
 		expect(firstCell?.textContent).toContain('Alpha');
 	});
 
+	it('preserves fetched sheet row order instead of sorting by row position', async () => {
+		hookState.sheetRows = [
+			createRow(2, { name: 'Third fetched', status: 'Open' }),
+			createRow(0, { name: 'First fetched', status: 'Open' }),
+			createRow(1, { name: 'Second fetched', status: 'Open' }),
+		];
+
+		const host = await renderSheet();
+		const nameCells = Array.from(
+			host.querySelectorAll('[data-sheet-cell="true"][data-cell-key="name"][data-row-id]'),
+		);
+
+		expect(nameCells.map((cell) => cell.textContent)).toEqual([
+			'Third fetched',
+			'First fetched',
+			'Second fetched',
+		]);
+
+		hookState.sheetRows = [
+			createRow(1, { name: 'Second fetched', status: 'Open' }),
+			createRow(2, { name: 'Third fetched', status: 'Open' }),
+			createRow(0, { name: 'First fetched', status: 'Open' }),
+		];
+		await rerenderSheet();
+
+		const reorderedNameCells = Array.from(
+			host.querySelectorAll('[data-sheet-cell="true"][data-cell-key="name"][data-row-id]'),
+		);
+
+		expect(reorderedNameCells.map((cell) => cell.textContent)).toEqual([
+			'Second fetched',
+			'Third fetched',
+			'First fetched',
+		]);
+	});
+
 	it('renders children inside the sticky sheet header above column labels', async () => {
 		const host = await renderSheet({
 			children: <div data-testid='toolbar'>Toolbar</div>,
@@ -409,14 +455,17 @@ describe('Sheet container', () => {
 	it('always renders the database tab for the unfiltered master sheet', async () => {
 		const host = await renderSheet();
 		const databaseTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
+		const sheetGridContainer = host.querySelector('[data-sheet-grid-container="true"]') as HTMLElement;
 		const sheetWithViews = host.querySelector('[data-sheet-with-views="true"]') as HTMLElement;
 		const viewTabs = host.querySelector('[data-sheet-view-tabs="true"]') as HTMLElement;
 
 		expect(databaseTab).not.toBeNull();
 		expect(databaseTab.textContent).toBe('Database');
-		expect(sheetWithViews.className).toContain('pb_40');
-		expect(viewTabs.className).toContain('abs_b');
-		expect(viewTabs.className).toContain('h_40');
+		expect(sheetGridContainer.className).toContain('h_0');
+		expect(sheetWithViews.className).not.toContain('pb_40');
+		expect(viewTabs.className).not.toContain('abs_b');
+		expect(viewTabs.className).toContain('no_shrink');
+		expect(viewTabs.className).toContain('h_45');
 		expect(hookState.lastSheetRowsArgs?.[4]).toBeNull();
 	});
 
@@ -467,6 +516,166 @@ describe('Sheet container', () => {
 		});
 		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('Job');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="job_name"]')?.textContent).toBe('Alpha');
+
+		const jobNameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="job_name"]') as HTMLElement;
+		await act(async () => {
+			jobNameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+		await act(async () => {
+			input.value = 'Beta';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+			variables: {
+				cellKey: 'name',
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+				sheetRowId: 'row-0',
+				viewCellKey: 'job_name',
+				viewId: 'active_jobs',
+				value: 'Beta',
+			},
+		});
+	});
+
+	it('renders computed and related view cells as read-only columns', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			views: [{
+				id: 'weekly_fulfillment',
+				name: 'Current Week',
+				layout: 'GRID',
+				columns: [{
+					key: 'region',
+					label: 'Region',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'RELATED_RECORD',
+						table: 'logs',
+						path: 'createdAt',
+						sourceCellKey: 'name',
+					},
+				}, {
+					key: 'crates',
+					label: 'Crates',
+					humanFieldType: 'NUMBER',
+					source: {
+						type: 'COMPUTED',
+						operation: 'SUM',
+						sourceCellKeys: ['name', 'status'],
+					},
+				}],
+				columnsOrder: ['region', 'crates'],
+				filters: [],
+				sorts: [],
+				groups: [],
+			}],
+			viewsOrder: ['weekly_fulfillment'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			region: 'North',
+			crates: '12',
+		})];
+		const host = await renderSheet({ sheet });
+		const currentWeekTab = host.querySelector('[data-sheet-view-tab="weekly_fulfillment"]') as HTMLElement;
+
+		await act(async () => {
+			currentWeekTab.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+		await flushRender();
+
+		const regionCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="region"]') as HTMLElement;
+		const cratesCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="crates"]') as HTMLElement;
+
+		expect(regionCell.textContent).toBe('North');
+		expect(cratesCell.textContent).toBe('12');
+		expect(regionCell.dataset.sheetCellEditable).toBeUndefined();
+		expect(cratesCell.dataset.sheetCellEditable).toBeUndefined();
+
+		await act(async () => {
+			cratesCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(hookState.editSheetCell).not.toHaveBeenCalled();
+	});
+
+	it('renders computed view cells from source cells when synthetic cells are missing', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('crate_18_lbs', {
+					fieldType: 'NUMBER',
+					humanFieldType: 'NUMBER',
+				}),
+				createDesignCell('crate_10_lbs', {
+					fieldType: 'NUMBER',
+					humanFieldType: 'NUMBER',
+				}),
+				createDesignCell('crate_5_lbs', {
+					fieldType: 'NUMBER',
+					humanFieldType: 'NUMBER',
+				}),
+			],
+			views: [{
+				id: 'markets_today',
+				name: 'Markets (today)',
+				layout: 'GRID',
+				columns: [{
+					key: 'crates',
+					label: 'Crates',
+					fieldType: 'NUMBER',
+					humanFieldType: 'NUMBER',
+					source: {
+						type: 'COMPUTED',
+						operation: 'SUM',
+						sourceCellKeys: ['crate_18_lbs', 'crate_10_lbs', 'crate_5_lbs'],
+					},
+				}],
+				columnsOrder: ['crates'],
+				filters: [],
+				sorts: [],
+				groups: [],
+			}],
+			viewsOrder: ['markets_today'],
+		};
+		const row = createRow(0, {});
+		row.cells = [
+			createCell(row.id, 'crate_18_lbs', '3', {
+				numberValue: 3,
+			}),
+			createCell(row.id, 'crate_10_lbs', '4', {
+				numberValue: 4,
+			}),
+			createCell(row.id, 'crate_5_lbs', '5', {
+				numberValue: 5,
+			}),
+		];
+		hookState.sheetRows = [row];
+		const host = await renderSheet({ sheet });
+		const marketsTodayTab = host.querySelector('[data-sheet-view-tab="markets_today"]') as HTMLElement;
+
+		await act(async () => {
+			marketsTodayTab.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+		await flushRender();
+
+		const cratesCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="crates"]') as HTMLElement;
+
+		expect(cratesCell.textContent).toBe('12');
+		expect(cratesCell.dataset.sheetCellEditable).toBeUndefined();
 	});
 
 	it('renders select-style values as colored pills from sheet design options', async () => {
@@ -517,6 +726,44 @@ describe('Sheet container', () => {
 		expect(reasonPill.textContent).toBe('Needs review');
 		expect(reasonPill.className).toContain('r_4');
 		expect(reasonPill.className).toContain('bg_zinc_md');
+	});
+
+	it('does not apply editable hover backgrounds to non-editable cells', async () => {
+		const sheet = createSheet();
+		const cells = [
+			createDesignCell('name', {
+				humansCannotEdit: true,
+			}),
+			createDesignCell('status', {
+				humanFieldType: 'SELECT',
+				humansCannotEdit: true,
+				options: [{
+					label: 'Open',
+					value: 'Open',
+					color: 'emerald',
+				}],
+			}),
+		];
+
+		sheet.design = {
+			...sheet.design,
+			cells,
+			cellsOrder: cells.map((cell) => cell.key),
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			status: 'Open',
+		})];
+
+		const host = await renderSheet({ sheet });
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		expect(nameCell.dataset.sheetCellEditable).toBeUndefined();
+		expect(nameCell.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(statusCell.dataset.sheetCellEditable).toBeUndefined();
+		expect(statusCell.className).not.toContain('bg_emerald_fd_hv');
+		expect(statusCell.className).not.toContain('bg_primary_fd_hv_solid');
 	});
 
 	it('saves header human labels from header edit mode', async () => {
@@ -698,6 +945,7 @@ describe('Sheet container', () => {
 	it('renders viewport filler rows without row numbers or cell dividers', async () => {
 		const host = await renderSheet();
 		const rowNumbers = Array.from(host.querySelectorAll('.sheet_ui_row_number'));
+		const rowNumberSlots = Array.from(host.querySelectorAll('[data-sheet-row-number-slot="true"]')) as HTMLElement[];
 		const cells = Array.from(host.querySelectorAll('[data-sheet-cell="true"]'));
 		const placeholderCells = cells.filter((cell) => !(cell as HTMLElement).dataset.rowId);
 		const placeholderFillCells = Array.from(host.querySelectorAll('[data-sheet-placeholder-row-fill-cell="true"]')) as HTMLElement[];
@@ -712,6 +960,9 @@ describe('Sheet container', () => {
 		expect(stickyColumnSpacers[1]?.className).toContain('w_4');
 		expect(placeholderFillCells[0]?.style.left).toBe('44px');
 		expect(placeholderFillCells[0]?.style.width).toBe('324px');
+		expect(rowNumberSlots.at(-1)?.style.height).toBe('28px');
+		expect(placeholderFillCells.at(-1)?.style.height).toBe('28px');
+		expect(Number(rowNumberSlots.at(-1)?.style.top.replace('px', '')) + Number(rowNumberSlots.at(-1)?.style.height.replace('px', ''))).toBe(160);
 		placeholderFillCells.forEach((cell) => {
 			expect(cell.className).toContain('bd_r_1');
 			expect(cell.className).toContain('bd_b_1');
@@ -751,6 +1002,33 @@ describe('Sheet container', () => {
 		});
 	});
 
+	it('does not render rows from stale sheet row query variables', async () => {
+		hookState.sheetRows = [
+			createRow(0, { name: 'Alpha', status: 'Open' }),
+			createRow(1, { name: 'Beta', status: 'Closed' }),
+		];
+		hookState.sheetRowsVariables = {
+			cursor: null,
+			filter: null,
+			limit: 200,
+			organizationId: 'org-1',
+			sheetId: 'previous-sheet',
+		};
+
+		const host = await renderSheet();
+
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]')).toBeNull();
+		expect(host.textContent).not.toContain('Alpha');
+		expect(host.textContent).not.toContain('Beta');
+		expect(host.querySelectorAll('.mock.active')).not.toHaveLength(0);
+
+		hookState.sheetRowsVariables = null;
+		await rerenderSheet();
+
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]')?.textContent).toBe('Alpha');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-1"]')?.textContent).toBe('Beta');
+	});
+
 	it('renders persisted design widths before local resize drafts', async () => {
 		const sheet = createSheet();
 		sheet.design = {
@@ -782,6 +1060,19 @@ describe('Sheet container', () => {
 		await renderSheet();
 
 		expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Maximum update depth exceeded'));
+	});
+
+	it('deduplicates repeated sheet row ids from refreshed row payloads', async () => {
+		hookState.sheetRows = [
+			createRow(0, { name: 'Alpha', status: 'Open' }),
+			createRow(0, { name: 'Alpha', status: 'Open' }),
+		];
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const host = await renderSheet();
+		const rowCells = Array.from(host.querySelectorAll('[data-sheet-cell="true"][data-row-id="row-0"]'));
+
+		expect(rowCells).toHaveLength(2);
+		expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Encountered two children with the same key'));
 	});
 
 	it('fetches more rows when scrolling near the bottom', async () => {
@@ -837,14 +1128,154 @@ describe('Sheet container', () => {
 				organizationId: 'org-1',
 				sheetId: 'sheet-1',
 				sheetRowId: 'row-0',
+				viewCellKey: null,
+				viewId: null,
 				value: 'Beta',
 			},
 		});
 	});
 
+	it('highlights editable cells on single click and edits them on a second click', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(nameCell.className).toContain('bg_primary_fd_solid');
+		expect(nameCell.className).not.toContain('bg_primary_fd_hv_solid');
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).not.toBeNull();
+	});
+
+	it('keeps edit mode open when clicking inside an editor opened from a selected cell', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+
+		await act(async () => {
+			input.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBe(input);
+	});
+
+	it('uses selected select-cell color classes on single click', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'SELECT',
+					humanFieldType: 'SELECT',
+					options: [{
+						color: 'red',
+						label: 'Open',
+						value: 'Open',
+					}],
+				}),
+			],
+		};
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(statusCell.className).toContain('bg_red_fd');
+		expect(statusCell.className).not.toContain('bg_red_fd_hv');
+	});
+
+	it('keeps local edited cell values until server data confirms them', async () => {
+		hookState.editSheetCell.mockImplementationOnce(() => new Promise(() => {}));
+		const host = await renderSheet();
+		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			getNameCell().dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+
+		await act(async () => {
+			input.value = 'Beta';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(getNameCell().textContent).toBe('Beta');
+
+		await rerenderSheet();
+
+		expect(getNameCell().textContent).toBe('Beta');
+
+		hookState.sheetRows = [createRow(0, { name: 'Beta', status: 'Open' })];
+		await rerenderSheet();
+
+		expect(getNameCell().textContent).toBe('Beta');
+	});
+
+	it('does not enter edit mode for ID field types', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name', {
+					fieldType: 'ID',
+					humanFieldType: 'ID',
+				}),
+				createDesignCell('status', { openLink: true }),
+			],
+		};
+		const host = await renderSheet({ sheet });
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(hookState.editSheetCell).not.toHaveBeenCalled();
+	});
+
 	it('routes open-link cell clicks through the container handler', async () => {
 		const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-		const host = await renderSheet();
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					humansCannotEdit: true,
+					openLink: true,
+				}),
+			],
+		};
+		const host = await renderSheet({ sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {

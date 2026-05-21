@@ -6,8 +6,9 @@ import { FilterPillButton } from '@jsb188/react-web/ui/PageFiltersUI';
 import { usePopOverState } from '@jsb188/react/states';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import React, { memo, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useOutletContext } from 'react-router';
 import { Icon } from '../svgs/Icon';
+import { TooltipButton } from './PopOver';
 
 /**
  * App layout toolbar title
@@ -24,6 +25,11 @@ export interface BreadcrumbItemObj {
 }
 
 const LOADING_BREADCRUMBS: BreadcrumbItemObj[] = [{ text: '.............. ..............', loading: true }];
+
+interface AppToolbarOutletContext {
+  open?: boolean;
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
 /**
  * Toolbar breadcrumb item
@@ -232,11 +238,29 @@ const AppToolbar = memo((p: {
 }) => {
   // const { shadowStyle = 'shadow_line_alt' } = p;
   const { options, shadowStyle = 'shadow_bg_drop_lg' } = p;
+  const outletContext = useOutletContext<AppToolbarOutletContext | null>();
   const breadcrumbs = p.breadcrumbs || LOADING_BREADCRUMBS;
   const lastIx = breadcrumbs.length - 1;
+  const showOpenSidebarButton = outletContext?.open === false && !!outletContext.setOpen;
 
   return <div className={cn('bg rel z4', shadowStyle)}>
     <div className={cn('h_toolbar h_item no_shrink', COMMON_CLASSNAMES.contentXPadding)}>
+      {showOpenSidebarButton && (
+        <TooltipButton
+          message={i18n.t('app.expand_sidebar')}
+          position='bottom'
+          offsetY={5}
+          className='mr_8 w_32 h_32 h_center ic_sm cl_md no_shrink bg_darker_2_hv r_xs link'
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            outletContext.setOpen?.(true);
+          }}
+        >
+          <Icon name='sidebar-expand' />
+        </TooltipButton>
+      )}
+
       {breadcrumbs?.map((item, i) => {
         return <BreadcrumbItem
           key={item.to || `${item.text}_${i}`}

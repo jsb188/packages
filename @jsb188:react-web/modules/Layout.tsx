@@ -34,14 +34,16 @@ export function AppLayout(p: ReactDivElement & {
 
   return <div
     className={cn('h_f bg_fade', open ? 'open' : '', className)}
+    data-sidebar-open={open ? 'true' : 'false'}
     {...other}
   >
     <div className='h_f h_spread'>
       <aside
         id='app_sidebar'
         className='f_stretch z3'
+        aria-hidden={!open}
       >
-        <div className='app_sidebar_inside v_spread'>
+        <div className='app_sidebar_inside v_spread hv_area'>
           {SidebarComponent}
         </div>
       </aside>

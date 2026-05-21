@@ -455,6 +455,7 @@ export function useReactiveFragmentMap(
 ) {
   const fragmentName = `$${fragmentName_}`;
   const observe = data?.map((d) => fragmentName + ':' + d.id);
+  const observeStr = observe?.join(',');
   const fragmentObserver = useFragmentObserverValue();
 
   const [changedData, setChangedData] = useState({
@@ -505,7 +506,6 @@ export function useReactiveFragmentMap(
     }
   }, [fragmentObserver.list]);
 
-  const observeStr = observe?.join(',');
   useEffect(() => {
     if (changedData.lastObserve?.join(',') !== observeStr) {
       setChangedData({
@@ -516,7 +516,11 @@ export function useReactiveFragmentMap(
     }
   }, [observeStr]);
 
-  return changedData.data;
+  if (changedData.lastObserve?.join(',') !== observeStr) {
+    return getReactiveFragmentMapData(data, observe);
+  }
+
+  return getReactiveFragmentMapData(data, observe) || changedData.data;
 }
 
 /**
@@ -960,8 +964,9 @@ export function useQuery(
     return result;
   }, [doQuery, skip]);
 
+  const qryValuesMatchVariables = variablesKey === makeVariablesKey(qryValues.variables);
   const queryData = loadDataFromCache(
-    qryValues.data,
+    qryValuesMatchVariables ? qryValues.data : null,
     query,
     variablesKey,
     cacheMap,

@@ -165,17 +165,26 @@ body.p_auth {
 
 #app_sidebar {
   position: relative;
-  width: var(--sidebar-wt);
+  width: 0;
+  overflow: hidden;
   transition: width ease .2s;
+}
+
+.open #app_sidebar {
+  width: var(--sidebar-wt);
 }
 
 .app_sidebar_inside {
   position: absolute;
   top: 0;
-  left: 0;
+  left: calc(var(--sidebar-wt) * -1);
   bottom: 0;
   width: var(--sidebar-wt);
   transition: left ease .2s;
+}
+
+.open .app_sidebar_inside {
+  left: 0;
 }
 
 .app_sidebar_inside_width {

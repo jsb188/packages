@@ -1,4 +1,5 @@
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
+import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import { sheetRowsQry, sheetsQry } from '../gql/queries/sheetQueries.ts';
 import type { UseQueryParams } from '../types.d.ts';
 
@@ -44,6 +45,14 @@ export function useReactiveSheetRows(sheetRows?: any[] | null) {
 	return mergeReactiveCellsIntoRows(reactiveRows || sheetRows, reactiveCells);
 }
 
+/*
+ * Return the query key that belongs to one sheet rows variables payload.
+ */
+
+function getSheetRowsQueryKey(variables: Record<string, unknown>) {
+	return `#sheetRows:${makeVariablesKey(variables)}`;
+}
+
 /**
  * Fetch sheets for an organization.
  */
@@ -82,22 +91,25 @@ export function useSheetRows(
 	} | null,
 	params: UseQueryParams = {},
 ) {
+	const variables = {
+		sheetId,
+		organizationId,
+		cursor,
+		limit,
+		filter,
+	};
 	const { data, ...rest } = useQuery(sheetRowsQry, {
-		variables: {
-			sheetId,
-			organizationId,
-			cursor,
-			limit,
-			filter,
-		},
+		variables,
 		skip: !organizationId || !sheetId,
 		...params,
 	});
 
-	const sheetRows = useReactiveSheetRows(data?.sheetRows);
+	const queryMatchesVariables = rest.queryKey === getSheetRowsQueryKey(variables) ||
+		rest.variablesKey === makeVariablesKey(variables);
+	const sheetRows = useReactiveSheetRows(queryMatchesVariables ? data?.sheetRows : null);
 
 	return {
-		sheetRows,
+		sheetRows: queryMatchesVariables ? sheetRows : undefined,
 		...rest,
 	};
 }

@@ -90,12 +90,10 @@ export const SidebarHeaderNav = memo((p: SidebarHeaderNavProps) => {
         {title}
       </div>
 
-      <span className='ml_6 h_center ic_xs cl_md no_shrink'>
+      {/* <span className='ml_6 h_center ic_xs cl_md no_shrink'>
         <Icon name='chevron-right-filled' />
-      </span>
+      </span> */}
     </>}
-
-    {/* When you are ready, add "collapse sidebar" button here */}
   </div>;
 });
 

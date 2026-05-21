@@ -68,6 +68,51 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
             cellKey
             formulaKey
             dimensionKey
+            table
+            path
+            sourceCellKey
+            sourceCellKeys
+            operation
+          }
+        }
+
+        generator {
+          keyPrefix
+
+          dateSeries {
+            key
+            label
+            sourceCellKey
+            grain
+            weekStart
+
+            range {
+              type
+              start
+              end
+            }
+          }
+
+          dimensions {
+            key
+            label
+
+            source {
+              type
+              cellKey
+
+              values {
+                value
+                label
+              }
+            }
+          }
+
+          measures {
+            key
+            label
+            operation
+            sourceCellKey
           }
         }
       }
@@ -77,6 +122,7 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
         label
         humanLabel
         iconName
+        fieldType
         humanFieldType
         openLink
         humansCannotEdit
@@ -87,6 +133,11 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
           cellKey
           formulaKey
           dimensionKey
+          table
+          path
+          sourceCellKey
+          sourceCellKeys
+          operation
         }
 
         options {

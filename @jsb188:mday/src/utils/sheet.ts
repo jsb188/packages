@@ -6,9 +6,29 @@ import type {
 	SheetDesignCellObj,
 	SheetDesignObj,
 	SheetDesignViewColumnObj,
+	SheetDesignViewGeneratorDimensionObj,
 	SheetDesignViewObj,
 	SheetFieldTypeEnum,
 } from '../types/sheet.d.ts';
+
+export type GeneratedSheetViewRowDefinition = {
+	viewRowKey: string;
+	position: number;
+	cellValues: Record<string, string | number>;
+	criteria: {
+		date?: {
+			key: string;
+			value: string;
+			grain: 'DAY' | 'WEEK';
+			sourceCellKey: string;
+		};
+		dimensions: Array<{
+			key: string;
+			value: string;
+			sourceCellKey?: string | null;
+		}>;
+	};
+};
 
 /*
  * Keep a user-resized sheet column width inside the usable spreadsheet range.
@@ -32,6 +52,16 @@ function isPlainObject(value: any) {
 
 export function isSheetViewMasterCellColumn(column: SheetDesignViewColumnObj | null | undefined) {
 	return column?.source?.type === 'MASTER_CELL' && typeof column.source.cellKey === 'string' && !!column.source.cellKey;
+}
+
+/*
+ * Return whether one saved view has a usable generated grouped-row model.
+ */
+
+export function isSheetViewGeneratedRowsView(view: SheetDesignViewObj | null | undefined) {
+	return view?.rowModel?.type === 'GROUPED_ROWS' &&
+		typeof view.rowModel.generator?.keyPrefix === 'string' &&
+		!!view.rowModel.generator.keyPrefix;
 }
 
 /*
@@ -90,6 +120,287 @@ export function getOrderedSheetDesignViewColumns(view: SheetDesignViewObj | null
 }
 
 /*
+ * Return a YYYY-MM-DD string for one date using UTC calendar fields.
+ */
+
+function formatDateKey(date: Date) {
+	const year = date.getUTCFullYear();
+	const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+	const day = String(date.getUTCDate()).padStart(2, '0');
+
+	return `${year}-${month}-${day}`;
+}
+
+/*
+ * Return a UTC date parsed from a YYYY-MM-DD string.
+ */
+
+function parseDateKey(value: string | null | undefined) {
+	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+		return null;
+	}
+
+	const [year, month, day] = value.split('-').map(Number);
+	const date = new Date(Date.UTC(year, month - 1, day));
+
+	if (
+		date.getUTCFullYear() !== year ||
+		date.getUTCMonth() !== month - 1 ||
+		date.getUTCDate() !== day
+	) {
+		return null;
+	}
+
+	return date;
+}
+
+/*
+ * Return a new UTC date offset by a number of days.
+ */
+
+function addDays(date: Date, days: number) {
+	const nextDate = new Date(date.getTime());
+	nextDate.setUTCDate(nextDate.getUTCDate() + days);
+
+	return nextDate;
+}
+
+/*
+ * Return the inclusive start and end dates for one generated date series.
+ */
+
+function getSheetViewDateSeriesRange(
+	dateSeries: NonNullable<NonNullable<SheetDesignViewObj['rowModel']>['generator']>['dateSeries'],
+	referenceDate: Date,
+) {
+	if (!dateSeries?.range) {
+		return null;
+	}
+
+	if (dateSeries.range.type === 'FIXED') {
+		const start = parseDateKey(dateSeries.range.start);
+		const end = parseDateKey(dateSeries.range.end);
+
+		return start && end && start.getTime() <= end.getTime() ? { start, end } : null;
+	}
+
+	if (dateSeries.range.type === 'CURRENT_MONTH') {
+		const start = new Date(Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth(), 1));
+		const end = new Date(Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth() + 1, 0));
+
+		return { start, end };
+	}
+
+	return null;
+}
+
+/*
+ * Return generated date points for one date series.
+ */
+
+function getSheetViewDateSeriesValues(
+	dateSeries: NonNullable<NonNullable<SheetDesignViewObj['rowModel']>['generator']>['dateSeries'],
+	referenceDate: Date,
+) {
+	const range = getSheetViewDateSeriesRange(dateSeries, referenceDate);
+	if (!dateSeries?.key || !range) {
+		return [];
+	}
+
+	const values: Array<{
+		key: string;
+		value: string;
+		label: string;
+		grain: 'DAY' | 'WEEK';
+		sourceCellKey: string;
+	}> = [];
+	let current = range.start;
+
+	while (current.getTime() <= range.end.getTime()) {
+		if (dateSeries.grain === 'DAY' || (dateSeries.grain === 'WEEK' && current.getUTCDay() === 1)) {
+			const value = formatDateKey(current);
+			values.push({
+				key: dateSeries.key,
+				value,
+				label: value,
+				grain: dateSeries.grain,
+				sourceCellKey: dateSeries.sourceCellKey || dateSeries.key,
+			});
+		}
+
+		current = addDays(current, 1);
+	}
+
+	return values;
+}
+
+/*
+ * Return generated dimension values from static values or master cell options.
+ */
+
+function getSheetViewGeneratorDimensionValues(
+	dimension: SheetDesignViewGeneratorDimensionObj,
+	masterCellsByKey: Map<string, SheetDesignCellObj>,
+) {
+	if (!dimension?.key || !dimension.source) {
+		return [];
+	}
+
+	if (dimension.source.type === 'STATIC_VALUES') {
+		return (dimension.source.values || [])
+			.filter((value) => typeof value?.value === 'string' && !!value.value)
+			.map((value) => ({
+				key: dimension.key,
+				value: value.value,
+				label: value.label || value.value,
+				sourceCellKey: null,
+			}));
+	}
+
+	if (dimension.source.type === 'MASTER_CELL_OPTIONS') {
+		const cellKey = dimension.source.cellKey;
+		const cell = masterCellsByKey.get(cellKey);
+
+		return (cell?.options || [])
+			.filter((option) => typeof option?.value === 'string' && !!option.value)
+			.map((option) => ({
+				key: dimension.key,
+				value: option.value,
+				label: option.label || option.value,
+				sourceCellKey: cellKey,
+			}));
+	}
+
+	return [];
+}
+
+/*
+ * Return all dimension value groups for a generated grouped-row view.
+ */
+
+function getSheetViewGeneratorValueGroups(
+	view: SheetDesignViewObj,
+	masterCells: SheetDesignCellObj[],
+	referenceDate: Date,
+) {
+	const generator = view.rowModel?.generator;
+	const masterCellsByKey = new Map(masterCells.map((cell) => [cell.key, cell]));
+	const groups: Array<Array<{
+		key: string;
+		value: string;
+		label: string;
+		grain?: 'DAY' | 'WEEK';
+		sourceCellKey?: string | null;
+	}>> = [];
+
+	const dateValues = getSheetViewDateSeriesValues(generator?.dateSeries, referenceDate);
+	if (dateValues.length) {
+		groups.push(dateValues);
+	}
+
+	(generator?.dimensions || []).forEach((dimension) => {
+		const values = getSheetViewGeneratorDimensionValues(dimension, masterCellsByKey);
+		if (values.length) {
+			groups.push(values);
+		}
+	});
+
+	return groups;
+}
+
+/*
+ * Return every cartesian combination of generated date and dimension values.
+ */
+
+function getSheetViewGeneratorCombinations(
+	groups: Array<Array<{
+		key: string;
+		value: string;
+		label: string;
+		grain?: 'DAY' | 'WEEK';
+		sourceCellKey?: string | null;
+	}>>,
+) {
+	return groups.reduce((combinations, group) => {
+		if (!combinations.length) {
+			return group.map((value) => [value]);
+		}
+
+		return combinations.flatMap((combination) => group.map((value) => combination.concat(value)));
+	}, [] as Array<Array<{
+		key: string;
+		value: string;
+		label: string;
+		grain?: 'DAY' | 'WEEK';
+		sourceCellKey?: string | null;
+	}>>);
+}
+
+/*
+ * Return the stable row key for one generated row combination.
+ */
+
+function getSheetViewGeneratedRowKey(
+	keyPrefix: string,
+	combination: Array<{
+		key: string;
+		value: string;
+	}>,
+) {
+	const segments = combination.map((value) => `${value.key}=${encodeURIComponent(value.value)}`);
+
+	return `${keyPrefix}:${segments.join(':')}`;
+}
+
+/*
+ * Return generated row definitions for one grouped-row view generator.
+ */
+
+export function getSheetViewGeneratedRowDefinitions(
+	view: SheetDesignViewObj,
+	masterCells: SheetDesignCellObj[],
+	referenceDate: Date = new Date(),
+) {
+	if (!isSheetViewGeneratedRowsView(view)) {
+		return [];
+	}
+
+	const generator = view.rowModel!.generator!;
+	const groups = getSheetViewGeneratorValueGroups(view, masterCells, referenceDate);
+	const combinations = getSheetViewGeneratorCombinations(groups);
+
+	return combinations.map((combination, index) => {
+		const cellValues = combination.reduce((values, value) => {
+			values[value.key] = value.label;
+			return values;
+		}, {} as Record<string, string | number>);
+		const dateValue = combination.find((value) => value.key === generator.dateSeries?.key);
+		const dimensionValues = combination.filter((value) => value.key !== generator.dateSeries?.key);
+
+		return {
+			viewRowKey: getSheetViewGeneratedRowKey(generator.keyPrefix, combination),
+			position: index + 1,
+			cellValues,
+			criteria: {
+				date: dateValue && dateValue.grain
+					? {
+						key: dateValue.key,
+						value: dateValue.value,
+						grain: dateValue.grain,
+						sourceCellKey: dateValue.sourceCellKey || dateValue.key,
+					}
+					: undefined,
+				dimensions: dimensionValues.map((value) => ({
+					key: value.key,
+					value: value.value,
+					sourceCellKey: value.sourceCellKey,
+				})),
+			},
+		} satisfies GeneratedSheetViewRowDefinition;
+	});
+}
+
+/*
  * Convert a view column into the same design-cell shape used by the grid renderer.
  */
 
@@ -106,13 +417,21 @@ export function mapSheetDesignViewColumnToCell(
 		label: column.label || masterCell?.label || column.key,
 		humanLabel: column.humanLabel ?? null,
 		iconName: column.iconName ?? masterCell?.iconName ?? null,
-		fieldType: masterCell?.fieldType || column.humanFieldType as SheetFieldTypeEnum,
+		fieldType: masterCell?.fieldType || column.fieldType || column.humanFieldType as SheetFieldTypeEnum,
 		humanFieldType: column.humanFieldType,
-		source: masterCell?.source || null,
+		source: column.source?.type === 'RELATED_RECORD' && column.source.path && column.source.table
+			? {
+				path: column.source.path,
+				table: column.source.table,
+			}
+			: masterCell?.source || null,
 		options: column.options || masterCell?.options || [],
 		openLink: column.openLink ?? masterCell?.openLink,
 		humansOnly: masterCell?.humansOnly,
-		humansCannotEdit: column.humansCannotEdit ?? masterCell?.humansCannotEdit ?? column.source?.type !== 'MASTER_CELL',
+		humansCannotEdit: column.humansCannotEdit ?? masterCell?.humansCannotEdit ?? (
+			column.source?.type !== 'MASTER_CELL' &&
+			column.source?.type !== 'CUSTOM'
+		),
 		indexed: masterCell?.indexed,
 		width: column.width ?? null,
 		viewSource: column.source || null,

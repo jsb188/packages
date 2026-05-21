@@ -1923,11 +1923,6 @@ export const LayoutDashboard1Color = <svg xmlns="http://www.w3.org/2000/svg" fil
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.5 15.5h-5c-0.55228 0 -1 0.4477 -1 1v3c0 0.5523 0.44772 1 1 1h5c0.5523 0 1 -0.4477 1 -1v-3c0 -0.5523 -0.4477 -1 -1 -1Z" strokeWidth="1"/>
 </svg>;
 
-export const LayoutSidebarLeftExpandFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-layout-sidebar-left-expand-filled" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M18 3a3 3 0 0 1 2.995 2.824l.005 .176v12a3 3 0 0 1 -2.824 2.995l-.176 .005h-12a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-12a3 3 0 0 1 2.824 -2.995l.176 -.005h12zm0 2h-9v14h9a1 1 0 0 0 .993 -.883l.007 -.117v-12a1 1 0 0 0 -.883 -.993l-.117 -.007zm-4.387 4.21l.094 .083l2 2a1 1 0 0 1 .083 1.32l-.083 .094l-2 2a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.292 -1.293l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083z" strokeWidth="0" fill="currentColor" />
-</svg>;
-
 export const LayoutSidebarLeftCollapseFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-layout-sidebar-left-collapse-filled" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M18 3a3 3 0 0 1 2.995 2.824l.005 .176v12a3 3 0 0 1 -2.824 2.995l-.176 .005h-12a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-12a3 3 0 0 1 2.824 -2.995l.176 -.005h12zm0 2h-9v14h9a1 1 0 0 0 .993 -.883l.007 -.117v-12a1 1 0 0 0 -.883 -.993l-.117 -.007zm-2.293 4.293a1 1 0 0 1 .083 1.32l-.083 .094l-1.292 1.293l1.292 1.293a1 1 0 0 1 .083 1.32l-.083 .094a1 1 0 0 1 -1.32 .083l-.094 -.083l-2 -2a1 1 0 0 1 -.083 -1.32l.083 -.094l2 -2a1 1 0 0 1 1.414 0z" strokeWidth="0" fill="currentColor" />
@@ -3556,6 +3551,21 @@ export const ShipmentContainer = <svg xmlns="http://www.w3.org/2000/svg" classNa
 <path d="M6.19644456,17.80355594l-3.80533344,3.80533319" strokeWidth="1.25" />
 <path d="M6.0000002,10.0000004h12.0000006" strokeWidth="1.25" />
 <path d="M6.0000002,13.9999996h12.0000006" strokeWidth="1.25" />
+</svg>;
+
+export const SidebarLineLeft = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-line-left" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+<path stroke="currentColor" d="M1.75 21h20.5c0.6 0 1 -0.4 1 -1V4c0 -0.6 -0.4 -1 -1 -1H1.75c-0.6 0 -1 0.4 -1 1v16c0 0.5 0.5 1 1 1Z" />
+<path stroke="currentColor" d="M9.25 3v18" />
+<path stroke="currentColor" d="M6.54999 6.69995h-3" />
+<path stroke="currentColor" d="M6.54999 10h-3" />
+<path stroke="currentColor" d="M6.54999 13.2h-3" />
+<path stroke="currentColor" d="M6.55 16.3999h-1.3" />
+</svg>;
+
+export const SidebarExpand = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-expand" viewBox="0 0 24 24" strokeWidth="2" fill="none" strokeLinejoin="round">
+<path stroke="currentColor" d="m21.25 0.75 -18.5 0s-2 0 -2 2l0 18.5s0 2 2 2l18.5 0s2 0 2 -2l0 -18.5s0 -2 -2 -2"/>
+<path stroke="currentColor" strokeLinecap="round" d="M6.75 0.75v22.5"/>
+<path stroke="currentColor" strokeLinecap="round" d="m16.4453 16.4443 -4.4444 -4.4444 4.4444 -4.44445"/>
 </svg>;
 
 export const Sun = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sun" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
