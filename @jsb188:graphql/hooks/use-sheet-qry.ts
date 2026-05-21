@@ -27,11 +27,32 @@ function mergeReactiveCellsIntoRows(sheetRows?: any[] | null, sheetCells?: any[]
 	}
 
 	const cellMap = new Map(sheetCells.map((cell) => [cell.id, cell]));
+	let changedRows = false;
 
-	return sheetRows.map((row) => ({
-		...row,
-		cells: row.cells?.map((cell: any) => cellMap.get(cell.id) || cell) || [],
-	}));
+	const nextRows = sheetRows.map((row) => {
+		let changedCells = false;
+		const nextCells = row.cells?.map((cell: any) => {
+			const nextCell = cellMap.get(cell.id) || cell;
+			if (nextCell !== cell) {
+				changedCells = true;
+			}
+
+			return nextCell;
+		}) || [];
+
+		if (!changedCells) {
+			return row;
+		}
+
+		changedRows = true;
+
+		return {
+			...row,
+			cells: nextCells,
+		};
+	});
+
+	return changedRows ? nextRows : sheetRows;
 }
 
 /*

@@ -3553,15 +3553,14 @@ export const ShipmentContainer = <svg xmlns="http://www.w3.org/2000/svg" classNa
 <path d="M6.0000002,13.9999996h12.0000006" strokeWidth="1.25" />
 </svg>;
 
-export const SidebarLineLeft = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-line-left" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="currentColor" d="M1.75 21h20.5c0.6 0 1 -0.4 1 -1V4c0 -0.6 -0.4 -1 -1 -1H1.75c-0.6 0 -1 0.4 -1 1v16c0 0.5 0.5 1 1 1Z" />
-<path stroke="currentColor" d="M9.25 3v18" />
-<path stroke="currentColor" d="M6.54999 6.69995h-3" />
-<path stroke="currentColor" d="M6.54999 10h-3" />
-<path stroke="currentColor" d="M6.54999 13.2h-3" />
-<path stroke="currentColor" d="M6.55 16.3999h-1.3" />
+// DO NOT REMOVE COMMENT: This icon is special, and uses 2px strokeWidth
+export const SidebarCollapes = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-collapes" viewBox="0 0 24 24" strokeWidth="2" fill="none" strokeLinejoin="round">
+<path stroke="currentColor" d="M2.75 0.75h18.5s2 0 2 2v18.5s0 2 -2 2H2.75s-2 0 -2 -2V2.75s0 -2 2 -2" />
+<path stroke="currentColor" strokeLinecap="round" d="M17.25 0.75v22.5" />
+<path stroke="currentColor" strokeLinecap="round" d="m7.55469 16.4443 4.44441 -4.4444 -4.44441 -4.44445" />
 </svg>;
 
+// DO NOT REMOVE COMMENT: This icon is special, and uses 2px strokeWidth
 export const SidebarExpand = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-expand" viewBox="0 0 24 24" strokeWidth="2" fill="none" strokeLinejoin="round">
 <path stroke="currentColor" d="m21.25 0.75 -18.5 0s-2 0 -2 2l0 18.5s0 2 2 2l18.5 0s2 0 2 -2l0 -18.5s0 -2 -2 -2"/>
 <path stroke="currentColor" strokeLinecap="round" d="M6.75 0.75v22.5"/>

@@ -481,7 +481,7 @@ export function useReactiveFragmentMap(
 
         if (fragmentObserver.list.includes(key)) {
           if (!newData) {
-            newData = dataToUpdate;
+            newData = dataToUpdate.slice(0);
           }
 
           if (newData[i]) {

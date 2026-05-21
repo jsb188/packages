@@ -9,6 +9,7 @@ import type {
 	SheetDesignViewGeneratorDimensionObj,
 	SheetDesignViewObj,
 	SheetFieldTypeEnum,
+	SheetRecordValue,
 } from '../types/sheet.d.ts';
 
 export type GeneratedSheetViewRowDefinition = {
@@ -52,6 +53,115 @@ function isPlainObject(value: any) {
 
 export function isSheetViewMasterCellColumn(column: SheetDesignViewColumnObj | null | undefined) {
 	return column?.source?.type === 'MASTER_CELL' && typeof column.source.cellKey === 'string' && !!column.source.cellKey;
+}
+
+/*
+ * Return whether one value is a valid finite number input for a sheet cell.
+ */
+
+function isValidSheetNumberValue(value: SheetRecordValue) {
+	const numberValue = typeof value === 'number' ? value : Number(value);
+
+	return Number.isFinite(numberValue);
+}
+
+/*
+ * Return whether a date string points at a real calendar date.
+ */
+
+function isValidSheetDateKey(value: string) {
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+		return false;
+	}
+
+	const [year, month, day] = value.split('-').map(Number);
+	const date = new Date(Date.UTC(year, month - 1, day));
+
+	return date.getUTCFullYear() === year &&
+		date.getUTCMonth() === month - 1 &&
+		date.getUTCDate() === day;
+}
+
+/*
+ * Return whether one value can be stored as a sheet date cell.
+ */
+
+function isValidSheetDateValue(value: SheetRecordValue) {
+	if (value instanceof Date) {
+		return Number.isFinite(value.getTime());
+	}
+
+	return isValidSheetDateKey(String(value).split('T')[0]);
+}
+
+/*
+ * Return whether one value can be stored as a sheet datetime cell.
+ */
+
+function isValidSheetDateTimeValue(value: SheetRecordValue) {
+	const date = value instanceof Date ? value : new Date(String(value));
+
+	return Number.isFinite(date.getTime());
+}
+
+/*
+ * Return whether one value is included in a sheet cell's saved options.
+ */
+
+function isSheetOptionValue(cell: SheetDesignCellObj, value: unknown) {
+	const validValues = new Set((cell.options || []).map((option) => String(option.value)));
+
+	return validValues.has(String(value));
+}
+
+/*
+ * Return a user-readable validation error for an invalid sheet cell value.
+ */
+
+export function getSheetCellValueValidationError(
+	cell: SheetDesignCellObj,
+	value: SheetRecordValue,
+) {
+	if (value === null) {
+		return null;
+	}
+
+	if (cell.fieldType === 'NUMBER' && !isValidSheetNumberValue(value)) {
+		return `${cell.key} must be a valid number.`;
+	}
+
+	if (cell.fieldType === 'DATE' && !isValidSheetDateValue(value)) {
+		return `${cell.key} must be a valid date.`;
+	}
+
+	if (cell.fieldType === 'DATETIME' && !isValidSheetDateTimeValue(value)) {
+		return `${cell.key} must be a valid datetime.`;
+	}
+
+	if (cell.fieldType === 'SELECT' && cell.options?.length && !isSheetOptionValue(cell, value)) {
+		return `${cell.key} must be one of: ${(cell.options || []).map((option) => option.value).join(', ')}`;
+	}
+
+	if (cell.fieldType === 'SELECT_OR_TEXT' && !isSheetOptionValue(cell, value) && typeof value !== 'string') {
+		const optionsText = (cell.options || []).map((option) => option.value).join(', ');
+		return optionsText ? `${cell.key} must be one of: ${optionsText}, or a text string.` : `${cell.key} must be a text string.`;
+	}
+
+	if (cell.fieldType === 'MULTI_SELECT') {
+		if (!Array.isArray(value)) {
+			return `${cell.key} must be an array of option values.`;
+		}
+
+		if (cell.options?.length) {
+			const invalidValues = value.filter((item) => !isSheetOptionValue(cell, item));
+			if (invalidValues.length) {
+				return `${cell.key} contains invalid option values: ${invalidValues.map((item) => String(item)).join(', ')}. ` +
+					`Allowed values: ${(cell.options || []).map((option) => option.value).join(', ')}`;
+			}
+		}
+	}
+
+	return null;
 }
 
 /*

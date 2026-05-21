@@ -11,7 +11,7 @@ import type { ComponentProps } from 'react';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Sheet } from '../src/modules/Sheet';
+import { Sheet, parseSheetEditorValue } from '../src/modules/Sheet';
 
 const hookState = vi.hoisted(() => ({
 	editSheetCell: vi.fn(),
@@ -766,6 +766,144 @@ describe('Sheet container', () => {
 		expect(statusCell.className).not.toContain('bg_primary_fd_hv_solid');
 	});
 
+	it('parses typed editor values with the same shape expected by sheet validation', () => {
+		const options = [
+			{ label: 'Market', value: 'Market' },
+			{ label: 'Prep', value: 'Prep' },
+		];
+
+		expect(parseSheetEditorValue(createDesignCell('date', {
+			fieldType: 'DATE',
+			humanFieldType: 'DATE',
+		}), '2026-02-30').error).toBe('Invalid date');
+		expect(parseSheetEditorValue(createDesignCell('date', {
+			fieldType: 'DATE',
+			humanFieldType: 'DATE',
+		}), '2026-02-28').value).toBe('2026-02-28');
+		expect(parseSheetEditorValue(createDesignCell('datetime', {
+			fieldType: 'DATETIME',
+			humanFieldType: 'DATETIME',
+		}), '2026-05-21T09:30').value).toBe('2026-05-21T09:30');
+		expect(parseSheetEditorValue(createDesignCell('datetime', {
+			fieldType: 'DATETIME',
+			humanFieldType: 'DATETIME',
+		}), '2026-02-30T09:30').error).toBe('Invalid datetime');
+		expect(parseSheetEditorValue(createDesignCell('number', {
+			fieldType: 'NUMBER',
+			humanFieldType: 'NUMBER',
+		}), '12.5').value).toBe('12.5');
+		expect(parseSheetEditorValue(createDesignCell('boolean', {
+			fieldType: 'BOOLEAN',
+			humanFieldType: 'BOOLEAN',
+		}), 'true').value).toBe('true');
+		expect(parseSheetEditorValue(createDesignCell('tags', {
+			fieldType: 'MULTI_SELECT',
+			humanFieldType: 'MULTI_SELECT',
+			options,
+		}), 'Market, Prep').value).toBe(JSON.stringify(['Market', 'Prep']));
+		expect(parseSheetEditorValue(createDesignCell('tags', {
+			fieldType: 'MULTI_SELECT',
+			humanFieldType: 'MULTI_SELECT',
+			options,
+		}), 'Market, Missing').error).toBe('Invalid option');
+	});
+
+	it('prefers typed mirror values over raw persisted strings when rendering cells', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('count', {
+					fieldType: 'NUMBER',
+					humanFieldType: 'NUMBER',
+				}),
+				createDesignCell('enabled', {
+					fieldType: 'BOOLEAN',
+					humanFieldType: 'BOOLEAN',
+				}),
+			],
+			cellsOrder: ['count', 'enabled'],
+		};
+		const row = createRow(0, {});
+		row.cells = [
+			createCell(row.id, 'count', 'stale', {
+				numberValue: 42,
+			}),
+			createCell(row.id, 'enabled', 'stale', {
+				booleanValue: false,
+			}),
+		];
+		hookState.sheetRows = [row];
+		const host = await renderSheet({ sheet });
+
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="count"]')?.textContent).toBe('42');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="enabled"]')?.textContent).toBe('false');
+	});
+
+	it('selects a valid saved default view on first render', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			defaultViewId: 'active_jobs',
+			views: [{
+				id: 'active_jobs',
+				name: 'Active Jobs',
+				layout: 'GRID',
+				columns: [{
+					key: 'job_name',
+					label: 'Job',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'MASTER_CELL',
+						cellKey: 'name',
+					},
+				}],
+				columnsOrder: ['job_name'],
+				filters: [],
+				sorts: [],
+				groups: [],
+			}],
+			viewsOrder: ['active_jobs'],
+		};
+		const host = await renderSheet({ sheet });
+
+		expect(hookState.lastSheetRowsArgs?.[4]).toEqual({
+			viewId: 'active_jobs',
+		});
+		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('Job');
+	});
+
+	it('falls back to the database tab when a saved default view is missing', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			defaultViewId: 'missing_view',
+			views: [{
+				id: 'active_jobs',
+				name: 'Active Jobs',
+				layout: 'GRID',
+				columns: [{
+					key: 'job_name',
+					label: 'Job',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'MASTER_CELL',
+						cellKey: 'name',
+					},
+				}],
+				columnsOrder: ['job_name'],
+				filters: [],
+				sorts: [],
+				groups: [],
+			}],
+			viewsOrder: ['active_jobs'],
+		};
+		const host = await renderSheet({ sheet });
+
+		expect(hookState.lastSheetRowsArgs?.[4]).toBeNull();
+		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('NAME');
+	});
+
 	it('saves header human labels from header edit mode', async () => {
 		const host = await renderSheet();
 		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
@@ -942,6 +1080,41 @@ describe('Sheet container', () => {
 		expect(statusCell.style.width).toBe('160px');
 	});
 
+	it('keeps sticky-left columns rendered during far horizontal scroll', async () => {
+		const sheet = createSheet();
+		const cells = Array.from({ length: 8 }, (_, index) => createDesignCell(index === 0 ? 'name' : `col_${index}`));
+		sheet.design = {
+			...sheet.design,
+			cells,
+			cellsOrder: cells.map((cell) => cell.key),
+			stickyLeft: 1,
+		};
+		hookState.sheetRows = [createRow(0, Object.fromEntries(cells.map((cell, index) => [cell.key, `Value ${index}`])))];
+		const host = await renderSheet({
+			bufferColumns: 0,
+			sheet,
+		});
+		const viewport = host.querySelector('[data-sheet-scroll-viewport="true"]') as HTMLElement;
+
+		await act(async () => {
+			Object.defineProperty(viewport, 'scrollLeft', {
+				configurable: true,
+				value: 900,
+				writable: true,
+			});
+			viewport.dispatchEvent(new Event('scroll', { bubbles: true }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		const stickyNameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]') as HTMLElement | null;
+		const farCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="col_6"][data-row-id="row-0"]') as HTMLElement | null;
+
+		expect(stickyNameCell?.textContent).toBe('Value 0');
+		expect(stickyNameCell?.style.left).toBe('944px');
+		expect(farCell?.textContent).toBe('Value 6');
+	});
+
 	it('renders viewport filler rows without row numbers or cell dividers', async () => {
 		const host = await renderSheet();
 		const rowNumbers = Array.from(host.querySelectorAll('.sheet_ui_row_number'));
@@ -1060,6 +1233,18 @@ describe('Sheet container', () => {
 		await renderSheet();
 
 		expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Maximum update depth exceeded'));
+	});
+
+	it('updates rendered cells when refreshed rows keep the same ids but change values', async () => {
+		const host = await renderSheet();
+		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]') as HTMLElement;
+
+		expect(getNameCell().textContent).toBe('Alpha');
+
+		hookState.sheetRows = [createRow(0, { name: 'Server Beta', status: 'Open' })];
+		await rerenderSheet();
+
+		expect(getNameCell().textContent).toBe('Server Beta');
 	});
 
 	it('deduplicates repeated sheet row ids from refreshed row payloads', async () => {
@@ -1238,6 +1423,38 @@ describe('Sheet container', () => {
 		expect(getNameCell().textContent).toBe('Beta');
 	});
 
+	it('rolls back local edited cell values when the save mutation fails', async () => {
+		hookState.editSheetCell.mockRejectedValueOnce(new Error('Save failed'));
+		const host = await renderSheet();
+		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			getNameCell().dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+
+		await act(async () => {
+			input.value = 'Beta';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+		await flushRender();
+
+		const failedInput = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+		expect(failedInput).not.toBeNull();
+		expect(failedInput.value).toBe('Beta');
+
+		await act(async () => {
+			failedInput.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+		});
+		await flushRender();
+
+		expect(getNameCell().textContent).toBe('Alpha');
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+	});
+
 	it('does not enter edit mode for ID field types', async () => {
 		const sheet = createSheet();
 		sheet.design = {
@@ -1285,6 +1502,43 @@ describe('Sheet container', () => {
 		expect(consoleSpy).toHaveBeenCalledWith(expect.objectContaining({
 			cellKey: 'status',
 			value: 'Open',
+		}));
+	});
+
+	it('uses the optional onOpenCell handler for open-link cells', async () => {
+		const onOpenCell = vi.fn();
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					humansCannotEdit: true,
+					openLink: true,
+				}),
+			],
+		};
+		const host = await renderSheet({ onOpenCell, sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		expect(onOpenCell).toHaveBeenCalledWith(expect.objectContaining({
+			cell: expect.objectContaining({
+				cellKey: 'status',
+				value: 'Open',
+			}),
+			designCell: expect.objectContaining({
+				key: 'status',
+			}),
+			row: expect.objectContaining({
+				id: 'row-0',
+			}),
+			sheet: expect.objectContaining({
+				id: 'sheet-1',
+			}),
 		}));
 	});
 

@@ -142,10 +142,23 @@ describe('SheetUI helpers', () => {
 			scrollTop: 160,
 		})).toEqual({
 			rowStart: 2,
-			rowEnd: 9,
+			rowEnd: 8,
 			columnStart: 0,
 			columnEnd: 5,
 		});
+	});
+
+	it('counts visible rows from the body area below the sticky header', () => {
+		expect(getSheetVisibleRange({
+			bufferColumns: 0,
+			bufferRows: 0,
+			columnCount: 1,
+			containerHeight: SHEET_HEADER_HEIGHT + SHEET_ROW_HEIGHT * 2,
+			containerWidth: 160,
+			rowCount: 100,
+			scrollLeft: 0,
+			scrollTop: 0,
+		}).rowEnd).toBe(2);
 	});
 
 	it('calculates enough blank rows to fill the viewport', () => {

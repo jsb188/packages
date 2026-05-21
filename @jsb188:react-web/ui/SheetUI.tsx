@@ -257,7 +257,7 @@ export function getSheetVisibleRange(params: {
 	const bodyScrollTop = Math.max(0, scrollTop - headerHeight);
 	const bodyScrollLeft = Math.max(0, scrollLeft - SHEET_ROW_NUMBER_WIDTH);
 	const bodyScrollRight = Math.max(bodyScrollLeft, bodyScrollLeft + containerWidth - 1);
-	const visibleRowCount = Math.ceil(containerHeight / SHEET_ROW_HEIGHT);
+	const visibleRowCount = Math.ceil(Math.max(0, containerHeight - headerHeight) / SHEET_ROW_HEIGHT);
 	const rowStart = Math.max(0, Math.floor(bodyScrollTop / SHEET_ROW_HEIGHT) - bufferRows);
 	const firstVisibleColumnIndex = columnOffsets?.length
 		? getSheetColumnIndexAtOffset(columnOffsets, bodyScrollLeft)

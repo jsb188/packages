@@ -250,14 +250,14 @@ const AppToolbar = memo((p: {
           message={i18n.t('app.expand_sidebar')}
           position='bottom'
           offsetY={5}
-          className='mr_8 w_32 h_32 h_center ic_sm cl_md no_shrink bg_darker_2_hv r_xs link'
+          className='mr_14 -ml_4 w_32 h_32 h_center ic_sm cl_md no_shrink bg_darker_2_hv r_xs link'
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             outletContext.setOpen?.(true);
           }}
         >
-          <Icon name='sidebar-expand' />
+          <Icon name='sidebar-collapes' />
         </TooltipButton>
       )}
 

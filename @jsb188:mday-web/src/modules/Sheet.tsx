@@ -58,6 +58,7 @@ export interface SheetProps {
 	bufferColumns?: number;
 	disabled?: boolean;
 	allowEdit?: boolean;
+	onOpenCell?: (params: SheetOpenCellParams) => void;
 }
 
 type ElementSize = {
@@ -177,6 +178,11 @@ type SheetCellValueReducerAction =
 	| {
 		confirmedKeys: string[];
 		type: 'server_values_received';
+	}
+	| {
+		cellKey: string;
+		rowId: string;
+		type: 'local_value_reverted';
 	};
 
 type SheetTab = {
@@ -330,14 +336,6 @@ function mergeSheetRowsState(
 		return currentState;
 	}
 
-	if (
-		currentState.sourceKey === sourceKey &&
-		currentState.hasMoreRows === hasMoreRows &&
-		areSheetRowIdsEqual(currentState.rowIds, rowIds)
-	) {
-		return currentState;
-	}
-
 	return {
 		hasMoreRows,
 		rowIds,
@@ -399,6 +397,21 @@ function getSheetTabs(sheet: SheetGQL, views: SheetDesignViewGQL[]): SheetTab[] 
 
 function getSelectedSheetView(views: SheetDesignViewGQL[], selectedViewId: string | null) {
 	return selectedViewId ? views.find((view) => view.id === selectedViewId) || null : null;
+}
+
+/*
+ * Return the saved default view id when it still points at a valid view.
+ */
+
+function getValidDefaultSheetViewId(design: SheetDesignGQL | null | undefined) {
+	const defaultViewId = design?.defaultViewId || null;
+	if (!defaultViewId) {
+		return null;
+	}
+
+	return getOrderedSheetDesignViews(design as any).some((view) => view.id === defaultViewId)
+		? defaultViewId
+		: null;
 }
 
 /*
@@ -656,6 +669,20 @@ function sheetCellValueReducer(
 		return nextState;
 	}
 
+	if (action.type === 'local_value_reverted') {
+		const optimisticKey = getSheetCellKey(action.rowId, action.cellKey);
+		if (!Object.prototype.hasOwnProperty.call(state, optimisticKey)) {
+			return state;
+		}
+
+		const nextState = {
+			...state,
+		};
+		delete nextState[optimisticKey];
+
+		return nextState;
+	}
+
 	const optimisticKey = getSheetCellKey(action.rowId, action.cellKey);
 	if (state[optimisticKey] === action.value) {
 		return state;
@@ -761,9 +788,13 @@ function getSheetUIColumn(designCell: SheetDesignCellGQL): SheetUIColumn {
  * Parse one persisted sheet cell string into a displayable JavaScript value.
  */
 
-function parseSheetRawValue(value?: string | null) {
+function parseSheetRawValue(value?: unknown | null) {
 	if (value === undefined || value === null || value === '') {
 		return null;
+	}
+
+	if (typeof value !== 'string') {
+		return value;
 	}
 
 	try {
@@ -810,8 +841,20 @@ function getSheetCellSerializedValue(
 		return null;
 	}
 
-	if (designCell.humanFieldType === 'DATE') {
-		return cell.dateValue ?? cell.value ?? cell.textValue ?? null;
+	if (designCell.humanFieldType === 'NUMBER' && typeof cell.numberValue === 'number' && Number.isFinite(cell.numberValue)) {
+		return String(cell.numberValue);
+	}
+
+	if (designCell.humanFieldType === 'BOOLEAN' && cell.booleanValue !== undefined && cell.booleanValue !== null) {
+		return String(cell.booleanValue);
+	}
+
+	if (designCell.humanFieldType === 'DATE' && cell.dateValue) {
+		return String(cell.dateValue).split('T')[0];
+	}
+
+	if (designCell.humanFieldType === 'DATETIME' && cell.datetimeValue) {
+		return String(cell.datetimeValue);
 	}
 
 	return cell.value ?? cell.textValue ?? null;
@@ -1166,7 +1209,51 @@ function getSheetMockUICell(cellKey: string, rowIndex: number): SheetUICell {
  * Parse the current editor draft into the serialized value stored by GraphQL.
  */
 
-export function parseSheetEditorValue(humanFieldType: SheetFieldTypeGQL, draftValue: string): SheetParsedEditorValue {
+function isValidSheetDateInputValue(value: string) {
+	const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+	if (!match) {
+		return false;
+	}
+
+	const year = Number(match[1]);
+	const month = Number(match[2]);
+	const day = Number(match[3]);
+	const date = new Date(Date.UTC(year, month - 1, day));
+
+	return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+/*
+ * Return whether one editor datetime value can be parsed safely.
+ */
+
+function isValidSheetDateTimeInputValue(value: string) {
+	const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/);
+	if (!match || !isValidSheetDateInputValue(`${match[1]}-${match[2]}-${match[3]}`)) {
+		return false;
+	}
+
+	const hour = Number(match[4]);
+	const minute = Number(match[5]);
+	const second = match[6] === undefined ? 0 : Number(match[6]);
+
+	return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 && second >= 0 && second <= 59;
+}
+
+/*
+ * Return whether one editor value matches a saved sheet option.
+ */
+
+function isSheetEditorOptionValue(designCell: SheetDesignCellGQL, value: unknown) {
+	return (designCell.options || []).some((option) => String(option.value) === String(value));
+}
+
+/*
+ * Parse the current editor draft into the serialized value stored by GraphQL.
+ */
+
+export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue: string): SheetParsedEditorValue {
+	const humanFieldType = designCell.humanFieldType;
 	const value = draftValue.trim();
 
 	if (!value) {
@@ -1197,7 +1284,38 @@ export function parseSheetEditorValue(humanFieldType: SheetFieldTypeGQL, draftVa
 		return { value };
 	}
 
+	if (humanFieldType === 'DATE') {
+		if (!isValidSheetDateInputValue(value)) {
+			return {
+				error: 'Invalid date',
+				value: null,
+			};
+		}
+
+		return { value };
+	}
+
+	if (humanFieldType === 'DATETIME') {
+		if (!isValidSheetDateTimeInputValue(value)) {
+			return {
+				error: 'Invalid datetime',
+				value: null,
+			};
+		}
+
+		return { value };
+	}
+
+	if (humanFieldType === 'SELECT' && designCell.options?.length && !isSheetEditorOptionValue(designCell, value)) {
+		return {
+			error: 'Invalid option',
+			value: null,
+		};
+	}
+
 	if (humanFieldType === 'MULTI_SELECT') {
+		let values: string[];
+
 		if (value.startsWith('[')) {
 			try {
 				const parsedValue = JSON.parse(value);
@@ -1209,18 +1327,28 @@ export function parseSheetEditorValue(humanFieldType: SheetFieldTypeGQL, draftVa
 					};
 				}
 
-				return { value: JSON.stringify(parsedValue.map((item) => String(item))) };
+				values = parsedValue.map((item) => String(item));
 			} catch {
 				return {
 					error: 'Invalid list',
 					value: null,
 				};
 			}
+		} else {
+			values = value.split(',').map((item) => item.trim()).filter(Boolean);
 		}
 
-		return {
-			value: JSON.stringify(value.split(',').map((item) => item.trim()).filter(Boolean)),
-		};
+		if (designCell.options?.length) {
+			const invalidValues = values.filter((item) => !isSheetEditorOptionValue(designCell, item));
+			if (invalidValues.length) {
+				return {
+					error: 'Invalid option',
+					value: null,
+				};
+			}
+		}
+
+		return { value: JSON.stringify(values) };
 	}
 
 	if (humanFieldType === 'JSON') {
@@ -1369,7 +1497,7 @@ export function Sheet(p: SheetProps) {
 	const [resizingColumnKey, setResizingColumnKey] = useState<string | null>(null);
 	const [singleClickedCellState, setSingleClickedCellState] = useState<SheetUISelectedCellState | null>(null);
 	const singleClickedCellStateRef = useRef<SheetUISelectedCellState | null>(null);
-	const [selectedViewId, setSelectedViewId] = useState<string | null>(null);
+	const [selectedViewId, setSelectedViewId] = useState<string | null>(() => getValidDefaultSheetViewId(sheet.design));
 	const [designState, dispatchDesignState] = useReducer(
 		sheetDesignReducer,
 		undefined,
@@ -1476,11 +1604,15 @@ export function Sheet(p: SheetProps) {
 		pendingDesignPatchRef.current = null;
 	}, [rowSourceKey]);
 
+	useIsomorphicLayoutEffect(() => {
+		setSelectedViewId(getValidDefaultSheetViewId(sheet.design));
+	}, [sheetId]);
+
 	useEffect(() => {
 		if (selectedViewId && !sheetViews.some((view) => view.id === selectedViewId)) {
-			setSelectedViewId(null);
+			setSelectedViewId(getValidDefaultSheetViewId(effectiveDesign));
 		}
-	}, [selectedViewId, sheetViews]);
+	}, [effectiveDesign, selectedViewId, sheetViews]);
 
 	useEffect(() => {
 		dispatchDesignState({
@@ -1504,15 +1636,16 @@ export function Sheet(p: SheetProps) {
 
 	useEffect(() => {
 		const loadedRowIds = new Set(rowState.rowIds);
+		const activeCellKeys = new Set(designCellsByKey.keys());
 
 		cellUICacheRef.current.forEach((_, cacheKey) => {
-			const rowId = cacheKey.split(':')[0];
+			const [rowId, cellKey] = cacheKey.split(':');
 
-			if (!loadedRowIds.has(rowId)) {
+			if (!loadedRowIds.has(rowId) || !activeCellKeys.has(cellKey || '')) {
 				cellUICacheRef.current.delete(cacheKey);
 			}
 		});
-	}, [rowState.rowIds]);
+	}, [designCellsByKey, rowState.rowIds]);
 
 	const rowStateMatchesSource = rowState.sourceKey === rowSourceKey;
 	const rows = useMemo(() => {
@@ -1569,17 +1702,26 @@ export function Sheet(p: SheetProps) {
 			value,
 		});
 
-		await editSheetCell({
-			variables: {
-				organizationId,
-				sheetId,
-				sheetRowId: lookup.row.id,
-				cellKey: getSheetRuntimeCellKey(lookup.designCell),
-				viewId: activeView?.id || null,
-				viewCellKey: activeView ? lookup.designCell.key : null,
-				value,
-			},
-		});
+		try {
+			await editSheetCell({
+				variables: {
+					organizationId,
+					sheetId,
+					sheetRowId: lookup.row.id,
+					cellKey: getSheetRuntimeCellKey(lookup.designCell),
+					viewId: activeView?.id || null,
+					viewCellKey: activeView ? lookup.designCell.key : null,
+					value,
+				},
+			});
+		} catch (error) {
+			dispatchOptimisticValues({
+				cellKey: lookup.designCell.key,
+				rowId: lookup.row.id,
+				type: 'local_value_reverted',
+			});
+			throw error;
+		}
 	}, [activeView, editSheetCell, organizationId, sheetId]);
 	const fetchMoreRows = useCallback(async () => {
 		const pagination = paginationRef.current;
@@ -1823,7 +1965,7 @@ export function Sheet(p: SheetProps) {
 		}
 
 		const draftValue = getSheetEditorElementValue(editorElement);
-		const parsedValue = parseSheetEditorValue(lookup.designCell.humanFieldType, draftValue);
+		const parsedValue = parseSheetEditorValue(lookup.designCell, draftValue);
 
 		if (parsedValue.error) {
 			setEditState({
@@ -1871,7 +2013,7 @@ export function Sheet(p: SheetProps) {
 		disabled: effectiveDisabled,
 		editState,
 		optimisticValues,
-		openCell: openSheetCellLink,
+		openCell: p.onOpenCell || openSheetCellLink,
 		rowCellsById,
 		rowsById,
 		saveCellValue,
@@ -2266,8 +2408,20 @@ export function Sheet(p: SheetProps) {
 	]);
 
 	const visibleColumns = useMemo(() => {
-		return columnMetricsData.metrics
-			.slice(visibleRange.columnStart, visibleRange.columnEnd)
+		const visibleColumnIndexes = new Set<number>();
+
+		for (let index = 0; index < stickyColumnCount && index < columnMetricsData.metrics.length; index += 1) {
+			visibleColumnIndexes.add(index);
+		}
+
+		for (let index = visibleRange.columnStart; index < visibleRange.columnEnd; index += 1) {
+			visibleColumnIndexes.add(index);
+		}
+
+		return Array.from(visibleColumnIndexes)
+			.sort((a, b) => a - b)
+			.map((index) => columnMetricsData.metrics[index])
+			.filter(Boolean)
 			.map((metric) => {
 				if (metric.columnIndex < stickyColumnCount) {
 					return metric;
@@ -2320,7 +2474,7 @@ export function Sheet(p: SheetProps) {
 						!designCell.humansCannotEdit &&
 						designCell.fieldType !== 'ID';
 					const canOpen = Boolean(designCell.openLink);
-					const iconName = cell?.iconName || designCell.iconName || null;
+					const iconName = (cell && 'iconName' in cell ? cell.iconName : null) || designCell.iconName || null;
 					const signature = getSheetUICellSignature({
 						canEdit,
 						canOpen,
