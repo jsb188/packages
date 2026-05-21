@@ -1,5 +1,7 @@
 import { useEditSheetCell, useEditSheetDesign } from '@jsb188/graphql/hooks/use-sheet-mtn';
 import { useReactiveSheetRows, useSheetRows } from '@jsb188/graphql/hooks/use-sheet-qry';
+import { COLORS } from '@jsb188/app/constants/app.ts';
+import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import type {
   SheetCellGQL,
   SheetDesignCellGQL,
@@ -7,6 +9,7 @@ import type {
   SheetGQL,
   SheetRowGQL,
 } from '@jsb188/mday/types/sheet.d.ts';
+import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
 import {
 	SHEET_COLUMN_WIDTH,
 	SHEET_HEADER_HEIGHT,
@@ -25,6 +28,7 @@ import {
   type SheetUIColumn,
   type SheetUIEditState,
   type SheetUIFieldType,
+  type SheetUIHeaderEditState,
   type SheetUIResizeGuide,
   type SheetUIRowSlot,
 } from '@jsb188/react-web/ui/SheetUI';
@@ -104,6 +108,7 @@ type SheetPaginationState = {
 
 type SheetDesignPatchInput = {
 	cells?: Array<{
+		humanLabel?: string | null;
 		key: string;
 		width?: number | null;
 	}>;
@@ -131,6 +136,9 @@ const SHEET_BUFFER_ROWS = 8;
 const SHEET_BUFFER_COLUMNS = 3;
 const SHEET_FETCH_BUFFER_ROWS = 12;
 const SHEET_ROW_RIGHT_PADDING = 64;
+const SHEET_MOCK_ROW_COUNT = 5;
+const SHEET_MOCK_CELL_TEXT = '... ... ...';
+const SHEET_MOCK_ROW_OPACITY_CLASSES = ['', 'op_80', 'op_60', 'op_40', 'op_20'];
 
 /*
  * Build an empty row collection state for one sheet.
@@ -311,7 +319,10 @@ function mergeSheetDesignPatch(
 		const cellsByKey = new Map((mergedPatch.cells || []).map((cell) => [cell.key, cell]));
 
 		nextPatch.cells.forEach((cell) => {
-			cellsByKey.set(cell.key, cell);
+			cellsByKey.set(cell.key, {
+				...cellsByKey.get(cell.key),
+				...cell,
+			});
 		});
 
 		mergedPatch.cells = Array.from(cellsByKey.values());
@@ -380,6 +391,25 @@ function useElementSize<T extends HTMLElement>() {
 }
 
 /*
+ * Return the human-facing header label for one sheet design cell.
+ */
+
+function getSheetDesignCellHeaderLabel(designCell: SheetDesignCellGQL) {
+	return designCell.humanLabel || designCell.label || designCell.key;
+}
+
+/*
+ * Convert a header editor draft into the stored human label patch value.
+ */
+
+function getSheetHeaderHumanLabelPatchValue(designCell: SheetDesignCellGQL, draftValue: string) {
+	const value = draftValue.trim().slice(0, SHEET_HUMAN_LABEL_MAX_LENGTH);
+	const fallbackLabel = designCell.label || designCell.key;
+
+	return value && value !== fallbackLabel ? value : null;
+}
+
+/*
  * Convert a GraphQL design cell into an app-agnostic UI column.
  */
 
@@ -387,8 +417,8 @@ function getSheetUIColumn(designCell: SheetDesignCellGQL): SheetUIColumn {
 	return {
 		id: designCell.key,
 		key: designCell.key,
-		label: designCell.label || designCell.key,
-		fieldType: designCell.fieldType as SheetUIFieldType,
+		label: getSheetDesignCellHeaderLabel(designCell),
+		fieldType: designCell.humanFieldType as SheetUIFieldType,
 		options: designCell.options || [],
 		openLink: designCell.openLink,
 		humansCannotEdit: designCell.humansCannotEdit,
@@ -448,20 +478,8 @@ function getSheetCellSerializedValue(
 		return null;
 	}
 
-	if (designCell.fieldType === 'NUMBER' && cell.numberValue !== undefined && cell.numberValue !== null) {
-		return String(cell.numberValue);
-	}
-
-	if (designCell.fieldType === 'BOOLEAN' && cell.booleanValue !== undefined && cell.booleanValue !== null) {
-		return cell.booleanValue ? 'true' : 'false';
-	}
-
-	if (designCell.fieldType === 'DATE' && cell.dateValue) {
-		return cell.dateValue;
-	}
-
-	if (designCell.fieldType === 'DATETIME' && cell.datetimeValue) {
-		return cell.datetimeValue;
+	if (designCell.humanFieldType === 'DATE') {
+		return cell.dateValue ?? cell.value ?? cell.textValue ?? null;
 	}
 
 	return cell.value ?? cell.textValue ?? null;
@@ -484,6 +502,56 @@ function getSheetOptionLabel(designCell: SheetDesignCellGQL, value: string) {
 }
 
 /*
+ * Check whether one sheet field type should display select option styling.
+ */
+
+function isSheetSelectDisplayFieldType(humanFieldType: SheetFieldTypeGQL) {
+	return humanFieldType === 'SELECT' || humanFieldType === 'SELECT_OR_TEXT';
+}
+
+/*
+ * Return a safe sheet option color name for a select-style display pill.
+ */
+
+function getValidSheetOptionColor(color?: string | null) {
+	return typeof color === 'string' && COLORS.includes(color as any) ? color : 'zinc';
+}
+
+/*
+ * Return the background color class for one select-style sheet cell value.
+ */
+
+function getSheetSelectDisplayColorClassName(designCell: SheetDesignCellGQL, value: string) {
+	const option = designCell.options?.find((item) => item.value === value);
+	return `bg_${getValidSheetOptionColor(option?.color)}_md`;
+}
+
+/*
+ * Return the hover background class for one select-style sheet cell with a valid option color.
+ */
+
+function getSheetSelectCellClassName(designCell: SheetDesignCellGQL, value: string) {
+	const option = designCell.options?.find((item) => item.value === value);
+	if (typeof option?.color !== 'string' || !COLORS.includes(option.color as any)) {
+		return undefined;
+	}
+
+	return `bg_${option.color}_fd_hv`;
+}
+
+/*
+ * Format one sheet DATE value for display in the grid.
+ */
+
+function getSheetDateDisplayValue(value: unknown) {
+	if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
+		return '';
+	}
+
+	return getReadableCalDate(value instanceof Date ? value : String(value)) || stringifySheetDisplayValue(value);
+}
+
+/*
  * Convert one cell and design column into the display string shown in the grid.
  */
 
@@ -494,11 +562,15 @@ function getSheetCellDisplayValue(
 ) {
 	const rawValue = parseSheetRawValue(getSheetCellSerializedValue(cell, designCell, optimisticValue));
 
-	if (designCell.fieldType === 'SELECT' && typeof rawValue === 'string') {
+	if (designCell.humanFieldType === 'DATE') {
+		return getSheetDateDisplayValue(rawValue);
+	}
+
+	if ((designCell.humanFieldType === 'SELECT' || designCell.humanFieldType === 'SELECT_OR_TEXT') && typeof rawValue === 'string') {
 		return getSheetOptionLabel(designCell, rawValue);
 	}
 
-	if (designCell.fieldType === 'MULTI_SELECT') {
+	if (designCell.humanFieldType === 'MULTI_SELECT') {
 		const values = Array.isArray(rawValue)
 			? rawValue
 			: typeof rawValue === 'string'
@@ -509,6 +581,54 @@ function getSheetCellDisplayValue(
 	}
 
 	return stringifySheetDisplayValue(rawValue);
+}
+
+/*
+ * Return the display class for one cell value shown in the grid.
+ */
+
+function getSheetCellDisplayClassName(
+	cell: SheetCellGQL | null | undefined,
+	designCell: SheetDesignCellGQL,
+	optimisticValue?: string | null,
+) {
+	if (!isSheetSelectDisplayFieldType(designCell.humanFieldType)) {
+		return undefined;
+	}
+
+	const rawValue = parseSheetRawValue(getSheetCellSerializedValue(cell, designCell, optimisticValue));
+	if (typeof rawValue !== 'string' || !rawValue) {
+		return undefined;
+	}
+
+	return [
+		'ellip',
+		'px_5',
+		'py_2',
+		'r_4',
+		getSheetSelectDisplayColorClassName(designCell, rawValue),
+	].join(' ');
+}
+
+/*
+ * Return the container class for one cell value shown in the grid.
+ */
+
+function getSheetCellClassName(
+	cell: SheetCellGQL | null | undefined,
+	designCell: SheetDesignCellGQL,
+	optimisticValue?: string | null,
+) {
+	if (!isSheetSelectDisplayFieldType(designCell.humanFieldType)) {
+		return undefined;
+	}
+
+	const rawValue = parseSheetRawValue(getSheetCellSerializedValue(cell, designCell, optimisticValue));
+	if (typeof rawValue !== 'string' || !rawValue) {
+		return undefined;
+	}
+
+	return getSheetSelectCellClassName(designCell, rawValue);
 }
 
 /*
@@ -523,11 +643,11 @@ function getSheetEditorDraftValue(
 	const serializedValue = getSheetCellSerializedValue(cell, designCell, optimisticValue);
 	const rawValue = parseSheetRawValue(serializedValue);
 
-	if (designCell.fieldType === 'MULTI_SELECT' && Array.isArray(rawValue)) {
+	if (designCell.humanFieldType === 'MULTI_SELECT' && Array.isArray(rawValue)) {
 		return rawValue.map((value) => String(value)).join(', ');
 	}
 
-	if (designCell.fieldType === 'DATETIME' && typeof rawValue === 'string') {
+	if (designCell.humanFieldType === 'DATETIME' && typeof rawValue === 'string') {
 		return rawValue.slice(0, 16);
 	}
 
@@ -540,7 +660,7 @@ function getSheetEditorDraftValue(
 
 function getSheetDesignOptionsStateKey(designCell: SheetDesignCellGQL) {
 	return (designCell.options || [])
-		.map((option) => [option.label, option.value].join('\u0001'))
+		.map((option) => [option.label, option.value, option.color || ''].join('\u0001'))
 		.join('\u0002');
 }
 
@@ -558,7 +678,7 @@ function getSheetUICellSignature(p: {
 		p.serializedValue ?? '',
 		p.canEdit ? '1' : '0',
 		p.canOpen ? '1' : '0',
-		p.designCell.fieldType,
+		p.designCell.humanFieldType,
 		getSheetDesignOptionsStateKey(p.designCell),
 	].join('\u0000');
 }
@@ -577,17 +697,38 @@ function getSheetRowCellsById(rows: SheetRowGQL[]) {
 }
 
 /*
+ * Return the opacity class used for one loading mock row.
+ */
+
+function getSheetMockRowOpacityClass(rowIndex: number) {
+	return SHEET_MOCK_ROW_OPACITY_CLASSES[rowIndex] || '';
+}
+
+/*
+ * Build one mock cell for the loading rows shown before row data is ready.
+ */
+
+function getSheetMockUICell(cellKey: string, rowIndex: number): SheetUICell {
+	return {
+		cellKey,
+		displayValue: SHEET_MOCK_CELL_TEXT,
+		displayClassName: ['mock active bl min_w_50_pc', getSheetMockRowOpacityClass(rowIndex)].filter(Boolean).join(' '),
+		draftValue: '',
+	};
+}
+
+/*
  * Parse the current editor draft into the serialized value stored by GraphQL.
  */
 
-export function parseSheetEditorValue(fieldType: SheetFieldTypeGQL, draftValue: string): SheetParsedEditorValue {
+export function parseSheetEditorValue(humanFieldType: SheetFieldTypeGQL, draftValue: string): SheetParsedEditorValue {
 	const value = draftValue.trim();
 
 	if (!value) {
 		return { value: null };
 	}
 
-	if (fieldType === 'NUMBER') {
+	if (humanFieldType === 'NUMBER') {
 		const numberValue = Number(value);
 
 		if (!Number.isFinite(numberValue)) {
@@ -600,7 +741,7 @@ export function parseSheetEditorValue(fieldType: SheetFieldTypeGQL, draftValue: 
 		return { value };
 	}
 
-	if (fieldType === 'BOOLEAN') {
+	if (humanFieldType === 'BOOLEAN') {
 		if (value !== 'true' && value !== 'false') {
 			return {
 				error: 'Invalid boolean',
@@ -611,7 +752,7 @@ export function parseSheetEditorValue(fieldType: SheetFieldTypeGQL, draftValue: 
 		return { value };
 	}
 
-	if (fieldType === 'MULTI_SELECT') {
+	if (humanFieldType === 'MULTI_SELECT') {
 		if (value.startsWith('[')) {
 			try {
 				const parsedValue = JSON.parse(value);
@@ -637,7 +778,7 @@ export function parseSheetEditorValue(fieldType: SheetFieldTypeGQL, draftValue: 
 		};
 	}
 
-	if (fieldType === 'JSON') {
+	if (humanFieldType === 'JSON') {
 		try {
 			JSON.parse(value);
 			return { value };
@@ -760,7 +901,9 @@ export function Sheet(p: SheetProps) {
 	});
 	const [editState, setEditState] = useState<SheetUIEditState | null>(null);
 	const [columnWidths, setColumnWidths] = useState<SheetColumnWidths>({});
+	const [headerEditState, setHeaderEditState] = useState<SheetUIHeaderEditState | null>(null);
 	const [hoveredResizeColumnKey, setHoveredResizeColumnKey] = useState<string | null>(null);
+	const [optimisticHumanLabels, setOptimisticHumanLabels] = useState<Record<string, string | null>>({});
 	const [optimisticValues, setOptimisticValues] = useState<Record<string, string | null>>({});
 	const [resizingColumnKey, setResizingColumnKey] = useState<string | null>(null);
 	const [rowState, setRowState] = useState<SheetRowsState>(() => getInitialSheetRowsState(sheetId));
@@ -772,15 +915,24 @@ export function Sheet(p: SheetProps) {
 		sheetRows,
 		fetchMore,
 	} = useSheetRows(sheetId, organizationId, null, limit);
+	const isSheetRowsReady = Array.isArray(sheetRows);
 	const { editSheetCell } = useEditSheetCell();
 	const { editSheetDesign } = useEditSheetDesign();
 
 	const columns = useMemo(() => {
 		return getOrderedSheetDesignCells(sheet);
 	}, [sheet]);
+	const effectiveColumns = useMemo(() => {
+		return columns.map((cell) => Object.prototype.hasOwnProperty.call(optimisticHumanLabels, cell.key)
+			? {
+				...cell,
+				humanLabel: optimisticHumanLabels[cell.key],
+			}
+			: cell);
+	}, [columns, optimisticHumanLabels]);
 	const uiColumns = useMemo(() => {
-		return columns.map(getSheetUIColumn);
-	}, [columns]);
+		return effectiveColumns.map(getSheetUIColumn);
+	}, [effectiveColumns]);
 	const savedColumnWidths = useMemo(() => {
 		return getSheetDesignColumnWidths(columns);
 	}, [columns]);
@@ -798,12 +950,14 @@ export function Sheet(p: SheetProps) {
 		return new Map(columnMetricsData.metrics.map((metric) => [metric.column.key, metric]));
 	}, [columnMetricsData.metrics]);
 	const designCellsByKey = useMemo(() => {
-		return new Map(columns.map((cell) => [cell.key, cell]));
-	}, [columns]);
+		return new Map(effectiveColumns.map((cell) => [cell.key, cell]));
+	}, [effectiveColumns]);
 
 	useEffect(() => {
 		setColumnWidths({});
 		setEditState(null);
+		setHeaderEditState(null);
+		setOptimisticHumanLabels({});
 		setOptimisticValues({});
 		setRowState(getInitialSheetRowsState(sheetId));
 		setScrollState({
@@ -864,7 +1018,7 @@ export function Sheet(p: SheetProps) {
 		return rowState.rowIds.map((rowId) => rowState.rowsById[rowId]).filter(Boolean);
 	}, [rowState.rowIds, rowState.rowsById]);
 	const reactiveRows = useReactiveSheetRows(rows) as SheetRowGQL[] | null;
-	const renderedRows = reactiveRows || rows;
+	const renderedRows = isSheetRowsReady ? reactiveRows || rows : [];
 	const rowsById = useMemo(() => {
 		return new Map(renderedRows.map((row) => [row.id, row]));
 	}, [renderedRows]);
@@ -926,6 +1080,7 @@ export function Sheet(p: SheetProps) {
 			fetchingMoreRef.current = false;
 		}
 	}, [fetchMore, limit, organizationId, sheetId]);
+
 	const drainSheetDesignSave = useCallback(() => {
 		if (designSaveInFlightRef.current || !pendingDesignPatchRef.current) {
 			return;
@@ -966,11 +1121,44 @@ export function Sheet(p: SheetProps) {
 			}
 		})();
 	}, []);
+
 	drainSheetDesignSaveRef.current = drainSheetDesignSave;
+
 	const queueSheetDesignSave = useCallback((patch: SheetDesignPatchInput) => {
 		pendingDesignPatchRef.current = mergeSheetDesignPatch(pendingDesignPatchRef.current, patch);
 		drainSheetDesignSave();
 	}, [drainSheetDesignSave]);
+
+	const commitHeaderEditorElement = useCallback((editorElement: HTMLElement) => {
+		const runtime = runtimeRef.current;
+		const cellKey = editorElement.dataset.cellKey;
+		const designCell = cellKey ? runtime?.designCellsByKey.get(cellKey) : null;
+
+		setHeaderEditState(null);
+
+		if (!runtime || runtime.disabled || !designCell || runtime.sheet.design?.humansCannotEdit || designCell.humansCannotEdit) {
+			return;
+		}
+
+		const humanLabel = getSheetHeaderHumanLabelPatchValue(designCell, getSheetEditorElementValue(editorElement));
+		const currentHumanLabel = designCell.humanLabel || null;
+
+		if (currentHumanLabel === humanLabel) {
+			return;
+		}
+
+		setOptimisticHumanLabels((currentLabels) => ({
+			...currentLabels,
+			[designCell.key]: humanLabel,
+		}));
+		queueSheetDesignSave({
+			cells: [{
+				humanLabel,
+				key: designCell.key,
+			}],
+		});
+	}, [queueSheetDesignSave]);
+
 	const startColumnResize = useCallback((columnKey: string, clientX: number) => {
 		const runtime = runtimeRef.current;
 		const metric = runtime?.columnMetricsByKey.get(columnKey);
@@ -1071,6 +1259,7 @@ export function Sheet(p: SheetProps) {
 				});
 			});
 		};
+
 		const onPointerUp = (event: PointerEvent) => {
 			finishResize(event.clientX);
 		};
@@ -1105,7 +1294,7 @@ export function Sheet(p: SheetProps) {
 		}
 
 		const draftValue = getSheetEditorElementValue(editorElement);
-		const parsedValue = parseSheetEditorValue(lookup.designCell.fieldType, draftValue);
+		const parsedValue = parseSheetEditorValue(lookup.designCell.humanFieldType, draftValue);
 
 		if (parsedValue.error) {
 			setEditState({
@@ -1213,8 +1402,23 @@ export function Sheet(p: SheetProps) {
 			}
 		};
 		const onDoubleClick = (event: MouseEvent) => {
+			const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
 			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
+
+			if (headerElement && runtime && headerElement.dataset.sheetHeaderEditable === 'true') {
+				const designCell = runtime.designCellsByKey.get(headerElement.dataset.cellKey || '');
+
+				if (!runtime.disabled && designCell && !runtime.sheet.design?.humansCannotEdit && !designCell.humansCannotEdit) {
+					setEditState(null);
+					setHeaderEditState({
+						cellKey: designCell.key,
+						draftValue: getSheetDesignCellHeaderLabel(designCell),
+					});
+				}
+
+				return;
+			}
 
 			if (!cellElement || !runtime || runtime.disabled || cellElement.dataset.sheetCellEditable !== 'true') {
 				return;
@@ -1227,6 +1431,7 @@ export function Sheet(p: SheetProps) {
 			}
 
 			const optimisticKey = getSheetCellKey(lookup.row.id, lookup.designCell.key);
+			setHeaderEditState(null);
 			setEditState({
 				cellKey: lookup.designCell.key,
 				draftValue: getSheetEditorDraftValue(
@@ -1238,7 +1443,13 @@ export function Sheet(p: SheetProps) {
 			});
 		};
 		const onFocusOut = (event: FocusEvent) => {
+			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]');
 			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
+
+			if (headerEditorElement) {
+				commitHeaderEditorElement(headerEditorElement);
+				return;
+			}
 
 			if (editorElement) {
 				void commitEditorElement(editorElement);
@@ -1257,7 +1468,23 @@ export function Sheet(p: SheetProps) {
 			}
 		};
 		const onKeyDown = (event: KeyboardEvent) => {
+			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]');
 			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
+
+			if (headerEditorElement) {
+				if (event.key === 'Escape') {
+					event.preventDefault();
+					setHeaderEditState(null);
+					return;
+				}
+
+				if (event.key === 'Enter') {
+					event.preventDefault();
+					commitHeaderEditorElement(headerEditorElement);
+				}
+
+				return;
+			}
 
 			if (!editorElement) {
 				return;
@@ -1361,7 +1588,7 @@ export function Sheet(p: SheetProps) {
 				scrollFrameRef.current = null;
 			}
 		};
-	}, [commitEditorElement, scrollElement.node]);
+	}, [commitEditorElement, commitHeaderEditorElement, scrollElement.node]);
 
 	useEffect(() => {
 		return () => {
@@ -1377,9 +1604,10 @@ export function Sheet(p: SheetProps) {
 	const stickyHeaderHeight = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE;
 	const viewportHeight = scrollElement.size.height || stickyHeaderHeight + SHEET_ROW_HEIGHT * 20;
 	const viewportWidth = scrollElement.size.width || SHEET_ROW_NUMBER_WIDTH + 5 * SHEET_COLUMN_WIDTH;
+	const minimumVisualRowCount = getSheetMinimumRowCount(viewportHeight, stickyHeaderHeight);
 	const visualRowCount = Math.max(
-		renderedRows.length,
-		getSheetMinimumRowCount(viewportHeight, stickyHeaderHeight),
+		isSheetRowsReady ? renderedRows.length : SHEET_MOCK_ROW_COUNT,
+		minimumVisualRowCount,
 	);
 	const totalWidth = SHEET_ROW_NUMBER_WIDTH +
 		columnMetricsData.totalWidth +
@@ -1404,6 +1632,10 @@ export function Sheet(p: SheetProps) {
 	}, [columnMetricsData.offsets, stickyColumnCount]);
 
 	useEffect(() => {
+		if (!isSheetRowsReady) {
+			return;
+		}
+
 		if (!scrollElement.size.height) {
 			return;
 		}
@@ -1419,6 +1651,7 @@ export function Sheet(p: SheetProps) {
 		}
 	}, [
 		fetchMoreRows,
+		isSheetRowsReady,
 		renderedRows.length,
 		scrollElement.size.height,
 		scrollState.scrollTop,
@@ -1452,6 +1685,7 @@ export function Sheet(p: SheetProps) {
 		viewportWidth,
 		visualRowCount,
 	]);
+
 	const visibleColumns = useMemo(() => {
 		return columnMetricsData.metrics
 			.slice(visibleRange.columnStart, visibleRange.columnEnd)
@@ -1478,6 +1712,7 @@ export function Sheet(p: SheetProps) {
 
 		for (let rowIndex = visibleRange.rowStart; rowIndex < visibleRange.rowEnd; rowIndex += 1) {
 			const row = rowsByIndex[rowIndex];
+			const isMockRow = !isSheetRowsReady && rowIndex < SHEET_MOCK_ROW_COUNT;
 			const rowCellMap = row ? rowCellsById.get(row.id) : null;
 			const cellsByKey: Record<string, SheetUICell | undefined> = {};
 
@@ -1509,6 +1744,8 @@ export function Sheet(p: SheetProps) {
 					}
 
 					const displayValue = getSheetCellDisplayValue(cell, designCell, optimisticValue);
+					const cellClassName = getSheetCellClassName(cell, designCell, optimisticValue);
+					const displayClassName = getSheetCellDisplayClassName(cell, designCell, optimisticValue);
 					const draftValue = getSheetEditorDraftValue(cell, designCell, optimisticValue);
 					const uiCell: SheetUICell = {
 						cellKey: designCell.key,
@@ -1516,6 +1753,8 @@ export function Sheet(p: SheetProps) {
 						draftValue,
 						canEdit,
 						canOpen,
+						cellClassName,
+						displayClassName,
 					};
 
 					cellUICacheRef.current.set(optimisticKey, {
@@ -1524,14 +1763,18 @@ export function Sheet(p: SheetProps) {
 					});
 					cellsByKey[designCell.key] = uiCell;
 				});
+			} else if (isMockRow) {
+				visibleColumns.forEach((columnMetric) => {
+					cellsByKey[columnMetric.column.key] = getSheetMockUICell(columnMetric.column.key, rowIndex);
+				});
 			}
 
 			visibleRowSlots.push({
 				cellsByKey,
 				rowId: row?.id || null,
 				rowIndex,
-				rowKey: row?.id || `empty-${rowIndex}`,
-				rowNumber: rowIndex + 1,
+				rowKey: row?.id || (isMockRow ? `mock-${rowIndex}` : `empty-${rowIndex}`),
+				rowNumber: row || isMockRow ? rowIndex + 1 : null,
 				rowTop: stickyHeaderHeight + rowIndex * SHEET_ROW_HEIGHT,
 				rowWidth,
 			});
@@ -1541,6 +1784,7 @@ export function Sheet(p: SheetProps) {
 	}, [
 		designCellsByKey,
 		effectiveDisabled,
+		isSheetRowsReady,
 		optimisticValues,
 		rowCellsById,
 		renderedRows,
@@ -1552,6 +1796,7 @@ export function Sheet(p: SheetProps) {
 		visibleRange.rowEnd,
 		visibleRange.rowStart,
 	]);
+
 	const highlightedResizeColumnKey = resizingColumnKey || hoveredResizeColumnKey;
 	const resizeGuide = useMemo<SheetUIResizeGuide | null>(() => {
 		if (!highlightedResizeColumnKey) {
@@ -1584,6 +1829,14 @@ export function Sheet(p: SheetProps) {
 		sheetSurfaceHeight,
 	]);
 
+  // Dev code
+  useEffect(() => {
+    if (sheet && sheetRows) {
+      console.log('Sheet data:', sheet);
+      console.log(' Rows data:', sheetRows);
+    }
+  }, [sheet, sheetRows]);
+
 	return <SheetUI
 		canvasHeight={Math.max(totalHeight, viewportHeight)}
 		canvasWidth={Math.max(totalWidth, viewportWidth)}
@@ -1592,7 +1845,9 @@ export function Sheet(p: SheetProps) {
 		columnCount={uiColumns.length}
 		columns={visibleColumns}
 		editState={editState}
+		headerCellsEditable={!effectiveDisabled && !sheet.design?.humansCannotEdit}
 		headerContent={children}
+		headerEditState={headerEditState}
 		headerSpacerWidth={rowContentWidth}
 		headerWidth={Math.max(totalWidth, viewportWidth)}
 		resizeGuide={resizeGuide}

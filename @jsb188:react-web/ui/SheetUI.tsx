@@ -32,11 +32,13 @@ export type SheetCellKey = `${string}:${string}`;
 
 export type SheetUIFieldType =
 	| 'TEXT'
+	| 'ID'
 	| 'NUMBER'
 	| 'BOOLEAN'
 	| 'DATE'
 	| 'DATETIME'
 	| 'SELECT'
+	| 'SELECT_OR_TEXT'
 	| 'MULTI_SELECT'
 	| 'JSON';
 
@@ -62,6 +64,8 @@ export type SheetUICell = {
 	draftValue: string;
 	canEdit?: boolean;
 	canOpen?: boolean;
+	cellClassName?: string;
+	displayClassName?: string;
 };
 
 export type SheetUIRowSlot = {
@@ -69,13 +73,19 @@ export type SheetUIRowSlot = {
 	rowId?: string | null;
 	rowIndex: number;
 	rowKey: string;
-	rowNumber: number;
+	rowNumber?: number | null;
 	rowTop: number;
 	rowWidth: number;
 };
 
 export type SheetUIEditState = {
 	rowId: string;
+	cellKey: string;
+	draftValue: string;
+	error?: string | null;
+};
+
+export type SheetUIHeaderEditState = {
 	cellKey: string;
 	draftValue: string;
 	error?: string | null;
@@ -110,7 +120,9 @@ export interface SheetUIProps {
 	columnCount: number;
 	columns: SheetColumnMetric[];
 	editState?: SheetUIEditState | null;
+	headerCellsEditable?: boolean;
 	headerContent?: ReactNode;
+	headerEditState?: SheetUIHeaderEditState | null;
 	headerSpacerWidth?: number;
 	headerWidth: number;
 	resizeGuide?: SheetUIResizeGuide | null;
@@ -308,6 +320,14 @@ function areSheetGridCellEditPropsEqual(
 }
 
 /*
+ * Return whether one row slot is just viewport filler after the data rows.
+ */
+
+function isSheetPlaceholderRowSlot(rowSlot: SheetUIRowSlot) {
+	return !rowSlot.rowId && rowSlot.rowNumber === null && !Object.keys(rowSlot.cellsByKey).length;
+}
+
+/*
  * Render the sticky top-left corner cell.
  */
 
@@ -334,16 +354,23 @@ SheetCornerCell.displayName = 'SheetCornerCell';
 const SheetHeaderCell = memo((p: {
 	column: SheetUIColumn;
 	columnIndex: number;
+	headerCellsEditable?: boolean;
+	headerEditState?: SheetUIHeaderEditState | null;
 	headerLeft: number;
 	columnWidth: number;
 	isStickyLeft: boolean;
 }) => {
+	const isEditing = p.headerEditState?.cellKey === p.column.key;
+
 	return <div
 		className={cn(
 			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_8 ft_medium cl_md no_wrap z3',
+			isEditing ? 'active' : '',
 			STICKY_CELL_BG_CSS,
 		)}
+		data-cell-key={p.column.key}
 		data-sheet-header-cell='true'
+		data-sheet-header-editable={p.headerCellsEditable && !p.column.humansCannotEdit ? 'true' : undefined}
 		style={{
 			height: SHEET_HEADER_HEIGHT,
 			left: p.headerLeft,
@@ -352,13 +379,27 @@ const SheetHeaderCell = memo((p: {
 			zIndex: p.isStickyLeft ? 40 : undefined,
 		}}
 	>
-		<span className='ellip'>{p.column.label}</span>
+		{isEditing
+			? <input
+				autoFocus
+					className={cn('sheet_ui_editor bg stock px_6 ft_xs', p.headerEditState?.error ? 'error' : '')}
+				data-cell-key={p.column.key}
+				data-sheet-header-editor='true'
+				defaultValue={p.headerEditState?.draftValue || ''}
+				type='text'
+			/>
+			: <span className='ellip'>{p.column.label}</span>}
 	</div>;
 }, (prev, next) => (
 	prev.column.id === next.column.id &&
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
+	prev.column.humansCannotEdit === next.column.humansCannotEdit &&
 	prev.columnIndex === next.columnIndex &&
+	prev.headerCellsEditable === next.headerCellsEditable &&
+	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
+	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
+	prev.headerEditState?.error === next.headerEditState?.error &&
 	prev.headerLeft === next.headerLeft &&
 	prev.columnWidth === next.columnWidth &&
 	prev.isStickyLeft === next.isStickyLeft
@@ -433,6 +474,8 @@ SheetStickyColumnHeaderSpacer.displayName = 'SheetStickyColumnHeaderSpacer';
 const SheetHeaderArea = memo((p: {
 	columnCount: number;
 	columns: SheetColumnMetric[];
+	headerCellsEditable?: boolean;
+	headerEditState?: SheetUIHeaderEditState | null;
 	headerSpacerWidth: number;
 	headerWidth: number;
 	scrollLeft: number;
@@ -471,6 +514,8 @@ const SheetHeaderArea = memo((p: {
 					key={columnMetric.column.key}
 					column={columnMetric.column}
 					columnIndex={columnMetric.columnIndex}
+					headerCellsEditable={p.headerCellsEditable}
+					headerEditState={p.headerEditState}
 					headerLeft={headerLeft}
 					columnWidth={columnMetric.width}
 					isStickyLeft={isStickyLeft}
@@ -520,6 +565,10 @@ const SheetHeaderArea = memo((p: {
 	}, (prev, next) => (
 	prev.columnCount === next.columnCount &&
 	prev.columns === next.columns &&
+	prev.headerCellsEditable === next.headerCellsEditable &&
+	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
+	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
+	prev.headerEditState?.error === next.headerEditState?.error &&
 	prev.headerSpacerWidth === next.headerSpacerWidth &&
 	prev.headerWidth === next.headerWidth &&
 	prev.scrollLeft === next.scrollLeft &&
@@ -534,11 +583,15 @@ SheetHeaderArea.displayName = 'SheetHeaderArea';
  */
 
 const SheetStickyColumnSpacerCell = memo((p: {
+	isPlaceholderRow?: boolean;
 	left: number;
 	rowId?: string | null;
 }) => {
 	return <div
-		className={cn('sheet_ui_cell of abs w_4 h_32 z2', STICKY_SPACER_BG_CSS)}
+		className={cn(
+			'sheet_ui_cell of abs w_4 h_32 z2',
+			STICKY_SPACER_BG_CSS,
+		)}
 		data-sheet-sticky-column-spacer='true'
 		style={{
 			left: p.left,
@@ -547,6 +600,7 @@ const SheetStickyColumnSpacerCell = memo((p: {
 		}}
 	/>;
 }, (prev, next) => (
+	prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.left === next.left &&
 	prev.rowId === next.rowId
 ));
@@ -592,12 +646,17 @@ SheetStickyColumnSpacerSlot.displayName = 'SheetStickyColumnSpacerSlot';
  */
 
 const SheetRowNumberCell = memo((p: {
+	isPlaceholderRow?: boolean;
 	rowId?: string | null;
 	rowIndex: number;
-	rowNumber: number;
+	rowNumber?: number | null;
 }) => {
 	return <div
-		className={cn('sheet_ui_row_number of abs bd_r_1 bd_b_1 bd_lt sticky h_center cl_md no_sel z2', STICKY_CELL_BG_CSS)}
+		className={cn(
+			'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
+			'bd_r_1 bd_b_1 bd_lt',
+			STICKY_CELL_BG_CSS,
+		)}
 		style={{
 			height: SHEET_ROW_HEIGHT,
 			left: 0,
@@ -605,9 +664,10 @@ const SheetRowNumberCell = memo((p: {
 			width: SHEET_ROW_NUMBER_WIDTH,
 		}}
 	>
-		{p.rowNumber}
+		{p.rowNumber ?? null}
 	</div>;
 }, (prev, next) => (
+	prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
 	prev.rowNumber === next.rowNumber
@@ -620,9 +680,10 @@ SheetRowNumberCell.displayName = 'SheetRowNumberCell';
  */
 
 const SheetRowNumberSlot = memo((p: {
+	isPlaceholderRow?: boolean;
 	rowId?: string | null;
 	rowIndex: number;
-	rowNumber: number;
+	rowNumber?: number | null;
 	rowTop: number;
 	rowWidth: number;
 }) => {
@@ -637,12 +698,14 @@ const SheetRowNumberSlot = memo((p: {
 		}}
 	>
 		<SheetRowNumberCell
+			isPlaceholderRow={p.isPlaceholderRow}
 			rowId={p.rowId}
 			rowIndex={p.rowIndex}
 			rowNumber={p.rowNumber}
 		/>
 	</div>;
 }, (prev, next) => (
+	prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
 	prev.rowNumber === next.rowNumber &&
@@ -663,7 +726,7 @@ const SheetCellEditor = memo((p: {
 	error?: string | null;
 	rowId: string;
 }) => {
-	const editorClassName = cn('sheet_ui_editor bg stock px_6', p.error ? 'error' : '');
+	const editorClassName = cn('sheet_ui_editor bg stock px_6 ft_xs', p.error ? 'error' : '');
 	const sharedProps = {
 		autoFocus: true,
 		className: editorClassName,
@@ -705,6 +768,26 @@ const SheetCellEditor = memo((p: {
 		/>;
 	}
 
+	if (p.column.fieldType === 'SELECT_OR_TEXT') {
+		const listId = `sheet-ui-options-${p.rowId}-${p.cellKey}`;
+
+		return <>
+			<input
+				{...sharedProps}
+				defaultValue={p.draftValue}
+				list={listId}
+				type='text'
+			/>
+			<datalist id={listId}>
+				{p.column.options?.map((option) => (
+					<option key={option.value} value={option.value}>
+						{option.label}
+					</option>
+				))}
+			</datalist>
+		</>;
+	}
+
 	const inputType = p.column.fieldType === 'NUMBER'
 		? 'number'
 		: p.column.fieldType === 'DATE'
@@ -733,6 +816,7 @@ const SheetGridCell = memo((p: {
 	columnIndex: number;
 	columnWidth: number;
 	editState?: SheetUIEditState | null;
+	isPlaceholderRow?: boolean;
 	isStickyLeft: boolean;
 	rowId?: string | null;
 	rowIndex: number;
@@ -741,7 +825,9 @@ const SheetGridCell = memo((p: {
 	const isEditing = isSheetGridCellEditing(p);
 	const displayValue = p.cell?.displayValue || '';
 	const cellClassName = cn(
-		'sheet_ui_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_6 cl_df bg_primary_fd_hv_solid',
+		'sheet_ui_cell of abs h_item px_6 cl_df',
+		p.cell?.cellClassName || 'bg_primary_fd_hv_solid',
+		p.isPlaceholderRow ? '' : 'bd_r_1 bd_b_1 bd_lt',
 		isEditing ? 'active' : '',
 		p.cell?.canOpen ? 'link cl_primary' : '',
 		!p.rowId ? 'noclick' : '',
@@ -772,7 +858,7 @@ const SheetGridCell = memo((p: {
 				error={p.editState?.error}
 				rowId={p.rowId}
 			/>
-			: <span className='ellip'>{displayValue}</span>}
+			: <span className={p.cell?.displayClassName || 'ellip'}>{displayValue}</span>}
 	</div>;
 }, (prev, next) => (
 	prev.cell === next.cell &&
@@ -784,6 +870,7 @@ const SheetGridCell = memo((p: {
 	prev.columnIndex === next.columnIndex &&
 	prev.columnWidth === next.columnWidth &&
 	areSheetGridCellEditPropsEqual(prev, next) &&
+	prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.isStickyLeft === next.isStickyLeft &&
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
@@ -793,12 +880,43 @@ const SheetGridCell = memo((p: {
 SheetGridCell.displayName = 'SheetGridCell';
 
 /*
+ * Render one blank filler cell for a placeholder row after the row number.
+ */
+
+const SheetPlaceholderRowFillCell = memo((p: {
+	contentWidth?: number;
+	rowTop: number;
+	rowWidth: number;
+}) => {
+	const fillWidth = Math.max(0, (p.contentWidth ?? p.rowWidth) - SHEET_ROW_NUMBER_WIDTH);
+
+	return <div
+		className={cn('sheet_ui_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_6 cl_df bg_primary_fd_hv_solid noclick', CELL_BG_CSS)}
+		data-sheet-cell='true'
+		data-sheet-placeholder-row-fill-cell='true'
+		style={{
+			height: SHEET_ROW_HEIGHT,
+			left: SHEET_ROW_NUMBER_WIDTH,
+			top: p.rowTop,
+			width: fillWidth,
+		}}
+	/>;
+}, (prev, next) => (
+	prev.contentWidth === next.contentWidth &&
+	prev.rowTop === next.rowTop &&
+	prev.rowWidth === next.rowWidth
+));
+
+SheetPlaceholderRowFillCell.displayName = 'SheetPlaceholderRowFillCell';
+
+/*
  * Render a virtualized spreadsheet grid from already-computed UI props.
  */
 
 export const SheetUI = memo((p: SheetUIProps) => {
 	const sheetSurfaceHeight = p.sheetSurfaceHeight ?? p.canvasHeight;
 	const sheetSurfaceTop = p.sheetSurfaceTop ?? 0;
+	const stickyColumnEndLeft = p.stickyColumnEndLeft ?? SHEET_ROW_NUMBER_WIDTH;
 
 	return <div
 		id={p.id}
@@ -830,10 +948,12 @@ export const SheetUI = memo((p: SheetUIProps) => {
 				<SheetHeaderArea
 					columnCount={p.columnCount}
 					columns={p.columns}
+					headerCellsEditable={p.headerCellsEditable}
+					headerEditState={p.headerEditState}
 					headerSpacerWidth={p.headerSpacerWidth ?? p.headerWidth}
 					headerWidth={p.headerWidth}
 					scrollLeft={p.scrollLeft}
-					stickyColumnEndLeft={p.stickyColumnEndLeft ?? SHEET_ROW_NUMBER_WIDTH}
+					stickyColumnEndLeft={stickyColumnEndLeft}
 					stickyColumnCount={p.stickyColumnCount}
 				/>
 
@@ -870,6 +990,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 				{p.rows.map((rowSlot) => {
 					return <SheetRowNumberSlot
 						key={rowSlot.rowKey}
+						isPlaceholderRow={isSheetPlaceholderRowSlot(rowSlot)}
 						rowId={rowSlot.rowId}
 						rowIndex={rowSlot.rowIndex}
 						rowNumber={rowSlot.rowNumber}
@@ -878,18 +999,29 @@ export const SheetUI = memo((p: SheetUIProps) => {
 					/>;
 				})}
 
-				{p.rows.map((rowSlot) => {
-					return <SheetStickyColumnSpacerSlot
-						key={`${rowSlot.rowKey}:sticky-column-spacer`}
-						left={p.stickyColumnEndLeft ?? SHEET_ROW_NUMBER_WIDTH}
+						{p.rows.map((rowSlot) => {
+							return <SheetStickyColumnSpacerSlot
+								key={`${rowSlot.rowKey}:sticky-column-spacer`}
+								left={stickyColumnEndLeft}
 						rowId={rowSlot.rowId}
 						rowTop={rowSlot.rowTop}
 						rowWidth={rowSlot.rowWidth}
 					/>;
 				})}
 
-				{p.rows.map((rowSlot) => {
-					return p.columns.map((columnMetric) => {
+					{p.rows.map((rowSlot) => {
+						const isPlaceholderRow = isSheetPlaceholderRowSlot(rowSlot);
+
+							if (isPlaceholderRow) {
+								return <SheetPlaceholderRowFillCell
+									key={`${rowSlot.rowKey}:placeholder-row-fill`}
+									contentWidth={p.headerSpacerWidth}
+									rowTop={rowSlot.rowTop}
+									rowWidth={rowSlot.rowWidth}
+								/>;
+						}
+
+						return p.columns.map((columnMetric) => {
 						const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
 						const cellLeft = (isStickyLeft ? p.scrollLeft : 0) +
 							SHEET_ROW_NUMBER_WIDTH +
@@ -903,6 +1035,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 							columnIndex={columnMetric.columnIndex}
 							columnWidth={columnMetric.width}
 							editState={p.editState}
+							isPlaceholderRow={isPlaceholderRow}
 							isStickyLeft={isStickyLeft}
 							rowId={rowSlot.rowId}
 							rowIndex={rowSlot.rowIndex}
@@ -924,7 +1057,11 @@ export const SheetUI = memo((p: SheetUIProps) => {
 	prev.editState?.cellKey === next.editState?.cellKey &&
 	prev.editState?.draftValue === next.editState?.draftValue &&
 	prev.editState?.error === next.editState?.error &&
+	prev.headerCellsEditable === next.headerCellsEditable &&
 	prev.headerContent === next.headerContent &&
+	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
+	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
+	prev.headerEditState?.error === next.headerEditState?.error &&
 	prev.headerSpacerWidth === next.headerSpacerWidth &&
 	prev.headerWidth === next.headerWidth &&
 	prev.id === next.id &&

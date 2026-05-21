@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 
 import type { SheetCellGQL, SheetDesignCellGQL, SheetGQL, SheetRowGQL } from '@jsb188/mday/types/sheet.d.ts';
+import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
+import {
+	SHEET_HEADER_HEIGHT,
+	SHEET_ROW_HEIGHT,
+	SHEET_STICKY_SPACER_SIZE,
+} from '@jsb188/react-web/ui/SheetUI';
 import type { ComponentProps } from 'react';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -42,7 +48,7 @@ function createDesignCell(key: string, overrides: Partial<SheetDesignCellGQL> = 
 	return {
 		key,
 		label: key.toUpperCase(),
-		fieldType: 'TEXT',
+		humanFieldType: 'TEXT',
 		options: [],
 		...overrides,
 	};
@@ -240,6 +246,235 @@ describe('Sheet container', () => {
 		expect(scrollViewport?.contains(headerRow)).toBe(true);
 	});
 
+	it('renders human labels in sheet headers when they exist', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'name'
+				? {
+					...cell,
+					humanLabel: 'Human Name',
+				}
+				: cell),
+		};
+		const host = await renderSheet({ sheet });
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"]') as HTMLElement;
+
+		expect(nameHeader.textContent).toBe('Human Name');
+	});
+
+	it('renders select-style values as colored pills from sheet design options', async () => {
+		const sheet = createSheet();
+		const cells = [
+			createDesignCell('name'),
+			createDesignCell('status', {
+				humanFieldType: 'SELECT',
+				options: [{
+					label: 'Open',
+					value: 'Open',
+					color: 'emerald',
+				}],
+			}),
+			createDesignCell('reason', {
+				humanFieldType: 'SELECT_OR_TEXT',
+				options: [{
+					label: 'Needs review',
+					value: 'Needs review',
+					color: 'not-a-color',
+				}],
+			}),
+		];
+
+		sheet.design = {
+			...sheet.design,
+			cells,
+			cellsOrder: cells.map((cell) => cell.key),
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			status: 'Open',
+			reason: 'Needs review',
+		})];
+
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+		const reasonCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"]') as HTMLElement;
+		const statusPill = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"] span') as HTMLElement;
+		const reasonPill = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"] span') as HTMLElement;
+
+		expect(statusCell.className).toContain('bg_emerald_fd_hv');
+		expect(statusCell.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(statusPill.textContent).toBe('Open');
+		expect(statusPill.className).toContain('r_4');
+		expect(statusPill.className).toContain('bg_emerald_md');
+		expect(reasonCell.className).toContain('bg_primary_fd_hv_solid');
+		expect(reasonPill.textContent).toBe('Needs review');
+		expect(reasonPill.className).toContain('r_4');
+		expect(reasonPill.className).toContain('bg_zinc_md');
+	});
+
+	it('saves header human labels from header edit mode', async () => {
+		const host = await renderSheet();
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-header-editor="true"]') as HTMLInputElement;
+		expect(input).not.toBeNull();
+		expect(input.value).toBe('NAME');
+
+		await act(async () => {
+			input.value = 'Display Name';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-header-editor="true"]')).toBeNull();
+		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+			variables: {
+				design: {
+					cells: [{
+						humanLabel: 'Display Name',
+						key: 'name',
+					}],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
+		expect(nameHeader.textContent).toBe('Display Name');
+	});
+
+	it('caps saved header human labels to seventy characters', async () => {
+		const longLabel = 'A'.repeat(SHEET_HUMAN_LABEL_MAX_LENGTH + 10);
+		const host = await renderSheet();
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-header-editor="true"]') as HTMLInputElement;
+		await act(async () => {
+			input.value = longLabel;
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+			variables: {
+				design: {
+					cells: [{
+						humanLabel: 'A'.repeat(SHEET_HUMAN_LABEL_MAX_LENGTH),
+						key: 'name',
+					}],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
+		expect(nameHeader.textContent).toBe('A'.repeat(SHEET_HUMAN_LABEL_MAX_LENGTH));
+	});
+
+	it('does not enter header edit mode when editing is denied', async () => {
+		const host = await renderSheet({ allowEdit: false });
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-header-editor="true"]')).toBeNull();
+	});
+
+	it('exits header edit mode on escape', async () => {
+		const host = await renderSheet();
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-header-editor="true"]') as HTMLInputElement;
+		expect(input).not.toBeNull();
+
+		await act(async () => {
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-header-editor="true"]')).toBeNull();
+		expect(hookState.editSheetDesign).not.toHaveBeenCalled();
+	});
+
+	it('queues header human label saves until the in-flight design save finishes', async () => {
+		let resolveFirstSave: ((value: unknown) => void) | null = null;
+		hookState.editSheetDesign.mockImplementationOnce(() => new Promise((resolve) => {
+			resolveFirstSave = resolve;
+		}));
+		const host = await renderSheet();
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+		const statusHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		let input = host.querySelector('[data-sheet-header-editor="true"]') as HTMLInputElement;
+		await act(async () => {
+			input.value = 'Display Name';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
+
+		await act(async () => {
+			statusHeader.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		input = host.querySelector('[data-sheet-header-editor="true"]') as HTMLInputElement;
+		await act(async () => {
+			input.value = 'Display Status';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
+
+		await act(async () => {
+			resolveFirstSave?.({ data: {} });
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(2);
+		expect(hookState.editSheetDesign).toHaveBeenLastCalledWith({
+			variables: {
+				design: {
+					cells: [{
+						humanLabel: 'Display Status',
+						key: 'status',
+					}],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
+	});
+
 	it('adds sixty-four pixels of right padding to each rendered row', async () => {
 		const host = await renderSheet();
 		const canvas = host.querySelector('.sheet_ui_canvas') as HTMLElement;
@@ -252,6 +487,62 @@ describe('Sheet container', () => {
 		expect(rowSlot.style.width).toBe('432px');
 		expect(statusCell.style.left).toBe('208px');
 		expect(statusCell.style.width).toBe('160px');
+	});
+
+	it('renders viewport filler rows without row numbers or cell dividers', async () => {
+		const host = await renderSheet();
+		const rowNumbers = Array.from(host.querySelectorAll('.sheet_ui_row_number'));
+		const cells = Array.from(host.querySelectorAll('[data-sheet-cell="true"]'));
+		const placeholderCells = cells.filter((cell) => !(cell as HTMLElement).dataset.rowId);
+		const placeholderFillCells = Array.from(host.querySelectorAll('[data-sheet-placeholder-row-fill-cell="true"]')) as HTMLElement[];
+		const stickyColumnSpacers = Array.from(host.querySelectorAll('[data-sheet-sticky-column-spacer="true"]')) as HTMLElement[];
+
+		expect(rowNumbers.map((rowNumber) => rowNumber.textContent)).toEqual(['1', '', '', '']);
+		expect(cells).toHaveLength(5);
+		expect(placeholderCells).toHaveLength(3);
+		expect(placeholderFillCells).toHaveLength(3);
+		expect(stickyColumnSpacers).toHaveLength(4);
+		expect(stickyColumnSpacers[1]?.style.left).toBe('44px');
+		expect(stickyColumnSpacers[1]?.className).toContain('w_4');
+		expect(placeholderFillCells[0]?.style.left).toBe('44px');
+		expect(placeholderFillCells[0]?.style.width).toBe('324px');
+		placeholderFillCells.forEach((cell) => {
+			expect(cell.className).toContain('bd_r_1');
+			expect(cell.className).toContain('bd_b_1');
+		});
+	});
+
+	it('renders five fading mock rows while sheet rows are not ready', async () => {
+		hookState.sheetRows = undefined as any;
+		Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
+			configurable: true,
+			get() {
+				if (this.getAttribute?.('data-sheet-header-content') === 'true') {
+					return 44;
+				}
+
+				return 320;
+			},
+		});
+		const host = await renderSheet();
+		const mockSpans = Array.from(host.querySelectorAll('.mock.active'));
+		const opacityClassesByRow = ['', 'op_80', 'op_60', 'op_40', 'op_20'];
+
+		expect(host.querySelectorAll('[data-sheet-row-number-slot="true"]')).toHaveLength(9);
+		expect(mockSpans).toHaveLength(10);
+
+		opacityClassesByRow.forEach((opacityClass, rowIndex) => {
+			const rowTop = `${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + rowIndex * SHEET_ROW_HEIGHT}px`;
+			const rowMockSpans = mockSpans.filter((span) => {
+				return (span.parentElement as HTMLElement).style.top === rowTop;
+			});
+
+			expect(rowMockSpans).toHaveLength(2);
+			rowMockSpans.forEach((span) => {
+				expect(span.textContent).toBe('... ... ...');
+				expect(span.className).toBe(opacityClass ? `mock active bl min_w_50_pc ${opacityClass}` : 'mock active bl min_w_50_pc');
+			});
+		});
 	});
 
 	it('renders persisted design widths before local resize drafts', async () => {

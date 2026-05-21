@@ -21,7 +21,10 @@ export interface SheetDesignCellOptionObj {
 export interface SheetDesignCellObj {
 	key: string;
 	label: string;
+	humanLabel?: string | null;
+	iconName?: string | null;
 	fieldType: SheetFieldTypeEnum;
+	humanFieldType: SheetFieldTypeEnum;
 	instructions?: string | null;
 	source?: {
 		path: string;
@@ -76,6 +79,7 @@ export interface SheetRecordData {
 	sheetId: number | bigint;
 	sheetRowId: number | bigint;
 	cellKey: string;
+	iconName?: string | null;
 	value?: SheetRecordValue;
 	textValue?: string | null;
 	numberValue?: number | null;
@@ -102,7 +106,9 @@ export interface SheetDesignCellSourceGQL {
 export interface SheetDesignCellGQL {
 	key: string;
 	label: string;
-	fieldType: SheetFieldTypeGQL;
+	humanLabel?: string | null;
+	iconName?: string | null;
+	humanFieldType: SheetFieldTypeGQL;
 	instructions?: string | null;
 	source?: SheetDesignCellSourceGQL | null;
 	options?: SheetDesignCellOptionGQL[];
@@ -162,6 +168,7 @@ export interface SheetCellGQL {
 	sheetRowId: string;
 
 	cellKey: string;
+	iconName?: string | null;
 	value?: string | null;
 	textValue?: string | null;
 	numberValue?: number | null;

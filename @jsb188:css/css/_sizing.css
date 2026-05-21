@@ -270,6 +270,16 @@ h1.ft_xxl, h2.ft_xxl, h3.ft_xxl, h4.ft_xxl, h5.ft_xxl, h6.ft_xxl, .ft_heading_xx
 .rl { border-top-left-radius: 100vmax; border-bottom-left-radius: 100vmax; }
 .rr { border-top-right-radius: 100vmax; border-bottom-right-radius: 100vmax; }
 
+.r_4 { border-radius: 4px; }
+.rtl_4 { border-top-left-radius: 4px; }
+.rbl_4 { border-bottom-left-radius: 4px; }
+.rtr_4 { border-top-right-radius: 4px; }
+.rbr_4 { border-bottom-right-radius: 4px; }
+.rt_4 { border-top-left-radius: 4px; border-top-right-radius: 4px; }
+.rb_4 { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
+.rl_4 { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+.rr_4 { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+
 .r_xs { border-radius: var(--radius-xsmall); }
 .rtl_xs { border-top-left-radius: var(--radius-xsmall); }
 .rbl_xs { border-bottom-left-radius: var(--radius-xsmall); }

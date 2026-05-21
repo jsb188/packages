@@ -307,6 +307,7 @@ export interface LogEntryInsertObj {
   accountId: number | bigint | null;
   organizationId: number | bigint;
   childOrgId?: number | bigint | null;
+  customerId?: number | bigint | null;
   reportId?: number | bigint | null;
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
@@ -324,6 +325,7 @@ export interface LogEntryData {
   accountId: number | bigint;
   organizationId: number | bigint;
   childOrgId?: number | bigint | null;
+  customerId?: number | bigint | null;
   childOrg?: {
     id: number | bigint;
     name: string;

@@ -18,7 +18,9 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
     cells {
       key
       label
-      fieldType
+      humanLabel
+      iconName
+      humanFieldType
       instructions
       openLink
       humansOnly
@@ -60,6 +62,7 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   sheetRowId
 
   cellKey
+  iconName
   value
   textValue
   numberValue

@@ -307,6 +307,7 @@ describe('SheetUI rendering', () => {
 		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement | null;
 
 		expect(input).not.toBeNull();
+		expect(input?.className).toContain('ft_xs');
 		expect(input?.dataset.rowId).toBe('row-1');
 		expect(input?.dataset.cellKey).toBe('name');
 		expect(input?.value).toBe('Alpha');
