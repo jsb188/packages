@@ -19,6 +19,7 @@ const hookState = vi.hoisted(() => ({
 	fetchMoreRows: vi.fn(),
 	getSheetRows: null as (() => any[]) | null,
 	lastSheetRowsArgs: null as any[] | null,
+	resetOnlyTime: '' as string | undefined,
 	sheetRows: [] as any[],
 	sheetRowsVariables: null as any,
 }));
@@ -30,6 +31,7 @@ vi.mock('@jsb188/graphql/hooks/use-sheet-qry', () => ({
 
 		return {
 			fetchMore: hookState.fetchMoreRows,
+			resetOnlyTime: hookState.resetOnlyTime,
 			sheetRows: hookState.getSheetRows ? hookState.getSheetRows() : hookState.sheetRows,
 			variables: hookState.sheetRowsVariables || {
 				sheetId: args[0],
@@ -200,6 +202,7 @@ beforeEach(() => {
 	hookState.fetchMoreRows.mockReset().mockResolvedValue({ data: { sheetRows: [] } });
 	hookState.getSheetRows = null;
 	hookState.lastSheetRowsArgs = null;
+	hookState.resetOnlyTime = '';
 	hookState.sheetRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
 	hookState.sheetRowsVariables = null;
 
@@ -268,6 +271,21 @@ afterEach(() => {
 });
 
 describe('Sheet container', () => {
+	it('shows a refresh floating message when sheet rows receive a reset-only update', async () => {
+		const setFloatingMessage = vi.fn();
+
+		await renderSheet({ setFloatingMessage });
+		expect(setFloatingMessage).not.toHaveBeenCalled();
+
+		hookState.resetOnlyTime = 'reset:1';
+		await rerenderSheet({ setFloatingMessage });
+
+		expect(setFloatingMessage).toHaveBeenCalledWith({
+			text: 'app.new_data_click_to_refresh',
+			type: 'REFRESH',
+		});
+	});
+
 	it('uses cell icon names before design fallback icon names', async () => {
 		const sheet = createSheet();
 		sheet.design = {
@@ -1200,6 +1218,26 @@ describe('Sheet container', () => {
 
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]')?.textContent).toBe('Alpha');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-1"]')?.textContent).toBe('Beta');
+	});
+
+	it('removes rows that disappear from a refreshed sheet row query', async () => {
+		hookState.sheetRows = [
+			createRow(0, { name: 'Alpha', status: 'Open' }),
+			createRow(1, { name: 'Beta', status: 'Closed' }),
+		];
+		const host = await renderSheet();
+
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]')?.textContent).toBe('Alpha');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-1"]')?.textContent).toBe('Beta');
+
+		hookState.sheetRows = [
+			createRow(1, { name: 'Beta', status: 'Closed' }),
+		];
+		await rerenderSheet();
+
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]')).toBeNull();
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-1"]')?.textContent).toBe('Beta');
+		expect(host.textContent).not.toContain('Alpha');
 	});
 
 	it('renders persisted design widths before local resize drafts', async () => {

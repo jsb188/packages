@@ -1,6 +1,7 @@
 import { useEditSheetCell, useEditSheetDesign } from '@jsb188/graphql/hooks/use-sheet-mtn';
 import { useReactiveSheetRows, useSheetRows } from '@jsb188/graphql/hooks/use-sheet-qry';
 import { COLORS } from '@jsb188/app/constants/app.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import type {
@@ -19,6 +20,7 @@ import {
   getOrderedSheetDesignViews,
   mapSheetDesignViewColumnToCell,
 } from '@jsb188/mday/utils/sheet.ts';
+import type { FloatingMessageObj } from '@jsb188/react-web/modules/Layout';
 import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import {
 	SHEET_COLUMN_WIDTH,
@@ -59,6 +61,7 @@ export interface SheetProps {
 	disabled?: boolean;
 	allowEdit?: boolean;
 	onOpenCell?: (params: SheetOpenCellParams) => void;
+	setFloatingMessage?: (message: FloatingMessageObj | null) => void;
 }
 
 type ElementSize = {
@@ -227,6 +230,32 @@ function getSheetRowsSourceKey(sheetId: string, viewId?: string | null) {
 }
 
 /*
+ * Show a refresh floating message when sheet row queries receive reset-only updates.
+ */
+
+function useFloatingMessageForSheetRowsReset(
+	resetOnlyTime: string | undefined,
+	setFloatingMessage?: (message: FloatingMessageObj | null) => void,
+) {
+	const lastUpdateTime = useRef<string | undefined>(resetOnlyTime);
+
+	useEffect(() => {
+		if (!resetOnlyTime) {
+			return;
+		}
+
+		if (resetOnlyTime !== lastUpdateTime.current && setFloatingMessage) {
+			setFloatingMessage({
+				text: i18n.t('app.new_data_click_to_refresh'),
+				type: 'REFRESH',
+			});
+		}
+
+		lastUpdateTime.current = resetOnlyTime;
+	}, [resetOnlyTime, setFloatingMessage]);
+}
+
+/*
  * Return a stable comparison key for one sheet cell payload.
  */
 
@@ -283,11 +312,7 @@ function mergeSheetRowIds(
 		return currentRowIds.concat(nextRowIds.filter((rowId) => !existingIds.has(rowId)));
 	}
 
-	const nextRowIdSet = new Set(nextRowIds);
-
-	return nextRowIds.concat(currentRowIds.filter((rowId, index) => {
-		return currentRowIds.indexOf(rowId) === index && !nextRowIdSet.has(rowId);
-	}));
+	return nextRowIds;
 }
 
 /*
@@ -1456,6 +1481,7 @@ export function Sheet(p: SheetProps) {
 		className,
 		disabled,
 		limit = SHEET_ROWS_LIMIT,
+		setFloatingMessage,
 		sheet,
 	} = p;
 	const sheetId = sheet.id;
@@ -1541,8 +1567,10 @@ export function Sheet(p: SheetProps) {
 	const {
 		sheetRows,
 		fetchMore,
+		resetOnlyTime,
 		variables: sheetRowsVariables,
 	} = useSheetRows(sheetId, organizationId, null, limit, sheetRowsFilter);
+	useFloatingMessageForSheetRowsReset(resetOnlyTime, setFloatingMessage);
 	const isSheetRowsDataCurrent = (
 		String(sheetRowsVariables?.sheetId || '') === String(sheetId || '') &&
 		String(sheetRowsVariables?.organizationId || '') === String(organizationId || '') &&

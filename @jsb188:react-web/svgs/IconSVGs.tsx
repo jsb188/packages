@@ -3553,18 +3553,12 @@ export const ShipmentContainer = <svg xmlns="http://www.w3.org/2000/svg" classNa
 <path d="M6.0000002,13.9999996h12.0000006" strokeWidth="1.25" />
 </svg>;
 
-// DO NOT REMOVE COMMENT: This icon is special, and uses 2px strokeWidth
-export const SidebarCollapes = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-collapes" viewBox="0 0 24 24" strokeWidth="2" fill="none" strokeLinejoin="round">
-<path stroke="currentColor" d="M2.75 0.75h18.5s2 0 2 2v18.5s0 2 -2 2H2.75s-2 0 -2 -2V2.75s0 -2 2 -2" />
-<path stroke="currentColor" strokeLinecap="round" d="M17.25 0.75v22.5" />
-<path stroke="currentColor" strokeLinecap="round" d="m7.55469 16.4443 4.44441 -4.4444 -4.44441 -4.44445" />
+export const SidebarExpandCloseFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-expand-close-filled" viewBox="0 0 24 24">
+<path fill="currentColor" fillRule="evenodd" d="M24,3c0-1.65685427-1.34314537-3-3-3H2.75C1.23121691,0,0,1.23121691,0,2.75v18.5c0,1.51878357,1.23121691,2.75,2.75,2.75h18.25c1.65685463,0,3-1.34314537,3-3V3ZM7.5,2v20h13.5c.55228424,0,1-.44771576,1-1V3c0-.55228472-.44771576-1-1-1H7.5ZM13.53165985,16.97499847l4.44400024-4.4449997c.29245281-.29281712.29245281-.76718235,0-1.05999947l-4.44399929-4.44499969c-.14046383-.14028883-.33081913-.21916533-.52933979-.21933985-.41421318-.0003643-.75029564.33512688-.75065994.74934006v8.88900042c-.00003433.30338287.18270874.5769062.46299934.69300079.28004646.11607552.60243416.05215073.81699944-.16200256Z"/>
 </svg>;
 
-// DO NOT REMOVE COMMENT: This icon is special, and uses 2px strokeWidth
-export const SidebarExpand = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-expand" viewBox="0 0 24 24" strokeWidth="2" fill="none" strokeLinejoin="round">
-<path stroke="currentColor" d="m21.25 0.75 -18.5 0s-2 0 -2 2l0 18.5s0 2 2 2l18.5 0s2 0 2 -2l0 -18.5s0 -2 -2 -2"/>
-<path stroke="currentColor" strokeLinecap="round" d="M6.75 0.75v22.5"/>
-<path stroke="currentColor" strokeLinecap="round" d="m16.4453 16.4443 -4.4444 -4.4444 4.4444 -4.44445"/>
+export const SidebarExpandFilled = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sidebar-expand-filled" fill="none" viewBox="0 0 24 24">
+<path fill="currentColor" fillRule="evenodd" d="M24 3a3 3 0 0 0 -3 -3H2.75A2.75 2.75 0 0 0 0 2.75v18.5A2.75 2.75 0 0 0 2.75 24H21a3 3 0 0 0 3 -3V3ZM7.5 2v20H21a1 1 0 0 0 1 -1V3a1 1 0 0 0 -1 -1H7.5Zm9.232 15.137a0.75 0.75 0 0 0 0.463 -0.693V7.555a0.75 0.75 0 0 0 -1.28 -0.53l-4.444 4.445a0.75 0.75 0 0 0 0 1.06l4.444 4.445a0.75 0.75 0 0 0 0.817 0.162Z" clipRule="evenodd"/>
 </svg>;
 
 export const Sun = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-sun" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
