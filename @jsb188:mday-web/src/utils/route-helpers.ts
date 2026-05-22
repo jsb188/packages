@@ -28,6 +28,7 @@ const F = {
 type ValidRoutePath =
   '/app'
   | '/app/c/'
+  | '/app/workflow-test'
   | '/app/workflows'
   | '/app/logs'
   | '/app/greenhouse'
@@ -87,6 +88,12 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
 
   // Advanced
+
+  '/app/workflow-test': {
+    to: '/app/workflow-test',
+    text: 'form.ai_workflows',
+    iconName: COMMON_ICON_NAMES.ai_workflow,
+  },
 
   '/app/workflows': {
     to: '/app/workflows',

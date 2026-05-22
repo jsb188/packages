@@ -51,7 +51,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type Rea
  * Dev code
  */
 
-const __DISABLE_EDIT_STATE_RESET__ = true;
+const __DISABLE_EDIT_STATE_RESET__ = globalThis?.location?.hostname === 'localhost' && true;
 
 /**
  * Types

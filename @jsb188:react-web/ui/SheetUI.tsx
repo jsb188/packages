@@ -391,10 +391,8 @@ function getSheetSingleClickedCellClassName(className: string) {
  * Return the editable hover background class for one header cell.
  */
 
-function getSheetHeaderEditableClassName(column: SheetUIColumn) {
-	const optionColor = column.options?.find((option) => option.color)?.color;
-
-	return optionColor ? `bg_${optionColor}_fd_hv` : 'bg_primary_fd_hv_solid';
+function getSheetHeaderEditableClassName() {
+	return 'bg_primary_fd_hv_solid';
 }
 
 /*
@@ -436,7 +434,7 @@ const SheetHeaderCell = memo((p: {
 	return <div
 		className={cn(
 			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_8 ft_medium cl_md no_wrap z3',
-			isEditable ? getSheetHeaderEditableClassName(p.column) : '',
+			isEditable ? getSheetHeaderEditableClassName() : '',
 			isEditing ? 'active' : '',
 			!isEditing ? 'unsel' : '',
 			STICKY_CELL_BG_CSS,
@@ -455,7 +453,7 @@ const SheetHeaderCell = memo((p: {
 		{isEditing
 			? <input
 				autoFocus
-					className={cn('sheet_ui_editor bg stock px_6 ft_xs', p.headerEditState?.error ? 'error' : '')}
+					className={cn('sheet_ui_editor bg stock px_6 ft_xs ft_normal', p.headerEditState?.error ? 'error' : '')}
 				data-cell-key={p.column.key}
 				data-sheet-header-editor='true'
 				defaultValue={p.headerEditState?.draftValue || ''}
@@ -810,7 +808,7 @@ const SheetCellEditor = memo((p: {
 	error?: string | null;
 	rowId: string;
 }) => {
-	const editorClassName = cn('sheet_ui_editor bg stock px_6 ft_xs', p.error ? 'error' : '');
+	const editorClassName = cn('sheet_ui_editor bg stock px_6 ft_xs ft_normal', p.error ? 'error' : '');
 	const sharedProps = {
 		autoFocus: true,
 		className: editorClassName,

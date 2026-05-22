@@ -5,11 +5,12 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { Pill } from '@jsb188/react-web/ui/Button';
 import { useOnlineStatus } from '@jsb188/react-web/utils/dom';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
-import { memo } from 'react';
+import { memo, type Dispatch, type SetStateAction } from 'react';
 import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom';
 import { BigLoading } from '../ui/Loading';
 import Markdown from '../ui/Markdown';
+import { TooltipButton } from './PopOver';
 
 // const cssPaths = ['/css/layout.css', '/css/alert.css'];
 
@@ -375,7 +376,7 @@ export function ModalWrapper(p: ModalWrapperProps) {
       {!onCloseModal ? null : (
         <button
           type='button'
-          className='abs_corner_df z1 cl_lt v_center'
+          className='abs_tr_df z1 cl_lt v_center'
           onClick={onCloseModal}
         >
           <span className='r av_sm v_center ic_df'>
@@ -617,9 +618,57 @@ export function ErrorMessage(p: ErrorMessageProps) {
  * Container for <ErrorMessage>
  */
 
-export function ErrorMessageContainer(p: { children: React.ReactNode }) {
-  const { children } = p;
-  return <div className='f v_center pb_lg h_f'>
+interface SidebarCornerCloseButtonProps {
+  absolutePositionClassName?: string;
+  layoutOpen?: boolean;
+  setLayoutOpen?: Dispatch<SetStateAction<boolean>>;
+}
+
+/**
+ * Absolute-positioned button that collapses the app sidebar from page content.
+ * NOTE: layoutOpen = sidebar is visible when layout is open
+ */
+
+export function SidebarCornerCloseButton(p: SidebarCornerCloseButtonProps) {
+  const { absolutePositionClassName, layoutOpen, setLayoutOpen } = p;
+  const sidebarVisible = layoutOpen;
+
+  if (sidebarVisible || !setLayoutOpen) {
+    return null;
+  }
+
+  return <TooltipButton
+    message={i18n.t('app.expand_sidebar')}
+    position='bottom'
+    offsetY={5}
+    className={cn('z5 w_32 h_32 h_center ft_sm cl_lt no_shrink bg_darker_2_hv r_xs link', absolutePositionClassName ?? 'abs_tl_df')}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setLayoutOpen(!layoutOpen);
+    }}
+  >
+    <Icon name='sidebar-expand-filled' />
+  </TooltipButton>;
+}
+
+/**
+ * Error message container
+ */
+
+interface ErrorMessageContainerProps extends SidebarCornerCloseButtonProps {
+  children: React.ReactNode;
+}
+
+export function ErrorMessageContainer(p: ErrorMessageContainerProps) {
+  const { children, layoutOpen, setLayoutOpen } = p;
+
+  return <div className='f v_center pb_lg h_f rel'>
+    <SidebarCornerCloseButton
+      layoutOpen={layoutOpen}
+      setLayoutOpen={setLayoutOpen}
+    />
+
     {children}
   </div>;
 }

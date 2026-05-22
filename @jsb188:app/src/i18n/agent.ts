@@ -46,8 +46,8 @@ export default {
 		searching_for_load_list_: '🔍 Searching for load list...',
 		writing_report_: '✍️ Writing report...',
     processing_csv_request_: '⚙️ Processing CSV file request...',
-    retrieving_customer_context_: '🧠 Retrieving customer context...',
-    saving_customer_context_: '🧠 Saving customer context...',
+    retrieving_inbound_contact_: '🧠 Retrieving inbound contact information...',
+    saving_customer_context_: '🧠 Saving inbound contact information...',
 
 		// Digests
 		digest_for_: 'Digest for %{date}',

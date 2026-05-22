@@ -12,6 +12,7 @@
 /* Variables */
 
 .h_toolbar { height: var(--toolbar-ht); }
+.h_toolbar_alt { height: 44px; } /* Used to align sidebar collapse icon with toolbar title */
 .w_aside { width: var(--aside-wt); }
 
 /* Padding */

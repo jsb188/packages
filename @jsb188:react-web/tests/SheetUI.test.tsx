@@ -362,7 +362,7 @@ describe('SheetUI rendering', () => {
 		expect(scrollViewport?.contains(headerRow)).toBe(true);
 	});
 
-	it('applies non-editing selection guards and editable hover backgrounds to header cells', async () => {
+	it('applies non-editing selection guards and primary editable hover backgrounds to header cells', async () => {
 		const columns = getSheetColumnMetrics([
 			createColumn('name'),
 			createColumn('status', 'SELECT', {
@@ -397,8 +397,8 @@ describe('SheetUI rendering', () => {
 		expect(nameHeader?.className).toContain('bg_primary_fd_hv_solid');
 		expect(nameHeader?.dataset.sheetHeaderEditable).toBe('true');
 		expect(statusHeader?.className).toContain('unsel');
-		expect(statusHeader?.className).toContain('bg_emerald_fd_hv');
-		expect(statusHeader?.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(statusHeader?.className).toContain('bg_primary_fd_hv_solid');
+		expect(statusHeader?.className).not.toContain('bg_emerald_fd_hv');
 		expect(statusHeader?.dataset.sheetHeaderEditable).toBe('true');
 		expect(lockedHeader?.className).toContain('unsel');
 		expect(lockedHeader?.className).not.toContain('bg_primary_fd_hv_solid');

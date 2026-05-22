@@ -8,58 +8,35 @@
 
 .abs_l_center, .abs_r_center,
 .abs, .abs_l, .abs_r, .abs_t, .abs_b, .abs_full,
-.abs_corner, .abs_corner_xs, .abs_corner_sm, .abs_corner_df, .abs_corner_md {
+.abs_tl, .abs_tl_xs, .abs_tl_sm, .abs_tl_df, .abs_tl_md,
+.abs_tr, .abs_tr_xs, .abs_tr_sm, .abs_tr_df, .abs_tr_md {
   position: absolute;
 }
 
 .fixed, .fixed_l, .fixed_r, .fixed_t, .fixed_b, .fixed_full,
-.fixed_corner, .fixed_corner_xs, .fixed_corner_sm, .fixed_corner_df, .fixed_corner_md {
+.fixed_tl, .fixed_tl_xs, .fixed_tl_sm, .fixed_tl_df, .fixed_tl_md,
+.fixed_tr, .fixed_tr_xs, .fixed_tr_sm, .fixed_tr_df, .fixed_tr_md {
   position: fixed;
 }
 
-.abs_full, .fixed_full {
-  top: 0; left: 0; right: 0; bottom: 0;
-}
+.abs_full, .fixed_full { top: 0; left: 0; right: 0; bottom: 0; }
 
-.abs_l, .fixed_l {
-  top: 0; left: 0; bottom: 0;
-}
+.abs_l, .fixed_l { top: 0; left: 0; bottom: 0; }
+.abs_r, .fixed_r { top: 0; right: 0; bottom: 0; }
+.abs_t, .fixed_t { top: 0; left: 0; right: 0; }
+.abs_b, .fixed_b { left: 0; right: 0; bottom: 0; }
 
-.abs_r, .fixed_r {
-  top: 0; right: 0; bottom: 0;
-}
+.abs_tl, .fixed_tl { top: 0; left: 0; }
+.abs_tl_xs, .fixed_tl_xs { top: var(--rem-xsmall); left: var(--rem-xsmall); }
+.abs_tl_sm, .fixed_tl_sm { top: var(--rem-small); left: var(--rem-small); }
+.abs_tl_df, .fixed_tl_df { top: var(--rem-default); left: var(--rem-default); }
+.abs_tl_md, .fixed_tl_md { top: var(--rem-medium); left: var(--rem-medium); }
 
-.abs_t, .fixed_t {
-  top: 0; left: 0; right: 0;
-}
-
-.abs_b, .fixed_b {
-  left: 0; right: 0; bottom: 0;
-}
-
-.abs_corner, .fixed_corner {
-  top: 0; right: 0;
-}
-
-.abs_corner_xs, .fixed_corner_xs {
-  top: var(--rem-xsmall);
-  right: var(--rem-xsmall);
-}
-
-.abs_corner_sm, .fixed_corner_sm {
-  top: var(--rem-small);
-  right: var(--rem-small);
-}
-
-.abs_corner_df, .fixed_corner_df {
-  top: var(--rem-default);
-  right: var(--rem-default);
-}
-
-.abs_corner_md, .fixed_corner_md {
-  top: var(--rem-medium);
-  right: var(--rem-medium);
-}
+.abs_tr, .fixed_tr { top: 0; right: 0; }
+.abs_tr_xs, .fixed_tr_xs { top: var(--rem-xsmall); right: var(--rem-xsmall); }
+.abs_tr_sm, .fixed_tr_sm { top: var(--rem-small); right: var(--rem-small); }
+.abs_tr_df, .fixed_tr_df { top: var(--rem-default); right: var(--rem-default); }
+.abs_tr_md, .fixed_tr_md { top: var(--rem-medium); right: var(--rem-medium); }
 
 .abs_l_center {
   top: 50%; left: 0;

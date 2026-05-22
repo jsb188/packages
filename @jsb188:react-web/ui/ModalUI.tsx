@@ -106,7 +106,7 @@ export function ModalErrorMessage(p: ModalErrorProps) {
   return (
     <div className='rel p_df mb_sm r_sm bg_alt'>
       <button
-        className='r av_xxs v_center bg_active bg_medium_hv ic_sm abs_corner_xs z1'
+        className='r av_xxs v_center bg_active bg_medium_hv ic_sm abs_tr_xs z1'
         onClick={resetErrors}
       >
         <Icon name='x' />

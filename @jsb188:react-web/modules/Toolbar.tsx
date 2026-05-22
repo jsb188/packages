@@ -257,7 +257,7 @@ const AppToolbar = memo((p: {
             outletContext.setOpen?.(true);
           }}
         >
-          <Icon name='sidebar-expand-close-filled' />
+          <Icon name='sidebar-expand-filled' />
         </TooltipButton>
       )}
 
