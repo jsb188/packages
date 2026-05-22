@@ -388,6 +388,16 @@ function getSheetSingleClickedCellClassName(className: string) {
 }
 
 /*
+ * Return the editable hover background class for one header cell.
+ */
+
+function getSheetHeaderEditableClassName(column: SheetUIColumn) {
+	const optionColor = column.options?.find((option) => option.color)?.color;
+
+	return optionColor ? `bg_${optionColor}_fd_hv` : 'bg_primary_fd_hv_solid';
+}
+
+/*
  * Render the sticky top-left corner cell.
  */
 
@@ -421,16 +431,19 @@ const SheetHeaderCell = memo((p: {
 	isStickyLeft: boolean;
 }) => {
 	const isEditing = p.headerEditState?.cellKey === p.column.key;
+	const isEditable = Boolean(p.headerCellsEditable && !p.column.humansCannotEdit);
 
 	return <div
 		className={cn(
 			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_8 ft_medium cl_md no_wrap z3',
+			isEditable ? getSheetHeaderEditableClassName(p.column) : '',
 			isEditing ? 'active' : '',
+			!isEditing ? 'unsel' : '',
 			STICKY_CELL_BG_CSS,
 		)}
 		data-cell-key={p.column.key}
 		data-sheet-header-cell='true'
-		data-sheet-header-editable={p.headerCellsEditable && !p.column.humansCannotEdit ? 'true' : undefined}
+		data-sheet-header-editable={isEditable ? 'true' : undefined}
 		style={{
 			height: SHEET_HEADER_HEIGHT,
 			left: p.headerLeft,
@@ -905,10 +918,12 @@ const SheetGridCell = memo((p: {
 			: p.cell.cellClassName || 'bg_primary_fd_hv_solid'
 		: '';
 	const cellClassName = cn(
-		'sheet_ui_cell of abs h_item px_6 cl_df',
+		'sheet_ui_cell of abs h_item cl_df',
 		editableCellClassName,
 		p.isPlaceholderRow ? '' : 'bd_r_1 bd_b_1 bd_lt',
 		isEditing ? 'active' : '',
+		!isEditing ? 'px_6' : '',
+		!isEditing ? 'unsel' : '',
 		p.cell?.canOpen ? 'link cl_primary' : '',
 		!p.rowId ? 'noclick' : '',
 		!displayValue ? 'cl_darker_2' : '',

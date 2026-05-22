@@ -82,6 +82,8 @@ export const organizationChildFragment = `fragment organizationChildFragment on 
   parentId
   cursor
   addedAt
+  affiliated
+  memory
 
   preferredContacts {
     department

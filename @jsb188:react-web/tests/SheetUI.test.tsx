@@ -28,7 +28,7 @@ let currentRoot: Root | null = null;
  * Build one generic UI column for SheetUI tests.
  */
 
-function createColumn(key: string, fieldType: SheetUIFieldType = 'TEXT'): SheetUIColumn {
+function createColumn(key: string, fieldType: SheetUIFieldType = 'TEXT', overrides: Partial<SheetUIColumn> = {}): SheetUIColumn {
 	return {
 		id: key,
 		key,
@@ -40,6 +40,7 @@ function createColumn(key: string, fieldType: SheetUIFieldType = 'TEXT'): SheetU
 				{ label: 'Closed', value: 'closed' },
 			]
 			: [],
+		...overrides,
 	};
 }
 
@@ -318,9 +319,12 @@ describe('SheetUI rendering', () => {
 			},
 		});
 		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement | null;
+		const cell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement | null;
 
 		expect(input).not.toBeNull();
 		expect(input?.className).toContain('ft_xs');
+		expect(input?.className).toContain('px_6');
+		expect(cell?.className).not.toContain('px_6');
 		expect(input?.dataset.rowId).toBe('row-1');
 		expect(input?.dataset.cellKey).toBe('name');
 		expect(input?.value).toBe('Alpha');
@@ -356,6 +360,66 @@ describe('SheetUI rendering', () => {
 		expect(headerContent?.className).toContain('bd_b_1');
 		expect(headerContent?.nextElementSibling).toBe(scrollViewport);
 		expect(scrollViewport?.contains(headerRow)).toBe(true);
+	});
+
+	it('applies non-editing selection guards and editable hover backgrounds to header cells', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('name'),
+			createColumn('status', 'SELECT', {
+				options: [
+					{ color: 'emerald', label: 'Open', value: 'open' },
+					{ color: 'red', label: 'Closed', value: 'closed' },
+				],
+			}),
+			createColumn('locked', 'TEXT', {
+				humansCannotEdit: true,
+			}),
+		]).metrics;
+		const host = await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 480,
+			columnCount: 3,
+			columns,
+			headerCellsEditable: true,
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 480,
+			rows: [
+				createRowSlot('row-1', 0, {
+					locked: createCell('locked', 'Locked'),
+					name: createCell('name', 'Alpha'),
+					status: createCell('status', 'Open'),
+				}),
+			],
+		});
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement | null;
+		const statusHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]') as HTMLElement | null;
+		const lockedHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="locked"]') as HTMLElement | null;
+
+		expect(nameHeader?.className).toContain('unsel');
+		expect(nameHeader?.className).toContain('bg_primary_fd_hv_solid');
+		expect(nameHeader?.dataset.sheetHeaderEditable).toBe('true');
+		expect(statusHeader?.className).toContain('unsel');
+		expect(statusHeader?.className).toContain('bg_emerald_fd_hv');
+		expect(statusHeader?.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(statusHeader?.dataset.sheetHeaderEditable).toBe('true');
+		expect(lockedHeader?.className).toContain('unsel');
+		expect(lockedHeader?.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(lockedHeader?.className).not.toContain('bg_emerald_fd_hv');
+		expect(lockedHeader?.dataset.sheetHeaderEditable).toBeUndefined();
+	});
+
+	it('keeps header text selectable while the header editor is active', async () => {
+		const host = await renderSheetUI({
+			headerCellsEditable: true,
+			headerEditState: {
+				cellKey: 'name',
+				draftValue: 'Name',
+			},
+		});
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement | null;
+		const input = host.querySelector('[data-sheet-header-editor="true"]') as HTMLInputElement | null;
+
+		expect(input).not.toBeNull();
+		expect(nameHeader?.className).toContain('active');
+		expect(nameHeader?.className).not.toContain('unsel');
 	});
 
 	it('keeps the right border and resize handle on the actual right-most column cells', async () => {

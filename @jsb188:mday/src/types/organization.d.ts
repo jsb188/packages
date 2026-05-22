@@ -29,6 +29,7 @@ export type OrganizationComplianceType = typeof COMPLIANCE_DOCUMENT_TYPE_ENUMS[n
 export interface ChildOrgsFilterArgs {
 	internationalOnly?: boolean;
 	childOrgIds?: Array<string | number | bigint>;
+	affiliated?: boolean | null;
 }
 
 /*
@@ -138,6 +139,8 @@ export interface OrganizationChildData {
       emailAddress: string | null;
     }>;
   };
+	memory?: string | null;
+	affiliated: boolean;
 	addedAt: Date;
 }
 
@@ -249,6 +252,8 @@ export interface OrganizationChildGQL {
   cursor: string;
 	organization: OrganizationGQL;
   preferredContacts: OrgContact[];
+	memory?: string | null;
+	affiliated: boolean;
 	addedAt: Date;
 }
 

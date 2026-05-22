@@ -89,12 +89,16 @@ export default {
 			LIVESTOCK: 'ranching activities',
 			FARMERS_MARKET: 'farmers market operations',
       GROWER_NETWORK: 'network activities',
+      WHOLESALE_FOOD: 'wholesale food operations',
+      UNKNOWN: 'organization activities',
 		},
 		operation_farmers: {
 			ARABLE: 'farmers',
 			LIVESTOCK: 'ranchers',
 			FARMERS_MARKET: 'farmers market vendors',
       GROWER_NETWORK: 'growers',
+      WHOLESALE_FOOD: 'wholesale food businesses',
+      UNKNOWN: 'organizations',
 		},
 
 		// Real time data update messages

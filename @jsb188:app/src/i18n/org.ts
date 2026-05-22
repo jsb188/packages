@@ -93,10 +93,12 @@ export default {
 		type: {
 			ARABLE: 'Arable farm',
 			LIVESTOCK: 'Livestock ranch',
-			FARMERS_MARKET: 'Farmers market',
-			GROWER_NETWORK: 'Grower network',
+      FARMERS_MARKET: 'Farmers market',
+      GROWER_NETWORK: 'Grower network',
       RESTAURANT: 'Restaurant',
       VENDOR: 'Vendor',
+      WHOLESALE_FOOD: 'Wholesale (Food)',
+      UNKNOWN: 'Unknown',
 		},
 
     type_short: {
@@ -106,6 +108,8 @@ export default {
       GROWER_NETWORK: 'Grower network',
       RESTAURANT: 'Restaurant',
       VENDOR: 'Vendor',
+      WHOLESALE_FOOD: 'Wholesale',
+      UNKNOWN: 'Unknown',
     },
 
 		type_inline: {
@@ -115,6 +119,8 @@ export default {
 			GROWER_NETWORK: 'grower network',
       RESTAURANT: 'restaurant',
       VENDOR: 'vendor',
+      WHOLESALE_FOOD: 'wholesale food business',
+      UNKNOWN: 'unknown organization',
 		},
 
 		type_active: {
@@ -124,6 +130,8 @@ export default {
 			GROWER_NETWORK: 'Grower network',
       RESTAURANT: 'Restaurant',
       VENDOR: 'Vendor',
+      WHOLESALE_FOOD: 'Wholesale',
+      UNKNOWN: 'Unknown',
 		},
 
 		type_detailed: {
@@ -133,6 +141,8 @@ export default {
 			GROWER_NETWORK: 'Grower network',
       RESTAURANT: 'Restaurant',
       VENDOR: 'Vendor (customer or supplier)',
+      WHOLESALE_FOOD: 'Wholesale (Food)',
+      UNKNOWN: 'Unknown',
     },
 
 		operation_desc: {
@@ -159,6 +169,8 @@ export default {
 			GROWER_NETWORK: 'product',
       RESTAURANT: 'product',
       VENDOR: 'product',
+      WHOLESALE_FOOD: 'product',
+      UNKNOWN: 'product',
 		},
 
 		children: {
@@ -174,6 +186,8 @@ export default {
 			GROWER_NETWORK: 'View organization',
       RESTAURANT: 'View restaurant',
       VENDOR: 'View vendor',
+      WHOLESALE_FOOD: 'View wholesale business',
+      UNKNOWN: 'View organization',
 		},
 
 		edit: {
@@ -183,6 +197,8 @@ export default {
 			GROWER_NETWORK: 'Edit organization',
       RESTAURANT: 'Edit restaurant',
       VENDOR: 'Edit vendor',
+      WHOLESALE_FOOD: 'Edit wholesale business',
+      UNKNOWN: 'Edit organization',
 		},
 
 		delete: {
@@ -192,6 +208,8 @@ export default {
 			GROWER_NETWORK: 'Delete organization',
       RESTAURANT: 'Delete restaurant',
       VENDOR: 'Delete vendor',
+      WHOLESALE_FOOD: 'Delete wholesale business',
+      UNKNOWN: 'Delete organization',
 		},
 
 		remove: {
@@ -201,6 +219,8 @@ export default {
 			GROWER_NETWORK: 'Remove organization',
       RESTAURANT: 'Remove restaurant',
       VENDOR: 'Remove vendor',
+      WHOLESALE_FOOD: 'Remove wholesale business',
+      UNKNOWN: 'Remove organization',
 		},
 
 		contact_department: {

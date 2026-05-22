@@ -192,6 +192,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   GROWER_NETWORK: 'office-outdoors',
   RESTAURANT: 'restaurant-dishes',
   VENDOR: 'farmers-market-vendor',
+  WHOLESALE_FOOD: 'question-circle-color',
+  UNKNOWN: 'question-circle-color',
 
   // Certification types
   COMPLIANCE_ORGANIC: 'organic-plant',

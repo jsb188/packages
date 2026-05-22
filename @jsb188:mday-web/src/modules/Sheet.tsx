@@ -48,6 +48,12 @@ import {
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 
 /**
+ * Dev code
+ */
+
+const __DISABLE_EDIT_STATE_RESET__ = true;
+
+/**
  * Types
  */
 
@@ -1833,7 +1839,9 @@ export function Sheet(p: SheetProps) {
 		const cellKey = editorElement.dataset.cellKey;
 		const designCell = cellKey ? runtime?.designCellsByKey.get(cellKey) : null;
 
-		setHeaderEditState(null);
+    if (!__DISABLE_EDIT_STATE_RESET__) {
+      setHeaderEditState(null);
+    }
 
 		if (!runtime || runtime.disabled || !runtime.designEditable || !designCell || runtime.sheet.design?.humansCannotEdit || designCell.humansCannotEdit) {
 			return;
@@ -2012,7 +2020,9 @@ export function Sheet(p: SheetProps) {
 			runtime.optimisticValues[optimisticKey],
 		);
 
-		setEditState(null);
+    if (!__DISABLE_EDIT_STATE_RESET__) {
+      setEditState(null);
+    }
 
 		if (currentValue === parsedValue.value) {
 			return;

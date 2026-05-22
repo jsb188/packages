@@ -13,6 +13,8 @@ export const OPERATION_ENUMS = [
   // External orgs
   'RESTAURANT',
   'VENDOR',
+  'WHOLESALE_FOOD',
+  'UNKNOWN',
 ];
 
 export const PARENT_ORG_OPERATIONS = [
