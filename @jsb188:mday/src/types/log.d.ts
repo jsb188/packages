@@ -283,6 +283,8 @@ export interface LogEntryGQL {
   organizationId: string;
   childOrgId: string | null;
   childOrgName: string | null;
+  inboundContactId: string | null;
+  inboundContactName: string | null;
   reportId: string | null;
   reportSubmissionId: string | null;
   siteId: string | null;
@@ -307,7 +309,7 @@ export interface LogEntryInsertObj {
   accountId: number | bigint | null;
   organizationId: number | bigint;
   childOrgId?: number | bigint | null;
-  customerId?: number | bigint | null;
+  inboundContactId?: number | bigint | null;
   reportId?: number | bigint | null;
   reportSubmissionId?: number | bigint | null;
   siteId?: number | bigint | null;
@@ -325,7 +327,11 @@ export interface LogEntryData {
   accountId: number | bigint;
   organizationId: number | bigint;
   childOrgId?: number | bigint | null;
-  customerId?: number | bigint | null;
+  inboundContactId?: number | bigint | null;
+  inboundContact?: {
+    id: number | bigint;
+    personName?: string | null;
+  } | null;
   childOrg?: {
     id: number | bigint;
     name: string;

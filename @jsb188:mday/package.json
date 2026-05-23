@@ -14,6 +14,7 @@
     "./constants/sheet.ts": "./src/constants/sheet.ts",
     "./constants/storage.ts": "./src/constants/storage.ts",
     "./types/email.d.ts": "./src/types/email.d.ts",
+    "./types/inboundContact.d.ts": "./src/types/inboundContact.d.ts",
     "./types/storage.d.ts": "./src/types/storage.d.ts",
     "./schemas/editLogEntry.ts": "./src/schemas/editLogEntry.ts",
     "./schemas/logsQuery.ts": "./src/schemas/logsQuery.ts",

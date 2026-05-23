@@ -6,6 +6,8 @@ export const logEntryFragment = `fragment logEntryFragment on LogEntry {
   organizationId
   childOrgId
   childOrgName
+  inboundContactId
+  inboundContactName
   reportId
   reportSubmissionId
   siteId

@@ -47,7 +47,7 @@ export default {
 		writing_report_: '✍️ Writing report...',
     processing_csv_request_: '⚙️ Processing CSV file request...',
     retrieving_inbound_contact_: '🧠 Retrieving inbound contact information...',
-    saving_customer_context_: '🧠 Saving inbound contact information...',
+    saving_inbound_contact_: '🧠 Saving inbound contact information...',
 
 		// Digests
 		digest_for_: 'Digest for %{date}',
