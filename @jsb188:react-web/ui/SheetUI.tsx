@@ -121,10 +121,29 @@ export type SheetUIResizeGuide = {
 	left: number;
 };
 
+export type SheetUIColumnReorderGuide = {
+	columnKey: string;
+	height: number;
+	left: number;
+};
+
+export type SheetUIColumnReorderDrag = {
+	columnKey: string;
+	label: string;
+	left: number;
+	width: number;
+};
+
+export type SheetUIColumnReorderDisplacements = Record<string, number>;
+
 export interface SheetUIProps {
 	canvasHeight: number;
 	canvasWidth: number;
 	cellCount: number;
+	columnReorderDrag?: SheetUIColumnReorderDrag | null;
+	columnReorderDisplacements?: SheetUIColumnReorderDisplacements | null;
+	columnReorderEnabled?: boolean;
+	columnReorderGuide?: SheetUIColumnReorderGuide | null;
 	columnCount: number;
 	columns: SheetColumnMetric[];
 	editState?: SheetUIEditState | null;
@@ -427,9 +446,15 @@ const SheetHeaderCell = memo((p: {
 	headerLeft: number;
 	columnWidth: number;
 	isStickyLeft: boolean;
+	columnReorderEnabled?: boolean;
+	columnReorderOffset?: number;
+	hasColumnReorderTransition?: boolean;
+	isColumnReorderDragging?: boolean;
 }) => {
 	const isEditing = p.headerEditState?.cellKey === p.column.key;
 	const isEditable = Boolean(p.headerCellsEditable && !p.column.humansCannotEdit);
+	const isReorderable = Boolean(p.columnReorderEnabled && !isEditing);
+	const reorderOffset = p.columnReorderOffset || 0;
 
 	return <div
 		className={cn(
@@ -438,14 +463,20 @@ const SheetHeaderCell = memo((p: {
 			isEditing ? 'active' : '',
 			!isEditing ? 'unsel' : '',
 			STICKY_CELL_BG_CSS,
+			p.isColumnReorderDragging ? 'bg' : '',
 		)}
 		data-cell-key={p.column.key}
 		data-sheet-header-cell='true'
 		data-sheet-header-editable={isEditable ? 'true' : undefined}
+		data-sheet-header-reorderable={isReorderable ? 'true' : undefined}
 		style={{
+			cursor: isReorderable ? 'grab' : undefined,
 			height: SHEET_HEADER_HEIGHT,
 			left: p.headerLeft,
+			opacity: p.isColumnReorderDragging ? 0.35 : undefined,
 			top: 0,
+			transform: reorderOffset ? `translateX(${reorderOffset}px)` : undefined,
+			transition: p.hasColumnReorderTransition ? 'transform 120ms ease' : undefined,
 			width: p.columnWidth,
 			zIndex: p.isStickyLeft ? 40 : undefined,
 		}}
@@ -467,13 +498,17 @@ const SheetHeaderCell = memo((p: {
 	prev.column.label === next.column.label &&
 	prev.column.humansCannotEdit === next.column.humansCannotEdit &&
 	prev.columnIndex === next.columnIndex &&
+	prev.columnReorderEnabled === next.columnReorderEnabled &&
+	prev.columnReorderOffset === next.columnReorderOffset &&
 	prev.headerCellsEditable === next.headerCellsEditable &&
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
 	prev.headerEditState?.error === next.headerEditState?.error &&
 	prev.headerLeft === next.headerLeft &&
 	prev.columnWidth === next.columnWidth &&
-	prev.isStickyLeft === next.isStickyLeft
+	prev.hasColumnReorderTransition === next.hasColumnReorderTransition &&
+	prev.isStickyLeft === next.isStickyLeft &&
+	prev.isColumnReorderDragging === next.isColumnReorderDragging
 ));
 
 SheetHeaderCell.displayName = 'SheetHeaderCell';
@@ -486,20 +521,22 @@ const SheetColumnResizeHandle = memo((p: {
 	column: SheetUIColumn;
 	columnIndex: number;
 	columnWidth: number;
+	disabled?: boolean;
 	handleLeft: number;
 }) => {
 	return <div
 		aria-label={`Resize ${p.column.label}`}
 		aria-orientation='vertical'
-		className='abs cs_back hv_area'
+		className={cn('abs', p.disabled ? '' : 'cs_back hv_area')}
 		data-sheet-column-resize-handle={p.column.key}
 		role='separator'
 		style={{
 			cursor: 'col-resize',
 			height: SHEET_HEADER_HEIGHT,
 			left: p.handleLeft,
-			pointerEvents: 'auto',
+			pointerEvents: p.disabled ? 'none' : 'auto',
 			top: 0,
+			visibility: p.disabled ? 'hidden' : undefined,
 			width: SHEET_COLUMN_RESIZE_HANDLE_WIDTH,
 			zIndex: 110,
 		}}
@@ -510,10 +547,69 @@ const SheetColumnResizeHandle = memo((p: {
 	prev.column.label === next.column.label &&
 	prev.columnIndex === next.columnIndex &&
 	prev.columnWidth === next.columnWidth &&
+	prev.disabled === next.disabled &&
 	prev.handleLeft === next.handleLeft
 ));
 
 SheetColumnResizeHandle.displayName = 'SheetColumnResizeHandle';
+
+/*
+ * Render the live column reorder insertion guide.
+ */
+
+const SheetColumnReorderGuide = memo((p: {
+	guide: SheetUIColumnReorderGuide;
+}) => {
+	return <div
+		className='bg_active noclick'
+		data-sheet-column-reorder-guide={p.guide.columnKey}
+		style={{
+			height: p.guide.height,
+			left: p.guide.left,
+			position: 'absolute',
+			top: 0,
+			width: 2,
+			zIndex: 125,
+		}}
+	/>;
+}, (prev, next) => (
+	prev.guide.columnKey === next.guide.columnKey &&
+	prev.guide.height === next.guide.height &&
+	prev.guide.left === next.guide.left
+));
+
+SheetColumnReorderGuide.displayName = 'SheetColumnReorderGuide';
+
+/*
+ * Render the lightweight header preview shown while a column is dragged.
+ */
+
+const SheetColumnReorderDragPreview = memo((p: {
+	drag: SheetUIColumnReorderDrag;
+}) => {
+	return <div
+		className={cn(
+			'sheet_ui_header_cell of abs bd_1 bd_lt h_item px_8 ft_medium cl_md no_wrap bg shadow_line_alt unsel noclick',
+		)}
+		data-sheet-column-reorder-drag={p.drag.columnKey}
+		style={{
+			height: SHEET_HEADER_HEIGHT,
+			left: p.drag.left,
+			top: 0,
+			width: p.drag.width,
+			zIndex: 130,
+		}}
+	>
+		<span className='ellip'>{p.drag.label}</span>
+	</div>;
+}, (prev, next) => (
+	prev.drag.columnKey === next.drag.columnKey &&
+	prev.drag.label === next.drag.label &&
+	prev.drag.left === next.drag.left &&
+	prev.drag.width === next.drag.width
+));
+
+SheetColumnReorderDragPreview.displayName = 'SheetColumnReorderDragPreview';
 
 /*
  * Render the empty sticky spacer header cell after the left sticky columns.
@@ -543,6 +639,10 @@ SheetStickyColumnHeaderSpacer.displayName = 'SheetStickyColumnHeaderSpacer';
  */
 
 const SheetHeaderArea = memo((p: {
+	columnReorderDrag?: SheetUIColumnReorderDrag | null;
+	columnReorderDisplacements?: SheetUIColumnReorderDisplacements | null;
+	columnReorderEnabled?: boolean;
+	columnReorderGuide?: SheetUIColumnReorderGuide | null;
 	columnCount: number;
 	columns: SheetColumnMetric[];
 	headerCellsEditable?: boolean;
@@ -577,6 +677,7 @@ const SheetHeaderArea = memo((p: {
 
 			{p.columns.map((columnMetric) => {
 				const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
+				const isColumnReorderDragging = p.columnReorderDrag?.columnKey === columnMetric.column.key;
 				const headerLeft = (isStickyLeft ? p.scrollLeft : 0) +
 					SHEET_ROW_NUMBER_WIDTH +
 					columnMetric.left;
@@ -585,11 +686,15 @@ const SheetHeaderArea = memo((p: {
 					key={columnMetric.column.key}
 					column={columnMetric.column}
 					columnIndex={columnMetric.columnIndex}
+					columnReorderEnabled={p.columnReorderEnabled}
+					columnReorderOffset={p.columnReorderDisplacements?.[columnMetric.column.key] || 0}
 					headerCellsEditable={p.headerCellsEditable}
 					headerEditState={p.headerEditState}
 					headerLeft={headerLeft}
 					columnWidth={columnMetric.width}
+					hasColumnReorderTransition={Boolean(p.columnReorderDrag && !isColumnReorderDragging)}
 					isStickyLeft={isStickyLeft}
+					isColumnReorderDragging={isColumnReorderDragging}
 				/>;
 			})}
 
@@ -619,10 +724,19 @@ const SheetHeaderArea = memo((p: {
 						column={columnMetric.column}
 						columnIndex={columnMetric.columnIndex}
 						columnWidth={columnMetric.width}
+						disabled={Boolean(p.columnReorderDrag)}
 						handleLeft={handleLeft}
 					/>;
 				})}
 			</div>
+
+			{p.columnReorderGuide
+				? <SheetColumnReorderGuide guide={p.columnReorderGuide} />
+				: null}
+
+			{p.columnReorderDrag
+				? <SheetColumnReorderDragPreview drag={p.columnReorderDrag} />
+				: null}
 		</div>
 
 			<div
@@ -634,6 +748,15 @@ const SheetHeaderArea = memo((p: {
 			/>
 		</div>;
 	}, (prev, next) => (
+	prev.columnReorderDrag?.columnKey === next.columnReorderDrag?.columnKey &&
+	prev.columnReorderDrag?.label === next.columnReorderDrag?.label &&
+	prev.columnReorderDrag?.left === next.columnReorderDrag?.left &&
+	prev.columnReorderDrag?.width === next.columnReorderDrag?.width &&
+	prev.columnReorderDisplacements === next.columnReorderDisplacements &&
+	prev.columnReorderEnabled === next.columnReorderEnabled &&
+	prev.columnReorderGuide?.columnKey === next.columnReorderGuide?.columnKey &&
+	prev.columnReorderGuide?.height === next.columnReorderGuide?.height &&
+	prev.columnReorderGuide?.left === next.columnReorderGuide?.left &&
 	prev.columnCount === next.columnCount &&
 	prev.columns === next.columns &&
 	prev.headerCellsEditable === next.headerCellsEditable &&
@@ -1050,6 +1173,10 @@ export const SheetUI = memo((p: SheetUIProps) => {
 				}}
 			>
 				<SheetHeaderArea
+					columnReorderDrag={p.columnReorderDrag}
+					columnReorderDisplacements={p.columnReorderDisplacements}
+					columnReorderEnabled={p.columnReorderEnabled}
+					columnReorderGuide={p.columnReorderGuide}
 					columnCount={p.columnCount}
 					columns={p.columns}
 					headerCellsEditable={p.headerCellsEditable}
@@ -1076,14 +1203,14 @@ export const SheetUI = memo((p: SheetUIProps) => {
 					>
 						<div className='rel h_f w_f'>
 							<div
-								className='bg_main noclick'
+								className='bg_primary noclick'
 								data-sheet-column-resize-guide={p.resizeGuide.columnKey}
 								style={{
 									height: p.resizeGuide.height,
-									left: p.resizeGuide.left,
+									left: p.resizeGuide.left - 1.5,
 									position: 'absolute',
 									top: 0,
-									width: 1,
+									width: 3,
 									zIndex: 110,
 								}}
 							/>
@@ -1160,6 +1287,15 @@ export const SheetUI = memo((p: SheetUIProps) => {
 	prev.canvasWidth === next.canvasWidth &&
 	prev.cellCount === next.cellCount &&
 	prev.className === next.className &&
+	prev.columnReorderDrag?.columnKey === next.columnReorderDrag?.columnKey &&
+	prev.columnReorderDrag?.label === next.columnReorderDrag?.label &&
+	prev.columnReorderDrag?.left === next.columnReorderDrag?.left &&
+	prev.columnReorderDrag?.width === next.columnReorderDrag?.width &&
+	prev.columnReorderDisplacements === next.columnReorderDisplacements &&
+	prev.columnReorderEnabled === next.columnReorderEnabled &&
+	prev.columnReorderGuide?.columnKey === next.columnReorderGuide?.columnKey &&
+	prev.columnReorderGuide?.height === next.columnReorderGuide?.height &&
+	prev.columnReorderGuide?.left === next.columnReorderGuide?.left &&
 	prev.columnCount === next.columnCount &&
 	prev.columns === next.columns &&
 	prev.editState?.rowId === next.editState?.rowId &&

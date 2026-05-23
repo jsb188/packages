@@ -1,7 +1,6 @@
 import { useEditSheetCell, useEditSheetDesign } from '@jsb188/graphql/hooks/use-sheet-mtn';
 import { useReactiveSheetRows, useSheetRows } from '@jsb188/graphql/hooks/use-sheet-qry';
 import { COLORS } from '@jsb188/app/constants/app.ts';
-import i18n from '@jsb188/app/i18n/index.ts';
 import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import type {
@@ -18,6 +17,7 @@ import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
 import {
   getOrderedSheetDesignViewColumns,
   getOrderedSheetDesignViews,
+  moveVisibleSheetColumnKeyInOrder,
   mapSheetDesignViewColumnToCell,
 } from '@jsb188/mday/utils/sheet.ts';
 import type { FloatingMessageObj } from '@jsb188/react-web/modules/Layout';
@@ -41,17 +41,35 @@ import {
   type SheetUIEditState,
   type SheetUIFieldType,
   type SheetUIHeaderEditState,
+  type SheetUIColumnReorderDrag,
+  type SheetUIColumnReorderDisplacements,
+  type SheetUIColumnReorderGuide,
   type SheetUIResizeGuide,
   type SheetUIRowSlot,
   type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
+import {
+	getInitialSheetDesignReducerState,
+	getInitialSheetRowsState,
+	getSheetRowsSourceKey,
+	mergeSheetDesignPatch,
+	mergeSheetDesignWithPatch,
+	mergeSheetRowsState,
+	sheetCellValueReducer,
+	sheetDesignReducer,
+	useElementSize,
+	useFloatingMessageForSheetRowsReset,
+	type SheetDesignPatchInput,
+	type SheetRowsState,
+} from './use-sheet-states.ts';
 
 /**
  * Dev code
  */
 
-const __DISABLE_EDIT_STATE_RESET__ = globalThis?.location?.hostname === 'localhost' && true;
+const __DISABLE_EDIT_STATE_RESET__ = globalThis?.location?.hostname === 'localhost' &&
+	globalThis?.location?.search.includes('disable_sheet_edit_state_reset=true');
 
 /**
  * Types
@@ -69,19 +87,6 @@ export interface SheetProps {
 	onOpenCell?: (params: SheetOpenCellParams) => void;
 	setFloatingMessage?: (message: FloatingMessageObj | null) => void;
 }
-
-type ElementSize = {
-	height: number;
-	width: number;
-};
-
-type SheetRowsState = {
-	hasMoreRows: boolean;
-	rowIds: string[];
-	rowsById: Record<string, SheetRowGQL>;
-	rowSignaturesById: Record<string, string>;
-	sourceKey: string;
-};
 
 type SheetParsedEditorValue = {
 	value: string | null;
@@ -114,6 +119,7 @@ type SheetRuntimeState = {
 	saveCellValue: (lookup: SheetCellLookup, value: string | null) => Promise<void>;
 	sheet: SheetGQL;
 	startColumnResize: (columnKey: string, clientX: number) => void;
+	startColumnReorder: (columnKey: string, clientX: number) => void;
 };
 
 type SheetRuntimeDesignCell = SheetDesignCellGQL & {
@@ -127,21 +133,35 @@ type SheetResizeState = {
 	startWidth: number;
 };
 
+type SheetColumnReorderRuntime = {
+	activeViewId: string | null;
+	allColumnKeys: string[];
+	metrics: SheetColumnMetric[];
+	savedOrder?: string[] | null;
+	visibleColumnKeys: string[];
+};
+
+type SheetColumnReorderState = {
+	columnKey: string;
+	latestClientX: number;
+	latestToVisibleIndex: number;
+	startClientX: number;
+	startColumnIndex: number;
+	startLeft: number;
+	startWidth: number;
+	started: boolean;
+};
+
+type SheetColumnReorderVisualState = {
+	columnKey: string;
+	dragLeft: number;
+	toVisibleIndex: number;
+};
+
 type SheetPaginationState = {
 	hasMoreRows: boolean;
 	lastCursor: string | null;
 };
-
-type SheetDesignPatchInput = {
-	cells?: Array<{
-		humanLabel?: string | null;
-		key: string;
-		width?: number | null;
-	}>;
-	cellsOrder?: string[];
-};
-
-type SheetDesignCellPatchInput = NonNullable<SheetDesignPatchInput['cells']>[number];
 
 type SheetDesignMutationRuntime = {
 	editSheetDesign: (params: {
@@ -154,45 +174,6 @@ type SheetDesignMutationRuntime = {
 	organizationId: string;
 	sheetId: string;
 };
-
-type SheetDesignReducerState = {
-	localPatch: SheetDesignPatchInput | null;
-	serverDesign: SheetDesignGQL;
-	sheetId: string;
-};
-
-type SheetDesignReducerAction =
-	| {
-		design: SheetDesignGQL;
-		sheetId: string;
-		type: 'server_design_received';
-	}
-	| {
-		patch: SheetDesignPatchInput;
-		type: 'local_patch_queued';
-	};
-
-type SheetOptimisticCellValues = Record<string, string | null>;
-
-type SheetCellValueReducerAction =
-	| {
-		type: 'reset';
-	}
-	| {
-		cellKey: string;
-		rowId: string;
-		type: 'local_value_queued';
-		value: string | null;
-	}
-	| {
-		confirmedKeys: string[];
-		type: 'server_values_received';
-	}
-	| {
-		cellKey: string;
-		rowId: string;
-		type: 'local_value_reverted';
-	};
 
 type SheetTab = {
 	id: string | null;
@@ -212,169 +193,7 @@ const SHEET_ROW_RIGHT_PADDING = 64;
 const SHEET_MOCK_ROW_COUNT = 5;
 const SHEET_MOCK_CELL_TEXT = '... ... ...';
 const SHEET_MOCK_ROW_OPACITY_CLASSES = ['', 'op_80', 'op_60', 'op_40', 'op_20'];
-
-/*
- * Build an empty row collection state for one sheet.
- */
-
-function getInitialSheetRowsState(sourceKey: string): SheetRowsState {
-	return {
-		hasMoreRows: true,
-		rowIds: [],
-		rowsById: {},
-		rowSignaturesById: {},
-		sourceKey,
-	};
-}
-
-/*
- * Return the identity for the current sheet row source.
- */
-
-function getSheetRowsSourceKey(sheetId: string, viewId?: string | null) {
-	return `${sheetId}:${viewId || 'master'}`;
-}
-
-/*
- * Show a refresh floating message when sheet row queries receive reset-only updates.
- */
-
-function useFloatingMessageForSheetRowsReset(
-	resetOnlyTime: string | undefined,
-	setFloatingMessage?: (message: FloatingMessageObj | null) => void,
-) {
-	const lastUpdateTime = useRef<string | undefined>(resetOnlyTime);
-
-	useEffect(() => {
-		if (!resetOnlyTime) {
-			return;
-		}
-
-		if (resetOnlyTime !== lastUpdateTime.current && setFloatingMessage) {
-			setFloatingMessage({
-				text: i18n.t('app.new_data_click_to_refresh'),
-				type: 'REFRESH',
-			});
-		}
-
-		lastUpdateTime.current = resetOnlyTime;
-	}, [resetOnlyTime, setFloatingMessage]);
-}
-
-/*
- * Return a stable comparison key for one sheet cell payload.
- */
-
-function getSheetCellStateKey(cell: SheetCellGQL) {
-	return [
-		cell.id,
-		cell.cellKey,
-		cell.value ?? '',
-		cell.textValue ?? '',
-		cell.numberValue ?? '',
-		cell.booleanValue === undefined || cell.booleanValue === null ? '' : String(cell.booleanValue),
-		cell.dateValue ?? '',
-		cell.datetimeValue ?? '',
-		cell.updatedAt ?? '',
-	].join('\u0000');
-}
-
-/*
- * Return a stable comparison key for one sheet row payload.
- */
-
-function getSheetRowStateKey(row: SheetRowGQL) {
-	return [
-		row.id,
-		row.position,
-		row.cursor ?? '',
-		row.updatedAt ?? '',
-		...(row.cells || []).map(getSheetCellStateKey).sort(),
-	].join('\u0000');
-}
-
-/*
- * Return whether two ordered row id collections have the same contents.
- */
-
-function areSheetRowIdsEqual(a: string[], b: string[]) {
-	return a.length === b.length && a.every((rowId, index) => rowId === b[index]);
-}
-
-/*
- * Merge fetched row ids while preserving the server's visual query order.
- */
-
-function mergeSheetRowIds(
-	currentRowIds: string[],
-	rows: SheetRowGQL[],
-	appendRows: boolean,
-) {
-	const nextRowIds = Array.from(new Set(rows.map((row) => row.id)));
-
-	if (appendRows) {
-		const existingIds = new Set(currentRowIds);
-
-		return currentRowIds.concat(nextRowIds.filter((rowId) => !existingIds.has(rowId)));
-	}
-
-	return nextRowIds;
-}
-
-/*
- * Merge one fetched page of rows into the loaded row collection.
- */
-
-function mergeSheetRowsState(
-	currentState: SheetRowsState,
-	sourceKey: string,
-	rows: SheetRowGQL[],
-	limit: number,
-	appendRows = false,
-): SheetRowsState {
-	const baseState = currentState.sourceKey === sourceKey ? currentState : getInitialSheetRowsState(sourceKey);
-	let rowsById = baseState.rowsById;
-	let rowSignaturesById = baseState.rowSignaturesById;
-	let changedRows = baseState !== currentState;
-
-	rows.forEach((row) => {
-		const rowSignature = getSheetRowStateKey(row);
-
-		if (rowSignaturesById[row.id] === rowSignature) {
-			return;
-		}
-
-		if (rowsById === baseState.rowsById) {
-			rowsById = { ...baseState.rowsById };
-			rowSignaturesById = { ...baseState.rowSignaturesById };
-		}
-
-		rowsById[row.id] = row;
-		rowSignaturesById[row.id] = rowSignature;
-		changedRows = true;
-	});
-
-	const hasMoreRows = rows.length < limit ? false : baseState.hasMoreRows;
-	const rowIds = mergeSheetRowIds(baseState.rowIds, rows, appendRows);
-	const changedRowIds = !areSheetRowIdsEqual(baseState.rowIds, rowIds);
-
-	if (
-		currentState.sourceKey === sourceKey &&
-		currentState.hasMoreRows === hasMoreRows &&
-		!changedRows &&
-		!changedRowIds
-	) {
-		return currentState;
-	}
-
-	return {
-		hasMoreRows,
-		rowIds,
-		rowsById,
-		rowSignaturesById,
-		sourceKey,
-	};
-}
+const SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
 
 /*
  * Return ordered design cells from immutable sheet design configuration.
@@ -494,290 +313,235 @@ function getSheetDesignColumnWidths(designCells: SheetRuntimeDesignCell[]) {
 }
 
 /*
- * Return whether two optional ordered sheet design key lists are identical.
+ * Return every master sheet design cell key, including hidden cells.
  */
 
-function areSheetDesignCellsOrdersEqual(a?: string[] | null, b?: string[] | null) {
-	const aOrder = a || [];
-	const bOrder = b || [];
-
-	return aOrder.length === bOrder.length && aOrder.every((key, index) => key === bOrder[index]);
+function getAllSheetDesignCellKeys(design: SheetDesignGQL | null | undefined) {
+	return (design?.cells || []).map((cell) => cell.key).filter(Boolean);
 }
 
 /*
- * Merge two sparse sheet design patches while keeping the newest cell patch per key.
+ * Return every column key stored on a sheet view, including currently hidden columns.
  */
 
-function mergeSheetDesignPatch(
-	currentPatch: SheetDesignPatchInput | null,
-	nextPatch: SheetDesignPatchInput,
-): SheetDesignPatchInput {
-	const mergedPatch: SheetDesignPatchInput = {
-		...(currentPatch || {}),
-	};
-
-	if (nextPatch.cells) {
-		const cellsByKey = new Map((mergedPatch.cells || []).map((cell) => [cell.key, cell]));
-
-		nextPatch.cells.forEach((cell) => {
-			cellsByKey.set(cell.key, {
-				...cellsByKey.get(cell.key),
-				...cell,
-			});
-		});
-
-		mergedPatch.cells = Array.from(cellsByKey.values());
-	}
-
-	if (nextPatch.cellsOrder) {
-		mergedPatch.cellsOrder = nextPatch.cellsOrder.slice(0);
-	}
-
-	return mergedPatch;
+function getAllSheetDesignViewColumnKeys(view: SheetDesignViewGQL | null | undefined) {
+	return (view?.columns || []).map((column) => column.key).filter(Boolean);
 }
 
 /*
- * Merge local sheet design edits over the latest GraphQL design baseline.
+ * Return the current reorder persistence target for the active sheet tab.
  */
 
-function mergeSheetDesignWithPatch(
-	serverDesign: SheetDesignGQL,
-	localPatch: SheetDesignPatchInput | null,
-): SheetDesignGQL {
-	if (!localPatch) {
-		return serverDesign;
-	}
-
-	let cells = serverDesign.cells;
-
-	if (localPatch.cells?.length) {
-		const patchCellsByKey = new Map(localPatch.cells.map((cell) => [cell.key, cell]));
-
-		cells = serverDesign.cells.map((cell) => {
-			const patchCell = patchCellsByKey.get(cell.key);
-
-			if (!patchCell) {
-				return cell;
-			}
-
-			return {
-				...cell,
-				...patchCell,
-			};
-		});
+function getSheetColumnReorderRuntime(params: {
+	activeView?: SheetDesignViewGQL | null;
+	columnMetrics: SheetColumnMetric[];
+	design: SheetDesignGQL;
+	visibleColumnKeys: string[];
+}) {
+	if (params.activeView) {
+		return {
+			activeViewId: params.activeView.id,
+			allColumnKeys: getAllSheetDesignViewColumnKeys(params.activeView),
+			metrics: params.columnMetrics,
+			savedOrder: params.activeView.columnsOrder,
+			visibleColumnKeys: params.visibleColumnKeys,
+		} satisfies SheetColumnReorderRuntime;
 	}
 
 	return {
-		...serverDesign,
-		cells,
-		cellsOrder: localPatch.cellsOrder || serverDesign.cellsOrder,
+		activeViewId: null,
+		allColumnKeys: getAllSheetDesignCellKeys(params.design),
+		metrics: params.columnMetrics,
+		savedOrder: params.design.cellsOrder,
+		visibleColumnKeys: params.visibleColumnKeys,
+	} satisfies SheetColumnReorderRuntime;
+}
+
+/*
+ * Return the horizontal rectangle for a dragged header at one pointer position.
+ */
+
+function getSheetColumnReorderDraggedRect(params: {
+	clientX: number;
+	startClientX: number;
+	startLeft: number;
+	width: number;
+}) {
+	const left = params.startLeft + params.clientX - params.startClientX;
+
+	return {
+		left,
+		right: left + params.width,
 	};
 }
 
 /*
- * Drop local sheet design edits once the refreshed server design contains them.
+ * Return the visual insertion index nearest to a pointer X coordinate.
  */
 
-function removeConfirmedSheetDesignPatchValues(
-	localPatch: SheetDesignPatchInput | null,
-	serverDesign: SheetDesignGQL,
-) {
-	if (!localPatch) {
+function getSheetColumnReorderTargetIndex(params: {
+	clientX: number;
+	draggedColumnIndex?: number;
+	draggedRect?: {
+		left: number;
+		right: number;
+	};
+	metrics: SheetColumnMetric[];
+	scrollLeft: number;
+	scrollNode: HTMLElement;
+	stickyColumnCount: number;
+}) {
+	const viewportRect = params.scrollNode.getBoundingClientRect();
+	const targetLeft = params.clientX - viewportRect.left + params.scrollLeft;
+
+	for (let index = 0; index < params.metrics.length; index += 1) {
+		const metric = params.metrics[index];
+		if (!metric) {
+			continue;
+		}
+
+		const metricLeft = (metric.columnIndex < params.stickyColumnCount ? params.scrollLeft : 0) +
+			SHEET_ROW_NUMBER_WIDTH +
+			metric.left;
+		const metricRight = metricLeft + metric.width;
+
+		if (params.draggedRect && params.draggedColumnIndex !== undefined) {
+			if (metric.columnIndex < params.draggedColumnIndex) {
+				if (params.draggedRect.left < metricRight - metric.width * SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD) {
+					return index;
+				}
+
+				continue;
+			}
+
+			if (metric.columnIndex > params.draggedColumnIndex) {
+				if (params.draggedRect.right < metricLeft + metric.width * SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD) {
+					return index;
+				}
+
+				continue;
+			}
+		}
+
+		const thresholdCoordinate = params.draggedRect
+			? (params.draggedRect.left + params.draggedRect.right) / 2
+			: targetLeft;
+
+		if (thresholdCoordinate < metricLeft + metric.width / 2) {
+			return index;
+		}
+	}
+
+	return params.metrics.length;
+}
+
+/*
+ * Convert a raw insertion slot into the visible-key index used after removing the dragged key.
+ */
+
+function getSheetColumnReorderMoveIndex(visibleColumnKeys: string[], fromKey: string, toVisibleIndex: number) {
+	const fromIndex = visibleColumnKeys.indexOf(fromKey);
+	const boundedIndex = Math.max(0, Math.min(toVisibleIndex, visibleColumnKeys.length));
+
+	if (fromIndex < 0) {
+		return boundedIndex;
+	}
+
+	return boundedIndex > fromIndex ? boundedIndex - 1 : boundedIndex;
+}
+
+/*
+ * Return the header-row left coordinate for one column metric.
+ */
+
+function getSheetColumnMetricHeaderLeft(metric: SheetColumnMetric, scrollLeft: number, stickyColumnCount: number) {
+	return (metric.columnIndex < stickyColumnCount ? scrollLeft : 0) + SHEET_ROW_NUMBER_WIDTH + metric.left;
+}
+
+/*
+ * Return the header-row insertion guide left coordinate for a reorder target.
+ */
+
+function getSheetColumnReorderGuideLeft(metrics: SheetColumnMetric[], toVisibleIndex: number, scrollLeft: number, stickyColumnCount: number) {
+	const targetMetric = metrics[toVisibleIndex];
+	if (targetMetric) {
+		return getSheetColumnMetricHeaderLeft(targetMetric, scrollLeft, stickyColumnCount) - 1;
+	}
+
+	const lastMetric = metrics[metrics.length - 1];
+	if (!lastMetric) {
+		return SHEET_ROW_NUMBER_WIDTH;
+	}
+
+	return getSheetColumnMetricHeaderLeft(lastMetric, scrollLeft, stickyColumnCount) + lastMetric.width - 1;
+}
+
+/*
+ * Return transform offsets that make header cells slide aside during a column drag.
+ */
+
+function getSheetColumnReorderHeaderDisplacements(params: {
+	columnKey: string;
+	metrics: SheetColumnMetric[];
+	scrollLeft: number;
+	stickyColumnCount: number;
+	toVisibleIndex: number;
+	visibleColumnKeys: string[];
+}) {
+	const fromIndex = params.visibleColumnKeys.indexOf(params.columnKey);
+	if (fromIndex < 0) {
 		return null;
 	}
 
-	let nextPatch: SheetDesignPatchInput | null = null;
-	const serverCellsByKey = new Map(serverDesign.cells.map((cell) => [cell.key, cell]));
-
-	localPatch.cells?.forEach((patchCell) => {
-		const serverCell = serverCellsByKey.get(patchCell.key);
-		const nextCell: SheetDesignCellPatchInput = {
-			key: patchCell.key,
-		};
-
-		if (patchCell.width !== undefined) {
-			const serverWidth = serverCell?.width === undefined || serverCell.width === null
-				? null
-				: clampSheetColumnWidth(Number(serverCell.width));
-			const patchWidth = patchCell.width === null ? null : clampSheetColumnWidth(Number(patchCell.width));
-
-			if (serverWidth !== patchWidth) {
-				nextCell.width = patchCell.width;
-			}
-		}
-
-		if (patchCell.humanLabel !== undefined && (serverCell?.humanLabel || null) !== patchCell.humanLabel) {
-			nextCell.humanLabel = patchCell.humanLabel;
-		}
-
-		if (nextCell.width !== undefined || nextCell.humanLabel !== undefined) {
-			nextPatch = mergeSheetDesignPatch(nextPatch, {
-				cells: [nextCell],
-			});
-		}
-	});
-
-	if (localPatch.cellsOrder && !areSheetDesignCellsOrdersEqual(localPatch.cellsOrder, serverDesign.cellsOrder)) {
-		nextPatch = mergeSheetDesignPatch(nextPatch, {
-			cellsOrder: localPatch.cellsOrder,
-		});
+	const toIndex = getSheetColumnReorderMoveIndex(
+		params.visibleColumnKeys,
+		params.columnKey,
+		params.toVisibleIndex,
+	);
+	if (fromIndex === toIndex) {
+		return null;
 	}
 
-	return nextPatch;
-}
-
-/*
- * Keep the sheet design reducer initialized for one sheet id.
- */
-
-function getInitialSheetDesignReducerState(sheetId: string, serverDesign: SheetDesignGQL): SheetDesignReducerState {
-	return {
-		localPatch: null,
-		serverDesign,
-		sheetId,
-	};
-}
-
-/*
- * Own the local sheet design overlay that should survive GraphQL refreshes.
- */
-
-function sheetDesignReducer(
-	state: SheetDesignReducerState,
-	action: SheetDesignReducerAction,
-): SheetDesignReducerState {
-	if (action.type === 'server_design_received') {
-		if (state.sheetId !== action.sheetId) {
-			return getInitialSheetDesignReducerState(action.sheetId, action.design);
-		}
-
-		return {
-			...state,
-			localPatch: removeConfirmedSheetDesignPatchValues(state.localPatch, action.design),
-			serverDesign: action.design,
-		};
+	const metricsByKey = new Map(params.metrics.map((metric) => [metric.column.key, metric]));
+	const projectedOrder = params.visibleColumnKeys.slice(0);
+	const [movedKey] = projectedOrder.splice(fromIndex, 1);
+	if (!movedKey) {
+		return null;
 	}
 
-	return {
-		...state,
-		localPatch: mergeSheetDesignPatch(state.localPatch, action.patch),
-	};
-}
+	projectedOrder.splice(toIndex, 0, movedKey);
 
-/*
- * Keep local sheet cell edits visible until refreshed server data confirms them.
- */
+	const currentLefts = new Map(params.metrics.map((metric) => {
+		return [
+			metric.column.key,
+			getSheetColumnMetricHeaderLeft(metric, params.scrollLeft, params.stickyColumnCount),
+		];
+	}));
+	const displacements: SheetUIColumnReorderDisplacements = {};
+	let nextLeft = 0;
 
-function sheetCellValueReducer(
-	state: SheetOptimisticCellValues,
-	action: SheetCellValueReducerAction,
-): SheetOptimisticCellValues {
-	if (action.type === 'reset') {
-		return {};
-	}
-
-	if (action.type === 'server_values_received') {
-		if (!action.confirmedKeys.length) {
-			return state;
-		}
-
-		let nextState = state;
-
-		action.confirmedKeys.forEach((key) => {
-			if (!Object.prototype.hasOwnProperty.call(nextState, key)) {
-				return;
-			}
-
-			if (nextState === state) {
-				nextState = {
-					...state,
-				};
-			}
-
-			delete nextState[key];
-		});
-
-		return nextState;
-	}
-
-	if (action.type === 'local_value_reverted') {
-		const optimisticKey = getSheetCellKey(action.rowId, action.cellKey);
-		if (!Object.prototype.hasOwnProperty.call(state, optimisticKey)) {
-			return state;
-		}
-
-		const nextState = {
-			...state,
-		};
-		delete nextState[optimisticKey];
-
-		return nextState;
-	}
-
-	const optimisticKey = getSheetCellKey(action.rowId, action.cellKey);
-	if (state[optimisticKey] === action.value) {
-		return state;
-	}
-
-	return {
-		...state,
-		[optimisticKey]: action.value,
-	};
-}
-
-/*
- * Keep the current size of one DOM element in React state.
- */
-
-function useElementSize<T extends HTMLElement>() {
-	const [node, setNode] = useState<T | null>(null);
-	const [size, setSize] = useState<ElementSize>({
-		height: 0,
-		width: 0,
-	});
-	const ref = useCallback((nextNode: T | null) => {
-		setNode(nextNode);
-	}, []);
-
-	useEffect(() => {
-		if (!node) {
+	projectedOrder.forEach((columnKey, columnIndex) => {
+		const metric = metricsByKey.get(columnKey);
+		if (!metric) {
 			return;
 		}
 
-		const updateSize = () => {
-			setSize((currentSize) => {
-				const nextSize = {
-					height: node.clientHeight || 0,
-					width: node.clientWidth || 0,
-				};
+		const projectedLeft = (
+			columnIndex < params.stickyColumnCount ? params.scrollLeft : 0
+		) + SHEET_ROW_NUMBER_WIDTH + nextLeft + (
+			columnIndex >= params.stickyColumnCount ? SHEET_STICKY_SPACER_SIZE : 0
+		);
+		const currentLeft = currentLefts.get(columnKey);
+		const displacement = currentLeft === undefined ? 0 : projectedLeft - currentLeft;
 
-				if (currentSize.height === nextSize.height && currentSize.width === nextSize.width) {
-					return currentSize;
-				}
-
-				return nextSize;
-			});
-		};
-
-		updateSize();
-
-		if (typeof ResizeObserver === 'undefined') {
-			return;
+		if (columnKey !== params.columnKey && displacement) {
+			displacements[columnKey] = displacement;
 		}
 
-		const observer = new ResizeObserver(updateSize);
-		observer.observe(node);
+		nextLeft += metric.width;
+	});
 
-		return () => {
-			observer.disconnect();
-		};
-	}, [node]);
-
-	return {
-		node,
-		ref,
-		size,
-	};
+	return Object.keys(displacements).length ? displacements : null;
 }
 
 /*
@@ -1499,6 +1263,10 @@ export function Sheet(p: SheetProps) {
 	const resizeStateRef = useRef<SheetResizeState | null>(null);
 	const resizeFrameRef = useRef<number | null>(null);
 	const resizeCleanupRef = useRef<(() => void) | null>(null);
+	const columnReorderRuntimeRef = useRef<SheetColumnReorderRuntime | null>(null);
+	const columnReorderStateRef = useRef<SheetColumnReorderState | null>(null);
+	const columnReorderFrameRef = useRef<number | null>(null);
+	const columnReorderCleanupRef = useRef<(() => void) | null>(null);
 	const designSaveInFlightRef = useRef(false);
 	const pendingDesignPatchRef = useRef<SheetDesignPatchInput | null>(null);
 	const inFlightDesignPatchRef = useRef<{
@@ -1524,7 +1292,7 @@ export function Sheet(p: SheetProps) {
 	});
 	const [editState, setEditState] = useState<SheetUIEditState | null>(null);
 	const [headerEditState, setHeaderEditState] = useState<SheetUIHeaderEditState | null>(null);
-	const [hoveredResizeColumnKey, setHoveredResizeColumnKey] = useState<string | null>(null);
+	const [columnReorderVisualState, setColumnReorderVisualState] = useState<SheetColumnReorderVisualState | null>(null);
 	const [optimisticValues, dispatchOptimisticValues] = useReducer(sheetCellValueReducer, {});
 	const [resizingColumnKey, setResizingColumnKey] = useState<string | null>(null);
 	const [singleClickedCellState, setSingleClickedCellState] = useState<SheetUISelectedCellState | null>(null);
@@ -1598,6 +1366,9 @@ export function Sheet(p: SheetProps) {
 	const columns = useMemo(() => {
 		return activeView ? getSheetViewRuntimeCells(activeView, masterDesignCells) : masterColumns;
 	}, [activeView, masterColumns, masterDesignCells]);
+	const columnKeys = useMemo(() => {
+		return columns.map((column) => column.key);
+	}, [columns]);
 	const uiColumns = useMemo(() => {
 		return columns.map(getSheetUIColumn);
 	}, [columns]);
@@ -1614,12 +1385,32 @@ export function Sheet(p: SheetProps) {
 	const columnMetricsData = useMemo(() => {
 		return getSheetColumnMetrics(uiColumns, mergedColumnWidths);
 	}, [mergedColumnWidths, uiColumns]);
+	const stickyColumnCount = activeView?.stickyLeft ?? effectiveDesign.stickyLeft ?? 0;
+	const columnReorderMetrics = useMemo(() => {
+		return columnMetricsData.metrics.map((metric) => {
+			if (metric.columnIndex < stickyColumnCount) {
+				return metric;
+			}
+
+			return {
+				...metric,
+				left: metric.left + SHEET_STICKY_SPACER_SIZE,
+			};
+		});
+	}, [columnMetricsData.metrics, stickyColumnCount]);
 	const columnMetricsByKey = useMemo(() => {
 		return new Map(columnMetricsData.metrics.map((metric) => [metric.column.key, metric]));
 	}, [columnMetricsData.metrics]);
 	const designCellsByKey = useMemo(() => {
 		return new Map(columns.map((cell) => [cell.key, cell]));
 	}, [columns]);
+
+	columnReorderRuntimeRef.current = getSheetColumnReorderRuntime({
+		activeView,
+		columnMetrics: columnReorderMetrics,
+		design: effectiveDesign,
+		visibleColumnKeys: columnKeys,
+	});
 
 	useIsomorphicLayoutEffect(() => {
 		setEditState(null);
@@ -1629,6 +1420,7 @@ export function Sheet(p: SheetProps) {
 		dispatchOptimisticValues({
 			type: 'reset',
 		});
+		setColumnReorderVisualState(null);
 		setRowState(getInitialSheetRowsState(rowSourceKey));
 		setScrollState({
 			scrollLeft: 0,
@@ -1872,7 +1664,7 @@ export function Sheet(p: SheetProps) {
 		const runtime = runtimeRef.current;
 		const metric = runtime?.columnMetricsByKey.get(columnKey);
 
-		if (!runtime || runtime.disabled || !runtime.designEditable || !metric) {
+		if (!runtime || runtime.disabled || !runtime.designEditable || !metric || columnReorderStateRef.current?.started) {
 			return;
 		}
 
@@ -1882,7 +1674,6 @@ export function Sheet(p: SheetProps) {
 			startClientX: clientX,
 			startWidth: metric.width,
 		};
-		setHoveredResizeColumnKey(null);
 		setResizingColumnKey(columnKey);
 
 		const finishResize = (clientX?: number) => {
@@ -1932,7 +1723,6 @@ export function Sheet(p: SheetProps) {
 			resizeStateRef.current = null;
 			resizeCleanupRef.current?.();
 			resizeCleanupRef.current = null;
-			setHoveredResizeColumnKey(null);
 			setResizingColumnKey(null);
 		};
 		const onPointerMove = (event: PointerEvent) => {
@@ -1985,6 +1775,209 @@ export function Sheet(p: SheetProps) {
 			window.removeEventListener('contextmenu', onContextMenu, true);
 		};
 	}, [queueSheetDesignSave, sheetId]);
+
+	const startColumnReorder = useCallback((columnKey: string, clientX: number) => {
+		const runtime = runtimeRef.current;
+		const reorderRuntime = columnReorderRuntimeRef.current;
+		const scrollNode = scrollElement.node;
+		const metric = reorderRuntime?.metrics.find((item) => item.column.key === columnKey);
+
+		if (!runtime || runtime.disabled || !reorderRuntime || !scrollNode || !metric || reorderRuntime.visibleColumnKeys.length < 2) {
+			return;
+		}
+
+		columnReorderCleanupRef.current?.();
+
+		const startLeft = getSheetColumnMetricHeaderLeft(metric, scrollState.scrollLeft, stickyColumnCount);
+		const initialTargetIndex = getSheetColumnReorderTargetIndex({
+			clientX,
+			draggedColumnIndex: metric.columnIndex,
+			draggedRect: getSheetColumnReorderDraggedRect({
+				clientX,
+				startClientX: clientX,
+				startLeft,
+				width: metric.width,
+			}),
+			metrics: reorderRuntime.metrics,
+			scrollLeft: scrollState.scrollLeft,
+			scrollNode,
+			stickyColumnCount,
+		});
+
+		columnReorderStateRef.current = {
+			columnKey,
+			latestClientX: clientX,
+			latestToVisibleIndex: initialTargetIndex,
+			startClientX: clientX,
+			startColumnIndex: metric.columnIndex,
+			startLeft,
+			startWidth: metric.width,
+			started: false,
+		};
+
+		const updateVisualState = () => {
+			const reorderState = columnReorderStateRef.current;
+			if (!reorderState?.started) {
+				return;
+			}
+
+			const dragLeft = reorderState.startLeft + reorderState.latestClientX - reorderState.startClientX;
+			const nextState = {
+				columnKey: reorderState.columnKey,
+				dragLeft,
+				toVisibleIndex: reorderState.latestToVisibleIndex,
+			};
+
+			setColumnReorderVisualState((currentState) => {
+				if (
+					currentState?.columnKey === nextState.columnKey &&
+					currentState.dragLeft === nextState.dragLeft &&
+					currentState.toVisibleIndex === nextState.toVisibleIndex
+				) {
+					return currentState;
+				}
+
+				return nextState;
+			});
+		};
+		const scheduleVisualUpdate = () => {
+			if (columnReorderFrameRef.current !== null) {
+				return;
+			}
+
+			columnReorderFrameRef.current = requestAnimationFrame(() => {
+				columnReorderFrameRef.current = null;
+				updateVisualState();
+			});
+		};
+		const finishReorder = (finishClientX?: number) => {
+			const reorderState = columnReorderStateRef.current;
+			const latestClientX = Number.isFinite(finishClientX) ? Number(finishClientX) : reorderState?.latestClientX;
+
+			if (columnReorderFrameRef.current !== null) {
+				cancelAnimationFrame(columnReorderFrameRef.current);
+				columnReorderFrameRef.current = null;
+			}
+
+			if (reorderState && latestClientX !== undefined) {
+				reorderState.latestClientX = latestClientX;
+				reorderState.latestToVisibleIndex = getSheetColumnReorderTargetIndex({
+					clientX: latestClientX,
+					draggedColumnIndex: reorderState.startColumnIndex,
+					draggedRect: getSheetColumnReorderDraggedRect({
+						clientX: latestClientX,
+						startClientX: reorderState.startClientX,
+						startLeft: reorderState.startLeft,
+						width: reorderState.startWidth,
+					}),
+					metrics: reorderRuntime.metrics,
+					scrollLeft: scrollState.scrollLeft,
+					scrollNode,
+					stickyColumnCount,
+				});
+			}
+
+			if (reorderState?.started) {
+				const fromIndex = reorderRuntime.visibleColumnKeys.indexOf(reorderState.columnKey);
+				const toVisibleIndex = getSheetColumnReorderMoveIndex(
+					reorderRuntime.visibleColumnKeys,
+					reorderState.columnKey,
+					reorderState.latestToVisibleIndex,
+				);
+
+				if (fromIndex >= 0 && fromIndex !== toVisibleIndex) {
+					const nextOrder = moveVisibleSheetColumnKeyInOrder({
+						allColumnKeys: reorderRuntime.allColumnKeys,
+						fromKey: reorderState.columnKey,
+						savedOrder: reorderRuntime.savedOrder,
+						toVisibleIndex,
+						visibleColumnKeys: reorderRuntime.visibleColumnKeys,
+					});
+					const patch: SheetDesignPatchInput = reorderRuntime.activeViewId
+						? {
+							views: [{
+								id: reorderRuntime.activeViewId,
+								columnsOrder: nextOrder,
+							}],
+						}
+						: {
+							cellsOrder: nextOrder,
+						};
+
+					dispatchDesignState({
+						patch,
+						type: 'local_patch_queued',
+					});
+					queueSheetDesignSave(patch);
+				}
+			}
+
+			columnReorderStateRef.current = null;
+			columnReorderCleanupRef.current?.();
+			columnReorderCleanupRef.current = null;
+			setColumnReorderVisualState(null);
+		};
+		const onPointerMove = (event: PointerEvent) => {
+			if (event.buttons !== 1) {
+				finishReorder(event.clientX);
+				return;
+			}
+
+			const reorderState = columnReorderStateRef.current;
+			if (!reorderState) {
+				return;
+			}
+
+			const distance = Math.abs(event.clientX - reorderState.startClientX);
+
+			if (!reorderState.started && distance < 5) {
+				return;
+			}
+
+			if (!reorderState.started) {
+				reorderState.started = true;
+				setEditState(null);
+				setHeaderEditState(null);
+				setSingleClickedCellState(null);
+				singleClickedCellStateRef.current = null;
+			}
+
+			event.preventDefault();
+			reorderState.latestClientX = event.clientX;
+			reorderState.latestToVisibleIndex = getSheetColumnReorderTargetIndex({
+				clientX: event.clientX,
+				draggedColumnIndex: reorderState.startColumnIndex,
+				draggedRect: getSheetColumnReorderDraggedRect({
+					clientX: event.clientX,
+					startClientX: reorderState.startClientX,
+					startLeft: reorderState.startLeft,
+					width: reorderState.startWidth,
+				}),
+				metrics: reorderRuntime.metrics,
+				scrollLeft: scrollState.scrollLeft,
+				scrollNode,
+				stickyColumnCount,
+			});
+			scheduleVisualUpdate();
+		};
+		const onPointerUp = (event: PointerEvent) => {
+			finishReorder(event.clientX);
+		};
+		const onContextMenu = () => {
+			finishReorder();
+		};
+
+		window.addEventListener('pointermove', onPointerMove);
+		window.addEventListener('pointerup', onPointerUp);
+		window.addEventListener('pointercancel', onPointerUp);
+		window.addEventListener('contextmenu', onContextMenu, true);
+		columnReorderCleanupRef.current = () => {
+			window.removeEventListener('pointermove', onPointerMove);
+			window.removeEventListener('pointerup', onPointerUp);
+			window.removeEventListener('pointercancel', onPointerUp);
+			window.removeEventListener('contextmenu', onContextMenu, true);
+		};
+	}, [queueSheetDesignSave, scrollElement.node, scrollState.scrollLeft, stickyColumnCount]);
 	const commitEditorElement = useCallback(async (editorElement: HTMLElement) => {
 		if (committingEditorRef.current) {
 			return;
@@ -2056,6 +2049,7 @@ export function Sheet(p: SheetProps) {
 		rowsById,
 		saveCellValue,
 		sheet: effectiveSheet,
+		startColumnReorder,
 		startColumnResize,
 	};
 
@@ -2253,56 +2247,48 @@ export function Sheet(p: SheetProps) {
 				void commitEditorElement(editorElement);
 			}
 		};
-		const onPointerOver = (event: PointerEvent) => {
-			const handleElement = getClosestSheetElement(event.target, '[data-sheet-column-resize-handle]');
-
-			if (handleElement && !resizeStateRef.current && !runtimeRef.current?.disabled) {
-				setHoveredResizeColumnKey(handleElement.dataset.sheetColumnResizeHandle || null);
-			}
-		};
-		const onPointerOut = (event: PointerEvent) => {
-			const handleElement = getClosestSheetElement(event.target, '[data-sheet-column-resize-handle]');
-
-			if (
-				handleElement &&
-				event.relatedTarget instanceof Node &&
-				handleElement.contains(event.relatedTarget)
-			) {
-				return;
-			}
-
-			if (handleElement && !resizeStateRef.current) {
-				setHoveredResizeColumnKey(null);
-			}
-		};
 		const onPointerDown = (event: PointerEvent) => {
 			const handleElement = getClosestSheetElement(event.target, '[data-sheet-column-resize-handle]');
+			const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
 			const runtime = runtimeRef.current;
 
-			if (!handleElement || !runtime || runtime.disabled) {
+			if (!runtime || runtime.disabled) {
 				return;
 			}
 
-			if (event.button !== 0) {
-				setHoveredResizeColumnKey(null);
+			if (handleElement) {
+				if (columnReorderStateRef.current?.started) {
+					return;
+				}
+
+				if (event.button !== 0) {
+					return;
+				}
+
+				const columnKey = handleElement.dataset.sheetColumnResizeHandle;
+
+				if (!columnKey) {
+					return;
+				}
+
+				event.preventDefault();
+				runtime.startColumnResize(columnKey, event.clientX);
 				return;
 			}
 
-			const columnKey = handleElement.dataset.sheetColumnResizeHandle;
-
-			if (!columnKey) {
+			if (!headerElement || headerElement.dataset.sheetHeaderReorderable !== 'true' || event.button !== 0) {
 				return;
 			}
 
-			event.preventDefault();
-			runtime.startColumnResize(columnKey, event.clientX);
+			const columnKey = headerElement.dataset.cellKey;
+			if (columnKey) {
+				runtime.startColumnReorder(columnKey, event.clientX);
+			}
 		};
 		const onContextMenu = (event: MouseEvent) => {
 			const handleElement = getClosestSheetElement(event.target, '[data-sheet-column-resize-handle]');
 
 			if (handleElement) {
-				setHoveredResizeColumnKey(null);
-
 				if (resizeCleanupRef.current) {
 					resizeStateRef.current = null;
 					resizeCleanupRef.current();
@@ -2318,8 +2304,6 @@ export function Sheet(p: SheetProps) {
 		scrollNode.addEventListener('focusout', onFocusOut);
 		scrollNode.addEventListener('input', onInput);
 		scrollNode.addEventListener('keydown', onKeyDown);
-		scrollNode.addEventListener('pointerover', onPointerOver);
-		scrollNode.addEventListener('pointerout', onPointerOut);
 		scrollNode.addEventListener('pointerdown', onPointerDown);
 		scrollNode.addEventListener('contextmenu', onContextMenu);
 
@@ -2330,8 +2314,6 @@ export function Sheet(p: SheetProps) {
 			scrollNode.removeEventListener('focusout', onFocusOut);
 			scrollNode.removeEventListener('input', onInput);
 			scrollNode.removeEventListener('keydown', onKeyDown);
-			scrollNode.removeEventListener('pointerover', onPointerOver);
-			scrollNode.removeEventListener('pointerout', onPointerOut);
 			scrollNode.removeEventListener('pointerdown', onPointerDown);
 			scrollNode.removeEventListener('contextmenu', onContextMenu);
 
@@ -2345,14 +2327,18 @@ export function Sheet(p: SheetProps) {
 	useEffect(() => {
 		return () => {
 			resizeCleanupRef.current?.();
+			columnReorderCleanupRef.current?.();
 
 			if (resizeFrameRef.current !== null) {
 				cancelAnimationFrame(resizeFrameRef.current);
 			}
+
+			if (columnReorderFrameRef.current !== null) {
+				cancelAnimationFrame(columnReorderFrameRef.current);
+			}
 		};
 	}, []);
 
-	const stickyColumnCount = activeView?.stickyLeft ?? effectiveDesign.stickyLeft ?? 0;
 	const stickyHeaderHeight = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE;
 	const viewportHeight = scrollElement.size.height || stickyHeaderHeight + SHEET_ROW_HEIGHT * 20;
 	const viewportWidth = scrollElement.size.width || SHEET_ROW_NUMBER_WIDTH + 5 * SHEET_COLUMN_WIDTH;
@@ -2587,9 +2573,9 @@ export function Sheet(p: SheetProps) {
 		visualRowCount,
 	]);
 
-	const highlightedResizeColumnKey = resizingColumnKey || hoveredResizeColumnKey;
+	const highlightedResizeColumnKey = resizingColumnKey;
 	const resizeGuide = useMemo<SheetUIResizeGuide | null>(() => {
-		if (!highlightedResizeColumnKey) {
+		if (!highlightedResizeColumnKey || columnReorderVisualState) {
 			return null;
 		}
 
@@ -2608,15 +2594,73 @@ export function Sheet(p: SheetProps) {
 				SHEET_ROW_NUMBER_WIDTH +
 				metric.left +
 				(metric.columnIndex < stickyColumnCount ? 0 : SHEET_STICKY_SPACER_SIZE) +
-				metric.width -
-				1,
+				metric.width,
 		};
 	}, [
 		columnMetricsByKey,
+		columnReorderVisualState,
 		highlightedResizeColumnKey,
 		scrollState.scrollLeft,
 		stickyColumnCount,
 		sheetSurfaceHeight,
+	]);
+	const columnReorderGuide = useMemo<SheetUIColumnReorderGuide | null>(() => {
+		if (!columnReorderVisualState) {
+			return null;
+		}
+
+	return {
+		columnKey: columnReorderVisualState.columnKey,
+		height: SHEET_HEADER_HEIGHT,
+		left: getSheetColumnReorderGuideLeft(
+			columnReorderMetrics,
+			columnReorderVisualState.toVisibleIndex,
+				scrollState.scrollLeft,
+				stickyColumnCount,
+			),
+		};
+	}, [
+		columnReorderMetrics,
+		columnReorderVisualState,
+		scrollState.scrollLeft,
+		stickyColumnCount,
+	]);
+	const columnReorderDrag = useMemo<SheetUIColumnReorderDrag | null>(() => {
+		if (!columnReorderVisualState) {
+			return null;
+		}
+
+		const metric = columnReorderMetrics.find((item) => item.column.key === columnReorderVisualState.columnKey);
+		if (!metric) {
+			return null;
+		}
+
+		return {
+			columnKey: columnReorderVisualState.columnKey,
+			label: metric.column.label,
+			left: columnReorderVisualState.dragLeft,
+			width: metric.width,
+		};
+	}, [columnReorderMetrics, columnReorderVisualState]);
+	const columnReorderDisplacements = useMemo<SheetUIColumnReorderDisplacements | null>(() => {
+		if (!columnReorderVisualState) {
+			return null;
+		}
+
+		return getSheetColumnReorderHeaderDisplacements({
+			columnKey: columnReorderVisualState.columnKey,
+			metrics: columnReorderMetrics,
+			scrollLeft: scrollState.scrollLeft,
+			stickyColumnCount,
+			toVisibleIndex: columnReorderVisualState.toVisibleIndex,
+			visibleColumnKeys: columnKeys,
+		});
+	}, [
+		columnKeys,
+		columnReorderMetrics,
+		columnReorderVisualState,
+		scrollState.scrollLeft,
+		stickyColumnCount,
 	]);
 
 	const sheetTabs = getSheetTabs(sheet, sheetViews);
@@ -2625,6 +2669,10 @@ export function Sheet(p: SheetProps) {
 		canvasWidth={Math.max(totalWidth, viewportWidth)}
 		cellCount={visualRowCount * uiColumns.length}
 		className={undefined}
+		columnReorderDrag={columnReorderDrag}
+		columnReorderDisplacements={columnReorderDisplacements}
+		columnReorderEnabled={!effectiveDisabled}
+		columnReorderGuide={columnReorderGuide}
 		columnCount={uiColumns.length}
 		columns={visibleColumns}
 		editState={editState}

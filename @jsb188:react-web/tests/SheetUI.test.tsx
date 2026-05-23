@@ -408,6 +408,7 @@ describe('SheetUI rendering', () => {
 
 	it('keeps header text selectable while the header editor is active', async () => {
 		const host = await renderSheetUI({
+			columnReorderEnabled: true,
 			headerCellsEditable: true,
 			headerEditState: {
 				cellKey: 'name',
@@ -420,6 +421,127 @@ describe('SheetUI rendering', () => {
 		expect(input).not.toBeNull();
 		expect(nameHeader?.className).toContain('active');
 		expect(nameHeader?.className).not.toContain('unsel');
+		expect(nameHeader?.dataset.sheetHeaderReorderable).toBeUndefined();
+	});
+
+	it('renders header reorder handles and lightweight drag guides from props', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('name'),
+			createColumn('status'),
+		]).metrics;
+		const host = await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			columnCount: 2,
+			columnReorderDrag: {
+				columnKey: 'name',
+				label: 'NAME',
+				left: 74,
+				width: 160,
+			},
+			columnReorderDisplacements: {
+				status: -160,
+			},
+			columnReorderEnabled: true,
+			columnReorderGuide: {
+				columnKey: 'name',
+				height: SHEET_HEADER_HEIGHT,
+				left: SHEET_ROW_NUMBER_WIDTH + 80,
+			},
+			columns,
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			rows: [
+				createRowSlot('row-1', 0, {
+					name: createCell('name', 'Alpha'),
+					status: createCell('status', 'Open'),
+				}),
+			],
+			sheetSurfaceHeight: 276,
+			sheetSurfaceTop: 44,
+		});
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement | null;
+		const statusHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]') as HTMLElement | null;
+		const guide = host.querySelector('[data-sheet-column-reorder-guide="name"]') as HTMLElement | null;
+		const dragPreview = host.querySelector('[data-sheet-column-reorder-drag="name"]') as HTMLElement | null;
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="status"]') as HTMLElement | null;
+
+		expect(nameHeader?.dataset.sheetHeaderReorderable).toBe('true');
+		expect(nameHeader?.className).toContain('bg');
+		expect(nameHeader?.style.opacity).toBe('0.35');
+		expect(nameHeader?.style.cursor).toBe('grab');
+		expect(statusHeader?.style.transform).toBe('translateX(-160px)');
+		expect(statusHeader?.style.transition).toBe('transform 120ms ease');
+		expect(host.querySelector('[data-sheet-reorder-guide-layer="true"]')).toBeNull();
+		expect(guide?.className).toContain('bg_active');
+		expect(guide?.className).not.toContain('bg_main');
+		expect(guide?.style.height).toBe(`${SHEET_HEADER_HEIGHT}px`);
+		expect(guide?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 80}px`);
+		expect(guide?.style.width).toBe('2px');
+		expect(guide?.style.zIndex).toBe('125');
+		expect(dragPreview?.textContent).toBe('NAME');
+		expect(dragPreview?.style.left).toBe('74px');
+		expect(dragPreview?.style.width).toBe('160px');
+		expect(dragPreview?.style.opacity).toBe('');
+		expect(dragPreview?.style.zIndex).toBe('130');
+		expect(resizeHandle?.className).not.toContain('hv_area');
+		expect(resizeHandle?.style.pointerEvents).toBe('none');
+		expect(resizeHandle?.style.visibility).toBe('hidden');
+	});
+
+	it('keeps underlying header transitions while a drag moves out of a drop position', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('name'),
+			createColumn('status'),
+		]).metrics;
+		const rows = [
+			createRowSlot('row-1', 0, {
+				name: createCell('name', 'Alpha'),
+				status: createCell('status', 'Open'),
+			}),
+		];
+		const host = await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			columnCount: 2,
+			columnReorderDrag: {
+				columnKey: 'name',
+				label: 'NAME',
+				left: 74,
+				width: 160,
+			},
+			columnReorderDisplacements: {
+				status: -160,
+			},
+			columnReorderEnabled: true,
+			columns,
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			rows,
+		});
+
+		await act(async () => {
+			currentRoot?.render(
+				<SheetUI
+					canvasHeight={160}
+					canvasWidth={SHEET_ROW_NUMBER_WIDTH + 320}
+					cellCount={rows.length * columns.length}
+					columnCount={2}
+					columnReorderDrag={{
+						columnKey: 'name',
+						label: 'NAME',
+						left: 66,
+						width: 160,
+					}}
+					columnReorderEnabled
+					columns={columns}
+					headerWidth={SHEET_ROW_NUMBER_WIDTH + 320}
+					rows={rows}
+					scrollLeft={0}
+				/>,
+			);
+		});
+
+		const statusHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]') as HTMLElement | null;
+
+		expect(statusHeader?.style.transform).toBe('');
+		expect(statusHeader?.style.transition).toBe('transform 120ms ease');
 	});
 
 	it('keeps the right border and resize handle on the actual right-most column cells', async () => {
@@ -479,10 +601,11 @@ describe('SheetUI rendering', () => {
 		expect(resizeHandle?.style.pointerEvents).toBe('auto');
 		expect(resizeHandle?.style.width).toBe('18px');
 		expect(resizeHandle?.style.zIndex).toBe('110');
-		expect(resizeGuide?.className).toContain('bg_main');
+		expect(resizeGuide?.className).toContain('bg_primary');
+		expect(resizeGuide?.className).not.toContain('bg_main');
 		expect(resizeGuide?.style.height).toBe('276px');
-		expect(resizeGuide?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 160}px`);
-		expect(resizeGuide?.style.width).toBe('1px');
+		expect(resizeGuide?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 158.5}px`);
+		expect(resizeGuide?.style.width).toBe('3px');
 		expect(resizeGuide?.style.zIndex).toBe('110');
 	});
 });

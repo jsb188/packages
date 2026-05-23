@@ -1658,6 +1658,350 @@ describe('Sheet container', () => {
 		expect(hookState.editSheetDesign).not.toHaveBeenCalled();
 	});
 
+	it('reorders database columns by dragging header cells and persists cellsOrder once', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('secret', {
+					hidden: true,
+				}),
+				createDesignCell('status'),
+			],
+			cellsOrder: ['name', 'secret', 'status'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			secret: 'Hidden',
+			status: 'Open',
+		})];
+		const host = await renderSheet({ sheet });
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
+			'NAME',
+			'STATUS',
+		]);
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 60,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 270,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-column-reorder-guide="name"]')).not.toBeNull();
+		expect((host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]') as HTMLElement).style.transform).toBe('translateX(-160px)');
+
+		await act(async () => {
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 270,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
+			'STATUS',
+			'NAME',
+		]);
+		expect(host.querySelector('[data-sheet-column-reorder-guide="name"]')).toBeNull();
+		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
+		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+			variables: {
+				design: {
+					cellsOrder: ['status', 'secret', 'name'],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
+	});
+
+	it('uses the dragged header edge to trigger reorder when a wide column moves over a narrow column', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name', {
+					width: 300,
+				}),
+				createDesignCell('status', {
+					width: 100,
+				}),
+			],
+			cellsOrder: ['name', 'status'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			status: 'Open',
+		})];
+		const host = await renderSheet({ sheet });
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 60,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 100,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-column-reorder-guide="name"]')).not.toBeNull();
+		expect((host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]') as HTMLElement).style.transform).toBe('translateX(-300px)');
+
+		await act(async () => {
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 100,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
+			'STATUS',
+			'NAME',
+		]);
+		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+			variables: {
+				design: {
+					cellsOrder: ['status', 'name'],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
+	});
+
+	it('does not reorder or save columns when editing is denied', async () => {
+		const host = await renderSheet({ allowEdit: false });
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 60,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 330,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 330,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
+			'NAME',
+			'STATUS',
+		]);
+		expect(hookState.editSheetDesign).not.toHaveBeenCalled();
+	});
+
+	it('does not show the resize divider guide on hover alone', async () => {
+		const host = await renderSheet();
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="name"]') as HTMLElement;
+
+		await act(async () => {
+			resizeHandle.dispatchEvent(new MouseEvent('pointerover', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 160,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-column-resize-guide="name"]')).toBeNull();
+	});
+
+	it('does not start a resize guide from divider events during header reorder', async () => {
+		const host = await renderSheet();
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="status"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 60,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 290,
+			}));
+			resizeHandle.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 320,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 340,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-column-resize-guide="status"]')).toBeNull();
+
+		await act(async () => {
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 340,
+			}));
+			await Promise.resolve();
+		});
+	});
+
+	it('reorders saved view columns without changing the database column order', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					hidden: true,
+				}),
+				createDesignCell('owner'),
+			],
+			cellsOrder: ['name', 'status', 'owner'],
+			views: [{
+				id: 'active_jobs',
+				name: 'Active Jobs',
+				layout: 'GRID',
+				columns: [{
+					key: 'job_name',
+					label: 'Job',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'MASTER_CELL',
+						cellKey: 'name',
+					},
+				}, {
+					key: 'job_status',
+					label: 'Hidden Status',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'MASTER_CELL',
+						cellKey: 'status',
+					},
+				}, {
+					key: 'job_owner',
+					label: 'Owner',
+					humanFieldType: 'TEXT',
+					source: {
+						type: 'MASTER_CELL',
+						cellKey: 'owner',
+					},
+				}],
+				columnsOrder: ['job_name', 'job_status', 'job_owner'],
+				filters: [],
+				sorts: [],
+				groups: [],
+			}],
+			viewsOrder: ['active_jobs'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			owner: 'Sam',
+			status: 'Hidden',
+		})];
+		const host = await renderSheet({ sheet });
+		const activeJobsTab = host.querySelector('[data-sheet-view-tab="active_jobs"]') as HTMLElement;
+
+		await act(async () => {
+			activeJobsTab.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+		await flushRender();
+
+		const jobNameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="job_name"]') as HTMLElement;
+		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
+			'Job',
+			'Owner',
+		]);
+
+		await act(async () => {
+			jobNameHeader.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 60,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 330,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 330,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
+			'Owner',
+			'Job',
+		]);
+		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+			variables: {
+				design: {
+					views: [{
+						id: 'active_jobs',
+						columnsOrder: ['job_owner', 'job_status', 'job_name'],
+					}],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
+
+		const databaseTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
+		await act(async () => {
+			databaseTab.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
+			'NAME',
+			'OWNER',
+		]);
+	});
+
 	it('saves one column width mutation when a resize finishes', async () => {
 		const host = await renderSheet();
 		const resizeHandle = host.querySelector('[data-sheet-column-resize-handle="name"]') as HTMLElement;

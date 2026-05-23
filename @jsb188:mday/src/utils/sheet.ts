@@ -230,6 +230,82 @@ export function getOrderedSheetDesignViewColumns(view: SheetDesignViewObj | null
 }
 
 /*
+ * Return every column key once, honoring a saved order before appending missing keys.
+ */
+
+export function getCompleteSheetColumnOrder(
+	columnKeys: string[],
+	savedOrder?: string[] | null,
+) {
+	const validKeys = new Set(columnKeys);
+	const orderedKeys: string[] = [];
+	const seenKeys = new Set<string>();
+
+	(savedOrder || []).forEach((key) => {
+		if (!validKeys.has(key) || seenKeys.has(key)) {
+			return;
+		}
+
+		orderedKeys.push(key);
+		seenKeys.add(key);
+	});
+
+	columnKeys.forEach((key) => {
+		if (seenKeys.has(key)) {
+			return;
+		}
+
+		orderedKeys.push(key);
+		seenKeys.add(key);
+	});
+
+	return orderedKeys;
+}
+
+/*
+ * Move one visible sheet column while preserving hidden or unrendered key slots.
+ */
+
+export function moveVisibleSheetColumnKeyInOrder(params: {
+	allColumnKeys: string[];
+	fromKey: string;
+	savedOrder?: string[] | null;
+	toVisibleIndex: number;
+	visibleColumnKeys: string[];
+}) {
+	const fullOrder = getCompleteSheetColumnOrder(params.allColumnKeys, params.savedOrder);
+	const visibleKeySet = new Set(params.visibleColumnKeys);
+	const visibleOrder = fullOrder.filter((key) => visibleKeySet.has(key));
+	const fromIndex = visibleOrder.indexOf(params.fromKey);
+
+	if (fromIndex < 0) {
+		return fullOrder;
+	}
+
+	const nextVisibleOrder = visibleOrder.slice(0);
+	const [movedKey] = nextVisibleOrder.splice(fromIndex, 1);
+	const toIndex = Math.max(0, Math.min(params.toVisibleIndex, nextVisibleOrder.length));
+
+	if (!movedKey) {
+		return fullOrder;
+	}
+
+	nextVisibleOrder.splice(toIndex, 0, movedKey);
+
+	let visibleIndex = 0;
+	return fullOrder.map((key) => {
+		if (!visibleKeySet.has(key)) {
+			return key;
+		}
+
+		const nextKey = nextVisibleOrder[visibleIndex] || key;
+		visibleIndex += 1;
+
+		return nextKey;
+	});
+}
+
+/*
  * Return a YYYY-MM-DD string for one date using UTC calendar fields.
  */
 
