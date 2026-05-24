@@ -233,7 +233,7 @@ const CalendarWeeks = memo((p: CalendarWeeksProps) => {
   }, [month, year, getDayDesignValue]);
 
   return (
-    <div className='a_c ft_xs py_xs'>
+    <div className='a_c ft_tn py_xs'>
       {weeksArr.map((week, index) =>
         <CalendarWeekDays
           key={`week_${index}`}

@@ -1,5 +1,6 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import type { ChildOrgsFilterArgs } from '@jsb188/mday/types/organization.d.ts';
+export { useInboundContacts, useReactiveInboundContactFragment } from './use-inboundContact-qry.ts';
 import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationSitesQry } from '../gql/queries/organizationQueries.ts';
 import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 

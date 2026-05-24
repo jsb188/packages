@@ -1,6 +1,7 @@
 import { useEditSheetCell, useEditSheetDesign } from '@jsb188/graphql/hooks/use-sheet-mtn';
 import { useReactiveSheetRows, useSheetRows } from '@jsb188/graphql/hooks/use-sheet-qry';
 import { COLORS } from '@jsb188/app/constants/app.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import type {
@@ -21,6 +22,7 @@ import {
   mapSheetDesignViewColumnToCell,
 } from '@jsb188/mday/utils/sheet.ts';
 import type { FloatingMessageObj } from '@jsb188/react-web/modules/Layout';
+import { Calendar, type CalendarSelectedObj } from '@jsb188/react-web/modules/Calendar';
 import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import {
 	SHEET_COLUMN_WIDTH,
@@ -28,6 +30,7 @@ import {
 	SHEET_ROW_HEIGHT,
 	SHEET_ROW_NUMBER_WIDTH,
 	SHEET_STICKY_SPACER_SIZE,
+	SheetCellDisplayValue,
 	SheetUI,
   clampSheetColumnWidth,
   getSheetCellKey,
@@ -48,6 +51,7 @@ import {
   type SheetUIRowSlot,
   type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import {
 	getInitialSheetDesignReducerState,
@@ -158,6 +162,14 @@ type SheetColumnReorderVisualState = {
 	toVisibleIndex: number;
 };
 
+type SheetLocalEditorPosition = {
+	isStickyLeft: boolean;
+	left: number;
+	rowWidth: number;
+	top: number;
+	width: number;
+};
+
 type SheetPaginationState = {
 	hasMoreRows: boolean;
 	lastCursor: string | null;
@@ -194,6 +206,11 @@ const SHEET_MOCK_ROW_COUNT = 5;
 const SHEET_MOCK_CELL_TEXT = '... ... ...';
 const SHEET_MOCK_ROW_OPACITY_CLASSES = ['', 'op_80', 'op_60', 'op_40', 'op_20'];
 const SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
+const SHEET_SELECT_EDITOR_MIN_WIDTH = 180;
+const SHEET_SELECT_EDITOR_MAX_WIDTH = 320;
+const SHEET_DATE_EDITOR_WIDTH = 280;
+const SHEET_LOCAL_EDITOR_Z_INDEX = 150;
+const SHEET_STICKY_LOCAL_EDITOR_Z_INDEX = 240;
 
 /*
  * Return ordered design cells from immutable sheet design configuration.
@@ -572,7 +589,8 @@ function getSheetUIColumn(designCell: SheetDesignCellGQL): SheetUIColumn {
 		id: designCell.key,
 		key: designCell.key,
 		label: getSheetDesignCellHeaderLabel(designCell),
-		fieldType: designCell.humanFieldType as SheetUIFieldType,
+		fieldType: designCell.fieldType as SheetUIFieldType,
+		humanFieldType: designCell.humanFieldType as SheetUIFieldType,
 		options: designCell.options || [],
 		openLink: designCell.openLink,
 		humansCannotEdit: designCell.humansCannotEdit,
@@ -636,19 +654,19 @@ function getSheetCellSerializedValue(
 		return null;
 	}
 
-	if (designCell.humanFieldType === 'NUMBER' && typeof cell.numberValue === 'number' && Number.isFinite(cell.numberValue)) {
+	if (designCell.fieldType === 'NUMBER' && typeof cell.numberValue === 'number' && Number.isFinite(cell.numberValue)) {
 		return String(cell.numberValue);
 	}
 
-	if (designCell.humanFieldType === 'BOOLEAN' && cell.booleanValue !== undefined && cell.booleanValue !== null) {
+	if (designCell.fieldType === 'BOOLEAN' && cell.booleanValue !== undefined && cell.booleanValue !== null) {
 		return String(cell.booleanValue);
 	}
 
-	if (designCell.humanFieldType === 'DATE' && cell.dateValue) {
+	if (designCell.fieldType === 'DATE' && cell.dateValue) {
 		return String(cell.dateValue).split('T')[0];
 	}
 
-	if (designCell.humanFieldType === 'DATETIME' && cell.datetimeValue) {
+	if (designCell.fieldType === 'DATETIME' && cell.datetimeValue) {
 		return String(cell.datetimeValue);
 	}
 
@@ -878,11 +896,11 @@ function getSheetEditorDraftValue(
 	const serializedValue = getSheetCellSerializedValue(cell, designCell, optimisticValue);
 	const rawValue = parseSheetRawValue(serializedValue);
 
-	if (designCell.humanFieldType === 'MULTI_SELECT' && Array.isArray(rawValue)) {
+	if (designCell.fieldType === 'MULTI_SELECT' && Array.isArray(rawValue)) {
 		return rawValue.map((value) => String(value)).join(', ');
 	}
 
-	if (designCell.humanFieldType === 'DATETIME' && typeof rawValue === 'string') {
+	if (designCell.fieldType === 'DATETIME' && typeof rawValue === 'string') {
 		return rawValue.slice(0, 16);
 	}
 
@@ -915,6 +933,7 @@ function getSheetUICellSignature(p: {
 		p.iconName ?? '',
 		p.canEdit ? '1' : '0',
 		p.canOpen ? '1' : '0',
+		p.designCell.fieldType,
 		p.designCell.humanFieldType,
 		getSheetDesignOptionsStateKey(p.designCell),
 	].join('\u0000');
@@ -1048,14 +1067,14 @@ function isSheetEditorOptionValue(designCell: SheetDesignCellGQL, value: unknown
  */
 
 export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue: string): SheetParsedEditorValue {
-	const humanFieldType = designCell.humanFieldType;
+	const fieldType = designCell.fieldType;
 	const value = draftValue.trim();
 
 	if (!value) {
 		return { value: null };
 	}
 
-	if (humanFieldType === 'NUMBER') {
+	if (fieldType === 'NUMBER') {
 		const numberValue = Number(value);
 
 		if (!Number.isFinite(numberValue)) {
@@ -1068,7 +1087,7 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 		return { value };
 	}
 
-	if (humanFieldType === 'BOOLEAN') {
+	if (fieldType === 'BOOLEAN') {
 		if (value !== 'true' && value !== 'false') {
 			return {
 				error: 'Invalid boolean',
@@ -1079,7 +1098,7 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 		return { value };
 	}
 
-	if (humanFieldType === 'DATE') {
+	if (fieldType === 'DATE') {
 		if (!isValidSheetDateInputValue(value)) {
 			return {
 				error: 'Invalid date',
@@ -1090,7 +1109,7 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 		return { value };
 	}
 
-	if (humanFieldType === 'DATETIME') {
+	if (fieldType === 'DATETIME') {
 		if (!isValidSheetDateTimeInputValue(value)) {
 			return {
 				error: 'Invalid datetime',
@@ -1101,14 +1120,14 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 		return { value };
 	}
 
-	if (humanFieldType === 'SELECT' && designCell.options?.length && !isSheetEditorOptionValue(designCell, value)) {
+	if (fieldType === 'SELECT' && designCell.options?.length && !isSheetEditorOptionValue(designCell, value)) {
 		return {
 			error: 'Invalid option',
 			value: null,
 		};
 	}
 
-	if (humanFieldType === 'MULTI_SELECT') {
+	if (fieldType === 'MULTI_SELECT') {
 		let values: string[];
 
 		if (value.startsWith('[')) {
@@ -1146,7 +1165,7 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 		return { value: JSON.stringify(values) };
 	}
 
-	if (humanFieldType === 'JSON') {
+	if (fieldType === 'JSON') {
 		try {
 			JSON.parse(value);
 			return { value };
@@ -1159,6 +1178,183 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 	}
 
 	return { value: draftValue };
+}
+
+/*
+ * Return whether one field type uses the sheet-owned select-style editor.
+ */
+
+function isSheetSelectEditorFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFieldType | null) {
+	return (
+		fieldType === 'SELECT' ||
+		fieldType === 'SELECT_OR_TEXT' ||
+		fieldType === 'MULTI_SELECT' ||
+		fieldType === 'BOOLEAN'
+	);
+}
+
+/*
+ * Return whether one field type uses the sheet-owned date or date-time editor.
+ */
+
+function isSheetDateEditorFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFieldType | null) {
+	return fieldType === 'DATE' || fieldType === 'DATETIME';
+}
+
+/*
+ * Return whether one field type uses any sheet-owned absolute editor.
+ */
+
+function isSheetLocalEditorFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFieldType | null) {
+	return isSheetSelectEditorFieldType(fieldType) || isSheetDateEditorFieldType(fieldType);
+}
+
+/*
+ * Return translated UI text when translations are loaded, with a stable fallback for tests.
+ */
+
+function getSheetTranslatedText(key: string, fallback: string) {
+	return i18n.has(key) ? i18n.t(key) : fallback;
+}
+
+/*
+ * Return default boolean options when the sheet design does not provide them.
+ */
+
+function getSheetBooleanFallbackOptions() {
+	return [{
+		color: null,
+		label: getSheetTranslatedText('form.yes', 'Yes'),
+		value: 'true',
+	}, {
+		color: null,
+		label: getSheetTranslatedText('form.no', 'No'),
+		value: 'false',
+	}];
+}
+
+/*
+ * Return the option list shown by the sheet-owned select-style editor.
+ */
+
+function getSheetSelectEditorOptions(designCell: SheetDesignCellGQL) {
+	if (designCell.fieldType === 'BOOLEAN' && !designCell.options?.length) {
+		return getSheetBooleanFallbackOptions();
+	}
+
+	return designCell.options || [];
+}
+
+/*
+ * Return the selected value set from one multi-select editor draft string.
+ */
+
+function getSheetMultiSelectEditorValueSet(draftValue: string) {
+	const trimmedValue = draftValue.trim();
+	let values: string[] = [];
+
+	if (!trimmedValue) {
+		return new Set<string>();
+	}
+
+	if (trimmedValue.startsWith('[')) {
+		try {
+			const parsedValue = JSON.parse(trimmedValue);
+			values = Array.isArray(parsedValue) ? parsedValue.map((item) => String(item)) : [];
+		} catch {
+			values = [];
+		}
+	} else {
+		values = trimmedValue.split(',').map((item) => item.trim()).filter(Boolean);
+	}
+
+	return new Set(values);
+}
+
+/*
+ * Format one calendar selection as the serialized sheet date value.
+ */
+
+function getSheetCalendarDateValue(value: CalendarSelectedObj) {
+	const year = String(value.year).padStart(4, '0');
+	const month = String(value.month).padStart(2, '0');
+	const day = String(value.day).padStart(2, '0');
+
+	return `${year}-${month}-${day}`;
+}
+
+/*
+ * Return the date portion from a date or date-time editor draft.
+ */
+
+function getSheetDateEditorDateValue(draftValue: string) {
+	const dateValue = draftValue.trim().split('T')[0] || '';
+
+	return isValidSheetDateInputValue(dateValue) ? dateValue : '';
+}
+
+/*
+ * Return the time portion from a date-time editor draft.
+ */
+
+function getSheetDateTimeEditorTimeValue(draftValue: string) {
+	const match = draftValue.trim().match(/T(\d{2}:\d{2})/);
+
+	return match?.[1] || '00:00';
+}
+
+/*
+ * Return a valid serialized date-time draft from date and time editor parts.
+ */
+
+function getSheetDateTimeEditorDraftValue(dateValue: string, timeValue: string) {
+	const normalizedDate = isValidSheetDateInputValue(dateValue) ? dateValue : '';
+	const normalizedTime = /^\d{2}:\d{2}$/.test(timeValue) ? timeValue : '00:00';
+
+	return normalizedDate ? `${normalizedDate}T${normalizedTime}` : '';
+}
+
+/*
+ * Calculate the stable sheet-canvas position for a sheet-local editor.
+ */
+
+function getSheetLocalEditorPosition(params: {
+	columnMetric?: SheetColumnMetric;
+	hasPlaceholderTail: boolean;
+	rowIndex: number;
+	rowWidth: number;
+	stickyColumnCount: number;
+	stickyHeaderHeight: number;
+	viewportHeight: number;
+	visualRowCount: number;
+	width?: number;
+}): SheetLocalEditorPosition | null {
+	if (!params.columnMetric || params.rowIndex < 0) {
+		return null;
+	}
+
+	const isStickyLeft = params.columnMetric.columnIndex < params.stickyColumnCount;
+	const rowHeight = getSheetVisualRowHeight(
+		params.rowIndex,
+		params.visualRowCount,
+		params.viewportHeight,
+		params.stickyHeaderHeight,
+		params.hasPlaceholderTail,
+	);
+	const left = SHEET_ROW_NUMBER_WIDTH +
+		params.columnMetric.left +
+		(isStickyLeft ? 0 : SHEET_STICKY_SPACER_SIZE);
+
+	return {
+		isStickyLeft,
+		left,
+		rowWidth: params.rowWidth,
+		top: params.stickyHeaderHeight + params.rowIndex * SHEET_ROW_HEIGHT + rowHeight,
+		width: params.width ?? Math.min(
+			SHEET_SELECT_EDITOR_MAX_WIDTH,
+			Math.max(SHEET_SELECT_EDITOR_MIN_WIDTH, params.columnMetric.width),
+		),
+	};
 }
 
 /*
@@ -1231,6 +1427,221 @@ function getSheetCellEditState(runtime: SheetRuntimeState, lookup: SheetCellLook
 }
 
 /*
+ * Anchor a sheet-local editor to stable sheet-canvas coordinates.
+ */
+
+function SheetLocalEditorContainer(p: {
+	children: ReactNode;
+	position: SheetLocalEditorPosition;
+}) {
+	if (p.position.isStickyLeft) {
+		return <div
+			className='abs'
+			data-sheet-local-editor-anchor='true'
+			style={{
+				left: 0,
+				top: p.position.top,
+				width: p.position.rowWidth,
+				zIndex: SHEET_STICKY_LOCAL_EDITOR_Z_INDEX,
+			}}
+		>
+			<div
+				className='sticky'
+				style={{
+					left: p.position.left,
+					position: 'sticky',
+					width: p.position.width,
+					zIndex: SHEET_STICKY_LOCAL_EDITOR_Z_INDEX,
+				}}
+			>
+				{p.children}
+			</div>
+		</div>;
+	}
+
+	return <div
+		className='abs'
+		data-sheet-local-editor-anchor='true'
+		style={{
+			left: p.position.left,
+			top: p.position.top,
+			width: p.position.width,
+			zIndex: SHEET_LOCAL_EDITOR_Z_INDEX,
+		}}
+	>
+		{p.children}
+	</div>;
+}
+
+/*
+ * Render the sheet-owned option editor for select-style active cells.
+ */
+
+function SheetSelectEditor(p: {
+	editState: SheetUIEditState;
+	lookup: SheetCellLookup;
+	onCustomTextSave: (lookup: SheetCellLookup, draftValue: string) => void;
+	onOptionValue: (lookup: SheetCellLookup, value: string) => void;
+}) {
+	const options = getSheetSelectEditorOptions(p.lookup.designCell);
+	const selectedValues = p.lookup.designCell.fieldType === 'MULTI_SELECT'
+		? getSheetMultiSelectEditorValueSet(p.editState.draftValue)
+		: new Set([p.editState.draftValue]);
+
+	return <div
+		// className='bg bd_1 bd_lt shadow_line_alt r_4 py_4 ft_xs'
+		className='bg bd_2 py_4 ft_xs'
+		data-sheet-select-editor='true'
+		style={{
+			maxHeight: 260,
+			overflow: 'auto',
+			width: '100%',
+		}}
+	>
+		{options.length
+			? options.map((option) => {
+				const selected = selectedValues.has(String(option.value));
+				const optionDisplayClassName = [
+					'ellip',
+					'px_5',
+					'py_2',
+					'r_4',
+					`bg_${getValidSheetOptionColor(option.color)}_md`,
+				].join(' ');
+
+				return <button
+					key={option.value}
+					className='h_item w_f px_8 py_6 bg_hv cl_df'
+					data-sheet-select-editor-option={option.value}
+					onClick={() => {
+						p.onOptionValue(p.lookup, String(option.value));
+					}}
+					style={{
+						textAlign: 'left',
+					}}
+					type='button'
+				>
+					<span className='ic_xs no_shrink mr_6'>
+						{selected ? <Icon name='check' /> : null}
+					</span>
+					<SheetCellDisplayValue
+						displayClassName={optionDisplayClassName}
+						displayValue={option.label || String(option.value)}
+						fill
+					/>
+				</button>;
+			})
+			: <div
+				className='px_8 py_8 cl_md'
+				data-sheet-select-editor-empty='true'
+			>
+				{getSheetTranslatedText('form.no_results', 'No results')}
+			</div>}
+
+		{p.lookup.designCell.fieldType === 'SELECT_OR_TEXT'
+			? <form
+				className='h_item gap_6 px_8 pt_6 bd_t_1 bd_lt'
+				data-sheet-select-editor-custom='true'
+				onSubmit={(event) => {
+					event.preventDefault();
+					const formData = new FormData(event.currentTarget);
+					p.onCustomTextSave(p.lookup, String(formData.get('customValue') || ''));
+				}}
+			>
+				<input
+					className='f h_28 bg_alt stock px_6 ft_xs'
+					defaultValue={p.editState.draftValue}
+					name='customValue'
+					type='text'
+				/>
+				<button
+					className='h_28 px_8 bg_primary cl_white ft_xs'
+					type='submit'
+				>
+					{getSheetTranslatedText('form.save', 'Save')}
+				</button>
+			</form>
+			: null}
+	</div>;
+}
+
+/*
+ * Render the sheet-owned calendar editor for DATE and DATETIME cells.
+ */
+
+function SheetDateEditor(p: {
+	editState: SheetUIEditState;
+	lookup: SheetCellLookup;
+	onDateValue: (lookup: SheetCellLookup, draftValue: string) => void;
+	onDateTimeSave: (lookup: SheetCellLookup, draftValue: string) => void;
+}) {
+	const initialDateValue = getSheetDateEditorDateValue(p.editState.draftValue);
+	const initialTimeValue = getSheetDateTimeEditorTimeValue(p.editState.draftValue);
+	const [dateValue, setDateValue] = useState(initialDateValue);
+	const [timeValue, setTimeValue] = useState(initialTimeValue);
+	const isDateTime = p.lookup.designCell.fieldType === 'DATETIME';
+	const calendarValue = dateValue || null;
+
+	return <div
+		className='bg bd_1 bd_lt shadow_line_alt r_4 ft_xs'
+		data-sheet-date-editor='true'
+		style={{
+			width: '100%',
+		}}
+	>
+		<Calendar
+			className='p_8'
+			hideNextMonthDays
+			initialCalendarViewDate={calendarValue || new Date()}
+			name={`sheet_date_editor_${p.lookup.row.id}_${p.lookup.designCell.key}`}
+			rowPaddingClassName='py_1'
+			value={calendarValue}
+			weekdayRowPaddingClassName='py_4'
+			onChange={(nextValue) => {
+				if (!nextValue) {
+					return;
+				}
+
+				const nextDateValue = getSheetCalendarDateValue(nextValue);
+				if (isDateTime) {
+					setDateValue(nextDateValue);
+					return;
+				}
+
+				p.onDateValue(p.lookup, nextDateValue);
+			}}
+		/>
+
+		{isDateTime
+			? <form
+				className='h_item gap_6 px_8 py_8 bd_t_1 bd_lt'
+				data-sheet-date-time-editor-form='true'
+				onSubmit={(event) => {
+					event.preventDefault();
+					p.onDateTimeSave(p.lookup, getSheetDateTimeEditorDraftValue(dateValue, timeValue));
+				}}
+			>
+				<input
+					className='f h_28 bg_alt stock px_6 ft_xs'
+					data-sheet-date-time-editor-time='true'
+					onChange={(event) => {
+						setTimeValue(event.currentTarget.value);
+					}}
+					type='time'
+					value={timeValue}
+				/>
+				<button
+					className='h_28 px_8 bg_primary cl_white ft_xs'
+					type='submit'
+				>
+					{getSheetTranslatedText('form.save', 'Save')}
+				</button>
+			</form>
+			: null}
+	</div>;
+}
+
+/*
  * Log a clickable sheet cell for the initial open-link behavior.
  */
 
@@ -1267,6 +1678,7 @@ export function Sheet(p: SheetProps) {
 	const columnReorderStateRef = useRef<SheetColumnReorderState | null>(null);
 	const columnReorderFrameRef = useRef<number | null>(null);
 	const columnReorderCleanupRef = useRef<(() => void) | null>(null);
+	const sheetGridContainerRef = useRef<HTMLDivElement | null>(null);
 	const designSaveInFlightRef = useRef(false);
 	const pendingDesignPatchRef = useRef<SheetDesignPatchInput | null>(null);
 	const inFlightDesignPatchRef = useRef<{
@@ -1489,6 +1901,42 @@ export function Sheet(p: SheetProps) {
 	const rowCellsById = useMemo(() => {
 		return getSheetRowCellsById(renderedRows);
 	}, [renderedRows]);
+	const activeDateEditorLookup = useMemo<SheetCellLookup | null>(() => {
+		if (!editState || !isSheetDateEditorFieldType(editState.cellKey ? designCellsByKey.get(editState.cellKey)?.fieldType : null)) {
+			return null;
+		}
+
+		const row = rowsById.get(editState.rowId);
+		const designCell = designCellsByKey.get(editState.cellKey);
+
+		if (!row || !designCell) {
+			return null;
+		}
+
+		return {
+			cell: rowCellsById.get(row.id)?.get(getSheetRuntimeCellKey(designCell)) || null,
+			designCell,
+			row,
+		};
+	}, [designCellsByKey, editState, rowCellsById, rowsById]);
+	const activeSelectEditorLookup = useMemo<SheetCellLookup | null>(() => {
+		if (!editState || !isSheetSelectEditorFieldType(editState.cellKey ? designCellsByKey.get(editState.cellKey)?.fieldType : null)) {
+			return null;
+		}
+
+		const row = rowsById.get(editState.rowId);
+		const designCell = designCellsByKey.get(editState.cellKey);
+
+		if (!row || !designCell) {
+			return null;
+		}
+
+		return {
+			cell: rowCellsById.get(row.id)?.get(getSheetRuntimeCellKey(designCell)) || null,
+			designCell,
+			row,
+		};
+	}, [designCellsByKey, editState, rowCellsById, rowsById]);
 
 	useEffect(() => {
 		const confirmedKeys: string[] = [];
@@ -1993,6 +2441,10 @@ export function Sheet(p: SheetProps) {
 			return;
 		}
 
+		if (isSheetLocalEditorFieldType(lookup.designCell.fieldType)) {
+			return;
+		}
+
 		const draftValue = getSheetEditorElementValue(editorElement);
 		const parsedValue = parseSheetEditorValue(lookup.designCell, draftValue);
 
@@ -2087,9 +2539,14 @@ export function Sheet(p: SheetProps) {
 			});
 		};
 		const onClick = (event: MouseEvent) => {
+			const localEditorElement = getClosestSheetElement(event.target, '[data-sheet-select-editor="true"], [data-sheet-date-editor="true"]');
 			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
 			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
+
+			if (localEditorElement) {
+				return;
+			}
 
 			if (editorElement) {
 				return;
@@ -2149,9 +2606,14 @@ export function Sheet(p: SheetProps) {
 			}
 		};
 		const onDoubleClick = (event: MouseEvent) => {
+			const localEditorElement = getClosestSheetElement(event.target, '[data-sheet-select-editor="true"], [data-sheet-date-editor="true"]');
 			const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
 			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
+
+			if (localEditorElement) {
+				return;
+			}
 
 			if (headerElement && runtime && headerElement.dataset.sheetHeaderEditable === 'true') {
 				const designCell = runtime.designCellsByKey.get(headerElement.dataset.cellKey || '');
@@ -2495,8 +2957,7 @@ export function Sheet(p: SheetProps) {
 					const canEdit = !effectiveDisabled &&
 						!effectiveDesign.humansCannotEdit &&
 						!activeView?.humansCannotEdit &&
-						!designCell.humansCannotEdit &&
-						designCell.fieldType !== 'ID';
+						!designCell.humansCannotEdit;
 					const canOpen = Boolean(designCell.openLink);
 					const iconName = (cell && 'iconName' in cell ? cell.iconName : null) || designCell.iconName || null;
 					const signature = getSheetUICellSignature({
@@ -2572,6 +3033,216 @@ export function Sheet(p: SheetProps) {
 		visibleRange.rowStart,
 		visualRowCount,
 	]);
+
+	/*
+	 * Save one sheet-local editor draft through the same mutation path used by inline editors.
+	 */
+
+	const saveLocalEditorDraftValue = useCallback(async (lookup: SheetCellLookup, draftValue: string, closeAfterSave: boolean) => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime) {
+			return;
+		}
+
+		const parsedValue = parseSheetEditorValue(lookup.designCell, draftValue);
+
+		if (parsedValue.error) {
+			setEditState({
+				cellKey: lookup.designCell.key,
+				draftValue,
+				error: parsedValue.error,
+				rowId: lookup.row.id,
+			});
+			return;
+		}
+
+		const optimisticKey = getSheetCellKey(lookup.row.id, lookup.designCell.key);
+		const currentValue = getSheetCellSerializedValue(
+			lookup.cell,
+			lookup.designCell,
+			runtime.optimisticValues[optimisticKey],
+		);
+
+		if (closeAfterSave && !__DISABLE_EDIT_STATE_RESET__) {
+			setEditState(null);
+		} else {
+			setEditState({
+				cellKey: lookup.designCell.key,
+				draftValue: parsedValue.value || '',
+				rowId: lookup.row.id,
+			});
+		}
+
+		if (currentValue === parsedValue.value) {
+			return;
+		}
+
+		try {
+			await runtime.saveCellValue(lookup, parsedValue.value);
+		} catch (error) {
+			setEditState({
+				cellKey: lookup.designCell.key,
+				draftValue,
+				error: error instanceof Error ? error.message : 'Unable to save cell',
+				rowId: lookup.row.id,
+			});
+		}
+	}, []);
+
+	/*
+	 * Handle a select-style option click, toggling multi-select values in place.
+	 */
+
+	const handleSelectEditorOptionValue = useCallback((lookup: SheetCellLookup, value: string) => {
+		if (lookup.designCell.fieldType !== 'MULTI_SELECT') {
+			void saveLocalEditorDraftValue(lookup, value, true);
+			return;
+		}
+
+		const selectedValues = getSheetMultiSelectEditorValueSet(
+			editState?.rowId === lookup.row.id && editState.cellKey === lookup.designCell.key
+				? editState.draftValue
+				: getSheetEditorDraftValue(lookup.cell, lookup.designCell),
+		);
+
+		if (selectedValues.has(value)) {
+			selectedValues.delete(value);
+		} else {
+			selectedValues.add(value);
+		}
+
+		void saveLocalEditorDraftValue(lookup, JSON.stringify(Array.from(selectedValues)), false);
+	}, [editState, saveLocalEditorDraftValue]);
+
+	/*
+	 * Handle custom text saves for SELECT_OR_TEXT cells.
+	 */
+
+	const handleSelectEditorCustomTextSave = useCallback((lookup: SheetCellLookup, draftValue: string) => {
+		void saveLocalEditorDraftValue(lookup, draftValue, true);
+	}, [saveLocalEditorDraftValue]);
+
+	/*
+	 * Handle immediate DATE saves from the calendar editor.
+	 */
+
+	const handleDateEditorDateValue = useCallback((lookup: SheetCellLookup, draftValue: string) => {
+		void saveLocalEditorDraftValue(lookup, draftValue, true);
+	}, [saveLocalEditorDraftValue]);
+
+	/*
+	 * Handle explicit DATETIME saves from the date-time editor.
+	 */
+
+	const handleDateEditorDateTimeSave = useCallback((lookup: SheetCellLookup, draftValue: string) => {
+		void saveLocalEditorDraftValue(lookup, draftValue, true);
+	}, [saveLocalEditorDraftValue]);
+
+	const selectEditorPosition = useMemo(() => {
+		if (!activeSelectEditorLookup || !editState) {
+			return null;
+		}
+
+		return getSheetLocalEditorPosition({
+			columnMetric: columnMetricsByKey.get(activeSelectEditorLookup.designCell.key),
+			hasPlaceholderTail,
+			rowIndex: renderedRows.findIndex((row) => row.id === activeSelectEditorLookup.row.id),
+			rowWidth: Math.max(totalWidth, viewportWidth),
+			stickyColumnCount,
+			stickyHeaderHeight,
+			viewportHeight,
+			visualRowCount,
+		});
+	}, [
+		activeSelectEditorLookup,
+		columnMetricsByKey,
+		editState,
+		hasPlaceholderTail,
+		renderedRows,
+		stickyColumnCount,
+		stickyHeaderHeight,
+		totalWidth,
+		viewportHeight,
+		viewportWidth,
+		visualRowCount,
+	]);
+
+	const dateEditorPosition = useMemo(() => {
+		if (!activeDateEditorLookup || !editState) {
+			return null;
+		}
+
+		return getSheetLocalEditorPosition({
+			columnMetric: columnMetricsByKey.get(activeDateEditorLookup.designCell.key),
+			hasPlaceholderTail,
+			rowIndex: renderedRows.findIndex((row) => row.id === activeDateEditorLookup.row.id),
+			rowWidth: Math.max(totalWidth, viewportWidth),
+			stickyColumnCount,
+			stickyHeaderHeight,
+			viewportHeight,
+			visualRowCount,
+			width: SHEET_DATE_EDITOR_WIDTH,
+		});
+	}, [
+		activeDateEditorLookup,
+		columnMetricsByKey,
+		editState,
+		hasPlaceholderTail,
+		renderedRows,
+		stickyColumnCount,
+		stickyHeaderHeight,
+		totalWidth,
+		viewportHeight,
+		viewportWidth,
+		visualRowCount,
+	]);
+
+	useEffect(() => {
+		if ((!activeSelectEditorLookup || !selectEditorPosition) && (!activeDateEditorLookup || !dateEditorPosition)) {
+			return;
+		}
+
+		const onOutsidePointer = (event: PointerEvent | MouseEvent) => {
+			const target = event.target;
+
+			if (!(target instanceof Element)) {
+				return;
+			}
+
+			if (
+				target.closest('[data-sheet-select-editor="true"]') ||
+				target.closest('[data-sheet-date-editor="true"]') ||
+				target.closest('[data-sheet-editor="true"]')
+			) {
+				return;
+			}
+
+			setEditState(null);
+			setSingleClickedCellState(null);
+			singleClickedCellStateRef.current = null;
+		};
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape') {
+				return;
+			}
+
+			event.preventDefault();
+			setEditState(null);
+			setSingleClickedCellState(null);
+			singleClickedCellStateRef.current = null;
+		};
+
+		document.addEventListener('pointerdown', onOutsidePointer, true);
+		document.addEventListener('click', onOutsidePointer, true);
+		document.addEventListener('keydown', onKeyDown);
+
+		return () => {
+			document.removeEventListener('pointerdown', onOutsidePointer, true);
+			document.removeEventListener('click', onOutsidePointer, true);
+			document.removeEventListener('keydown', onKeyDown);
+		};
+	}, [activeDateEditorLookup, activeSelectEditorLookup, dateEditorPosition, selectEditorPosition]);
 
 	const highlightedResizeColumnKey = resizingColumnKey;
 	const resizeGuide = useMemo<SheetUIResizeGuide | null>(() => {
@@ -2664,6 +3335,30 @@ export function Sheet(p: SheetProps) {
 	]);
 
 	const sheetTabs = getSheetTabs(sheet, sheetViews);
+	const sheetLocalEditorOverlay = <>
+		{activeSelectEditorLookup && editState && selectEditorPosition
+			? <SheetLocalEditorContainer position={selectEditorPosition}>
+				<SheetSelectEditor
+					key={`${editState.rowId}:${editState.cellKey}`}
+					editState={editState}
+					lookup={activeSelectEditorLookup}
+					onCustomTextSave={handleSelectEditorCustomTextSave}
+					onOptionValue={handleSelectEditorOptionValue}
+				/>
+			</SheetLocalEditorContainer>
+			: null}
+		{activeDateEditorLookup && editState && dateEditorPosition
+			? <SheetLocalEditorContainer position={dateEditorPosition}>
+				<SheetDateEditor
+					key={`${editState.rowId}:${editState.cellKey}`}
+					editState={editState}
+					lookup={activeDateEditorLookup}
+					onDateTimeSave={handleDateEditorDateTimeSave}
+					onDateValue={handleDateEditorDateValue}
+				/>
+			</SheetLocalEditorContainer>
+			: null}
+	</>;
 	const sheetGrid = <SheetUI
 		canvasHeight={Math.max(totalHeight, viewportHeight)}
 		canvasWidth={Math.max(totalWidth, viewportWidth)}
@@ -2681,6 +3376,7 @@ export function Sheet(p: SheetProps) {
 		headerEditState={headerEditState}
 		headerSpacerWidth={rowContentWidth}
 		headerWidth={Math.max(totalWidth, viewportWidth)}
+		overlayContent={sheetLocalEditorOverlay}
 		resizeGuide={resizeGuide}
 		rows={visibleRows}
 		scrollLeft={scrollState.scrollLeft}
@@ -2697,6 +3393,7 @@ export function Sheet(p: SheetProps) {
 		data-sheet-with-views='true'
 	>
 		<div
+			ref={sheetGridContainerRef}
 			className='f h_0 rel'
 			data-sheet-grid-container='true'
 		>

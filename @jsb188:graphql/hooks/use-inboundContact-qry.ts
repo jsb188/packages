@@ -1,0 +1,54 @@
+import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
+import type { InboundContactsSortEnum } from '@jsb188/mday/types/inboundContact.d.ts';
+import { inboundContactsQry } from '../gql/queries/inboundContactQueries.ts';
+import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
+
+/**
+ * Constants
+ */
+
+const INBOUND_CONTACTS_LIMIT = 250;
+
+/**
+ * Fetch inbound contacts.
+ */
+
+export function useInboundContacts(
+  variables: PaginationArgs & {
+    organizationId?: string | null;
+    filter?: unknown;
+    sort?: InboundContactsSortEnum | null;
+  },
+  params: UseQueryParams = {},
+) {
+  const { filter: _filter, ...queryVariables } = variables;
+  const { data, ...rest } = useQuery(inboundContactsQry, {
+    ...params,
+    variables: {
+      ...queryVariables,
+      cursor: null,
+      after: true,
+      limit: INBOUND_CONTACTS_LIMIT
+    },
+    skip: !variables.organizationId || params.skip,
+  });
+
+  return {
+    inboundContacts: data?.inboundContacts,
+    ...rest
+  };
+}
+
+/**
+ * Get reactive inbound contact fragment.
+ */
+
+export function useReactiveInboundContactFragment(inboundContactId: string, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    [
+      `$inboundContactFragment:${inboundContactId}`,
+    ],
+    queryCount,
+  );
+}

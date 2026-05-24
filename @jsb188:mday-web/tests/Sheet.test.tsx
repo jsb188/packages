@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 
 import type { SheetCellGQL, SheetDesignCellGQL, SheetGQL, SheetRowGQL } from '@jsb188/mday/types/sheet.d.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
 import {
+	SHEET_COLUMN_WIDTH,
 	SHEET_HEADER_HEIGHT,
 	SHEET_ROW_HEIGHT,
+	SHEET_ROW_NUMBER_WIDTH,
 	SHEET_STICKY_SPACER_SIZE,
 } from '@jsb188/react-web/ui/SheetUI';
 import type { ComponentProps } from 'react';
@@ -145,6 +148,27 @@ async function flushRender() {
 	await act(async () => {
 		await Promise.resolve();
 	});
+}
+
+/*
+ * Find one rendered calendar day button by visible day number.
+ */
+
+function getCalendarDayButton(host: HTMLElement, day: number) {
+	return Array.from(host.querySelectorAll('.cal_day')).find((button) => {
+		return button.textContent?.trim() === String(day);
+	}) as HTMLButtonElement | undefined;
+}
+
+/*
+ * Set an input value through the native setter so React sees the change event.
+ */
+
+function setNativeInputValue(input: HTMLInputElement, value: string) {
+	const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+	valueSetter?.call(input, value);
+	input.dispatchEvent(new Event('input', { bubbles: true }));
+	input.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 /*
@@ -824,6 +848,14 @@ describe('Sheet container', () => {
 			humanFieldType: 'MULTI_SELECT',
 			options,
 		}), 'Market, Missing').error).toBe('Invalid option');
+		expect(parseSheetEditorValue(createDesignCell('number', {
+			fieldType: 'NUMBER',
+			humanFieldType: 'TEXT',
+		}), 'abc').error).toBe('Invalid number');
+		expect(parseSheetEditorValue(createDesignCell('text', {
+			fieldType: 'TEXT',
+			humanFieldType: 'NUMBER',
+		}), 'abc').value).toBe('abc');
 	});
 
 	it('prefers typed mirror values over raw persisted strings when rendering cells', async () => {
@@ -1431,6 +1463,610 @@ describe('Sheet container', () => {
 		expect(statusCell.className).not.toContain('bg_red_fd_hv');
 	});
 
+	it('opens a sheet-owned select editor on the second click and saves an option', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'SELECT',
+					humanFieldType: 'SELECT',
+					options: [
+						{ color: 'emerald', label: 'Open', value: 'open' },
+						{ color: 'red', label: 'Closed', value: 'closed' },
+					],
+				}),
+			],
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			status: 'open',
+		})];
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		const editor = host.querySelector('[data-sheet-select-editor="true"]') as HTMLElement;
+		const closedOption = host.querySelector('[data-sheet-select-editor-option="closed"]') as HTMLElement;
+
+		expect(editor).not.toBeNull();
+		expect(editor.textContent).toContain('Open');
+		expect(editor.textContent).toContain('Closed');
+		expect(host.querySelector('[data-sheet-editor="true"]')?.tagName).toBe('DIV');
+
+		await act(async () => {
+			closedOption.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+			variables: {
+				cellKey: 'status',
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+				sheetRowId: 'row-0',
+				viewCellKey: null,
+				viewId: null,
+				value: 'closed',
+			},
+		});
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
+	});
+
+	it('anchors sheet-owned select editors in sheet-canvas coordinates across scroll', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'SELECT',
+					humanFieldType: 'SELECT',
+					options: [
+						{ color: 'emerald', label: 'Open', value: 'open' },
+					],
+				}),
+			],
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			status: 'open',
+		})];
+		const host = await renderSheet({ sheet });
+		const viewport = host.querySelector('[data-sheet-scroll-viewport="true"]') as HTMLElement;
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		const anchor = host.querySelector('[data-sheet-local-editor-anchor="true"]') as HTMLElement;
+		const expectedLeft = SHEET_ROW_NUMBER_WIDTH + SHEET_COLUMN_WIDTH + SHEET_STICKY_SPACER_SIZE;
+		const expectedTop = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT;
+
+		expect(anchor.parentElement?.className).toContain('sheet_ui_canvas');
+		expect(anchor.style.left).toBe(`${expectedLeft}px`);
+		expect(anchor.style.top).toBe(`${expectedTop}px`);
+
+		await act(async () => {
+			Object.defineProperty(viewport, 'scrollLeft', {
+				configurable: true,
+				value: 120,
+				writable: true,
+			});
+			Object.defineProperty(viewport, 'scrollTop', {
+				configurable: true,
+				value: 48,
+				writable: true,
+			});
+			viewport.dispatchEvent(new Event('scroll', { bubbles: true }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		const scrolledAnchor = host.querySelector('[data-sheet-local-editor-anchor="true"]') as HTMLElement;
+
+		expect(scrolledAnchor.style.left).toBe(`${expectedLeft}px`);
+		expect(scrolledAnchor.style.top).toBe(`${expectedTop}px`);
+	});
+
+	it('uses translated yes and no options for boolean editors without design options', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('enabled', {
+					fieldType: 'BOOLEAN',
+					humanFieldType: 'BOOLEAN',
+				}),
+			],
+			cellsOrder: ['enabled'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			enabled: 'false',
+		})];
+		const host = await renderSheet({ sheet });
+		const enabledCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="enabled"]') as HTMLElement;
+
+		await act(async () => {
+			enabledCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const editor = host.querySelector('[data-sheet-select-editor="true"]') as HTMLElement;
+		const yesOption = host.querySelector('[data-sheet-select-editor-option="true"]') as HTMLElement;
+
+		expect(editor?.textContent).toContain('Yes');
+		expect(editor?.textContent).toContain('No');
+
+		await act(async () => {
+			yesOption.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'enabled',
+				value: 'true',
+			}),
+		});
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
+	});
+
+	it('toggles multi-select options, saves JSON values, and keeps the editor open', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('tags', {
+					fieldType: 'MULTI_SELECT',
+					humanFieldType: 'MULTI_SELECT',
+					options: [
+						{ color: 'emerald', label: 'Market', value: 'market' },
+						{ color: 'blue', label: 'Prep', value: 'prep' },
+					],
+				}),
+			],
+			cellsOrder: ['tags'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			tags: JSON.stringify(['market']),
+		})];
+		const host = await renderSheet({ sheet });
+		const tagsCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="tags"]') as HTMLElement;
+
+		await act(async () => {
+			tagsCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const prepOption = host.querySelector('[data-sheet-select-editor-option="prep"]') as HTMLElement;
+
+		await act(async () => {
+			prepOption.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'tags',
+				value: JSON.stringify(['market', 'prep']),
+			}),
+		});
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).not.toBeNull();
+	});
+
+	it('saves select-or-text option clicks and custom typed values', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('reason', {
+					fieldType: 'SELECT_OR_TEXT',
+					humanFieldType: 'SELECT_OR_TEXT',
+					options: [
+						{ color: 'zinc', label: 'Listed', value: 'listed' },
+					],
+				}),
+			],
+			cellsOrder: ['reason'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			reason: 'custom',
+		})];
+		const host = await renderSheet({ sheet });
+		const reasonCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"]') as HTMLElement;
+
+		await act(async () => {
+			reasonCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const listedOption = host.querySelector('[data-sheet-select-editor-option="listed"]') as HTMLElement;
+
+		await act(async () => {
+			listedOption.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'reason',
+				value: 'listed',
+			}),
+		});
+
+		await act(async () => {
+			reasonCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const customInput = host.querySelector('[data-sheet-select-editor-custom="true"] input') as HTMLInputElement;
+		const customForm = host.querySelector('[data-sheet-select-editor-custom="true"]') as HTMLFormElement;
+
+		await act(async () => {
+			customInput.value = 'Typed reason';
+			customForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'reason',
+				value: 'Typed reason',
+			}),
+		});
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
+	});
+
+	it('uses fieldType rather than humanFieldType to choose select edit behavior', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('status', {
+					fieldType: 'SELECT',
+					humanFieldType: 'TEXT',
+					options: [
+						{ label: 'Open', value: 'open' },
+						{ label: 'Closed', value: 'closed' },
+					],
+				}),
+				createDesignCell('note', {
+					fieldType: 'TEXT',
+					humanFieldType: 'SELECT',
+					options: [
+						{ label: 'Open', value: 'open' },
+					],
+				}),
+			],
+			cellsOrder: ['status', 'note'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			note: '',
+			status: '',
+		})];
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+		const noteCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="note"]') as HTMLElement;
+
+		expect(statusCell.textContent).toBe('');
+		expect(noteCell.textContent).toBe(i18n.t('form.n_a'));
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).not.toBeNull();
+		expect(host.querySelector('[data-sheet-editor="true"][data-cell-key="status"]')?.tagName).toBe('DIV');
+
+		const closedOption = host.querySelector('[data-sheet-select-editor-option="closed"]') as HTMLElement;
+
+		await act(async () => {
+			closedOption.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'status',
+				value: 'closed',
+			}),
+		});
+
+		await act(async () => {
+			noteCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
+		expect(host.querySelector('[data-sheet-editor="true"][data-cell-key="note"]')?.tagName).toBe('INPUT');
+	});
+
+	it('dismisses select-style editors with outside clicks and escape without saving', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('status', {
+					fieldType: 'SELECT',
+					humanFieldType: 'SELECT',
+					options: [
+						{ label: 'Open', value: 'open' },
+					],
+				}),
+			],
+			cellsOrder: ['status'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			status: 'open',
+		})];
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).not.toBeNull();
+
+		await act(async () => {
+			document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).not.toBeNull();
+
+		await act(async () => {
+			document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
+		expect(hookState.editSheetCell).not.toHaveBeenCalled();
+	});
+
+	it('opens a sheet-owned date calendar editor and saves the selected date', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('dueDate', {
+					fieldType: 'DATE',
+					humanFieldType: 'DATE',
+				}),
+			],
+			cellsOrder: ['dueDate'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			dueDate: '2026-02-01',
+		})];
+		const host = await renderSheet({ sheet });
+		const dateCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="dueDate"]') as HTMLElement;
+
+		await act(async () => {
+			dateCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const editor = host.querySelector('[data-sheet-date-editor="true"]') as HTMLElement;
+		const dayButton = getCalendarDayButton(editor, 28);
+
+		expect(editor).not.toBeNull();
+		expect(host.querySelector('[data-sheet-editor="true"]')?.tagName).toBe('DIV');
+		expect(dayButton).not.toBeUndefined();
+
+		await act(async () => {
+			dayButton?.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'dueDate',
+				value: '2026-02-28',
+			}),
+		});
+		expect(host.querySelector('[data-sheet-date-editor="true"]')).toBeNull();
+	});
+
+	it('opens a sheet-owned date-time editor and saves date plus time', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('startsAt', {
+					fieldType: 'DATETIME',
+					humanFieldType: 'DATETIME',
+				}),
+			],
+			cellsOrder: ['startsAt'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			startsAt: '2026-05-21T09:30',
+		})];
+		const host = await renderSheet({ sheet });
+		const dateTimeCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="startsAt"]') as HTMLElement;
+
+		await act(async () => {
+			dateTimeCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const editor = host.querySelector('[data-sheet-date-editor="true"]') as HTMLElement;
+		const timeInput = host.querySelector('[data-sheet-date-time-editor-time="true"]') as HTMLInputElement;
+		const dayButton = getCalendarDayButton(editor, 22);
+
+		expect(editor).not.toBeNull();
+		expect(timeInput.value).toBe('09:30');
+		expect(dayButton).not.toBeUndefined();
+
+		await act(async () => {
+			dayButton?.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		const updatedTimeInput = host.querySelector('[data-sheet-date-time-editor-time="true"]') as HTMLInputElement;
+		const updatedForm = host.querySelector('[data-sheet-date-time-editor-form="true"]') as HTMLFormElement;
+
+		await act(async () => {
+			setNativeInputValue(updatedTimeInput, '14:45');
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		await act(async () => {
+			updatedForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'startsAt',
+				value: '2026-05-22T14:45',
+			}),
+		});
+		expect(host.querySelector('[data-sheet-date-editor="true"]')).toBeNull();
+	});
+
+	it('defaults missing date-time editor time to midnight', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('startsAt', {
+					fieldType: 'DATETIME',
+					humanFieldType: 'DATETIME',
+				}),
+			],
+			cellsOrder: ['startsAt'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			startsAt: '2026-05-21',
+		})];
+		const host = await renderSheet({ sheet });
+		const dateTimeCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="startsAt"]') as HTMLElement;
+
+		await act(async () => {
+			dateTimeCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const timeInput = host.querySelector('[data-sheet-date-time-editor-time="true"]') as HTMLInputElement;
+
+		expect(timeInput.value).toBe('00:00');
+	});
+
+	it('dismisses date editors with outside clicks and escape without saving', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('dueDate', {
+					fieldType: 'DATE',
+					humanFieldType: 'DATE',
+				}),
+			],
+			cellsOrder: ['dueDate'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			dueDate: '2026-02-01',
+		})];
+		const host = await renderSheet({ sheet });
+		const dateCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="dueDate"]') as HTMLElement;
+
+		await act(async () => {
+			dateCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+		expect(host.querySelector('[data-sheet-date-editor="true"]')).not.toBeNull();
+
+		await act(async () => {
+			document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-date-editor="true"]')).toBeNull();
+
+		await act(async () => {
+			dateCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+		expect(host.querySelector('[data-sheet-date-editor="true"]')).not.toBeNull();
+
+		await act(async () => {
+			document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-date-editor="true"]')).toBeNull();
+		expect(hookState.editSheetCell).not.toHaveBeenCalled();
+	});
+
+	it('keeps date editors open with an error when saving fails', async () => {
+		hookState.editSheetCell.mockRejectedValueOnce(new Error('Save failed'));
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('dueDate', {
+					fieldType: 'DATE',
+					humanFieldType: 'DATE',
+				}),
+			],
+			cellsOrder: ['dueDate'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			dueDate: '2026-02-01',
+		})];
+		const host = await renderSheet({ sheet });
+		const dateCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="dueDate"]') as HTMLElement;
+
+		await act(async () => {
+			dateCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const dayButton = getCalendarDayButton(host, 28);
+
+		await act(async () => {
+			dayButton?.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenCalled();
+		expect(host.querySelector('[data-sheet-date-editor="true"]')).not.toBeNull();
+		expect(host.querySelector('[data-sheet-editor="true"]')).not.toBeNull();
+	});
+
 	it('keeps local edited cell values until server data confirms them', async () => {
 		hookState.editSheetCell.mockImplementationOnce(() => new Promise(() => {}));
 		const host = await renderSheet();
@@ -1493,7 +2129,7 @@ describe('Sheet container', () => {
 		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
 	});
 
-	it('does not enter edit mode for ID field types', async () => {
+	it('enters inline edit mode for ID field types', async () => {
 		const sheet = createSheet();
 		sheet.design = {
 			...sheet.design,
@@ -1513,8 +2149,10 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
-		expect(hookState.editSheetCell).not.toHaveBeenCalled();
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+		expect(input).not.toBeNull();
+		expect(input.tagName).toBe('INPUT');
+		expect(input.dataset.fieldType).toBe('ID');
 	});
 
 	it('routes open-link cell clicks through the container handler', async () => {

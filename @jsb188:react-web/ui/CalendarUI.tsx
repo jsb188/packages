@@ -46,7 +46,7 @@ export const CalendarDay = memo((p: CalendarDayObj & {
       {int && (
         <button
           className={cn(
-            'cal_day trans_color av_xs r v_center rel',
+            'cal_day trans_color w_28 h_28 r v_center rel',
             selected ? 'bg z2' : '',
             selected || disabled ? '' : 'bd_invis bd_md_hv',
             disabled && !selected ? '' : 'bd_1 bg_hv link'
@@ -151,7 +151,7 @@ export const WeekdayLabels = memo((p: {
   });
 
   return (
-    <div className={cn('grid size_7 gap_n a_c ft_xs bd_b_1 bd_lt mt_xs cl_md', rowPaddingClassName ?? 'py_xs')}>
+    <div className={cn('grid size_7 gap_n a_c ft_tn bd_b_1 bd_lt mt_xs cl_md', rowPaddingClassName ?? 'py_xs')}>
       {weekdays.map((day, index) => (
         <div key={index} className='weekday_label'>
           {day}
@@ -176,7 +176,7 @@ interface CalendarMonthHeaderProps {
 export const CalendarMonthHeader = memo((p: CalendarMonthHeaderProps) => {
   const { onClickPrev, onClickNext, text } = p;
 
-  return <div className='grid size_7 gap_n a_c ft_xs lh_1 r bg_alt'>
+  return <div className='grid size_7 gap_n a_c ft_tn lh_1 r bg_alt'>
     {onClickPrev
     ? <button
       className='v_center ml_3 link'

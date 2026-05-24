@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import i18n from '@jsb188/app/i18n/index.ts';
 import { readFileSync } from 'node:fs';
 import type { ComponentProps } from 'react';
 import { act } from 'react';
@@ -229,23 +230,28 @@ describe('SheetUI rendering', () => {
 		expect(stickyColumnHeaderSpacer?.className).toContain('bg_darker_1');
 		expect(stickyColumnHeaderSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH}px`);
 		expect(stickyColumnHeaderSpacer?.style.position).toBe('sticky');
+		expect(Number(stickyColumnHeaderSpacer?.style.zIndex)).toBeGreaterThan(150);
 		expect(stickyColumnSpacer?.className).toContain('w_4');
 		expect(stickyColumnSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH}px`);
 		expect(stickyColumnSpacer?.style.position).toBe('sticky');
+		expect(Number(stickyColumnSpacer?.style.zIndex)).toBeGreaterThan(150);
 		expect(stickyColumnSpacer?.style.top).toBe('');
 		expect(stickyColumnSpacerSlots[0]?.style.top).toBe('36px');
 		expect(stickyColumnSpacerSlots[1]?.style.top).toBe('68px');
 		expect(stickyColumnSpacerSlots[2]?.style.top).toBe('100px');
 		expect(stickyColumnSpacerSlots[3]?.style.top).toBe('132px');
 		expect(host.querySelector('[data-sheet-sticky-header="true"]')?.className).toContain('sticky');
+		expect(Number((host.querySelector('[data-sheet-sticky-header="true"]') as HTMLElement | null)?.style.zIndex)).toBeGreaterThan(150);
 		expect(cornerCell?.className).toContain('sticky');
 		expect(cornerCell?.className).toContain('bg');
 		expect(cornerCell?.style.left).toBe('0px');
 		expect(cornerCell?.style.position).toBe('sticky');
+		expect(Number(cornerCell?.style.zIndex)).toBeGreaterThan(150);
 		expect(rowNumber?.className).toContain('sticky');
 		expect(rowNumber?.className).toContain('bg');
 		expect(rowNumber?.style.left).toBe('0px');
 		expect(rowNumber?.style.position).toBe('sticky');
+		expect(Number(rowNumber?.style.zIndex)).toBeGreaterThan(150);
 		expect(rowNumberSlot?.style.top).toBe('36px');
 		expect(firstCell?.textContent).toBe('Alpha');
 		expect(fillerCell?.textContent).toBe('');
@@ -288,12 +294,17 @@ describe('SheetUI rendering', () => {
 			stickyColumnCount: 1,
 		});
 		const headerCells = host.querySelectorAll('[data-sheet-header-cell="true"]') as NodeListOf<HTMLElement>;
-		const gridCells = host.querySelectorAll('.sheet_ui_cell') as NodeListOf<HTMLElement>;
+		const stickyCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement | null;
+		const nonStickyCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement | null;
 
 		expect(headerCells[0]?.className).toContain('bg');
 		expect(headerCells[1]?.className).toContain('bg');
-		expect(gridCells[0]?.className).toContain('bg');
-		expect(gridCells[1]?.className).toContain('bg');
+		expect(stickyCell?.className).toContain('bg');
+		expect(nonStickyCell?.className).toContain('bg');
+		expect(Number(headerCells[0]?.style.zIndex)).toBeGreaterThan(150);
+		expect(headerCells[1]?.style.zIndex).toBe('');
+		expect(Number(stickyCell?.style.zIndex)).toBeGreaterThan(150);
+		expect(nonStickyCell?.style.zIndex).toBe('');
 	});
 
 	it('keeps sticky column spacer left position independent from horizontal scroll', async () => {
@@ -328,6 +339,243 @@ describe('SheetUI rendering', () => {
 		expect(input?.dataset.rowId).toBe('row-1');
 		expect(input?.dataset.cellKey).toBe('name');
 		expect(input?.value).toBe('Alpha');
+	});
+
+	it('renders select editors like display cells with an inert chevron', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('status', 'SELECT', {
+				options: [
+					{ label: 'Open', value: 'open' },
+					{ label: 'Closed', value: 'closed' },
+				],
+			}),
+			createColumn('statusText', 'SELECT_OR_TEXT'),
+			createColumn('tags', 'MULTI_SELECT'),
+			createColumn('enabled', 'BOOLEAN'),
+			createColumn('dueDate', 'DATE'),
+			createColumn('startsAt', 'DATETIME'),
+		]).metrics;
+		const rows = [
+			createRowSlot('row-1', 0, {
+				dueDate: createCell('dueDate', 'Feb 1, 2026'),
+				enabled: createCell('enabled', 'true'),
+				status: createCell('status', 'Open', {
+					displayClassName: 'ellip bg_emerald_fd px_6 r_xs',
+				}),
+				statusText: createCell('statusText', 'Custom', {
+					displayClassName: 'ellip bg_primary_fd px_6 r_xs',
+				}),
+				startsAt: createCell('startsAt', '2026-05-21T09:30'),
+				tags: createCell('tags', 'Market, Prep'),
+			}),
+		];
+		const host = await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 960,
+			cellCount: 6,
+			columnCount: 6,
+			columns,
+			editState: {
+				cellKey: 'status',
+				draftValue: 'open',
+				rowId: 'row-1',
+			},
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 960,
+			rows,
+		});
+		const selectEditor = host.querySelector('[data-sheet-editor="true"][data-cell-key="status"]') as HTMLElement | null;
+
+		expect(selectEditor?.tagName).toBe('DIV');
+		expect(selectEditor?.className).toContain('px_6');
+		expect(selectEditor?.className).not.toContain('sheet_ui_editor');
+		expect(selectEditor?.querySelector('.bg_emerald_fd')?.className).toContain('r_xs');
+		expect(selectEditor?.textContent).toBe('Open');
+		expect(selectEditor?.querySelector('.icon-chevron-down')).not.toBeNull();
+		expect(selectEditor?.querySelector('input, select, datalist')).toBeNull();
+		selectEditor?.click();
+
+		await act(async () => {
+			currentRoot?.render(
+				<SheetUI
+					canvasHeight={160}
+					canvasWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					cellCount={6}
+					columnCount={6}
+					columns={columns}
+					editState={{
+						cellKey: 'statusText',
+						draftValue: 'Custom',
+						rowId: 'row-1',
+					}}
+					headerWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					rows={rows}
+					scrollLeft={0}
+				/>,
+			);
+		});
+
+		const textOptionEditor = host.querySelector('[data-sheet-editor="true"][data-cell-key="statusText"]') as HTMLElement | null;
+
+		expect(textOptionEditor?.tagName).toBe('DIV');
+		expect(textOptionEditor?.className).not.toContain('sheet_ui_editor');
+		expect(textOptionEditor?.querySelector('.bg_primary_fd')?.className).toContain('r_xs');
+		expect(textOptionEditor?.textContent).toBe('Custom');
+		expect(textOptionEditor?.querySelector('.icon-chevron-down')).not.toBeNull();
+		expect(textOptionEditor?.querySelector('input, select, datalist')).toBeNull();
+		textOptionEditor?.click();
+
+		await act(async () => {
+			currentRoot?.render(
+				<SheetUI
+					canvasHeight={160}
+					canvasWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					cellCount={6}
+					columnCount={6}
+					columns={columns}
+					editState={{
+						cellKey: 'tags',
+						draftValue: 'Market, Prep',
+						rowId: 'row-1',
+					}}
+					headerWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					rows={rows}
+					scrollLeft={0}
+				/>,
+			);
+		});
+
+		const multiSelectEditor = host.querySelector('[data-sheet-editor="true"][data-cell-key="tags"]') as HTMLElement | null;
+
+		expect(multiSelectEditor?.tagName).toBe('DIV');
+		expect(multiSelectEditor?.textContent).toBe('Market, Prep');
+		expect(multiSelectEditor?.querySelector('.icon-chevron-down')).not.toBeNull();
+		expect(multiSelectEditor?.querySelector('input, select, datalist')).toBeNull();
+
+		await act(async () => {
+			currentRoot?.render(
+				<SheetUI
+					canvasHeight={160}
+					canvasWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					cellCount={6}
+					columnCount={6}
+					columns={columns}
+					editState={{
+						cellKey: 'enabled',
+						draftValue: 'true',
+						rowId: 'row-1',
+					}}
+					headerWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					rows={rows}
+					scrollLeft={0}
+				/>,
+			);
+		});
+
+		const booleanEditor = host.querySelector('[data-sheet-editor="true"][data-cell-key="enabled"]') as HTMLElement | null;
+
+		expect(booleanEditor?.tagName).toBe('DIV');
+		expect(booleanEditor?.textContent).toBe('true');
+		expect(booleanEditor?.querySelector('.icon-chevron-down')).not.toBeNull();
+		expect(booleanEditor?.querySelector('input, select, datalist')).toBeNull();
+
+		await act(async () => {
+			currentRoot?.render(
+				<SheetUI
+					canvasHeight={160}
+					canvasWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					cellCount={6}
+					columnCount={6}
+					columns={columns}
+					editState={{
+						cellKey: 'dueDate',
+						draftValue: '2026-02-01',
+						rowId: 'row-1',
+					}}
+					headerWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					rows={rows}
+					scrollLeft={0}
+				/>,
+			);
+		});
+
+		const dateEditor = host.querySelector('[data-sheet-editor="true"][data-cell-key="dueDate"]') as HTMLElement | null;
+
+		expect(dateEditor?.tagName).toBe('DIV');
+		expect(dateEditor?.textContent).toBe('Feb 1, 2026');
+		expect(dateEditor?.querySelector('.icon-chevron-down')).not.toBeNull();
+		expect(dateEditor?.querySelector('input, select, datalist')).toBeNull();
+
+		await act(async () => {
+			currentRoot?.render(
+				<SheetUI
+					canvasHeight={160}
+					canvasWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					cellCount={6}
+					columnCount={6}
+					columns={columns}
+					editState={{
+						cellKey: 'startsAt',
+						draftValue: '2026-05-21T09:30',
+						rowId: 'row-1',
+					}}
+					headerWidth={SHEET_ROW_NUMBER_WIDTH + 960}
+					rows={rows}
+					scrollLeft={0}
+				/>,
+			);
+		});
+
+		const dateTimeEditor = host.querySelector('[data-sheet-editor="true"][data-cell-key="startsAt"]') as HTMLElement | null;
+
+		expect(dateTimeEditor?.tagName).toBe('DIV');
+		expect(dateTimeEditor?.textContent).toBe('2026-05-21T09:30');
+		expect(dateTimeEditor?.querySelector('.icon-chevron-down')).not.toBeNull();
+		expect(dateTimeEditor?.querySelector('input, select, datalist')).toBeNull();
+	});
+
+	it('renders empty select cells as translated N/A text with muted color', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('status', 'SELECT'),
+		]).metrics;
+		const rows = [
+			createRowSlot('row-1', 0, {
+				status: createCell('status', ''),
+			}),
+		];
+		const host = await renderSheetUI({
+			columns,
+			editState: null,
+			rows,
+		});
+		const cell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement | null;
+
+		expect(cell?.textContent).toBe(i18n.t('form.n_a'));
+		expect(cell?.querySelector('.cl_darker_2')?.textContent).toBe(i18n.t('form.n_a'));
+
+		await act(async () => {
+			currentRoot?.render(
+				<SheetUI
+					canvasHeight={160}
+					canvasWidth={SHEET_ROW_NUMBER_WIDTH + 160}
+					cellCount={1}
+					columnCount={1}
+					columns={columns}
+					editState={{
+						cellKey: 'status',
+						draftValue: '',
+						rowId: 'row-1',
+					}}
+					headerWidth={SHEET_ROW_NUMBER_WIDTH + 160}
+					rows={rows}
+					scrollLeft={0}
+				/>,
+			);
+		});
+
+		const editor = host.querySelector('[data-sheet-editor="true"][data-cell-key="status"]') as HTMLElement | null;
+
+		expect(editor?.textContent).toBe(i18n.t('form.n_a'));
+		expect(editor?.querySelector('.cl_darker_2')?.textContent).toBe(i18n.t('form.n_a'));
+		expect(editor?.querySelector('.icon-chevron-down')).not.toBeNull();
 	});
 
 	it('renders a cell icon to the left of the display value', async () => {
@@ -592,7 +840,7 @@ describe('SheetUI rendering', () => {
 		expect(resizeLayer?.style.height).toBe('276px');
 		expect(resizeLayer?.style.overflow).toBe('hidden');
 		expect(resizeLayer?.style.top).toBe('44px');
-		expect(resizeLayer?.style.zIndex).toBe('110');
+		expect(Number(resizeLayer?.style.zIndex)).toBeGreaterThan(Number(headerCell?.style.zIndex));
 		expect(resizeHandleLayer?.style.pointerEvents).toBe('none');
 		expect(resizeHandle?.parentElement).toBe(resizeHandleLayer);
 		expect(resizeHandle?.parentElement).not.toBe(headerCell);
@@ -606,7 +854,7 @@ describe('SheetUI rendering', () => {
 		expect(resizeGuide?.style.height).toBe('276px');
 		expect(resizeGuide?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 158.5}px`);
 		expect(resizeGuide?.style.width).toBe('3px');
-		expect(resizeGuide?.style.zIndex).toBe('110');
+		expect(Number(resizeGuide?.style.zIndex)).toBeGreaterThan(Number(headerCell?.style.zIndex));
 	});
 });
 

@@ -45,6 +45,7 @@ type ValidRoutePath =
   | '/app/biosecurity'
   | '/app/employees'
   | '/app/vendors'
+  | '/app/inbound-contacts'
   | '/app/markets'
   | '/app/receipts'
   | '/app/growers'
@@ -78,13 +79,17 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app',
     text: 'app.home',
   },
-
   '/app/c/': {
     to: '/app/c/',
     text: 'app.route_ai_chat',
     iconName: COMMON_ICON_NAMES.chat,
 
     hasPhysicalToolbar: 'ALWAYS',
+  },
+  '/app/inbound-contacts': {
+    to: '/app/inbound-contacts',
+    text: 'form.inbound_contacts',
+    iconName: COMMON_ICON_NAMES.inbound_contacts,
   },
 
   // Advanced
@@ -94,13 +99,11 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
   },
-
   '/app/workflows': {
     to: '/app/workflows',
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
   },
-
   '/app/logs': {
     to: '/app/logs',
     text: 'log.all_logs',
@@ -478,6 +481,7 @@ export function getNavigationList(
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['/app/vendors'],
+            ROUTES_DICT['/app/inbound-contacts'],
             // ROUTES_DICT['/app/markets'],
             ROUTES_DICT['/app/receipts'],
           ]

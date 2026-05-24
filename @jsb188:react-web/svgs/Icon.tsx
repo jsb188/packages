@@ -110,6 +110,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   harvest: 'vegetable-corn',
   image: 'photo',
   images: 'library-photo',
+  inbound_contacts: 'address-book',
   info: 'info-circle',
   invoice: 'accounting-invoice-dollar',
   link_chevron: 'chevron-right',
