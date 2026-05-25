@@ -39,6 +39,7 @@
     "./hooks/use-auth-mtn": "./hooks/use-auth-mtn.ts",
     "./hooks/use-integration-qry": "./hooks/use-integration-qry.ts",
     "./hooks/use-integration-mtn": "./hooks/use-integration-mtn.ts",
+    "./hooks/use-inboundContact-mtn": "./hooks/use-inboundContact-mtn.ts",
     "./hooks/use-log-mtn": "./hooks/use-log-mtn.ts",
     "./hooks/use-organization-mtn": "./hooks/use-organization-mtn.ts",
     "./hooks/use-storage-mtn": "./hooks/use-storage-mtn.ts",

@@ -37,7 +37,7 @@ export {
  * Types
  */
 
-const SHEET_COLUMN_RESIZE_GUIDE_Z_INDEX = 240;
+const SHEET_COLUMN_RESIZE_GUIDE_Z_INDEX = 44;
 
 export type SheetCellKey = `${string}:${string}`;
 
@@ -281,20 +281,66 @@ export function getSheetColumnMetrics(columns: SheetUIColumn[], columnWidths: Sh
 }
 
 /*
+ * Return whether one option already represents a draft select editor value.
+ */
+
+function isSheetSelectEditorOptionMatch(option: SheetUIOption, draftValue: string) {
+	const normalizedDraftValue = draftValue.toLowerCase();
+
+	return String(option.value).toLowerCase() === normalizedDraftValue ||
+		String(option.label).toLowerCase() === normalizedDraftValue;
+}
+
+/*
+ * Return the custom text editor value for one SELECT_OR_TEXT draft.
+ */
+
+function getSheetSelectEditorCustomInputValue(draftValue: string, options: SheetUIOption[]) {
+	const option = options.find((item) => isSheetSelectEditorOptionMatch(item, draftValue));
+
+	return option ? '' : draftValue;
+}
+
+/*
+ * Return the option list plus a visible custom value row when needed.
+ */
+
+function getSheetSelectEditorVisibleOptions(p: SheetSelectEditorProps) {
+	if (
+		(p.fieldType !== 'SELECT' && p.fieldType !== 'SELECT_OR_TEXT') ||
+		!p.editState.draftValue ||
+		p.options.some((option) => isSheetSelectEditorOptionMatch(option, p.editState.draftValue))
+	) {
+		return p.options;
+	}
+
+	return p.options.concat([{
+		color: null,
+		label: p.editState.draftValue,
+		value: p.editState.draftValue,
+	}]);
+}
+
+/*
  * Render the select-style editor menu used by sheets for option cells.
  */
 
 export function SheetSelectEditor(p: SheetSelectEditorProps) {
+	const visibleOptions = getSheetSelectEditorVisibleOptions(p);
+  const len = visibleOptions.length;
+  const lastLen = len - 1;
 	const selectedValues = p.fieldType === 'MULTI_SELECT'
 		? getSheetMultiSelectEditorValueSet(p.editState.draftValue)
 		: new Set([p.editState.draftValue]);
 
 	return <div
-		className='sheet_overlay_editor bg bd_r_2 bd_b_2 bd_l_2 bd_lt py_2 ft_xs w_f max_h_300'
+		className='sheet_overlay_editor bg bd_r_2 bd_b_2 bd_l_2 bd_lt ft_xs w_f max_h_300'
 		data-sheet-select-editor='true'
 	>
-		{p.options.length
-			? p.options.map((option) => {
+    {/* You always need a <div> here because the options.map(..) elements have negative Y margins; use this for top/bottom padding */}
+    <div className='h_8' />
+			{len
+				? visibleOptions.map((option) => {
 				const selected = selectedValues.has(String(option.value));
 				const optionDisplayClassName = [
 					'ellip',
@@ -329,20 +375,23 @@ export function SheetSelectEditor(p: SheetSelectEditorProps) {
 			>
 				{getSheetTranslatedText('form.no_results', 'No results')}
 			</div>}
+    <div className='h_8' />
 
 		{p.fieldType === 'SELECT_OR_TEXT'
 			? <form
-				className='h_item gap_6 px_8 pt_6 bd_t_1 bd_lt'
+        // we need -mb_2 here because of the overlay editor container's padding
+				className='h_item gap_6 p_6 bd_t_2 bd_lt'
 				data-sheet-select-editor-custom='true'
 			>
-				<input
-					className='f h_28 bg_alt stock px_6 ft_xs'
-					defaultValue={p.editState.draftValue}
-					name='customValue'
-					type='text'
-				/>
+					<input
+						className='f stock ft_xs px_5 py_4 bd_0 bg_alt'
+						defaultValue={getSheetSelectEditorCustomInputValue(p.editState.draftValue, p.options)}
+						name='customValue'
+						placeholder='...'
+						type='text'
+					/>
 				<button
-					className='h_28 px_8 bg_primary cl_white ft_xs'
+					className='h_28 px_8 bg_alt bg_active_hv bd_1 bd_bd ft_xs'
 					type='submit'
 				>
 					{getSheetTranslatedText('form.save', 'Save')}

@@ -33,8 +33,12 @@ export const SHEET_STICKY_SPACER_SIZE = 4;
 
 const SHEET_COLUMN_RESIZE_HANDLE_WIDTH = 18;
 const SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET = 1;
-const SHEET_STICKY_LEFT_Z_INDEX = 220;
-const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 230;
+const SHEET_STICKY_LEFT_Z_INDEX = 33;
+const SHEET_STICKY_HEADER_Z_INDEX = 31;
+const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 33;
+const SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX = 34;
+const SHEET_COLUMN_REORDER_GUIDE_Z_INDEX = 35;
+const SHEET_COLUMN_REORDER_DRAG_Z_INDEX = 36;
 const STICKY_CELL_BG_CSS = 'bg';
 const STICKY_SPACER_BG_CSS = 'bg_darker_1';
 const CELL_BG_CSS = 'bg';
@@ -173,6 +177,14 @@ function isSheetSelectCellFieldType(fieldType: SheetUIColumn['fieldType']) {
 }
 
 /*
+ * Return whether one field type should show the date-style empty placeholder.
+ */
+
+function isSheetDateCellFieldType(fieldType: SheetUIColumn['fieldType']) {
+	return fieldType === 'DATE' || fieldType === 'DATETIME';
+}
+
+/*
  * Return whether one field type should show a picker chevron when selected.
  */
 
@@ -196,15 +208,29 @@ function getSheetColumnHumanFieldType(column: SheetUIColumn) {
 }
 
 /*
- * Return the display value and muted class for empty select-style cells.
+ * Return the display value and muted class for empty picker-style cells.
  */
 
-function getSheetSelectCellDisplayValue(fieldType: SheetUIColumn['fieldType'], displayValue: string) {
+function getSheetPickerCellDisplayValue(fieldType: SheetUIColumn['fieldType'], displayValue: string) {
 	const hasValue = Boolean(displayValue);
 
+	if (hasValue) {
+		return {
+			className: '',
+			value: displayValue,
+		};
+	}
+
+	if (isSheetDateCellFieldType(fieldType)) {
+		return {
+			className: 'cl_lt',
+			value: i18n.t('form.n_a'),
+		};
+	}
+
 	return {
-		className: isSheetSelectCellFieldType(fieldType) && !hasValue ? 'cl_darker_2' : '',
-		value: isSheetSelectCellFieldType(fieldType) && !hasValue ? i18n.t('form.n_a') : displayValue,
+		className: isSheetSelectCellFieldType(fieldType) ? 'cl_darker_2' : '',
+		value: isSheetSelectCellFieldType(fieldType) ? i18n.t('form.n_a') : displayValue,
 	};
 }
 
@@ -332,8 +358,8 @@ export const SheetColumnResizeHandle = memo((p: {
 			pointerEvents: p.disabled ? 'none' : 'auto',
 			top: 0,
 			visibility: p.disabled ? 'hidden' : undefined,
-			width: SHEET_COLUMN_RESIZE_HANDLE_WIDTH,
-			zIndex: 110,
+				width: SHEET_COLUMN_RESIZE_HANDLE_WIDTH,
+				zIndex: SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX,
 		}}
 	/>;
 }, (prev, next) => (
@@ -363,8 +389,8 @@ export const SheetColumnReorderGuide = memo((p: {
 			left: p.guide.left,
 			position: 'absolute',
 			top: 0,
-			width: 2,
-			zIndex: 125,
+				width: 2,
+				zIndex: SHEET_COLUMN_REORDER_GUIDE_Z_INDEX,
 		}}
 	/>;
 }, (prev, next) => (
@@ -391,8 +417,8 @@ export const SheetColumnReorderDragPreview = memo((p: {
 			height: SHEET_HEADER_HEIGHT,
 			left: p.drag.left,
 			top: 0,
-			width: p.drag.width,
-			zIndex: 130,
+				width: p.drag.width,
+				zIndex: SHEET_COLUMN_REORDER_DRAG_Z_INDEX,
 		}}
 	>
 		<span className='ellip'>{p.drag.label}</span>
@@ -453,8 +479,8 @@ export const SheetHeaderArea = memo((p: {
 		data-sheet-sticky-header='true'
 		style={{
 			top: 0,
-			width: p.headerWidth,
-			zIndex: 200,
+				width: p.headerWidth,
+				zIndex: SHEET_STICKY_HEADER_Z_INDEX,
 		}}
 	>
 		<div
@@ -502,8 +528,8 @@ export const SheetHeaderArea = memo((p: {
 					left: 0,
 					pointerEvents: 'none',
 					top: 0,
-					width: p.headerWidth,
-					zIndex: 110,
+						width: p.headerWidth,
+						zIndex: SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX,
 				}}
 			>
 				{p.columns.map((columnMetric) => {
@@ -853,7 +879,7 @@ export const SheetCellEditor = memo((p: {
 		p.column.fieldType === 'DATETIME'
 	) {
 		const displayValue = p.cell?.displayValue || p.draftValue;
-		const selectDisplay = getSheetSelectCellDisplayValue(p.column.fieldType, displayValue);
+		const pickerDisplay = getSheetPickerCellDisplayValue(p.column.fieldType, displayValue);
 		const iconName = p.cell?.iconName || '';
 
 		return <div
@@ -867,11 +893,12 @@ export const SheetCellEditor = memo((p: {
 			>
 				<SheetCellDisplayValue
 					canOpen={p.cell?.canOpen}
-					className={selectDisplay.className}
+					className={pickerDisplay.className}
 					displayClassName={p.cell?.displayClassName}
-					displayValue={selectDisplay.value}
+					displayValue={pickerDisplay.value}
 					fill
 					iconName={iconName}
+					showSelectChevron
 				/>
 			</div>;
 		}
@@ -916,11 +943,12 @@ export const SheetGridCell = memo((p: {
 	selectedCellState?: SheetUISelectedCellState | null;
 }) => {
 
-  const isEditable = p.cell?.canEdit;
+	const isEditable = p.cell?.canEdit;
 	const isEditing = isSheetGridCellEditing(p);
 	const isSelected = !isEditing && isSheetGridCellSelected(p);
 	const displayValue = p.cell?.displayValue || '';
-	const selectDisplay = getSheetSelectCellDisplayValue(getSheetColumnHumanFieldType(p.column), displayValue);
+	const displayFieldType = getSheetColumnHumanFieldType(p.column);
+	const pickerDisplay = getSheetPickerCellDisplayValue(displayFieldType, displayValue);
 	const iconName = p.cell?.iconName || '';
 	const isReadOnlyCell = Boolean(p.rowId && p.cell && !isEditable);
 	const editableCellClassName = isEditable
@@ -934,11 +962,11 @@ export const SheetGridCell = memo((p: {
 		p.isPlaceholderRow ? '' : 'bd_r_1 bd_b_1 bd_lt',
 		isEditing || (isSelected && !isEditable) ? 'active z4' : '',
 		!isEditing ? 'px_6 unsel' : '',
-    isEditable && isSelected && !isEditing ? 'pointer' : '',
+		isEditable && isSelected && !isEditing ? 'pointer' : '',
 		// p.cell?.canOpen ? 'link' : '', // Don't use .link class
 		!p.rowId ? 'noclick' : '',
 		isReadOnlyCell ? 'not_editable' : '',
-		!displayValue ? 'cl_darker_2' : '',
+		!displayValue && !isSheetDateCellFieldType(displayFieldType) ? 'cl_darker_2' : '',
 		p.isStickyLeft ? STICKY_CELL_BG_CSS : CELL_BG_CSS,
 	);
 
@@ -968,9 +996,9 @@ export const SheetGridCell = memo((p: {
 				/>
 				: <SheetCellDisplayValue
 					canOpen={p.cell?.canOpen}
-					className={selectDisplay.className}
+					className={pickerDisplay.className}
 					displayClassName={p.cell?.displayClassName}
-					displayValue={selectDisplay.value}
+					displayValue={pickerDisplay.value}
 					iconName={iconName}
 					showSelectChevron={isSelected && isSheetChevronCellFieldType(p.column.fieldType)}
 				/>}

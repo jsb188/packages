@@ -1,6 +1,5 @@
-import i18n from '@jsb188/app/i18n/index.ts';
 import type { SheetCellGQL, SheetDesignGQL, SheetRowGQL } from '@jsb188/mday/types/sheet.d.ts';
-import type { FloatingMessageObj } from '@jsb188/react-web/modules/Layout';
+import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { clampSheetColumnWidth, getSheetCellKey } from '@jsb188/react-web/ui/SheetUI';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -99,7 +98,7 @@ export function getSheetRowsSourceKey(sheetId: string, viewId?: string | null) {
 
 export function useFloatingMessageForSheetRowsReset(
 	resetOnlyTime: string | undefined,
-	setFloatingMessage?: (message: FloatingMessageObj | null) => void,
+	setFloatingMessage?: SetFloatingMessage,
 ) {
 	const lastUpdateTime = useRef<string | undefined>(resetOnlyTime);
 
@@ -110,7 +109,6 @@ export function useFloatingMessageForSheetRowsReset(
 
 		if (resetOnlyTime !== lastUpdateTime.current && setFloatingMessage) {
 			setFloatingMessage({
-				text: i18n.t('app.new_data_click_to_refresh'),
 				type: 'REFRESH',
 			});
 		}

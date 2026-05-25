@@ -305,7 +305,6 @@ describe('Sheet container', () => {
 		await rerenderSheet({ setFloatingMessage });
 
 		expect(setFloatingMessage).toHaveBeenCalledWith({
-			text: 'app.new_data_click_to_refresh',
 			type: 'REFRESH',
 		});
 	});
@@ -1639,13 +1638,50 @@ describe('Sheet container', () => {
 				viewId: null,
 				value: 'closed',
 			},
+			});
+			expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
 		});
-		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
-	});
 
-	it('anchors sheet-owned select editors in sheet-canvas coordinates across scroll', async () => {
-		const sheet = createSheet();
-		sheet.design = {
+		it('shows a custom select value as a visible option when it is not in the option list', async () => {
+			const sheet = createSheet();
+			sheet.design = {
+				...sheet.design,
+				cells: [
+					createDesignCell('status', {
+						fieldType: 'SELECT',
+						humanFieldType: 'SELECT',
+						options: [
+							{ color: 'emerald', label: 'Open', value: 'open' },
+							{ color: 'red', label: 'Closed', value: 'closed' },
+							{ color: 'amber', label: 'Pending', value: 'pending' },
+						],
+					}),
+				],
+				cellsOrder: ['status'],
+			};
+			hookState.sheetRows = [createRow(0, {
+				status: 'Legacy',
+			})];
+			const host = await renderSheet({ sheet });
+			const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+			await act(async () => {
+				statusCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+			});
+			await flushRender();
+
+			expect(host.querySelector('[data-sheet-select-editor-option="Legacy"]')).not.toBeNull();
+			expect(Array.from(host.querySelectorAll('[data-sheet-select-editor-option]')).map((option) => option.textContent?.trim())).toEqual([
+				'Open',
+				'Closed',
+				'Pending',
+				'Legacy',
+			]);
+		});
+
+		it('anchors sheet-owned select editors in sheet-canvas coordinates across scroll', async () => {
+			const sheet = createSheet();
+			sheet.design = {
 			...sheet.design,
 			cells: [
 				createDesignCell('name'),
@@ -1818,6 +1854,8 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
+		expect(host.querySelector('[data-sheet-select-editor-option="custom"]')).not.toBeNull();
+
 		const listedOption = host.querySelector('[data-sheet-select-editor-option="listed"]') as HTMLElement;
 
 		await act(async () => {
@@ -1855,6 +1893,92 @@ describe('Sheet container', () => {
 			}),
 		});
 		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
+	});
+
+	it('leaves select-or-text custom input empty when the draft matches an option value or label', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('reason', {
+					fieldType: 'SELECT_OR_TEXT',
+					humanFieldType: 'SELECT_OR_TEXT',
+					options: [
+						{ color: 'zinc', label: 'wEbSite', value: 'WEBSITE' },
+					],
+				}),
+			],
+			cellsOrder: ['reason'],
+		};
+		hookState.sheetRows = [
+			createRow(0, { reason: 'WEBSITE' }),
+			createRow(1, { reason: 'Website' }),
+		];
+		const host = await renderSheet({ sheet });
+		const valueMatchCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"][data-row-id="row-0"]') as HTMLElement;
+		const labelMatchCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"][data-row-id="row-1"]') as HTMLElement;
+
+		await act(async () => {
+			valueMatchCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect((host.querySelector('[data-sheet-select-editor-custom="true"] input') as HTMLInputElement).value).toBe('');
+
+		await act(async () => {
+			labelMatchCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect((host.querySelector('[data-sheet-select-editor-custom="true"] input') as HTMLInputElement).value).toBe('');
+	});
+
+	it('uses the returned edit cell fragment to replace a normalized optimistic value', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('source', {
+					fieldType: 'SELECT_OR_TEXT',
+					humanFieldType: 'SELECT_OR_TEXT',
+					options: [
+						{ color: 'zinc', label: 'website', value: 'WEBSITE' },
+					],
+				}),
+			],
+			cellsOrder: ['source'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			source: '',
+		})];
+		hookState.editSheetCell.mockResolvedValueOnce({
+			editSheetCell: createCell('row-0', 'source', 'WEBSITE'),
+		});
+		const host = await renderSheet({ sheet });
+		const sourceCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="source"]') as HTMLElement;
+
+		await act(async () => {
+			sourceCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const customInput = host.querySelector('[data-sheet-select-editor-custom="true"] input') as HTMLInputElement;
+		const customForm = host.querySelector('[data-sheet-select-editor-custom="true"]') as HTMLFormElement;
+
+		await act(async () => {
+			customInput.value = 'weBSIte';
+			customForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'source',
+				value: 'weBSIte',
+			}),
+		});
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="source"]')?.textContent).toBe('website');
 	});
 
 	it('uses fieldType rather than humanFieldType to choose select edit behavior', async () => {

@@ -45,7 +45,6 @@ type ValidRoutePath =
   | '/app/biosecurity'
   | '/app/employees'
   | '/app/vendors'
-  | '/app/inbound-contacts'
   | '/app/markets'
   | '/app/receipts'
   | '/app/growers'
@@ -86,12 +85,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
     hasPhysicalToolbar: 'ALWAYS',
   },
-  '/app/inbound-contacts': {
-    to: '/app/inbound-contacts',
-    text: 'form.inbound_contacts',
-    iconName: COMMON_ICON_NAMES.inbound_contacts,
-  },
-
   // Advanced
 
   '/app/workflows-test': {
@@ -481,7 +474,6 @@ export function getNavigationList(
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['/app/vendors'],
-            ROUTES_DICT['/app/inbound-contacts'],
             // ROUTES_DICT['/app/markets'],
             ROUTES_DICT['/app/receipts'],
           ]

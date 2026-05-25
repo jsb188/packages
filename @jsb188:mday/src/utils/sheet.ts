@@ -115,6 +115,47 @@ function isSheetOptionValue(cell: SheetDesignCellObj, value: unknown) {
 }
 
 /*
+ * Return the normalized string used for case-insensitive sheet option matching.
+ */
+
+function getNormalizedSheetOptionText(value: unknown) {
+	return String(value).toLowerCase();
+}
+
+/*
+ * Return whether one sheet design cell should normalize select option values.
+ */
+
+function isSheetSelectOptionNormalizeField(cell: SheetDesignCellObj) {
+	return cell.fieldType === 'SELECT' ||
+		cell.fieldType === 'SELECT_OR_TEXT' ||
+		cell.humanFieldType === 'SELECT' ||
+		cell.humanFieldType === 'SELECT_OR_TEXT';
+}
+
+/*
+ * Return the saved option value when one select-style cell input matches an option value or label.
+ */
+
+export function normalizeSheetSelectOptionValue(cell: SheetDesignCellObj, value: SheetRecordValue) {
+	if (value === null || !isSheetSelectOptionNormalizeField(cell)) {
+		return value;
+	}
+
+	if (isSheetOptionValue(cell, value)) {
+		return value;
+	}
+
+	const normalizedValue = getNormalizedSheetOptionText(value);
+	const option = (cell.options || []).find((item) => (
+		getNormalizedSheetOptionText(item.value) === normalizedValue ||
+		getNormalizedSheetOptionText(item.label) === normalizedValue
+	));
+
+	return option ? option.value : value;
+}
+
+/*
  * Return a user-readable validation error for an invalid sheet cell value.
  */
 

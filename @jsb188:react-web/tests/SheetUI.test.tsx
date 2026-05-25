@@ -232,28 +232,28 @@ describe('SheetUI rendering', () => {
 		expect(stickyColumnHeaderSpacer?.className).toContain('bg_darker_1');
 		expect(stickyColumnHeaderSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH}px`);
 		expect(stickyColumnHeaderSpacer?.style.position).toBe('sticky');
-		expect(Number(stickyColumnHeaderSpacer?.style.zIndex)).toBeGreaterThan(150);
+		expect(stickyColumnHeaderSpacer?.style.zIndex).toBe('32');
 		expect(stickyColumnSpacer?.className).toContain('w_4');
 		expect(stickyColumnSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH}px`);
 		expect(stickyColumnSpacer?.style.position).toBe('sticky');
-		expect(Number(stickyColumnSpacer?.style.zIndex)).toBeGreaterThan(150);
+		expect(stickyColumnSpacer?.style.zIndex).toBe('21');
 		expect(stickyColumnSpacer?.style.top).toBe('');
 		expect(stickyColumnSpacerSlots[0]?.style.top).toBe('36px');
 		expect(stickyColumnSpacerSlots[1]?.style.top).toBe('68px');
 		expect(stickyColumnSpacerSlots[2]?.style.top).toBe('100px');
 		expect(stickyColumnSpacerSlots[3]?.style.top).toBe('132px');
 		expect(host.querySelector('[data-sheet-sticky-header="true"]')?.className).toContain('sticky');
-		expect(Number((host.querySelector('[data-sheet-sticky-header="true"]') as HTMLElement | null)?.style.zIndex)).toBeGreaterThan(150);
+		expect((host.querySelector('[data-sheet-sticky-header="true"]') as HTMLElement | null)?.style.zIndex).toBe('31');
 		expect(cornerCell?.className).toContain('sticky');
 		expect(cornerCell?.className).toContain('bg');
 		expect(cornerCell?.style.left).toBe('0px');
 		expect(cornerCell?.style.position).toBe('sticky');
-		expect(Number(cornerCell?.style.zIndex)).toBeGreaterThan(150);
+		expect(cornerCell?.style.zIndex).toBe('32');
 		expect(rowNumber?.className).toContain('sticky');
 		expect(rowNumber?.className).toContain('bg');
 		expect(rowNumber?.style.left).toBe('0px');
 		expect(rowNumber?.style.position).toBe('sticky');
-		expect(Number(rowNumber?.style.zIndex)).toBeGreaterThan(150);
+		expect(rowNumber?.style.zIndex).toBe('21');
 		expect(rowNumberSlots[0]?.style.top).toBe('0px');
 		expect(rowNumberSlots[0]?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT}px`);
 		expect(rowNumber?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT}px`);
@@ -306,9 +306,9 @@ describe('SheetUI rendering', () => {
 		expect(headerCells[1]?.className).toContain('bg');
 		expect(stickyCell?.className).toContain('bg');
 		expect(nonStickyCell?.className).toContain('bg');
-		expect(Number(headerCells[0]?.style.zIndex)).toBeGreaterThan(150);
+		expect(headerCells[0]?.style.zIndex).toBe('32');
 		expect(headerCells[1]?.style.zIndex).toBe('');
-		expect(Number(stickyCell?.style.zIndex)).toBeGreaterThan(150);
+		expect(stickyCell?.style.zIndex).toBe('21');
 		expect(nonStickyCell?.style.zIndex).toBe('');
 	});
 
@@ -583,6 +583,61 @@ describe('SheetUI rendering', () => {
 		expect(editor?.querySelector('.icon-chevron-down')).not.toBeNull();
 	});
 
+	it('renders empty date cells as translated N/A text with light color', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('dueDate', 'DATE'),
+			createColumn('startsAt', 'DATETIME'),
+		]).metrics;
+		const rows = [
+			createRowSlot('row-1', 0, {
+				dueDate: createCell('dueDate', ''),
+				startsAt: createCell('startsAt', ''),
+			}),
+		];
+		const host = await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			cellCount: 2,
+			columnCount: 2,
+			columns,
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			rows,
+		});
+		const dateCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="dueDate"]') as HTMLElement | null;
+		const dateTimeCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="startsAt"]') as HTMLElement | null;
+
+		expect(dateCell?.textContent).toBe(i18n.t('form.n_a'));
+		expect(dateCell?.querySelector('.cl_lt')?.textContent).toBe(i18n.t('form.n_a'));
+		expect(dateCell?.className).not.toContain('cl_darker_2');
+		expect(dateTimeCell?.textContent).toBe(i18n.t('form.n_a'));
+		expect(dateTimeCell?.querySelector('.cl_lt')?.textContent).toBe(i18n.t('form.n_a'));
+		expect(dateTimeCell?.className).not.toContain('cl_darker_2');
+
+		await act(async () => {
+			currentRoot?.render(
+				<SheetUI
+					canvasHeight={160}
+					canvasWidth={SHEET_ROW_NUMBER_WIDTH + 320}
+					cellCount={2}
+					columnCount={2}
+					columns={columns}
+					editState={{
+						cellKey: 'startsAt',
+						draftValue: '',
+						rowId: 'row-1',
+					}}
+					headerWidth={SHEET_ROW_NUMBER_WIDTH + 320}
+					rows={rows}
+					scrollLeft={0}
+				/>,
+			);
+		});
+
+		const editor = host.querySelector('[data-sheet-editor="true"][data-cell-key="startsAt"]') as HTMLElement | null;
+
+		expect(editor?.textContent).toBe(i18n.t('form.n_a'));
+		expect(editor?.querySelector('.cl_lt')?.textContent).toBe(i18n.t('form.n_a'));
+	});
+
 	it('renders a cell icon to the left of the display value', async () => {
 		const host = await renderSheetUI({
 			rows: [
@@ -745,12 +800,12 @@ describe('SheetUI rendering', () => {
 		expect(guide?.style.height).toBe(`${SHEET_HEADER_HEIGHT}px`);
 		expect(guide?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 80}px`);
 		expect(guide?.style.width).toBe('2px');
-		expect(guide?.style.zIndex).toBe('125');
+		expect(guide?.style.zIndex).toBe('35');
 		expect(dragPreview?.textContent).toBe('NAME');
 		expect(dragPreview?.style.left).toBe('74px');
 		expect(dragPreview?.style.width).toBe('160px');
 		expect(dragPreview?.style.opacity).toBe('');
-		expect(dragPreview?.style.zIndex).toBe('130');
+		expect(dragPreview?.style.zIndex).toBe('36');
 		expect(resizeHandle?.className).not.toContain('hv_area');
 		expect(resizeHandle?.style.pointerEvents).toBe('none');
 		expect(resizeHandle?.style.visibility).toBe('hidden');
@@ -869,13 +924,13 @@ describe('SheetUI rendering', () => {
 		expect(resizeHandle?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 160 - 10}px`);
 		expect(resizeHandle?.style.pointerEvents).toBe('auto');
 		expect(resizeHandle?.style.width).toBe('18px');
-		expect(resizeHandle?.style.zIndex).toBe('110');
+		expect(resizeHandle?.style.zIndex).toBe('34');
 		expect(resizeGuide?.className).toContain('bg_primary');
 		expect(resizeGuide?.className).not.toContain('bg_main');
 		expect(resizeGuide?.style.height).toBe('276px');
 		expect(resizeGuide?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 158.5}px`);
 		expect(resizeGuide?.style.width).toBe('3px');
-		expect(Number(resizeGuide?.style.zIndex)).toBeGreaterThan(Number(headerCell?.style.zIndex));
+		expect(resizeGuide?.style.zIndex).toBe('44');
 	});
 });
 

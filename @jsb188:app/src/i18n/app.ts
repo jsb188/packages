@@ -34,6 +34,7 @@ export default {
     app: 'App',
     account: 'Account',
     features: 'Features',
+    memories: 'Memories',
     connections: 'Connections',
     ai_inbox: 'AI inbox',
     ai_inboxes: 'AI inboxes',

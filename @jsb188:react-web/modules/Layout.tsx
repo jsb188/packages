@@ -757,10 +757,19 @@ export interface FloatingMessageObj {
   type: 'REFRESH' | 'WARNING' | 'NOTICE' | 'MESSAGE';
 }
 
+export type FloatingMessageInput =
+  | FloatingMessageObj
+  | {
+    text?: string;
+    type: 'REFRESH';
+  };
+
+export type SetFloatingMessage = (message: FloatingMessageInput | null) => void;
+
 interface FloatingMessageProps {
   pathname: string;
   message: FloatingMessageObj | null;
-  setFloatingMessage: (message: FloatingMessageObj | null) => void;
+  setFloatingMessage: SetFloatingMessage;
   setRefreshKey: () => void;
   className?: string;
 }

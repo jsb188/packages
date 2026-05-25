@@ -25,7 +25,7 @@
 
 .sheet_ui_cell.active {
   overflow: visible;
-  z-index: 60;
+  z-index: 20;
 }
 
 .sheet_ui_editor:focus {

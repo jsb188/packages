@@ -3,6 +3,7 @@ export * from './aiChatMutations.ts';
 export * from './authMutations.ts';
 export * from './billingMutations.ts';
 export * from './integrationMutations.ts';
+export * from './inboundContactMutations.ts';
 export * from './logMutations.ts';
 export * from './organizationMutations.ts';
 export * from './sheetMutations.ts';

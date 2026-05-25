@@ -1,75 +1,74 @@
-import { useEditSheetCell, useEditSheetDesign } from '@jsb188/graphql/hooks/use-sheet-mtn';
-import { useReactiveSheetRows, useSheetRows } from '@jsb188/graphql/hooks/use-sheet-qry';
 import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
 import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
+import { useEditSheetCell, useEditSheetDesign } from '@jsb188/graphql/hooks/use-sheet-mtn';
+import { useReactiveSheetRows, useSheetRows } from '@jsb188/graphql/hooks/use-sheet-qry';
+import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
 import type {
   SheetCellGQL,
-  SheetDesignGQL,
   SheetDesignCellGQL,
-  SheetDesignViewGQL,
+  SheetDesignGQL,
   SheetDesignViewColumnGQL,
+  SheetDesignViewGQL,
   SheetFieldTypeGQL,
   SheetGQL,
   SheetRowGQL,
 } from '@jsb188/mday/types/sheet.d.ts';
-import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
 import {
   getOrderedSheetDesignViewColumns,
   getOrderedSheetDesignViews,
-  moveVisibleSheetColumnKeyInOrder,
   mapSheetDesignViewColumnToCell,
+  moveVisibleSheetColumnKeyInOrder,
 } from '@jsb188/mday/utils/sheet.ts';
-import type { FloatingMessageObj } from '@jsb188/react-web/modules/Layout';
 import { Calendar, type CalendarSelectedObj } from '@jsb188/react-web/modules/Calendar';
+import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
+import {
+  SHEET_COLUMN_WIDTH,
+  SHEET_HEADER_HEIGHT,
+  SHEET_ROW_HEIGHT,
+  SHEET_ROW_NUMBER_WIDTH,
+  SHEET_STICKY_SPACER_SIZE,
+  SheetSelectEditor,
+  SheetUI,
+  clampSheetColumnWidth,
+  getSheetCellKey,
+  getSheetColumnMetrics,
+  getSheetMinimumRowCount,
+  getSheetMultiSelectEditorValueSet,
+  getSheetVisibleRange,
+  getValidSheetOptionColor,
+  type SheetColumnMetric,
+  type SheetColumnWidths,
+  type SheetUICell,
+  type SheetUIColumn,
+  type SheetUIColumnReorderDisplacements,
+  type SheetUIColumnReorderDrag,
+  type SheetUIColumnReorderGuide,
+  type SheetUIEditState,
+  type SheetUIFieldType,
+  type SheetUIHeaderEditState,
+  type SheetUIResizeGuide,
+  type SheetUIRowSlot,
+  type SheetUISelectedCellState
+} from '@jsb188/react-web/ui/SheetUI';
 import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp } from '@jsb188/react/states';
-import {
-	SHEET_COLUMN_WIDTH,
-	SHEET_HEADER_HEIGHT,
-	SHEET_ROW_HEIGHT,
-	SHEET_ROW_NUMBER_WIDTH,
-	SHEET_STICKY_SPACER_SIZE,
-	SheetCellDisplayValue,
-	SheetSelectEditor,
-	SheetUI,
-	clampSheetColumnWidth,
-	getSheetCellKey,
-	getSheetColumnMetrics,
-	getSheetMultiSelectEditorValueSet,
-	getSheetMinimumRowCount,
-	getSheetVisibleRange,
-	getValidSheetOptionColor,
-	type SheetColumnMetric,
-	type SheetColumnWidths,
-	type SheetUICell,
-	type SheetUIColumn,
-	type SheetUIColumnReorderDisplacements,
-	type SheetUIColumnReorderDrag,
-	type SheetUIColumnReorderGuide,
-	type SheetUIEditState,
-	type SheetUIFieldType,
-	type SheetUIHeaderEditState,
-	type SheetUIResizeGuide,
-	type SheetUIRowSlot,
-	type SheetUISelectedCellState,
-} from '@jsb188/react-web/ui/SheetUI';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import {
-	getInitialSheetDesignReducerState,
-	getInitialSheetRowsState,
-	getSheetRowsSourceKey,
-	mergeSheetDesignPatch,
-	mergeSheetDesignWithPatch,
-	mergeSheetRowsState,
-	sheetCellValueReducer,
-	sheetDesignReducer,
-	useElementSize,
-	useFloatingMessageForSheetRowsReset,
-	type SheetDesignPatchInput,
-	type SheetRowsState,
+  getInitialSheetDesignReducerState,
+  getInitialSheetRowsState,
+  getSheetRowsSourceKey,
+  mergeSheetDesignPatch,
+  mergeSheetDesignWithPatch,
+  mergeSheetRowsState,
+  sheetCellValueReducer,
+  sheetDesignReducer,
+  useElementSize,
+  useFloatingMessageForSheetRowsReset,
+  type SheetDesignPatchInput,
+  type SheetRowsState,
 } from './use-sheet-states.ts';
 
 /**
@@ -93,7 +92,7 @@ export interface SheetProps {
 	disabled?: boolean;
 	allowEdit?: boolean;
 	onOpenCell?: (params: SheetOpenCellParams) => void;
-	setFloatingMessage?: (message: FloatingMessageObj | null) => void;
+	setFloatingMessage?: SetFloatingMessage;
 }
 
 type SheetParsedEditorValue = {
@@ -219,11 +218,11 @@ const SHEET_DATE_EDITOR_WIDTH = 280;
 const SHEET_LOCAL_EDITOR_LEFT_OFFSET = -2;
 const SHEET_LOCAL_EDITOR_TOP_OFFSET = 1;
 const SHEET_LOCAL_EDITOR_WIDTH_OFFSET = 3;
-const SHEET_LOCAL_EDITOR_Z_INDEX = 150;
-const SHEET_STICKY_LOCAL_EDITOR_Z_INDEX = 240;
+const SHEET_LOCAL_EDITOR_Z_INDEX = 32;
+const SHEET_STICKY_LOCAL_EDITOR_Z_INDEX = 43;
 const SHEET_READ_ONLY_TAG_HEIGHT = 18;
 const SHEET_READ_ONLY_TAG_TOP_OFFSET = 4;
-const SHEET_READ_ONLY_TAG_Z_INDEX = 219;
+const SHEET_READ_ONLY_TAG_Z_INDEX = 32;
 
 /*
  * Return ordered design cells from immutable sheet design configuration.
@@ -1764,6 +1763,7 @@ export function Sheet(p: SheetProps) {
 		cell: SheetUICell;
 		signature: string;
 	}>());
+	const cellSaveVersionRef = useRef<Record<string, number>>({});
 	const committingEditorRef = useRef(false);
 	const scrollFrameRef = useRef<number | null>(null);
 	const pendingScrollRef = useRef({
@@ -2046,6 +2046,10 @@ export function Sheet(p: SheetProps) {
 		lastCursor: renderedRows[renderedRows.length - 1]?.cursor || null,
 	};
 	const saveCellValue = useCallback(async (lookup: SheetCellLookup, value: string | null) => {
+		const optimisticKey = getSheetCellKey(lookup.row.id, lookup.designCell.key);
+		const saveVersion = (cellSaveVersionRef.current[optimisticKey] || 0) + 1;
+		cellSaveVersionRef.current[optimisticKey] = saveVersion;
+
 		dispatchOptimisticValues({
 			cellKey: lookup.designCell.key,
 			rowId: lookup.row.id,
@@ -2054,7 +2058,7 @@ export function Sheet(p: SheetProps) {
 		});
 
 		try {
-			await editSheetCell({
+			const result = await editSheetCell({
 				variables: {
 					organizationId,
 					sheetId,
@@ -2065,12 +2069,30 @@ export function Sheet(p: SheetProps) {
 					value,
 				},
 			});
+
+			const savedCell = result?.editSheetCell as SheetCellGQL | null | undefined;
+			const savedCellKey = getSheetRuntimeCellKey(lookup.designCell);
+			if (
+				cellSaveVersionRef.current[optimisticKey] === saveVersion &&
+				savedCell &&
+				String(savedCell.sheetRowId) === String(lookup.row.id) &&
+				savedCell.cellKey === savedCellKey
+			) {
+				dispatchOptimisticValues({
+					cellKey: lookup.designCell.key,
+					rowId: lookup.row.id,
+					type: 'local_value_queued',
+					value: getSheetCellSerializedValue(savedCell, lookup.designCell),
+				});
+			}
 		} catch (error) {
-			dispatchOptimisticValues({
-				cellKey: lookup.designCell.key,
-				rowId: lookup.row.id,
-				type: 'local_value_reverted',
-			});
+			if (cellSaveVersionRef.current[optimisticKey] === saveVersion) {
+				dispatchOptimisticValues({
+					cellKey: lookup.designCell.key,
+					rowId: lookup.row.id,
+					type: 'local_value_reverted',
+				});
+			}
 			throw error;
 		}
 	}, [activeView, editSheetCell, organizationId, sheetId]);

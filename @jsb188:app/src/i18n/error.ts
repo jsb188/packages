@@ -135,6 +135,7 @@ export default {
     20070: 'Another organization already uses the AI inbox handle "%{value}".',
     20071: 'This sheet was not found.\nIt may have been deleted.',
     20072: 'The sheet design update was invalid.',
+    20074: 'Inbound contacts must have an email address or phone number.',
 
     // 3x
 

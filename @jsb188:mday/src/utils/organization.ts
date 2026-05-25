@@ -29,7 +29,7 @@ export const OPERATION_PERMISSIONS = {
   ai_inbox_management: ['orgManagement', 'MANAGE', 'You do not have permission to manage this organization\'s AI inbox.'],
   logs_write: ['logs', 'WRITE', 'You do not have permission to write logs in this organization.'],
   org_directory: ['logs', 'WRITE', 'You do not have permission to manage this organization\'s directory book.'],
-  org_management: ['orgManagement', 'WRITE', 'You do not have permission to manage this organization\'s data.'],
+  org_management: ['orgManagement', 'WRITE', 'You do not have permission to edit this organization\'s data.'],
 	org_sites_update: ['logs', 'WRITE', 'You do not have permission to update organization sites.'],
   sheets_edit: ['viewData', 'MANAGE', 'You do not have permission to edit sheets in this organization.'],
 } as const satisfies OperationPermissionsMap;
