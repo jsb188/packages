@@ -1,6 +1,7 @@
 export const SHEET_FIELD_TYPE_ENUMS = [
 	'TEXT',
 	'ID',
+	'ID_OR_TEXT',
 	'NUMBER',
 	'BOOLEAN',
 	'DATE',
