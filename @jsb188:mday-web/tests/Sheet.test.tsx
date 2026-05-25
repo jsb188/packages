@@ -357,6 +357,105 @@ describe('Sheet container', () => {
 		expect(firstCell?.textContent).toContain('Alpha');
 	});
 
+	it('derives external-link icons for open-link cells with HTTP text values', async () => {
+		const sheet = createSheet();
+		hookState.sheetRows = [{
+			...createRow(0, {}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'https://example.com/orders/501'),
+			],
+		}];
+
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement | null;
+
+		expect(statusCell?.querySelector('.icon-external-link')).not.toBeNull();
+	});
+
+	it('derives notes-paper-text icons for open-link ID cells with related IDs', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'status'
+				? {
+					...cell,
+					fieldType: 'ID',
+					humanFieldType: 'ID',
+				}
+				: cell),
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'log-501', {
+					relatedId: '501',
+				}),
+			],
+		}];
+
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement | null;
+
+		expect(statusCell?.querySelector('.icon-notes-paper-text')).not.toBeNull();
+	});
+
+	it('uses explicit icon names before derived open-link icon names', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'status'
+				? {
+					...cell,
+					iconName: 'circle',
+				}
+				: cell),
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'https://example.com/orders/501', {
+					iconName: 'circle-check',
+				}),
+			],
+		}];
+
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement | null;
+
+		expect(statusCell?.querySelector('.icon-circle-check')).not.toBeNull();
+		expect(statusCell?.querySelector('.icon-circle')).toBeNull();
+		expect(statusCell?.querySelector('.icon-external-link')).toBeNull();
+	});
+
+	it('uses design icon names before derived open-link icon names', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: sheet.design.cells.map((cell) => cell.key === 'status'
+				? {
+					...cell,
+					iconName: 'circle',
+				}
+				: cell),
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'https://example.com/orders/501'),
+			],
+		}];
+
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement | null;
+
+		expect(statusCell?.querySelector('.icon-circle')).not.toBeNull();
+		expect(statusCell?.querySelector('.icon-external-link')).toBeNull();
+	});
+
 	it('preserves fetched sheet row order instead of sorting by row position', async () => {
 		hookState.sheetRows = [
 			createRow(2, { name: 'Third fetched', status: 'Open' }),
@@ -494,15 +593,16 @@ describe('Sheet container', () => {
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="review_status"]')).toBeNull();
 	});
 
-	it('always renders the database tab for the unfiltered master sheet', async () => {
+	it('always renders the data tab for the unfiltered master sheet', async () => {
 		const host = await renderSheet();
-		const databaseTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
+		const dataTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
 		const sheetGridContainer = host.querySelector('[data-sheet-grid-container="true"]') as HTMLElement;
 		const sheetWithViews = host.querySelector('[data-sheet-with-views="true"]') as HTMLElement;
 		const viewTabs = host.querySelector('[data-sheet-view-tabs="true"]') as HTMLElement;
 
-		expect(databaseTab).not.toBeNull();
-		expect(databaseTab.textContent).toBe('Database');
+		expect(dataTab).not.toBeNull();
+		expect(dataTab.textContent).toBe('Data');
+		expect(dataTab.querySelector('.icon-database-2')).not.toBeNull();
 		expect(sheetGridContainer.className).toContain('h_0');
 		expect(sheetWithViews.className).not.toContain('pb_40');
 		expect(viewTabs.className).not.toContain('abs_b');
@@ -538,11 +638,11 @@ describe('Sheet container', () => {
 		};
 		const host = await renderSheet({ sheet });
 		const viewTabs = host.querySelector('[data-sheet-view-tabs="true"]');
-		const databaseTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
+		const dataTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
 		const activeJobsTab = host.querySelector('[data-sheet-view-tab="active_jobs"]') as HTMLElement;
 
 		expect(viewTabs).not.toBeNull();
-		expect(databaseTab.textContent).toBe('Database');
+		expect(dataTab.textContent).toBe('Data');
 		expect(activeJobsTab.textContent).toBe('Active Jobs');
 		expect(hookState.lastSheetRowsArgs?.[4]).toBeNull();
 
@@ -1174,7 +1274,7 @@ describe('Sheet container', () => {
 		const placeholderFillCells = Array.from(host.querySelectorAll('[data-sheet-placeholder-row-fill-cell="true"]')) as HTMLElement[];
 		const stickyColumnSpacers = Array.from(host.querySelectorAll('[data-sheet-sticky-column-spacer="true"]')) as HTMLElement[];
 
-		expect(rowNumbers.map((rowNumber) => rowNumber.textContent)).toEqual(['1', '', '', '']);
+		expect(rowNumbers.map((rowNumber) => rowNumber.textContent)).toEqual(['', '1', '', '', '']);
 		expect(cells).toHaveLength(5);
 		expect(placeholderCells).toHaveLength(3);
 		expect(placeholderFillCells).toHaveLength(3);
@@ -1208,7 +1308,7 @@ describe('Sheet container', () => {
 		const mockSpans = Array.from(host.querySelectorAll('.mock.active'));
 		const opacityClassesByRow = ['', 'op_80', 'op_60', 'op_40', 'op_20'];
 
-		expect(host.querySelectorAll('[data-sheet-row-number-slot="true"]')).toHaveLength(9);
+		expect(host.querySelectorAll('[data-sheet-row-number-slot="true"]')).toHaveLength(10);
 		expect(mockSpans).toHaveLength(10);
 
 		opacityClassesByRow.forEach((opacityClass, rowIndex) => {
@@ -1315,6 +1415,28 @@ describe('Sheet container', () => {
 		await rerenderSheet();
 
 		expect(getNameCell().textContent).toBe('Server Beta');
+	});
+
+	it('updates rendered cell icons when refreshed rows keep the same ids and values', async () => {
+		hookState.sheetRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
+		const host = await renderSheet();
+		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]') as HTMLElement;
+
+		expect(getNameCell().querySelector('.icon-circle-check')).toBeNull();
+
+		hookState.sheetRows = [{
+			...createRow(0, {}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha', {
+					iconName: 'circle-check',
+				}),
+				createCell('row-0', 'status', 'Open'),
+			],
+		}];
+		await rerenderSheet();
+
+		expect(getNameCell().querySelector('.icon-circle-check')).not.toBeNull();
+		expect(getNameCell().textContent).toContain('Alpha');
 	});
 
 	it('deduplicates repeated sheet row ids from refreshed row payloads', async () => {
@@ -1552,12 +1674,13 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		const anchor = host.querySelector('[data-sheet-local-editor-anchor="true"]') as HTMLElement;
-		const expectedLeft = SHEET_ROW_NUMBER_WIDTH + SHEET_COLUMN_WIDTH + SHEET_STICKY_SPACER_SIZE;
-		const expectedTop = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT;
+		const expectedLeft = SHEET_ROW_NUMBER_WIDTH + SHEET_COLUMN_WIDTH + SHEET_STICKY_SPACER_SIZE - 2;
+		const expectedTop = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT + 1;
 
 		expect(anchor.parentElement?.className).toContain('sheet_ui_canvas');
 		expect(anchor.style.left).toBe(`${expectedLeft}px`);
 		expect(anchor.style.top).toBe(`${expectedTop}px`);
+		expect(anchor.style.width).toBe('163px');
 
 		await act(async () => {
 			Object.defineProperty(viewport, 'scrollLeft', {
@@ -1798,6 +1921,98 @@ describe('Sheet container', () => {
 
 		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
 		expect(host.querySelector('[data-sheet-editor="true"][data-cell-key="note"]')?.tagName).toBe('INPUT');
+	});
+
+	it('uses humanFieldType to choose edit behavior for ID_OR_TEXT cells', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('document', {
+					fieldType: 'ID_OR_TEXT' as unknown as SheetDesignCellGQL['fieldType'],
+					humanFieldType: 'SELECT',
+					options: [
+						{ label: 'Ready', value: 'ready' },
+						{ label: 'Blocked', value: 'blocked' },
+					],
+				}),
+			],
+			cellsOrder: ['document'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			document: '',
+		})];
+		const host = await renderSheet({ sheet });
+		const documentCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="document"]') as HTMLElement;
+
+		await act(async () => {
+			documentCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).not.toBeNull();
+		expect(host.querySelector('[data-sheet-editor="true"][data-cell-key="document"]')?.getAttribute('data-field-type')).toBe('SELECT');
+
+		const blockedOption = host.querySelector('[data-sheet-select-editor-option="blocked"]') as HTMLElement;
+
+		await act(async () => {
+			blockedOption.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'document',
+				value: 'blocked',
+			}),
+		});
+	});
+
+	it('uses SELECT_OR_TEXT humanFieldType to choose edit behavior for ID cells', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('document', {
+					fieldType: 'ID',
+					humanFieldType: 'SELECT_OR_TEXT',
+					options: [
+						{ label: 'Ready', value: 'ready' },
+						{ label: 'Blocked', value: 'blocked' },
+					],
+				}),
+			],
+			cellsOrder: ['document'],
+		};
+		hookState.sheetRows = [createRow(0, {
+			document: '',
+		})];
+		const host = await renderSheet({ sheet });
+		const documentCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="document"]') as HTMLElement;
+
+		await act(async () => {
+			documentCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-select-editor="true"]')).not.toBeNull();
+		expect(host.querySelector('[data-sheet-editor="true"][data-cell-key="document"]')?.getAttribute('data-field-type')).toBe('SELECT_OR_TEXT');
+
+		const blockedOption = host.querySelector('[data-sheet-select-editor-option="blocked"]') as HTMLElement;
+
+		await act(async () => {
+			blockedOption.click();
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+			variables: expect.objectContaining({
+				cellKey: 'document',
+				value: 'blocked',
+			}),
+		});
 	});
 
 	it('dismisses select-style editors with outside clicks and escape without saving', async () => {
@@ -2155,7 +2370,7 @@ describe('Sheet container', () => {
 		expect(input.dataset.fieldType).toBe('ID');
 	});
 
-	it('routes open-link cell clicks through the container handler', async () => {
+	it('routes open-link display clicks through the container handler', async () => {
 		const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 		const sheet = createSheet();
 		sheet.design = {
@@ -2166,20 +2381,31 @@ describe('Sheet container', () => {
 					humansCannotEdit: true,
 					openLink: true,
 				}),
-			],
-		};
-		const host = await renderSheet({ sheet });
-		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+				],
+			};
+			hookState.sheetRows = [createRow(0, {
+				name: 'Alpha',
+				status: 'https://example.com/orders/501',
+			})];
+			const host = await renderSheet({ sheet });
+			const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+			const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
 
-		await act(async () => {
-			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await act(async () => {
+				statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			});
+
+			expect(consoleSpy).not.toHaveBeenCalled();
+
+			await act(async () => {
+				openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			});
+
+			expect(consoleSpy).toHaveBeenCalledWith(expect.objectContaining({
+				cellKey: 'status',
+				value: 'https://example.com/orders/501',
+			}));
 		});
-
-		expect(consoleSpy).toHaveBeenCalledWith(expect.objectContaining({
-			cellKey: 'status',
-			value: 'Open',
-		}));
-	});
 
 	it('uses the optional onOpenCell handler for open-link cells', async () => {
 		const onOpenCell = vi.fn();
@@ -2192,20 +2418,25 @@ describe('Sheet container', () => {
 					humansCannotEdit: true,
 					openLink: true,
 				}),
-			],
-		};
-		const host = await renderSheet({ onOpenCell, sheet });
-		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+				],
+			};
+			hookState.sheetRows = [createRow(0, {
+				name: 'Alpha',
+				status: 'https://example.com/orders/501',
+			})];
+			const host = await renderSheet({ onOpenCell, sheet });
+			const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+			const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
 
-		await act(async () => {
-			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-		});
+			await act(async () => {
+				openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			});
 
-		expect(onOpenCell).toHaveBeenCalledWith(expect.objectContaining({
-			cell: expect.objectContaining({
-				cellKey: 'status',
-				value: 'Open',
-			}),
+			expect(onOpenCell).toHaveBeenCalledWith(expect.objectContaining({
+				cell: expect.objectContaining({
+					cellKey: 'status',
+					value: 'https://example.com/orders/501',
+				}),
 			designCell: expect.objectContaining({
 				key: 'status',
 			}),
@@ -2214,6 +2445,47 @@ describe('Sheet container', () => {
 			}),
 			sheet: expect.objectContaining({
 				id: 'sheet-1',
+			}),
+			}));
+	});
+
+	it('opens link display clicks from local edit mode', async () => {
+		const onOpenCell = vi.fn();
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'SELECT',
+					humanFieldType: 'SELECT',
+					openLink: true,
+				}),
+			],
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			status: 'https://example.com/orders/501',
+		})];
+		const host = await renderSheet({ onOpenCell, sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const editorTrigger = host.querySelector('[data-sheet-editor="true"] [data-sheet-cell-open-trigger="true"]') as HTMLElement;
+		expect(editorTrigger).not.toBeNull();
+
+		await act(async () => {
+			editorTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		expect(onOpenCell).toHaveBeenCalledWith(expect.objectContaining({
+			cell: expect.objectContaining({
+				cellKey: 'status',
+				value: 'https://example.com/orders/501',
 			}),
 		}));
 	});

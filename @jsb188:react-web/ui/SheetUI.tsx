@@ -1,5 +1,8 @@
+import { COLORS } from '@jsb188/app/constants/app.ts';
+import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, type CSSProperties, type ReactNode, type Ref } from 'react';
+import { Icon } from '../svgs/Icon';
 import {
 	SHEET_COLUMN_MAX_WIDTH,
 	SHEET_COLUMN_MIN_WIDTH,
@@ -144,6 +147,12 @@ export type SheetUIColumnReorderDrag = {
 
 export type SheetUIColumnReorderDisplacements = Record<string, number>;
 
+export interface SheetSelectEditorProps {
+	editState: SheetUIEditState;
+	fieldType: SheetUIFieldType;
+	options: SheetUIOption[];
+}
+
 export interface SheetUIProps {
 	canvasHeight: number;
 	canvasWidth: number;
@@ -192,6 +201,48 @@ export function clampSheetColumnWidth(width: number) {
 }
 
 /*
+ * Return translated UI text when translations are loaded, with a stable fallback for tests.
+ */
+
+function getSheetTranslatedText(key: string, fallback: string) {
+	return i18n.has(key) ? i18n.t(key) : fallback;
+}
+
+/*
+ * Return a safe sheet option color name for a select-style display pill.
+ */
+
+export function getValidSheetOptionColor(color?: string | null) {
+	return typeof color === 'string' && COLORS.includes(color as any) ? color : 'zinc';
+}
+
+/*
+ * Return the selected value set from one multi-select editor draft string.
+ */
+
+export function getSheetMultiSelectEditorValueSet(draftValue: string) {
+	const trimmedValue = draftValue.trim();
+	let values: string[] = [];
+
+	if (!trimmedValue) {
+		return new Set<string>();
+	}
+
+	if (trimmedValue.startsWith('[')) {
+		try {
+			const parsedValue = JSON.parse(trimmedValue);
+			values = Array.isArray(parsedValue) ? parsedValue.map((item) => String(item)) : [];
+		} catch {
+			values = [];
+		}
+	} else {
+		values = trimmedValue.split(',').map((item) => item.trim()).filter(Boolean);
+	}
+
+	return new Set(values);
+}
+
+/*
  * Calculate the minimum number of body rows needed to fill one sheet viewport.
  */
 
@@ -227,6 +278,78 @@ export function getSheetColumnMetrics(columns: SheetUIColumn[], columnWidths: Sh
 		offsets,
 		totalWidth,
 	};
+}
+
+/*
+ * Render the select-style editor menu used by sheets for option cells.
+ */
+
+export function SheetSelectEditor(p: SheetSelectEditorProps) {
+	const selectedValues = p.fieldType === 'MULTI_SELECT'
+		? getSheetMultiSelectEditorValueSet(p.editState.draftValue)
+		: new Set([p.editState.draftValue]);
+
+	return <div
+		className='sheet_overlay_editor bg bd_r_2 bd_b_2 bd_l_2 bd_lt py_2 ft_xs w_f max_h_300'
+		data-sheet-select-editor='true'
+	>
+		{p.options.length
+			? p.options.map((option) => {
+				const selected = selectedValues.has(String(option.value));
+				const optionDisplayClassName = [
+					'ellip',
+					'px_5',
+					'py_2',
+					'r_4',
+					`bg_${getValidSheetOptionColor(option.color)}_md`,
+				].join(' ');
+
+				return <button
+					key={option.value}
+					className={`h_item w_f px_6 py_5 -my_2 cl_df bg_${getValidSheetOptionColor(option.color)}_fd_hv`}
+					data-sheet-select-editor-option={option.value}
+					style={{
+						textAlign: 'left',
+					}}
+					type='button'
+				>
+					<SheetCellDisplayValue
+						displayClassName={optionDisplayClassName}
+						displayValue={option.label || String(option.value)}
+						fill
+					/>
+					<span className='ic_sm no_shrink ml_6'>
+						{selected ? <Icon name='check' /> : null}
+					</span>
+				</button>;
+			})
+			: <div
+				className='px_8 py_8 cl_md'
+				data-sheet-select-editor-empty='true'
+			>
+				{getSheetTranslatedText('form.no_results', 'No results')}
+			</div>}
+
+		{p.fieldType === 'SELECT_OR_TEXT'
+			? <form
+				className='h_item gap_6 px_8 pt_6 bd_t_1 bd_lt'
+				data-sheet-select-editor-custom='true'
+			>
+				<input
+					className='f h_28 bg_alt stock px_6 ft_xs'
+					defaultValue={p.editState.draftValue}
+					name='customValue'
+					type='text'
+				/>
+				<button
+					className='h_28 px_8 bg_primary cl_white ft_xs'
+					type='submit'
+				>
+					{getSheetTranslatedText('form.save', 'Save')}
+				</button>
+			</form>
+			: null}
+	</div>;
 }
 
 /*

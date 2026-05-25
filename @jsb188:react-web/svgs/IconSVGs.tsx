@@ -38,16 +38,6 @@ export const AddWidgets = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 <path d="M21.79600017,18.33499973h-6.92300034"/>
 </svg>;
 
-export const AddressBook = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-address-book" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-<path d="M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z" stroke="currentColor" />
-<path d="M10 16h6" stroke="currentColor" />
-<path d="M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" stroke="currentColor" />
-<path d="M4 8h3" stroke="currentColor" />
-<path d="M4 12h3" stroke="currentColor" />
-<path d="M4 16h3" stroke="currentColor" />
-</svg>;
-
 export const AiEmailGeneratorSpark = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-ai-email-generator-spark" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M13.8193 5.64709c2.3124 -0.46485 4.1741 -2.34918 4.6396 -4.721309 0.4656 2.372129 2.3268 4.256459 4.6391 4.721309m0 0.0027c-2.3123 0.46485 -4.174 2.34918 -4.6395 4.72131 -0.4656 -2.37213 -2.3268 -4.25646 -4.6392 -4.72131"/>
 <path d="M21.0442 13.1427v8.9315c0 0.5523 -0.4477 1 -1 1H1.90234c-0.55228 0 -0.999996 -0.4477 -0.999996 -1l0 -12.54686c0 -0.55228 0.447716 -1 0.999996 -1H12.5886"/>
@@ -1078,6 +1068,12 @@ export const CropInfoBiotech1 = <svg xmlns="http://www.w3.org/2000/svg" classNam
 <path d="M12 1a11 11 0 0 1 9.153 17.1" />
 <path d="M18.683 20.738a11 11 0 0 1 -2.413 1.4" />
 </svg>
+
+export const Database2 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-database-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M0.75 5.251a11.25 4.5 0 1 0 22.5 0 11.25 4.5 0 1 0 -22.5 0Z" />
+<path d="M0.75 5.251V12c0 2.485 5.037 4.5 11.25 4.5s11.25 -2.014 11.25 -4.5V5.251" />
+<path d="M0.75 12v6.75c0 2.485 5.037 4.5 11.25 4.5s11.25 -2.015 11.25 -4.5V12" />
+</svg>;
 
 export const DatabaseWarningColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-database-warning-color">
 <path fill="#b2b2b2" d="M0.5 4.5v13c0 2.21 4.254 4 9.5 4s9.5 -1.79 9.5 -4v-13H0.5Z" strokeWidth="1"/>
@@ -3486,6 +3482,36 @@ export const SingleNeutralIdCard4 = <svg viewBox="0 0 24 24" xmlns="http://www.w
 <path d="m14.25 9 4.5 0"/>
 <path d="m14.25 12 6 0"/>
 <path d="M21.75 3H2.25a1.5 1.5 0 0 0 -1.5 1.5v15a1.5 1.5 0 0 0 1.5 1.5h3a1.5 1.5 0 0 1 3 0h7.5a1.5 1.5 0 0 1 3 0h3a1.5 1.5 0 0 0 1.5 -1.5v-15a1.5 1.5 0 0 0 -1.5 -1.5Z"/>
+</svg>;
+
+export const SingleNeutralPhoneBook = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-single-neutral-phone-book" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M10.125 9.375a2.625 2.625 0 1 0 5.25 0 2.625 2.625 0 1 0 -5.25 0"/>
+<path d="M8.25 17.25a4.5 4.5 0 0 1 9 0"/>
+<path d="m5.25 0.75 0 22.5"/>
+<path d="m23.25 3 0 3"/>
+<path d="m23.25 9 0 3"/>
+<path d="m23.25 15 0 3"/>
+<path d="M2.25 0.75h16.5s1.5 0 1.5 1.5v19.5s0 1.5 -1.5 1.5H2.25s-1.5 0 -1.5 -1.5V2.25s0 -1.5 1.5 -1.5"/>
+</svg>;
+
+export const SingleNeutralPhoneBookColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-single-neutral-phone-book-color">
+<path fill="#c77f67" d="M20.5 1.5v21c0 0.2652 -0.1054 0.5196 -0.2929 0.7071s-0.4419 0.2929 -0.7071 0.2929h-16V0.5h16c0.2652 0 0.5196 0.105357 0.7071 0.292893 0.1875 0.187537 0.2929 0.441887 0.2929 0.707107Z" strokeWidth="1"/>
+<path fill="#c77f67" d="M3.5 0.5v23h-2c-0.26522 0 -0.51957 -0.1054 -0.707107 -0.2929C0.605357 23.0196 0.5 22.7652 0.5 22.5v-21c0 -0.26522 0.105357 -0.51957 0.292893 -0.707107C0.98043 0.605357 1.23478 0.5 1.5 0.5h2Z" strokeWidth="1"/>
+<path fill="#66e1ff" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23.5 4v3h-3V2h1c0.5299 0.00158 1.0377 0.2128 1.4125 0.58753 0.3747 0.37474 0.5859 0.88252 0.5875 1.41247Z" strokeWidth="1"/>
+<path fill="#ff808c" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23.5 7h-3v5h3V7Z" strokeWidth="1"/>
+<path fill="#ffef5e" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23.5 12h-3v5h3v-5Z" strokeWidth="1"/>
+<path fill="#78eb7b" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M23.5 17v3c-0.0016 0.5299 -0.2128 1.0377 -0.5875 1.4125 -0.3748 0.3747 -0.8826 0.5859 -1.4125 0.5875h-1v-5h3Z" strokeWidth="1"/>
+<path fill="#66e1ff" d="M16.5 18.5c0 -1.3261 -0.5268 -2.5979 -1.4645 -3.5355C14.0979 14.0268 12.8261 13.5 11.5 13.5c-1.3261 0 -2.59785 0.5268 -3.53553 1.4645C7.02678 15.9021 6.5 17.1739 6.5 18.5h10Z" strokeWidth="1"/>
+<path fill="#c77f67" d="M14.47 8.58994c-0.6217 0.26986 -1.2922 0.40939 -1.97 0.41 -0.6696 -0.00082 -1.3322 -0.13574 -1.9488 -0.3968 -0.61656 -0.26106 -1.17461 -0.64297 -1.6412 -1.1232 0.31552 -0.53802 0.79088 -0.96432 1.36 -1.21959 0.569 -0.25528 1.2035 -0.32684 1.8152 -0.20473 0.6116 0.1221 1.17 0.43181 1.5974 0.88603 0.4274 0.45422 0.7027 1.03036 0.7874 1.64829Z" strokeWidth="1"/>
+<path fill="#ffdda1" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.5 8.99998c-0.0009 0.46058 -0.1079 0.91477 -0.3126 1.32732 -0.2048 0.4126 -0.5017 0.7725 -0.8679 1.0519 -0.3663 0.2793 -0.7919 0.4706 -1.2439 0.5589 -0.452 0.0884 -0.9183 0.0715 -1.3628 -0.0493 -0.4444 -0.1209 -0.85506 -0.3425 -1.20009 -0.6476 -0.34503 -0.3051 -0.61518 -0.6855 -0.78951 -1.1118 -0.17433 -0.42635 -0.24816 -0.88708 -0.21577 -1.34652 0.03239 -0.45945 0.17014 -0.90526 0.40256 -1.3029 0.46659 0.48023 1.02464 0.86214 1.64121 1.1232 0.6166 0.26106 1.2792 0.39598 1.9488 0.3968 0.6778 -0.0006 1.3482 -0.14014 1.97 -0.41 0.0199 0.13576 0.03 0.27279 0.03 0.41Z" strokeWidth="1"/>
+<path fill="#e3bfb3" d="M20.5 1.5v3.2c0 -0.26522 -0.1054 -0.51957 -0.2929 -0.70711C20.0196 3.80536 19.7652 3.7 19.5 3.7h-16V0.5h16c0.2652 0 0.5196 0.105357 0.7071 0.292893 0.1875 0.187537 0.2929 0.441887 0.2929 0.707107Z" strokeWidth="1"/>
+<path fill="#e3bfb3" d="M3.5 0.5v3.2h-2c-0.26522 0 -0.51957 0.10536 -0.707107 0.29289C0.605357 4.18043 0.5 4.43478 0.5 4.7V1.5c0 -0.26522 0.105357 -0.51957 0.292893 -0.707107C0.98043 0.605357 1.23478 0.5 1.5 0.5h2Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.5 1.5v21c0 0.2652 -0.1054 0.5196 -0.2929 0.7071s-0.4419 0.2929 -0.7071 0.2929h-16V0.5h16c0.2652 0 0.5196 0.105357 0.7071 0.292893 0.1875 0.187537 0.2929 0.441887 0.2929 0.707107Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M3.5 0.5v23h-2c-0.26522 0 -0.51957 -0.1054 -0.707107 -0.2929C0.605357 23.0196 0.5 22.7652 0.5 22.5v-21c0 -0.26522 0.105357 -0.51957 0.292893 -0.707107C0.98043 0.605357 1.23478 0.5 1.5 0.5h2Z" strokeWidth="1"/>
+<path fill="#c2f3ff" d="M11.5 14.985c1.0631 0.0027 2.0975 0.3452 2.9521 0.9776 0.8546 0.6324 1.4846 1.5215 1.7979 2.5374h0.25c0 -1.3261 -0.5268 -2.5979 -1.4645 -3.5355C14.0979 14.0268 12.8261 13.5 11.5 13.5c-1.3261 0 -2.59785 0.5268 -3.53553 1.4645C7.02678 15.9021 6.5 17.1739 6.5 18.5h0.25c0.31334 -1.0159 0.94332 -1.905 1.7979 -2.5374 0.85458 -0.6324 1.889 -0.9749 2.9521 -0.9776Z" strokeWidth="1"/>
+<path fill="#e3bfb3" d="M11.5 7.48494c0.4791 0.00089 0.9509 0.11724 1.3754 0.33919 0.4246 0.22194 0.7894 0.54294 1.0636 0.93581 0.1798 -0.04747 0.3571 -0.10421 0.531 -0.17 -0.0847 -0.61793 -0.36 -1.19407 -0.7874 -1.64829 -0.4274 -0.45422 -0.9858 -0.76393 -1.5974 -0.88603 -0.6117 -0.12211 -1.2462 -0.05055 -1.8152 0.20473 -0.56912 0.25527 -1.04448 0.68157 -1.36 1.21959 0.2358 0.24033 0.4951 0.45641 0.774 0.645 0.5175 -0.40901 1.1564 -0.63418 1.816 -0.64Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.5c0 -1.3261 -0.5268 -2.5979 -1.4645 -3.5355C14.0979 14.0268 12.8261 13.5 11.5 13.5c-1.3261 0 -2.59785 0.5268 -3.53553 1.4645C7.02678 15.9021 6.5 17.1739 6.5 18.5h10Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.47 8.58994c-0.6217 0.26986 -1.2922 0.40939 -1.97 0.41 -0.6696 -0.00082 -1.3322 -0.13574 -1.9488 -0.3968 -0.61656 -0.26106 -1.17461 -0.64297 -1.6412 -1.1232 0.31552 -0.53802 0.79088 -0.96432 1.36 -1.21959 0.569 -0.25528 1.2035 -0.32684 1.8152 -0.20473 0.6116 0.1221 1.17 0.43181 1.5974 0.88603 0.4274 0.45422 0.7027 1.03036 0.7874 1.64829v0Z" strokeWidth="1"/>
 </svg>;
 
 export const Share3 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-share-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">

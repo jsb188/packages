@@ -23,7 +23,9 @@ import {
 } from '@jsb188/mday/utils/sheet.ts';
 import type { FloatingMessageObj } from '@jsb188/react-web/modules/Layout';
 import { Calendar, type CalendarSelectedObj } from '@jsb188/react-web/modules/Calendar';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
+import { useOpenModalPopUp } from '@jsb188/react/states';
 import {
 	SHEET_COLUMN_WIDTH,
 	SHEET_HEADER_HEIGHT,
@@ -31,27 +33,29 @@ import {
 	SHEET_ROW_NUMBER_WIDTH,
 	SHEET_STICKY_SPACER_SIZE,
 	SheetCellDisplayValue,
+	SheetSelectEditor,
 	SheetUI,
-  clampSheetColumnWidth,
-  getSheetCellKey,
-  getSheetColumnMetrics,
-  getSheetMinimumRowCount,
-  getSheetVisibleRange,
-  type SheetColumnMetric,
-  type SheetColumnWidths,
-  type SheetUICell,
-  type SheetUIColumn,
-  type SheetUIEditState,
-  type SheetUIFieldType,
-  type SheetUIHeaderEditState,
-  type SheetUIColumnReorderDrag,
-  type SheetUIColumnReorderDisplacements,
-  type SheetUIColumnReorderGuide,
-  type SheetUIResizeGuide,
-  type SheetUIRowSlot,
-  type SheetUISelectedCellState,
+	clampSheetColumnWidth,
+	getSheetCellKey,
+	getSheetColumnMetrics,
+	getSheetMultiSelectEditorValueSet,
+	getSheetMinimumRowCount,
+	getSheetVisibleRange,
+	getValidSheetOptionColor,
+	type SheetColumnMetric,
+	type SheetColumnWidths,
+	type SheetUICell,
+	type SheetUIColumn,
+	type SheetUIColumnReorderDisplacements,
+	type SheetUIColumnReorderDrag,
+	type SheetUIColumnReorderGuide,
+	type SheetUIEditState,
+	type SheetUIFieldType,
+	type SheetUIHeaderEditState,
+	type SheetUIResizeGuide,
+	type SheetUIRowSlot,
+	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import {
 	getInitialSheetDesignReducerState,
@@ -130,6 +134,8 @@ type SheetRuntimeDesignCell = SheetDesignCellGQL & {
 	viewSource?: SheetDesignViewColumnGQL['source'] | null;
 };
 
+type SheetEditorFieldType = SheetFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT';
+
 type SheetResizeState = {
 	columnKey: string;
 	latestWidth?: number;
@@ -189,6 +195,7 @@ type SheetDesignMutationRuntime = {
 
 type SheetTab = {
 	id: string | null;
+	iconName?: string | null;
 	name: string;
 	view?: SheetDesignViewGQL | null;
 };
@@ -206,11 +213,17 @@ const SHEET_MOCK_ROW_COUNT = 5;
 const SHEET_MOCK_CELL_TEXT = '... ... ...';
 const SHEET_MOCK_ROW_OPACITY_CLASSES = ['', 'op_80', 'op_60', 'op_40', 'op_20'];
 const SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
-const SHEET_SELECT_EDITOR_MIN_WIDTH = 180;
-const SHEET_SELECT_EDITOR_MAX_WIDTH = 320;
+const SHEET_SELECT_EDITOR_MIN_WIDTH = 140;
+const SHEET_SELECT_EDITOR_MAX_WIDTH = 400;
 const SHEET_DATE_EDITOR_WIDTH = 280;
+const SHEET_LOCAL_EDITOR_LEFT_OFFSET = -2;
+const SHEET_LOCAL_EDITOR_TOP_OFFSET = 1;
+const SHEET_LOCAL_EDITOR_WIDTH_OFFSET = 3;
 const SHEET_LOCAL_EDITOR_Z_INDEX = 150;
 const SHEET_STICKY_LOCAL_EDITOR_Z_INDEX = 240;
+const SHEET_READ_ONLY_TAG_HEIGHT = 18;
+const SHEET_READ_ONLY_TAG_TOP_OFFSET = 4;
+const SHEET_READ_ONLY_TAG_Z_INDEX = 219;
 
 /*
  * Return ordered design cells from immutable sheet design configuration.
@@ -247,7 +260,8 @@ function getSheetRuntimeCellKey(designCell: SheetRuntimeDesignCell) {
 function getSheetTabs(sheet: SheetGQL, views: SheetDesignViewGQL[]): SheetTab[] {
 	const masterTab: SheetTab = {
 		id: null,
-		name: 'Database',
+		iconName: 'database-2',
+		name: 'Data',
 		view: null,
 	};
 
@@ -581,6 +595,40 @@ function getSheetHeaderHumanLabelPatchValue(designCell: SheetDesignCellGQL, draf
 }
 
 /*
+ * Return the field type that should drive human-facing edit behavior.
+ */
+
+function getSheetEditorFieldType(designCell: Pick<SheetDesignCellGQL, 'fieldType' | 'humanFieldType'>) {
+	const fieldType = designCell.fieldType as SheetEditorFieldType;
+
+	if (fieldType === 'ID_OR_TEXT') {
+		return designCell.humanFieldType;
+	}
+
+	if (fieldType === 'ID' && designCell.humanFieldType === 'SELECT_OR_TEXT') {
+		return designCell.humanFieldType;
+	}
+
+	return designCell.fieldType;
+}
+
+/*
+ * Return whether one runtime cell is available for direct human edits.
+ */
+
+function canEditSheetRuntimeCell(params: {
+	activeView?: SheetDesignViewGQL | null;
+	design: SheetDesignGQL;
+	designCell: SheetDesignCellGQL;
+	disabled?: boolean;
+}) {
+	return !params.disabled &&
+		!params.design.humansCannotEdit &&
+		!params.activeView?.humansCannotEdit &&
+		!params.designCell.humansCannotEdit;
+}
+
+/*
  * Convert a GraphQL design cell into an app-agnostic UI column.
  */
 
@@ -589,7 +637,7 @@ function getSheetUIColumn(designCell: SheetDesignCellGQL): SheetUIColumn {
 		id: designCell.key,
 		key: designCell.key,
 		label: getSheetDesignCellHeaderLabel(designCell),
-		fieldType: designCell.fieldType as SheetUIFieldType,
+		fieldType: getSheetEditorFieldType(designCell) as SheetUIFieldType,
 		humanFieldType: designCell.humanFieldType as SheetUIFieldType,
 		options: designCell.options || [],
 		openLink: designCell.openLink,
@@ -763,14 +811,6 @@ function isSheetSelectDisplayFieldType(humanFieldType: SheetFieldTypeGQL) {
 }
 
 /*
- * Return a safe sheet option color name for a select-style display pill.
- */
-
-function getValidSheetOptionColor(color?: string | null) {
-	return typeof color === 'string' && COLORS.includes(color as any) ? color : 'zinc';
-}
-
-/*
  * Return the background color class for one select-style sheet cell value.
  */
 
@@ -895,12 +935,13 @@ function getSheetEditorDraftValue(
 ) {
 	const serializedValue = getSheetCellSerializedValue(cell, designCell, optimisticValue);
 	const rawValue = parseSheetRawValue(serializedValue);
+	const fieldType = getSheetEditorFieldType(designCell);
 
-	if (designCell.fieldType === 'MULTI_SELECT' && Array.isArray(rawValue)) {
+	if (fieldType === 'MULTI_SELECT' && Array.isArray(rawValue)) {
 		return rawValue.map((value) => String(value)).join(', ');
 	}
 
-	if (designCell.fieldType === 'DATETIME' && typeof rawValue === 'string') {
+	if (fieldType === 'DATETIME' && typeof rawValue === 'string') {
 		return rawValue.slice(0, 16);
 	}
 
@@ -915,6 +956,63 @@ function getSheetDesignOptionsStateKey(designCell: SheetDesignCellGQL) {
 	return (designCell.options || [])
 		.map((option) => [option.label, option.value, option.color || ''].join('\u0001'))
 		.join('\u0002');
+}
+
+/*
+ * Return whether one sheet text value points to an external HTTP URL.
+ */
+
+function isSheetExternalLinkTextValue(value?: string | null) {
+	return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
+}
+
+/*
+ * Return whether one field type should use document-link styling when a related record exists.
+ */
+
+function isSheetDocumentLinkFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT' | null) {
+	return fieldType === 'ID' || fieldType === 'ID_OR_TEXT';
+}
+
+/*
+ * Return whether one cell has a usable related record target.
+ */
+
+function hasSheetCellRelatedId(cell?: SheetCellGQL | null) {
+	return cell?.relatedId !== null && cell?.relatedId !== undefined && String(cell.relatedId).trim() !== '';
+}
+
+/*
+ * Return whether one sheet cell has enough data to open from the grid.
+ */
+
+function canOpenSheetCellLink(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL) {
+	if (!designCell.openLink) {
+		return false;
+	}
+
+	return isSheetExternalLinkTextValue(cell?.textValue) ||
+		(hasSheetCellRelatedId(cell) && isSheetDocumentLinkFieldType(designCell.fieldType as SheetFieldTypeGQL | 'ID_OR_TEXT'));
+}
+
+/*
+ * Return the derived open-link icon for one sheet cell when no explicit icon is set.
+ */
+
+function getSheetOpenLinkIconName(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL) {
+	if (!canOpenSheetCellLink(cell, designCell)) {
+		return null;
+	}
+
+	if (isSheetExternalLinkTextValue(cell?.textValue)) {
+		return 'external-link';
+	}
+
+	if (hasSheetCellRelatedId(cell) && isSheetDocumentLinkFieldType(designCell.fieldType as SheetFieldTypeGQL | 'ID_OR_TEXT')) {
+		return 'notes-paper-text';
+	}
+
+	return null;
 }
 
 /*
@@ -1067,7 +1165,7 @@ function isSheetEditorOptionValue(designCell: SheetDesignCellGQL, value: unknown
  */
 
 export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue: string): SheetParsedEditorValue {
-	const fieldType = designCell.fieldType;
+	const fieldType = getSheetEditorFieldType(designCell);
 	const value = draftValue.trim();
 
 	if (!value) {
@@ -1238,37 +1336,11 @@ function getSheetBooleanFallbackOptions() {
  */
 
 function getSheetSelectEditorOptions(designCell: SheetDesignCellGQL) {
-	if (designCell.fieldType === 'BOOLEAN' && !designCell.options?.length) {
+	if (getSheetEditorFieldType(designCell) === 'BOOLEAN' && !designCell.options?.length) {
 		return getSheetBooleanFallbackOptions();
 	}
 
 	return designCell.options || [];
-}
-
-/*
- * Return the selected value set from one multi-select editor draft string.
- */
-
-function getSheetMultiSelectEditorValueSet(draftValue: string) {
-	const trimmedValue = draftValue.trim();
-	let values: string[] = [];
-
-	if (!trimmedValue) {
-		return new Set<string>();
-	}
-
-	if (trimmedValue.startsWith('[')) {
-		try {
-			const parsedValue = JSON.parse(trimmedValue);
-			values = Array.isArray(parsedValue) ? parsedValue.map((item) => String(item)) : [];
-		} catch {
-			values = [];
-		}
-	} else {
-		values = trimmedValue.split(',').map((item) => item.trim()).filter(Boolean);
-	}
-
-	return new Set(values);
 }
 
 /*
@@ -1343,17 +1415,49 @@ function getSheetLocalEditorPosition(params: {
 	);
 	const left = SHEET_ROW_NUMBER_WIDTH +
 		params.columnMetric.left +
+		(isStickyLeft ? 0 : SHEET_STICKY_SPACER_SIZE) +
+		SHEET_LOCAL_EDITOR_LEFT_OFFSET;
+	const width = params.width ?? Math.min(
+		Math.max(SHEET_SELECT_EDITOR_MAX_WIDTH, params.columnMetric.width),
+		Math.max(SHEET_SELECT_EDITOR_MIN_WIDTH, params.columnMetric.width),
+	);
+
+	return {
+		isStickyLeft,
+		left,
+		rowWidth: params.rowWidth,
+		top: params.stickyHeaderHeight + params.rowIndex * SHEET_ROW_HEIGHT + rowHeight + SHEET_LOCAL_EDITOR_TOP_OFFSET,
+		width: width + SHEET_LOCAL_EDITOR_WIDTH_OFFSET,
+	};
+}
+
+/*
+ * Return the canvas position for a compact tag anchored above a selected sheet cell.
+ */
+
+function getSheetSelectedCellTagPosition(params: {
+	columnMetric?: SheetColumnMetric;
+	rowIndex: number;
+	rowWidth: number;
+	stickyColumnCount: number;
+	stickyHeaderHeight: number;
+}): SheetLocalEditorPosition | null {
+	if (!params.columnMetric || params.rowIndex < 0) {
+		return null;
+	}
+
+	const isStickyLeft = params.columnMetric.columnIndex < params.stickyColumnCount;
+	const cellTop = params.stickyHeaderHeight + params.rowIndex * SHEET_ROW_HEIGHT;
+	const left = SHEET_ROW_NUMBER_WIDTH +
+		params.columnMetric.left +
 		(isStickyLeft ? 0 : SHEET_STICKY_SPACER_SIZE);
 
 	return {
 		isStickyLeft,
 		left,
 		rowWidth: params.rowWidth,
-		top: params.stickyHeaderHeight + params.rowIndex * SHEET_ROW_HEIGHT + rowHeight,
-		width: params.width ?? Math.min(
-			SHEET_SELECT_EDITOR_MAX_WIDTH,
-			Math.max(SHEET_SELECT_EDITOR_MIN_WIDTH, params.columnMetric.width),
-		),
+		top: cellTop - SHEET_READ_ONLY_TAG_HEIGHT - SHEET_READ_ONLY_TAG_TOP_OFFSET,
+		width: params.columnMetric.width,
 	};
 }
 
@@ -1474,94 +1578,61 @@ function SheetLocalEditorContainer(p: {
 }
 
 /*
- * Render the sheet-owned option editor for select-style active cells.
+ * Render the read-only tag above a selected cell while preserving sticky-column positioning.
  */
 
-function SheetSelectEditor(p: {
-	editState: SheetUIEditState;
-	lookup: SheetCellLookup;
-	onCustomTextSave: (lookup: SheetCellLookup, draftValue: string) => void;
-	onOptionValue: (lookup: SheetCellLookup, value: string) => void;
+function SheetReadOnlyTag(p: {
+	position: SheetLocalEditorPosition;
 }) {
-	const options = getSheetSelectEditorOptions(p.lookup.designCell);
-	const selectedValues = p.lookup.designCell.fieldType === 'MULTI_SELECT'
-		? getSheetMultiSelectEditorValueSet(p.editState.draftValue)
-		: new Set([p.editState.draftValue]);
-
-	return <div
-		// className='bg bd_1 bd_lt shadow_line_alt r_4 py_4 ft_xs'
-		className='bg bd_2 py_4 ft_xs'
-		data-sheet-select-editor='true'
+	const tag = <div
+		className='abs noclick nowrap px_5 py_4 ft_tn ft_medium lh_1 bg_contrast'
+		data-sheet-read-only-cell-tag='true'
 		style={{
-			maxHeight: 260,
-			overflow: 'auto',
-			width: '100%',
+			left: -2,
+			top: -1,
+			width: 'max-content',
+			zIndex: SHEET_READ_ONLY_TAG_Z_INDEX,
 		}}
 	>
-		{options.length
-			? options.map((option) => {
-				const selected = selectedValues.has(String(option.value));
-				const optionDisplayClassName = [
-					'ellip',
-					'px_5',
-					'py_2',
-					'r_4',
-					`bg_${getValidSheetOptionColor(option.color)}_md`,
-				].join(' ');
+		{i18n.t('form.not_editable')}
+	</div>;
 
-				return <button
-					key={option.value}
-					className='h_item w_f px_8 py_6 bg_hv cl_df'
-					data-sheet-select-editor-option={option.value}
-					onClick={() => {
-						p.onOptionValue(p.lookup, String(option.value));
-					}}
-					style={{
-						textAlign: 'left',
-					}}
-					type='button'
-				>
-					<span className='ic_xs no_shrink mr_6'>
-						{selected ? <Icon name='check' /> : null}
-					</span>
-					<SheetCellDisplayValue
-						displayClassName={optionDisplayClassName}
-						displayValue={option.label || String(option.value)}
-						fill
-					/>
-				</button>;
-			})
-			: <div
-				className='px_8 py_8 cl_md'
-				data-sheet-select-editor-empty='true'
-			>
-				{getSheetTranslatedText('form.no_results', 'No results')}
-			</div>}
-
-		{p.lookup.designCell.fieldType === 'SELECT_OR_TEXT'
-			? <form
-				className='h_item gap_6 px_8 pt_6 bd_t_1 bd_lt'
-				data-sheet-select-editor-custom='true'
-				onSubmit={(event) => {
-					event.preventDefault();
-					const formData = new FormData(event.currentTarget);
-					p.onCustomTextSave(p.lookup, String(formData.get('customValue') || ''));
+	if (p.position.isStickyLeft) {
+		return <div
+			className='abs'
+			data-sheet-read-only-cell-tag-anchor='true'
+			style={{
+				left: 0,
+				top: p.position.top,
+				width: p.position.rowWidth,
+				zIndex: SHEET_READ_ONLY_TAG_Z_INDEX,
+			}}
+		>
+			<div
+				className='sticky'
+				style={{
+					left: p.position.left,
+					position: 'sticky',
+					width: p.position.width,
+					zIndex: SHEET_READ_ONLY_TAG_Z_INDEX,
 				}}
 			>
-				<input
-					className='f h_28 bg_alt stock px_6 ft_xs'
-					defaultValue={p.editState.draftValue}
-					name='customValue'
-					type='text'
-				/>
-				<button
-					className='h_28 px_8 bg_primary cl_white ft_xs'
-					type='submit'
-				>
-					{getSheetTranslatedText('form.save', 'Save')}
-				</button>
-			</form>
-			: null}
+				{tag}
+			</div>
+		</div>;
+	}
+
+	return <div
+		className='abs'
+		data-sheet-read-only-cell-tag-anchor='true'
+		style={{
+			left: p.position.left,
+			top: p.position.top,
+			width: p.position.width,
+			zIndex: SHEET_READ_ONLY_TAG_Z_INDEX,
+		}}
+	>
+		{tag}
 	</div>;
 }
 
@@ -1579,7 +1650,7 @@ function SheetDateEditor(p: {
 	const initialTimeValue = getSheetDateTimeEditorTimeValue(p.editState.draftValue);
 	const [dateValue, setDateValue] = useState(initialDateValue);
 	const [timeValue, setTimeValue] = useState(initialTimeValue);
-	const isDateTime = p.lookup.designCell.fieldType === 'DATETIME';
+	const isDateTime = getSheetEditorFieldType(p.lookup.designCell) === 'DATETIME';
 	const calendarValue = dateValue || null;
 
 	return <div
@@ -1668,6 +1739,7 @@ export function Sheet(p: SheetProps) {
 	const sheetId = sheet.id;
 	const organizationId = sheet.organizationId;
 	const effectiveDisabled = disabled || !allowEdit;
+	const openModalPopUp = useOpenModalPopUp();
 	const scrollElement = useElementSize<HTMLDivElement>();
 	const fetchingMoreRef = useRef(false);
 	const runtimeRef = useRef<SheetRuntimeState | null>(null);
@@ -1743,19 +1815,22 @@ export function Sheet(p: SheetProps) {
 	const activeView = useMemo(() => {
 		return getSelectedSheetView(sheetViews, selectedViewId);
 	}, [selectedViewId, sheetViews]);
-	const sheetRowsFilter = useMemo(() => {
-		return activeView ? { viewId: activeView.id } : null;
-	}, [activeView]);
-	const rowSourceKey = useMemo(() => {
-		return getSheetRowsSourceKey(sheetId, activeView?.id || null);
-	}, [activeView?.id, sheetId]);
+		const sheetRowsFilter = useMemo(() => {
+			return activeView ? { viewId: activeView.id } : null;
+		}, [activeView]);
+		const sheetRowsQueryParams = useMemo(() => {
+			return { openModalPopUp };
+		}, [openModalPopUp]);
+		const rowSourceKey = useMemo(() => {
+			return getSheetRowsSourceKey(sheetId, activeView?.id || null);
+		}, [activeView?.id, sheetId]);
 	const [rowState, setRowState] = useState<SheetRowsState>(() => getInitialSheetRowsState(rowSourceKey));
 	const {
 		sheetRows,
 		fetchMore,
-		resetOnlyTime,
-		variables: sheetRowsVariables,
-	} = useSheetRows(sheetId, organizationId, null, limit, sheetRowsFilter);
+			resetOnlyTime,
+			variables: sheetRowsVariables,
+		} = useSheetRows(sheetId, organizationId, null, limit, sheetRowsFilter, sheetRowsQueryParams);
 	useFloatingMessageForSheetRowsReset(resetOnlyTime, setFloatingMessage);
 	const isSheetRowsDataCurrent = (
 		String(sheetRowsVariables?.sheetId || '') === String(sheetId || '') &&
@@ -1902,14 +1977,15 @@ export function Sheet(p: SheetProps) {
 		return getSheetRowCellsById(renderedRows);
 	}, [renderedRows]);
 	const activeDateEditorLookup = useMemo<SheetCellLookup | null>(() => {
-		if (!editState || !isSheetDateEditorFieldType(editState.cellKey ? designCellsByKey.get(editState.cellKey)?.fieldType : null)) {
+		const designCell = editState?.cellKey ? designCellsByKey.get(editState.cellKey) : null;
+
+		if (!editState || !designCell || !isSheetDateEditorFieldType(getSheetEditorFieldType(designCell))) {
 			return null;
 		}
 
 		const row = rowsById.get(editState.rowId);
-		const designCell = designCellsByKey.get(editState.cellKey);
 
-		if (!row || !designCell) {
+		if (!row) {
 			return null;
 		}
 
@@ -1920,14 +1996,15 @@ export function Sheet(p: SheetProps) {
 		};
 	}, [designCellsByKey, editState, rowCellsById, rowsById]);
 	const activeSelectEditorLookup = useMemo<SheetCellLookup | null>(() => {
-		if (!editState || !isSheetSelectEditorFieldType(editState.cellKey ? designCellsByKey.get(editState.cellKey)?.fieldType : null)) {
+		const designCell = editState?.cellKey ? designCellsByKey.get(editState.cellKey) : null;
+
+		if (!editState || !designCell || !isSheetSelectEditorFieldType(getSheetEditorFieldType(designCell))) {
 			return null;
 		}
 
 		const row = rowsById.get(editState.rowId);
-		const designCell = designCellsByKey.get(editState.cellKey);
 
-		if (!row || !designCell) {
+		if (!row) {
 			return null;
 		}
 
@@ -2441,7 +2518,7 @@ export function Sheet(p: SheetProps) {
 			return;
 		}
 
-		if (isSheetLocalEditorFieldType(lookup.designCell.fieldType)) {
+		if (isSheetLocalEditorFieldType(getSheetEditorFieldType(lookup.designCell))) {
 			return;
 		}
 
@@ -2536,11 +2613,12 @@ export function Sheet(p: SheetProps) {
 
 					return nextState;
 				});
-			});
-		};
+				});
+			};
 		const onClick = (event: MouseEvent) => {
 			const localEditorElement = getClosestSheetElement(event.target, '[data-sheet-select-editor="true"], [data-sheet-date-editor="true"]');
 			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
+			const openTriggerElement = getClosestSheetElement(event.target, '[data-sheet-cell-open-trigger="true"]');
 			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
@@ -2548,29 +2626,44 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			if (editorElement) {
-				return;
-			}
-
-			if (!cellElement || !runtime) {
+			if ((!cellElement && !editorElement) || !runtime) {
 				setSingleClickedCellState(null);
 				singleClickedCellStateRef.current = null;
 				return;
 			}
 
-			const lookup = getSheetCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
+			const lookupElement = cellElement || editorElement;
+			const lookup = getSheetCellLookup(runtime, lookupElement?.dataset.rowId, lookupElement?.dataset.cellKey);
 
-			if (cellElement.dataset.sheetCellEditable === 'true') {
-				if (!lookup || runtime.disabled || runtime.sheet.design?.humansCannotEdit || lookup.designCell.humansCannotEdit) {
-					return;
+			if (openTriggerElement) {
+				if (lookup && canOpenSheetCellLink(lookup.cell, lookup.designCell)) {
+					runtime.openCell({
+						cell: lookup.cell,
+						designCell: lookup.designCell,
+						row: lookup.row,
+						sheet: runtime.sheet,
+					});
 				}
 
-				const currentSingleClickedCell = singleClickedCellStateRef.current;
+				return;
+			}
 
-				if (
+			if (editorElement) {
+				return;
+			}
+
+			if (!cellElement) {
+				return;
+			}
+
+			if (lookup) {
+				const currentSingleClickedCell = singleClickedCellStateRef.current;
+				const isSameSingleClickedCell = (
 					currentSingleClickedCell?.rowId === lookup.row.id &&
 					currentSingleClickedCell.cellKey === lookup.designCell.key
-				) {
+				);
+
+				if (isSameSingleClickedCell && cellElement.dataset.sheetCellEditable === 'true' && !runtime.disabled) {
 					setHeaderEditState(null);
 					setSingleClickedCellState(null);
 					singleClickedCellStateRef.current = null;
@@ -2588,21 +2681,6 @@ export function Sheet(p: SheetProps) {
 				setSingleClickedCellState(nextSingleClickedCell);
 				singleClickedCellStateRef.current = nextSingleClickedCell;
 				return;
-			}
-
-			if (cellElement.dataset.sheetCellOpenLink !== 'true') {
-				setSingleClickedCellState(null);
-				singleClickedCellStateRef.current = null;
-				return;
-			}
-
-			if (lookup) {
-				runtime.openCell({
-					cell: lookup.cell,
-					designCell: lookup.designCell,
-					row: lookup.row,
-					sheet: runtime.sheet,
-				});
 			}
 		};
 		const onDoubleClick = (event: MouseEvent) => {
@@ -2954,12 +3032,16 @@ export function Sheet(p: SheetProps) {
 					const optimisticKey = getSheetCellKey(row.id, designCell.key);
 					const optimisticValue = optimisticValues[optimisticKey];
 					const serializedValue = getSheetCellSerializedValue(cell, designCell, optimisticValue);
-					const canEdit = !effectiveDisabled &&
-						!effectiveDesign.humansCannotEdit &&
-						!activeView?.humansCannotEdit &&
-						!designCell.humansCannotEdit;
-					const canOpen = Boolean(designCell.openLink);
-					const iconName = (cell && 'iconName' in cell ? cell.iconName : null) || designCell.iconName || null;
+					const canEdit = canEditSheetRuntimeCell({
+						activeView,
+						design: effectiveDesign,
+						designCell,
+						disabled: effectiveDisabled,
+					});
+					const canOpen = canOpenSheetCellLink(cell, designCell);
+					const iconName = (cell && 'iconName' in cell ? cell.iconName : null) ||
+						designCell.iconName ||
+						getSheetOpenLinkIconName(cell, designCell);
 					const signature = getSheetUICellSignature({
 						canEdit,
 						canOpen,
@@ -3095,7 +3177,7 @@ export function Sheet(p: SheetProps) {
 	 */
 
 	const handleSelectEditorOptionValue = useCallback((lookup: SheetCellLookup, value: string) => {
-		if (lookup.designCell.fieldType !== 'MULTI_SELECT') {
+		if (getSheetEditorFieldType(lookup.designCell) !== 'MULTI_SELECT') {
 			void saveLocalEditorDraftValue(lookup, value, true);
 			return;
 		}
@@ -3196,6 +3278,57 @@ export function Sheet(p: SheetProps) {
 		viewportHeight,
 		viewportWidth,
 		visualRowCount,
+	]);
+	const selectedCellLookup = useMemo<SheetCellLookup | null>(() => {
+		if (!singleClickedCellState) {
+			return null;
+		}
+
+		const row = rowsById.get(singleClickedCellState.rowId);
+		const designCell = designCellsByKey.get(singleClickedCellState.cellKey);
+
+		if (!row || !designCell) {
+			return null;
+		}
+
+		return {
+			cell: rowCellsById.get(row.id)?.get(getSheetRuntimeCellKey(designCell)) || null,
+			designCell,
+			row,
+		};
+	}, [designCellsByKey, rowCellsById, rowsById, singleClickedCellState]);
+	const selectedReadOnlyCellPosition = useMemo(() => {
+		if (
+			!selectedCellLookup ||
+			effectiveDisabled ||
+			canEditSheetRuntimeCell({
+				activeView,
+				design: effectiveDesign,
+				designCell: selectedCellLookup.designCell,
+				disabled: effectiveDisabled,
+			})
+		) {
+			return null;
+		}
+
+		return getSheetSelectedCellTagPosition({
+			columnMetric: columnMetricsByKey.get(selectedCellLookup.designCell.key),
+			rowIndex: renderedRows.findIndex((row) => row.id === selectedCellLookup.row.id),
+			rowWidth: Math.max(totalWidth, viewportWidth),
+			stickyColumnCount,
+			stickyHeaderHeight,
+		});
+	}, [
+		activeView,
+		columnMetricsByKey,
+		effectiveDesign,
+		effectiveDisabled,
+		renderedRows,
+		selectedCellLookup,
+		stickyColumnCount,
+		stickyHeaderHeight,
+		totalWidth,
+		viewportWidth,
 	]);
 
 	useEffect(() => {
@@ -3336,15 +3469,40 @@ export function Sheet(p: SheetProps) {
 
 	const sheetTabs = getSheetTabs(sheet, sheetViews);
 	const sheetLocalEditorOverlay = <>
+		{selectedReadOnlyCellPosition
+			? <SheetReadOnlyTag position={selectedReadOnlyCellPosition} />
+			: null}
 		{activeSelectEditorLookup && editState && selectEditorPosition
 			? <SheetLocalEditorContainer position={selectEditorPosition}>
-				<SheetSelectEditor
-					key={`${editState.rowId}:${editState.cellKey}`}
-					editState={editState}
-					lookup={activeSelectEditorLookup}
-					onCustomTextSave={handleSelectEditorCustomTextSave}
-					onOptionValue={handleSelectEditorOptionValue}
-				/>
+				<div
+					onClick={(event) => {
+						const optionElement = getClosestSheetElement(event.target, '[data-sheet-select-editor-option]');
+						const value = optionElement?.getAttribute('data-sheet-select-editor-option');
+
+						if (value === undefined || value === null) {
+							return;
+						}
+
+						handleSelectEditorOptionValue(activeSelectEditorLookup, value);
+					}}
+					onSubmit={(event) => {
+						event.preventDefault();
+
+						if (!(event.target instanceof HTMLFormElement) || !event.target.matches('[data-sheet-select-editor-custom]')) {
+							return;
+						}
+
+						const formData = new FormData(event.target);
+						handleSelectEditorCustomTextSave(activeSelectEditorLookup, String(formData.get('customValue') || ''));
+					}}
+				>
+					<SheetSelectEditor
+						key={`${editState.rowId}:${editState.cellKey}`}
+						editState={editState}
+						fieldType={getSheetEditorFieldType(activeSelectEditorLookup.designCell) as SheetUIFieldType}
+						options={getSheetSelectEditorOptions(activeSelectEditorLookup.designCell)}
+					/>
+				</div>
 			</SheetLocalEditorContainer>
 			: null}
 		{activeDateEditorLookup && editState && dateEditorPosition
@@ -3388,6 +3546,14 @@ export function Sheet(p: SheetProps) {
 		stickyColumnCount={stickyColumnCount}
 	/>;
 
+  // DEV CODE: DO NOT REMOVE
+  // useEffect(() => {
+  //   if (sheet && sheetRows) {
+  //     console.log('sheet', sheet);
+  //     console.log('sheetRows', sheetRows);
+  //   }
+  // }, [sheet, sheetRows]);
+
 	return <div
 		className={cn('v_stretch h_f w_f rel bg', className)}
 		data-sheet-with-views='true'
@@ -3409,13 +3575,18 @@ export function Sheet(p: SheetProps) {
 
 				return <button
 					key={tab.id || 'master'}
-					className={cn('h_36 px_10 ft_xs bg_hv cl_md', selected ? 'bg cl_df shadow_line_alt' : '')}
+					className={cn('h_36 px_10 ft_xs bg_hv cl_md h_item gap_5', selected ? 'bg cl_df shadow_line_alt' : '')}
 					data-sheet-view-tab={tab.id || 'master'}
 					onClick={() => {
 						setSelectedViewId(tab.id);
 					}}
 					type='button'
 				>
+					{tab.iconName
+						? <span className='ic_sm no_shrink'>
+							<Icon name={tab.iconName} />
+						</span>
+						: null}
 					{tab.name}
 				</button>;
 			})}

@@ -346,6 +346,7 @@ p:last-child {
 .f_stretch { align-self: stretch; }
 .f_wrap { flex-wrap: wrap; }
 .no_shrink { flex-shrink: 0; }
+img.no_shrink { max-width: none; max-height: none; }
 
 .h_spread { display: flex; justify-content: space-between; align-items: center; }
 .h_top { display: flex; justify-content: space-between; align-items: flex-start; }

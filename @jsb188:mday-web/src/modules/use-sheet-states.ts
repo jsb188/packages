@@ -127,6 +127,7 @@ function getSheetCellStateKey(cell: SheetCellGQL) {
 	return [
 		cell.id,
 		cell.cellKey,
+		cell.iconName ?? '',
 		cell.value ?? '',
 		cell.textValue ?? '',
 		cell.numberValue ?? '',

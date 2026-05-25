@@ -29,6 +29,7 @@ export const RULES = {
   eventAttendanceList: true,
   integrationConnection: true,
   parentOrganization: true,
+  logEntry: true,
   logEntries: true,
   logEntriesForReport: true,
   myChats: true,

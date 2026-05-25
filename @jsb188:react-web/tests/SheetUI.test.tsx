@@ -212,8 +212,10 @@ describe('SheetUI rendering', () => {
 		const stickyColumnSpacers = host.querySelectorAll('[data-sheet-sticky-column-spacer="true"]') as NodeListOf<HTMLElement>;
 		const stickyColumnSpacer = stickyColumnSpacers[0] || null;
 		const cornerCell = host.querySelector('[data-sheet-corner-cell="true"]') as HTMLElement | null;
-		const rowNumber = host.querySelector('.sheet_ui_row_number') as HTMLElement | null;
-		const rowNumberSlot = host.querySelector('[data-sheet-row-number-slot="true"]') as HTMLElement | null;
+		const rowNumbers = host.querySelectorAll('.sheet_ui_row_number') as NodeListOf<HTMLElement>;
+		const rowNumber = rowNumbers[0] || null;
+		const rowNumberSlots = host.querySelectorAll('[data-sheet-row-number-slot="true"]') as NodeListOf<HTMLElement>;
+		const rowNumberSlot = rowNumberSlots[1] || null;
 		const firstCell = host.querySelector('[data-sheet-cell="true"]') as HTMLElement | null;
 		const fillerCell = host.querySelectorAll('[data-sheet-cell="true"]')[1] as HTMLElement | undefined;
 
@@ -252,7 +254,10 @@ describe('SheetUI rendering', () => {
 		expect(rowNumber?.style.left).toBe('0px');
 		expect(rowNumber?.style.position).toBe('sticky');
 		expect(Number(rowNumber?.style.zIndex)).toBeGreaterThan(150);
-		expect(rowNumberSlot?.style.top).toBe('36px');
+		expect(rowNumberSlots[0]?.style.top).toBe('0px');
+		expect(rowNumberSlots[0]?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT}px`);
+		expect(rowNumber?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT}px`);
+		expect(rowNumberSlot?.style.top).toBe('68px');
 		expect(firstCell?.textContent).toBe('Alpha');
 		expect(fillerCell?.textContent).toBe('');
 		expect(fillerCell?.className).toContain('noclick');
@@ -594,6 +599,22 @@ describe('SheetUI rendering', () => {
 		expect(icon).not.toBeNull();
 		expect(firstCell?.textContent).toBe('Alpha');
 		expect(icon?.parentElement?.className).toContain('mr_5');
+	});
+
+	it('marks read-only data cells with the not_editable class', async () => {
+		const host = await renderSheetUI({
+			rows: [
+				createRowSlot('row-1', 0, {
+					name: createCell('name', 'Alpha', {
+						canEdit: false,
+					}),
+				}),
+			],
+		});
+		const cell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement | null;
+
+		expect(cell?.className).toContain('not_editable');
+		expect(cell?.dataset.sheetCellEditable).toBeUndefined();
 	});
 
 	it('renders header children above the spreadsheet header row', async () => {

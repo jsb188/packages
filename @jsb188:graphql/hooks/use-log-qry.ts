@@ -1,6 +1,6 @@
 import type { FilterLogEntriesArgs } from '@jsb188/mday/types/log.d.ts';
 import { useQuery, useReactiveFragment } from '../client/index.ts';
-import { logEntriesForReportQry, logEntriesQry } from '../gql/queries/logQueries.ts';
+import { logEntriesForReportQry, logEntriesQry, logEntryQry } from '../gql/queries/logQueries.ts';
 import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
 /**
@@ -11,6 +11,31 @@ import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 // Having less data is better for performance for iPads and low-end devices, because it might reduce brief rendering mishaps,
 // But a decent amount of visual load size is needed for Virtualized List to work well.
 const LOG_ENTRIES_LIMIT = 250;
+
+/**
+ * Fetch one log entry.
+ */
+
+export function useLogEntry(
+  variables: {
+    organizationId?: string | null;
+    logEntryId?: string | null;
+  },
+  params: UseQueryParams = {}
+) {
+  const { logEntryId, organizationId } = variables;
+  const reactiveLogEntry = useReactiveLogFragment(logEntryId || '');
+  const { data, ...rest } = useQuery(logEntryQry, {
+    ...params,
+    variables,
+    skip: !!reactiveLogEntry || !organizationId || !logEntryId || params.skip,
+  });
+
+  return {
+    logEntry: reactiveLogEntry || data?.logEntry,
+    ...rest,
+  };
+}
 
 /**
  * Fetch log entries

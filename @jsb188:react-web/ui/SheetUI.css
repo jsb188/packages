@@ -20,11 +20,38 @@
 .sheet_ui_cell.active,
 .sheet_ui_editor:focus {
   color: rgb(var(--color-default));
-  outline: 2px solid rgb(var(--color-main));
-  outline-offset: 0;
+  outline: none;
 }
 
-.sheet_ui_editor.error {
-  outline-color: rgb(var(--color-error));
-  background-color: rgba(var(--color-error-faded), .1);
+.sheet_ui_cell.active {
+  overflow: visible;
+  z-index: 60;
 }
+
+.sheet_ui_editor:focus {
+  position: relative;
+}
+
+.sheet_ui_cell.active::before {
+  content: ' ';
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px solid rgb(var(--color-main));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sheet_ui_cell.not_editable::before {
+  border-color: var(--color-contrast);
+}
+
+/* .sheet_ui_editor.error:focus::before {
+  border-color: rgb(var(--color-error));
+} */
+
+/* .sheet_ui_editor.error {
+  background-color: rgba(var(--color-error-faded), .1);
+} */

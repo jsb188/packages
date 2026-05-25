@@ -94,6 +94,7 @@ export default {
     search: 'Search',
     submitted: 'Submitted',
     no_results: 'No results',
+    not_editable: 'Not editable',
     change: 'Change',
     loading_: 'Loading...',
     save: 'Save',

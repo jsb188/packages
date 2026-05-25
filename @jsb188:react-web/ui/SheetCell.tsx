@@ -173,6 +173,21 @@ function isSheetSelectCellFieldType(fieldType: SheetUIColumn['fieldType']) {
 }
 
 /*
+ * Return whether one field type should show a picker chevron when selected.
+ */
+
+function isSheetChevronCellFieldType(fieldType: SheetUIColumn['fieldType']) {
+	return (
+		fieldType === 'SELECT' ||
+		fieldType === 'SELECT_OR_TEXT' ||
+		fieldType === 'MULTI_SELECT' ||
+		fieldType === 'BOOLEAN' ||
+		fieldType === 'DATE' ||
+		fieldType === 'DATETIME'
+	);
+}
+
+/*
  * Return the visual field type that should drive non-editing cell display.
  */
 
@@ -434,12 +449,12 @@ export const SheetHeaderArea = memo((p: {
 	stickyColumnCount?: number | null;
 }) => {
 	return <div
-		className='sticky z5'
+		className='sticky'
 		data-sheet-sticky-header='true'
 		style={{
 			top: 0,
 			width: p.headerWidth,
-			zIndex: SHEET_STICKY_LEFT_HEADER_Z_INDEX,
+			zIndex: 200,
 		}}
 	>
 		<div
@@ -628,11 +643,14 @@ SheetStickyColumnSpacerSlot.displayName = 'SheetStickyColumnSpacerSlot';
 
 export const SheetRowNumberCell = memo((p: {
 	isPlaceholderRow?: boolean;
+	rowContentHeight?: number;
 	rowId?: string | null;
 	rowIndex: number;
 	rowNumber?: number | null;
 	rowHeight?: number;
 }) => {
+	const rowContentHeight = p.rowContentHeight ?? p.rowHeight ?? SHEET_ROW_HEIGHT;
+
 	return <div
 		className={cn(
 			'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
@@ -645,12 +663,21 @@ export const SheetRowNumberCell = memo((p: {
 			position: 'sticky',
 			width: SHEET_ROW_NUMBER_WIDTH,
 			zIndex: SHEET_STICKY_LEFT_Z_INDEX,
+			alignItems: p.rowIndex === 0 ? 'flex-end' : undefined,
 		}}
 	>
-		{p.rowNumber ?? null}
+		<span
+			className='h_center w_f'
+			style={{
+				height: rowContentHeight,
+			}}
+		>
+			{p.rowNumber ?? null}
+		</span>
 	</div>;
 }, (prev, next) => (
 	prev.isPlaceholderRow === next.isPlaceholderRow &&
+	prev.rowContentHeight === next.rowContentHeight &&
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
 	prev.rowNumber === next.rowNumber &&
@@ -672,22 +699,27 @@ export const SheetRowNumberSlot = memo((p: {
 	rowTop: number;
 	rowWidth: number;
 }) => {
+	const rowHeight = p.rowHeight ?? SHEET_ROW_HEIGHT;
+	const slotHeight = p.rowIndex === 0 ? p.rowTop + rowHeight : rowHeight;
+	const slotTop = p.rowIndex === 0 ? 0 : p.rowTop;
+
 	return <div
 		className='abs'
 		data-sheet-row-number-slot='true'
 		style={{
-			height: p.rowHeight ?? SHEET_ROW_HEIGHT,
+			height: slotHeight,
 			left: 0,
-			top: p.rowTop,
+			top: slotTop,
 			width: p.rowWidth,
 		}}
 	>
 		<SheetRowNumberCell
 			isPlaceholderRow={p.isPlaceholderRow}
+			rowContentHeight={rowHeight}
 			rowId={p.rowId}
 			rowIndex={p.rowIndex}
 			rowNumber={p.rowNumber}
-			rowHeight={p.rowHeight}
+			rowHeight={slotHeight}
 		/>
 	</div>;
 }, (prev, next) => (
@@ -703,10 +735,51 @@ export const SheetRowNumberSlot = memo((p: {
 SheetRowNumberSlot.displayName = 'SheetRowNumberSlot';
 
 /*
+ * Render the left-sticky cover cell for the top-left header and spacer band.
+ */
+
+export const SheetTopLeftRowNumberSlot = memo((p: {
+	rowWidth: number;
+}) => {
+	const rowHeight = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE;
+
+	return <div
+		className='abs'
+		data-sheet-row-number-slot='true'
+		style={{
+			height: rowHeight,
+			left: 0,
+			top: 0,
+			width: p.rowWidth,
+		}}
+	>
+		<div
+			className={cn(
+				'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
+				'bd_r_1 bd_lt',
+				STICKY_CELL_BG_CSS,
+			)}
+			style={{
+				height: rowHeight,
+				left: 0,
+				position: 'sticky',
+				width: SHEET_ROW_NUMBER_WIDTH,
+				zIndex: SHEET_STICKY_LEFT_Z_INDEX,
+			}}
+		/>
+	</div>;
+}, (prev, next) => (
+	prev.rowWidth === next.rowWidth
+));
+
+SheetTopLeftRowNumberSlot.displayName = 'SheetTopLeftRowNumberSlot';
+
+/*
  * Render a sheet cell value with a consistent icon, text, and picker affordance.
  */
 
 export const SheetCellDisplayValue = memo((p: {
+	canOpen?: boolean;
 	className?: string;
 	displayClassName?: string;
 	displayValue: string;
@@ -715,19 +788,32 @@ export const SheetCellDisplayValue = memo((p: {
 	showSelectChevron?: boolean;
 }) => {
 	const valueClassName = p.displayClassName || 'ellip';
+	const openProps = p.canOpen
+		? {
+			'data-sheet-cell-open-trigger': 'true',
+			role: 'button',
+			tabIndex: 0,
+		}
+		: {};
 
 	return <>
 		{p.iconName
-			? <span className={cn('h_item ellip', p.fill && 'g_fill', p.className)}>
-				<span className='ic_xs mr_5 no_shrink'>
+			? <span
+				className={cn('h_item ellip', p.fill && 'g_fill', p.canOpen && 'link u', p.className)}
+				{...openProps}
+			>
+				<span className='ic_sm mr_5 no_shrink'>
 					<Icon name={p.iconName} />
 				</span>
 				<span className={valueClassName}>{p.displayValue}</span>
 			</span>
-			: <span className={cn(p.fill && 'g_fill', valueClassName, p.className)}>{p.displayValue}</span>}
+			: <span
+				className={cn(p.fill && 'g_fill', valueClassName, p.canOpen && 'link u', p.className)}
+				{...openProps}
+			>{p.displayValue}</span>}
 
 		{p.showSelectChevron
-			? <span className='ic_xs no_shrink ml_4 cl_md'>
+			? <span className='ic_sm no_shrink ml_4 cl_darker_3'>
 				<Icon name='chevron-down' />
 			</span>
 			: null}
@@ -778,17 +864,17 @@ export const SheetCellEditor = memo((p: {
 			data-sheet-editor='true'
 			onClick={() => {}}
 			tabIndex={0}
-		>
-			<SheetCellDisplayValue
-				className={selectDisplay.className}
-				displayClassName={p.cell?.displayClassName}
-				displayValue={selectDisplay.value}
-				fill
-				iconName={iconName}
-				showSelectChevron
-			/>
-		</div>;
-	}
+			>
+				<SheetCellDisplayValue
+					canOpen={p.cell?.canOpen}
+					className={selectDisplay.className}
+					displayClassName={p.cell?.displayClassName}
+					displayValue={selectDisplay.value}
+					fill
+					iconName={iconName}
+				/>
+			</div>;
+		}
 
 	if (p.column.fieldType === 'JSON') {
 		return <textarea
@@ -829,25 +915,29 @@ export const SheetGridCell = memo((p: {
 	rowTop: number;
 	selectedCellState?: SheetUISelectedCellState | null;
 }) => {
+
+  const isEditable = p.cell?.canEdit;
 	const isEditing = isSheetGridCellEditing(p);
-	const isSelected = !isEditing && p.cell?.canEdit && isSheetGridCellSelected(p);
+	const isSelected = !isEditing && isSheetGridCellSelected(p);
 	const displayValue = p.cell?.displayValue || '';
 	const selectDisplay = getSheetSelectCellDisplayValue(getSheetColumnHumanFieldType(p.column), displayValue);
 	const iconName = p.cell?.iconName || '';
-	const editableCellClassName = p.cell?.canEdit
+	const isReadOnlyCell = Boolean(p.rowId && p.cell && !isEditable);
+	const editableCellClassName = isEditable
 		? isSelected
-			? getSheetSingleClickedCellClassName(p.cell.cellClassName || 'bg_primary_fd_hv_solid')
-			: p.cell.cellClassName || 'bg_primary_fd_hv_solid'
+			? getSheetSingleClickedCellClassName(p.cell?.cellClassName || 'bg_primary_fd_hv_solid')
+			: p.cell?.cellClassName || 'bg_primary_fd_hv_solid'
 		: '';
 	const cellClassName = cn(
 		'sheet_ui_cell of abs h_item cl_df',
 		editableCellClassName,
 		p.isPlaceholderRow ? '' : 'bd_r_1 bd_b_1 bd_lt',
-		isEditing ? 'active z4' : '',
-		!isEditing ? 'px_6' : '',
-		!isEditing ? 'unsel' : '',
-		p.cell?.canOpen ? 'link cl_primary' : '',
+		isEditing || (isSelected && !isEditable) ? 'active z4' : '',
+		!isEditing ? 'px_6 unsel' : '',
+    isEditable && isSelected && !isEditing ? 'pointer' : '',
+		// p.cell?.canOpen ? 'link' : '', // Don't use .link class
 		!p.rowId ? 'noclick' : '',
+		isReadOnlyCell ? 'not_editable' : '',
 		!displayValue ? 'cl_darker_2' : '',
 		p.isStickyLeft ? STICKY_CELL_BG_CSS : CELL_BG_CSS,
 	);
@@ -857,7 +947,7 @@ export const SheetGridCell = memo((p: {
 		data-cell-key={p.column.key}
 		data-row-id={p.rowId || undefined}
 		data-sheet-cell='true'
-		data-sheet-cell-editable={p.cell?.canEdit ? 'true' : undefined}
+		data-sheet-cell-editable={isEditable ? 'true' : undefined}
 		data-sheet-cell-open-link={p.cell?.canOpen ? 'true' : undefined}
 		style={{
 			height: p.rowHeight ?? SHEET_ROW_HEIGHT,
@@ -875,13 +965,15 @@ export const SheetGridCell = memo((p: {
 				draftValue={p.editState?.draftValue || ''}
 				error={p.editState?.error}
 				rowId={p.rowId}
-			/>
-			: <SheetCellDisplayValue
-				className={selectDisplay.className}
-				displayClassName={p.cell?.displayClassName}
-				displayValue={selectDisplay.value}
-				iconName={iconName}
-			/>}
+				/>
+				: <SheetCellDisplayValue
+					canOpen={p.cell?.canOpen}
+					className={selectDisplay.className}
+					displayClassName={p.cell?.displayClassName}
+					displayValue={selectDisplay.value}
+					iconName={iconName}
+					showSelectChevron={isSelected && isSheetChevronCellFieldType(p.column.fieldType)}
+				/>}
 	</div>;
 }, (prev, next) => (
 	prev.cell === next.cell &&

@@ -39,6 +39,27 @@ ${logGrowerNetworkFragment}
 ${logLivestockFragment}
 `;
 
+export const logEntryQry = gql`
+query logEntry (
+  $organizationId: GenericID!
+  $logEntryId: GenericID!
+) {
+  logEntry (
+    organizationId: $organizationId
+    logEntryId: $logEntryId
+  ) {
+    ${logEntryFragmentStatement}
+
+    files {
+      ...storageFileFragment
+    }
+  }
+}
+
+${storageFileFragment}
+${logEntryFragmentImports}
+`;
+
 export const logEntriesQry = gql`
 query logEntries (
   $organizationId: GenericID!

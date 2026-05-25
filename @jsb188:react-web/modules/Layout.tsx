@@ -709,7 +709,7 @@ export function PageContent(p: PageContentProps) {
  */
 
 interface ContentGateProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   NotReadyComponent?: React.ElementType;
   showLoadingIfNotReady?: boolean;
   notReady?: boolean;
@@ -745,7 +745,7 @@ export function ContentGate(p: ContentGateProps) {
     </div>;
   }
 
-  return children;
+  return children ?? null;
 }
 
 /**
