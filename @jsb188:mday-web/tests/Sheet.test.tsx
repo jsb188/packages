@@ -17,11 +17,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Sheet, parseSheetEditorValue } from '../src/modules/Sheet';
 
 const hookState = vi.hoisted(() => ({
+	editInboundContact: vi.fn(),
 	editSheetCell: vi.fn(),
 	editSheetDesign: vi.fn(),
 	fetchMoreRows: vi.fn(),
 	getSheetRows: null as (() => any[]) | null,
+	inboundContactFragment: null as any,
 	lastSheetRowsArgs: null as any[] | null,
+	openModalPopUp: vi.fn(),
+	openModalScreen: vi.fn(),
 	resetOnlyTime: '' as string | undefined,
 	sheetRows: [] as any[],
 	sheetRowsVariables: null as any,
@@ -54,6 +58,21 @@ vi.mock('@jsb188/graphql/hooks/use-sheet-mtn', () => ({
 	useEditSheetDesign: () => ({
 		editSheetDesign: hookState.editSheetDesign,
 	}),
+}));
+
+vi.mock('@jsb188/graphql/hooks/use-inboundContact-mtn', () => ({
+	useEditInboundContact: () => ({
+		editInboundContact: hookState.editInboundContact,
+	}),
+}));
+
+vi.mock('@jsb188/graphql/hooks/use-inboundContact-qry', () => ({
+	useReactiveInboundContactFragment: () => hookState.inboundContactFragment,
+}));
+
+vi.mock('@jsb188/react/states', () => ({
+	useOpenModalPopUp: () => hookState.openModalPopUp,
+	useOpenModalScreen: () => hookState.openModalScreen,
 }));
 
 let currentRoot: Root | null = null;
@@ -164,11 +183,11 @@ function getCalendarDayButton(host: HTMLElement, day: number) {
  * Set an input value through the native setter so React sees the change event.
  */
 
-function setNativeInputValue(input: HTMLInputElement, value: string) {
-	const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-	valueSetter?.call(input, value);
-	input.dispatchEvent(new Event('input', { bubbles: true }));
-	input.dispatchEvent(new Event('change', { bubbles: true }));
+function setNativeInputValue(element: HTMLInputElement | HTMLTextAreaElement, value: string) {
+	const valueSetter = Object.getOwnPropertyDescriptor(element.constructor.prototype, 'value')?.set;
+	valueSetter?.call(element, value);
+	element.dispatchEvent(new Event('input', { bubbles: true }));
+	element.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 /*
@@ -221,14 +240,23 @@ async function rerenderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) 
 beforeEach(() => {
 	globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 	document.body.innerHTML = '<div id="test-root"></div>';
+	hookState.editInboundContact.mockReset().mockResolvedValue({ data: {} });
 	hookState.editSheetCell.mockReset().mockResolvedValue({ data: {} });
 	hookState.editSheetDesign.mockReset().mockResolvedValue({ data: {} });
 	hookState.fetchMoreRows.mockReset().mockResolvedValue({ data: { sheetRows: [] } });
 	hookState.getSheetRows = null;
+	hookState.inboundContactFragment = null;
 	hookState.lastSheetRowsArgs = null;
+	hookState.openModalPopUp.mockReset();
+	hookState.openModalScreen.mockReset();
 	hookState.resetOnlyTime = '';
 	hookState.sheetRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
 	hookState.sheetRowsVariables = null;
+	Object.defineProperty(window, 'open', {
+		configurable: true,
+		value: vi.fn(),
+		writable: true,
+	});
 
 	Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
 		configurable: true,
@@ -2494,8 +2522,91 @@ describe('Sheet container', () => {
 		expect(input.dataset.fieldType).toBe('ID');
 	});
 
+	it('blocks double-click editing for related ID cells', async () => {
+		const setFloatingMessage = vi.fn();
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'ID',
+					humanFieldType: 'ID',
+				}),
+			],
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {
+				name: 'Alpha',
+				status: 'Log 1',
+			}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'Log 1', {
+					relatedId: 'log-1',
+					relatedTable: 'logs',
+				}),
+			],
+		}];
+		const host = await renderSheet({ setFloatingMessage, sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(setFloatingMessage).toHaveBeenCalledWith({
+			text: 'Editing this cell is temporarily disabled.',
+			type: 'NOTICE',
+		});
+	});
+
+	it('blocks selected-click editing for related ID_OR_TEXT cells', async () => {
+		const setFloatingMessage = vi.fn();
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'ID_OR_TEXT' as unknown as SheetDesignCellGQL['fieldType'],
+					humanFieldType: 'ID',
+				}),
+			],
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {
+				name: 'Alpha',
+				status: 'Contact 1',
+			}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'Contact 1', {
+					relatedId: 'contact-1',
+					relatedTable: 'inbound_contacts',
+				}),
+			],
+		}];
+		const host = await renderSheet({ setFloatingMessage, sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(setFloatingMessage).toHaveBeenCalledWith({
+			text: 'Editing this cell is temporarily disabled.',
+			type: 'NOTICE',
+		});
+	});
+
 	it('routes open-link display clicks through the container handler', async () => {
-		const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+		const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
 		const sheet = createSheet();
 		sheet.design = {
 			...sheet.design,
@@ -2505,76 +2616,137 @@ describe('Sheet container', () => {
 					humansCannotEdit: true,
 					openLink: true,
 				}),
-				],
-			};
-			hookState.sheetRows = [createRow(0, {
-				name: 'Alpha',
-				status: 'https://example.com/orders/501',
-			})];
-			const host = await renderSheet({ sheet });
-			const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
-			const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
+			],
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+			status: 'https://example.com/orders/501',
+		})];
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
 
-			await act(async () => {
-				statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-			});
-
-			expect(consoleSpy).not.toHaveBeenCalled();
-
-			await act(async () => {
-				openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-			});
-
-			expect(consoleSpy).toHaveBeenCalledWith(expect.objectContaining({
-				cellKey: 'status',
-				value: 'https://example.com/orders/501',
-			}));
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		});
 
-	it('uses the optional onOpenCell handler for open-link cells', async () => {
-		const onOpenCell = vi.fn();
+		expect(openSpy).not.toHaveBeenCalled();
+
+		await act(async () => {
+			openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		expect(openSpy).toHaveBeenCalledWith('https://example.com/orders/501', '_blank', 'noopener,noreferrer');
+	});
+
+	it('opens related log ID cells in the log entry modal', async () => {
 		const sheet = createSheet();
 		sheet.design = {
 			...sheet.design,
 			cells: [
 				createDesignCell('name'),
 				createDesignCell('status', {
+					fieldType: 'ID',
+					humanFieldType: 'ID',
 					humansCannotEdit: true,
 					openLink: true,
 				}),
-				],
-			};
-			hookState.sheetRows = [createRow(0, {
+			],
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {
 				name: 'Alpha',
-				status: 'https://example.com/orders/501',
-			})];
-			const host = await renderSheet({ onOpenCell, sheet });
-			const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
-			const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
-
-			await act(async () => {
-				openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-			});
-
-			expect(onOpenCell).toHaveBeenCalledWith(expect.objectContaining({
-				cell: expect.objectContaining({
-					cellKey: 'status',
-					value: 'https://example.com/orders/501',
+				status: 'Log 1',
+			}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'Log 1', {
+					relatedId: 'log-1',
+					relatedTable: 'logs',
 				}),
-			designCell: expect.objectContaining({
-				key: 'status',
+			],
+		}];
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
+
+		await act(async () => {
+			openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		expect(hookState.openModalScreen).toHaveBeenCalledWith({
+			name: 'LOG_ENTRY',
+			props: {
+				logEntryId: 'log-1',
+			},
+		});
+	});
+
+	it('opens inbound contact ID cells in a sheet-local overlay editor', async () => {
+		const setFloatingMessage = vi.fn();
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'ID',
+					humanFieldType: 'ID',
+					humansCannotEdit: true,
+					openLink: true,
+				}),
+			],
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {
+				name: 'Alpha',
+				status: 'Contact 1',
 			}),
-			row: expect.objectContaining({
-				id: 'row-0',
-			}),
-			sheet: expect.objectContaining({
-				id: 'sheet-1',
-			}),
-			}));
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'Contact 1', {
+					relatedId: 'contact-1',
+					relatedTable: 'inbound_contacts',
+				}),
+			],
+		}];
+		const host = await renderSheet({ setFloatingMessage, sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
+
+		await act(async () => {
+			openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		const editor = host.querySelector('[data-sheet-inbound-contact-editor="true"]') as HTMLElement;
+		expect(editor).not.toBeNull();
+		expect(editor.textContent).toContain('Contact 1');
+		expect(editor.textContent).toContain('contact-1');
+		expect(setFloatingMessage).not.toHaveBeenCalled();
+
+		setNativeInputValue(editor.querySelector('input[name="email"]') as HTMLInputElement, 'buyer@example.com');
+		setNativeInputValue(editor.querySelector('input[name="phone"]') as HTMLInputElement, '555-0100');
+		setNativeInputValue(editor.querySelector('textarea[name="memory"]') as HTMLTextAreaElement, 'Prefers morning pickup.');
+
+		await act(async () => {
+			editor.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+			await Promise.resolve();
+		});
+
+		expect(hookState.editInboundContact).toHaveBeenCalledWith({
+			variables: {
+				organizationId: 'org-1',
+				inboundContactId: 'contact-1',
+				personName: 'Contact 1',
+				email: 'buyer@example.com',
+				phone: '555-0100',
+				memory: 'Prefers morning pickup.',
+			},
+		});
 	});
 
 	it('opens link display clicks from local edit mode', async () => {
-		const onOpenCell = vi.fn();
+		const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
 		const sheet = createSheet();
 		sheet.design = {
 			...sheet.design,
@@ -2591,7 +2763,7 @@ describe('Sheet container', () => {
 			name: 'Alpha',
 			status: 'https://example.com/orders/501',
 		})];
-		const host = await renderSheet({ onOpenCell, sheet });
+		const host = await renderSheet({ sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {
@@ -2606,12 +2778,7 @@ describe('Sheet container', () => {
 			editorTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		});
 
-		expect(onOpenCell).toHaveBeenCalledWith(expect.objectContaining({
-			cell: expect.objectContaining({
-				cellKey: 'status',
-				value: 'https://example.com/orders/501',
-			}),
-		}));
+		expect(openSpy).toHaveBeenCalledWith('https://example.com/orders/501', '_blank', 'noopener,noreferrer');
 	});
 
 	it('resizes columns only from primary-button header drags', async () => {

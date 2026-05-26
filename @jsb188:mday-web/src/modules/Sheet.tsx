@@ -54,7 +54,7 @@ import {
   type SheetUISelectedCellState
 } from '@jsb188/react-web/ui/SheetUI';
 import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
-import { useOpenModalPopUp } from '@jsb188/react/states';
+import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import {
   getInitialSheetDesignReducerState,
@@ -70,6 +70,7 @@ import {
   type SheetDesignPatchInput,
   type SheetRowsState,
 } from './use-sheet-states.ts';
+import { SheetInboundContactEditor } from './Sheet-InboundContact.tsx';
 
 /**
  * Dev code
@@ -91,7 +92,6 @@ export interface SheetProps {
 	bufferColumns?: number;
 	disabled?: boolean;
 	allowEdit?: boolean;
-	onOpenCell?: (params: SheetOpenCellParams) => void;
 	setFloatingMessage?: SetFloatingMessage;
 }
 
@@ -111,6 +111,12 @@ type SheetOpenCellParams = {
 	designCell: SheetDesignCellGQL;
 	row: SheetRowGQL;
 	sheet: SheetGQL;
+};
+
+type SheetOpenCellLinkParams = SheetOpenCellParams & {
+	openInboundContactEditor: (params: SheetOpenCellParams) => void;
+	openModalScreen: ReturnType<typeof useOpenModalScreen>;
+	setFloatingMessage?: SetFloatingMessage;
 };
 
 type SheetRuntimeState = {
@@ -215,6 +221,7 @@ const SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
 const SHEET_SELECT_EDITOR_MIN_WIDTH = 140;
 const SHEET_SELECT_EDITOR_MAX_WIDTH = 400;
 const SHEET_DATE_EDITOR_WIDTH = 280;
+const SHEET_INBOUND_CONTACT_EDITOR_WIDTH = 360;
 const SHEET_LOCAL_EDITOR_LEFT_OFFSET = -2;
 const SHEET_LOCAL_EDITOR_TOP_OFFSET = 1;
 const SHEET_LOCAL_EDITOR_WIDTH_OFFSET = 3;
@@ -961,7 +968,7 @@ function getSheetDesignOptionsStateKey(designCell: SheetDesignCellGQL) {
  * Return whether one sheet text value points to an external HTTP URL.
  */
 
-function isSheetExternalLinkTextValue(value?: string | null) {
+function isSheetExternalLinkTextValue(value: unknown): value is string {
 	return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
 }
 
@@ -1530,6 +1537,34 @@ function getSheetCellEditState(runtime: SheetRuntimeState, lookup: SheetCellLook
 }
 
 /*
+ * Handle edit attempts for related-document ID cells before entering inline edit mode.
+ */
+
+function handleSheetRelatedDocumentCellEdit(lookup: SheetCellLookup, setFloatingMessage?: SetFloatingMessage) {
+	if (
+		!lookup.cell?.relatedTable ||
+		!hasSheetCellRelatedId(lookup.cell) ||
+		!isSheetDocumentLinkFieldType(lookup.designCell.fieldType as SheetFieldTypeGQL | 'ID_OR_TEXT')
+	) {
+		return false;
+	}
+
+	switch (lookup.cell.relatedTable) {
+		case 'logs':
+		case 'inbound_contacts':
+		default:
+			setFloatingMessage?.({
+				text: getSheetTranslatedText(
+					'sheet.editing_temporarily_disabled_msg',
+					'Editing this cell is temporarily disabled.',
+				),
+				type: 'NOTICE',
+			});
+			return true;
+	}
+}
+
+/*
  * Anchor a sheet-local editor to stable sheet-canvas coordinates.
  */
 
@@ -1712,11 +1747,70 @@ function SheetDateEditor(p: {
 }
 
 /*
- * Log a clickable sheet cell for the initial open-link behavior.
+ * Return the external URL stored in one open-link sheet cell.
  */
 
-function openSheetCellLink(params: SheetOpenCellParams) {
-	console.log(params.cell);
+function getSheetOpenCellExternalUrl(cell: SheetCellGQL | null | undefined) {
+	const textValue = cell?.textValue;
+
+	if (isSheetExternalLinkTextValue(textValue)) {
+		return textValue;
+	}
+
+	const value = cell?.value as unknown;
+
+	if (isSheetExternalLinkTextValue(value)) {
+		return value;
+	}
+
+	if (value && typeof value === 'object' && !Array.isArray(value)) {
+		const nestedValue = (value as { value?: unknown }).value;
+		return isSheetExternalLinkTextValue(nestedValue) ? nestedValue : null;
+	}
+
+	return null;
+}
+
+/*
+ * Open one clickable sheet cell using its external URL or related document target.
+ */
+
+function openSheetCellLink(params: SheetOpenCellLinkParams) {
+	const {
+		cell,
+		openInboundContactEditor,
+		openModalScreen,
+		setFloatingMessage,
+	} = params;
+	const externalUrl = getSheetOpenCellExternalUrl(cell);
+
+	if (externalUrl) {
+		window.open(externalUrl, '_blank', 'noopener,noreferrer');
+		return;
+	}
+
+	if (cell?.relatedId) {
+		switch (cell.relatedTable) {
+			case 'logs':
+				openModalScreen({
+					name: 'LOG_ENTRY',
+					props: {
+						logEntryId: String(cell.relatedId),
+					},
+				});
+				return;
+			case 'inbound_contacts':
+				openInboundContactEditor(params);
+				return;
+			default:
+				break;
+		}
+	}
+
+	setFloatingMessage?.({
+		text: i18n.t('sheet.unsupported_link_msg'),
+		type: 'NOTICE',
+	});
 }
 
 /*
@@ -1739,6 +1833,7 @@ export function Sheet(p: SheetProps) {
 	const organizationId = sheet.organizationId;
 	const effectiveDisabled = disabled || !allowEdit;
 	const openModalPopUp = useOpenModalPopUp();
+	const openModalScreen = useOpenModalScreen();
 	const scrollElement = useElementSize<HTMLDivElement>();
 	const fetchingMoreRef = useRef(false);
 	const runtimeRef = useRef<SheetRuntimeState | null>(null);
@@ -1780,6 +1875,7 @@ export function Sheet(p: SheetProps) {
 	const [optimisticValues, dispatchOptimisticValues] = useReducer(sheetCellValueReducer, {});
 	const [resizingColumnKey, setResizingColumnKey] = useState<string | null>(null);
 	const [singleClickedCellState, setSingleClickedCellState] = useState<SheetUISelectedCellState | null>(null);
+	const [inboundContactEditorLookup, setInboundContactEditorLookup] = useState<SheetCellLookup | null>(null);
 	const singleClickedCellStateRef = useRef<SheetUISelectedCellState | null>(null);
 	const [selectedViewId, setSelectedViewId] = useState<string | null>(() => getValidDefaultSheetViewId(sheet.design));
 	const [designState, dispatchDesignState] = useReducer(
@@ -1902,6 +1998,7 @@ export function Sheet(p: SheetProps) {
 	useIsomorphicLayoutEffect(() => {
 		setEditState(null);
 		setHeaderEditState(null);
+		setInboundContactEditorLookup(null);
 		setSingleClickedCellState(null);
 		singleClickedCellStateRef.current = null;
 		dispatchOptimisticValues({
@@ -2485,6 +2582,7 @@ export function Sheet(p: SheetProps) {
 				reorderState.started = true;
 				setEditState(null);
 				setHeaderEditState(null);
+				setInboundContactEditorLookup(null);
 				setSingleClickedCellState(null);
 				singleClickedCellStateRef.current = null;
 			}
@@ -2595,7 +2693,24 @@ export function Sheet(p: SheetProps) {
 		disabled: effectiveDisabled,
 		editState,
 		optimisticValues,
-		openCell: p.onOpenCell || openSheetCellLink,
+		openCell: (params: SheetOpenCellParams) => {
+			setInboundContactEditorLookup(null);
+			openSheetCellLink({
+				...params,
+				openInboundContactEditor: (openParams: SheetOpenCellParams) => {
+					setEditState(null);
+					setSingleClickedCellState(null);
+					singleClickedCellStateRef.current = null;
+					setInboundContactEditorLookup({
+						cell: openParams.cell,
+						designCell: openParams.designCell,
+						row: openParams.row,
+					});
+				},
+				openModalScreen,
+				setFloatingMessage,
+			});
+		},
 		rowCellsById,
 		rowsById,
 		saveCellValue,
@@ -2637,115 +2752,134 @@ export function Sheet(p: SheetProps) {
 				});
 				});
 			};
-		const onClick = (event: MouseEvent) => {
-			const localEditorElement = getClosestSheetElement(event.target, '[data-sheet-select-editor="true"], [data-sheet-date-editor="true"]');
-			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
-			const openTriggerElement = getClosestSheetElement(event.target, '[data-sheet-cell-open-trigger="true"]');
-			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
-			const runtime = runtimeRef.current;
-
-			if (localEditorElement) {
-				return;
-			}
-
-			if ((!cellElement && !editorElement) || !runtime) {
-				setSingleClickedCellState(null);
-				singleClickedCellStateRef.current = null;
-				return;
-			}
-
-			const lookupElement = cellElement || editorElement;
-			const lookup = getSheetCellLookup(runtime, lookupElement?.dataset.rowId, lookupElement?.dataset.cellKey);
-
-			if (openTriggerElement) {
-				if (lookup && canOpenSheetCellLink(lookup.cell, lookup.designCell)) {
-					runtime.openCell({
-						cell: lookup.cell,
-						designCell: lookup.designCell,
-						row: lookup.row,
-						sheet: runtime.sheet,
-					});
-				}
-
-				return;
-			}
-
-			if (editorElement) {
-				return;
-			}
-
-			if (!cellElement) {
-				return;
-			}
-
-			if (lookup) {
-				const currentSingleClickedCell = singleClickedCellStateRef.current;
-				const isSameSingleClickedCell = (
-					currentSingleClickedCell?.rowId === lookup.row.id &&
-					currentSingleClickedCell.cellKey === lookup.designCell.key
+			const onClick = (event: MouseEvent) => {
+				const localEditorElement = getClosestSheetElement(
+					event.target,
+					'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
 				);
+				const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
+				const openTriggerElement = getClosestSheetElement(event.target, '[data-sheet-cell-open-trigger="true"]');
+				const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
+				const runtime = runtimeRef.current;
 
-				if (isSameSingleClickedCell && cellElement.dataset.sheetCellEditable === 'true' && !runtime.disabled) {
-					setHeaderEditState(null);
-					setSingleClickedCellState(null);
-					singleClickedCellStateRef.current = null;
-					setEditState(getSheetCellEditState(runtime, lookup));
+				if (localEditorElement) {
 					return;
 				}
 
-				const nextSingleClickedCell = {
-					cellKey: lookup.designCell.key,
-					rowId: lookup.row.id,
-				};
-
-				setEditState(null);
-				setHeaderEditState(null);
-				setSingleClickedCellState(nextSingleClickedCell);
-				singleClickedCellStateRef.current = nextSingleClickedCell;
-				return;
-			}
-		};
-		const onDoubleClick = (event: MouseEvent) => {
-			const localEditorElement = getClosestSheetElement(event.target, '[data-sheet-select-editor="true"], [data-sheet-date-editor="true"]');
-			const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
-			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
-			const runtime = runtimeRef.current;
-
-			if (localEditorElement) {
-				return;
-			}
-
-			if (headerElement && runtime && headerElement.dataset.sheetHeaderEditable === 'true') {
-				const designCell = runtime.designCellsByKey.get(headerElement.dataset.cellKey || '');
-
-				if (!runtime.disabled && runtime.designEditable && designCell && !runtime.sheet.design?.humansCannotEdit && !designCell.humansCannotEdit) {
-					setEditState(null);
+				if ((!cellElement && !editorElement) || !runtime) {
+					setInboundContactEditorLookup(null);
 					setSingleClickedCellState(null);
 					singleClickedCellStateRef.current = null;
-					setHeaderEditState({
-						cellKey: designCell.key,
-						draftValue: getSheetDesignCellHeaderLabel(designCell),
-					});
+					return;
 				}
 
-				return;
-			}
+				const lookupElement = cellElement || editorElement;
+				const lookup = getSheetCellLookup(runtime, lookupElement?.dataset.rowId, lookupElement?.dataset.cellKey);
 
-			if (!cellElement || !runtime || runtime.disabled || cellElement.dataset.sheetCellEditable !== 'true') {
-				return;
-			}
+				if (openTriggerElement) {
+					if (lookup && canOpenSheetCellLink(lookup.cell, lookup.designCell)) {
+						runtime.openCell({
+							cell: lookup.cell,
+							designCell: lookup.designCell,
+							row: lookup.row,
+							sheet: runtime.sheet,
+						});
+					}
 
-			const lookup = getSheetCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
+					return;
+				}
 
-			if (!lookup || runtime.sheet.design?.humansCannotEdit || lookup.designCell.humansCannotEdit) {
-				return;
-			}
+				if (editorElement) {
+					return;
+				}
 
-			setHeaderEditState(null);
-			setSingleClickedCellState(null);
-			singleClickedCellStateRef.current = null;
-			setEditState(getSheetCellEditState(runtime, lookup));
-		};
+				if (!cellElement) {
+					return;
+				}
+
+				if (lookup) {
+					const currentSingleClickedCell = singleClickedCellStateRef.current;
+					const isSameSingleClickedCell = (
+						currentSingleClickedCell?.rowId === lookup.row.id &&
+						currentSingleClickedCell.cellKey === lookup.designCell.key
+					);
+
+					if (isSameSingleClickedCell && cellElement.dataset.sheetCellEditable === 'true' && !runtime.disabled) {
+						if (handleSheetRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
+							return;
+						}
+
+						setHeaderEditState(null);
+						setInboundContactEditorLookup(null);
+						setSingleClickedCellState(null);
+						singleClickedCellStateRef.current = null;
+						setEditState(getSheetCellEditState(runtime, lookup));
+						return;
+					}
+
+					const nextSingleClickedCell = {
+						cellKey: lookup.designCell.key,
+						rowId: lookup.row.id,
+					};
+
+					setEditState(null);
+					setHeaderEditState(null);
+					setInboundContactEditorLookup(null);
+					setSingleClickedCellState(nextSingleClickedCell);
+					singleClickedCellStateRef.current = nextSingleClickedCell;
+					return;
+				}
+			};
+			const onDoubleClick = (event: MouseEvent) => {
+				const localEditorElement = getClosestSheetElement(
+					event.target,
+					'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
+				);
+				const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
+				const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
+				const runtime = runtimeRef.current;
+
+				if (localEditorElement) {
+					return;
+				}
+
+				if (headerElement && runtime && headerElement.dataset.sheetHeaderEditable === 'true') {
+					const designCell = runtime.designCellsByKey.get(headerElement.dataset.cellKey || '');
+
+					if (!runtime.disabled && runtime.designEditable && designCell && !runtime.sheet.design?.humansCannotEdit && !designCell.humansCannotEdit) {
+						setEditState(null);
+						setInboundContactEditorLookup(null);
+						setSingleClickedCellState(null);
+						singleClickedCellStateRef.current = null;
+						setHeaderEditState({
+							cellKey: designCell.key,
+							draftValue: getSheetDesignCellHeaderLabel(designCell),
+						});
+					}
+
+					return;
+				}
+
+				if (!cellElement || !runtime || runtime.disabled || cellElement.dataset.sheetCellEditable !== 'true') {
+					return;
+				}
+
+				const lookup = getSheetCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
+
+				if (!lookup || runtime.sheet.design?.humansCannotEdit || lookup.designCell.humansCannotEdit) {
+					return;
+				}
+
+				if (handleSheetRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
+					return;
+				}
+
+				setHeaderEditState(null);
+				setInboundContactEditorLookup(null);
+				setSingleClickedCellState(null);
+				singleClickedCellStateRef.current = null;
+				setEditState(getSheetCellEditState(runtime, lookup));
+			};
 		const onFocusOut = (event: FocusEvent) => {
 			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]');
 			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
@@ -3301,6 +3435,34 @@ export function Sheet(p: SheetProps) {
 		viewportWidth,
 		visualRowCount,
 	]);
+	const inboundContactEditorPosition = useMemo(() => {
+		if (!inboundContactEditorLookup) {
+			return null;
+		}
+
+		return getSheetLocalEditorPosition({
+			columnMetric: columnMetricsByKey.get(inboundContactEditorLookup.designCell.key),
+			hasPlaceholderTail,
+			rowIndex: renderedRows.findIndex((row) => row.id === inboundContactEditorLookup.row.id),
+			rowWidth: Math.max(totalWidth, viewportWidth),
+			stickyColumnCount,
+			stickyHeaderHeight,
+			viewportHeight,
+			visualRowCount,
+			width: SHEET_INBOUND_CONTACT_EDITOR_WIDTH,
+		});
+	}, [
+		columnMetricsByKey,
+		hasPlaceholderTail,
+		inboundContactEditorLookup,
+		renderedRows,
+		stickyColumnCount,
+		stickyHeaderHeight,
+		totalWidth,
+		viewportHeight,
+		viewportWidth,
+		visualRowCount,
+	]);
 	const selectedCellLookup = useMemo<SheetCellLookup | null>(() => {
 		if (!singleClickedCellState) {
 			return null;
@@ -3354,7 +3516,11 @@ export function Sheet(p: SheetProps) {
 	]);
 
 	useEffect(() => {
-		if ((!activeSelectEditorLookup || !selectEditorPosition) && (!activeDateEditorLookup || !dateEditorPosition)) {
+		if (
+			(!activeSelectEditorLookup || !selectEditorPosition) &&
+			(!activeDateEditorLookup || !dateEditorPosition) &&
+			(!inboundContactEditorLookup || !inboundContactEditorPosition)
+		) {
 			return;
 		}
 
@@ -3368,12 +3534,14 @@ export function Sheet(p: SheetProps) {
 			if (
 				target.closest('[data-sheet-select-editor="true"]') ||
 				target.closest('[data-sheet-date-editor="true"]') ||
+				target.closest('[data-sheet-inbound-contact-editor="true"]') ||
 				target.closest('[data-sheet-editor="true"]')
 			) {
 				return;
 			}
 
 			setEditState(null);
+			setInboundContactEditorLookup(null);
 			setSingleClickedCellState(null);
 			singleClickedCellStateRef.current = null;
 		};
@@ -3384,6 +3552,7 @@ export function Sheet(p: SheetProps) {
 
 			event.preventDefault();
 			setEditState(null);
+			setInboundContactEditorLookup(null);
 			setSingleClickedCellState(null);
 			singleClickedCellStateRef.current = null;
 		};
@@ -3397,7 +3566,14 @@ export function Sheet(p: SheetProps) {
 			document.removeEventListener('click', onOutsidePointer, true);
 			document.removeEventListener('keydown', onKeyDown);
 		};
-	}, [activeDateEditorLookup, activeSelectEditorLookup, dateEditorPosition, selectEditorPosition]);
+	}, [
+		activeDateEditorLookup,
+		activeSelectEditorLookup,
+		dateEditorPosition,
+		inboundContactEditorLookup,
+		inboundContactEditorPosition,
+		selectEditorPosition,
+	]);
 
 	const highlightedResizeColumnKey = resizingColumnKey;
 	const resizeGuide = useMemo<SheetUIResizeGuide | null>(() => {
@@ -3535,6 +3711,19 @@ export function Sheet(p: SheetProps) {
 					lookup={activeDateEditorLookup}
 					onDateTimeSave={handleDateEditorDateTimeSave}
 					onDateValue={handleDateEditorDateValue}
+				/>
+			</SheetLocalEditorContainer>
+			: null}
+		{inboundContactEditorLookup && inboundContactEditorPosition
+			? <SheetLocalEditorContainer position={inboundContactEditorPosition}>
+				<SheetInboundContactEditor
+					displayValue={getSheetCellDisplayValue(inboundContactEditorLookup.cell, inboundContactEditorLookup.designCell)}
+					inboundContactId={String(inboundContactEditorLookup.cell?.relatedId || '')}
+					onClose={() => {
+						setInboundContactEditorLookup(null);
+					}}
+					openModalPopUp={openModalPopUp}
+					organizationId={organizationId}
 				/>
 			</SheetLocalEditorContainer>
 			: null}

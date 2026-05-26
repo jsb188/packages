@@ -1017,7 +1017,7 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
   content: ' ';
   position: absolute; z-index: 0;
   inset: 0;
-  mask-image: url('https://assets.chiefhappiness.co/marketday/static/texture-dots.svg');
+  mask-image: url('https://assets.chiefhappiness.co/marketday/static/texture-dots.svg?v=20260625');
   mask-repeat: repeat;
   mask-size: auto;
   mask-position: center;
