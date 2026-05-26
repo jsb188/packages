@@ -221,7 +221,7 @@ const SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
 const SHEET_SELECT_EDITOR_MIN_WIDTH = 140;
 const SHEET_SELECT_EDITOR_MAX_WIDTH = 400;
 const SHEET_DATE_EDITOR_WIDTH = 280;
-const SHEET_INBOUND_CONTACT_EDITOR_WIDTH = 360;
+const SHEET_INBOUND_CONTACT_EDITOR_MIN_WIDTH = 280;
 const SHEET_LOCAL_EDITOR_LEFT_OFFSET = -2;
 const SHEET_LOCAL_EDITOR_TOP_OFFSET = 1;
 const SHEET_LOCAL_EDITOR_WIDTH_OFFSET = 3;
@@ -989,6 +989,14 @@ function hasSheetCellRelatedId(cell?: SheetCellGQL | null) {
 }
 
 /*
+ * Return whether a related table name points to inbound contacts.
+ */
+
+function isSheetInboundContactRelatedTable(relatedTable?: string | null) {
+	return relatedTable === 'inbound_contact' || relatedTable === 'inbound_contacts';
+}
+
+/*
  * Return whether one sheet cell has enough data to open from the grid.
  */
 
@@ -1537,29 +1545,49 @@ function getSheetCellEditState(runtime: SheetRuntimeState, lookup: SheetCellLook
 }
 
 /*
+ * Build the active cell edit state for a custom sheet-local overlay editor.
+ */
+
+function getSheetCellOverlayEditState(runtime: SheetRuntimeState, lookup: SheetCellLookup): SheetUIEditState {
+	return {
+		...getSheetCellEditState(runtime, lookup),
+		disableInlineEditor: true,
+	};
+}
+
+/*
  * Handle edit attempts for related-document ID cells before entering inline edit mode.
  */
 
 function handleSheetRelatedDocumentCellEdit(lookup: SheetCellLookup, setFloatingMessage?: SetFloatingMessage) {
+
+  // console.log('/////1/1/1/1/');
+  // console.log(lookup.designCell);
+  // console.log(lookup.cell);
+
+  const lookupFieldType = lookup.designCell.humanFieldType || lookup.designCell.fieldType;
 	if (
+		lookupFieldType !== 'ID' ||
 		!lookup.cell?.relatedTable ||
-		!hasSheetCellRelatedId(lookup.cell) ||
-		!isSheetDocumentLinkFieldType(lookup.designCell.fieldType as SheetFieldTypeGQL | 'ID_OR_TEXT')
+		!hasSheetCellRelatedId(lookup.cell)
 	) {
 		return false;
 	}
 
 	switch (lookup.cell.relatedTable) {
 		case 'logs':
+      return false;
+		case 'inbound_contact':
 		case 'inbound_contacts':
 		default:
-			setFloatingMessage?.({
-				text: getSheetTranslatedText(
-					'sheet.editing_temporarily_disabled_msg',
-					'Editing this cell is temporarily disabled.',
-				),
-				type: 'NOTICE',
-			});
+      // Disable the message for now
+			// setFloatingMessage?.({
+			// 	text: getSheetTranslatedText(
+			// 		'sheet.editing_temporarily_disabled_msg',
+			// 		'Editing this cell is temporarily disabled.',
+			// 	),
+			// 	type: 'NOTICE',
+			// });
 			return true;
 	}
 }
@@ -1572,13 +1600,15 @@ function SheetLocalEditorContainer(p: {
 	children: ReactNode;
 	position: SheetLocalEditorPosition;
 }) {
+	const editorTop = p.position.top - 2;
+
 	if (p.position.isStickyLeft) {
 		return <div
 			className='abs'
 			data-sheet-local-editor-anchor='true'
 			style={{
 				left: 0,
-				top: p.position.top,
+				top: editorTop,
 				width: p.position.rowWidth,
 				zIndex: SHEET_STICKY_LOCAL_EDITOR_Z_INDEX,
 			}}
@@ -1602,7 +1632,7 @@ function SheetLocalEditorContainer(p: {
 		data-sheet-local-editor-anchor='true'
 		style={{
 			left: p.position.left,
-			top: p.position.top,
+			top: editorTop,
 			width: p.position.width,
 			zIndex: SHEET_LOCAL_EDITOR_Z_INDEX,
 		}}
@@ -1790,6 +1820,11 @@ function openSheetCellLink(params: SheetOpenCellLinkParams) {
 	}
 
 	if (cell?.relatedId) {
+		if (isSheetInboundContactRelatedTable(cell.relatedTable)) {
+			openInboundContactEditor(params);
+			return;
+		}
+
 		switch (cell.relatedTable) {
 			case 'logs':
 				openModalScreen({
@@ -1798,9 +1833,6 @@ function openSheetCellLink(params: SheetOpenCellLinkParams) {
 						logEntryId: String(cell.relatedId),
 					},
 				});
-				return;
-			case 'inbound_contacts':
-				openInboundContactEditor(params);
 				return;
 			default:
 				break;
@@ -2698,14 +2730,26 @@ export function Sheet(p: SheetProps) {
 			openSheetCellLink({
 				...params,
 				openInboundContactEditor: (openParams: SheetOpenCellParams) => {
-					setEditState(null);
-					setSingleClickedCellState(null);
-					singleClickedCellStateRef.current = null;
-					setInboundContactEditorLookup({
+					const currentRuntime = runtimeRef.current;
+					const lookup = {
 						cell: openParams.cell,
 						designCell: openParams.designCell,
 						row: openParams.row,
-					});
+					};
+
+					if (currentRuntime) {
+						setEditState(getSheetCellOverlayEditState(currentRuntime, lookup));
+					} else {
+						setEditState({
+							cellKey: openParams.designCell.key,
+							disableInlineEditor: true,
+							draftValue: getSheetEditorDraftValue(openParams.cell, openParams.designCell),
+							rowId: openParams.row.id,
+						});
+					}
+					setSingleClickedCellState(null);
+					singleClickedCellStateRef.current = null;
+					setInboundContactEditorLookup(lookup);
 				},
 				openModalScreen,
 				setFloatingMessage,
@@ -3440,8 +3484,10 @@ export function Sheet(p: SheetProps) {
 			return null;
 		}
 
+		const columnMetric = columnMetricsByKey.get(inboundContactEditorLookup.designCell.key);
+
 		return getSheetLocalEditorPosition({
-			columnMetric: columnMetricsByKey.get(inboundContactEditorLookup.designCell.key),
+			columnMetric,
 			hasPlaceholderTail,
 			rowIndex: renderedRows.findIndex((row) => row.id === inboundContactEditorLookup.row.id),
 			rowWidth: Math.max(totalWidth, viewportWidth),
@@ -3449,7 +3495,7 @@ export function Sheet(p: SheetProps) {
 			stickyHeaderHeight,
 			viewportHeight,
 			visualRowCount,
-			width: SHEET_INBOUND_CONTACT_EDITOR_WIDTH,
+			width: Math.max(columnMetric?.width || 0, SHEET_INBOUND_CONTACT_EDITOR_MIN_WIDTH) - SHEET_LOCAL_EDITOR_WIDTH_OFFSET,
 		});
 	}, [
 		columnMetricsByKey,
@@ -3720,6 +3766,7 @@ export function Sheet(p: SheetProps) {
 					displayValue={getSheetCellDisplayValue(inboundContactEditorLookup.cell, inboundContactEditorLookup.designCell)}
 					inboundContactId={String(inboundContactEditorLookup.cell?.relatedId || '')}
 					onClose={() => {
+						setEditState(null);
 						setInboundContactEditorLookup(null);
 					}}
 					openModalPopUp={openModalPopUp}
@@ -3786,7 +3833,7 @@ export function Sheet(p: SheetProps) {
 
 				return <button
 					key={tab.id || 'master'}
-					className={cn('h_36 px_10 ft_xs bg_hv cl_md h_item gap_5', selected ? 'bg cl_df shadow_line_alt' : '')}
+					className={cn('h_36 px_10 ft_xs bg_hv cl_md h_item gap_7', selected ? 'bg cl_df shadow_line_alt' : '')}
 					data-sheet-view-tab={tab.id || 'master'}
 					onClick={() => {
 						setSelectedViewId(tab.id);
@@ -3794,7 +3841,7 @@ export function Sheet(p: SheetProps) {
 					type='button'
 				>
 					{tab.iconName
-						? <span className='ic_sm no_shrink'>
+						? <span className='ic_sm shift_up no_shrink'>
 							<Icon name={tab.iconName} />
 						</span>
 						: null}

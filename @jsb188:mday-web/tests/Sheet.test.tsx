@@ -2563,7 +2563,7 @@ describe('Sheet container', () => {
 		});
 	});
 
-	it('blocks selected-click editing for related ID_OR_TEXT cells', async () => {
+	it('allows selected-click editing for related ID_OR_TEXT cells', async () => {
 		const setFloatingMessage = vi.fn();
 		const sheet = createSheet();
 		sheet.design = {
@@ -2585,7 +2585,7 @@ describe('Sheet container', () => {
 				createCell('row-0', 'name', 'Alpha'),
 				createCell('row-0', 'status', 'Contact 1', {
 					relatedId: 'contact-1',
-					relatedTable: 'inbound_contacts',
+					relatedTable: 'inbound_contact',
 				}),
 			],
 		}];
@@ -2598,11 +2598,11 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
-		expect(setFloatingMessage).toHaveBeenCalledWith({
-			text: 'Editing this cell is temporarily disabled.',
-			type: 'NOTICE',
-		});
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+		expect(input).not.toBeNull();
+		expect(input.tagName).toBe('INPUT');
+		expect(input.dataset.fieldType).toBe('ID');
+		expect(setFloatingMessage).not.toHaveBeenCalled();
 	});
 
 	it('routes open-link display clicks through the container handler', async () => {
@@ -2706,7 +2706,7 @@ describe('Sheet container', () => {
 				createCell('row-0', 'name', 'Alpha'),
 				createCell('row-0', 'status', 'Contact 1', {
 					relatedId: 'contact-1',
-					relatedTable: 'inbound_contacts',
+					relatedTable: 'inbound_contact',
 				}),
 			],
 		}];
@@ -2720,8 +2720,13 @@ describe('Sheet container', () => {
 
 		const editor = host.querySelector('[data-sheet-inbound-contact-editor="true"]') as HTMLElement;
 		expect(editor).not.toBeNull();
-		expect(editor.textContent).toContain('Contact 1');
-		expect(editor.textContent).toContain('contact-1');
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(statusCell.className).toContain('active');
+		expect(editor.parentElement?.style.width).toBe('280px');
+		expect(editor.querySelector('input[name="personName"]')).not.toBeNull();
+		expect(editor.querySelector('input[name="email"]')).not.toBeNull();
+		expect(editor.querySelector('input[name="phone"]')).not.toBeNull();
+		expect(editor.querySelector('textarea[name="memory"]')).not.toBeNull();
 		expect(setFloatingMessage).not.toHaveBeenCalled();
 
 		setNativeInputValue(editor.querySelector('input[name="email"]') as HTMLInputElement, 'buyer@example.com');

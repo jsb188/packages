@@ -779,7 +779,8 @@ export const FloatingMessage = memo((p: FloatingMessageProps) => {
   // const [innerState, setInnerState] = useState({ active: !!message, message });
   const [innerMessage, visibility] = useAnimationVisibility(message);
   const visible = visibility >= 2;
-  const iconName = innerMessage?.type === 'REFRESH' ? 'reload' : 'x';
+  const isRefresh = innerMessage?.type === 'REFRESH';
+  const iconName = isRefresh ? 'reload' : 'x';
 
   if (!visibility) {
     return null;
@@ -798,10 +799,12 @@ export const FloatingMessage = memo((p: FloatingMessageProps) => {
     <button
       type='button'
       className='floating_msg bg_contrast r h_45 pr_5 shadow h_spread mx_auto max_w_500 ft_sm'
-      onClick={innerMessage?.type === 'REFRESH' ? () => {
-        setRefreshKey();
+      onClick={() => {
+        if (isRefresh) {
+          setRefreshKey();
+        }
         setFloatingMessage(null);
-      } : undefined}
+      }}
     >
       {/* {innerMessage?.iconName && (
         <span className='av_xs v_center mr_xs'>

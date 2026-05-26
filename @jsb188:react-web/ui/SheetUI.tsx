@@ -97,6 +97,7 @@ export type SheetUIEditState = {
 	cellKey: string;
 	draftValue: string;
 	error?: string | null;
+	disableInlineEditor?: boolean;
 };
 
 export type SheetUISelectedCellState = {
@@ -136,6 +137,11 @@ export type SheetUIColumnReorderGuide = {
 	columnKey: string;
 	height: number;
 	left: number;
+};
+
+export type SheetSaveButtonProps = {
+	className?: string;
+	type?: 'button' | 'reset' | 'submit';
 };
 
 export type SheetUIColumnReorderDrag = {
@@ -206,6 +212,19 @@ export function clampSheetColumnWidth(width: number) {
 
 function getSheetTranslatedText(key: string, fallback: string) {
 	return i18n.has(key) ? i18n.t(key) : fallback;
+}
+
+/*
+ * Render the shared save button used by sheet editor forms.
+ */
+
+export function SheetSaveButton(p: SheetSaveButtonProps) {
+	return <button
+		className={cn('h_28 px_8 bg_alt bg_active_hv bd_1 bd_bd ft_xs', p.className)}
+		type={p.type || 'submit'}
+	>
+		{getSheetTranslatedText('form.save', 'Save')}
+	</button>;
 }
 
 /*
@@ -334,7 +353,7 @@ export function SheetSelectEditor(p: SheetSelectEditorProps) {
 		: new Set([p.editState.draftValue]);
 
 	return <div
-		className='sheet_overlay_editor bg bd_r_2 bd_b_2 bd_l_2 bd_lt ft_xs w_f max_h_300'
+		className='sheet_overlay_editor bg bd_2 bd_lt ft_xs w_f max_h_300'
 		data-sheet-select-editor='true'
 	>
     {/* You always need a <div> here because the options.map(..) elements have negative Y margins; use this for top/bottom padding */}
@@ -383,19 +402,14 @@ export function SheetSelectEditor(p: SheetSelectEditorProps) {
 				className='h_item gap_6 p_6 bd_t_2 bd_lt'
 				data-sheet-select-editor-custom='true'
 			>
-					<input
-						className='f stock ft_xs px_5 py_4 bd_0 bg_alt'
-						defaultValue={getSheetSelectEditorCustomInputValue(p.editState.draftValue, p.options)}
-						name='customValue'
-						placeholder='...'
-						type='text'
-					/>
-				<button
-					className='h_28 px_8 bg_alt bg_active_hv bd_1 bd_bd ft_xs'
-					type='submit'
-				>
-					{getSheetTranslatedText('form.save', 'Save')}
-				</button>
+				<input
+					className='f stock ft_xs px_5 py_4 bd_0 bg_alt'
+					defaultValue={getSheetSelectEditorCustomInputValue(p.editState.draftValue, p.options)}
+					name='customValue'
+					placeholder='...'
+					type='text'
+				/>
+				<SheetSaveButton />
 			</form>
 			: null}
 	</div>;
@@ -642,6 +656,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 	prev.editState?.rowId === next.editState?.rowId &&
 	prev.editState?.cellKey === next.editState?.cellKey &&
 	prev.editState?.draftValue === next.editState?.draftValue &&
+	prev.editState?.disableInlineEditor === next.editState?.disableInlineEditor &&
 	prev.editState?.error === next.editState?.error &&
 	prev.headerCellsEditable === next.headerCellsEditable &&
 	prev.headerContent === next.headerContent &&

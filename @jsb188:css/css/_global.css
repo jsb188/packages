@@ -480,7 +480,7 @@ a.bg_pass:active, button.bg_pass:active { background-color: rgb(var(--color-pass
 
 .bg_contrast_hv:hover,
 .bg_contrast_alt,
-button.bg_contrast:not([disabled="true"]):hover, a.bg_contrast:not([disabled="true"]):hover {
+button.bg_contrast:not([disabled="true"]):not(.disabled):hover, a.bg_contrast:not([disabled="true"]):not(.disabled):hover {
   background-color: var(--color-contrast-hover) !important;
 }
 

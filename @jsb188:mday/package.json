@@ -17,6 +17,7 @@
     "./types/inboundContact.d.ts": "./src/types/inboundContact.d.ts",
     "./types/storage.d.ts": "./src/types/storage.d.ts",
     "./schemas/editLogEntry.ts": "./src/schemas/editLogEntry.ts",
+    "./schemas/inboundContact.ts": "./src/schemas/inboundContact.ts",
     "./schemas/logsQuery.ts": "./src/schemas/logsQuery.ts",
     "./schemas/organization.ts": "./src/schemas/organization.ts",
     "./schemas/childOrganizationsQuery.ts": "./src/schemas/childOrganizationsQuery.ts",

@@ -33,7 +33,7 @@ export const SHEET_STICKY_SPACER_SIZE = 4;
 
 const SHEET_COLUMN_RESIZE_HANDLE_WIDTH = 18;
 const SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET = 1;
-const SHEET_STICKY_LEFT_Z_INDEX = 33;
+const SHEET_STICKY_LEFT_Z_INDEX = 34;
 const SHEET_STICKY_HEADER_Z_INDEX = 31;
 const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 33;
 const SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX = 34;
@@ -123,6 +123,7 @@ function areSheetGridCellEditPropsEqual(
 
 	return (
 		prev.editState?.draftValue === next.editState?.draftValue &&
+		prev.editState?.disableInlineEditor === next.editState?.disableInlineEditor &&
 		prev.editState?.error === next.editState?.error
 	);
 }
@@ -945,6 +946,8 @@ export const SheetGridCell = memo((p: {
 
 	const isEditable = p.cell?.canEdit;
 	const isEditing = isSheetGridCellEditing(p);
+	const shouldRenderInlineEditor = isEditing && !p.editState?.disableInlineEditor;
+  const isInlineEditing = shouldRenderInlineEditor && !!p.rowId;
 	const isSelected = !isEditing && isSheetGridCellSelected(p);
 	const displayValue = p.cell?.displayValue || '';
 	const displayFieldType = getSheetColumnHumanFieldType(p.column);
@@ -961,7 +964,8 @@ export const SheetGridCell = memo((p: {
 		editableCellClassName,
 		p.isPlaceholderRow ? '' : 'bd_r_1 bd_b_1 bd_lt',
 		isEditing || (isSelected && !isEditable) ? 'active z4' : '',
-		!isEditing ? 'px_6 unsel' : '',
+		// !isEditing || !isInlineEditing ? 'px_6 unsel' : '',
+		!isInlineEditing ? 'px_6 unsel' : '',
 		isEditable && isSelected && !isEditing ? 'pointer' : '',
 		// p.cell?.canOpen ? 'link' : '', // Don't use .link class
 		!p.rowId ? 'noclick' : '',
@@ -985,14 +989,14 @@ export const SheetGridCell = memo((p: {
 			zIndex: p.isStickyLeft ? SHEET_STICKY_LEFT_Z_INDEX : undefined,
 		}}
 	>
-		{isEditing && p.rowId
+		{isInlineEditing
 			? <SheetCellEditor
 				cell={p.cell}
 				cellKey={p.column.key}
 				column={p.column}
 				draftValue={p.editState?.draftValue || ''}
 				error={p.editState?.error}
-				rowId={p.rowId}
+				rowId={p.rowId!}
 				/>
 				: <SheetCellDisplayValue
 					canOpen={p.cell?.canOpen}
