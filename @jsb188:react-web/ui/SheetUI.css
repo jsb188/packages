@@ -23,8 +23,12 @@
   outline: none;
 }
 
+.sheet_ui_cell.single-clicked,
 .sheet_ui_cell.active {
   overflow: visible;
+}
+
+.sheet_ui_cell.active {
   z-index: 33;
 }
 
@@ -40,6 +44,18 @@
   right: -2px;
   bottom: -2px;
   border: 2px solid rgb(var(--color-main));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sheet_ui_cell.single-clicked::before {
+  content: ' ';
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  border: 1px solid rgba(0,0,0, 0.1);
   pointer-events: none;
   z-index: 1;
 }

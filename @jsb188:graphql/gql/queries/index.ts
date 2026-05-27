@@ -1,6 +1,7 @@
 export * from './aiChatQueries.ts';
 export * from './appQueries.ts';
 export * from './billingQueries.ts';
+export * from './emailQueries.ts';
 export * from './inboundContactQueries.ts';
 export * from './logQueries.ts';
 export * from './organizationQueries.ts';

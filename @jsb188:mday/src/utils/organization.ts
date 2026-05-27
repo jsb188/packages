@@ -27,6 +27,7 @@ export const OPERATION_PERMISSIONS = {
   general_write: ['viewData', 'WRITE', 'You do not have permission to write data in this organization.'],
   integrations_update: ['integrations', 'MANAGE', 'You do not have permission to manage this organization\'s app connections.'],
   ai_inbox_management: ['orgManagement', 'MANAGE', 'You do not have permission to manage this organization\'s AI inbox.'],
+  ai_inbox_read: ['orgManagement', 'READ', 'You do not have permission to read this organization\'s AI inbox.'],
   logs_write: ['logs', 'WRITE', 'You do not have permission to write logs in this organization.'],
   org_directory: ['logs', 'WRITE', 'You do not have permission to manage this organization\'s directory book.'],
   org_management: ['orgManagement', 'WRITE', 'You do not have permission to edit this organization\'s data.'],

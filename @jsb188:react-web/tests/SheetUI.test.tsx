@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import i18n from '@jsb188/app/i18n/index.ts';
 import { readFileSync } from 'node:fs';
 import type { ComponentProps } from 'react';
 import { act } from 'react';
@@ -622,7 +621,7 @@ describe('SheetUI rendering', () => {
 		expect(dateTimeEditor?.querySelector('input, select, datalist')).toBeNull();
 	});
 
-	it('renders empty select cells as translated N/A text with muted color', async () => {
+	it('renders empty select cells as blank text with muted color and no chevron', async () => {
 		const columns = getSheetColumnMetrics([
 			createColumn('status', 'SELECT'),
 		]).metrics;
@@ -635,11 +634,16 @@ describe('SheetUI rendering', () => {
 			columns,
 			editState: null,
 			rows,
+			selectedCellState: {
+				cellKey: 'status',
+				rowId: 'row-1',
+			},
 		});
 		const cell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement | null;
 
-		expect(cell?.textContent).toBe(i18n.t('form.n_a'));
-		expect(cell?.querySelector('.cl_darker_2')?.textContent).toBe(i18n.t('form.n_a'));
+		expect(cell?.textContent).toBe('');
+		expect(cell?.querySelector('.cl_darker_2')?.textContent).toBe('');
+		expect(cell?.querySelector('.icon-chevron-down')).toBeNull();
 
 		await act(async () => {
 			currentRoot?.render(
@@ -657,18 +661,19 @@ describe('SheetUI rendering', () => {
 					headerWidth={SHEET_ROW_NUMBER_WIDTH + 160}
 					rows={rows}
 					scrollLeft={0}
+					selectedCellState={null}
 				/>,
 			);
 		});
 
 		const editor = host.querySelector('[data-sheet-editor="true"][data-cell-key="status"]') as HTMLElement | null;
 
-		expect(editor?.textContent).toBe(i18n.t('form.n_a'));
-		expect(editor?.querySelector('.cl_darker_2')?.textContent).toBe(i18n.t('form.n_a'));
-		expect(editor?.querySelector('.icon-chevron-down')).not.toBeNull();
+		expect(editor?.textContent).toBe('');
+		expect(editor?.querySelector('.cl_darker_2')?.textContent).toBe('');
+		expect(editor?.querySelector('.icon-chevron-down')).toBeNull();
 	});
 
-	it('renders empty date cells as translated N/A text with light color', async () => {
+	it('renders empty date cells as blank text with light color and no chevron', async () => {
 		const columns = getSheetColumnMetrics([
 			createColumn('dueDate', 'DATE'),
 			createColumn('startsAt', 'DATETIME'),
@@ -686,15 +691,20 @@ describe('SheetUI rendering', () => {
 			columns,
 			headerWidth: SHEET_ROW_NUMBER_WIDTH + 320,
 			rows,
+			selectedCellState: {
+				cellKey: 'dueDate',
+				rowId: 'row-1',
+			},
 		});
 		const dateCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="dueDate"]') as HTMLElement | null;
 		const dateTimeCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="startsAt"]') as HTMLElement | null;
 
-		expect(dateCell?.textContent).toBe(i18n.t('form.n_a'));
-		expect(dateCell?.querySelector('.cl_lt')?.textContent).toBe(i18n.t('form.n_a'));
+		expect(dateCell?.textContent).toBe('');
+		expect(dateCell?.querySelector('.cl_lt')?.textContent).toBe('');
+		expect(dateCell?.querySelector('.icon-chevron-down')).toBeNull();
 		expect(dateCell?.className).not.toContain('cl_darker_2');
-		expect(dateTimeCell?.textContent).toBe(i18n.t('form.n_a'));
-		expect(dateTimeCell?.querySelector('.cl_lt')?.textContent).toBe(i18n.t('form.n_a'));
+		expect(dateTimeCell?.textContent).toBe('');
+		expect(dateTimeCell?.querySelector('.cl_lt')?.textContent).toBe('');
 		expect(dateTimeCell?.className).not.toContain('cl_darker_2');
 
 		await act(async () => {
@@ -713,14 +723,16 @@ describe('SheetUI rendering', () => {
 					headerWidth={SHEET_ROW_NUMBER_WIDTH + 320}
 					rows={rows}
 					scrollLeft={0}
+					selectedCellState={null}
 				/>,
 			);
 		});
 
 		const editor = host.querySelector('[data-sheet-editor="true"][data-cell-key="startsAt"]') as HTMLElement | null;
 
-		expect(editor?.textContent).toBe(i18n.t('form.n_a'));
-		expect(editor?.querySelector('.cl_lt')?.textContent).toBe(i18n.t('form.n_a'));
+		expect(editor?.textContent).toBe('');
+		expect(editor?.querySelector('.cl_lt')?.textContent).toBe('');
+		expect(editor?.querySelector('.icon-chevron-down')).toBeNull();
 	});
 
 	it('renders a cell icon to the left of the display value', async () => {

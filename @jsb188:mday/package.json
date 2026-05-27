@@ -31,6 +31,7 @@
     "./types/report.d.ts": "./src/types/report.d.ts",
     "./types/sheet.d.ts": "./src/types/sheet.d.ts",
     "./types/workflow.d.ts": "./src/types/workflow.d.ts",
+    "./utils/email.ts": "./src/utils/email.ts",
     "./utils/log.ts": "./src/utils/log.ts",
     "./utils/organization.ts": "./src/utils/organization.ts",
     "./utils/product-calEvent.ts": "./src/utils/product-calEvent.ts",

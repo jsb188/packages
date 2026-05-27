@@ -7,7 +7,7 @@ import { makeEditInboundContactSchema } from '@jsb188/mday/schemas/inboundContac
 import type { InboundContactGQL, InboundContactOrgGQL } from '@jsb188/mday/types/inboundContact.d.ts';
 import type { OrganizationChildGQL } from '@jsb188/mday/types/organization.d.ts';
 import { MoreBelowScrollArea } from '@jsb188/react-web/modules/Scroll';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
+import { COMMON_ICON_NAMES, Icon } from '@jsb188/react-web/svgs/Icon';
 import { TextWithLinks } from '@jsb188/react-web/ui/Markdown';
 import { SheetEditorNav, SheetSaveButton } from '@jsb188/react-web/ui/SheetEditor';
 import type { SheetUIEditorClickSource } from '@jsb188/react-web/ui/SheetUI';
@@ -400,26 +400,34 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 
 		if (__type === 'input') {
 			const isReadOnly = isReadOnlyInboundContactDraftField(name);
+			const notEditable = disabled || isReadOnly;
 
 			return <label
 				className='h_item gap_8'
 				key={name}
 			>
-				<span className='cl_md w_70 min_w_70 px_4 ellip'>{label}</span>
+				<span className='cl_md w_70 min_w_70 px_4 ellip'>
+					{label}
+				</span>
+				<span className={cn('rel f bg_alt', notEditable ? 'pattern_stripes medium_bf' : '')}>
 					<input
 						autoComplete={autoComplete}
-						className='f min_w_0 stock bg_alt r_2 ft_xs px_4 py_2'
-						disabled={disabled || isReadOnly}
+						className={cn('f min_w_0 w_f stock r_2 ft_xs px_4 py_2 rel', notEditable ? 'cl_md pr_24' : 'bg_alt')}
+						disabled={notEditable}
 						maxLength={maxLength}
-					name={name}
-					onChange={isReadOnly ? undefined : (event) => {
-						setDraftField(name, event.currentTarget.value);
-					}}
-					placeholder={placeholder}
-					readOnly={isReadOnly}
-					type={type}
-					value={draftValues[name]}
-				/>
+						name={name}
+						onChange={isReadOnly ? undefined : (event) => {
+							setDraftField(name, event.currentTarget.value);
+						}}
+						placeholder={placeholder}
+						readOnly={isReadOnly}
+						type={type}
+						value={draftValues[name]}
+					/>
+					{notEditable && <span className='abs_r_center mr_5 ic_sm cl_md noclick'>
+						<Icon name={COMMON_ICON_NAMES.lock} />
+					</span>}
+				</span>
 			</label>;
 		}
 

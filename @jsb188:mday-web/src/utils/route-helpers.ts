@@ -2,6 +2,7 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 import type { ReportGroupGQL } from '@jsb188/mday/types/report.d.ts';
 import type { SheetGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { OperationName } from '@jsb188/mday/utils/organization.ts';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 
 // Use this for report periods, etc
@@ -30,6 +31,7 @@ type ValidRoutePath =
   | '/app/c/'
   | '/app/workflows-test'
   | '/app/workflows'
+  | '/app/emails'
   | '/app/logs'
   | '/app/greenhouse'
   | '/app/seeding'
@@ -63,9 +65,12 @@ interface RouteDictObj {
   allowedOperations?: OrganizationOperationEnum[];
   notAllowedOperations?: OrganizationOperationEnum[];
   requiredFeature?: OrganizationFeatureEnum[];
+  requiredACL?: OperationName;
 
   hasPhysicalToolbar?: 'ALWAYS' | 'NEVER' | ((parts: string[]) => boolean);
 }
+
+type CheckACLClientFn = (opName: OperationName) => boolean;
 
 const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 
@@ -96,6 +101,12 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app/workflows',
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
+  },
+  '/app/emails': {
+    to: '/app/emails',
+    text: 'app.ai_inboxes',
+    iconName: COMMON_ICON_NAMES.ai_inbox,
+    requiredACL: 'ai_inbox_read',
   },
   '/app/logs': {
     to: '/app/logs',
@@ -326,6 +337,7 @@ export function getRouteConfigs(
   pathname: ValidRoutePath | string,
   operation?: OrganizationOperationEnum | null,
   orgFeatures?: OrganizationFeatureEnum[] | null,
+  checkACLClient?: CheckACLClientFn | null,
 ): RouteConfigObj {
 
   for (const routeName of ROUTES_DICT_ORDERED) {
@@ -347,7 +359,7 @@ export function getRouteConfigs(
         ...routeDict,
         text: i18n.has(routeDict.text) ? i18n.t(routeDict.text) : routeDict.text,
         routeName: routeName as ValidRoutePath,
-        allowed: isRouteAllowed(pathname, operation, orgFeatures),
+        allowed: isRouteAllowed(pathname, operation, orgFeatures, checkACLClient),
         hasPhysicalToolbar,
       };
     }
@@ -371,6 +383,7 @@ export function isRouteAllowed(
   pathname: ValidRoutePath | string,
   operation?: OrganizationOperationEnum | null,
   orgFeatures?: OrganizationFeatureEnum[] | null,
+  checkACLClient?: CheckACLClientFn | null,
 ): boolean {
 
   let routeDict = ROUTES_DICT[pathname as ValidRoutePath];
@@ -396,7 +409,8 @@ export function isRouteAllowed(
     (!routeDict.allowedOperations || routeDict.allowedOperations.includes(operation || '')) &&
     (!routeDict.notAllowedOperations || !routeDict.notAllowedOperations.includes(operation || '')) &&
     // If {orgFeature} is null, assume data is not finished loading yet, and allow "benefit of doubt" access
-    (!orgFeatures || !routeDict.requiredFeature || routeDict.requiredFeature.some((feature) => orgFeatures.includes(feature)))
+    (!orgFeatures || !routeDict.requiredFeature || routeDict.requiredFeature.some((feature) => orgFeatures.includes(feature))) &&
+    (!routeDict.requiredACL || !checkACLClient || checkACLClient(routeDict.requiredACL))
   );
 }
 
@@ -425,6 +439,7 @@ export function getNavigationList(
   orgFeatures?: (OrganizationFeatureEnum | string)[], // This array contains available report groups also
   reportGroups?: ReportGroupGQL[] | null,
   sheets?: SheetGQL[] | null,
+  checkACLClient?: CheckACLClientFn | null,
 ): NavigationItem[] {
 
   const breakItem = {
@@ -541,6 +556,7 @@ export function getNavigationList(
     initialExpanded: true,
     navList: [
       ROUTES_DICT['/app/workflows'],
+      // ROUTES_DICT['/app/emails'],
       ROUTES_DICT['/app/logs']
     ]
   }] as any);
@@ -570,7 +586,7 @@ export function getNavigationList(
       if (!item.navList.length) {
         return null;
       }
-    } else if (item?.to && !isRouteAllowed(item.to, operation, orgFeatures)) {
+    } else if (item?.to && !isRouteAllowed(item.to, operation, orgFeatures, checkACLClient)) {
       return null;
     }
 

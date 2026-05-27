@@ -1,4 +1,3 @@
-import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, useSyncExternalStore } from 'react';
 import { Icon } from '../svgs/Icon';
@@ -260,6 +259,7 @@ function getSheetPickerCellDisplayValue(fieldType: SheetUIColumn['fieldType'], d
 	if (hasValue) {
 		return {
 			className: '',
+			hasValue,
 			value: displayValue,
 		};
 	}
@@ -267,13 +267,15 @@ function getSheetPickerCellDisplayValue(fieldType: SheetUIColumn['fieldType'], d
 	if (isSheetDateCellFieldType(fieldType)) {
 		return {
 			className: 'cl_lt',
-			value: i18n.t('form.n_a'),
+			hasValue,
+			value: '',
 		};
 	}
 
 	return {
 		className: isSheetSelectCellFieldType(fieldType) ? 'cl_darker_2' : '',
-		value: isSheetSelectCellFieldType(fieldType) ? i18n.t('form.n_a') : displayValue,
+		hasValue,
+		value: displayValue,
 	};
 }
 
@@ -941,7 +943,7 @@ export const SheetCellEditor = memo((p: {
 					displayValue={pickerDisplay.value}
 					fill
 					iconName={iconName}
-					showSelectChevron
+					showSelectChevron={pickerDisplay.hasValue}
 				/>
 			</div>;
 		}
@@ -1004,9 +1006,10 @@ export const SheetGridCell = memo((p: {
 	const isReadOnlyCell = Boolean(p.rowId && cell && !isEditable);
 	const editableCellClassName = isEditable
 		? isSelected
-			? getSheetSingleClickedCellClassName(cell?.cellClassName || 'bg_primary_fd_hv_solid')
+			? getSheetSingleClickedCellClassName(cell?.cellClassName || 'bg_primary_fd_hv_solid') + ' single-clicked'
 			: cell?.cellClassName || 'bg_primary_fd_hv_solid'
 		: '';
+
 	const cellClassName = cn(
 		'sheet_ui_cell of abs h_item cl_df',
 		editableCellClassName,
@@ -1052,7 +1055,7 @@ export const SheetGridCell = memo((p: {
 					displayClassName={cell?.displayClassName}
 					displayValue={pickerDisplay.value}
 					iconName={iconName}
-					showSelectChevron={isSelected && isSheetChevronCellFieldType(p.column.fieldType)}
+					showSelectChevron={isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
 				/>}
 	</div>;
 }, (prev, next) => (
