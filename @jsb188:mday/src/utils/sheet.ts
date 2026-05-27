@@ -44,7 +44,7 @@ export function clampSheetColumnWidth(width: number) {
  */
 
 function isPlainObject(value: any) {
-	return !!value && typeof value === 'object' && !Array.isArray(value);
+	return !!value && typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value);
 }
 
 /*
@@ -53,6 +53,38 @@ function isPlainObject(value: any) {
 
 export function isSheetViewMasterCellColumn(column: SheetDesignViewColumnObj | null | undefined) {
 	return column?.source?.type === 'MASTER_CELL' && typeof column.source.cellKey === 'string' && !!column.source.cellKey;
+}
+
+/*
+ * Return whether one sheet field type stores and compares values as numbers.
+ */
+
+export function isSheetNumberLikeFieldType(fieldType: SheetFieldTypeEnum | null | undefined) {
+	return fieldType === 'NUMBER' || fieldType === 'PRICE';
+}
+
+/*
+ * Return whether one sheet field type stores and compares values as dates.
+ */
+
+export function isSheetDateLikeFieldType(fieldType: SheetFieldTypeEnum | null | undefined) {
+	return fieldType === 'DATE' || fieldType === 'WEEK_OF_MON' || fieldType === 'WEEK_OF_SUN';
+}
+
+/*
+ * Return whether one sheet field type displays a calendar week range.
+ */
+
+export function isSheetWeekFieldType(fieldType: SheetFieldTypeEnum | null | undefined) {
+	return fieldType === 'WEEK_OF_MON' || fieldType === 'WEEK_OF_SUN';
+}
+
+/*
+ * Return the UTC day-of-week index used as the start for a week field type.
+ */
+
+function getSheetWeekStartDay(fieldType: SheetFieldTypeEnum | null | undefined) {
+	return fieldType === 'WEEK_OF_SUN' ? 0 : 1;
 }
 
 /*
@@ -83,15 +115,93 @@ function isValidSheetDateKey(value: string) {
 }
 
 /*
+ * Return a UTC date parsed from a YYYY-MM-DD string.
+ */
+
+function parseDateKey(value: string | null | undefined) {
+	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+		return null;
+	}
+
+	const [year, month, day] = value.split('-').map(Number);
+	const date = new Date(Date.UTC(year, month - 1, day));
+
+	if (
+		date.getUTCFullYear() !== year ||
+		date.getUTCMonth() !== month - 1 ||
+		date.getUTCDate() !== day
+	) {
+		return null;
+	}
+
+	return date;
+}
+
+/*
+ * Return a YYYY-MM-DD string for one date using UTC calendar fields.
+ */
+
+function formatDateKey(date: Date) {
+	const year = date.getUTCFullYear();
+	const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+	const day = String(date.getUTCDate()).padStart(2, '0');
+
+	return `${year}-${month}-${day}`;
+}
+
+/*
+ * Return a new UTC date offset by a number of days.
+ */
+
+function addDays(date: Date, days: number) {
+	const nextDate = new Date(date.getTime());
+	nextDate.setUTCDate(nextDate.getUTCDate() + days);
+
+	return nextDate;
+}
+
+/*
  * Return whether one value can be stored as a sheet date cell.
  */
 
-function isValidSheetDateValue(value: SheetRecordValue) {
+function isValidSheetDateValue(value: SheetRecordValue | Date) {
 	if (value instanceof Date) {
 		return Number.isFinite(value.getTime());
 	}
 
 	return isValidSheetDateKey(String(value).split('T')[0]);
+}
+
+/*
+ * Return the canonical date key for a sheet date-like value.
+ */
+
+export function getSheetDateValueKey(value: SheetRecordValue | Date) {
+	return value instanceof Date ? value.toISOString().split('T')[0] : String(value).split('T')[0];
+}
+
+/*
+ * Return a date string normalized to the configured sheet week start.
+ */
+
+export function normalizeSheetWeekDateValue(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum) {
+	const date = parseDateKey(getSheetDateValueKey(value));
+	if (!date || !isSheetWeekFieldType(fieldType)) {
+		return getSheetDateValueKey(value);
+	}
+
+	const startDay = getSheetWeekStartDay(fieldType);
+	const offset = (date.getUTCDay() - startDay + 7) % 7;
+
+	return formatDateKey(addDays(date, -offset));
+}
+
+/*
+ * Return a date string normalized for storage by one date-like sheet field.
+ */
+
+export function normalizeSheetDateLikeValue(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum) {
+	return isSheetWeekFieldType(fieldType) ? normalizeSheetWeekDateValue(value, fieldType) : getSheetDateValueKey(value);
 }
 
 /*
@@ -167,11 +277,11 @@ export function getSheetCellValueValidationError(
 		return null;
 	}
 
-	if (cell.fieldType === 'NUMBER' && !isValidSheetNumberValue(value)) {
+	if (isSheetNumberLikeFieldType(cell.fieldType) && !isValidSheetNumberValue(value)) {
 		return `${cell.key} must be a valid number.`;
 	}
 
-	if (cell.fieldType === 'DATE' && !isValidSheetDateValue(value)) {
+	if (isSheetDateLikeFieldType(cell.fieldType) && !isValidSheetDateValue(value)) {
 		return `${cell.key} must be a valid date.`;
 	}
 
@@ -203,6 +313,45 @@ export function getSheetCellValueValidationError(
 	}
 
 	return null;
+}
+
+/*
+ * Return a compact month-day string for sheet week display labels.
+ */
+
+function getSheetWeekDisplayMonthDay(date: Date, showMonth: boolean) {
+	const day = String(date.getUTCDate());
+	if (!showMonth) {
+		return day;
+	}
+
+	const month = date.toLocaleString('en-US', {
+		month: 'short',
+		timeZone: 'UTC',
+	});
+
+	return `${month} ${day}`;
+}
+
+/*
+ * Return the display text for one date as a sheet week range.
+ */
+
+export function formatSheetWeekDateRange(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum) {
+	if (!isSheetWeekFieldType(fieldType)) {
+		return '';
+	}
+
+	const start = parseDateKey(normalizeSheetWeekDateValue(value, fieldType));
+	if (!start) {
+		return '';
+	}
+
+	const end = addDays(start, 6);
+	const startText = getSheetWeekDisplayMonthDay(start, true);
+	const endText = getSheetWeekDisplayMonthDay(end, start.getUTCMonth() !== end.getUTCMonth());
+
+	return `${startText} - ${endText}`;
 }
 
 /*
@@ -344,52 +493,6 @@ export function moveVisibleSheetColumnKeyInOrder(params: {
 
 		return nextKey;
 	});
-}
-
-/*
- * Return a YYYY-MM-DD string for one date using UTC calendar fields.
- */
-
-function formatDateKey(date: Date) {
-	const year = date.getUTCFullYear();
-	const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-	const day = String(date.getUTCDate()).padStart(2, '0');
-
-	return `${year}-${month}-${day}`;
-}
-
-/*
- * Return a UTC date parsed from a YYYY-MM-DD string.
- */
-
-function parseDateKey(value: string | null | undefined) {
-	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-		return null;
-	}
-
-	const [year, month, day] = value.split('-').map(Number);
-	const date = new Date(Date.UTC(year, month - 1, day));
-
-	if (
-		date.getUTCFullYear() !== year ||
-		date.getUTCMonth() !== month - 1 ||
-		date.getUTCDate() !== day
-	) {
-		return null;
-	}
-
-	return date;
-}
-
-/*
- * Return a new UTC date offset by a number of days.
- */
-
-function addDays(date: Date, days: number) {
-	const nextDate = new Date(date.getTime());
-	nextDate.setUTCDate(nextDate.getUTCDate() + days);
-
-	return nextDate;
 }
 
 /*
@@ -646,6 +749,7 @@ export function mapSheetDesignViewColumnToCell(
 		iconName: column.iconName ?? masterCell?.iconName ?? null,
 		fieldType: masterCell?.fieldType || column.fieldType || column.humanFieldType as SheetFieldTypeEnum,
 		humanFieldType: column.humanFieldType,
+		format: masterCell?.format ?? null,
 		source: column.source?.type === 'RELATED_RECORD' && column.source.path && column.source.table
 			? {
 				path: column.source.path,

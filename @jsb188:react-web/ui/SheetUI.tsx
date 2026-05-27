@@ -18,6 +18,7 @@ import {
 	SheetPlaceholderRowFillCell,
 	SheetRowNumberSlot,
 	SheetStickyColumnSpacerSlot,
+	SheetTopLeftRowNumberSlot,
 	isSheetColumnSticky,
 	isSheetPlaceholderRowSlot,
 } from './SheetCell';
@@ -50,8 +51,11 @@ export type SheetUIFieldType =
 	| 'TEXT'
 	| 'ID'
 	| 'NUMBER'
+	| 'PRICE'
 	| 'BOOLEAN'
 	| 'DATE'
+	| 'WEEK_OF_MON'
+	| 'WEEK_OF_SUN'
 	| 'DATETIME'
 	| 'SELECT'
 	| 'SELECT_OR_TEXT'
@@ -156,6 +160,17 @@ export type SheetUIColumnReorderDrag = {
 
 export type SheetUIColumnReorderDisplacements = Record<string, number>;
 
+export type SheetUICellRenderSnapshot = {
+	cell?: SheetUICell;
+	editState?: SheetUIEditState | null;
+	selected?: boolean;
+};
+
+export type SheetUICellRenderStore = {
+	getSnapshot: (rowId: string, cellKey: string) => SheetUICellRenderSnapshot;
+	subscribe: (rowId: string, cellKey: string, listener: () => void) => () => void;
+};
+
 export interface SheetSelectEditorProps {
 	clickSource?: SheetUIEditorClickSource;
 	editState: SheetUIEditState;
@@ -167,6 +182,7 @@ export interface SheetUIProps {
 	canvasHeight: number;
 	canvasWidth: number;
 	cellCount: number;
+	cellStore?: SheetUICellRenderStore;
 	columnReorderDrag?: SheetUIColumnReorderDrag | null;
 	columnReorderDisplacements?: SheetUIColumnReorderDisplacements | null;
 	columnReorderEnabled?: boolean;
@@ -190,6 +206,7 @@ export interface SheetUIProps {
 	stickyColumnCount?: number | null;
 	className?: string;
 	id?: string;
+	cellRenderCallback?: (rowId: string | null, cellKey: string) => void;
 	overlayContent?: ReactNode;
 	style?: CSSProperties;
 }
@@ -270,7 +287,7 @@ export function getSheetColumnMetrics(columns: SheetUIColumn[], columnWidths: Sh
 	let totalWidth = 0;
 
 	columns.forEach((column, columnIndex) => {
-		const width = clampSheetColumnWidth(columnWidths[column.key] || SHEET_COLUMN_WIDTH);
+		const width = clampSheetColumnWidth(columnWidths[column.id] || SHEET_COLUMN_WIDTH);
 
 		metrics.push({
 			column,
@@ -563,6 +580,8 @@ export const SheetUI = memo((p: SheetUIProps) => {
 					</div>
 					: null}
 
+				<SheetTopLeftRowNumberSlot rowWidth={Math.max(p.headerSpacerWidth ?? p.headerWidth, p.canvasWidth)} />
+
 				{p.rows.map((rowSlot) => {
 					return <SheetRowNumberSlot
 						key={rowSlot.rowKey}
@@ -609,6 +628,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 						return <SheetGridCell
 							key={`${rowSlot.rowKey}:${columnMetric.column.key}`}
 							cell={rowSlot.cellsByKey[columnMetric.column.key]}
+							cellStore={p.cellStore}
 							cellLeft={cellLeft}
 							column={columnMetric.column}
 							columnIndex={columnMetric.columnIndex}
@@ -616,6 +636,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 							editState={p.editState}
 							isPlaceholderRow={isPlaceholderRow}
 							isStickyLeft={isStickyLeft}
+							renderCallback={p.cellRenderCallback}
 							rowHeight={rowSlot.rowHeight}
 							rowId={rowSlot.rowId}
 							rowIndex={rowSlot.rowIndex}
@@ -633,6 +654,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 	prev.canvasHeight === next.canvasHeight &&
 	prev.canvasWidth === next.canvasWidth &&
 	prev.cellCount === next.cellCount &&
+	prev.cellStore === next.cellStore &&
 	prev.className === next.className &&
 	prev.columnReorderDrag?.columnKey === next.columnReorderDrag?.columnKey &&
 	prev.columnReorderDrag?.label === next.columnReorderDrag?.label &&
@@ -658,6 +680,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 	prev.headerSpacerWidth === next.headerSpacerWidth &&
 	prev.headerWidth === next.headerWidth &&
 	prev.id === next.id &&
+	prev.cellRenderCallback === next.cellRenderCallback &&
 	prev.overlayContent === next.overlayContent &&
 	prev.resizeGuide?.columnKey === next.resizeGuide?.columnKey &&
 	prev.resizeGuide?.height === next.resizeGuide?.height &&

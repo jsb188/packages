@@ -7,8 +7,6 @@ mutation editInboundContact (
   $inboundContactId: GenericID!
   $associatedOrganizationIds: [GenericID]
   $personName: String
-  $email: String
-  $phone: String
   $memory: String
 ) {
   editInboundContact (
@@ -16,8 +14,6 @@ mutation editInboundContact (
     inboundContactId: $inboundContactId
     associatedOrganizationIds: $associatedOrganizationIds
     personName: $personName
-    email: $email
-    phone: $phone
     memory: $memory
   ) {
     ...inboundContactFragment

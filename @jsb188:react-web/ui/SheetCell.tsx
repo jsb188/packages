@@ -1,18 +1,19 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import { memo } from 'react';
+import { memo, useSyncExternalStore } from 'react';
 import { Icon } from '../svgs/Icon';
 import type {
-  SheetColumnMetric,
-  SheetUICell,
-  SheetUIColumn,
-  SheetUIColumnReorderDisplacements,
-  SheetUIColumnReorderDrag,
-  SheetUIColumnReorderGuide,
-  SheetUIEditState,
-  SheetUIHeaderEditState,
-  SheetUIRowSlot,
-  SheetUISelectedCellState,
+	SheetColumnMetric,
+	SheetUICell,
+	SheetUIColumn,
+	SheetUIColumnReorderDisplacements,
+	SheetUIColumnReorderDrag,
+	SheetUIColumnReorderGuide,
+	SheetUIEditState,
+	SheetUICellRenderStore,
+	SheetUIHeaderEditState,
+	SheetUIRowSlot,
+	SheetUISelectedCellState,
 } from './SheetUI';
 
 /**
@@ -33,9 +34,9 @@ export const SHEET_STICKY_SPACER_SIZE = 4;
 
 const SHEET_COLUMN_RESIZE_HANDLE_WIDTH = 18;
 const SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET = 1;
-const SHEET_STICKY_LEFT_Z_INDEX = 34;
+const SHEET_STICKY_LEFT_Z_INDEX = 21;
 const SHEET_STICKY_HEADER_Z_INDEX = 31;
-const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 33;
+const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 32;
 const SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX = 34;
 const SHEET_COLUMN_REORDER_GUIDE_Z_INDEX = 35;
 const SHEET_COLUMN_REORDER_DRAG_Z_INDEX = 36;
@@ -129,6 +130,45 @@ function areSheetGridCellEditPropsEqual(
 }
 
 /*
+ * Return the per-cell render snapshot from the optional Sheet render store.
+ */
+
+function useSheetGridCellRenderSnapshot(p: {
+	cell?: SheetUICell;
+	cellStore?: SheetUICellRenderStore;
+	column: SheetUIColumn;
+	editState?: SheetUIEditState | null;
+	rowId?: string | null;
+	selectedCellState?: SheetUISelectedCellState | null;
+}) {
+	const rowId = p.rowId || '';
+	const cellKey = p.column.key;
+	const fallbackSnapshot = {
+		cell: p.cell,
+		editState: isSheetGridCellEditing(p) ? p.editState : null,
+		selected: isSheetGridCellSelected(p),
+	};
+
+	return useSyncExternalStore(
+		(listener) => {
+			if (!p.cellStore || !rowId) {
+				return () => {};
+			}
+
+			return p.cellStore.subscribe(rowId, cellKey, listener);
+		},
+		() => {
+			if (!p.cellStore || !rowId) {
+				return fallbackSnapshot;
+			}
+
+			return p.cellStore.getSnapshot(rowId, cellKey);
+		},
+		() => fallbackSnapshot,
+	);
+}
+
+/*
  * Return whether one row slot is just viewport filler after the data rows.
  */
 
@@ -182,7 +222,7 @@ function isSheetSelectCellFieldType(fieldType: SheetUIColumn['fieldType']) {
  */
 
 function isSheetDateCellFieldType(fieldType: SheetUIColumn['fieldType']) {
-	return fieldType === 'DATE' || fieldType === 'DATETIME';
+	return fieldType === 'DATE' || fieldType === 'WEEK_OF_MON' || fieldType === 'WEEK_OF_SUN' || fieldType === 'DATETIME';
 }
 
 /*
@@ -196,6 +236,8 @@ function isSheetChevronCellFieldType(fieldType: SheetUIColumn['fieldType']) {
 		fieldType === 'MULTI_SELECT' ||
 		fieldType === 'BOOLEAN' ||
 		fieldType === 'DATE' ||
+		fieldType === 'WEEK_OF_MON' ||
+		fieldType === 'WEEK_OF_SUN' ||
 		fieldType === 'DATETIME'
 	);
 }
@@ -274,13 +316,14 @@ export const SheetHeaderCell = memo((p: {
 	isColumnReorderDragging?: boolean;
 }) => {
 	const isEditing = p.headerEditState?.cellKey === p.column.key;
-	const isEditable = Boolean(p.headerCellsEditable && !p.column.humansCannotEdit);
+	const isEditable = Boolean(p.headerCellsEditable);
 	const isReorderable = Boolean(p.columnReorderEnabled && !isEditing);
 	const reorderOffset = p.columnReorderOffset || 0;
 
 	return <div
 		className={cn(
 			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt h_item ft_medium cl_md no_wrap z3',
+			isReorderable ? 'cs_default_to_grabing' : '',
 			isEditable ? getSheetHeaderEditableClassName() : '',
 			isEditing ? 'active' : 'px_8',
 			!isEditing ? 'unsel' : '',
@@ -292,7 +335,6 @@ export const SheetHeaderCell = memo((p: {
 		data-sheet-header-editable={isEditable ? 'true' : undefined}
 		data-sheet-header-reorderable={isReorderable ? 'true' : undefined}
 		style={{
-			cursor: isReorderable ? 'grab' : undefined,
 			height: SHEET_HEADER_HEIGHT,
 			left: p.headerLeft,
 			opacity: p.isColumnReorderDragging ? 0.35 : undefined,
@@ -350,7 +392,7 @@ export const SheetColumnResizeHandle = memo((p: {
 		aria-label={`Resize ${p.column.label}`}
 		aria-orientation='vertical'
 		className={cn('abs', p.disabled ? '' : 'cs_back hv_area')}
-		data-sheet-column-resize-handle={p.column.key}
+		data-sheet-column-resize-handle={p.column.id}
 		role='separator'
 		style={{
 			cursor: 'col-resize',
@@ -506,7 +548,7 @@ export const SheetHeaderArea = memo((p: {
 					columnMetric.left;
 
 				return <SheetHeaderCell
-					key={columnMetric.column.key}
+					key={columnMetric.column.id}
 					column={columnMetric.column}
 					columnIndex={columnMetric.columnIndex}
 					columnReorderEnabled={p.columnReorderEnabled}
@@ -543,7 +585,7 @@ export const SheetHeaderArea = memo((p: {
 						SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET;
 
 					return <SheetColumnResizeHandle
-						key={columnMetric.column.key}
+						key={columnMetric.column.id}
 						column={columnMetric.column}
 						columnIndex={columnMetric.columnIndex}
 						columnWidth={columnMetric.width}
@@ -727,16 +769,14 @@ export const SheetRowNumberSlot = memo((p: {
 	rowWidth: number;
 }) => {
 	const rowHeight = p.rowHeight ?? SHEET_ROW_HEIGHT;
-	const slotHeight = p.rowIndex === 0 ? p.rowTop + rowHeight : rowHeight;
-	const slotTop = p.rowIndex === 0 ? 0 : p.rowTop;
 
 	return <div
 		className='abs'
 		data-sheet-row-number-slot='true'
 		style={{
-			height: slotHeight,
+			height: rowHeight,
 			left: 0,
-			top: slotTop,
+			top: p.rowTop,
 			width: p.rowWidth,
 		}}
 	>
@@ -746,7 +786,7 @@ export const SheetRowNumberSlot = memo((p: {
 			rowId={p.rowId}
 			rowIndex={p.rowIndex}
 			rowNumber={p.rowNumber}
-			rowHeight={slotHeight}
+			rowHeight={rowHeight}
 		/>
 	</div>;
 }, (prev, next) => (
@@ -877,6 +917,8 @@ export const SheetCellEditor = memo((p: {
 		p.column.fieldType === 'MULTI_SELECT' ||
 		p.column.fieldType === 'BOOLEAN' ||
 		p.column.fieldType === 'DATE' ||
+		p.column.fieldType === 'WEEK_OF_MON' ||
+		p.column.fieldType === 'WEEK_OF_SUN' ||
 		p.column.fieldType === 'DATETIME'
 	) {
 		const displayValue = p.cell?.displayValue || p.draftValue;
@@ -911,7 +953,7 @@ export const SheetCellEditor = memo((p: {
 		/>;
 	}
 
-	const inputType = p.column.fieldType === 'NUMBER'
+	const inputType = p.column.fieldType === 'NUMBER' || p.column.fieldType === 'PRICE'
 		? 'number'
 		: 'text';
 
@@ -930,6 +972,7 @@ SheetCellEditor.displayName = 'SheetCellEditor';
 
 export const SheetGridCell = memo((p: {
 	cell?: SheetUICell;
+	cellStore?: SheetUICellRenderStore;
 	cellLeft: number;
 	column: SheetUIColumn;
 	columnIndex: number;
@@ -942,22 +985,27 @@ export const SheetGridCell = memo((p: {
 	rowIndex: number;
 	rowTop: number;
 	selectedCellState?: SheetUISelectedCellState | null;
+	renderCallback?: (rowId: string | null, cellKey: string) => void;
 }) => {
+	p.renderCallback?.(p.rowId || null, p.column.key);
 
-	const isEditable = p.cell?.canEdit;
-	const isEditing = isSheetGridCellEditing(p);
-	const shouldRenderInlineEditor = isEditing && !p.editState?.disableInlineEditor;
-  const isInlineEditing = shouldRenderInlineEditor && !!p.rowId;
-	const isSelected = !isEditing && isSheetGridCellSelected(p);
-	const displayValue = p.cell?.displayValue || '';
+	const cellSnapshot = useSheetGridCellRenderSnapshot(p);
+	const cell = cellSnapshot.cell;
+	const editState = cellSnapshot.editState || null;
+	const isEditable = cell?.canEdit;
+	const isEditing = Boolean(editState);
+	const shouldRenderInlineEditor = isEditing && !editState?.disableInlineEditor;
+	const isInlineEditing = shouldRenderInlineEditor && !!p.rowId;
+	const isSelected = !isEditing && Boolean(cellSnapshot.selected);
+	const displayValue = cell?.displayValue || '';
 	const displayFieldType = getSheetColumnHumanFieldType(p.column);
 	const pickerDisplay = getSheetPickerCellDisplayValue(displayFieldType, displayValue);
-	const iconName = p.cell?.iconName || '';
-	const isReadOnlyCell = Boolean(p.rowId && p.cell && !isEditable);
+	const iconName = cell?.iconName || '';
+	const isReadOnlyCell = Boolean(p.rowId && cell && !isEditable);
 	const editableCellClassName = isEditable
 		? isSelected
-			? getSheetSingleClickedCellClassName(p.cell?.cellClassName || 'bg_primary_fd_hv_solid')
-			: p.cell?.cellClassName || 'bg_primary_fd_hv_solid'
+			? getSheetSingleClickedCellClassName(cell?.cellClassName || 'bg_primary_fd_hv_solid')
+			: cell?.cellClassName || 'bg_primary_fd_hv_solid'
 		: '';
 	const cellClassName = cn(
 		'sheet_ui_cell of abs h_item cl_df',
@@ -980,7 +1028,7 @@ export const SheetGridCell = memo((p: {
 		data-row-id={p.rowId || undefined}
 		data-sheet-cell='true'
 		data-sheet-cell-editable={isEditable ? 'true' : undefined}
-		data-sheet-cell-open-link={p.cell?.canOpen ? 'true' : undefined}
+		data-sheet-cell-open-link={cell?.canOpen ? 'true' : undefined}
 		style={{
 			height: p.rowHeight ?? SHEET_ROW_HEIGHT,
 			left: p.cellLeft,
@@ -991,17 +1039,17 @@ export const SheetGridCell = memo((p: {
 	>
 		{isInlineEditing
 			? <SheetCellEditor
-				cell={p.cell}
+				cell={cell}
 				cellKey={p.column.key}
 				column={p.column}
-				draftValue={p.editState?.draftValue || ''}
-				error={p.editState?.error}
+				draftValue={editState?.draftValue || ''}
+				error={editState?.error}
 				rowId={p.rowId!}
 				/>
 				: <SheetCellDisplayValue
-					canOpen={p.cell?.canOpen}
+					canOpen={cell?.canOpen}
 					className={pickerDisplay.className}
-					displayClassName={p.cell?.displayClassName}
+					displayClassName={cell?.displayClassName}
 					displayValue={pickerDisplay.value}
 					iconName={iconName}
 					showSelectChevron={isSelected && isSheetChevronCellFieldType(p.column.fieldType)}
@@ -1009,6 +1057,7 @@ export const SheetGridCell = memo((p: {
 	</div>;
 }, (prev, next) => (
 	prev.cell === next.cell &&
+	prev.cellStore === next.cellStore &&
 	prev.cellLeft === next.cellLeft &&
 	prev.column.id === next.column.id &&
 	prev.column.key === next.column.key &&
@@ -1017,10 +1066,11 @@ export const SheetGridCell = memo((p: {
 	prev.column.humanFieldType === next.column.humanFieldType &&
 	prev.columnIndex === next.columnIndex &&
 	prev.columnWidth === next.columnWidth &&
-	areSheetGridCellEditPropsEqual(prev, next) &&
-	areSheetGridCellSelectedPropsEqual(prev, next) &&
+	(prev.cellStore ? true : areSheetGridCellEditPropsEqual(prev, next)) &&
+	(prev.cellStore ? true : areSheetGridCellSelectedPropsEqual(prev, next)) &&
 	prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.isStickyLeft === next.isStickyLeft &&
+	prev.renderCallback === next.renderCallback &&
 	prev.rowHeight === next.rowHeight &&
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&

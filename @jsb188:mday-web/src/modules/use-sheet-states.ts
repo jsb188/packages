@@ -18,6 +18,7 @@ export type SheetRowsState = {
 
 export type SheetDesignPatchInput = {
 	cells?: Array<{
+		format?: string | null;
 		humanLabel?: string | null;
 		key: string;
 		width?: number | null;
@@ -315,13 +316,16 @@ export function mergeSheetDesignWithPatch(
 
 	if (localPatch.cells?.length) {
 		const patchCellsByKey = new Map(localPatch.cells.map((cell) => [cell.key, cell]));
+		const patchedKeys = new Set<string>();
 
 		cells = serverDesign.cells.map((cell) => {
 			const patchCell = patchCellsByKey.get(cell.key);
 
-			if (!patchCell) {
+			if (!patchCell || patchedKeys.has(cell.key)) {
 				return cell;
 			}
+
+			patchedKeys.add(cell.key);
 
 			return {
 				...cell,
@@ -368,7 +372,13 @@ function removeConfirmedSheetDesignPatchValues(
 	}
 
 	let nextPatch: SheetDesignPatchInput | null = null;
-	const serverCellsByKey = new Map(serverDesign.cells.map((cell) => [cell.key, cell]));
+	const serverCellsByKey = new Map<string, SheetDesignGQL['cells'][number]>();
+
+	serverDesign.cells.forEach((cell) => {
+		if (!serverCellsByKey.has(cell.key)) {
+			serverCellsByKey.set(cell.key, cell);
+		}
+	});
 
 	localPatch.cells?.forEach((patchCell) => {
 		const serverCell = serverCellsByKey.get(patchCell.key);
@@ -391,7 +401,11 @@ function removeConfirmedSheetDesignPatchValues(
 			nextCell.humanLabel = patchCell.humanLabel;
 		}
 
-		if (nextCell.width !== undefined || nextCell.humanLabel !== undefined) {
+		if (patchCell.format !== undefined && (serverCell?.format || null) !== patchCell.format) {
+			nextCell.format = patchCell.format;
+		}
+
+		if (nextCell.width !== undefined || nextCell.humanLabel !== undefined || nextCell.format !== undefined) {
 			nextPatch = mergeSheetDesignPatch(nextPatch, {
 				cells: [nextCell],
 			});

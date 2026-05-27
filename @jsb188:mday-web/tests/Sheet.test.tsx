@@ -1011,6 +1011,18 @@ describe('Sheet container', () => {
 			fieldType: 'NUMBER',
 			humanFieldType: 'NUMBER',
 		}), '12.5').value).toBe('12.5');
+		expect(parseSheetEditorValue(createDesignCell('price', {
+			fieldType: 'PRICE',
+			humanFieldType: 'PRICE',
+		}), '12.5').value).toBe('12.5');
+		expect(parseSheetEditorValue(createDesignCell('week', {
+			fieldType: 'WEEK_OF_MON',
+			humanFieldType: 'WEEK_OF_MON',
+		}), '2026-05-27').value).toBe('2026-05-25');
+		expect(parseSheetEditorValue(createDesignCell('week', {
+			fieldType: 'WEEK_OF_SUN',
+			humanFieldType: 'WEEK_OF_SUN',
+		}), '2026-05-27').value).toBe('2026-05-24');
 		expect(parseSheetEditorValue(createDesignCell('boolean', {
 			fieldType: 'BOOLEAN',
 			humanFieldType: 'BOOLEAN',
@@ -1065,6 +1077,101 @@ describe('Sheet container', () => {
 
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="count"]')?.textContent).toBe('42');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="enabled"]')?.textContent).toBe('false');
+	});
+
+	it('formats price and week fields for display', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('price', {
+					fieldType: 'PRICE',
+					humanFieldType: 'PRICE',
+				}),
+				createDesignCell('same_month_week', {
+					fieldType: 'WEEK_OF_MON',
+					humanFieldType: 'WEEK_OF_MON',
+				}),
+				createDesignCell('cross_month_week', {
+					fieldType: 'WEEK_OF_MON',
+					humanFieldType: 'WEEK_OF_MON',
+				}),
+				createDesignCell('sun_week', {
+					fieldType: 'WEEK_OF_SUN',
+					humanFieldType: 'WEEK_OF_SUN',
+				}),
+				createDesignCell('related_week', {
+					fieldType: 'ID',
+					humanFieldType: 'WEEK_OF_MON',
+				}),
+			],
+			cellsOrder: ['price', 'same_month_week', 'cross_month_week', 'sun_week', 'related_week'],
+		};
+		const row = createRow(0, {});
+		row.cells = [
+			createCell(row.id, 'price', 'stale', {
+				numberValue: 12.5,
+			}),
+			createCell(row.id, 'same_month_week', 'stale', {
+				dateValue: '2026-05-18',
+			}),
+			createCell(row.id, 'cross_month_week', 'stale', {
+				dateValue: '2025-05-26',
+			}),
+			createCell(row.id, 'sun_week', 'stale', {
+				dateValue: '2026-05-27',
+			}),
+			createCell(row.id, 'related_week', '2026-05-27'),
+		];
+		hookState.sheetRows = [row];
+		const host = await renderSheet({ sheet });
+
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="price"]')?.textContent).toBe('$12.50');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="same_month_week"]')?.textContent).toBe('May 18 - 24');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="cross_month_week"]')?.textContent).toBe('May 26 - Jun 1');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="sun_week"]')?.textContent).toBe('May 24 - 30');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="related_week"]')?.textContent).toBe('May 25 - 31');
+	});
+
+	it('formats date and datetime cells with design cell format', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('date', {
+					fieldType: 'DATE',
+					humanFieldType: 'DATE',
+					format: 'ccc, LLL d',
+				}),
+				createDesignCell('datetime', {
+					fieldType: 'DATETIME',
+					humanFieldType: 'DATETIME',
+					format: 'LLL d, h:mm a',
+				}),
+				createDesignCell('related_date', {
+					fieldType: 'ID',
+					humanFieldType: 'DATE',
+					format: 'yyyy LLL dd',
+				}),
+			],
+			cellsOrder: ['date', 'datetime', 'related_date'],
+		};
+		const row = createRow(0, {});
+		row.cells = [
+			createCell(row.id, 'date', 'stale', {
+				dateValue: '2026-05-18',
+			}),
+			createCell(row.id, 'datetime', 'stale', {
+				datetimeValue: '2026-05-18T14:30:00.000',
+			}),
+			createCell(row.id, 'related_date', '2026-05-18'),
+		];
+		hookState.sheetRows = [row];
+		const host = await renderSheet({ sheet });
+
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="date"]')?.textContent).toBe('Mon, May 18');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="datetime"]')?.textContent).toBe('May 18, 2:30 PM');
+		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="related_date"]')?.textContent).toBe('2026 May 18');
 	});
 
 	it('selects a valid saved default view on first render', async () => {
@@ -1210,6 +1317,51 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		expect(host.querySelector('[data-sheet-header-editor="true"]')).toBeNull();
+	});
+
+	it('enters read-only column header edit mode on double click', async () => {
+		const lockedNameCell = createDesignCell('name', { humansCannotEdit: true });
+		const statusCell = createDesignCell('status');
+		const host = await renderSheet({
+			sheet: createSheet({
+				design: {
+					...createSheet().design,
+					cells: [lockedNameCell, statusCell],
+					cellsOrder: ['name', 'status'],
+				},
+			}),
+		});
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-header-editor="true"]') as HTMLInputElement;
+		expect(input).not.toBeNull();
+		expect(input.value).toBe('NAME');
+	});
+
+	it('enters header edit mode when a single-clicked header is clicked again', async () => {
+		const host = await renderSheet();
+		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-header-editor="true"]')).toBeNull();
+
+		await act(async () => {
+			nameHeader.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-header-editor="true"]') as HTMLInputElement;
+		expect(input).not.toBeNull();
+		expect(input.value).toBe('NAME');
 	});
 
 	it('exits header edit mode on escape', async () => {
@@ -2776,6 +2928,8 @@ describe('Sheet container', () => {
 		expect(editor.querySelector('input[name="personName"]')).not.toBeNull();
 		expect(editor.querySelector('input[name="email"]')).not.toBeNull();
 		expect(editor.querySelector('input[name="phone"]')).not.toBeNull();
+		expect((editor.querySelector('input[name="email"]') as HTMLInputElement).disabled).toBe(true);
+		expect((editor.querySelector('input[name="phone"]') as HTMLInputElement).disabled).toBe(true);
 		expect(editor.querySelector('textarea[name="memory"]')).not.toBeNull();
 		expect(setFloatingMessage).not.toHaveBeenCalled();
 		expect(hookState.lastInboundContactArgs?.[0]).toEqual({
@@ -2783,8 +2937,6 @@ describe('Sheet container', () => {
 			inboundContactId: 'contact-1',
 		});
 
-		setNativeInputValue(editor.querySelector('input[name="email"]') as HTMLInputElement, 'buyer@example.com');
-		setNativeInputValue(editor.querySelector('input[name="phone"]') as HTMLInputElement, '555-0100');
 		setNativeInputValue(editor.querySelector('textarea[name="memory"]') as HTMLTextAreaElement, 'Prefers morning pickup.');
 
 		await act(async () => {
@@ -2797,8 +2949,6 @@ describe('Sheet container', () => {
 				organizationId: 'org-1',
 				inboundContactId: 'contact-1',
 				personName: 'Contact 1',
-				email: 'buyer@example.com',
-				phone: '555-0100',
 				memory: 'Prefers morning pickup.',
 			},
 		});
@@ -2882,7 +3032,9 @@ describe('Sheet container', () => {
 		expect((editor.querySelector('input[name="personName"]') as HTMLInputElement).value).toBe('Loaded Contact');
 		expect((editor.querySelector('input[name="personName"]') as HTMLInputElement).disabled).toBe(false);
 		expect((editor.querySelector('input[name="email"]') as HTMLInputElement).value).toBe('loaded@example.com');
+		expect((editor.querySelector('input[name="email"]') as HTMLInputElement).disabled).toBe(true);
 		expect((editor.querySelector('input[name="phone"]') as HTMLInputElement).value).toBe('+15550100');
+		expect((editor.querySelector('input[name="phone"]') as HTMLInputElement).disabled).toBe(true);
 		expect((editor.querySelector('textarea[name="memory"]') as HTMLTextAreaElement).value).toBe('Loaded memory');
 	});
 
@@ -3072,6 +3224,62 @@ describe('Sheet container', () => {
 
 		expect(nameHeader.style.width).toBe('210px');
 		expect(host.querySelector('[data-sheet-column-resize-guide="name"]')).toBeNull();
+	});
+
+	it('resizes only the dragged header when duplicate column keys are rendered', async () => {
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name', { label: 'Name A' }),
+				createDesignCell('name', { label: 'Name B' }),
+			],
+			cellsOrder: [],
+		};
+		hookState.sheetRows = [createRow(0, {
+			name: 'Alpha',
+		})];
+		const host = await renderSheet({ sheet });
+		const headers = Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')) as HTMLElement[];
+		const resizeHandles = Array.from(host.querySelectorAll('[data-sheet-column-resize-handle]')) as HTMLElement[];
+
+		expect(headers.map((header) => header.style.width)).toEqual(['160px', '160px']);
+		expect(resizeHandles.map((handle) => handle.dataset.sheetColumnResizeHandle)).toEqual(['name__1', 'name__2']);
+
+		await act(async () => {
+			resizeHandles[1]?.dispatchEvent(new MouseEvent('pointerdown', {
+				bubbles: true,
+				button: 0,
+				clientX: 320,
+			}));
+			window.dispatchEvent(new MouseEvent('pointermove', {
+				bubbles: true,
+				buttons: 1,
+				clientX: 370,
+			}));
+			window.dispatchEvent(new MouseEvent('pointerup', {
+				bubbles: true,
+				buttons: 0,
+				clientX: 370,
+			}));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(headers[0]?.style.width).toBe('210px');
+		expect(headers[1]?.style.width).toBe('160px');
+		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+			variables: {
+				design: {
+					cells: [{
+						key: 'name',
+						width: 210,
+					}],
+				},
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+			},
+		});
 	});
 
 	it('does not resize or save design changes when editing is denied', async () => {

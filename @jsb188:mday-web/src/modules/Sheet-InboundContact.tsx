@@ -233,7 +233,7 @@ function SheetInboundContactOrganizationTab(p: SheetInboundContactOrganizationTa
 		>
 			{associatedOrganizationText}
 		</TextWithLinks>
-		<MoreBelowScrollArea className='pt_12 px_6 grid gap_4 max_h_300'>
+		<MoreBelowScrollArea className='pt_12 px_6 grid gap_4 max_h_300' scrollClassName='y_scr flat'>
 			{childOrganizations == null ? mockChildOrganizations.map((_, index) => (
 			// {childOrganizations ? mockChildOrganizations.map((_, index) => (
 	        <div className='h_spread px_5 h_24 bd_1 bd_lt no_shrink' key={index}>
@@ -336,20 +336,11 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 			return;
 		}
 
-		if (!String(draftValues.phone || '').trim() && !String(draftValues.email || '').trim()) {
-			p.openModalPopUp(null, {
-				message: i18n.t('error.20074'),
-			});
-			return;
-		}
-
 		const result = await editInboundContact({
 			variables: {
 				organizationId: p.organizationId,
 				inboundContactId: p.inboundContactId,
 				personName: draftValues.personName,
-				email: draftValues.email,
-				phone: draftValues.phone,
 				memory: draftValues.memory,
 			},
 		});
@@ -408,6 +399,8 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 		}
 
 		if (__type === 'input') {
+			const isReadOnly = isReadOnlyInboundContactDraftField(name);
+
 			return <label
 				className='h_item gap_8'
 				key={name}
@@ -416,13 +409,14 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 					<input
 						autoComplete={autoComplete}
 						className='f min_w_0 stock bg_alt r_2 ft_xs px_4 py_2'
-						disabled={disabled || isReadOnlyInboundContactDraftField(name)}
+						disabled={disabled || isReadOnly}
 						maxLength={maxLength}
 					name={name}
-					onChange={(event) => {
+					onChange={isReadOnly ? undefined : (event) => {
 						setDraftField(name, event.currentTarget.value);
 					}}
 					placeholder={placeholder}
+					readOnly={isReadOnly}
 					type={type}
 					value={draftValues[name]}
 				/>

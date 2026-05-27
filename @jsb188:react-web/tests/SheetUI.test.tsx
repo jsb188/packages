@@ -18,6 +18,8 @@ import {
 	getSheetMinimumRowCount,
 	getSheetVisibleRange,
 	type SheetUICell,
+	type SheetUICellRenderSnapshot,
+	type SheetUICellRenderStore,
 	type SheetUIColumn,
 	type SheetUIFieldType,
 	type SheetUIRowSlot,
@@ -73,6 +75,37 @@ function createRowSlot(rowId: string | null, rowIndex: number, cellsByKey: Sheet
 		rowNumber: rowIndex + 1,
 		rowTop: SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + rowIndex * SHEET_ROW_HEIGHT,
 		rowWidth: SHEET_ROW_NUMBER_WIDTH + 160,
+	};
+}
+
+/*
+ * Build a tiny render-store implementation for SheetUI render isolation tests.
+ */
+
+function createTestCellRenderStore(initialSnapshots: Record<string, SheetUICellRenderSnapshot>): SheetUICellRenderStore & {
+	setSnapshot: (rowId: string, cellKey: string, snapshot: SheetUICellRenderSnapshot) => void;
+} {
+	const snapshots = new Map(Object.entries(initialSnapshots));
+	const listeners = new Map<string, Set<() => void>>();
+
+	return {
+		getSnapshot: (rowId, cellKey) => snapshots.get(`${rowId}:${cellKey}`) || {},
+		setSnapshot: (rowId, cellKey, snapshot) => {
+			const key = `${rowId}:${cellKey}`;
+			snapshots.set(key, snapshot);
+			listeners.get(key)?.forEach((listener) => listener());
+		},
+		subscribe: (rowId, cellKey, listener) => {
+			const key = `${rowId}:${cellKey}`;
+			const keyListeners = listeners.get(key) || new Set<() => void>();
+
+			keyListeners.add(listener);
+			listeners.set(key, keyListeners);
+
+			return () => {
+				keyListeners.delete(listener);
+			};
+		},
 	};
 }
 
@@ -255,14 +288,14 @@ describe('SheetUI rendering', () => {
 		expect(rowNumber?.style.position).toBe('sticky');
 		expect(rowNumber?.style.zIndex).toBe('21');
 		expect(rowNumberSlots[0]?.style.top).toBe('0px');
-		expect(rowNumberSlots[0]?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT}px`);
-		expect(rowNumber?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT}px`);
-		expect(rowNumberSlot?.style.top).toBe('68px');
+		expect(rowNumberSlots[0]?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE}px`);
+		expect(rowNumber?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE}px`);
+		expect(rowNumberSlot?.style.top).toBe('36px');
 		expect(firstCell?.textContent).toBe('Alpha');
 		expect(fillerCell?.textContent).toBe('');
 		expect(fillerCell?.className).toContain('noclick');
 		expect(host.querySelector('.sheet_ui_canvas')?.getAttribute('data-cell-count')).toBe('4');
-		expect(host.querySelectorAll('.sheet_ui_row_number')).toHaveLength(4);
+		expect(host.querySelectorAll('.sheet_ui_row_number')).toHaveLength(5);
 		expect(host.querySelectorAll('[data-sheet-cell="true"]')).toHaveLength(4);
 		expect(stickyColumnSpacerSlots).toHaveLength(4);
 		expect(stickyColumnSpacers).toHaveLength(4);
@@ -310,6 +343,58 @@ describe('SheetUI rendering', () => {
 		expect(headerCells[1]?.style.zIndex).toBe('');
 		expect(stickyCell?.style.zIndex).toBe('21');
 		expect(nonStickyCell?.style.zIndex).toBe('');
+	});
+
+	it('re-renders only the changed cell when a render-store snapshot changes', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('name'),
+			createColumn('status'),
+		]).metrics;
+		const nameCell = createCell('name', 'Alpha');
+		const statusCell = createCell('status', 'Open');
+		const rows = [
+			createRowSlot('row-1', 0, {
+				name: nameCell,
+				status: statusCell,
+			}),
+		];
+		const cellRenderStore = createTestCellRenderStore({
+			'row-1:name': { cell: nameCell },
+			'row-1:status': { cell: statusCell },
+		});
+		const renderCounts: Record<string, number> = {};
+		const cellRenderCallback = (rowId: string | null, cellKey: string) => {
+			if (!rowId) {
+				return;
+			}
+
+			const key = `${rowId}:${cellKey}`;
+			renderCounts[key] = (renderCounts[key] || 0) + 1;
+		};
+
+		await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			cellCount: 2,
+			cellRenderCallback,
+			cellStore: cellRenderStore,
+			columnCount: 2,
+			columns,
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 320,
+			rows,
+		});
+
+		renderCounts['row-1:name'] = 0;
+		renderCounts['row-1:status'] = 0;
+
+		await act(async () => {
+			cellRenderStore.setSnapshot('row-1', 'status', {
+				cell: createCell('status', 'Closed'),
+			});
+			await Promise.resolve();
+		});
+
+		expect(renderCounts['row-1:name']).toBe(0);
+		expect(renderCounts['row-1:status']).toBe(1);
 	});
 
 	it('keeps sticky column spacer left position independent from horizontal scroll', async () => {
@@ -725,9 +810,9 @@ describe('SheetUI rendering', () => {
 		expect(statusHeader?.className).not.toContain('bg_emerald_fd_hv');
 		expect(statusHeader?.dataset.sheetHeaderEditable).toBe('true');
 		expect(lockedHeader?.className).toContain('unsel');
-		expect(lockedHeader?.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(lockedHeader?.className).toContain('bg_primary_fd_hv_solid');
 		expect(lockedHeader?.className).not.toContain('bg_emerald_fd_hv');
-		expect(lockedHeader?.dataset.sheetHeaderEditable).toBeUndefined();
+		expect(lockedHeader?.dataset.sheetHeaderEditable).toBe('true');
 	});
 
 	it('keeps header text selectable while the header editor is active', async () => {
@@ -790,8 +875,8 @@ describe('SheetUI rendering', () => {
 
 		expect(nameHeader?.dataset.sheetHeaderReorderable).toBe('true');
 		expect(nameHeader?.className).toContain('bg');
+		expect(nameHeader?.className).toContain('cs_default_to_grabing');
 		expect(nameHeader?.style.opacity).toBe('0.35');
-		expect(nameHeader?.style.cursor).toBe('grab');
 		expect(statusHeader?.style.transform).toBe('translateX(-160px)');
 		expect(statusHeader?.style.transition).toBe('transform 120ms ease');
 		expect(host.querySelector('[data-sheet-reorder-guide-layer="true"]')).toBeNull();

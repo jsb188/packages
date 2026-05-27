@@ -24,6 +24,7 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
       iconName
       fieldType
       humanFieldType
+      format
       instructions
       openLink
       humansOnly

@@ -25,6 +25,7 @@ export interface SheetDesignCellObj {
 	iconName?: string | null;
 	fieldType: SheetFieldTypeEnum;
 	humanFieldType: SheetFieldTypeEnum;
+	format?: string | null;
 	instructions?: string | null;
 	source?: {
 		path: string;
@@ -234,6 +235,7 @@ export interface SheetDesignCellGQL {
 	iconName?: string | null;
 	fieldType: SheetFieldTypeGQL;
 	humanFieldType: SheetFieldTypeGQL;
+	format?: string | null;
 	instructions?: string | null;
 	source?: SheetDesignCellSourceGQL | null;
 	options?: SheetDesignCellOptionGQL[];
