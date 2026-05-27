@@ -494,7 +494,7 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 					value: 'CONTACT',
 				},
 				{
-					label: i18n.t('org.organization'),
+					label: i18n.t('org.organizations'),
 					value: 'ORGANIZATION',
 				},
 			]}

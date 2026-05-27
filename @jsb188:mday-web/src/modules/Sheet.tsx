@@ -57,6 +57,7 @@ import {
 import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
+import { SheetInboundContactEditor } from './Sheet-InboundContact.tsx';
 import {
   getInitialSheetDesignReducerState,
   getInitialSheetRowsState,
@@ -71,7 +72,6 @@ import {
   type SheetDesignPatchInput,
   type SheetRowsState,
 } from './use-sheet-states.ts';
-import { SheetInboundContactEditor } from './Sheet-InboundContact.tsx';
 
 /**
  * Dev code
@@ -834,12 +834,20 @@ function getSheetSelectDisplayColorClassName(designCell: SheetDesignCellGQL, val
 }
 
 /*
- * Return the hover background class for one select-style sheet cell with a valid option color.
+ * Return the hover background class for one select-style sheet cell with a matched option color.
  */
 
 function getSheetSelectCellClassName(designCell: SheetDesignCellGQL, value: string) {
 	const option = designCell.options?.find((item) => item.value === value);
-	if (typeof option?.color !== 'string' || !COLORS.includes(option.color as any)) {
+	if (!option) {
+		return undefined;
+	}
+
+	if (!option.color) {
+		return 'bg_zinc_fd_hv';
+	}
+
+	if (!COLORS.includes(option.color as any)) {
 		return undefined;
 	}
 

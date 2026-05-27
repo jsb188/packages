@@ -3,16 +3,16 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { memo } from 'react';
 import { Icon } from '../svgs/Icon';
 import type {
-	SheetColumnMetric,
-	SheetUICell,
-	SheetUIColumn,
-	SheetUIColumnReorderDisplacements,
-	SheetUIColumnReorderDrag,
-	SheetUIColumnReorderGuide,
-	SheetUIEditState,
-	SheetUIHeaderEditState,
-	SheetUIRowSlot,
-	SheetUISelectedCellState,
+  SheetColumnMetric,
+  SheetUICell,
+  SheetUIColumn,
+  SheetUIColumnReorderDisplacements,
+  SheetUIColumnReorderDrag,
+  SheetUIColumnReorderGuide,
+  SheetUIEditState,
+  SheetUIHeaderEditState,
+  SheetUIRowSlot,
+  SheetUISelectedCellState,
 } from './SheetUI';
 
 /**

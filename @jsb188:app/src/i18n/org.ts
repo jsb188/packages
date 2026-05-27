@@ -1,6 +1,7 @@
 export default {
 	en: {
 		organization: 'Organization',
+		organizations: 'Organizations',
 		my_organizations: 'My organizations',
 		name: 'Organization name',
 		name_of: 'Name of organization',

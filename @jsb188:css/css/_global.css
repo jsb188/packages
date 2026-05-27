@@ -309,6 +309,7 @@ p:last-child {
 
 .cs_default, label { cursor: inherit; }
 .cs_back { cursor: w-resize; }
+.cs_grab { cursor: grab; } .cs_grab:active { cursor: grabbing; }
 .unsel, .unsel * { user-select: none; }
 .noclick, .noclick * { pointer-events: none; }
 

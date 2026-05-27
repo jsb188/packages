@@ -894,6 +894,13 @@ describe('Sheet container', () => {
 					color: 'emerald',
 				}],
 			}),
+			createDesignCell('defaultStatus', {
+				humanFieldType: 'SELECT',
+				options: [{
+					label: 'Default',
+					value: 'Default',
+				}],
+			}),
 			createDesignCell('reason', {
 				humanFieldType: 'SELECT_OR_TEXT',
 				options: [{
@@ -912,13 +919,16 @@ describe('Sheet container', () => {
 		hookState.sheetRows = [createRow(0, {
 			name: 'Alpha',
 			status: 'Open',
+			defaultStatus: 'Default',
 			reason: 'Needs review',
 		})];
 
 		const host = await renderSheet({ sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+		const defaultStatusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="defaultStatus"]') as HTMLElement;
 		const reasonCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"]') as HTMLElement;
 		const statusPill = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"] span') as HTMLElement;
+		const defaultStatusPill = host.querySelector('[data-sheet-cell="true"][data-cell-key="defaultStatus"] span') as HTMLElement;
 		const reasonPill = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"] span') as HTMLElement;
 
 		expect(statusCell.className).toContain('bg_emerald_fd_hv');
@@ -926,6 +936,11 @@ describe('Sheet container', () => {
 		expect(statusPill.textContent).toBe('Open');
 		expect(statusPill.className).toContain('r_4');
 		expect(statusPill.className).toContain('bg_emerald_md');
+		expect(defaultStatusCell.className).toContain('bg_zinc_fd_hv');
+		expect(defaultStatusCell.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(defaultStatusPill.textContent).toBe('Default');
+		expect(defaultStatusPill.className).toContain('r_4');
+		expect(defaultStatusPill.className).toContain('bg_zinc_md');
 		expect(reasonCell.className).toContain('bg_primary_fd_hv_solid');
 		expect(reasonPill.textContent).toBe('Needs review');
 		expect(reasonPill.className).toContain('r_4');
