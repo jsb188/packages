@@ -113,6 +113,7 @@ export default {
     copied_text_: 'Copied "%{text}"',
     go_back: 'Go back',
     read_more: 'Read more',
+    scroll_for_more: 'Scroll for more',
     search_: 'Search: "%{query}"',
     close: 'Close',
     join: 'Join',

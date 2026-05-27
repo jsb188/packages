@@ -48,6 +48,7 @@ export default {
     processing_csv_request_: '⚙️ Processing CSV file request...',
     retrieving_inbound_contact_: '🧠 Retrieving inbound contact information...',
     saving_inbound_contact_: '🧠 Saving inbound contact information...',
+    inbound_contact_associated_orgs_auto_create_msg: 'When AI reads incoming emails, it will auto-create associated organizations for the contact, if the information can be found.',
 
 		// Digests
 		digest_for_: 'Digest for %{date}',

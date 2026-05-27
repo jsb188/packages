@@ -1,6 +1,21 @@
 import { gql } from 'graphql-tag';
 import { inboundContactFragment } from '../fragments/inboundContactFragments.ts';
-import { organizationFragment } from '../fragments/organizationFragments.ts';
+
+export const inboundContactQry = gql`
+query inboundContact (
+  $organizationId: GenericID!
+  $inboundContactId: GenericID!
+) {
+  inboundContact (
+    organizationId: $organizationId
+    inboundContactId: $inboundContactId
+  ) {
+    ...inboundContactFragment
+  }
+}
+
+${inboundContactFragment}
+`;
 
 export const inboundContactsQry = gql`
 query inboundContacts (
@@ -18,18 +33,8 @@ query inboundContacts (
     limit: $limit
   ) {
     ...inboundContactFragment
-
-    orgs {
-      inboundContactId
-      organizationId
-
-      organization {
-        ...organizationFragment
-      }
-    }
   }
 }
 
 ${inboundContactFragment}
-${organizationFragment}
 `;

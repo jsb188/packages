@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import type { SheetCellGQL, SheetDesignCellGQL, SheetGQL, SheetRowGQL } from '@jsb188/mday/types/sheet.d.ts';
+import { configI18n } from '@jsb188/app';
 import i18n from '@jsb188/app/i18n/index.ts';
 import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
 import {
@@ -16,13 +17,20 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Sheet, parseSheetEditorValue } from '../src/modules/Sheet';
 
+configI18n();
+
 const hookState = vi.hoisted(() => ({
 	editInboundContact: vi.fn(),
 	editSheetCell: vi.fn(),
 	editSheetDesign: vi.fn(),
 	fetchMoreRows: vi.fn(),
 	getSheetRows: null as (() => any[]) | null,
-	inboundContactFragment: null as any,
+	childOrganizations: [] as any[],
+	inboundContact: null as any,
+	inboundContactInitialLoading: false,
+	inboundContactSaving: false,
+	lastChildOrganizationsArgs: null as any[] | null,
+	lastInboundContactArgs: null as any[] | null,
 	lastSheetRowsArgs: null as any[] | null,
 	openModalPopUp: vi.fn(),
 	openModalScreen: vi.fn(),
@@ -63,11 +71,29 @@ vi.mock('@jsb188/graphql/hooks/use-sheet-mtn', () => ({
 vi.mock('@jsb188/graphql/hooks/use-inboundContact-mtn', () => ({
 	useEditInboundContact: () => ({
 		editInboundContact: hookState.editInboundContact,
+		saving: hookState.inboundContactSaving,
 	}),
 }));
 
 vi.mock('@jsb188/graphql/hooks/use-inboundContact-qry', () => ({
-	useReactiveInboundContactFragment: () => hookState.inboundContactFragment,
+	useInboundContact: (...args: any[]) => {
+		hookState.lastInboundContactArgs = args;
+
+		return {
+			inboundContact: hookState.inboundContact,
+			initialLoading: hookState.inboundContactInitialLoading,
+		};
+	},
+}));
+
+vi.mock('@jsb188/graphql/hooks/use-organization-qry', () => ({
+	useChildOrganizations: (...args: any[]) => {
+		hookState.lastChildOrganizationsArgs = args;
+
+		return {
+			childOrganizations: hookState.childOrganizations,
+		};
+	},
 }));
 
 vi.mock('@jsb188/react/states', () => ({
@@ -240,12 +266,21 @@ async function rerenderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) 
 beforeEach(() => {
 	globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 	document.body.innerHTML = '<div id="test-root"></div>';
-	hookState.editInboundContact.mockReset().mockResolvedValue({ data: {} });
+	hookState.editInboundContact.mockReset().mockResolvedValue({
+		editInboundContact: {
+			id: 'contact-1',
+		},
+	});
 	hookState.editSheetCell.mockReset().mockResolvedValue({ data: {} });
 	hookState.editSheetDesign.mockReset().mockResolvedValue({ data: {} });
 	hookState.fetchMoreRows.mockReset().mockResolvedValue({ data: { sheetRows: [] } });
+	hookState.childOrganizations = [];
 	hookState.getSheetRows = null;
-	hookState.inboundContactFragment = null;
+	hookState.inboundContact = null;
+	hookState.inboundContactInitialLoading = false;
+	hookState.inboundContactSaving = false;
+	hookState.lastChildOrganizationsArgs = null;
+	hookState.lastInboundContactArgs = null;
 	hookState.lastSheetRowsArgs = null;
 	hookState.openModalPopUp.mockReset();
 	hookState.openModalScreen.mockReset();
@@ -2722,12 +2757,16 @@ describe('Sheet container', () => {
 		expect(editor).not.toBeNull();
 		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
 		expect(statusCell.className).toContain('active');
-		expect(editor.parentElement?.style.width).toBe('280px');
+		expect(editor.parentElement?.style.width).toBe('320px');
 		expect(editor.querySelector('input[name="personName"]')).not.toBeNull();
 		expect(editor.querySelector('input[name="email"]')).not.toBeNull();
 		expect(editor.querySelector('input[name="phone"]')).not.toBeNull();
 		expect(editor.querySelector('textarea[name="memory"]')).not.toBeNull();
 		expect(setFloatingMessage).not.toHaveBeenCalled();
+		expect(hookState.lastInboundContactArgs?.[0]).toEqual({
+			organizationId: 'org-1',
+			inboundContactId: 'contact-1',
+		});
 
 		setNativeInputValue(editor.querySelector('input[name="email"]') as HTMLInputElement, 'buyer@example.com');
 		setNativeInputValue(editor.querySelector('input[name="phone"]') as HTMLInputElement, '555-0100');
@@ -2748,6 +2787,191 @@ describe('Sheet container', () => {
 				memory: 'Prefers morning pickup.',
 			},
 		});
+		expect(host.querySelector('[data-sheet-inbound-contact-editor="true"]')).toBeNull();
+	});
+
+	it('populates the inbound contact overlay editor when GraphQL data loads', async () => {
+		const setFloatingMessage = vi.fn();
+		const sheet = createSheet();
+		hookState.inboundContactInitialLoading = true;
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'ID',
+					humanFieldType: 'ID',
+					humansCannotEdit: true,
+					openLink: true,
+				}),
+			],
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {
+				name: 'Alpha',
+				status: 'Contact 1',
+			}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'Contact 1', {
+					relatedId: 'contact-1',
+					relatedTable: 'inbound_contact',
+				}),
+			],
+		}];
+		const host = await renderSheet({ setFloatingMessage, sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
+
+		await act(async () => {
+			openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		let editor = host.querySelector('[data-sheet-inbound-contact-editor="true"]') as HTMLElement;
+		expect(editor.getAttribute('aria-busy')).toBe('true');
+		expect((editor.querySelector('input[name="personName"]') as HTMLInputElement).value).toBe('Contact 1');
+		expect((editor.querySelector('input[name="personName"]') as HTMLInputElement).disabled).toBe(true);
+		expect((editor.querySelector('input[name="email"]') as HTMLInputElement).value).toBe('');
+		expect((editor.querySelector('input[name="email"]') as HTMLInputElement).disabled).toBe(true);
+		expect((editor.querySelector('input[name="phone"]') as HTMLInputElement).value).toBe('');
+		expect((editor.querySelector('input[name="phone"]') as HTMLInputElement).disabled).toBe(true);
+		expect((editor.querySelector('textarea[name="memory"]') as HTMLTextAreaElement).value).toBe('');
+		expect((editor.querySelector('textarea[name="memory"]') as HTMLTextAreaElement).disabled).toBe(true);
+		expect((editor.querySelector('textarea[name="memory"]') as HTMLTextAreaElement).className).toContain('w_f');
+		expect((editor.querySelector('button[type="submit"]') as HTMLButtonElement).disabled).toBe(true);
+
+		await act(async () => {
+			editor.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+			await Promise.resolve();
+		});
+
+		expect(hookState.editInboundContact).not.toHaveBeenCalled();
+
+		hookState.inboundContact = {
+			id: 'contact-1',
+			organizationId: 'org-1',
+			cursor: 'cursor-contact-1',
+			personName: 'Loaded Contact',
+			email: 'loaded@example.com',
+			phone: '+15550100',
+			memory: 'Loaded memory',
+			createdAt: '2026-05-19T00:00:00.000Z',
+			updatedAt: '2026-05-20T00:00:00.000Z',
+		};
+		hookState.inboundContactInitialLoading = false;
+
+		await rerenderSheet({ setFloatingMessage, sheet });
+
+		editor = host.querySelector('[data-sheet-inbound-contact-editor="true"]') as HTMLElement;
+		expect(editor.getAttribute('aria-busy')).toBe('false');
+		expect((editor.querySelector('input[name="personName"]') as HTMLInputElement).value).toBe('Loaded Contact');
+		expect((editor.querySelector('input[name="personName"]') as HTMLInputElement).disabled).toBe(false);
+		expect((editor.querySelector('input[name="email"]') as HTMLInputElement).value).toBe('loaded@example.com');
+		expect((editor.querySelector('input[name="phone"]') as HTMLInputElement).value).toBe('+15550100');
+		expect((editor.querySelector('textarea[name="memory"]') as HTMLTextAreaElement).value).toBe('Loaded memory');
+	});
+
+	it('renders child organizations in the inbound contact organization tab', async () => {
+		const sheet = createSheet();
+		hookState.inboundContact = {
+			id: 'contact-1',
+			organizationId: 'org-1',
+			cursor: 'cursor-contact-1',
+			personName: 'Contact 1',
+			email: 'contact@example.com',
+			phone: '+15550100',
+			memory: '',
+			associated: [{
+				organizationId: 'assoc-org-1',
+				name: 'Associated Org 1',
+			}],
+			createdAt: '2026-05-19T00:00:00.000Z',
+			updatedAt: '2026-05-20T00:00:00.000Z',
+		};
+		hookState.childOrganizations = [{
+			id: 'child-rel-1',
+			parentId: 'org-1',
+			cursor: 'cursor-child-1',
+			organization: {
+				id: 'child-org-1',
+				name: 'Child Org 1',
+			},
+			preferredContacts: [],
+			affiliated: true,
+			addedAt: '2026-05-20T00:00:00.000Z',
+		}];
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'ID',
+					humanFieldType: 'ID',
+					humansCannotEdit: true,
+					openLink: true,
+				}),
+			],
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {
+				name: 'Alpha',
+				status: 'Contact 1',
+			}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'Contact 1', {
+					relatedId: 'contact-1',
+					relatedTable: 'inbound_contact',
+				}),
+			],
+		}];
+		const host = await renderSheet({ sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
+
+		await act(async () => {
+			openTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		const editor = host.querySelector('[data-sheet-inbound-contact-editor="true"]') as HTMLElement;
+		const navButtons = Array.from(editor.querySelectorAll('button[type="button"]'));
+
+		await act(async () => {
+			navButtons[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		const childOrgButton = editor.querySelector('[data-sheet-inbound-contact-child-organization="child-org-1"]') as HTMLButtonElement;
+		const scrollContainer = childOrgButton.closest('.y_scr.flat');
+
+		expect(hookState.lastChildOrganizationsArgs?.[0]).toEqual({
+			organizationId: 'org-1',
+			limit: 250,
+		});
+		expect(editor.textContent).toContain('This contact is associated with: Associated Org 1');
+		expect(childOrgButton.textContent).toContain('Child Org 1');
+		expect(scrollContainer).not.toBeNull();
+		expect(editor.querySelector('button[type="submit"]')?.closest('.y_scr.flat')).toBeNull();
+
+		await act(async () => {
+			childOrgButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(editor.textContent).toContain('This contact is associated with: Associated Org 1, Child Org 1');
+
+		await act(async () => {
+			editor.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+			await Promise.resolve();
+		});
+
+		expect(hookState.editInboundContact).toHaveBeenCalledWith({
+			variables: {
+				organizationId: 'org-1',
+				inboundContactId: 'contact-1',
+				associatedOrganizationIds: ['assoc-org-1', 'child-org-1'],
+			},
+		});
+		expect(host.querySelector('[data-sheet-inbound-contact-editor="true"]')).toBeNull();
 	});
 
 	it('opens link display clicks from local edit mode', async () => {

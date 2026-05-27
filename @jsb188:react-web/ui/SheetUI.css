@@ -65,3 +65,7 @@
 .sheet_overlay_editor input:focus, .sheet_overlay_editor textarea:focus {
   border-color: var(--color-darker-bold);
 }
+
+.sheet_overlay_editor textarea {
+  resize: vertical;
+}

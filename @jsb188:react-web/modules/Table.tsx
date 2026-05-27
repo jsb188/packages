@@ -67,6 +67,7 @@ type EditableTableSchemaContext<RowData, DraftValues> = {
 type EditableTableEditorConfig<DraftValues> =
   | {
       autoFocus?: boolean;
+      disabled?: boolean;
       field: keyof DraftValues;
       inputType?: InputHTMLAttributes<HTMLInputElement>['type'];
       placeholder: string;
@@ -426,9 +427,9 @@ const EditableTableRowActions = memo((p: EditableTableRowActionsProps) => {
       <TooltipButton
         position='top'
         offsetY={-4}
-        className='pointer av av_xxs r v_center'
+        className={cn('pointer av av_xxs r v_center', disabled && 'op_50')}
         message={i18n.t('form.press_enter_to_save')}
-        onClick={onSave}
+        onClick={disabled ? undefined : onSave}
       >
         <Icon name={COMMON_ICON_NAMES.success} />
       </TooltipButton>
@@ -547,6 +548,7 @@ function getEditableTableSchemaEditor<RowData, DraftValues>(p: {
       const fieldValue = context.draftValues[config.field as keyof DraftValues];
       return <InlineTableInput
         autoFocus={config.autoFocus}
+        disabled={config.disabled}
         type={config.inputType}
         value={String(fieldValue || '')}
         placeholder={config.placeholder}

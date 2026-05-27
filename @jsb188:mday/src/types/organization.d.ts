@@ -27,7 +27,6 @@ export type OrganizationComplianceType = typeof COMPLIANCE_DOCUMENT_TYPE_ENUMS[n
  */
 
 export interface ChildOrgsFilterArgs {
-	internationalOnly?: boolean;
 	childOrgIds?: Array<string | number | bigint>;
 	affiliated?: boolean | null;
 }

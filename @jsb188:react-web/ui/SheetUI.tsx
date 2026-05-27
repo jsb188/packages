@@ -3,6 +3,7 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, type CSSProperties, type ReactNode, type Ref } from 'react';
 import { Icon } from '../svgs/Icon';
+import { SheetSaveButton } from './SheetEditor';
 import {
 	SHEET_COLUMN_MAX_WIDTH,
 	SHEET_COLUMN_MIN_WIDTH,
@@ -32,6 +33,10 @@ export {
 	SHEET_STICKY_SPACER_SIZE,
 	SheetCellDisplayValue,
 } from './SheetCell';
+export {
+	SheetSaveButton,
+	type SheetSaveButtonProps,
+} from './SheetEditor';
 
 /**
  * Types
@@ -92,10 +97,13 @@ export type SheetUIRowSlot = {
 	rowWidth: number;
 };
 
+export type SheetUIEditorClickSource = 'CELL_LINK' | 'CELL_BACKGROUND';
+
 export type SheetUIEditState = {
 	rowId: string;
 	cellKey: string;
 	draftValue: string;
+	clickSource?: SheetUIEditorClickSource;
 	error?: string | null;
 	disableInlineEditor?: boolean;
 };
@@ -139,11 +147,6 @@ export type SheetUIColumnReorderGuide = {
 	left: number;
 };
 
-export type SheetSaveButtonProps = {
-	className?: string;
-	type?: 'button' | 'reset' | 'submit';
-};
-
 export type SheetUIColumnReorderDrag = {
 	columnKey: string;
 	label: string;
@@ -154,6 +157,7 @@ export type SheetUIColumnReorderDrag = {
 export type SheetUIColumnReorderDisplacements = Record<string, number>;
 
 export interface SheetSelectEditorProps {
+	clickSource?: SheetUIEditorClickSource;
 	editState: SheetUIEditState;
 	fieldType: SheetUIFieldType;
 	options: SheetUIOption[];
@@ -212,19 +216,6 @@ export function clampSheetColumnWidth(width: number) {
 
 function getSheetTranslatedText(key: string, fallback: string) {
 	return i18n.has(key) ? i18n.t(key) : fallback;
-}
-
-/*
- * Render the shared save button used by sheet editor forms.
- */
-
-export function SheetSaveButton(p: SheetSaveButtonProps) {
-	return <button
-		className={cn('h_28 px_8 bg_alt bg_active_hv bd_1 bd_bd ft_xs', p.className)}
-		type={p.type || 'submit'}
-	>
-		{getSheetTranslatedText('form.save', 'Save')}
-	</button>;
 }
 
 /*
@@ -354,6 +345,7 @@ export function SheetSelectEditor(p: SheetSelectEditorProps) {
 
 	return <div
 		className='sheet_overlay_editor bg bd_2 bd_lt ft_xs w_f max_h_300'
+		data-sheet-click-source={p.clickSource}
 		data-sheet-select-editor='true'
 	>
     {/* You always need a <div> here because the options.map(..) elements have negative Y margins; use this for top/bottom padding */}

@@ -6,6 +6,10 @@ export const inboundContactFragment = `fragment inboundContactFragment on Inboun
   email
   phone
   memory
+  associated {
+    organizationId
+    name
+  }
   createdAt
   updatedAt
 }`;

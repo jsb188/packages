@@ -1,6 +1,5 @@
 import type { OrganizationData } from './organization.d.ts';
 import type { INBOUND_CONTACT_SORT_ENUMS } from '../constants/inboundContact.ts';
-import type { OrganizationGQL } from './organization.d.ts';
 
 export type InboundContactsSortEnum = typeof INBOUND_CONTACT_SORT_ENUMS[number];
 
@@ -34,9 +33,8 @@ export interface InboundContactData {
  * GraphQL inbound contact relationship to one organization.
  */
 export interface InboundContactOrgGQL {
-	inboundContactId: string;
 	organizationId: string;
-	organization?: OrganizationGQL | null;
+	name: string | null;
 }
 
 /**
@@ -52,7 +50,7 @@ export interface InboundContactGQL {
 	email: string | null;
 	phone: string | null;
 	memory: string | null;
-	orgs?: InboundContactOrgGQL[] | null;
+	associated?: InboundContactOrgGQL[] | null;
 	createdAt: string;
 	updatedAt: string;
 }

@@ -47,6 +47,7 @@ import {
   type SheetUIColumnReorderDrag,
   type SheetUIColumnReorderGuide,
   type SheetUIEditState,
+  type SheetUIEditorClickSource,
   type SheetUIFieldType,
   type SheetUIHeaderEditState,
   type SheetUIResizeGuide,
@@ -108,9 +109,16 @@ type SheetCellLookup = {
 
 type SheetOpenCellParams = {
 	cell?: SheetCellGQL | null;
+	clickSource?: SheetUIEditorClickSource;
 	designCell: SheetDesignCellGQL;
 	row: SheetRowGQL;
 	sheet: SheetGQL;
+};
+
+type SheetInboundContactEditorState = {
+	clickSource: SheetUIEditorClickSource;
+	displayValue: string;
+	lookup: SheetCellLookup;
 };
 
 type SheetOpenCellLinkParams = SheetOpenCellParams & {
@@ -221,7 +229,7 @@ const SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
 const SHEET_SELECT_EDITOR_MIN_WIDTH = 140;
 const SHEET_SELECT_EDITOR_MAX_WIDTH = 400;
 const SHEET_DATE_EDITOR_WIDTH = 280;
-const SHEET_INBOUND_CONTACT_EDITOR_MIN_WIDTH = 280;
+const SHEET_INBOUND_CONTACT_EDITOR_MIN_WIDTH = 320;
 const SHEET_LOCAL_EDITOR_LEFT_OFFSET = -2;
 const SHEET_LOCAL_EDITOR_TOP_OFFSET = 1;
 const SHEET_LOCAL_EDITOR_WIDTH_OFFSET = 3;
@@ -1530,11 +1538,16 @@ function getSheetCellLookup(runtime: SheetRuntimeState, rowId?: string | null, c
  * Build the active cell edit state for one resolved sheet cell lookup.
  */
 
-function getSheetCellEditState(runtime: SheetRuntimeState, lookup: SheetCellLookup): SheetUIEditState {
+function getSheetCellEditState(
+	runtime: SheetRuntimeState,
+	lookup: SheetCellLookup,
+	clickSource?: SheetUIEditorClickSource,
+): SheetUIEditState {
 	const optimisticKey = getSheetCellKey(lookup.row.id, lookup.designCell.key);
 
 	return {
 		cellKey: lookup.designCell.key,
+		clickSource,
 		draftValue: getSheetEditorDraftValue(
 			lookup.cell,
 			lookup.designCell,
@@ -1548,11 +1561,32 @@ function getSheetCellEditState(runtime: SheetRuntimeState, lookup: SheetCellLook
  * Build the active cell edit state for a custom sheet-local overlay editor.
  */
 
-function getSheetCellOverlayEditState(runtime: SheetRuntimeState, lookup: SheetCellLookup): SheetUIEditState {
+function getSheetCellOverlayEditState(
+	runtime: SheetRuntimeState,
+	lookup: SheetCellLookup,
+	clickSource?: SheetUIEditorClickSource,
+): SheetUIEditState {
 	return {
-		...getSheetCellEditState(runtime, lookup),
+		...getSheetCellEditState(runtime, lookup, clickSource),
 		disableInlineEditor: true,
 	};
+}
+
+/*
+ * Check whether a lookup is already represented by the active sheet edit state.
+ */
+
+function isSheetEditStateLookup(editState: SheetUIEditState | null | undefined, lookup: SheetCellLookup) {
+	return editState?.rowId === lookup.row.id && editState.cellKey === lookup.designCell.key;
+}
+
+/*
+ * Check whether a lookup owns the currently open sheet-local editor.
+ */
+
+function isSheetLocalEditorEditStateLookup(editState: SheetUIEditState | null | undefined, lookup: SheetCellLookup) {
+	return isSheetEditStateLookup(editState, lookup) &&
+		(!!editState?.disableInlineEditor || isSheetLocalEditorFieldType(getSheetEditorFieldType(lookup.designCell)));
 }
 
 /*
@@ -1590,6 +1624,18 @@ function handleSheetRelatedDocumentCellEdit(lookup: SheetCellLookup, setFloating
 			// });
 			return true;
 	}
+}
+
+/*
+ * Return whether one resolved sheet lookup points at an inbound contact ID cell.
+ */
+
+function isSheetInboundContactIdLookup(lookup: SheetCellLookup) {
+	const lookupFieldType = lookup.designCell.humanFieldType || lookup.designCell.fieldType;
+
+	return lookupFieldType === 'ID' &&
+		isSheetInboundContactRelatedTable(lookup.cell?.relatedTable) &&
+		hasSheetCellRelatedId(lookup.cell);
 }
 
 /*
@@ -1705,6 +1751,7 @@ function SheetReadOnlyTag(p: {
  */
 
 function SheetDateEditor(p: {
+	clickSource?: SheetUIEditorClickSource;
 	editState: SheetUIEditState;
 	lookup: SheetCellLookup;
 	onDateValue: (lookup: SheetCellLookup, draftValue: string) => void;
@@ -1719,6 +1766,7 @@ function SheetDateEditor(p: {
 
 	return <div
 		className='bg bd_1 bd_lt shadow_line_alt r_4 ft_xs'
+		data-sheet-click-source={p.clickSource}
 		data-sheet-date-editor='true'
 		style={{
 			width: '100%',
@@ -1907,7 +1955,8 @@ export function Sheet(p: SheetProps) {
 	const [optimisticValues, dispatchOptimisticValues] = useReducer(sheetCellValueReducer, {});
 	const [resizingColumnKey, setResizingColumnKey] = useState<string | null>(null);
 	const [singleClickedCellState, setSingleClickedCellState] = useState<SheetUISelectedCellState | null>(null);
-	const [inboundContactEditorLookup, setInboundContactEditorLookup] = useState<SheetCellLookup | null>(null);
+	const [inboundContactEditorState, setInboundContactEditorState] = useState<SheetInboundContactEditorState | null>(null);
+	const lastDismissedLocalEditorCellRef = useRef<SheetUISelectedCellState | null>(null);
 	const singleClickedCellStateRef = useRef<SheetUISelectedCellState | null>(null);
 	const [selectedViewId, setSelectedViewId] = useState<string | null>(() => getValidDefaultSheetViewId(sheet.design));
 	const [designState, dispatchDesignState] = useReducer(
@@ -2030,7 +2079,8 @@ export function Sheet(p: SheetProps) {
 	useIsomorphicLayoutEffect(() => {
 		setEditState(null);
 		setHeaderEditState(null);
-		setInboundContactEditorLookup(null);
+		setInboundContactEditorState(null);
+		lastDismissedLocalEditorCellRef.current = null;
 		setSingleClickedCellState(null);
 		singleClickedCellStateRef.current = null;
 		dispatchOptimisticValues({
@@ -2614,7 +2664,7 @@ export function Sheet(p: SheetProps) {
 				reorderState.started = true;
 				setEditState(null);
 				setHeaderEditState(null);
-				setInboundContactEditorLookup(null);
+				setInboundContactEditorState(null);
 				setSingleClickedCellState(null);
 				singleClickedCellStateRef.current = null;
 			}
@@ -2680,6 +2730,7 @@ export function Sheet(p: SheetProps) {
 		if (parsedValue.error) {
 			setEditState({
 				cellKey: lookup.designCell.key,
+				clickSource: runtime.editState?.clickSource,
 				draftValue,
 				error: parsedValue.error,
 				rowId: lookup.row.id,
@@ -2709,6 +2760,7 @@ export function Sheet(p: SheetProps) {
 		} catch (error) {
 			setEditState({
 				cellKey: lookup.designCell.key,
+				clickSource: runtime.editState?.clickSource,
 				draftValue,
 				error: error instanceof Error ? error.message : 'Unable to save cell',
 				rowId: lookup.row.id,
@@ -2718,6 +2770,38 @@ export function Sheet(p: SheetProps) {
 		}
 	}, []);
 
+	/*
+	 * Open the inbound contact overlay editor from one sheet cell lookup.
+	 */
+
+	function openInboundContactLocalEditor(lookup: SheetCellLookup, clickSource: SheetUIEditorClickSource) {
+		const runtime = runtimeRef.current;
+		const displayValue = getSheetCellDisplayValue(lookup.cell, lookup.designCell);
+
+		setHeaderEditState(null);
+		lastDismissedLocalEditorCellRef.current = null;
+		setSingleClickedCellState(null);
+		singleClickedCellStateRef.current = null;
+
+		if (runtime) {
+			setEditState(getSheetCellOverlayEditState(runtime, lookup, clickSource));
+		} else {
+			setEditState({
+				cellKey: lookup.designCell.key,
+				clickSource,
+				disableInlineEditor: true,
+				draftValue: getSheetEditorDraftValue(lookup.cell, lookup.designCell),
+				rowId: lookup.row.id,
+			});
+		}
+
+		setInboundContactEditorState({
+			clickSource,
+			displayValue,
+			lookup,
+		});
+	}
+
 	runtimeRef.current = {
 		columnMetricsByKey,
 		designCellsByKey,
@@ -2726,7 +2810,7 @@ export function Sheet(p: SheetProps) {
 		editState,
 		optimisticValues,
 		openCell: (params: SheetOpenCellParams) => {
-			setInboundContactEditorLookup(null);
+			setInboundContactEditorState(null);
 			openSheetCellLink({
 				...params,
 				openInboundContactEditor: (openParams: SheetOpenCellParams) => {
@@ -2738,10 +2822,11 @@ export function Sheet(p: SheetProps) {
 					};
 
 					if (currentRuntime) {
-						setEditState(getSheetCellOverlayEditState(currentRuntime, lookup));
+						setEditState(getSheetCellOverlayEditState(currentRuntime, lookup, openParams.clickSource || 'CELL_BACKGROUND'));
 					} else {
 						setEditState({
 							cellKey: openParams.designCell.key,
+							clickSource: openParams.clickSource || 'CELL_BACKGROUND',
 							disableInlineEditor: true,
 							draftValue: getSheetEditorDraftValue(openParams.cell, openParams.designCell),
 							rowId: openParams.row.id,
@@ -2749,7 +2834,11 @@ export function Sheet(p: SheetProps) {
 					}
 					setSingleClickedCellState(null);
 					singleClickedCellStateRef.current = null;
-					setInboundContactEditorLookup(lookup);
+					setInboundContactEditorState({
+						clickSource: openParams.clickSource || 'CELL_BACKGROUND',
+						displayValue: getSheetCellDisplayValue(openParams.cell, openParams.designCell),
+						lookup,
+					});
 				},
 				openModalScreen,
 				setFloatingMessage,
@@ -2811,7 +2900,8 @@ export function Sheet(p: SheetProps) {
 				}
 
 				if ((!cellElement && !editorElement) || !runtime) {
-					setInboundContactEditorLookup(null);
+					setInboundContactEditorState(null);
+					lastDismissedLocalEditorCellRef.current = null;
 					setSingleClickedCellState(null);
 					singleClickedCellStateRef.current = null;
 					return;
@@ -2820,10 +2910,25 @@ export function Sheet(p: SheetProps) {
 				const lookupElement = cellElement || editorElement;
 				const lookup = getSheetCellLookup(runtime, lookupElement?.dataset.rowId, lookupElement?.dataset.cellKey);
 
+				if (lookup && isSheetLocalEditorEditStateLookup(runtime.editState, lookup)) {
+					const nextSingleClickedCell = {
+						cellKey: lookup.designCell.key,
+						rowId: lookup.row.id,
+					};
+
+					setEditState(null);
+					setInboundContactEditorState(null);
+					setSingleClickedCellState(nextSingleClickedCell);
+					lastDismissedLocalEditorCellRef.current = nextSingleClickedCell;
+					singleClickedCellStateRef.current = nextSingleClickedCell;
+					return;
+				}
+
 				if (openTriggerElement) {
 					if (lookup && canOpenSheetCellLink(lookup.cell, lookup.designCell)) {
 						runtime.openCell({
 							cell: lookup.cell,
+							clickSource: 'CELL_LINK',
 							designCell: lookup.designCell,
 							row: lookup.row,
 							sheet: runtime.sheet,
@@ -2843,21 +2948,33 @@ export function Sheet(p: SheetProps) {
 
 				if (lookup) {
 					const currentSingleClickedCell = singleClickedCellStateRef.current;
+					const lastDismissedLocalEditorCell = lastDismissedLocalEditorCellRef.current;
 					const isSameSingleClickedCell = (
 						currentSingleClickedCell?.rowId === lookup.row.id &&
 						currentSingleClickedCell.cellKey === lookup.designCell.key
 					);
+					const isSameDismissedLocalEditorCell = (
+						lastDismissedLocalEditorCell?.rowId === lookup.row.id &&
+						lastDismissedLocalEditorCell.cellKey === lookup.designCell.key
+					);
 
-					if (isSameSingleClickedCell && cellElement.dataset.sheetCellEditable === 'true' && !runtime.disabled) {
+					if ((isSameSingleClickedCell || isSameDismissedLocalEditorCell) && cellElement.dataset.sheetCellEditable === 'true' && !runtime.disabled) {
+						if (isSheetInboundContactIdLookup(lookup)) {
+							lastDismissedLocalEditorCellRef.current = null;
+							openInboundContactLocalEditor(lookup, 'CELL_BACKGROUND');
+							return;
+						}
+
 						if (handleSheetRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
 							return;
 						}
 
 						setHeaderEditState(null);
-						setInboundContactEditorLookup(null);
+						setInboundContactEditorState(null);
 						setSingleClickedCellState(null);
+						lastDismissedLocalEditorCellRef.current = null;
 						singleClickedCellStateRef.current = null;
-						setEditState(getSheetCellEditState(runtime, lookup));
+						setEditState(getSheetCellEditState(runtime, lookup, 'CELL_BACKGROUND'));
 						return;
 					}
 
@@ -2868,8 +2985,9 @@ export function Sheet(p: SheetProps) {
 
 					setEditState(null);
 					setHeaderEditState(null);
-					setInboundContactEditorLookup(null);
+					setInboundContactEditorState(null);
 					setSingleClickedCellState(nextSingleClickedCell);
+					lastDismissedLocalEditorCellRef.current = null;
 					singleClickedCellStateRef.current = nextSingleClickedCell;
 					return;
 				}
@@ -2890,12 +3008,13 @@ export function Sheet(p: SheetProps) {
 				if (headerElement && runtime && headerElement.dataset.sheetHeaderEditable === 'true') {
 					const designCell = runtime.designCellsByKey.get(headerElement.dataset.cellKey || '');
 
-					if (!runtime.disabled && runtime.designEditable && designCell && !runtime.sheet.design?.humansCannotEdit && !designCell.humansCannotEdit) {
-						setEditState(null);
-						setInboundContactEditorLookup(null);
-						setSingleClickedCellState(null);
-						singleClickedCellStateRef.current = null;
-						setHeaderEditState({
+						if (!runtime.disabled && runtime.designEditable && designCell && !runtime.sheet.design?.humansCannotEdit && !designCell.humansCannotEdit) {
+							setEditState(null);
+							setInboundContactEditorState(null);
+							lastDismissedLocalEditorCellRef.current = null;
+							setSingleClickedCellState(null);
+							singleClickedCellStateRef.current = null;
+							setHeaderEditState({
 							cellKey: designCell.key,
 							draftValue: getSheetDesignCellHeaderLabel(designCell),
 						});
@@ -2914,15 +3033,21 @@ export function Sheet(p: SheetProps) {
 					return;
 				}
 
+				if (isSheetInboundContactIdLookup(lookup)) {
+					openInboundContactLocalEditor(lookup, 'CELL_BACKGROUND');
+					return;
+				}
+
 				if (handleSheetRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
 					return;
 				}
 
 				setHeaderEditState(null);
-				setInboundContactEditorLookup(null);
+				setInboundContactEditorState(null);
+				lastDismissedLocalEditorCellRef.current = null;
 				setSingleClickedCellState(null);
 				singleClickedCellStateRef.current = null;
-				setEditState(getSheetCellEditState(runtime, lookup));
+				setEditState(getSheetCellEditState(runtime, lookup, 'CELL_BACKGROUND'));
 			};
 		const onFocusOut = (event: FocusEvent) => {
 			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]');
@@ -2944,6 +3069,7 @@ export function Sheet(p: SheetProps) {
 			if (editorElement && runtime?.editState?.error) {
 				setEditState({
 					cellKey: editorElement.dataset.cellKey || runtime.editState.cellKey,
+					clickSource: runtime.editState.clickSource,
 					draftValue: getSheetEditorElementValue(editorElement),
 					rowId: editorElement.dataset.rowId || runtime.editState.rowId,
 				});
@@ -3332,6 +3458,7 @@ export function Sheet(p: SheetProps) {
 		if (parsedValue.error) {
 			setEditState({
 				cellKey: lookup.designCell.key,
+				clickSource: runtime.editState?.clickSource,
 				draftValue,
 				error: parsedValue.error,
 				rowId: lookup.row.id,
@@ -3351,6 +3478,7 @@ export function Sheet(p: SheetProps) {
 		} else {
 			setEditState({
 				cellKey: lookup.designCell.key,
+				clickSource: runtime.editState?.clickSource,
 				draftValue: parsedValue.value || '',
 				rowId: lookup.row.id,
 			});
@@ -3365,6 +3493,7 @@ export function Sheet(p: SheetProps) {
 		} catch (error) {
 			setEditState({
 				cellKey: lookup.designCell.key,
+				clickSource: runtime.editState?.clickSource,
 				draftValue,
 				error: error instanceof Error ? error.message : 'Unable to save cell',
 				rowId: lookup.row.id,
@@ -3480,16 +3609,17 @@ export function Sheet(p: SheetProps) {
 		visualRowCount,
 	]);
 	const inboundContactEditorPosition = useMemo(() => {
-		if (!inboundContactEditorLookup) {
+		if (!inboundContactEditorState) {
 			return null;
 		}
 
-		const columnMetric = columnMetricsByKey.get(inboundContactEditorLookup.designCell.key);
+		const { lookup } = inboundContactEditorState;
+		const columnMetric = columnMetricsByKey.get(lookup.designCell.key);
 
 		return getSheetLocalEditorPosition({
 			columnMetric,
 			hasPlaceholderTail,
-			rowIndex: renderedRows.findIndex((row) => row.id === inboundContactEditorLookup.row.id),
+			rowIndex: renderedRows.findIndex((row) => row.id === lookup.row.id),
 			rowWidth: Math.max(totalWidth, viewportWidth),
 			stickyColumnCount,
 			stickyHeaderHeight,
@@ -3500,7 +3630,7 @@ export function Sheet(p: SheetProps) {
 	}, [
 		columnMetricsByKey,
 		hasPlaceholderTail,
-		inboundContactEditorLookup,
+		inboundContactEditorState,
 		renderedRows,
 		stickyColumnCount,
 		stickyHeaderHeight,
@@ -3565,7 +3695,7 @@ export function Sheet(p: SheetProps) {
 		if (
 			(!activeSelectEditorLookup || !selectEditorPosition) &&
 			(!activeDateEditorLookup || !dateEditorPosition) &&
-			(!inboundContactEditorLookup || !inboundContactEditorPosition)
+			(!inboundContactEditorState || !inboundContactEditorPosition)
 		) {
 			return;
 		}
@@ -3586,8 +3716,22 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
+			const runtime = runtimeRef.current;
+			const activeCellElement = getClosestSheetElement(target, '[data-sheet-cell="true"]');
+			const activeCellLookup = runtime && activeCellElement
+				? getSheetCellLookup(runtime, activeCellElement.dataset.rowId, activeCellElement.dataset.cellKey)
+				: null;
+
+			if (
+				activeCellLookup &&
+				isSheetLocalEditorEditStateLookup(runtime?.editState, activeCellLookup)
+			) {
+				return;
+			}
+
 			setEditState(null);
-			setInboundContactEditorLookup(null);
+			setInboundContactEditorState(null);
+			lastDismissedLocalEditorCellRef.current = null;
 			setSingleClickedCellState(null);
 			singleClickedCellStateRef.current = null;
 		};
@@ -3598,7 +3742,8 @@ export function Sheet(p: SheetProps) {
 
 			event.preventDefault();
 			setEditState(null);
-			setInboundContactEditorLookup(null);
+			setInboundContactEditorState(null);
+			lastDismissedLocalEditorCellRef.current = null;
 			setSingleClickedCellState(null);
 			singleClickedCellStateRef.current = null;
 		};
@@ -3616,7 +3761,7 @@ export function Sheet(p: SheetProps) {
 		activeDateEditorLookup,
 		activeSelectEditorLookup,
 		dateEditorPosition,
-		inboundContactEditorLookup,
+		inboundContactEditorState,
 		inboundContactEditorPosition,
 		selectEditorPosition,
 	]);
@@ -3741,6 +3886,7 @@ export function Sheet(p: SheetProps) {
 					}}
 				>
 					<SheetSelectEditor
+						clickSource={editState.clickSource}
 						key={`${editState.rowId}:${editState.cellKey}`}
 						editState={editState}
 						fieldType={getSheetEditorFieldType(activeSelectEditorLookup.designCell) as SheetUIFieldType}
@@ -3752,6 +3898,7 @@ export function Sheet(p: SheetProps) {
 		{activeDateEditorLookup && editState && dateEditorPosition
 			? <SheetLocalEditorContainer position={dateEditorPosition}>
 				<SheetDateEditor
+					clickSource={editState.clickSource}
 					key={`${editState.rowId}:${editState.cellKey}`}
 					editState={editState}
 					lookup={activeDateEditorLookup}
@@ -3760,14 +3907,15 @@ export function Sheet(p: SheetProps) {
 				/>
 			</SheetLocalEditorContainer>
 			: null}
-		{inboundContactEditorLookup && inboundContactEditorPosition
+		{inboundContactEditorState && inboundContactEditorPosition
 			? <SheetLocalEditorContainer position={inboundContactEditorPosition}>
 				<SheetInboundContactEditor
-					displayValue={getSheetCellDisplayValue(inboundContactEditorLookup.cell, inboundContactEditorLookup.designCell)}
-					inboundContactId={String(inboundContactEditorLookup.cell?.relatedId || '')}
+					clickSource={inboundContactEditorState.clickSource}
+					displayValue={inboundContactEditorState.displayValue}
+					inboundContactId={String(inboundContactEditorState.lookup.cell?.relatedId || '')}
 					onClose={() => {
 						setEditState(null);
-						setInboundContactEditorLookup(null);
+						setInboundContactEditorState(null);
 					}}
 					openModalPopUp={openModalPopUp}
 					organizationId={organizationId}
