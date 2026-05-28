@@ -200,6 +200,8 @@ function SheetInboundContactOrganizationTab(p: SheetInboundContactOrganizationTa
 		organizationId: p.organizationId,
 		limit: 250,
 	});
+
+  const isEmpty = !!childOrganizations && !childOrganizations.length;
 	const mockChildOrganizations = Array.from({ length: 3 });
 	const organizationNameById = new Map(p.associatedOrganizationNameById);
 	const selectedOrganizationIds = p.selectedOrganizationIds || [];
@@ -233,7 +235,10 @@ function SheetInboundContactOrganizationTab(p: SheetInboundContactOrganizationTa
 		>
 			{associatedOrganizationText}
 		</TextWithLinks>
-		<MoreBelowScrollArea className='pt_12 px_6 grid gap_4 max_h_300' scrollClassName='y_scr flat'>
+		<MoreBelowScrollArea
+      className={cn('px_6 grid gap_4 max_h_300', isEmpty ? 'pt_4' : 'pt_12')}
+      scrollClassName='y_scr flat'
+    >
 			{childOrganizations == null ? mockChildOrganizations.map((_, index) => (
 			// {childOrganizations ? mockChildOrganizations.map((_, index) => (
 	        <div className='h_spread px_5 h_24 bd_1 bd_lt no_shrink' key={index}>
@@ -250,9 +255,10 @@ function SheetInboundContactOrganizationTab(p: SheetInboundContactOrganizationTa
 					/>
 			))}
 
-	      <p className='p_6 cl_lt'>
-	        {i18n.t('agent.inbound_contact_associated_orgs_auto_create_msg')}
-	      </p>
+      <p className={cn('mx_6 pb_6 cl_lt', isEmpty ? 'bd_t_1 bd_lt pt_14' : '')}>
+        {i18n.t('agent.inbound_contact_associated_orgs_auto_create_msg')}
+      </p>
+
 		</MoreBelowScrollArea>
 				<div className='bd_t_1 bd_lt h_spread p_6 gap_8'>
 					<span className='ft_xs cl_md'>

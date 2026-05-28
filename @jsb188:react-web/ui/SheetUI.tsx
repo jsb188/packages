@@ -92,6 +92,7 @@ export type SheetUICell = {
 
 export type SheetUIRowSlot = {
 	cellsByKey: Record<string, SheetUICell | undefined>;
+	deleted?: boolean;
 	rowId?: string | null;
 	rowIndex: number;
 	rowKey: string;
@@ -585,9 +586,10 @@ export const SheetUI = memo((p: SheetUIProps) => {
 				{p.rows.map((rowSlot) => {
 					return <SheetRowNumberSlot
 						key={rowSlot.rowKey}
-						isPlaceholderRow={isSheetPlaceholderRowSlot(rowSlot)}
-						rowId={rowSlot.rowId}
-						rowIndex={rowSlot.rowIndex}
+							isPlaceholderRow={isSheetPlaceholderRowSlot(rowSlot)}
+							deleted={rowSlot.deleted}
+							rowId={rowSlot.rowId}
+							rowIndex={rowSlot.rowIndex}
 						rowNumber={rowSlot.rowNumber}
 						rowHeight={rowSlot.rowHeight}
 						rowTop={rowSlot.rowTop}
@@ -598,9 +600,10 @@ export const SheetUI = memo((p: SheetUIProps) => {
 				{p.rows.map((rowSlot) => {
 					return <SheetStickyColumnSpacerSlot
 						key={`${rowSlot.rowKey}:sticky-column-spacer`}
-						left={stickyColumnEndLeft}
-						rowId={rowSlot.rowId}
-						rowHeight={rowSlot.rowHeight}
+							left={stickyColumnEndLeft}
+							deleted={rowSlot.deleted}
+							rowId={rowSlot.rowId}
+							rowHeight={rowSlot.rowHeight}
 						rowTop={rowSlot.rowTop}
 						rowWidth={rowSlot.rowWidth}
 					/>;
@@ -634,9 +637,10 @@ export const SheetUI = memo((p: SheetUIProps) => {
 							columnIndex={columnMetric.columnIndex}
 							columnWidth={columnMetric.width}
 							editState={p.editState}
-							isPlaceholderRow={isPlaceholderRow}
-							isStickyLeft={isStickyLeft}
-							renderCallback={p.cellRenderCallback}
+								isPlaceholderRow={isPlaceholderRow}
+								isStickyLeft={isStickyLeft}
+								rowDeleted={rowSlot.deleted}
+								renderCallback={p.cellRenderCallback}
 							rowHeight={rowSlot.rowHeight}
 							rowId={rowSlot.rowId}
 							rowIndex={rowSlot.rowIndex}

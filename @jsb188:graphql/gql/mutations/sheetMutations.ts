@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { sheetCellFragment, sheetFragment } from '../fragments/sheetFragments.ts';
+import { sheetCellFragment, sheetFragment, sheetRowFragment } from '../fragments/sheetFragments.ts';
 
 export const editSheetCellMtn = gql`
 mutation editSheetCell (
@@ -25,6 +25,24 @@ mutation editSheetCell (
 }
 
 ${sheetCellFragment}
+`;
+
+export const deleteSheetRowMtn = gql`
+mutation deleteSheetRow (
+  $organizationId: GenericID!
+  $sheetId: GenericID!
+  $sheetRowId: GenericID!
+) {
+  deleteSheetRow (
+    organizationId: $organizationId
+    sheetId: $sheetId
+    sheetRowId: $sheetRowId
+  ) {
+    ...sheetRowFragment
+  }
+}
+
+${sheetRowFragment}
 `;
 
 export const editSheetDesignMtn = gql`

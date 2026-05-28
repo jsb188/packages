@@ -1,6 +1,6 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn } from '@jsb188/react/states';
-import { editSheetCellMtn, editSheetDesignMtn } from '../gql/mutations/sheetMutations.ts';
+import { deleteSheetRowMtn, editSheetCellMtn, editSheetDesignMtn } from '../gql/mutations/sheetMutations.ts';
 import { useMutation } from './index.ts';
 
 /**
@@ -19,6 +19,26 @@ export function useEditSheetCell(params: UseMutationParams = {}, openModalPopUp?
 	return {
 		editSheetCell,
 		updateObservers,
+		...mtnValues,
+		...mtnHandlers,
+	};
+}
+
+/**
+ * Delete a single source sheet row.
+ */
+
+export function useDeleteSheetRow(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+	const [deleteSheetRow, mtnValues, mtnHandlers] = useMutation(
+		deleteSheetRowMtn,
+		{
+			openModalPopUp,
+			...params,
+		},
+	);
+
+	return {
+		deleteSheetRow,
 		...mtnValues,
 		...mtnHandlers,
 	};

@@ -1,3 +1,4 @@
+import { formatCalDateInTimeZone, parseDateInTimezone } from '@jsb188/app/utils/timeZone.ts';
 import {
 	SHEET_COLUMN_MAX_WIDTH,
 	SHEET_COLUMN_MIN_WIDTH,
@@ -43,7 +44,7 @@ export function clampSheetColumnWidth(width: number) {
  * Check whether a value is a non-array object.
  */
 
-function isPlainObject(value: any) {
+function isPlainObject(value: any): value is Record<string, any> {
 	return !!value && typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value);
 }
 
@@ -85,6 +86,18 @@ export function isSheetWeekFieldType(fieldType: SheetFieldTypeEnum | null | unde
 
 function getSheetWeekStartDay(fieldType: SheetFieldTypeEnum | null | undefined) {
 	return fieldType === 'WEEK_OF_SUN' ? 0 : 1;
+}
+
+/*
+ * Return the scalar value from a sheet record-like object input.
+ */
+
+function getSheetRecordScalarValue(value: SheetRecordValue | Date) {
+	if (isPlainObject(value) && 'value' in value) {
+		return value.value as SheetRecordValue;
+	}
+
+	return value;
 }
 
 /*
@@ -165,11 +178,41 @@ function addDays(date: Date, days: number) {
  */
 
 function isValidSheetDateValue(value: SheetRecordValue | Date) {
-	if (value instanceof Date) {
-		return Number.isFinite(value.getTime());
+	const scalarValue = getSheetRecordScalarValue(value);
+
+	if (scalarValue instanceof Date) {
+		return Number.isFinite(scalarValue.getTime());
 	}
 
-	return isValidSheetDateKey(String(value).split('T')[0]);
+	if (isValidSheetDateKey(String(scalarValue).split('T')[0])) {
+		return true;
+	}
+
+	return Number.isFinite(new Date(String(scalarValue)).getTime());
+}
+
+/*
+ * Return the calendar date key represented by one date value in a timezone.
+ */
+
+function getSheetDateValueCalendarKey(value: SheetRecordValue | Date, timeZone?: string | null) {
+	const scalarValue = getSheetRecordScalarValue(value);
+
+	if (scalarValue instanceof Date) {
+		return formatCalDateInTimeZone(scalarValue, timeZone || null);
+	}
+
+	const stringValue = String(scalarValue);
+	if (isValidSheetDateKey(stringValue)) {
+		return stringValue;
+	}
+
+	const parsedDate = parseDateInTimezone(stringValue, timeZone, 0, stringValue.includes('T'));
+	if (Number.isFinite(parsedDate.getTime())) {
+		return formatCalDateInTimeZone(parsedDate, timeZone || null);
+	}
+
+	return stringValue.split('T')[0];
 }
 
 /*
@@ -177,17 +220,20 @@ function isValidSheetDateValue(value: SheetRecordValue | Date) {
  */
 
 export function getSheetDateValueKey(value: SheetRecordValue | Date) {
-	return value instanceof Date ? value.toISOString().split('T')[0] : String(value).split('T')[0];
+	const scalarValue = getSheetRecordScalarValue(value);
+
+	return scalarValue instanceof Date ? scalarValue.toISOString().split('T')[0] : String(scalarValue).split('T')[0];
 }
 
 /*
  * Return a date string normalized to the configured sheet week start.
  */
 
-export function normalizeSheetWeekDateValue(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum) {
-	const date = parseDateKey(getSheetDateValueKey(value));
+export function normalizeSheetWeekDateValue(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum, timeZone?: string | null) {
+	const dateKey = getSheetDateValueCalendarKey(value, timeZone);
+	const date = parseDateKey(dateKey);
 	if (!date || !isSheetWeekFieldType(fieldType)) {
-		return getSheetDateValueKey(value);
+		return dateKey;
 	}
 
 	const startDay = getSheetWeekStartDay(fieldType);
@@ -200,8 +246,23 @@ export function normalizeSheetWeekDateValue(value: SheetRecordValue | Date, fiel
  * Return a date string normalized for storage by one date-like sheet field.
  */
 
-export function normalizeSheetDateLikeValue(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum) {
-	return isSheetWeekFieldType(fieldType) ? normalizeSheetWeekDateValue(value, fieldType) : getSheetDateValueKey(value);
+export function normalizeSheetDateLikeValue(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum, timeZone?: string | null) {
+	return isSheetWeekFieldType(fieldType) ? normalizeSheetWeekDateValue(value, fieldType, timeZone) : getSheetDateValueCalendarKey(value, timeZone);
+}
+
+/*
+ * Return the canonical ISO datetime string for a sheet datetime value in one timezone.
+ */
+
+export function normalizeSheetDateTimeValue(value: SheetRecordValue | Date, timeZone?: string | null) {
+	const scalarValue = getSheetRecordScalarValue(value);
+
+	return parseDateInTimezone(
+		scalarValue instanceof Date ? scalarValue : String(scalarValue),
+		timeZone,
+		0,
+		typeof scalarValue === 'string',
+	).toISOString();
 }
 
 /*
@@ -209,7 +270,8 @@ export function normalizeSheetDateLikeValue(value: SheetRecordValue | Date, fiel
  */
 
 function isValidSheetDateTimeValue(value: SheetRecordValue) {
-	const date = value instanceof Date ? value : new Date(String(value));
+	const scalarValue = getSheetRecordScalarValue(value);
+	const date = scalarValue instanceof Date ? scalarValue : new Date(String(scalarValue));
 
 	return Number.isFinite(date.getTime());
 }

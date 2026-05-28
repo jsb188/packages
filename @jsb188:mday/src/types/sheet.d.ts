@@ -210,7 +210,7 @@ export interface SheetRecordData {
 	numberValue?: number | null;
 	booleanValue?: boolean | null;
 	dateValue?: Date | string | null;
-	datetimeValue?: Date | null;
+	datetimeValue?: Date | string | null;
 	relatedTable?: string | null;
 	relatedId?: number | bigint | null;
 	createdAt: Date;

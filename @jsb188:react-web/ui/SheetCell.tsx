@@ -676,6 +676,7 @@ SheetStickyColumnSpacerCell.displayName = 'SheetStickyColumnSpacerCell';
  */
 
 export const SheetStickyColumnSpacerSlot = memo((p: {
+	deleted?: boolean;
 	left: number;
 	rowId?: string | null;
 	rowHeight?: number;
@@ -683,7 +684,7 @@ export const SheetStickyColumnSpacerSlot = memo((p: {
 	rowWidth: number;
 }) => {
 	return <div
-		className='abs'
+		className={cn('abs', p.deleted ? '__deleted' : '')}
 		data-sheet-sticky-column-spacer-slot='true'
 		style={{
 			height: p.rowHeight ?? SHEET_ROW_HEIGHT,
@@ -698,8 +699,9 @@ export const SheetStickyColumnSpacerSlot = memo((p: {
 			rowHeight={p.rowHeight}
 		/>
 	</div>;
-}, (prev, next) => (
-	prev.left === next.left &&
+	}, (prev, next) => (
+		prev.deleted === next.deleted &&
+		prev.left === next.left &&
 	prev.rowId === next.rowId &&
 	prev.rowHeight === next.rowHeight &&
 	prev.rowTop === next.rowTop &&
@@ -713,6 +715,7 @@ SheetStickyColumnSpacerSlot.displayName = 'SheetStickyColumnSpacerSlot';
  */
 
 export const SheetRowNumberCell = memo((p: {
+	deleted?: boolean;
 	isPlaceholderRow?: boolean;
 	rowContentHeight?: number;
 	rowId?: string | null;
@@ -724,9 +727,10 @@ export const SheetRowNumberCell = memo((p: {
 
 	return <div
 		className={cn(
-			'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
-			'bd_r_1 bd_b_1 bd_lt',
-			STICKY_CELL_BG_CSS,
+				'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
+				'bd_r_1 bd_b_1 bd_lt',
+				p.deleted ? '__deleted' : '',
+				STICKY_CELL_BG_CSS,
 		)}
 		style={{
 			height: p.rowHeight ?? SHEET_ROW_HEIGHT,
@@ -746,8 +750,9 @@ export const SheetRowNumberCell = memo((p: {
 			{p.rowNumber ?? null}
 		</span>
 	</div>;
-}, (prev, next) => (
-	prev.isPlaceholderRow === next.isPlaceholderRow &&
+	}, (prev, next) => (
+		prev.deleted === next.deleted &&
+		prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.rowContentHeight === next.rowContentHeight &&
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
@@ -762,6 +767,7 @@ SheetRowNumberCell.displayName = 'SheetRowNumberCell';
  */
 
 export const SheetRowNumberSlot = memo((p: {
+	deleted?: boolean;
 	isPlaceholderRow?: boolean;
 	rowId?: string | null;
 	rowIndex: number;
@@ -773,7 +779,7 @@ export const SheetRowNumberSlot = memo((p: {
 	const rowHeight = p.rowHeight ?? SHEET_ROW_HEIGHT;
 
 	return <div
-		className='abs'
+		className={cn('abs', p.deleted ? '__deleted' : '')}
 		data-sheet-row-number-slot='true'
 		style={{
 			height: rowHeight,
@@ -783,6 +789,7 @@ export const SheetRowNumberSlot = memo((p: {
 		}}
 	>
 		<SheetRowNumberCell
+			deleted={p.deleted}
 			isPlaceholderRow={p.isPlaceholderRow}
 			rowContentHeight={rowHeight}
 			rowId={p.rowId}
@@ -791,8 +798,9 @@ export const SheetRowNumberSlot = memo((p: {
 			rowHeight={rowHeight}
 		/>
 	</div>;
-}, (prev, next) => (
-	prev.isPlaceholderRow === next.isPlaceholderRow &&
+	}, (prev, next) => (
+		prev.deleted === next.deleted &&
+		prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
 	prev.rowNumber === next.rowNumber &&
@@ -854,6 +862,7 @@ export const SheetCellDisplayValue = memo((p: {
 	displayValue: string;
 	fill?: boolean;
 	iconName?: string | null;
+	isCellActive?: boolean;
 	showSelectChevron?: boolean;
 }) => {
 	const valueClassName = p.displayClassName || 'ellip';
@@ -882,7 +891,7 @@ export const SheetCellDisplayValue = memo((p: {
 			>{p.displayValue}</span>}
 
 		{p.showSelectChevron
-			? <span className='ic_sm no_shrink ml_4 cl_darker_3'>
+			? <span className={cn('ic_sm no_shrink ml_4 cl_darker_3', p.isCellActive && 'target op_0')}>
 				<Icon name='chevron-down' />
 			</span>
 			: null}
@@ -942,6 +951,7 @@ export const SheetCellEditor = memo((p: {
 					displayClassName={p.cell?.displayClassName}
 					displayValue={pickerDisplay.value}
 					fill
+          isCellActive
 					iconName={iconName}
 					showSelectChevron={pickerDisplay.hasValue}
 				/>
@@ -983,6 +993,7 @@ export const SheetGridCell = memo((p: {
 	isPlaceholderRow?: boolean;
 	isStickyLeft: boolean;
 	rowHeight?: number;
+	rowDeleted?: boolean;
 	rowId?: string | null;
 	rowIndex: number;
 	rowTop: number;
@@ -994,11 +1005,12 @@ export const SheetGridCell = memo((p: {
 	const cellSnapshot = useSheetGridCellRenderSnapshot(p);
 	const cell = cellSnapshot.cell;
 	const editState = cellSnapshot.editState || null;
-	const isEditable = cell?.canEdit;
+	const isEditable = !p.rowDeleted && cell?.canEdit;
 	const isEditing = Boolean(editState);
 	const shouldRenderInlineEditor = isEditing && !editState?.disableInlineEditor;
 	const isInlineEditing = shouldRenderInlineEditor && !!p.rowId;
 	const isSelected = !isEditing && Boolean(cellSnapshot.selected);
+	const isCellActive = isEditing || (isSelected && !isEditable);
 	const displayValue = cell?.displayValue || '';
 	const displayFieldType = getSheetColumnHumanFieldType(p.column);
 	const pickerDisplay = getSheetPickerCellDisplayValue(displayFieldType, displayValue);
@@ -1014,14 +1026,15 @@ export const SheetGridCell = memo((p: {
 		'sheet_ui_cell of abs h_item cl_df',
 		editableCellClassName,
 		p.isPlaceholderRow ? '' : 'bd_r_1 bd_b_1 bd_lt',
-		isEditing || (isSelected && !isEditable) ? 'active z4' : '',
+		isCellActive ? 'active z4 hv_area' : '',
 		// !isEditing || !isInlineEditing ? 'px_6 unsel' : '',
 		!isInlineEditing ? 'px_6 unsel' : '',
 		isEditable && isSelected && !isEditing ? 'pointer' : '',
 		// p.cell?.canOpen ? 'link' : '', // Don't use .link class
-		!p.rowId ? 'noclick' : '',
-		isReadOnlyCell ? 'not_editable' : '',
-		!displayValue && !isSheetDateCellFieldType(displayFieldType) ? 'cl_darker_2' : '',
+			!p.rowId ? 'noclick' : '',
+			isReadOnlyCell ? 'not_editable' : '',
+			p.rowDeleted ? '__deleted' : '',
+			!displayValue && !isSheetDateCellFieldType(displayFieldType) ? 'cl_darker_2' : '',
 		p.isStickyLeft ? STICKY_CELL_BG_CSS : CELL_BG_CSS,
 	);
 
@@ -1055,6 +1068,7 @@ export const SheetGridCell = memo((p: {
 					displayClassName={cell?.displayClassName}
 					displayValue={pickerDisplay.value}
 					iconName={iconName}
+					isCellActive={isCellActive}
 					showSelectChevron={isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
 				/>}
 	</div>;
@@ -1073,9 +1087,10 @@ export const SheetGridCell = memo((p: {
 	(prev.cellStore ? true : areSheetGridCellSelectedPropsEqual(prev, next)) &&
 	prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.isStickyLeft === next.isStickyLeft &&
-	prev.renderCallback === next.renderCallback &&
-	prev.rowHeight === next.rowHeight &&
-	prev.rowId === next.rowId &&
+		prev.renderCallback === next.renderCallback &&
+		prev.rowHeight === next.rowHeight &&
+		prev.rowDeleted === next.rowDeleted &&
+		prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
 	prev.rowTop === next.rowTop
 ));
