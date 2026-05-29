@@ -2015,6 +2015,119 @@ describe('Sheet container', () => {
 		});
 	});
 
+	it('keeps edited text cells selected after saving a changed value', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+
+		await act(async () => {
+			input.value = 'Beta';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(nameCell.className).toContain('single-clicked');
+	});
+
+	it('keeps edited text cells selected after clearing a value', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+
+		await act(async () => {
+			input.value = '';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+			variables: {
+				cellKey: 'name',
+				organizationId: 'org-1',
+				sheetId: 'sheet-1',
+				sheetRowId: 'row-0',
+				viewCellKey: null,
+				viewId: null,
+				value: null,
+			},
+		});
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(nameCell.className).toContain('single-clicked');
+	});
+
+	it('keeps edited text cells selected after the saved value is refreshed from rows', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+
+		await act(async () => {
+			input.value = 'Beta';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		hookState.sheetRows = [createRow(0, {
+			name: 'Beta',
+			status: 'Open',
+		})];
+		await rerenderSheet();
+
+		const refreshedNameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		expect(refreshedNameCell.textContent).toContain('Beta');
+		expect(refreshedNameCell.className).toContain('single-clicked');
+	});
+
+	it('keeps edited text cells selected when focus leaves after an Enter save', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+
+		await act(async () => {
+			input.value = 'Beta';
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		await act(async () => {
+			input.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+			await Promise.resolve();
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(nameCell.className).toContain('single-clicked');
+	});
+
 	it('restores single-clicked state when inline edit mode is canceled with Escape', async () => {
 		const host = await renderSheet();
 		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
@@ -2235,7 +2348,7 @@ describe('Sheet container', () => {
 
 		const anchor = host.querySelector('[data-sheet-local-editor-anchor="true"]') as HTMLElement;
 		const expectedLeft = SHEET_ROW_NUMBER_WIDTH + SHEET_COLUMN_WIDTH + SHEET_STICKY_SPACER_SIZE - 2;
-		const expectedTop = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT + 1;
+		const expectedTop = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_HEIGHT - 1;
 
 		expect(anchor.parentElement?.className).toContain('sheet_ui_canvas');
 		expect(anchor.style.left).toBe(`${expectedLeft}px`);

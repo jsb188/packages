@@ -220,7 +220,7 @@ function SheetInboundContactOrganizationTab(p: SheetInboundContactOrganizationTa
 		organizationNameById,
 	);
 		const selectedOrganizationNamesText = selectedOrganizationNames
-			.map((organizationName) => `<u>${escapeInlineHTML(organizationName)}</u>`)
+			.map((organizationName) => `<u class="cl_bd">${escapeInlineHTML(organizationName)}</u>`)
 			.join(', ');
 		const associatedOrganizationText = selectedOrganizationNames.length
 			? i18n.t('org.contact_associated_with', {

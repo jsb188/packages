@@ -992,7 +992,7 @@ const TableListItem = (p: TableListProps & {
 
     return <TDCol
       key={j}
-      className={(typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[j]) ?? 'py_6 min_h_40'}
+      className={(typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[j]) ?? 'py_5 min_h_40'}
       removeLeftPadding={removeLeftPaddingCell}
       removeRightPadding={removeRightPaddingCell}
       iconName={iconName}

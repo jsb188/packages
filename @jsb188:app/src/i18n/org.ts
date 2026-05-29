@@ -8,7 +8,7 @@ export default {
 		type_of: 'Type of organization',
 		claimed_business: 'Claimed business',
 		contact_associated_with: 'This contact is associated with: %{organizationNames}',
-		contact_choose_associated_orgs: 'Choose the organizations this contact is associated with.',
+		contact_choose_associated_orgs: 'Choose the associated organizations for this contact.',
 		org_info: 'Organization information',
 		nothing_found: 'No organizations found.',
 		farms: 'Farms',

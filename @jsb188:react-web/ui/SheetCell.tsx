@@ -1074,7 +1074,7 @@ export const SheetGridCell = memo((p: {
 					displayValue={pickerDisplay.value}
 					iconName={iconName}
 					isCellActive={isCellActive}
-					showSelectChevron={isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
+					showSelectChevron={isEditable && isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
 				/>}
 	</div>;
 }, (prev, next) => (

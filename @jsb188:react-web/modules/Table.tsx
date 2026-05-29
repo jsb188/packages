@@ -750,7 +750,7 @@ export function EditableTable<RowData = never, DraftValues = never>(p: {
             removeLeftPadding={cell.removeLeftPadding ?? removeLeftPadding}
             removeRightPadding={cell.removeRightPadding ?? removeRightPadding}
             {...getEditableTableCellProps(cell)}
-            className={cell.className ?? 'py_6 min_h_40'}
+            className={cell.className ?? 'py_5 min_h_40'}
           >
             {getEditableTableCellChildren(cell)}
           </TDCol>;

@@ -81,7 +81,7 @@ export const TDCol = memo((p: TDColProps) => {
   return <div
     className={cn(
       'tdcol',
-      className ?? 'py_6 min_h_40',
+      className ?? 'py_5 min_h_40',
       !removeLeftPadding && !removeRightPadding ? 'px_8' : removeLeftPadding ? 'pr_8' : removeRightPadding ? 'pl_8' : '',
       // flexClassName || 'h_item',
       !children ? 'cl_darker_2' : '',
@@ -655,7 +655,7 @@ export const TableList = memo((p: {
             removeLeftPadding={removeLeftPadding}
             removeRightPadding={removeRightPadding}
             {...col}
-            className={col.className ?? 'py_6 min_h_40'}
+            className={col.className ?? 'py_5 min_h_40'}
           />;
         })}
       </TRow>;

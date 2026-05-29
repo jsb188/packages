@@ -268,7 +268,7 @@ describe('SheetUI rendering', () => {
 		expect(stickyColumnSpacer?.className).toContain('w_4');
 		expect(stickyColumnSpacer?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH}px`);
 		expect(stickyColumnSpacer?.style.position).toBe('sticky');
-		expect(stickyColumnSpacer?.style.zIndex).toBe('21');
+		expect(stickyColumnSpacer?.style.zIndex).toBe('34');
 		expect(stickyColumnSpacer?.style.top).toBe('');
 		expect(stickyColumnSpacerSlots[0]?.style.top).toBe('36px');
 		expect(stickyColumnSpacerSlots[1]?.style.top).toBe('68px');
@@ -285,7 +285,7 @@ describe('SheetUI rendering', () => {
 		expect(rowNumber?.className).toContain('bg');
 		expect(rowNumber?.style.left).toBe('0px');
 		expect(rowNumber?.style.position).toBe('sticky');
-		expect(rowNumber?.style.zIndex).toBe('21');
+		expect(rowNumber?.style.zIndex).toBe('34');
 		expect(rowNumberSlots[0]?.style.top).toBe('0px');
 		expect(rowNumberSlots[0]?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE}px`);
 		expect(rowNumber?.style.height).toBe(`${SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE}px`);
@@ -340,7 +340,7 @@ describe('SheetUI rendering', () => {
 		expect(nonStickyCell?.className).toContain('bg');
 		expect(headerCells[0]?.style.zIndex).toBe('32');
 		expect(headerCells[1]?.style.zIndex).toBe('');
-		expect(stickyCell?.style.zIndex).toBe('21');
+		expect(stickyCell?.style.zIndex).toBe('34');
 		expect(nonStickyCell?.style.zIndex).toBe('');
 	});
 
@@ -394,6 +394,69 @@ describe('SheetUI rendering', () => {
 
 		expect(renderCounts['row-1:name']).toBe(0);
 		expect(renderCounts['row-1:status']).toBe(1);
+	});
+
+	it('re-renders only previous and next selected cells when selection snapshots change', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('name'),
+			createColumn('status'),
+			createColumn('owner'),
+		]).metrics;
+		const nameCell = createCell('name', 'Alpha');
+		const statusCell = createCell('status', 'Open');
+		const ownerCell = createCell('owner', 'Saeho');
+		const rows = [
+			createRowSlot('row-1', 0, {
+				name: nameCell,
+				owner: ownerCell,
+				status: statusCell,
+			}),
+		];
+		const cellRenderStore = createTestCellRenderStore({
+			'row-1:name': { cell: nameCell, selected: true },
+			'row-1:owner': { cell: ownerCell },
+			'row-1:status': { cell: statusCell },
+		});
+		const renderCounts: Record<string, number> = {};
+		const cellRenderCallback = (rowId: string | null, cellKey: string) => {
+			if (!rowId) {
+				return;
+			}
+
+			const key = `${rowId}:${cellKey}`;
+			renderCounts[key] = (renderCounts[key] || 0) + 1;
+		};
+
+		await renderSheetUI({
+			canvasWidth: SHEET_ROW_NUMBER_WIDTH + 480,
+			cellCount: 3,
+			cellRenderCallback,
+			cellStore: cellRenderStore,
+			columnCount: 3,
+			columns,
+			headerWidth: SHEET_ROW_NUMBER_WIDTH + 480,
+			rows,
+		});
+
+		renderCounts['row-1:name'] = 0;
+		renderCounts['row-1:owner'] = 0;
+		renderCounts['row-1:status'] = 0;
+
+		await act(async () => {
+			cellRenderStore.setSnapshot('row-1', 'name', {
+				cell: nameCell,
+				selected: false,
+			});
+			cellRenderStore.setSnapshot('row-1', 'status', {
+				cell: statusCell,
+				selected: true,
+			});
+			await Promise.resolve();
+		});
+
+		expect(renderCounts['row-1:name']).toBe(1);
+		expect(renderCounts['row-1:status']).toBe(1);
+		expect(renderCounts['row-1:owner']).toBe(0);
 	});
 
 	it('keeps sticky column spacer left position independent from horizontal scroll', async () => {
@@ -673,6 +736,30 @@ describe('SheetUI rendering', () => {
 		expect(editor?.textContent).toBe('');
 		expect(editor?.querySelector('.cl_darker_2')?.textContent).toBe('');
 		expect(editor?.querySelector('.icon-chevron-down')).toBeNull();
+	});
+
+	it('does not render picker chevrons for selected read-only cells', async () => {
+		const columns = getSheetColumnMetrics([
+			createColumn('status', 'SELECT'),
+		]).metrics;
+		const rows = [
+			createRowSlot('row-1', 0, {
+				status: createCell('status', 'Open', { canEdit: false }),
+			}),
+		];
+		const host = await renderSheetUI({
+			columns,
+			editState: null,
+			rows,
+			selectedCellState: {
+				cellKey: 'status',
+				rowId: 'row-1',
+			},
+		});
+		const cell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement | null;
+
+		expect(cell?.className).toContain('single-clicked');
+		expect(cell?.querySelector('.icon-chevron-down')).toBeNull();
 	});
 
 	it('renders empty date cells as blank text with light color and no chevron', async () => {
