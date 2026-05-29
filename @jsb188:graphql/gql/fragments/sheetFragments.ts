@@ -200,6 +200,12 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   datetimeValue
   relatedTable
   relatedId
+  reference {
+    sheetId
+    sheetRowId
+    cellKey
+  }
+  referenceStatus
 
   createdAt
   updatedAt

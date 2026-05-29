@@ -27,10 +27,11 @@
 /* Pop over; list */
 
 .po_list {
-  border-radius: var(--radius-small-wrap);
+  border-radius: 6px;
 }
 
 .po_list .inside {
+  /* padding: 5px; */
   padding: 5px;
   display: flex; flex-direction: column;
   justify-content: flex-start;
@@ -68,8 +69,8 @@
 }
 
 .po_opt {
-  padding: 5px 0 5px .5rem;
-  border-radius: var(--radius-small);
+  padding: 5px 0 5px .4375rem;
+  border-radius: 5px;
 }
 
 .po_opt.default:first-child {
@@ -83,7 +84,7 @@
 /* Pop over; text item */
 
 .po_opt.text_item {
-  padding: 5px .5rem;
+  padding: 5px .4375rem;
   margin-bottom: 0;
 }
 
@@ -95,7 +96,7 @@
 }
 
 .po_opt.preset_small {
-  padding: .5rem 0 .5rem .5rem;
+  padding: .5rem 0 .5rem .4375rem;
 }
 
 /* Pop over; list break */

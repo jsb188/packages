@@ -33,7 +33,7 @@ export const SHEET_STICKY_SPACER_SIZE = 4;
 
 const SHEET_COLUMN_RESIZE_HANDLE_WIDTH = 18;
 const SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET = 1;
-const SHEET_STICKY_LEFT_Z_INDEX = 21;
+const SHEET_STICKY_LEFT_Z_INDEX = 34;
 const SHEET_STICKY_HEADER_Z_INDEX = 31;
 const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 32;
 const SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX = 34;
@@ -181,10 +181,6 @@ export function isSheetPlaceholderRowSlot(rowSlot: SheetUIRowSlot) {
 
 function getSheetSingleClickedCellClassName(className: string) {
 	return className.split(/\s+/).map((classPart) => {
-		if (classPart === 'bg_primary_fd_hv_solid') {
-			return 'bg_primary_fd_solid';
-		}
-
 		const colorClassMatch = classPart.match(/^bg_(.+)_fd_hv$/);
 
 		if (colorClassMatch) {
@@ -200,7 +196,7 @@ function getSheetSingleClickedCellClassName(className: string) {
  */
 
 function getSheetHeaderEditableClassName() {
-	return 'bg_primary_fd_hv_solid';
+	return 'bg_zinc_fd_hv';
 }
 
 /*
@@ -1018,23 +1014,32 @@ export const SheetGridCell = memo((p: {
 	const isReadOnlyCell = Boolean(p.rowId && cell && !isEditable);
 	const editableCellClassName = isEditable
 		? isSelected
-			? getSheetSingleClickedCellClassName(cell?.cellClassName || 'bg_primary_fd_hv_solid') + ' single-clicked'
-			: cell?.cellClassName || 'bg_primary_fd_hv_solid'
+			? getSheetSingleClickedCellClassName(cell?.cellClassName || 'bg_zinc_fd_hv') + ' single-clicked'
+			: cell?.cellClassName || 'bg_zinc_fd_hv'
 		: '';
+	const selectedReadOnlyCellClassName = isReadOnlyCell && isSelected
+		? getSheetSingleClickedCellClassName(cell?.cellClassName || 'bg_zinc_fd_hv') + ' single-clicked'
+		: '';
+	const borderClassName = p.isPlaceholderRow
+		? ''
+		: isSelected
+			? 'bd_r_1 bd_b_1'
+			: 'bd_r_1 bd_b_1 bd_lt';
 
 	const cellClassName = cn(
 		'sheet_ui_cell of abs h_item cl_df',
 		editableCellClassName,
-		p.isPlaceholderRow ? '' : 'bd_r_1 bd_b_1 bd_lt',
+		selectedReadOnlyCellClassName,
+		borderClassName,
 		isCellActive ? 'active z4 hv_area' : '',
 		// !isEditing || !isInlineEditing ? 'px_6 unsel' : '',
 		!isInlineEditing ? 'px_6 unsel' : '',
 		isEditable && isSelected && !isEditing ? 'pointer' : '',
 		// p.cell?.canOpen ? 'link' : '', // Don't use .link class
-			!p.rowId ? 'noclick' : '',
-			isReadOnlyCell ? 'not_editable' : '',
-			p.rowDeleted ? '__deleted' : '',
-			!displayValue && !isSheetDateCellFieldType(displayFieldType) ? 'cl_darker_2' : '',
+    !p.rowId ? 'noclick' : '',
+    isReadOnlyCell ? 'not_editable' : '',
+    p.rowDeleted ? '__deleted' : '',
+    !displayValue && !isSheetDateCellFieldType(displayFieldType) ? 'cl_darker_2' : '',
 		p.isStickyLeft ? STICKY_CELL_BG_CSS : CELL_BG_CSS,
 	);
 
@@ -1110,7 +1115,7 @@ export const SheetPlaceholderRowFillCell = memo((p: {
 	const fillWidth = Math.max(0, (p.contentWidth ?? p.rowWidth) - SHEET_ROW_NUMBER_WIDTH);
 
 	return <div
-		className={cn('sheet_ui_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_6 cl_df bg_primary_fd_hv_solid noclick', CELL_BG_CSS)}
+		className={cn('sheet_ui_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_6 cl_df bg_zinc_fd_hv noclick', CELL_BG_CSS)}
 		data-sheet-cell='true'
 		data-sheet-placeholder-row-fill-cell='true'
 		style={{

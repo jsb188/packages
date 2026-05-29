@@ -32,6 +32,12 @@ const hookState = vi.hoisted(() => ({
 	lastChildOrganizationsArgs: null as any[] | null,
 	lastInboundContactArgs: null as any[] | null,
 	lastSheetRowsArgs: null as any[] | null,
+	keyDown: {
+		alert: false,
+		metaKey: false,
+		modal: false,
+		pressed: null as string | null,
+	},
 	openModalPopUp: vi.fn(),
 	openModalScreen: vi.fn(),
 	resetOnlyTime: '' as string | undefined,
@@ -97,8 +103,21 @@ vi.mock('@jsb188/graphql/hooks/use-organization-qry', () => ({
 }));
 
 vi.mock('@jsb188/react/states', () => ({
+	useKeyDown: () => [hookState.keyDown, (data: Partial<typeof hookState.keyDown>) => {
+		hookState.keyDown = {
+			...hookState.keyDown,
+			...data,
+		};
+	}],
 	useOpenModalPopUp: () => hookState.openModalPopUp,
 	useOpenModalScreen: () => hookState.openModalScreen,
+	usePopOver: () => ({
+		closePopOver: vi.fn(),
+		openPopOver: vi.fn(),
+		popOver: null,
+		setPopOverState: vi.fn(),
+		updatePopOver: vi.fn(),
+	}),
 }));
 
 let currentRoot: Root | null = null;
@@ -263,6 +282,20 @@ async function rerenderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) 
 	await flushRender();
 }
 
+/*
+ * Dispatch one mocked app-level keydown value through the Sheet container.
+ */
+
+async function pressSheetKey(key: string, props: Partial<ComponentProps<typeof Sheet>> = {}) {
+	globalThis.dispatchEvent(new KeyboardEvent('keydown', {
+		bubbles: true,
+		cancelable: true,
+		key,
+	}));
+
+	await rerenderSheet(props);
+}
+
 beforeEach(() => {
 	globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 	document.body.innerHTML = '<div id="test-root"></div>';
@@ -279,6 +312,12 @@ beforeEach(() => {
 	hookState.inboundContact = null;
 	hookState.inboundContactInitialLoading = false;
 	hookState.inboundContactSaving = false;
+	hookState.keyDown = {
+		alert: false,
+		metaKey: false,
+		modal: false,
+		pressed: null,
+	};
 	hookState.lastChildOrganizationsArgs = null;
 	hookState.lastInboundContactArgs = null;
 	hookState.lastSheetRowsArgs = null;
@@ -417,6 +456,235 @@ describe('Sheet container', () => {
 
 		expect(firstCell?.querySelector('.icon-circle-check')).not.toBeNull();
 		expect(firstCell?.textContent).toContain('Alpha');
+	});
+
+	it('renders deleted reference cells as read-only markers', async () => {
+		hookState.sheetRows = [{
+			...createRow(0, {}),
+			cells: [
+				createCell('row-0', 'name', '', {
+					value: null,
+					textValue: null,
+					reference: {
+						sheetId: 'sheet-2',
+						sheetRowId: null,
+						cellKey: 'name',
+					},
+					referenceStatus: 'DELETED',
+				}),
+			],
+		}];
+
+		const host = await renderSheet();
+		const firstCell = host.querySelector('[data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement | null;
+
+		expect(firstCell?.textContent).toContain('Deleted reference');
+		expect(firstCell?.dataset.sheetCellEditable).toBeUndefined();
+	});
+
+	it('moves selected cells horizontally with arrow keys', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+		const statusCell = host.querySelector('[data-row-id="row-0"][data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+		await pressSheetKey('ArrowRight');
+
+		expect(statusCell.className).toContain('single-clicked');
+
+		await pressSheetKey('ArrowLeft');
+
+		expect(nameCell.className).toContain('single-clicked');
+	});
+
+	it('selects the first sheet cell when arrow navigation starts without a selection', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		await pressSheetKey('ArrowRight');
+
+		expect(nameCell.className).toContain('single-clicked');
+	});
+
+	it('does not reuse stale arrow key state after a cell is unselected', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+		const statusCell = host.querySelector('[data-row-id="row-0"][data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement;
+
+		hookState.keyDown = {
+			alert: false,
+			metaKey: false,
+			modal: false,
+			pressed: 'ArrowRight',
+		};
+		await rerenderSheet();
+
+		expect(nameCell.className).not.toContain('single-clicked');
+		expect(statusCell.className).not.toContain('single-clicked');
+	});
+
+	it('prevents default browser scrolling for sheet arrow navigation keys', async () => {
+		await renderSheet();
+		const event = new KeyboardEvent('keydown', {
+			bubbles: true,
+			cancelable: true,
+			key: 'ArrowDown',
+		});
+
+		globalThis.dispatchEvent(event);
+
+		expect(event.defaultPrevented).toBe(true);
+	});
+
+	it('prevents sheet scrolling from arrow keys while a cell editor is active', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+
+		const event = new KeyboardEvent('keydown', {
+			bubbles: true,
+			cancelable: true,
+			key: 'ArrowDown',
+		});
+
+		globalThis.dispatchEvent(event);
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).not.toBeNull();
+		expect(event.defaultPrevented).toBe(true);
+	});
+
+	it('keeps arrow-key navigation clamped at the sheet edges', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+		await pressSheetKey('ArrowLeft');
+
+		expect(nameCell.className).toContain('single-clicked');
+	});
+
+	it('moves selected cells vertically with arrow keys', async () => {
+		hookState.sheetRows = [
+			createRow(0, { name: 'Alpha', status: 'Open' }),
+			createRow(1, { name: 'Beta', status: 'Closed' }),
+		];
+		const host = await renderSheet();
+		const firstStatusCell = host.querySelector('[data-row-id="row-0"][data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement;
+		const secondStatusCell = host.querySelector('[data-row-id="row-1"][data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			firstStatusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+		await pressSheetKey('ArrowDown');
+
+		expect(secondStatusCell.className).toContain('single-clicked');
+
+		await pressSheetKey('ArrowUp');
+
+		expect(firstStatusCell.className).toContain('single-clicked');
+	});
+
+	it('keeps the active cell selected when blank sheet space is clicked', async () => {
+		const host = await renderSheet();
+		const scrollViewport = host.querySelector('[data-sheet-scroll-viewport="true"]') as HTMLElement;
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+		await act(async () => {
+			scrollViewport.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(nameCell.className).toContain('single-clicked');
+	});
+
+	it('does not move arrow-key selection while a cell editor is active', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+		const statusCell = host.querySelector('[data-row-id="row-0"][data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+		await flushRender();
+		await pressSheetKey('ArrowRight');
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).not.toBeNull();
+		expect(statusCell.className).not.toContain('single-clicked');
+	});
+
+	it('opens the selected cell editor when Enter is pressed', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+		await pressSheetKey('Enter');
+
+		const editor = host.querySelector('[data-sheet-editor="true"][data-cell-key="name"]') as HTMLInputElement | null;
+
+		expect(editor).not.toBeNull();
+		expect(editor?.value).toBe('Alpha');
+	});
+
+	it('prevents default browser behavior for selected-cell Enter editing', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		const event = new KeyboardEvent('keydown', {
+			bubbles: true,
+			cancelable: true,
+			key: 'Enter',
+		});
+
+		globalThis.dispatchEvent(event);
+
+		expect(event.defaultPrevented).toBe(true);
+	});
+
+	it('scrolls selected arrow-key targets into view', async () => {
+		hookState.sheetRows = Array.from({ length: 12 }, (_, index) => createRow(index, {
+			name: `Row ${index}`,
+			status: index % 2 ? 'Closed' : 'Open',
+		}));
+		const host = await renderSheet();
+		const scrollNode = host.querySelector('[data-sheet-scroll-viewport="true"]') as HTMLDivElement;
+		const firstNameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			firstNameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		for (let index = 0; index < 8; index += 1) {
+			await pressSheetKey('ArrowDown');
+		}
+
+		const selectedNameCell = host.querySelector('[data-row-id="row-8"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		expect(scrollNode.scrollTop).toBeGreaterThan(0);
+		expect(selectedNameCell.className).toContain('single-clicked');
 	});
 
 	it('derives external-link icons for open-link cells with HTTP text values', async () => {
@@ -932,16 +1200,14 @@ describe('Sheet container', () => {
 		const reasonPill = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"] span') as HTMLElement;
 
 		expect(statusCell.className).toContain('bg_emerald_fd_hv');
-		expect(statusCell.className).not.toContain('bg_primary_fd_hv_solid');
 		expect(statusPill.textContent).toBe('Open');
 		expect(statusPill.className).toContain('r_4');
 		expect(statusPill.className).toContain('bg_emerald_md');
 		expect(defaultStatusCell.className).toContain('bg_zinc_fd_hv');
-		expect(defaultStatusCell.className).not.toContain('bg_primary_fd_hv_solid');
 		expect(defaultStatusPill.textContent).toBe('Default');
 		expect(defaultStatusPill.className).toContain('r_4');
 		expect(defaultStatusPill.className).toContain('bg_zinc_md');
-		expect(reasonCell.className).toContain('bg_primary_fd_hv_solid');
+		expect(reasonCell.className).toContain('bg_zinc_fd_hv');
 		expect(reasonPill.textContent).toBe('Needs review');
 		expect(reasonPill.className).toContain('r_4');
 		expect(reasonPill.className).toContain('bg_zinc_md');
@@ -979,10 +1245,18 @@ describe('Sheet container', () => {
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		expect(nameCell.dataset.sheetCellEditable).toBeUndefined();
-		expect(nameCell.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(nameCell.className).not.toContain('bg_zinc_fd_hv');
 		expect(statusCell.dataset.sheetCellEditable).toBeUndefined();
 		expect(statusCell.className).not.toContain('bg_emerald_fd_hv');
-		expect(statusCell.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(statusCell.className).not.toContain('bg_zinc_fd_hv');
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+
+		expect(statusCell.className).toContain('bg_emerald_fd');
+		expect(statusCell.className).not.toContain('bg_emerald_fd_hv');
 	});
 
 	it('parses typed editor values with the same shape expected by sheet validation', () => {
@@ -1741,6 +2015,26 @@ describe('Sheet container', () => {
 		});
 	});
 
+	it('restores single-clicked state when inline edit mode is canceled with Escape', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+		});
+
+		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
+		expect(input).not.toBeNull();
+
+		await act(async () => {
+			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+		});
+		await flushRender();
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(nameCell.className).toContain('single-clicked');
+	});
+
 	it('highlights editable cells on single click and edits them on a second click', async () => {
 		const host = await renderSheet();
 		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
@@ -1750,8 +2044,8 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(nameCell.className).toContain('bg_primary_fd_solid');
-		expect(nameCell.className).not.toContain('bg_primary_fd_hv_solid');
+		expect(nameCell.className).toContain('bg_zinc_fd');
+		expect(nameCell.className).not.toContain('bg_zinc_fd_hv');
 
 		await act(async () => {
 			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -2243,7 +2537,7 @@ describe('Sheet container', () => {
 		const noteCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="note"]') as HTMLElement;
 
 		expect(statusCell.textContent).toBe('');
-		expect(noteCell.textContent).toBe(i18n.t('form.n_a'));
+		expect(noteCell.textContent).toBe('');
 
 		await act(async () => {
 			statusCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
@@ -2415,6 +2709,7 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
+		expect(statusCell.className).toContain('single-clicked');
 		expect(hookState.editSheetCell).not.toHaveBeenCalled();
 	});
 
@@ -2765,7 +3060,7 @@ describe('Sheet container', () => {
 		});
 	});
 
-	it('allows selected-click editing for related ID_OR_TEXT cells', async () => {
+	it('blocks selected-click editing for related ID_OR_TEXT cells', async () => {
 		const setFloatingMessage = vi.fn();
 		const sheet = createSheet();
 		sheet.design = {
@@ -2800,11 +3095,53 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
-		expect(input).not.toBeNull();
-		expect(input.tagName).toBe('INPUT');
-		expect(input.dataset.fieldType).toBe('ID');
-		expect(setFloatingMessage).not.toHaveBeenCalled();
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(setFloatingMessage).toHaveBeenCalledWith({
+			text: 'Editing this cell is temporarily disabled.',
+			type: 'NOTICE',
+		});
+	});
+
+	it('uses background-click edit rules when Enter is pressed on related ID_OR_TEXT cells', async () => {
+		const setFloatingMessage = vi.fn();
+		const sheet = createSheet();
+		sheet.design = {
+			...sheet.design,
+			cells: [
+				createDesignCell('name'),
+				createDesignCell('status', {
+					fieldType: 'ID_OR_TEXT' as unknown as SheetDesignCellGQL['fieldType'],
+					humanFieldType: 'ID',
+				}),
+			],
+		};
+		hookState.sheetRows = [{
+			...createRow(0, {
+				name: 'Alpha',
+				status: 'Contact 1',
+			}),
+			cells: [
+				createCell('row-0', 'name', 'Alpha'),
+				createCell('row-0', 'status', 'Contact 1', {
+					relatedId: 'contact-1',
+					relatedTable: 'inbound_contact',
+				}),
+			],
+		}];
+		const host = await renderSheet({ setFloatingMessage, sheet });
+		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
+
+		await act(async () => {
+			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+		await pressSheetKey('Enter', { setFloatingMessage, sheet });
+
+		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
+		expect(setFloatingMessage).toHaveBeenCalledWith({
+			text: 'Editing this cell is temporarily disabled.',
+			type: 'NOTICE',
+		});
 	});
 
 	it('routes open-link display clicks through the container handler', async () => {

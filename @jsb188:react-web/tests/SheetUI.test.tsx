@@ -642,6 +642,8 @@ describe('SheetUI rendering', () => {
 		const cell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement | null;
 
 		expect(cell?.textContent).toBe('');
+		expect(cell?.className).toContain('single-clicked');
+		expect(cell?.className).not.toContain('bd_lt');
 		expect(cell?.querySelector('.cl_darker_2')?.textContent).toBe('');
 		expect(cell?.querySelector('.icon-chevron-down')).toBeNull();
 
@@ -783,7 +785,7 @@ describe('SheetUI rendering', () => {
 		expect(scrollViewport?.contains(headerRow)).toBe(true);
 	});
 
-	it('applies non-editing selection guards and primary editable hover backgrounds to header cells', async () => {
+	it('applies non-editing selection guards and zinc editable hover backgrounds to header cells', async () => {
 		const columns = getSheetColumnMetrics([
 			createColumn('name'),
 			createColumn('status', 'SELECT', {
@@ -815,14 +817,14 @@ describe('SheetUI rendering', () => {
 		const lockedHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="locked"]') as HTMLElement | null;
 
 		expect(nameHeader?.className).toContain('unsel');
-		expect(nameHeader?.className).toContain('bg_primary_fd_hv_solid');
+		expect(nameHeader?.className).toContain('bg_zinc_fd_hv');
 		expect(nameHeader?.dataset.sheetHeaderEditable).toBe('true');
 		expect(statusHeader?.className).toContain('unsel');
-		expect(statusHeader?.className).toContain('bg_primary_fd_hv_solid');
+		expect(statusHeader?.className).toContain('bg_zinc_fd_hv');
 		expect(statusHeader?.className).not.toContain('bg_emerald_fd_hv');
 		expect(statusHeader?.dataset.sheetHeaderEditable).toBe('true');
 		expect(lockedHeader?.className).toContain('unsel');
-		expect(lockedHeader?.className).toContain('bg_primary_fd_hv_solid');
+		expect(lockedHeader?.className).toContain('bg_zinc_fd_hv');
 		expect(lockedHeader?.className).not.toContain('bg_emerald_fd_hv');
 		expect(lockedHeader?.dataset.sheetHeaderEditable).toBe('true');
 	});

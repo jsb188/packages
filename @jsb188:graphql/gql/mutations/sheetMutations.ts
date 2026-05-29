@@ -10,6 +10,7 @@ mutation editSheetCell (
   $viewId: String
   $viewCellKey: String
   $value: String
+  $reference: SheetCellReferenceInput
 ) {
   editSheetCell (
     organizationId: $organizationId
@@ -19,6 +20,7 @@ mutation editSheetCell (
     viewId: $viewId
     viewCellKey: $viewCellKey
     value: $value
+    reference: $reference
   ) {
     ...sheetCellFragment
   }

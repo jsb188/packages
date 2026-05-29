@@ -1,4 +1,3 @@
-import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
 import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { formatCurrency } from '@jsb188/app/utils/number.ts';
@@ -67,6 +66,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type Rea
 import { SheetInboundContactEditor } from './Sheet-InboundContact.tsx';
 import {
 	useSheetContextMenu,
+	type SheetArrowNavigationDirection,
 	type SheetContextMenuTarget,
 } from './Sheet-ContextMenu.tsx';
 import { createSheetUICellRenderStore } from './sheet-render-store.ts';
@@ -91,6 +91,7 @@ import {
 
 const __DISABLE_EDIT_STATE_RESET__ = globalThis?.location?.hostname === 'localhost' &&
 	globalThis?.location?.search.includes('disable_sheet_edit_state_reset=true');
+const __USE_NATIVE_CONTEXT_MENU_WITH_ALT__ = (globalThis?.location?.href || '').indexOf('localhost') >= 0;
 
 /**
  * Types
@@ -208,6 +209,21 @@ type SheetLocalEditorPosition = {
 type SheetPaginationState = {
 	hasMoreRows: boolean;
 	lastCursor: string | null;
+};
+
+type SheetArrowNavigationRuntime = {
+	columnMetrics: SheetColumnMetric[];
+	renderedRows: SheetRowGQL[];
+	scrollLeft: number;
+	scrollNode: HTMLDivElement | null;
+	scrollTop: number;
+	stickyColumnCount: number;
+	stickyColumnEndLeft: number;
+	stickyHeaderHeight: number;
+	totalHeight: number;
+	totalWidth: number;
+	viewportHeight: number;
+	viewportWidth: number;
 };
 
 type SheetDesignMutationRuntime = {
@@ -795,6 +811,14 @@ function getSheetCellSerializedValue(
 }
 
 /*
+ * Return whether one cell displays a live value from another sheet cell.
+ */
+
+function isSheetReferenceCell(cell: SheetCellGQL | null | undefined) {
+	return cell?.referenceStatus === 'ACTIVE' || cell?.referenceStatus === 'DELETED';
+}
+
+/*
  * Find the sheet cell for one design column on a row.
  */
 
@@ -849,6 +873,8 @@ function getSheetComputedFallbackCell(
 		booleanValue: null,
 		dateValue: null,
 		datetimeValue: null,
+		reference: null,
+		referenceStatus: null,
 		createdAt: '',
 		updatedAt: '',
 	} satisfies SheetCellGQL;
@@ -898,19 +924,7 @@ function getSheetSelectDisplayColorClassName(designCell: SheetDesignCellGQL, val
 
 function getSheetSelectCellClassName(designCell: SheetDesignCellGQL, value: string) {
 	const option = designCell.options?.find((item) => item.value === value);
-	if (!option) {
-		return undefined;
-	}
-
-	if (!option.color) {
-		return 'bg_zinc_fd_hv';
-	}
-
-	if (!COLORS.includes(option.color as any)) {
-		return undefined;
-	}
-
-	return `bg_${option.color}_fd_hv`;
+	return `bg_${getValidSheetOptionColor(option?.color)}_fd_hv`;
 }
 
 /*
@@ -1053,6 +1067,10 @@ function getSheetCellDisplayValue(
 	optimisticValue?: string | null,
 	timeZone?: string | null,
 ) {
+	if (cell?.referenceStatus === 'DELETED') {
+		return getSheetTranslatedText('sheet.reference_deleted', 'Deleted reference');
+	}
+
 	const rawValue = parseSheetRawValue(getSheetCellSerializedValue(cell, designCell, optimisticValue));
 
 	if (designCell.humanFieldType === 'DATE') {
@@ -1244,12 +1262,14 @@ function getSheetUICellSignature(p: {
 	canOpen: boolean;
 	designCell: SheetDesignCellGQL;
 	iconName?: string | null;
+	referenceStatus?: SheetCellGQL['referenceStatus'] | null;
 	serializedValue: string | null;
 	timeZone?: string | null;
 }) {
 	return [
 		p.serializedValue ?? '',
 		p.iconName ?? '',
+		p.referenceStatus ?? '',
 		p.canEdit ? '1' : '0',
 		p.canOpen ? '1' : '0',
 		p.designCell.fieldType,
@@ -1685,6 +1705,118 @@ function getSheetSelectedCellTagPosition(params: {
 }
 
 /*
+ * Return the next selected sheet cell after one arrow-key movement.
+ */
+
+function getSheetArrowNavigationSelection(params: {
+	columnMetrics: SheetColumnMetric[];
+	direction: SheetArrowNavigationDirection;
+	renderedRows: SheetRowGQL[];
+	selectedCellState?: SheetUISelectedCellState | null;
+}) {
+	const { columnMetrics, direction, renderedRows, selectedCellState } = params;
+
+	if (!columnMetrics.length || !renderedRows.length) {
+		return null;
+	}
+
+	const currentColumnIndex = selectedCellState
+		? columnMetrics.findIndex((metric) => metric.column.key === selectedCellState.cellKey)
+		: -1;
+	const currentRowIndex = selectedCellState
+		? renderedRows.findIndex((row) => row.id === selectedCellState.rowId)
+		: -1;
+
+	if (currentColumnIndex < 0 || currentRowIndex < 0) {
+		return {
+			cellKey: columnMetrics[0].column.key,
+			rowId: renderedRows[0].id,
+		};
+	}
+
+	let nextColumnIndex = currentColumnIndex;
+	let nextRowIndex = currentRowIndex;
+
+	switch (direction) {
+		case 'left':
+			nextColumnIndex = Math.max(0, currentColumnIndex - 1);
+			break;
+		case 'right':
+			nextColumnIndex = Math.min(columnMetrics.length - 1, currentColumnIndex + 1);
+			break;
+		case 'up':
+			nextRowIndex = Math.max(0, currentRowIndex - 1);
+			break;
+		case 'down':
+			nextRowIndex = Math.min(renderedRows.length - 1, currentRowIndex + 1);
+			break;
+		default:
+	}
+
+	const nextColumn = columnMetrics[nextColumnIndex];
+	const nextRow = renderedRows[nextRowIndex];
+
+	if (!nextColumn || !nextRow) {
+		return null;
+	}
+
+	return {
+		cellKey: nextColumn.column.key,
+		rowId: nextRow.id,
+	};
+}
+
+/*
+ * Keep a sheet scroll position inside the current canvas bounds.
+ */
+
+function clampSheetScrollPosition(value: number, maxValue: number) {
+	return Math.min(Math.max(0, value), Math.max(0, maxValue));
+}
+
+/*
+ * Return the scroll position needed to keep one selected sheet cell in view.
+ */
+
+function getSheetArrowNavigationScrollState(params: {
+	columnMetric: SheetColumnMetric;
+	rowIndex: number;
+	runtime: SheetArrowNavigationRuntime;
+}) {
+	const { columnMetric, rowIndex, runtime } = params;
+	let nextScrollLeft = runtime.scrollLeft;
+	let nextScrollTop = runtime.scrollTop;
+	const cellTop = runtime.stickyHeaderHeight + rowIndex * SHEET_ROW_HEIGHT;
+	const cellBottom = cellTop + SHEET_ROW_HEIGHT;
+	const visibleTop = runtime.scrollTop + runtime.stickyHeaderHeight;
+	const visibleBottom = runtime.scrollTop + runtime.viewportHeight;
+
+	if (cellTop < visibleTop) {
+		nextScrollTop = cellTop - runtime.stickyHeaderHeight;
+	} else if (cellBottom > visibleBottom) {
+		nextScrollTop = cellBottom - runtime.viewportHeight;
+	}
+
+	if (columnMetric.columnIndex >= runtime.stickyColumnCount) {
+		const cellLeft = SHEET_ROW_NUMBER_WIDTH + columnMetric.left + SHEET_STICKY_SPACER_SIZE;
+		const cellRight = cellLeft + columnMetric.width;
+		const visibleLeft = runtime.scrollLeft + runtime.stickyColumnEndLeft;
+		const visibleRight = runtime.scrollLeft + runtime.viewportWidth;
+
+		if (cellLeft < visibleLeft) {
+			nextScrollLeft = cellLeft - runtime.stickyColumnEndLeft;
+		} else if (cellRight > visibleRight) {
+			nextScrollLeft = cellRight - runtime.viewportWidth;
+		}
+	}
+
+	return {
+		scrollLeft: clampSheetScrollPosition(nextScrollLeft, runtime.totalWidth - runtime.viewportWidth),
+		scrollTop: clampSheetScrollPosition(nextScrollTop, runtime.totalHeight - runtime.viewportHeight),
+	};
+}
+
+/*
  * Read the current value from an active sheet editor element.
  */
 
@@ -1756,7 +1888,7 @@ function getSheetContextMenuCellTarget(
 			design,
 			designCell: lookup.designCell,
 			disabled: runtime.disabled || lookup.row.__deleted,
-		}),
+		}) && !isSheetReferenceCell(lookup.cell),
 		canOpen: !lookup.row.__deleted && canOpenSheetCellLink(lookup.cell, lookup.designCell),
 		cellKey: runtimeKey,
 		displayValue: getSheetCellDisplayValue(
@@ -1828,6 +1960,21 @@ function isSheetEditStateLookup(editState: SheetUIEditState | null | undefined, 
 function isSheetLocalEditorEditStateLookup(editState: SheetUIEditState | null | undefined, lookup: SheetCellLookup) {
 	return isSheetEditStateLookup(editState, lookup) &&
 		(!!editState?.disableInlineEditor || isSheetLocalEditorFieldType(getSheetEditorFieldType(lookup.designCell)));
+}
+
+/*
+ * Return the selected-cell state matching one active cell editor.
+ */
+
+function getSheetSelectedCellStateFromEditState(editState: SheetUIEditState | null | undefined): SheetUISelectedCellState | null {
+	if (!editState?.rowId || !editState.cellKey) {
+		return null;
+	}
+
+	return {
+		cellKey: editState.cellKey,
+		rowId: editState.rowId,
+	};
 }
 
 /*
@@ -2183,6 +2330,7 @@ export function Sheet(p: SheetProps) {
 	const cellSaveVersionRef = useRef<Record<string, number>>({});
 	const committingEditorRef = useRef(false);
 	const scrollFrameRef = useRef<number | null>(null);
+	const sheetArrowNavigationRuntimeRef = useRef<SheetArrowNavigationRuntime | null>(null);
 	const pendingScrollRef = useRef({
 		scrollLeft: 0,
 		scrollTop: 0,
@@ -3174,7 +3322,14 @@ export function Sheet(p: SheetProps) {
 		const runtime = runtimeRef.current;
 		const lookup = target.lookup;
 
-		if (!runtime || lookup.row.__deleted || runtime.disabled || runtime.sheet.design?.humansCannotEdit || lookup.designCell.humansCannotEdit) {
+		if (
+			!runtime ||
+			lookup.row.__deleted ||
+			runtime.disabled ||
+			runtime.sheet.design?.humansCannotEdit ||
+			lookup.designCell.humansCannotEdit ||
+			isSheetReferenceCell(lookup.cell)
+		) {
 			return;
 		}
 
@@ -3217,6 +3372,64 @@ export function Sheet(p: SheetProps) {
 		});
 	}, []);
 
+	/*
+	 * Move the selected sheet cell by one keyboard arrow step.
+	 */
+
+	const handleSheetArrowKeyNavigation = useCallback((direction: SheetArrowNavigationDirection) => {
+		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+		const selectedCellState = singleClickedCellStateRef.current;
+		const nextSelectedCellState = navigationRuntime
+			? getSheetArrowNavigationSelection({
+				columnMetrics: navigationRuntime.columnMetrics,
+				direction,
+				renderedRows: navigationRuntime.renderedRows,
+				selectedCellState,
+			})
+			: null;
+
+		if (!navigationRuntime || !nextSelectedCellState) {
+			return;
+		}
+
+		const nextColumnMetric = navigationRuntime.columnMetrics.find((metric) => metric.column.key === nextSelectedCellState.cellKey);
+		const nextRowIndex = navigationRuntime.renderedRows.findIndex((row) => row.id === nextSelectedCellState.rowId);
+
+		if (!nextColumnMetric || nextRowIndex < 0) {
+			return;
+		}
+
+		const nextScrollState = getSheetArrowNavigationScrollState({
+			columnMetric: nextColumnMetric,
+			rowIndex: nextRowIndex,
+			runtime: navigationRuntime,
+		});
+
+		if (navigationRuntime.scrollNode) {
+			navigationRuntime.scrollNode.scrollLeft = nextScrollState.scrollLeft;
+			navigationRuntime.scrollNode.scrollTop = nextScrollState.scrollTop;
+		}
+
+		pendingScrollRef.current = nextScrollState;
+		setScrollState((currentState) => {
+			if (
+				currentState.scrollLeft === nextScrollState.scrollLeft &&
+				currentState.scrollTop === nextScrollState.scrollTop
+			) {
+				return currentState;
+			}
+
+			return nextScrollState;
+		});
+		setEditState(null);
+		setHeaderEditState(null);
+		setInboundContactEditorState(null);
+		lastDismissedLocalEditorCellRef.current = null;
+		singleClickedHeaderCellKeyRef.current = null;
+		setSingleClickedCellState(nextSelectedCellState);
+		singleClickedCellStateRef.current = nextSelectedCellState;
+	}, []);
+
 	const selectedSheetContextMenuTarget = useMemo<SheetContextMenuCellTarget | null>(() => {
 		const runtime = runtimeRef.current;
 
@@ -3233,8 +3446,10 @@ export function Sheet(p: SheetProps) {
 		);
 	}, [activeView, effectiveDesign, optimisticValues, rowIndexById, selectedCellLookup, timeZone]);
 
-	const { openSheetContextMenu } = useSheetContextMenu<SheetCellLookup>({
+	const { closeSheetContextMenu, openSheetContextMenu } = useSheetContextMenu<SheetCellLookup>({
 		copyShortcutDisabled: !!editState || !!headerEditState || !!inboundContactEditorState,
+		onArrowKeyNavigation: handleSheetArrowKeyNavigation,
+		onEnterKeyEdit: handleSheetContextMenuEditCell,
 		onEditCell: handleSheetContextMenuEditCell,
 		onOpenCell: handleSheetContextMenuOpenCell,
 		openModalPopUp,
@@ -3249,6 +3464,7 @@ export function Sheet(p: SheetProps) {
 		}
 
 		const onScroll = () => {
+			closeSheetContextMenu();
 			pendingScrollRef.current = {
 				scrollLeft: scrollNode.scrollLeft,
 				scrollTop: scrollNode.scrollTop,
@@ -3322,11 +3538,6 @@ export function Sheet(p: SheetProps) {
 				}
 
 				if (!cellElement && !editorElement) {
-					setInboundContactEditorState(null);
-					lastDismissedLocalEditorCellRef.current = null;
-					singleClickedHeaderCellKeyRef.current = null;
-					setSingleClickedCellState(null);
-					singleClickedCellStateRef.current = null;
 					return;
 				}
 
@@ -3444,7 +3655,13 @@ export function Sheet(p: SheetProps) {
 
 				const lookup = getSheetCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
 
-					if (!lookup || lookup.row.__deleted || runtime.sheet.design?.humansCannotEdit || lookup.designCell.humansCannotEdit) {
+					if (
+						!lookup ||
+						lookup.row.__deleted ||
+						runtime.sheet.design?.humansCannotEdit ||
+						lookup.designCell.humansCannotEdit ||
+						isSheetReferenceCell(lookup.cell)
+					) {
 					return;
 				}
 
@@ -3519,9 +3736,10 @@ export function Sheet(p: SheetProps) {
 
 			if (event.key === 'Escape') {
 				event.preventDefault();
+				const nextSingleClickedCell = getSheetSelectedCellStateFromEditState(runtimeRef.current?.editState);
 				setEditState(null);
-				setSingleClickedCellState(null);
-				singleClickedCellStateRef.current = null;
+				setSingleClickedCellState(nextSingleClickedCell);
+				singleClickedCellStateRef.current = nextSingleClickedCell;
 				return;
 			}
 
@@ -3569,6 +3787,10 @@ export function Sheet(p: SheetProps) {
 			}
 		};
 		const onContextMenu = (event: MouseEvent) => {
+			if (__USE_NATIVE_CONTEXT_MENU_WITH_ALT__ && event.altKey) {
+				return;
+			}
+
 			const localEditorElement = getClosestSheetElement(
 				event.target,
 				'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
@@ -3645,7 +3867,7 @@ export function Sheet(p: SheetProps) {
 				scrollFrameRef.current = null;
 			}
 		};
-	}, [activeView, commitEditorElement, commitHeaderEditorElement, effectiveDesign, openSheetContextMenu, rowIndexById, scrollElement.node, startHeaderEdit]);
+	}, [activeView, closeSheetContextMenu, commitEditorElement, commitHeaderEditorElement, effectiveDesign, openSheetContextMenu, rowIndexById, scrollElement.node, startHeaderEdit]);
 
 	useEffect(() => {
 		return () => {
@@ -3698,6 +3920,20 @@ export function Sheet(p: SheetProps) {
 			return index > stickyColumnCount ? offset + SHEET_STICKY_SPACER_SIZE : offset;
 		});
 	}, [columnMetricsData.offsets, stickyColumnCount]);
+	sheetArrowNavigationRuntimeRef.current = {
+		columnMetrics: columnMetricsData.metrics,
+		renderedRows,
+		scrollLeft: scrollState.scrollLeft,
+		scrollNode: scrollElement.node,
+		scrollTop: scrollState.scrollTop,
+		stickyColumnCount,
+		stickyColumnEndLeft,
+		stickyHeaderHeight,
+		totalHeight,
+		totalWidth,
+		viewportHeight,
+		viewportWidth,
+	};
 
 	useEffect(() => {
 		if (!isSheetRowsReady) {
@@ -3823,7 +4059,7 @@ export function Sheet(p: SheetProps) {
 							design: effectiveDesign,
 							designCell,
 							disabled: effectiveDisabled || rowDeleted,
-						});
+						}) && !isSheetReferenceCell(cell);
 						const canOpen = !rowDeleted && canOpenSheetCellLink(cell, designCell);
 					const iconName = (cell && 'iconName' in cell ? cell.iconName : null) ||
 						designCell.iconName ||
@@ -3833,6 +4069,7 @@ export function Sheet(p: SheetProps) {
 						canOpen,
 						designCell,
 						iconName,
+						referenceStatus: cell?.referenceStatus,
 						serializedValue,
 						timeZone,
 					});
@@ -3850,7 +4087,7 @@ export function Sheet(p: SheetProps) {
 					}
 
 					const displayValue = getSheetCellDisplayValue(cell, designCell, optimisticValue, timeZone);
-					const cellClassName = canEdit ? getSheetCellClassName(cell, designCell, optimisticValue) : undefined;
+					const cellClassName = getSheetCellClassName(cell, designCell, optimisticValue);
 					const displayClassName = getSheetCellDisplayClassName(cell, designCell, optimisticValue);
 					const draftValue = getSheetEditorDraftValue(cell, designCell, optimisticValue);
 					const uiCell: SheetUICell = {
@@ -4132,7 +4369,7 @@ export function Sheet(p: SheetProps) {
 				design: effectiveDesign,
 				designCell: selectedCellLookup.designCell,
 				disabled: effectiveDisabled,
-			})
+			}) && !isSheetReferenceCell(selectedCellLookup.cell)
 		) {
 			return null;
 		}
@@ -4207,11 +4444,12 @@ export function Sheet(p: SheetProps) {
 			}
 
 			event.preventDefault();
+			const nextSingleClickedCell = getSheetSelectedCellStateFromEditState(runtimeRef.current?.editState);
 			setEditState(null);
 			setInboundContactEditorState(null);
 			lastDismissedLocalEditorCellRef.current = null;
-			setSingleClickedCellState(null);
-			singleClickedCellStateRef.current = null;
+			setSingleClickedCellState(nextSingleClickedCell);
+			singleClickedCellStateRef.current = nextSingleClickedCell;
 		};
 
 		document.addEventListener('pointerdown', onOutsidePointer, true);
@@ -4420,12 +4658,12 @@ export function Sheet(p: SheetProps) {
 	/>;
 
   // DEV CODE: DO NOT REMOVE
-  // useEffect(() => {
-  //   if (sheet && sheetRows) {
-  //     console.log('sheet', sheet);
-  //     console.log('sheetRows', sheetRows);
-  //   }
-  // }, [sheet, sheetRows]);
+  useEffect(() => {
+    if (sheet && sheetRows) {
+      console.log('sheet', sheet);
+      console.log('sheetRows', sheetRows);
+    }
+  }, [sheet, sheetRows]);
 
 	return <div
 		className={cn('v_stretch h_f w_f rel bg', className)}

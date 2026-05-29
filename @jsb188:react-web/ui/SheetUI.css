@@ -55,7 +55,8 @@
   top: -1px;
   right: -1px;
   bottom: -1px;
-  border: 1px solid rgba(0,0,0, 0.1);
+  border-width: 1px;
+  border-style: solid;
   pointer-events: none;
   z-index: 1;
 }

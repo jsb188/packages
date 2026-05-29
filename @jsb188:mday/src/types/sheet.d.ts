@@ -4,6 +4,8 @@ export type SheetFieldTypeEnum = typeof SHEET_FIELD_TYPE_ENUMS[number];
 
 export type SheetFieldTypeGQL = SheetFieldTypeEnum;
 
+export type SheetCellReferenceStatus = 'NONE' | 'ACTIVE' | 'DELETED';
+
 export type SheetRecordValue =
 	| string
 	| number
@@ -213,8 +215,17 @@ export interface SheetRecordData {
 	datetimeValue?: Date | string | null;
 	relatedTable?: string | null;
 	relatedId?: number | bigint | null;
+	referenceSheetId?: number | bigint | null;
+	referenceSheetRowId?: number | bigint | null;
+	referenceCellKey?: string | null;
 	createdAt: Date;
 	updatedAt: Date;
+}
+
+export interface SheetCellReferenceGQL {
+	sheetId?: string | null;
+	sheetRowId?: string | null;
+	cellKey?: string | null;
 }
 
 export interface SheetDesignCellOptionGQL {
@@ -428,6 +439,8 @@ export interface SheetCellGQL {
 	datetimeValue?: string | null;
 	relatedTable?: string | null;
 	relatedId?: string | null;
+	reference?: SheetCellReferenceGQL | null;
+	referenceStatus?: SheetCellReferenceStatus | null;
 
 	createdAt: string;
 	updatedAt: string;
