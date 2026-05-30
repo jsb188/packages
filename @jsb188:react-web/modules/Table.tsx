@@ -84,7 +84,7 @@ export const VZTable = memo((p: TableListProps) => {
 		>
 		<div
 			ref={guideRef}
-			className='abs bg_primary noclick'
+			className='abs bg_primary noclick z4'
 			data-table-column-resize-guide
 			style={{
 				bottom: 0,
@@ -92,14 +92,13 @@ export const VZTable = memo((p: TableListProps) => {
 				left: 0,
 				top: 0,
 				width: TABLE_RESIZE_GUIDE_WIDTH,
-				zIndex: 8,
 			}}
 		/>
 
 		{headers && (
 			<div
 				ref={headerScrollerRef}
-				className='w_f table_grid_sticky_header_scroller z4'
+				className='w_f table_grid_sticky_header_scroller z3'
 				onScroll={() => syncHorizontalScroll(headerScrollerRef.current, bodyScrollerRef.current)}
 			>
 				<TableRoot
