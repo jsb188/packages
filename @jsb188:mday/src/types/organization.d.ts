@@ -10,6 +10,7 @@ import { PRODUCT_FEATURES } from '../constants/product.ts';
 import type { AddressObj } from '@jsb188/app/types/other.d.ts';
 import type { IntegrationConnectionData, IntegrationConnectionGQL } from './integration.d.ts';
 import type { StorageData, StorageGQL } from './storage.d.ts';
+import type { OrganizationRouteSettingsObj } from '../utils/table-route.ts';
 
 /*
  * Enums
@@ -118,12 +119,25 @@ export interface MergedOrgContact extends OrgContact {
 	locked?: boolean;
 }
 
+export interface OrganizationSidebarItemObj {
+	slug: string;
+	label: string;
+	iconName: string | null;
+}
+
+export interface OrganizationSidebarGroupObj {
+	title: string;
+	items: OrganizationSidebarItemObj[];
+}
+
 export interface OrganizationSettingsObj {
 	timeZone: string | null;
 	language: string | null;
 	color: string | null;
 	priorityService: boolean;
 	directory?: OrgContact[];
+	routes?: Record<string, OrganizationRouteSettingsObj>;
+	sidebar?: OrganizationSidebarGroupObj[] | null;
 }
 
 export interface OrganizationChildData {

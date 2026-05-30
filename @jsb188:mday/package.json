@@ -37,6 +37,7 @@
     "./utils/product-calEvent.ts": "./src/utils/product-calEvent.ts",
     "./utils/report.ts": "./src/utils/report.ts",
     "./utils/sheet.ts": "./src/utils/sheet.ts",
+    "./utils/table-route.ts": "./src/utils/table-route.ts",
     "./utils/square.ts": "./src/utils/square.ts",
     "./utils/workflow.ts": "./src/utils/workflow.ts"
   },

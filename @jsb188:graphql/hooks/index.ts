@@ -76,6 +76,86 @@ type GraphQLQueryResult = {
  */
 
 const QRY_TRACKER = new Map();
+const FRAGMENT_OBSERVER_LISTENERS = new Map<string, Set<(fragmentIds: string[]) => void>>();
+
+/**
+ * Convert reactive fragment observe entries into exact fragment observer keys.
+ */
+
+function getReactiveFragmentObserveKeys(observe: Array<string | [string, string | null]>) {
+  return observe.map((key) => {
+    return Array.isArray(key) ? key[0] : key;
+  }).filter(Boolean);
+}
+
+/**
+ * Subscribe to exact fragment observer keys.
+ */
+
+function subscribeFragmentObserverKeys(
+  fragmentIds: string[],
+  listener: (fragmentIds: string[]) => void,
+) {
+  for (const fragmentId of fragmentIds) {
+    const listeners = FRAGMENT_OBSERVER_LISTENERS.get(fragmentId) || new Set();
+    listeners.add(listener);
+    FRAGMENT_OBSERVER_LISTENERS.set(fragmentId, listeners);
+  }
+
+  return () => {
+    for (const fragmentId of fragmentIds) {
+      const listeners = FRAGMENT_OBSERVER_LISTENERS.get(fragmentId);
+      listeners?.delete(listener);
+
+      if (!listeners?.size) {
+        FRAGMENT_OBSERVER_LISTENERS.delete(fragmentId);
+      }
+    }
+  };
+}
+
+/**
+ * Notify keyed reactive fragment subscribers for only the changed fragment ids.
+ */
+
+function notifyFragmentObserverListeners(fragmentIds: string[]) {
+  const notifiedListeners = new Set<(fragmentIds: string[]) => void>();
+
+  for (const fragmentId of fragmentIds) {
+    const listeners = FRAGMENT_OBSERVER_LISTENERS.get(fragmentId);
+
+    listeners?.forEach((listener) => {
+      if (!notifiedListeners.has(listener)) {
+        notifiedListeners.add(listener);
+        listener(fragmentIds);
+      }
+    });
+  }
+}
+
+/**
+ * Observe only the exact fragment keys needed by one reactive fragment hook.
+ */
+
+function useFragmentKeyObserver(observe: Array<string | [string, string | null]>) {
+  const observeStr = getReactiveFragmentObserveKeys(observe).join(',');
+  const observeKeys = useMemo(() => observeStr.split(',').filter(Boolean), [observeStr]);
+  const [fragmentObserver, setFragmentObserver] = useState({
+    count: 0,
+    list: [] as string[],
+  });
+
+  useEffect(() => {
+    return subscribeFragmentObserverKeys(observeKeys, (fragmentIds) => {
+      setFragmentObserver((prev) => ({
+        count: prev.count + 1,
+        list: fragmentIds,
+      }));
+    });
+  }, [observeKeys]);
+
+  return fragmentObserver;
+}
 
 /**
  * Global; unset query tracker
@@ -119,6 +199,7 @@ export function useUpdateObservers(): UpdateObserversFn {
         count: (prev.count || 0) + 1,
         list: args.fragmentIds as string[],
       }));
+      notifyFragmentObserverListeners(args.fragmentIds as string[]);
     }
   };
 }
@@ -248,7 +329,7 @@ export function useReactiveFragment(
   isTest?: boolean
 ) {
 
-  const fragmentObserver = useFragmentObserverValue();
+  const fragmentObserver = useFragmentKeyObserver(observe);
   const frgObsCount = fragmentObserver.count;
   const dataId = data?.id;
 

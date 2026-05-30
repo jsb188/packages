@@ -1589,6 +1589,10 @@
 .min_h_25 { min-height: 25px; }
 .min_h_30 { min-height: 30px; }
 .min_h_35 { min-height: 35px; }
+.min_h_36 { min-height: 36px; }
+.min_h_37 { min-height: 37px; }
+.min_h_38 { min-height: 38px; }
+.min_h_39 { min-height: 39px; }
 .min_h_40 { min-height: 40px; }
 .min_h_45 { min-height: 45px; }
 .min_h_50 { min-height: 50px; }
@@ -1685,6 +1689,10 @@
 .max_h_25 { max-height: 25px; }
 .max_h_30 { max-height: 30px; }
 .max_h_35 { max-height: 35px; }
+.max_h_36 { max-height: 36px; }
+.max_h_37 { max-height: 37px; }
+.max_h_38 { max-height: 38px; }
+.max_h_39 { max-height: 39px; }
 .max_h_40 { max-height: 40px; }
 .max_h_45 { max-height: 45px; }
 .max_h_50 { max-height: 50px; }
@@ -1781,6 +1789,10 @@
 .min_w_25 { min-width: 25px; }
 .min_w_30 { min-width: 30px; }
 .min_w_35 { min-width: 35px; }
+.min_w_36 { min-width: 36px; }
+.min_w_37 { min-width: 37px; }
+.min_w_38 { min-width: 38px; }
+.min_w_39 { min-width: 39px; }
 .min_w_40 { min-width: 40px; }
 .min_w_45 { min-width: 45px; }
 .min_w_50 { min-width: 50px; }
@@ -1872,6 +1884,10 @@
 .max_w_25 { max-width: 25px; }
 .max_w_30 { max-width: 30px; }
 .max_w_35 { max-width: 35px; }
+.max_w_36 { max-width: 36px; }
+.max_w_37 { max-width: 37px; }
+.max_w_38 { max-width: 38px; }
+.max_w_39 { max-width: 39px; }
 .max_w_40 { max-width: 40px; }
 .max_w_45 { max-width: 45px; }
 .max_w_50 { max-width: 50px; }

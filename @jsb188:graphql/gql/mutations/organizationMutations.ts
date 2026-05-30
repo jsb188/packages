@@ -1,5 +1,5 @@
 import { gql } from 'graphql-tag';
-import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments.ts';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSettingsFragment, organizationSiteFragment } from '../fragments/organizationFragments.ts';
 
 export const switchOrganizationMtn = gql`
 mutation switchOrganization (
@@ -77,6 +77,26 @@ mutation editOrganizationInboundEmail (
 }
 
 ${organizationFragment}
+`;
+
+export const editOrganizationSettingsMtn = gql`
+mutation editOrganizationSettings (
+  $organizationId: GenericID!
+  $sidebar: [OrganizationSidebarGroupInput!]
+  $routeId: String
+  $columnWidths: [String!]
+) {
+  editOrganizationSettings (
+    organizationId: $organizationId
+    sidebar: $sidebar
+    routeId: $routeId
+    columnWidths: $columnWidths
+  ) {
+    ...organizationSettingsFragment
+  }
+}
+
+${organizationSettingsFragment}
 `;
 
 export const editChildOrganizationMtn = gql`

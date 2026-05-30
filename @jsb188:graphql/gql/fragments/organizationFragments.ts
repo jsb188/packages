@@ -22,6 +22,19 @@ export const organizationFragment = `fragment organizationFragment on Organizati
     timeZone
     language
     color
+    priorityService
+    routes {
+      id
+      columnWidths
+    }
+    sidebar {
+      title
+      items {
+        slug
+        label
+        iconName
+      }
+    }
   }
 
   directory {
@@ -29,6 +42,25 @@ export const organizationFragment = `fragment organizationFragment on Organizati
     department
     emailAddress
     phoneNumber
+  }
+}`;
+
+export const organizationSettingsFragment = `fragment organizationSettingsFragment on OrganizationSettings {
+  timeZone
+  language
+  color
+  priorityService
+  routes {
+    id
+    columnWidths
+  }
+  sidebar {
+    title
+    items {
+      slug
+      label
+      iconName
+    }
   }
 }`;
 

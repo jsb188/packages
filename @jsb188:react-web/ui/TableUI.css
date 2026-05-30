@@ -1,0 +1,65 @@
+.table_grid_root {
+  display: grid;
+  align-items: stretch;
+}
+
+.table_grid_body,
+.table_grid_row {
+  display: contents;
+}
+
+.table_grid_cell {
+  min-width: 0;
+}
+
+.table_grid_sticky_header_scroller {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background-color: rgb(var(--color-bg));
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.table_grid_sticky_header_scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.table_grid_sticky_header_cell {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background-color: rgb(var(--color-bg));
+}
+
+.table_grid_full_width {
+  grid-column: 1 / -1;
+}
+
+.table_grid_body > .table_grid_row:first-of-type > .table_grid_cell .table_grid_element,
+.table_grid_body > .table_grid_row:first-of-type > .table_grid_cell {
+  border-top-width: 0 !important;
+}
+
+.table_grid_row.link:hover > .table_grid_item {
+  /* background-color: var(--color-zinc-fade); */
+  background-color: var(--color-primary-faded-solid);
+}
+
+.table_grid_row[role="button"] > .table_grid_empty_cell {
+  cursor: default;
+}
+
+.table_grid_row[role="button"] > .table_grid_item {
+  cursor: pointer;
+  user-select: none;
+}
+
+.table_grid_row.__deleted > .table_grid_item {
+  text-decoration: line-through;
+}
+
+.table_grid_row.__deleted > .table_grid_cell .tdcol {
+  opacity: .4;
+}

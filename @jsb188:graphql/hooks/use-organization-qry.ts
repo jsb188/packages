@@ -78,6 +78,20 @@ export function useReactiveOrganization(orgId: string, currentData?: any, queryC
   );
 }
 
+/*
+ * Get reactive organization settings fragment data.
+ */
+export function useReactiveOrganizationSettings(orgId: string | null | undefined, currentData?: any, queryCount?: number) {
+  return useReactiveFragment(
+    currentData,
+    orgId ? [`$organizationSettingsFragment:${orgId}`] : [],
+    queryCount,
+    undefined,
+    undefined,
+    true,
+  );
+}
+
 /**
  * Fetch my organizations and then get one by ID
  */
@@ -88,7 +102,14 @@ export function useOrgRelFromMyOrganizations(organizationId: string | null) {
   });
 
   const orgRel = myOrganizations?.find((orgRel: any) => orgRel.organization?.id === organizationId) || null;
-  const organization = useReactiveOrganization(orgRel?.organization?.id, orgRel?.organization);
+  const reactiveOrganization = useReactiveOrganization(orgRel?.organization?.id, orgRel?.organization);
+  const reactiveSettings = useReactiveOrganizationSettings(reactiveOrganization?.id, reactiveOrganization?.settings);
+  const organization = reactiveOrganization && reactiveSettings
+    ? {
+      ...reactiveOrganization,
+      settings: reactiveSettings,
+    }
+    : reactiveOrganization;
   const organizationRelationship = orgRel && organization
     ? {
       ...orgRel,

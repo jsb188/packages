@@ -3,12 +3,9 @@ import type { ServerErrorObj } from '@jsb188/app/types/app.d.ts';
 import { uniq } from '@jsb188/app/utils/object.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { loadFragment } from '@jsb188/graphql/cache';
-import type { TableHeaderObj } from '@jsb188/react-web/ui/TableListUI';
-import { TDCol, THead, TRow } from '@jsb188/react-web/ui/TableListUI';
 import type { OpenModalPopUpFn } from '@jsb188/react/states';
-import { Fragment, isValidElement, memo, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router';
-import type { ReactDivElement, ReactSpanElement } from '../types/dom.d';
+import { Fragment, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { ReactDivElement } from '../types/dom.d';
 
 /**
  * Logic
@@ -47,31 +44,6 @@ export type RenderItemFn = (
 );
 
 export type ReactiveFragmentFn = (id: string, node: any) => any;
-
-type TableColumnElement = string | ReactSpanElement | React.ReactNode | null;
-
-interface MapTableListOutput {
-  __deleted: boolean;
-  RowHeaderComponent?: React.ReactNode;
-  rowHeaders?: Partial<TableHeaderObj>[] | null;
-  to?: string;
-  onClickProps?: any;
-  cellClassNames?: string | (string | undefined)[];
-  columns: TableColumnElement[];
-  // This will create another list of rows below the main row
-  subRows?: {
-    value: any;
-    onClickProps?: any;
-    columns: TableColumnElement[]
-  }[];
-  subRowsContainerClassName?: string;
-}
-
-export type MapTableListDataFn = (
-  item: VZListItemObj,
-  i: number,
-  list: VZListItemObj[]
-) => MapTableListOutput | null; // Returning "null" hides the row
 
 interface VZReferenceObj {
   mounted: boolean;
@@ -144,23 +116,6 @@ interface VirtualizedListProps extends ReactDivElement {
   rootElementQuery?: string; // Scrollable DOM element where the list is contained
 }
 
-type VirtualizedListOmit = Omit<VirtualizedListProps, 'GroupTitleComponent' | 'ItemComponent' | 'groupItems'>;
-
-type TableListProps = {
-  borderStyle?: 'BORDER' | 'SEPARATOR';
-  disableOnClickRow?: boolean;
-  reactiveFragmentFn?: ReactiveFragmentFn;
-  gridLayoutStyle?: string;
-  trowClassName?: string;
-  cellClassNames?: string | (string | undefined)[];
-  removeLeftPadding?: boolean;
-  removeRightPadding?: boolean;
-  headers?: Partial<TableHeaderObj>[] | null;
-  listData: Omit<VZListItemObj, 'lastItemIdOnMount'>[] | null;
-  mapListData: MapTableListDataFn;
-  onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any, onClickProps?: any) => void;
-};
-
 /**
  * Static list container with same class name
  */
@@ -182,7 +137,7 @@ function mergeItemIds(
   data: any[],
   mergeFromLastItem: boolean,
   after: boolean,
-  p: VirtualizedListProps | VirtualizedListOmit
+  p: VirtualizedListProps
 ): string[] {
   const getItemId_ = p.getItemId || ((item: any) => item.id);
   const currentList = currentObj.itemIds || [];
@@ -216,7 +171,7 @@ function getCursorPosition(
   id: string | null,
   after: boolean,
   listElement: HTMLDivElement | null,
-  p: VirtualizedListProps | VirtualizedListOmit,
+  p: VirtualizedListProps,
   nextRefreshCount: number = 0,
 ): CursorPositionObj | null {
 
@@ -329,7 +284,7 @@ function isFirstListItemElement(
 function repositionList(
   cursorPosition: CursorPositionObj,
   listElement: HTMLDivElement | null,
-  p: VirtualizedListProps | VirtualizedListOmit,
+  p: VirtualizedListProps,
   backupScrollRef?: React.Ref<HTMLDivElement>,
 ) {
 
@@ -395,7 +350,7 @@ function repositionList(
  * Virtualized list state
  */
 
-function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): VirtualizedState {
+function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
   const { otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
   const [cursorPosition, setCursorPosition] = useState<CursorPositionObj | null>(null);
   // const [, forceUpdate] = useReducer(x => x + 1, 0);
@@ -453,7 +408,7 @@ function useVirtualizedState(p: VirtualizedListProps | VirtualizedListOmit): Vir
     }
 
     return null;
-  }, [itemIds, cursorPosition?.[0], cursorPosition?.[4], limit]);
+  }, [itemIds, cursorPosition?.[0], cursorPosition?.[4], limit, otherProps]);
 
   // Keep track of certain props so it can referenced inside memoized functions
 
@@ -548,7 +503,7 @@ function useVirtualizedRenderWindow(
  * Re-position list as needed
  */
 
-function useVirtualizedDOM(p: VirtualizedListProps | VirtualizedListOmit, vzState: VirtualizedState, renderIsDeferred = false) {
+function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState, renderIsDeferred = false) {
   const { listData, hasMoreTop, hasMoreBottom, cursorPosition, setCursorPosition, referenceObj } = vzState;
   const { refreshKey, resetKey, limit, fetchMore, openModalPopUp } = p;
   const rootElementQuery = p.rootElementQuery || `#${DOM_IDS.mainBodyScrollArea}`;
@@ -950,232 +905,5 @@ export function VirtualizedList(p: VirtualizedListProps) {
         loadedDataSize={referenceObj.current.itemIds!?.length}
       />
     }
-  </>;
-}
-
-/**
- * Table list item
- */
-
-const TableListItem = (p: TableListProps & {
-  item: VZListItemObj;
-  i: number;
-  list: VZListItemObj[];
-}) => {
-  const { disableOnClickRow, item, i, list, gridLayoutStyle, mapListData, trowClassName, removeLeftPadding, removeRightPadding, onClickRow } = p;
-  const rowData = mapListData(item, i, list);
-  if (isValidElement(rowData)) {
-    // If rowData is a valid React element, return it directly
-    return rowData;
-  }
-
-  if (!rowData) {
-    return null;
-  }
-
-  const Container = rowData.to ? Link : 'div';
-  const cellClassNames = rowData.cellClassNames || p.cellClassNames;
-  const renderCell = (cell: TableColumnElement, j: number) => {
-    let removeLeftPaddingCell, removeRightPaddingCell, cellObj, iconName, iconClassName, onClick;
-    if (cell && !isValidElement(cell) && typeof cell === 'object') {
-      const { removeLeftPadding: rlp, removeRightPadding: rrp, iconName: cin, iconClassName: ccn, onClick: ccc, ...rest } = cell as any;
-      removeLeftPaddingCell = rlp;
-      removeRightPaddingCell = rrp;
-      cellObj = rest;
-      iconName = cin;
-      iconClassName = ccn;
-      onClick = ccc;
-    } else {
-      removeLeftPaddingCell = removeLeftPadding;
-      removeRightPaddingCell = removeRightPadding;
-    }
-
-    return <TDCol
-      key={j}
-      className={(typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[j]) ?? 'py_5 min_h_40'}
-      removeLeftPadding={removeLeftPaddingCell}
-      removeRightPadding={removeRightPaddingCell}
-      iconName={iconName}
-      iconClassName={iconClassName}
-      onClick={onClick}
-    >
-      {cellObj ? <span {...cellObj as ReactSpanElement} /> : cell && isValidElement(cell) ? cell : cell ? String(cell) : null}
-    </TDCol>;
-  };
-
-  return <Container
-    key={item.item.id}
-    id={`tlist_item_${item.item.id}`}
-    to={rowData.to!}
-    className={rowData.to ? 'cl_df link bl bg_primary_fd_hv' : undefined}
-  >
-    {rowData.RowHeaderComponent}
-
-    {rowData.rowHeaders && (
-      <THead
-        addHorizontalPadding
-        borderStyle='BORDER'
-        className={trowClassName}
-        removeLeftPadding={removeLeftPadding}
-        removeRightPadding={removeRightPadding}
-        gridLayoutStyle={gridLayoutStyle}
-        headers={rowData.rowHeaders}
-        cellClassNames={cellClassNames}
-      />
-    )}
-
-    {!rowData.columns.length ? null :
-      <TRow
-        __deleted={rowData.__deleted}
-        onClick={rowData.__deleted || !onClickRow || disableOnClickRow ? undefined : () => onClickRow(item, null, rowData.onClickProps)}
-        removeBorderLine
-        addHorizontalPadding
-        className={trowClassName}
-        gridLayoutStyle={gridLayoutStyle}
-      >
-        {rowData.columns.map(renderCell)}
-      </TRow>
-    }
-
-    {rowData.subRows && Array.isArray(rowData.subRows)
-    ? <div className={rowData.subRowsContainerClassName ?? 'rel bd_2 mb_20 r_xs of -mx_2'}>
-    {/* ? <div className={rowData.subRowsContainerClassName ?? 'rel of bg_alt p_5 -mx_5 r_xs'}> */}
-      {rowData.subRows.map((subRowItem: any, k: number) => {
-        return <TRow
-          key={k}
-          removeBorderLine={!k}
-          addHorizontalPadding
-          className={cn('rel z1', trowClassName)}
-          onClick={onClickRow && !disableOnClickRow ? () => onClickRow(item, subRowItem.value, subRowItem.onClickProps) : undefined}
-          gridLayoutStyle={gridLayoutStyle}
-        >
-          {subRowItem.columns.map(renderCell)}
-        </TRow>;
-      })}
-    </div>
-    : rowData.subRows}
-  </Container>;
-};
-
-TableListItem.displayName = 'TableListItem';
-
-/**
- * Table list reactive item
- */
-
-const ReactiveTableListItem = (p: any) => {
-  const { reactiveFragmentFn, item } = p;
-  const reactiveItem = reactiveFragmentFn(item?.item?.id, item?.item);
-  return <TableListItem
-    {...p}
-    item={{
-      ...item,
-      item: reactiveItem
-    }}
-  />;
-};
-
-/**
- * VZ Table list
- */
-
-export const VZTable = memo((p: TableListProps) => {
-  const { borderStyle, disableOnClickRow, reactiveFragmentFn, gridLayoutStyle, headers, listData, cellClassNames, removeLeftPadding, removeRightPadding } = p;
-
-  return <>
-    {headers && (
-      <THead
-        borderStyle={borderStyle ?? 'BORDER'}
-        removeLeftPadding={removeLeftPadding}
-        removeRightPadding={removeRightPadding}
-        addHorizontalPadding
-        gridLayoutStyle={gridLayoutStyle}
-        headers={headers}
-        cellClassNames={cellClassNames}
-      />
-    )}
-    {listData?.map((item: VZListItemObj, i: number, list: any[]) => {
-      if (reactiveFragmentFn) {
-        // Doing this avoids "different number of hooks rendered" rules error
-        return <ReactiveTableListItem
-          key={item.item.id}
-          {...p}
-          i={i}
-          list={list}
-          item={item}
-        />;
-      }
-
-      return <TableListItem
-        key={item.item.id}
-        {...p}
-        i={i}
-        list={list}
-        item={item}
-      />;
-    })}
-  </>;
-});
-
-VZTable.displayName = 'VZTable';
-
-/**
- * Virtualized table list
- */
-
-export function VirtualizedTableList(p: VirtualizedListOmit & {
-  disableOnClickRow?: boolean;
-  onClickRow?: (vzItem?: VZListItemObj) => void;
-  gridLayoutStyle?: string;
-  cellClassNames?: string | (string | undefined)[];
-  headers?: Partial<TableHeaderObj>[] | null;
-  // Use this to map list data to table row cells data
-  mapListData: MapTableListDataFn;
-}) {
-  const { disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, reactiveFragmentFn, mapListData, gridLayoutStyle, onClickRow, maxFetchLimit } = p;
-  const vzState = useVirtualizedState(p);
-  const { listData: nextListData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
-  const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData, !hasMoreTop);
-  const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState, renderIsDeferred);
-  const numColumns = headers?.length || 1;
-
-  // useEffect(() => {
-  //   console.log('MOUNTED VirtualizedTableList');
-  // }, []);
-
-  // ".-mt_xs" is used to make this Table exactly same sizing/offset as the List for Logs page
-  return <>
-    <div className={className}>
-      <div ref={topRef}>
-        {hasMoreTop || renderIsDeferred ? MockComponent : HeaderComponent}
-      </div>
-
-      <div
-        ref={listRef}
-        className={cn('w_f rel table', !gridLayoutStyle && 'size_' + numColumns)}
-      >
-        <VZTable
-          disableOnClickRow={disableOnClickRow}
-          reactiveFragmentFn={reactiveFragmentFn}
-          gridLayoutStyle={gridLayoutStyle}
-          listData={listData}
-          mapListData={mapListData}
-          headers={headers}
-          cellClassNames={cellClassNames}
-          onClickRow={onClickRow}
-        />
-      </div>
-
-      <div ref={bottomRef}>
-        {(hasMoreBottom || renderIsDeferred) && MockComponent}
-      </div>
-
-      {!hasMoreBottom && !renderIsDeferred && FooterComponent &&
-        <FooterComponent
-          maxFetchLimit={maxFetchLimit}
-          loadedDataSize={referenceObj.current.itemIds!?.length}
-        />
-      }
-    </div>
   </>;
 }

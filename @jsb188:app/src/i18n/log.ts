@@ -68,8 +68,8 @@ export default {
 		yes_delete_log: 'Yes, delete this %{content}',
 		loaded_more_than_: 'You loaded more than %{limit} logs. Please refine your search to see more logs.',
 		end_of_list_: (
-			'You reached the end of this list with %{smart_count} entry.||||' +
-			'You reached the end of this list with %{smart_count} entries.'
+			'You reached the end of this list with %{smart_count} record.||||' +
+			'You reached the end of this list with %{smart_count} records.'
 		),
 
 		log_type_is_created_updated: 'When %{type} logs are created/updated.',

@@ -29,6 +29,9 @@ export interface ModalPopUpComponentProps {
 }
 
 type ModalPropsFn = (prev: ModalProps | null) => ModalProps | null;
+type ModalScreenSetter = (
+  value: ModalProps | null | ((prev: ModalProps | null) => ModalProps | null)
+) => void;
 
 export type OpenModalScreenFn = (data: ModalRequestParams | ModalPropsFn) => void;
 
@@ -164,7 +167,7 @@ function getModalScreenSessionKey() {
 class ModalPopUp extends ModalScreen {
   readonly name: string = 'modal_popup_state';
 
-  open(data: ModalRequestParams | null, error?: ServerErrorObj): ModalProps | null {
+  open(data: ModalRequestParams | null, error?: Partial<ServerErrorObj>): ModalProps | null {
     if (data) {
       const { preset, name, props } = data;
       const values = this.defaultValues?.[name ?? ''];
@@ -248,29 +251,44 @@ const popUpClass = new ModalPopUp('popup', POPUP_DEFAULT_VALUES);
  * Create handler functions
  */
 
-function composeOpenModalScreenFn(
-  setScreen: (value: ModalProps | null) => void,
+/*
+ * Build the next modal screen state from either a direct open request or a state updater function.
+ */
+
+function getNextModalScreenState(
+  data: ModalRequestParams | ModalPropsFn,
   prevScreen: ModalProps | null
 ) {
-  return (data: ModalRequestParams | ModalPropsFn) => {
-    const isStateUpdater = typeof data === 'function';
-    const nextScreenValue = isStateUpdater ? data(prevScreen) : screenClass.open(data);
-    const nextScreenState = (
-      isStateUpdater &&
-      nextScreenValue &&
-      prevScreen?.modalSessionKey &&
-      !nextScreenValue.modalSessionKey
-    ) ? {
-      ...nextScreenValue,
-      modalSessionKey: prevScreen.modalSessionKey,
-    } : nextScreenValue;
-    // console.log(nextScreenState);
+  const isStateUpdater = typeof data === 'function';
+  const nextScreenValue = isStateUpdater ? data(prevScreen) : screenClass.open(data);
 
-    if (nextScreenState) {
-      setScreen(nextScreenState);
-    } else {
+  return (
+    isStateUpdater &&
+    nextScreenValue &&
+    prevScreen?.modalSessionKey &&
+    !nextScreenValue.modalSessionKey
+  ) ? {
+    ...nextScreenValue,
+    modalSessionKey: prevScreen.modalSessionKey,
+  } : nextScreenValue;
+}
+
+/*
+ * Compose a stable modal screen open function that reads the latest screen state from the atom setter.
+ */
+
+function composeOpenModalScreenFn(setScreen: ModalScreenSetter) {
+  return (data: ModalRequestParams | ModalPropsFn) => {
+    setScreen((prevScreen) => {
+      const nextScreenState = getNextModalScreenState(data, prevScreen);
+
+      if (nextScreenState) {
+        return nextScreenState;
+      }
+
       console.warn('Invalid {screen} data:', data);
-    }
+      return prevScreen;
+    });
   };
 }
 
@@ -281,7 +299,7 @@ function composeCloseModalScreenFn(setScreen: (value: ModalProps | null) => void
 }
 
 function composeOpenModalPopUpFn(setPopUp: (value: ModalProps | null) => void) {
-  return (data: ModalRequestParams | null, err?: ServerErrorObj) => {
+  return (data: ModalRequestParams | null, err?: Partial<ServerErrorObj>) => {
     const nextPopUpState = popUpClass.open(data, err);
     if (nextPopUpState) {
       setPopUp(nextPopUpState);
@@ -303,7 +321,7 @@ function composeCloseModalPopUpFn(setPopUp: (value: ModalProps | null) => void) 
 
 export function useModalScreen(): ModalScreenProps {
   const [screen, setScreen] = useAtom(screenClass.state);
-  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen, screen), [screen]);
+  const openModalScreen = useCallback(composeOpenModalScreenFn(setScreen), [setScreen]);
   const closeModalScreen = useCallback( composeCloseModalScreenFn(setScreen), []);
 
   return {
@@ -318,8 +336,8 @@ export function useModalScreen(): ModalScreenProps {
  */
 
 export function useOpenModalScreen(): OpenModalScreenFn {
-  const [screen, setScreen] = useAtom(screenClass.state);
-  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen, screen), [screen]);
+  const setScreen = useSetAtom(screenClass.state);
+  const openModalScreen = useCallback(composeOpenModalScreenFn(setScreen), [setScreen]);
 
   return openModalScreen;
 }
@@ -345,10 +363,10 @@ export function useModalPopUp(): ModalPopUpProps {
  */
 
 export function useModalHandlers(): ModalHandlerProps {
-  const [screen, setScreen] = useAtom(screenClass.state);
+  const setScreen = useSetAtom(screenClass.state);
   const setPopUp = useSetAtom(popUpClass.state);
 
-  const openModalScreen = useCallback( composeOpenModalScreenFn(setScreen, screen), [screen]);
+  const openModalScreen = useCallback(composeOpenModalScreenFn(setScreen), [setScreen]);
   const closeModalScreen = useCallback( composeCloseModalScreenFn(setScreen), []);
   const openModalPopUp = useCallback( composeOpenModalPopUpFn(setPopUp), []);
   const closeModalPopUp = useCallback( composeCloseModalPopUpFn(setPopUp), []);

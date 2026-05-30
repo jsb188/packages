@@ -15,39 +15,6 @@ import { InlineBlockLabel } from './Button';
 const NO_SEPARATOR_Y_PADDING = 'py_8';
 
 /**
- * Condensed group title
- */
-
-export const CondensedGroupTitle = memo((p: {
-  domId?: string;
-  text: string;
-  className?: string;
-  marginClassName?: string;
-}) => {
-  const { text, domId, className, marginClassName } = p;
-
-  return <div className={cn(marginClassName ?? 'mt_md mb_sm', className)} id={domId}>
-    <h4 className='ft_normal ft_xs p_n m_n cl_darker_2'>
-      {text}
-    </h4>
-  </div>
-});
-
-CondensedGroupTitle.displayName = 'CondensedGroupTitle';
-
-/**
- * Condensed group title mock
- */
-
-export function CondensedGroupTitleMock() {
-  return <div className='mt_md mb_sm'>
-    <h4 className='ft_normal ft_xs p_n m_n cl_invis'>
-      ....
-    </h4>
-  </div>;
-}
-
-/**
  * Condensed article list item
  */
 

@@ -1,8 +1,9 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { checkACL, type OperationName } from '@jsb188/mday/utils/organization.ts';
 import { OpenModalPopUpFn, useCurrentAccount } from '@jsb188/react/states';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { updateFragment } from '../cache/index.ts';
+import { graphqlRequest } from '../client/request.ts';
 import {
   deleteChildOrganizationMtn,
   deleteComplianceDocumentMtn,
@@ -11,6 +12,7 @@ import {
   editMembershipMtn,
   editOrganizationMtn,
   editOrganizationInboundEmailMtn,
+  editOrganizationSettingsMtn,
   editSiteLocationMtn,
   removeMembershipMtn,
   switchOrganizationMtn
@@ -160,6 +162,45 @@ export function useEditOrganizationInboundEmail(
     ...mtnValues,
     ...mtnHandlers,
   };
+}
+
+/*
+ * Edit an organization's settings.
+ */
+export function useEditOrganizationSettings(
+  params?: UseMutationParams | null,
+  openModalPopUp?: OpenModalPopUpFn
+) {
+  const [editOrganizationSettings, mtnValues, mtnHandlers] = useMutation(editOrganizationSettingsMtn, {
+    openModalPopUp,
+    ...params,
+  });
+
+  return {
+    editOrganizationSettings,
+    ...mtnValues,
+    ...mtnHandlers,
+  };
+}
+
+/*
+ * Return a non-reactive mutation function for background organization settings saves.
+ */
+export function useEditOrganizationSettingsRequest(openModalPopUp?: OpenModalPopUpFn) {
+  return useCallback((variables: {
+    organizationId: string;
+    sidebar?: any[] | null;
+    routeId?: string | null;
+    columnWidths?: string[] | null;
+  }) => {
+    return graphqlRequest(
+      editOrganizationSettingsMtn,
+      variables,
+      {
+        openModalPopUp,
+      },
+    );
+  }, [openModalPopUp]);
 }
 
 /**

@@ -118,10 +118,11 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
   headers: TableHeaderObj[];
 }) => {
   const { borderStyle, addHorizontalPadding, removeLeftPadding, removeRightPadding, gridLayoutStyle, className, cellClassNames, headers } = p;
-  const borderCnStr = 'bd_b_1 bd_lt mb_6';
+  // const borderCnStr = 'bd_b_1 bd_lt';
+  const borderCnStr = '';
 
   return <TRow
-    className={cn(borderStyle === 'BORDER' && borderCnStr, className)}
+    className={cn('rel', borderStyle === 'BORDER' && borderCnStr, className)}
     removeBorderLine
     addHorizontalPadding={addHorizontalPadding}
     gridLayoutStyle={gridLayoutStyle}
@@ -132,7 +133,11 @@ export const THead = memo((p: ReactDivElement & Partial<TableRowProps> & {
         key={i}
         removeLeftPadding={removeLeftPadding}
         removeRightPadding={removeRightPadding}
-        className={cn('py_sm min_h_50 cl_md', typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[i], className)}
+        className={cn(
+          'py_sm min_h_50 cl_md',
+          typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[i],
+          className,
+        )}
         {...rest}
       >
         {iconName && <Icon name={iconName} />}
@@ -502,7 +507,8 @@ export function TableListHeaderMock(p: { gridLayoutStyle?: string, addHorizontal
     removeBorderLine
     addHorizontalPadding={addHorizontalPadding}
     thead
-    className='bd_b_1 bd_lt mb_6'
+    // className='bd_b_1 bd_lt'
+    className=''
   >
     {gridLayoutStyle?.split(' ').map((_, i) => (
       <TDCol key={i}>

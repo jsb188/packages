@@ -1,5 +1,5 @@
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { OrganizationFeatureEnum, OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
+import type { OrganizationFeatureEnum, OrganizationOperationEnum, OrganizationSidebarGroupObj, OrganizationSidebarItemObj } from '@jsb188/mday/types/organization.d.ts';
 import type { ReportGroupGQL } from '@jsb188/mday/types/report.d.ts';
 import type { SheetGQL } from '@jsb188/mday/types/sheet.d.ts';
 import type { OperationName } from '@jsb188/mday/utils/organization.ts';
@@ -419,20 +419,107 @@ export function isRouteAllowed(
  */
 
 interface NavListItem {
-  break: never;
+  break?: never;
+  slug?: string;
   to: string;
   text: string;
-  iconName: string;
+  iconName?: string | null;
 };
 
 interface NavBreakItem {
   break: boolean;
-  to: never;
-  text: never;
-  iconName: never;
+  to?: never;
+  text?: never;
+  iconName?: never;
 };
 
-export type NavigationItem = NavListItem | NavBreakItem;
+interface NavGroupItem {
+  break?: never;
+  to?: never;
+  text: string;
+  initialExpanded?: boolean;
+  navList: (NavListItem | NavBreakItem)[];
+};
+
+export type NavigationItem = NavListItem | NavBreakItem | NavGroupItem;
+
+/*
+ * Return the route dictionary key matching a customized sidebar slug.
+ */
+function getRoutePathFromSidebarSlug(slug: string | null | undefined): ValidRoutePath | null {
+  const normalizedSlug = String(slug || '').trim().replace(/^\/?app\/?/, '').replace(/^\/+|\/+$/g, '');
+  const routePath = normalizedSlug === 'home' ? '/app' : `/app/${normalizedSlug}`;
+
+  return ROUTES_DICT[routePath as ValidRoutePath] ? routePath as ValidRoutePath : null;
+}
+
+/*
+ * Return a stable sidebar slug for a route pathname.
+ */
+function getSidebarSlugFromRoutePath(routePath: string | null | undefined) {
+  if (routePath === '/app') {
+    return 'home';
+  }
+
+  return String(routePath || '').replace(/^\/?app\/?/, '').replace(/^\/+|\/+$/g, '');
+}
+
+/*
+ * Resolve a customized sidebar item into a route-backed navigation item.
+ */
+function getNavigationItemFromSidebarItem(
+  item: OrganizationSidebarItemObj,
+  operation: OrganizationOperationEnum | null,
+  orgFeatures?: (OrganizationFeatureEnum | string)[],
+  checkACLClient?: CheckACLClientFn | null,
+): NavListItem | null {
+  const routePath = getRoutePathFromSidebarSlug(item.slug);
+
+  if (!routePath || !isRouteAllowed(routePath, operation, orgFeatures, checkACLClient)) {
+    return null;
+  }
+
+  const routeDict = ROUTES_DICT[routePath];
+  const fallbackText = routeDict.text && i18n.has(routeDict.text) ? i18n.t(routeDict.text) : routeDict.text;
+
+  return {
+    slug: getSidebarSlugFromRoutePath(routePath),
+    to: routePath,
+    text: item.label || fallbackText,
+    iconName: item.iconName,
+  };
+}
+
+/*
+ * Build the customized organization sidebar from settings.sidebar groups.
+ */
+function getCustomizedNavigationList(
+  sidebar: OrganizationSidebarGroupObj[],
+  operation: OrganizationOperationEnum | null,
+  orgFeatures?: (OrganizationFeatureEnum | string)[],
+  checkACLClient?: CheckACLClientFn | null,
+): NavigationItem[] {
+  return sidebar.reduce((acc, group) => {
+    const navList = Array.isArray(group?.items)
+      ? group.items.reduce((items, item) => {
+        const navItem = getNavigationItemFromSidebarItem(item, operation, orgFeatures, checkACLClient);
+        if (navItem) {
+          items.push(navItem);
+        }
+        return items;
+      }, [] as NavListItem[])
+      : [];
+
+    if (navList.length) {
+      acc.push({
+        text: group?.title || '',
+        navList,
+      });
+    }
+
+    return acc;
+  }, [] as NavigationItem[]);
+}
 
 export function getNavigationList(
   operation: OrganizationOperationEnum | null,
@@ -440,7 +527,11 @@ export function getNavigationList(
   reportGroups?: ReportGroupGQL[] | null,
   sheets?: SheetGQL[] | null,
   checkACLClient?: CheckACLClientFn | null,
+  sidebar?: OrganizationSidebarGroupObj[] | null,
 ): NavigationItem[] {
+  if (Array.isArray(sidebar)) {
+    return getCustomizedNavigationList(sidebar, operation, orgFeatures, checkACLClient);
+  }
 
   const breakItem = {
     break: true,
@@ -588,6 +679,10 @@ export function getNavigationList(
       }
     } else if (item?.to && !isRouteAllowed(item.to, operation, orgFeatures, checkACLClient)) {
       return null;
+    }
+
+    if (item?.to) {
+      item.slug = getSidebarSlugFromRoutePath(item.to);
     }
 
     if (item?.text && i18n.has(item.text)) {

@@ -143,7 +143,7 @@ function PopOverMoreButton(p: {
   return <PopOverButton
     // doNotTrackHover
     disabled={disabled}
-    className='av av_xxs r v_center'
+    className='av av_xxs r v_center bg rel bd_1 bd_lt'
     zClassName={zClassName}
     linkClassName={cn('link', !allowActiveTransform && 'non_link')}
     notActiveClassName='bg_active_hv bd_1 bd_invis bd_lt_hv'
@@ -606,7 +606,7 @@ TooltipClickToCopy.displayName = 'TooltipClickToCopy';
  */
 
 function TooltipWrapper(p: TooltipWrapperProps) {
-  const { children, tooltip, updateTooltip } = p;
+  const { children, tooltip, closeTooltip, updateTooltip } = p;
   const tt = tooltip || {};
 
   const {
@@ -725,6 +725,20 @@ function TooltipWrapper(p: TooltipWrapperProps) {
     bottom,
   };
 
+  // Remove on scroll
+  useEffect(() => {
+    if (id) {
+      const handleScroll = () => {
+        closeTooltip(id);
+      };
+
+      globalThis.document.addEventListener('scroll', handleScroll, true);
+      return () => {
+        globalThis.document.removeEventListener('scroll', handleScroll, true);
+      };
+    }
+  }, [id]);
+
   useEffect(() => {
     if (id) {
       const value = Math.round(tooltipRef.current?.offsetHeight || 0);
@@ -798,4 +812,3 @@ export function TooltipModule(p: {
 }
 
 export { PopOverCheckList, PopOverImage, PopOverLabelsAndValues, PopOverList, PopOverMoreButton };
-
