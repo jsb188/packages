@@ -37,7 +37,7 @@ export type {
  * Render a grid table with optional header column resizing.
  */
 export const VZTable = memo((p: TableListProps) => {
-	const { bodyRef, borderStyle, columnWidths, disableOnClickRow, reactiveFragmentFn, onColumnResizeCommit, resizableColumns, tableDesign, headers, listData, cellClassNames, mapListData, onClickRow, removeLeftPadding, removeRightPadding, trowClassName } = p;
+	const { bodyRef, borderStyle, columnWidths, disableOnClickRow, footerNode, reactiveFragmentFn, onColumnResizeCommit, resizableColumns, tableDesign, headers, listData, cellClassNames, mapListData, onClickRow, removeLeftPadding, removeRightPadding, trowClassName } = p;
 	const columns = tableDesign?.columns || [];
 	const showColumnDividers = Boolean(tableDesign?.dividers?.columns);
 	const showRowDivider = borderStyle === 'BORDER';
@@ -53,6 +53,7 @@ export const VZTable = memo((p: TableListProps) => {
 		onColumnResizePointerUp,
 		renderColumnWidths,
 		syncHorizontalScroll,
+		tableContentWidthStyle,
 		tableGridTemplateColumns,
 		tableMinWidthStyle,
 		tableRef,
@@ -75,11 +76,12 @@ export const VZTable = memo((p: TableListProps) => {
 		trowClassName,
 	}), [cellClassNames, disableOnClickRow, mapListData, onClickRow, removeLeftPadding, removeRightPadding, tableDesign, trowClassName]);
 
-	return <div
-		ref={containerRef}
-		className='w_f rel bd_b_1 bd_lt'
-		data-route-table-grid='true'
-	>
+	return <>
+		<div
+			ref={containerRef}
+			className='w_f rel bd_b_1 bd_lt'
+			data-route-table-grid='true'
+		>
 		<div
 			ref={guideRef}
 			className='abs bg_primary noclick'
@@ -97,7 +99,7 @@ export const VZTable = memo((p: TableListProps) => {
 		{headers && (
 			<div
 				ref={headerScrollerRef}
-				className='w_f table_grid_sticky_header_scroller'
+				className='w_f table_grid_sticky_header_scroller z4'
 				onScroll={() => syncHorizontalScroll(headerScrollerRef.current, bodyScrollerRef.current)}
 			>
 				<TableRoot
@@ -167,13 +169,17 @@ export const VZTable = memo((p: TableListProps) => {
 			>
 				<div ref={bodyRef} className='table_grid_body'>
 					{listData?.map((item: VZListItemObj, i: number, list: VZListItemObj[]) => {
+						const previousItem = list[i - 1] || null;
+						const nextItem = list[i + 1] || null;
+
 						if (reactiveFragmentFn) {
 							return <ReactiveTableListItem
 								key={item.item.id}
 								{...tableRowProps}
 								reactiveFragmentFn={reactiveFragmentFn}
 								i={i}
-								list={list}
+								nextItem={nextItem}
+								previousItem={previousItem}
 								item={item}
 							/>;
 						}
@@ -182,14 +188,26 @@ export const VZTable = memo((p: TableListProps) => {
 							key={item.item.id}
 							{...tableRowProps}
 							i={i}
-							list={list}
+							nextItem={nextItem}
+							previousItem={previousItem}
 							item={item}
 						/>;
 					})}
 				</div>
 			</TableRoot>
 		</div>
-	</div>;
+		</div>
+
+		{footerNode && (
+			<div
+				style={{
+					width: tableContentWidthStyle,
+				}}
+			>
+				{footerNode}
+			</div>
+		)}
+	</>;
 });
 
 VZTable.displayName = 'VZTable';
@@ -209,11 +227,18 @@ export function VirtualizedTable(p: VirtualizedTableBaseProps & {
 	headers?: Partial<TableHeaderObj>[] | null;
 	mapListData: MapTableListDataFn;
 }) {
-	const { columnWidths, disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, headers, cellClassNames, onColumnResizeCommit, reactiveFragmentFn, resizableColumns, mapListData, tableDesign, trowClassName, onClickRow, maxFetchLimit } = p;
+	const { columnWidths, disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, endOfListMessage, headers, cellClassNames, onColumnResizeCommit, reactiveFragmentFn, resizableColumns, mapListData, tableDesign, trowClassName, onClickRow, maxFetchLimit } = p;
 	const vzState = useVirtualizedState(p);
 	const { listData: nextListData, hasMoreTop, hasMoreBottom } = vzState;
 	const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData, !hasMoreTop);
 	const [listRef, topRef, bottomRef] = useVirtualizedDOM(p, vzState, renderIsDeferred);
+	const footerNode = !hasMoreBottom && !renderIsDeferred && FooterComponent
+		? <FooterComponent
+			endOfListMessage={endOfListMessage}
+			maxFetchLimit={maxFetchLimit}
+			loadedDataSize={vzState.itemIds?.length}
+		/>
+		: null;
 
 	return <div className={className}>
 		<div ref={topRef}>
@@ -225,6 +250,7 @@ export function VirtualizedTable(p: VirtualizedTableBaseProps & {
 			cellClassNames={cellClassNames}
 			columnWidths={columnWidths}
 			disableOnClickRow={disableOnClickRow}
+			footerNode={footerNode}
 			headers={headers}
 			listData={listData}
 			mapListData={mapListData}
@@ -239,12 +265,5 @@ export function VirtualizedTable(p: VirtualizedTableBaseProps & {
 		<div ref={bottomRef}>
 			{(hasMoreBottom || renderIsDeferred) && MockComponent}
 		</div>
-
-		{!hasMoreBottom && !renderIsDeferred && FooterComponent &&
-			<FooterComponent
-				maxFetchLimit={maxFetchLimit}
-				loadedDataSize={vzState.itemIds?.length}
-			/>
-		}
 	</div>;
 }

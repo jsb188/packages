@@ -67,6 +67,7 @@ export default {
 		delete_confirm_msg: 'Are you sure you want to delete this %{content}? This action cannot be undone.',
 		yes_delete_log: 'Yes, delete this %{content}',
 		loaded_more_than_: 'You loaded more than %{limit} logs. Please refine your search to see more logs.',
+		change_sorting_option_for_more_data: 'Change the sorting option for more data.',
 		end_of_list_: (
 			'You reached the end of this list with %{smart_count} record.||||' +
 			'You reached the end of this list with %{smart_count} records.'

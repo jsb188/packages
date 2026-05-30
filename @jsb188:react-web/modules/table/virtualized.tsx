@@ -80,6 +80,34 @@ function mergeItemIds(
 }
 
 /**
+ * Reuse the render wrapper for a loaded row when its visible inputs are unchanged.
+ */
+function getStableVirtualizedListItem(
+	cache: Map<string, VZListItemObj>,
+	id: string,
+	item: any,
+	otherProps: Record<string, any> | undefined,
+	lastItemIdOnMount: string | null,
+): VZListItemObj {
+	const cachedItem = cache.get(id);
+
+	if (
+		cachedItem &&
+		cachedItem.item === item &&
+		cachedItem.otherProps === otherProps &&
+		cachedItem.lastItemIdOnMount === lastItemIdOnMount
+	) {
+		return cachedItem;
+	}
+
+	return {
+		item,
+		otherProps,
+		lastItemIdOnMount,
+	};
+}
+
+/**
  * Reduce render-driving virtualized table state.
  */
 function virtualizedDataReducer(state: VirtualizedDataState, action: VirtualizedAction): VirtualizedDataState {
@@ -258,7 +286,7 @@ function repositionList(
  * Track virtualized table item ids and the visible render window.
  */
 export function useVirtualizedState(p: VirtualizedTableBaseProps): VirtualizedState {
-	const { otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
+	const { disableInfiniteScroll, otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
 	const [state, dispatch] = useReducer(virtualizedDataReducer, {
 		cursorPosition: null,
 		itemIds: null,
@@ -267,6 +295,7 @@ export function useVirtualizedState(p: VirtualizedTableBaseProps): VirtualizedSt
 		lastItemIdOnMount: null,
 	});
 	const referenceObj = useRef<VZReferenceObj>({ loading, fetchingTop: false, fetchingBottom: false, blockedTopCursor: null, blockedBottomCursor: null, mounted: true, topCursor: null, bottomCursor: null });
+	const listItemCacheRef = useRef<Map<string, VZListItemObj>>(new Map());
 	const { cursorPosition, itemIds } = state;
 
 	const listData = useMemo(() => {
@@ -290,19 +319,28 @@ export function useVirtualizedState(p: VirtualizedTableBaseProps): VirtualizedSt
 				viewing = itemIds.slice(start, end);
 			}
 
-			return viewing.map((id) => {
+			const nextListItemCache = new Map<string, VZListItemObj>();
+			const listItems = viewing.map((id) => {
 				const item = loadFragment(`${fragmentName}:${id}`);
 				if (!item) {
 					console.dev('Error in [Table.tsx]; item not found in cache:', 'warning', `${fragmentName}:${id}`);
 					return null;
 				}
 
-				return {
+				const listItem = getStableVirtualizedListItem(
+					listItemCacheRef.current,
+					id,
 					item,
 					otherProps,
-					lastItemIdOnMount: state.lastItemIdOnMount,
-				};
+					state.lastItemIdOnMount,
+				);
+
+				nextListItemCache.set(id, listItem);
+				return listItem;
 			}).filter(Boolean) as VZListItemObj[];
+
+			listItemCacheRef.current = nextListItemCache;
+			return listItems;
 		} else if (limit <= 0) {
 			console.warn('VirtualizedTable: limit is set to 0 or negative, which means no items will be rendered. Set a positive limit to render items.');
 		}
@@ -341,12 +379,12 @@ export function useVirtualizedState(p: VirtualizedTableBaseProps): VirtualizedSt
 	}, []);
 
 	const isTopOfList = state.startOfListItemId ? state.startOfListItemId === listData?.[0]?.item?.id : false;
-	const hasMoreTop = !!cursorPosition?.[0] && !!itemIds && !!listData && limit <= itemIds.length && itemIds[0] !== listData[0]?.item?.id;
+	const hasMoreTop = !disableInfiniteScroll && !!cursorPosition?.[0] && !!itemIds && !!listData && limit <= itemIds.length && itemIds[0] !== listData[0]?.item?.id;
 
 	let hasMoreBottom;
-	if (listData && !isTopOfList) {
+	if (!disableInfiniteScroll && listData && !isTopOfList) {
 		if (nextEndOfListItemId) {
-			hasMoreBottom = (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? listData.some(d => d.item.id == nextEndOfListItemId) : false;
+			hasMoreBottom = (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? !listData.some(d => d.item.id === nextEndOfListItemId) : false;
 		} else {
 			hasMoreBottom = (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? limit <= listData.length : false;
 		}
@@ -527,7 +565,7 @@ export function useVirtualizedDOM(p: VirtualizedTableBaseProps, vzState: Virtual
 
 				if (Array.isArray(data)) {
 					if (!after && limit > data.length) {
-						const nextEndOfListItemId = data[data.length - 1]?.id || listData?.[listData.length - 1]?.item?.id;
+						const nextEndOfListItemId = data[data.length - 1]?.id || itemIds?.[itemIds.length - 1] || listData?.[listData.length - 1]?.item?.id;
 
 						if (nextEndOfListItemId) {
 							setEndOfListItemId(nextEndOfListItemId);
@@ -540,25 +578,33 @@ export function useVirtualizedDOM(p: VirtualizedTableBaseProps, vzState: Virtual
 
 						if (!hasNewItems) {
 							referenceObj.current[blockedCursorKey] = position[1];
-							if (!after) {
-								setEndOfListItemId(position[0]);
+							if (after) {
+								setStartOfListItemId(currentItemIds[0] || position[0]);
+							} else {
+								setEndOfListItemId(currentItemIds[currentItemIds.length - 1] || position[0]);
 							}
 							return;
 						}
 
 						referenceObj.current[blockedCursorKey] = null;
 						mergeFetchedItems(data, after);
-						if (!after && data.length < limit) {
+						if (data.length < limit) {
 							const nextItemIds = mergeItemIds(itemIds, data, false, after, p);
-							setStartOfListItemId(nextItemIds[0]);
+							if (after) {
+								setStartOfListItemId(nextItemIds[0]);
+							} else {
+								setEndOfListItemId(nextItemIds[nextItemIds.length - 1]);
+							}
 						}
 
 						console.dev('REPOSITION ON FETCH');
 						setCursorPosition(getCursorPosition(position[0], after, listRef.current, p));
 					} else {
 						referenceObj.current[blockedCursorKey] = position[1];
-						if (!after) {
-							setEndOfListItemId(position[0]);
+						if (after) {
+							setStartOfListItemId(itemIds?.[0] || position[0]);
+						} else {
+							setEndOfListItemId(itemIds?.[itemIds.length - 1] || position[0]);
 						}
 					}
 				}

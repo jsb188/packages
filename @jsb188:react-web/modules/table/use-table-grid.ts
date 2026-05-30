@@ -3,8 +3,10 @@ import type { TableDesignColumn } from '../../ui/TableUI';
 import {
 	applyGridTableLayout,
 	clampTableColumnWidth,
+	getResolvedTableContentWidth,
 	getResolvedTableColumnWidths,
 	getSafeTableColumnPixelWidth,
+	getTableContentWidthValue,
 	getTableContainerWidth,
 	getTableDividerLeftFromGrid,
 	getTableGridTemplateColumns,
@@ -58,20 +60,32 @@ export function useTableGridController(p: {
 	const tableWidthRef = useRef(getTableWidthValue(columns, columnWidthsRef.current));
 	const [containerWidth, setContainerWidth] = useState(0);
 	const [renderColumnWidths, setRenderColumnWidths] = useState(columnWidthsRef.current);
+	const [tableContentWidth, setTableContentWidth] = useState(getTableContentWidthValue(columns, columnWidthsRef.current));
 	const columnKeys = columns.map((column) => column.key).join('\0');
 	const tableGridTemplateColumns = getTableGridTemplateColumns(columns, renderColumnWidths);
+	const tableContentWidthStyle = tableContentWidth > 0 ? `${tableContentWidth}px` : '100%';
 	const tableWidthStyle = getTableWidthStyle(columns, renderColumnWidths, containerWidth);
 	const tableMinWidthStyle = getTableMinWidthStyle(containerWidth);
+
+	const updateTableContentWidth = useCallback(() => {
+		const resolvedContentWidth = getResolvedTableContentWidth(tableRef.current, columns.length);
+		const nextContentWidth = resolvedContentWidth || getTableContentWidthValue(columns, columnWidthsRef.current);
+
+		setTableContentWidth((currentContentWidth) => (
+			currentContentWidth === nextContentWidth ? currentContentWidth : nextContentWidth
+		));
+	}, [columns]);
 
 	const applyCommittedColumnWidths = useCallback((nextColumnWidths: Record<string, number>) => {
 		columnWidthsRef.current = nextColumnWidths;
 		tableWidthRef.current = Math.max(containerWidthRef.current, getTableWidthValue(columns, nextColumnWidths));
 		applyGridTableLayout([tableRef.current], columns, nextColumnWidths, tableWidthRef.current);
-		syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current);
+		syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current, columns.length);
+		updateTableContentWidth();
 		setRenderColumnWidths((currentWidths) => (
 			areColumnWidthsEqual(currentWidths, nextColumnWidths) ? currentWidths : nextColumnWidths
 		));
-	}, [columns]);
+	}, [columns, updateTableContentWidth]);
 
 	const syncHorizontalScroll = useCallback((source: HTMLDivElement | null, target: HTMLDivElement | null) => {
 		if (!source || !target || scrollSyncingRef.current) {
@@ -91,8 +105,9 @@ export function useTableGridController(p: {
 	}, []);
 
 	useLayoutEffect(() => {
-		syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current);
-	}, [headers, listData, tableGridTemplateColumns, tableWidthStyle]);
+		syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current, columns.length);
+		updateTableContentWidth();
+	}, [columns.length, headers, listData, tableGridTemplateColumns, tableWidthStyle, updateTableContentWidth]);
 
 	useLayoutEffect(() => {
 		const nextColumnWidths = getResolvedTableColumnWidths(columns, columnWidths || {});
@@ -120,7 +135,8 @@ export function useTableGridController(p: {
 			containerWidthRef.current = nextContainerWidth;
 			tableWidthRef.current = Math.max(nextContainerWidth, getTableWidthValue(columns, columnWidthsRef.current));
 			applyGridTableLayout([tableRef.current], columns, columnWidthsRef.current, tableWidthRef.current);
-			syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current);
+			syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current, columns.length);
+			updateTableContentWidth();
 			setContainerWidth((currentContainerWidth) => (
 				currentContainerWidth === nextContainerWidth ? currentContainerWidth : nextContainerWidth
 			));
@@ -166,7 +182,7 @@ export function useTableGridController(p: {
 
 			resizeObserver.disconnect();
 		};
-	}, [columnKeys, columns]);
+	}, [columnKeys, columns, updateTableContentWidth]);
 
 	const finishColumnResize = useCallback((clientX?: number) => {
 		const resizeState = resizeStateRef.current;
@@ -220,7 +236,7 @@ export function useTableGridController(p: {
 		event.currentTarget.setPointerCapture(event.pointerId);
 		resizeStateRef.current?.cleanupBodyStyle?.();
 		applyGridTableLayout(tableElements, columns, currentColumnWidths, startTableWidth);
-		syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current);
+		syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current, columns.length);
 		const startGuideLeft = getTableDividerLeftFromGrid(tableRef.current, resizeTarget.dividerIndex);
 		setResizeGuidePosition(guideRef.current, startGuideLeft, bodyScrollerRef.current?.scrollLeft || 0);
 		resizeStateRef.current = {
@@ -268,7 +284,7 @@ export function useTableGridController(p: {
 		resizeFrameRef.current = requestAnimationFrame(() => {
 			resizeFrameRef.current = null;
 			applyGridTableLayout(resizeState.tableElements, columns, nextColumnWidths, nextTableWidth);
-			syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current);
+			syncHeaderGridLayoutFromBody(headerTableRef.current, tableRef.current, columns.length);
 			setResizeGuidePosition(guideRef.current, guideLeft, bodyScrollerRef.current?.scrollLeft || 0);
 		});
 	}, [columns, finishColumnResize]);
@@ -312,6 +328,7 @@ export function useTableGridController(p: {
 		renderColumnWidths,
 		syncHorizontalScroll,
 		tableGridTemplateColumns,
+		tableContentWidthStyle,
 		tableMinWidthStyle,
 		tableRef,
 		tableWidthStyle,

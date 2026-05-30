@@ -89,6 +89,8 @@ interface VirtualizedListProps extends ReactDivElement {
   MockComponent?: React.ReactNode;
   HeaderComponent?: React.ReactNode;
   FooterComponent?: React.ElementType;
+  disableInfiniteScroll?: boolean;
+  endOfListMessage?: string;
   GroupTitleComponent: React.ElementType;
   ItemComponent: React.ElementType;
   otherProps?: Record<string, any>;
@@ -351,7 +353,7 @@ function repositionList(
  */
 
 function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
-  const { otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
+  const { disableInfiniteScroll, otherProps, fragmentName, limit, loading, maxFetchLimit } = p;
   const [cursorPosition, setCursorPosition] = useState<CursorPositionObj | null>(null);
   // const [, forceUpdate] = useReducer(x => x + 1, 0);
   const referenceObj = useRef<VZReferenceObj>({ loading, fetchingTop: false, fetchingBottom: false, blockedTopCursor: null, blockedBottomCursor: null, startOfListItemId: null, endOfListItemId: undefined, lastItemIdOnMount: null, mounted: true, itemIds: null, topCursor: null, bottomCursor: null });
@@ -446,16 +448,16 @@ function useVirtualizedState(p: VirtualizedListProps): VirtualizedState {
   const { startOfListItemId, endOfListItemId } = referenceObj.current;
   const eolId = endOfListItemId || nextEndOfListItemId; // This is necessary because refs are not reactive
   const isTopOfList = startOfListItemId ? startOfListItemId === listData?.[0]?.item?.id : false;
-  const hasMoreTop = !!cursorPosition?.[0] && !!itemIds && !!listData && limit <= itemIds.length && itemIds[0] !== listData[0]?.item?.id;
+  const hasMoreTop = !disableInfiniteScroll && !!cursorPosition?.[0] && !!itemIds && !!listData && limit <= itemIds.length && itemIds[0] !== listData[0]?.item?.id;
   // NOTE: Natural bottom limit is limit * 2 because of listData viewing area doubles the limit
   // const naturalBottomLimit = (itemIds?.length || 0) > limit ? limit * 2 : limit;
   // const naturalBottomLimit = limit;
   // const hasMoreBottom = listData && !isTopOfList && (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? naturalBottomLimit <= listData.length : false;
 
   let hasMoreBottom;
-  if (listData && !isTopOfList) {
+  if (!disableInfiniteScroll && listData && !isTopOfList) {
     if (eolId) {
-      hasMoreBottom = (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? listData.some(d => d.id == eolId) : false;
+      hasMoreBottom = (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? !listData.some(d => d.item.id === eolId) : false;
       // console.log('/// 1', eolId, endOfListItemId, nextEndOfListItemId);
     } else {
       hasMoreBottom = (!maxFetchLimit || maxFetchLimit >= itemIds!?.length) ? limit <= listData.length : false;
@@ -566,7 +568,7 @@ function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState, r
 
       if (
         position &&
-        ((after && hasMoreBottom) || (!after || hasMoreTop))
+        ((after && hasMoreTop) || (!after && hasMoreBottom))
       ) {
         if (referenceObj.current[blockedCursorKey] === position[1]) {
           return;
@@ -607,7 +609,7 @@ function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState, r
               if (!after && limit > data.length) {
 
                 // If the list ends at exactly 0 items, then the next end of list item should be the last item in the current listData
-                const nextEndOfListItemId = data[data.length - 1]?.id || listData?.[listData.length - 1]?.item?.id;
+                const nextEndOfListItemId = data[data.length - 1]?.id || referenceObj.current.itemIds?.[referenceObj.current.itemIds.length - 1] || listData?.[listData.length - 1]?.item?.id;
 
                 // console.log('next eol', listData);
                 // console.log('END?:', limit > data.length, limit, data.length);
@@ -625,24 +627,32 @@ function useVirtualizedDOM(p: VirtualizedListProps, vzState: VirtualizedState, r
 
                 if (!hasNewItems) {
                   referenceObj.current[blockedCursorKey] = position[1];
-                  if (!after) {
-                    referenceObj.current.endOfListItemId = position[0];
+                  if (after) {
+                    referenceObj.current.startOfListItemId = currentItemIds[0] || position[0];
+                  } else {
+                    referenceObj.current.endOfListItemId = currentItemIds[currentItemIds.length - 1] || position[0];
                   }
                   return;
                 }
 
                 referenceObj.current[blockedCursorKey] = null;
                 referenceObj.current.itemIds = mergeItemIds(referenceObj.current, data, false, after, p);
-                if (!after && data.length < limit) {
-                  referenceObj.current.startOfListItemId = referenceObj.current.itemIds[0];
+                if (data.length < limit) {
+                  if (after) {
+                    referenceObj.current.startOfListItemId = referenceObj.current.itemIds[0];
+                  } else {
+                    referenceObj.current.endOfListItemId = referenceObj.current.itemIds[referenceObj.current.itemIds.length - 1];
+                  }
                 }
 
                 console.dev('REPOSITION ON FETCH');
                 setCursorPosition( getCursorPosition(position[0], after, listRef.current, p) );
               } else {
                 referenceObj.current[blockedCursorKey] = position[1];
-                if (!after) {
-                  referenceObj.current.endOfListItemId = position[0];
+                if (after) {
+                  referenceObj.current.startOfListItemId = referenceObj.current.itemIds?.[0] || position[0];
+                } else {
+                  referenceObj.current.endOfListItemId = referenceObj.current.itemIds?.[referenceObj.current.itemIds.length - 1] || position[0];
                 }
               }
             }
@@ -842,7 +852,7 @@ const ReactiveVZListItem = (p: any) => {
  */
 
 export function VirtualizedList(p: VirtualizedListProps) {
-  const { ItemComponent, GroupTitleComponent, MockComponent, HeaderComponent, FooterComponent, groupItems, maxFetchLimit, reactiveFragmentFn, onClickItem } = p;
+  const { ItemComponent, GroupTitleComponent, MockComponent, HeaderComponent, FooterComponent, endOfListMessage, groupItems, maxFetchLimit, reactiveFragmentFn, onClickItem } = p;
   const vzState = useVirtualizedState(p);
   const { listData: nextListData, hasMoreTop, hasMoreBottom, referenceObj } = vzState;
   const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData, !hasMoreTop);
@@ -901,6 +911,7 @@ export function VirtualizedList(p: VirtualizedListProps) {
 
     {!hasMoreBottom && !renderIsDeferred && FooterComponent &&
       <FooterComponent
+        endOfListMessage={endOfListMessage}
         maxFetchLimit={maxFetchLimit}
         loadedDataSize={referenceObj.current.itemIds!?.length}
       />

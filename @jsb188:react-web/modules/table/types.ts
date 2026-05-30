@@ -141,6 +141,8 @@ export interface VirtualizedTableBaseProps extends ReactDivElement {
 	MockComponent?: ReactNode;
 	HeaderComponent?: ReactNode;
 	FooterComponent?: ElementType;
+	disableInfiniteScroll?: boolean;
+	endOfListMessage?: string;
 	otherProps?: Record<string, any>;
 	loading?: boolean;
 	fetchMore?: FetchMoreFn;
@@ -170,6 +172,7 @@ export type TableListProps = {
 	tableDesign?: TableDesign;
 	trowClassName?: string;
 	cellClassNames?: string | (string | undefined)[];
+	footerNode?: ReactNode;
 	removeLeftPadding?: boolean;
 	removeRightPadding?: boolean;
 	headers?: Partial<TableHeaderObj>[] | null;
@@ -187,7 +190,8 @@ export type TableListItemProps = Pick<
 > & {
 	item: VZListItemObj;
 	i: number;
-	list: VZListItemObj[];
+	nextItem?: VZListItemObj | null;
+	previousItem?: VZListItemObj | null;
 };
 
 /**

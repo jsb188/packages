@@ -1,5 +1,5 @@
 import { cn } from '@jsb188/app/utils/string.ts';
-import { Fragment, isValidElement, memo, type MouseEvent, type ReactNode } from 'react';
+import { Fragment, isValidElement, memo, useMemo, type MouseEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import type { ReactSpanElement } from '../../types/dom.d';
 import {
@@ -15,6 +15,7 @@ import type {
 	ReactiveFragmentFn,
 	TableColumnElement,
 	TableListItemProps,
+	VZListItemObj,
 } from './types';
 
 /**
@@ -26,9 +27,10 @@ export function areTableListItemPropsEqual(prev: TableListItemProps, next: Table
 		prev.disableOnClickRow === next.disableOnClickRow &&
 		prev.i === next.i &&
 		prev.item === next.item &&
-		prev.list === next.list &&
 		prev.mapListData === next.mapListData &&
+		prev.nextItem === next.nextItem &&
 		prev.onClickRow === next.onClickRow &&
+		prev.previousItem === next.previousItem &&
 		prev.removeLeftPadding === next.removeLeftPadding &&
 		prev.removeRightPadding === next.removeRightPadding &&
 		prev.tableDesign === next.tableDesign &&
@@ -191,8 +193,21 @@ function renderFullWidthTableContent(key: string, children: ReactNode, columnCou
  * Render one item from a route table as one or more grid table rows.
  */
 export const TableListItem = memo((p: TableListItemProps) => {
-	const { disableOnClickRow, item, i, list, mapListData, tableDesign, trowClassName, removeLeftPadding, removeRightPadding, onClickRow } = p;
+	const { disableOnClickRow, item, i, mapListData, nextItem, previousItem, tableDesign, trowClassName, removeLeftPadding, removeRightPadding, onClickRow } = p;
 	const navigate = useNavigate();
+	const list = useMemo(() => {
+		const rowList: VZListItemObj[] = [];
+
+		if (previousItem) {
+			rowList[i - 1] = previousItem;
+		}
+		rowList[i] = item;
+		if (nextItem) {
+			rowList[i + 1] = nextItem;
+		}
+
+		return rowList;
+	}, [i, item, nextItem, previousItem]);
 	const rowData = mapListData(item, i, list);
 	const columns = tableDesign?.columns || [];
 	const columnCount = Math.max(columns.length, 1);

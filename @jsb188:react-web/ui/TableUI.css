@@ -15,7 +15,6 @@
 .table_grid_sticky_header_scroller {
   position: sticky;
   top: 0;
-  z-index: 6;
   background-color: rgb(var(--color-bg));
   overflow-x: auto;
   overflow-y: hidden;

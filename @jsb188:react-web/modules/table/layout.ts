@@ -4,6 +4,7 @@ import type { TableDividerResizeTarget } from './types';
 export const TABLE_COLUMN_MIN_WIDTH = 50;
 export const TABLE_COLUMN_MAX_WIDTH = 800;
 export const TABLE_RESIZE_GUIDE_WIDTH = 3;
+export const TABLE_CONTENT_WIDTH_CSS_VAR = '--table-grid-content-width';
 export const TABLE_TRAILING_EMPTY_COLUMN_WIDTH = 40;
 
 /**
@@ -101,10 +102,17 @@ export function getTableGridTemplateColumns(columns: TableDesignColumn[], resize
 /**
  * Return the summed fixed pixel width for a table column list.
  */
-export function getTableWidthValue(columns: TableDesignColumn[], resizedWidths: Record<string, number>) {
+export function getTableContentWidthValue(columns: TableDesignColumn[], resizedWidths: Record<string, number>) {
 	return columns.reduce((total, column) => {
 		return total + (getSafeTableColumnPixelWidth(column.width, resizedWidths[column.key]) || 0);
-	}, TABLE_TRAILING_EMPTY_COLUMN_WIDTH);
+	}, 0);
+}
+
+/**
+ * Return the summed fixed pixel width for a table column list and trailing empty column.
+ */
+export function getTableWidthValue(columns: TableDesignColumn[], resizedWidths: Record<string, number>) {
+	return getTableContentWidthValue(columns, resizedWidths) + TABLE_TRAILING_EMPTY_COLUMN_WIDTH;
 }
 
 /**
@@ -157,24 +165,59 @@ export function applyGridTableLayout(tableElements: (HTMLDivElement | null | und
 
 		tableElement.style.gridTemplateColumns = gridTemplateColumns;
 		tableElement.style.width = `${tableWidth}px`;
+		setResolvedTableContentWidthStyle(tableElement, columns.length);
+	}
+}
+
+/**
+ * Read the resolved width of real table columns.
+ */
+export function getResolvedTableContentWidth(tableElement: HTMLDivElement | null, columnCount: number) {
+	const trackWidths = getResolvedTableGridTrackWidths(tableElement);
+
+	return trackWidths.slice(0, columnCount).reduce((total, width) => total + width, 0);
+}
+
+/**
+ * Set a CSS variable for the resolved width of real table columns.
+ */
+export function setResolvedTableContentWidthStyle(tableElement: HTMLDivElement | null, columnCount: number) {
+	const contentWidth = getResolvedTableContentWidth(tableElement, columnCount);
+
+	if (tableElement && contentWidth > 0) {
+		tableElement.style.setProperty(TABLE_CONTENT_WIDTH_CSS_VAR, `${contentWidth}px`);
+	} else if (tableElement) {
+		tableElement.style.removeProperty(TABLE_CONTENT_WIDTH_CSS_VAR);
 	}
 }
 
 /**
  * Copy the body grid's resolved column tracks to the sticky header grid.
  */
-export function syncHeaderGridLayoutFromBody(headerTableElement: HTMLDivElement | null, bodyTableElement: HTMLDivElement | null) {
-	if (!headerTableElement || !bodyTableElement) {
+export function syncHeaderGridLayoutFromBody(headerTableElement: HTMLDivElement | null, bodyTableElement: HTMLDivElement | null, columnCount?: number) {
+	if (!bodyTableElement) {
 		return;
 	}
 
 	const resolvedGridTemplateColumns = getComputedStyle(bodyTableElement).gridTemplateColumns;
+
+	if (columnCount !== undefined) {
+		setResolvedTableContentWidthStyle(bodyTableElement, columnCount);
+	}
+
+	if (!headerTableElement) {
+		return;
+	}
 
 	if (resolvedGridTemplateColumns && resolvedGridTemplateColumns !== 'none') {
 		headerTableElement.style.gridTemplateColumns = resolvedGridTemplateColumns;
 	}
 
 	headerTableElement.style.width = bodyTableElement.style.width;
+
+	if (columnCount !== undefined) {
+		headerTableElement.style.setProperty(TABLE_CONTENT_WIDTH_CSS_VAR, bodyTableElement.style.getPropertyValue(TABLE_CONTENT_WIDTH_CSS_VAR));
+	}
 }
 
 /**
