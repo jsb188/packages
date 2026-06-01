@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { OrganizationFeatureEnum, OrganizationOperationEnum, OrganizationSidebarGroupObj, OrganizationSidebarItemObj } from '@jsb188/mday/types/organization.d.ts';
 import type { ReportGroupGQL } from '@jsb188/mday/types/report.d.ts';
-import type { SheetGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { DataTableGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import type { OperationName } from '@jsb188/mday/utils/organization.ts';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 
@@ -54,7 +54,7 @@ type ValidRoutePath =
 
   // Reports
   | '/app/r/'
-  | '/app/s/'
+  | '/app/data-tables/'
   | '/app/p/';
   // | '/app/r/water-source/';
 
@@ -274,10 +274,10 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',
   },
-  '/app/s/': {
-    to: '/app/s/',
-    text: 'form.reports',
-    iconName: COMMON_ICON_NAMES.sheet,
+  '/app/data-tables/': {
+    to: '/app/data-tables/',
+    text: 'form.dataTables',
+    iconName: COMMON_ICON_NAMES.dataTable,
     hasPhysicalToolbar: 'NEVER',
   },
   '/app/p/': {
@@ -525,7 +525,7 @@ export function getNavigationList(
   operation: OrganizationOperationEnum | null,
   orgFeatures?: (OrganizationFeatureEnum | string)[], // This array contains available report groups also
   reportGroups?: ReportGroupGQL[] | null,
-  sheets?: SheetGQL[] | null,
+  dataTables?: DataTableGQL[] | null,
   checkACLClient?: CheckACLClientFn | null,
   sidebar?: OrganizationSidebarGroupObj[] | null,
 ): NavigationItem[] {
@@ -622,17 +622,17 @@ export function getNavigationList(
     navListArr.push(reportsSection);
   }
 
-  if (sheets) {
-    const sheetsSection = {
-      text: i18n.t('form.sheets'),
-      navList: sheets.map((sheet) => ({
-        to: makePathname('/app/s/', sheet.id),
-        text: sheet.title || sheet.name,
-        iconName: COMMON_ICON_NAMES.sheet,
+  if (dataTables) {
+    const dataTablesSection = {
+      text: i18n.t('form.dataTables'),
+      navList: dataTables.map((dataTable) => ({
+        to: makePathname('/app/data-tables/', dataTable.id),
+        text: dataTable.title || dataTable.name,
+        iconName: COMMON_ICON_NAMES.dataTable,
       })),
     };
 
-    navListArr.push(sheetsSection);
+    navListArr.push(dataTablesSection);
   }
 
   // @ts-ignore

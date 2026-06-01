@@ -3,24 +3,24 @@ import {
 	getActiveEditState,
 	getActiveHeaderEditState,
 	getDismissedLocalEditorCell,
-	getInitialSheetInteractionState,
+	getInitialDataTableInteractionState,
 	getOpenLocalEditorState,
 	getSelectedCellState,
 	getSelectedHeaderCellKey,
-	sheetInteractionReducer,
-} from '../src/modules/sheet-interaction-state';
+	dataTableInteractionReducer,
+} from '../src/modules/dataTable-interaction-state';
 
-describe('sheetInteractionReducer', () => {
+describe('dataTableInteractionReducer', () => {
 	it('selects cells and replaces previous selections', () => {
-		const initialState = getInitialSheetInteractionState();
-		const firstSelectedState = sheetInteractionReducer(initialState, {
+		const initialState = getInitialDataTableInteractionState();
+		const firstSelectedState = dataTableInteractionReducer(initialState, {
 			cell: {
 				cellKey: 'name',
 				rowId: 'row-1',
 			},
 			type: 'cell_selected',
 		});
-		const nextSelectedState = sheetInteractionReducer(firstSelectedState, {
+		const nextSelectedState = dataTableInteractionReducer(firstSelectedState, {
 			cell: {
 				cellKey: 'status',
 				rowId: 'row-2',
@@ -40,7 +40,7 @@ describe('sheetInteractionReducer', () => {
 	});
 
 	it('restores the edited cell as selected when edit mode is dismissed', () => {
-		const editingState = sheetInteractionReducer(getInitialSheetInteractionState(), {
+		const editingState = dataTableInteractionReducer(getInitialDataTableInteractionState(), {
 			editState: {
 				cellKey: 'name',
 				draftValue: 'Alpha',
@@ -48,7 +48,7 @@ describe('sheetInteractionReducer', () => {
 			},
 			type: 'cell_edit_started',
 		});
-		const selectedState = sheetInteractionReducer(editingState, {
+		const selectedState = dataTableInteractionReducer(editingState, {
 			type: 'cell_editor_dismissed',
 		});
 
@@ -65,7 +65,7 @@ describe('sheetInteractionReducer', () => {
 	});
 
 	it('tracks a dismissed local editor separately from ordinary selection', () => {
-		const localEditorState = sheetInteractionReducer(getInitialSheetInteractionState(), {
+		const localEditorState = dataTableInteractionReducer(getInitialDataTableInteractionState(), {
 			editState: {
 				cellKey: 'status',
 				disableInlineEditor: true,
@@ -81,7 +81,7 @@ describe('sheetInteractionReducer', () => {
 			},
 			type: 'local_editor_opened',
 		});
-		const selectedState = sheetInteractionReducer(localEditorState, {
+		const selectedState = dataTableInteractionReducer(localEditorState, {
 			cell: {
 				cellKey: 'status',
 				rowId: 'row-1',
@@ -101,18 +101,18 @@ describe('sheetInteractionReducer', () => {
 	});
 
 	it('keeps header selection and edit state mutually exclusive', () => {
-		const selectedState = sheetInteractionReducer(getInitialSheetInteractionState(), {
+		const selectedState = dataTableInteractionReducer(getInitialDataTableInteractionState(), {
 			cellKey: 'name',
 			type: 'header_selected',
 		});
-		const editingState = sheetInteractionReducer(selectedState, {
+		const editingState = dataTableInteractionReducer(selectedState, {
 			headerEditState: {
 				cellKey: 'name',
 				draftValue: 'Name',
 			},
 			type: 'header_edit_started',
 		});
-		const dismissedState = sheetInteractionReducer(editingState, {
+		const dismissedState = dataTableInteractionReducer(editingState, {
 			type: 'header_edit_dismissed',
 		});
 

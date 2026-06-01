@@ -40,6 +40,7 @@ export default {
 
     // 1x
     '10000_title': 'App updated!',
+    '10000_icon': 'party-balloons',
     10000: 'This browser tab will reload to update the app.',
     10001: 'Your file is too large. Please try again with a smaller file.',
     10002: 'File meta data is missing.',
@@ -81,8 +82,6 @@ export default {
     '20019_title': 'Login expired',
     20019: 'Your login token expired. Please log in again.',
     20020: 'You do not have access to this chat.',
-    '20021_title': 'Slow down!',
-    20021: 'You are sending messages too fast.',
     20022: 'You are not allowed to chat here.',
     20023: 'You must be friends to send direct messages.',
     20024: "You've been temporarily timed out.",
@@ -133,8 +132,8 @@ export default {
     20068: 'Your new phone number cannot be the same as your current phone number.',
     20069: '"%{value}" is not a valid AI inbox handle.',
     20070: 'Another organization already uses the AI inbox handle "%{value}".',
-    20071: 'This sheet was not found.\nIt may have been deleted.',
-    20072: 'The sheet design update was invalid.',
+    20071: 'This dataTable was not found.\nIt may have been deleted.',
+    20072: 'The dataTable design update was invalid.',
     20074: 'Inbound contacts must have an email address or phone number.',
 
     // 3x

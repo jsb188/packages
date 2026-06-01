@@ -6,5 +6,5 @@ export * from './inboundContactQueries.ts';
 export * from './logQueries.ts';
 export * from './organizationQueries.ts';
 export * from './productQueries.ts';
-export * from './sheetQueries.ts';
+export * from './dataTableQueries.ts';
 export * from './workflowQueries.ts';

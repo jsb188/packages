@@ -6,6 +6,6 @@ export * from './integrationMutations.ts';
 export * from './inboundContactMutations.ts';
 export * from './logMutations.ts';
 export * from './organizationMutations.ts';
-export * from './sheetMutations.ts';
+export * from './dataTableMutations.ts';
 export * from './storageMutations.ts';
 export * from './userAuthMutations.ts';

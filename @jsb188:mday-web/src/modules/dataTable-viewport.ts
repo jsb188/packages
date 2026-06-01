@@ -1,4 +1,4 @@
-import type { SheetRowGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { DataTableRowGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import {
 	SHEET_ROW_HEIGHT,
 	SHEET_ROW_NUMBER_WIDTH,
@@ -6,11 +6,11 @@ import {
 	type SheetColumnMetric,
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
-import type { SheetArrowNavigationDirection } from './Sheet-ContextMenu.tsx';
+import type { DataTableArrowNavigationDirection } from './DataTable-ContextMenu.tsx';
 
-export type SheetArrowNavigationRuntime = {
+export type DataTableArrowNavigationRuntime = {
 	columnMetrics: SheetColumnMetric[];
-	renderedRows: SheetRowGQL[];
+	renderedRows: DataTableRowGQL[];
 	scrollLeft: number;
 	scrollNode: HTMLDivElement | null;
 	scrollTop: number;
@@ -24,13 +24,13 @@ export type SheetArrowNavigationRuntime = {
 };
 
 /*
- * Return the next selected sheet cell after one arrow-key movement.
+ * Return the next selected dataTable cell after one arrow-key movement.
  */
 
-export function getSheetArrowNavigationSelection(params: {
+export function getDataTableArrowNavigationSelection(params: {
 	columnMetrics: SheetColumnMetric[];
-	direction: SheetArrowNavigationDirection;
-	renderedRows: SheetRowGQL[];
+	direction: DataTableArrowNavigationDirection;
+	renderedRows: DataTableRowGQL[];
 	selectedCellState?: SheetUISelectedCellState | null;
 }) {
 	const { columnMetrics, direction, renderedRows, selectedCellState } = params;
@@ -82,18 +82,18 @@ export function getSheetArrowNavigationSelection(params: {
 }
 
 /*
- * Keep a sheet scroll position inside the current canvas bounds.
+ * Keep a dataTable scroll position inside the current canvas bounds.
  */
 
-function clampSheetScrollPosition(value: number, maxValue: number) {
+function clampDataTableScrollPosition(value: number, maxValue: number) {
 	return Math.min(Math.max(0, value), Math.max(0, maxValue));
 }
 
 /*
- * Return the scroll position needed to keep one selected sheet cell in view.
+ * Return the scroll position needed to keep one selected dataTable cell in view.
  */
 
-export function getSheetArrowNavigationScrollState(params: { columnMetric: SheetColumnMetric; rowIndex: number; runtime: SheetArrowNavigationRuntime }) {
+export function getDataTableArrowNavigationScrollState(params: { columnMetric: SheetColumnMetric; rowIndex: number; runtime: DataTableArrowNavigationRuntime }) {
 	const { columnMetric, rowIndex, runtime } = params;
 	let nextScrollLeft = runtime.scrollLeft;
 	let nextScrollTop = runtime.scrollTop;
@@ -122,7 +122,7 @@ export function getSheetArrowNavigationScrollState(params: { columnMetric: Sheet
 	}
 
 	return {
-		scrollLeft: clampSheetScrollPosition(nextScrollLeft, runtime.totalWidth - runtime.viewportWidth),
-		scrollTop: clampSheetScrollPosition(nextScrollTop, runtime.totalHeight - runtime.viewportHeight),
+		scrollLeft: clampDataTableScrollPosition(nextScrollLeft, runtime.totalWidth - runtime.viewportWidth),
+		scrollTop: clampDataTableScrollPosition(nextScrollTop, runtime.totalHeight - runtime.viewportHeight),
 	};
 }

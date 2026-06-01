@@ -1,4 +1,4 @@
-export const sheetFragment = `fragment sheetFragment on Sheet {
+export const dataTableFragment = `fragment dataTableFragment on DataTable {
   id
   organizationId
 
@@ -172,11 +172,11 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
   updatedAt
 }`;
 
-export const sheetRowFragment = `fragment sheetRowFragment on SheetRow {
+export const dataTableRowFragment = `fragment dataTableRowFragment on DataTableRow {
   id
   cursor
   organizationId
-  sheetId
+  dataTableId
 
   identifier
   viewId
@@ -185,10 +185,10 @@ export const sheetRowFragment = `fragment sheetRowFragment on SheetRow {
   metadata
 }`;
 
-export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
+export const dataTableCellFragment = `fragment dataTableCellFragment on DataTableCell {
   id
-  sheetId
-  sheetRowId
+  dataTableId
+  dataTableRowId
 
   cellKey
   iconName
@@ -201,8 +201,8 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   relatedTable
   relatedId
   reference {
-    sheetId
-    sheetRowId
+    dataTableId
+    dataTableRowId
     cellKey
   }
   referenceStatus

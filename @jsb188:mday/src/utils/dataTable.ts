@@ -1,19 +1,19 @@
 import { formatCalDateInTimeZone, parseDateInTimezone } from '@jsb188/app/utils/timeZone.ts';
 import {
-	SHEET_COLUMN_MAX_WIDTH,
-	SHEET_COLUMN_MIN_WIDTH,
-} from '../constants/sheet.ts';
+	DATA_TABLE_COLUMN_MAX_WIDTH,
+	DATA_TABLE_COLUMN_MIN_WIDTH,
+} from '../constants/dataTable.ts';
 import type {
-	SheetDesignCellObj,
-	SheetDesignObj,
-	SheetDesignViewColumnObj,
-	SheetDesignViewGeneratorDimensionObj,
-	SheetDesignViewObj,
-	SheetFieldTypeEnum,
-	SheetRecordValue,
-} from '../types/sheet.d.ts';
+	DataTableDesignCellObj,
+	DataTableDesignObj,
+	DataTableDesignViewColumnObj,
+	DataTableDesignViewGeneratorDimensionObj,
+	DataTableDesignViewObj,
+	DataTableFieldTypeEnum,
+	DataTableRecordValue,
+} from '../types/dataTable.d.ts';
 
-export type GeneratedSheetViewRowDefinition = {
+export type GeneratedDataTableViewRowDefinition = {
 	viewRowKey: string;
 	position: number;
 	cellValues: Record<string, string | number>;
@@ -33,11 +33,11 @@ export type GeneratedSheetViewRowDefinition = {
 };
 
 /*
- * Keep a user-resized sheet column width inside the usable spreadsheet range.
+ * Keep a user-resized dataTable column width inside the usable spreadsheet range.
  */
 
-export function clampSheetColumnWidth(width: number) {
-	return Math.min(SHEET_COLUMN_MAX_WIDTH, Math.max(SHEET_COLUMN_MIN_WIDTH, Math.round(width)));
+export function clampDataTableColumnWidth(width: number) {
+	return Math.min(DATA_TABLE_COLUMN_MAX_WIDTH, Math.max(DATA_TABLE_COLUMN_MIN_WIDTH, Math.round(width)));
 }
 
 /*
@@ -49,34 +49,34 @@ function isPlainObject(value: any): value is Record<string, any> {
 }
 
 /*
- * Return whether one sheet view column reads from a master sheet cell.
+ * Return whether one dataTable view column reads from a master dataTable cell.
  */
 
-export function isSheetViewMasterCellColumn(column: SheetDesignViewColumnObj | null | undefined) {
+export function isDataTableViewMasterCellColumn(column: DataTableDesignViewColumnObj | null | undefined) {
 	return column?.source?.type === 'MASTER_CELL' && typeof column.source.cellKey === 'string' && !!column.source.cellKey;
 }
 
 /*
- * Return whether one sheet field type stores and compares values as numbers.
+ * Return whether one dataTable field type stores and compares values as numbers.
  */
 
-export function isSheetNumberLikeFieldType(fieldType: SheetFieldTypeEnum | null | undefined) {
+export function isDataTableNumberLikeFieldType(fieldType: DataTableFieldTypeEnum | null | undefined) {
 	return fieldType === 'NUMBER' || fieldType === 'PRICE';
 }
 
 /*
- * Return whether one sheet field type stores and compares values as dates.
+ * Return whether one dataTable field type stores and compares values as dates.
  */
 
-export function isSheetDateLikeFieldType(fieldType: SheetFieldTypeEnum | null | undefined) {
+export function isDataTableDateLikeFieldType(fieldType: DataTableFieldTypeEnum | null | undefined) {
 	return fieldType === 'DATE' || fieldType === 'WEEK_OF_MON' || fieldType === 'WEEK_OF_SUN';
 }
 
 /*
- * Return whether one sheet field type displays a calendar week range.
+ * Return whether one dataTable field type displays a calendar week range.
  */
 
-export function isSheetWeekFieldType(fieldType: SheetFieldTypeEnum | null | undefined) {
+export function isDataTableWeekFieldType(fieldType: DataTableFieldTypeEnum | null | undefined) {
 	return fieldType === 'WEEK_OF_MON' || fieldType === 'WEEK_OF_SUN';
 }
 
@@ -84,27 +84,27 @@ export function isSheetWeekFieldType(fieldType: SheetFieldTypeEnum | null | unde
  * Return the UTC day-of-week index used as the start for a week field type.
  */
 
-function getSheetWeekStartDay(fieldType: SheetFieldTypeEnum | null | undefined) {
+function getDataTableWeekStartDay(fieldType: DataTableFieldTypeEnum | null | undefined) {
 	return fieldType === 'WEEK_OF_SUN' ? 0 : 1;
 }
 
 /*
- * Return the scalar value from a sheet record-like object input.
+ * Return the scalar value from a dataTable record-like object input.
  */
 
-function getSheetRecordScalarValue(value: SheetRecordValue | Date) {
+function getDataTableRecordScalarValue(value: DataTableRecordValue | Date) {
 	if (isPlainObject(value) && 'value' in value) {
-		return value.value as SheetRecordValue;
+		return value.value as DataTableRecordValue;
 	}
 
 	return value;
 }
 
 /*
- * Return whether one value is a valid finite number input for a sheet cell.
+ * Return whether one value is a valid finite number input for a dataTable cell.
  */
 
-function isValidSheetNumberValue(value: SheetRecordValue) {
+function isValidDataTableNumberValue(value: DataTableRecordValue) {
 	const numberValue = typeof value === 'number' ? value : Number(value);
 
 	return Number.isFinite(numberValue);
@@ -114,7 +114,7 @@ function isValidSheetNumberValue(value: SheetRecordValue) {
  * Return whether a date string points at a real calendar date.
  */
 
-function isValidSheetDateKey(value: string) {
+function isValidDataTableDateKey(value: string) {
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
 		return false;
 	}
@@ -174,17 +174,17 @@ function addDays(date: Date, days: number) {
 }
 
 /*
- * Return whether one value can be stored as a sheet date cell.
+ * Return whether one value can be stored as a dataTable date cell.
  */
 
-function isValidSheetDateValue(value: SheetRecordValue | Date) {
-	const scalarValue = getSheetRecordScalarValue(value);
+function isValidDataTableDateValue(value: DataTableRecordValue | Date) {
+	const scalarValue = getDataTableRecordScalarValue(value);
 
 	if (scalarValue instanceof Date) {
 		return Number.isFinite(scalarValue.getTime());
 	}
 
-	if (isValidSheetDateKey(String(scalarValue).split('T')[0])) {
+	if (isValidDataTableDateKey(String(scalarValue).split('T')[0])) {
 		return true;
 	}
 
@@ -195,15 +195,15 @@ function isValidSheetDateValue(value: SheetRecordValue | Date) {
  * Return the calendar date key represented by one date value in a timezone.
  */
 
-function getSheetDateValueCalendarKey(value: SheetRecordValue | Date, timeZone?: string | null) {
-	const scalarValue = getSheetRecordScalarValue(value);
+function getDataTableDateValueCalendarKey(value: DataTableRecordValue | Date, timeZone?: string | null) {
+	const scalarValue = getDataTableRecordScalarValue(value);
 
 	if (scalarValue instanceof Date) {
 		return formatCalDateInTimeZone(scalarValue, timeZone || null);
 	}
 
 	const stringValue = String(scalarValue);
-	if (isValidSheetDateKey(stringValue)) {
+	if (isValidDataTableDateKey(stringValue)) {
 		return stringValue;
 	}
 
@@ -216,46 +216,46 @@ function getSheetDateValueCalendarKey(value: SheetRecordValue | Date, timeZone?:
 }
 
 /*
- * Return the canonical date key for a sheet date-like value.
+ * Return the canonical date key for a dataTable date-like value.
  */
 
-export function getSheetDateValueKey(value: SheetRecordValue | Date) {
-	const scalarValue = getSheetRecordScalarValue(value);
+export function getDataTableDateValueKey(value: DataTableRecordValue | Date) {
+	const scalarValue = getDataTableRecordScalarValue(value);
 
 	return scalarValue instanceof Date ? scalarValue.toISOString().split('T')[0] : String(scalarValue).split('T')[0];
 }
 
 /*
- * Return a date string normalized to the configured sheet week start.
+ * Return a date string normalized to the configured dataTable week start.
  */
 
-export function normalizeSheetWeekDateValue(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum, timeZone?: string | null) {
-	const dateKey = getSheetDateValueCalendarKey(value, timeZone);
+export function normalizeDataTableWeekDateValue(value: DataTableRecordValue | Date, fieldType: DataTableFieldTypeEnum, timeZone?: string | null) {
+	const dateKey = getDataTableDateValueCalendarKey(value, timeZone);
 	const date = parseDateKey(dateKey);
-	if (!date || !isSheetWeekFieldType(fieldType)) {
+	if (!date || !isDataTableWeekFieldType(fieldType)) {
 		return dateKey;
 	}
 
-	const startDay = getSheetWeekStartDay(fieldType);
+	const startDay = getDataTableWeekStartDay(fieldType);
 	const offset = (date.getUTCDay() - startDay + 7) % 7;
 
 	return formatDateKey(addDays(date, -offset));
 }
 
 /*
- * Return a date string normalized for storage by one date-like sheet field.
+ * Return a date string normalized for storage by one date-like dataTable field.
  */
 
-export function normalizeSheetDateLikeValue(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum, timeZone?: string | null) {
-	return isSheetWeekFieldType(fieldType) ? normalizeSheetWeekDateValue(value, fieldType, timeZone) : getSheetDateValueCalendarKey(value, timeZone);
+export function normalizeDataTableDateLikeValue(value: DataTableRecordValue | Date, fieldType: DataTableFieldTypeEnum, timeZone?: string | null) {
+	return isDataTableWeekFieldType(fieldType) ? normalizeDataTableWeekDateValue(value, fieldType, timeZone) : getDataTableDateValueCalendarKey(value, timeZone);
 }
 
 /*
- * Return the canonical ISO datetime string for a sheet datetime value in one timezone.
+ * Return the canonical ISO datetime string for a dataTable datetime value in one timezone.
  */
 
-export function normalizeSheetDateTimeValue(value: SheetRecordValue | Date, timeZone?: string | null) {
-	const scalarValue = getSheetRecordScalarValue(value);
+export function normalizeDataTableDateTimeValue(value: DataTableRecordValue | Date, timeZone?: string | null) {
+	const scalarValue = getDataTableRecordScalarValue(value);
 
 	return parseDateInTimezone(
 		scalarValue instanceof Date ? scalarValue : String(scalarValue),
@@ -266,39 +266,39 @@ export function normalizeSheetDateTimeValue(value: SheetRecordValue | Date, time
 }
 
 /*
- * Return whether one value can be stored as a sheet datetime cell.
+ * Return whether one value can be stored as a dataTable datetime cell.
  */
 
-function isValidSheetDateTimeValue(value: SheetRecordValue) {
-	const scalarValue = getSheetRecordScalarValue(value);
+function isValidDataTableDateTimeValue(value: DataTableRecordValue) {
+	const scalarValue = getDataTableRecordScalarValue(value);
 	const date = scalarValue instanceof Date ? scalarValue : new Date(String(scalarValue));
 
 	return Number.isFinite(date.getTime());
 }
 
 /*
- * Return whether one value is included in a sheet cell's saved options.
+ * Return whether one value is included in a dataTable cell's saved options.
  */
 
-function isSheetOptionValue(cell: SheetDesignCellObj, value: unknown) {
+function isDataTableOptionValue(cell: DataTableDesignCellObj, value: unknown) {
 	const validValues = new Set((cell.options || []).map((option) => String(option.value)));
 
 	return validValues.has(String(value));
 }
 
 /*
- * Return the normalized string used for case-insensitive sheet option matching.
+ * Return the normalized string used for case-insensitive dataTable option matching.
  */
 
-function getNormalizedSheetOptionText(value: unknown) {
+function getNormalizedDataTableOptionText(value: unknown) {
 	return String(value).toLowerCase();
 }
 
 /*
- * Return whether one sheet design cell should normalize select option values.
+ * Return whether one dataTable design cell should normalize select option values.
  */
 
-function isSheetSelectOptionNormalizeField(cell: SheetDesignCellObj) {
+function isDataTableSelectOptionNormalizeField(cell: DataTableDesignCellObj) {
 	return cell.fieldType === 'SELECT' ||
 		cell.fieldType === 'SELECT_OR_TEXT' ||
 		cell.humanFieldType === 'SELECT' ||
@@ -309,53 +309,53 @@ function isSheetSelectOptionNormalizeField(cell: SheetDesignCellObj) {
  * Return the saved option value when one select-style cell input matches an option value or label.
  */
 
-export function normalizeSheetSelectOptionValue(cell: SheetDesignCellObj, value: SheetRecordValue) {
-	if (value === null || !isSheetSelectOptionNormalizeField(cell)) {
+export function normalizeDataTableSelectOptionValue(cell: DataTableDesignCellObj, value: DataTableRecordValue) {
+	if (value === null || !isDataTableSelectOptionNormalizeField(cell)) {
 		return value;
 	}
 
-	if (isSheetOptionValue(cell, value)) {
+	if (isDataTableOptionValue(cell, value)) {
 		return value;
 	}
 
-	const normalizedValue = getNormalizedSheetOptionText(value);
+	const normalizedValue = getNormalizedDataTableOptionText(value);
 	const option = (cell.options || []).find((item) => (
-		getNormalizedSheetOptionText(item.value) === normalizedValue ||
-		getNormalizedSheetOptionText(item.label) === normalizedValue
+		getNormalizedDataTableOptionText(item.value) === normalizedValue ||
+		getNormalizedDataTableOptionText(item.label) === normalizedValue
 	));
 
 	return option ? option.value : value;
 }
 
 /*
- * Return a user-readable validation error for an invalid sheet cell value.
+ * Return a user-readable validation error for an invalid dataTable cell value.
  */
 
-export function getSheetCellValueValidationError(
-	cell: SheetDesignCellObj,
-	value: SheetRecordValue,
+export function getDataTableCellValueValidationError(
+	cell: DataTableDesignCellObj,
+	value: DataTableRecordValue,
 ) {
 	if (value === null) {
 		return null;
 	}
 
-	if (isSheetNumberLikeFieldType(cell.fieldType) && !isValidSheetNumberValue(value)) {
+	if (isDataTableNumberLikeFieldType(cell.fieldType) && !isValidDataTableNumberValue(value)) {
 		return `${cell.key} must be a valid number.`;
 	}
 
-	if (isSheetDateLikeFieldType(cell.fieldType) && !isValidSheetDateValue(value)) {
+	if (isDataTableDateLikeFieldType(cell.fieldType) && !isValidDataTableDateValue(value)) {
 		return `${cell.key} must be a valid date.`;
 	}
 
-	if (cell.fieldType === 'DATETIME' && !isValidSheetDateTimeValue(value)) {
+	if (cell.fieldType === 'DATETIME' && !isValidDataTableDateTimeValue(value)) {
 		return `${cell.key} must be a valid datetime.`;
 	}
 
-	if (cell.fieldType === 'SELECT' && cell.options?.length && !isSheetOptionValue(cell, value)) {
+	if (cell.fieldType === 'SELECT' && cell.options?.length && !isDataTableOptionValue(cell, value)) {
 		return `${cell.key} must be one of: ${(cell.options || []).map((option) => option.value).join(', ')}`;
 	}
 
-	if (cell.fieldType === 'SELECT_OR_TEXT' && !isSheetOptionValue(cell, value) && typeof value !== 'string') {
+	if (cell.fieldType === 'SELECT_OR_TEXT' && !isDataTableOptionValue(cell, value) && typeof value !== 'string') {
 		const optionsText = (cell.options || []).map((option) => option.value).join(', ');
 		return optionsText ? `${cell.key} must be one of: ${optionsText}, or a text string.` : `${cell.key} must be a text string.`;
 	}
@@ -366,7 +366,7 @@ export function getSheetCellValueValidationError(
 		}
 
 		if (cell.options?.length) {
-			const invalidValues = value.filter((item) => !isSheetOptionValue(cell, item));
+			const invalidValues = value.filter((item) => !isDataTableOptionValue(cell, item));
 			if (invalidValues.length) {
 				return `${cell.key} contains invalid option values: ${invalidValues.map((item) => String(item)).join(', ')}. ` +
 					`Allowed values: ${(cell.options || []).map((option) => option.value).join(', ')}`;
@@ -378,10 +378,10 @@ export function getSheetCellValueValidationError(
 }
 
 /*
- * Return a compact month-day string for sheet week display labels.
+ * Return a compact month-day string for dataTable week display labels.
  */
 
-function getSheetWeekDisplayMonthDay(date: Date, showMonth: boolean) {
+function getDataTableWeekDisplayMonthDay(date: Date, showMonth: boolean) {
 	const day = String(date.getUTCDate());
 	if (!showMonth) {
 		return day;
@@ -396,22 +396,22 @@ function getSheetWeekDisplayMonthDay(date: Date, showMonth: boolean) {
 }
 
 /*
- * Return the display text for one date as a sheet week range.
+ * Return the display text for one date as a dataTable week range.
  */
 
-export function formatSheetWeekDateRange(value: SheetRecordValue | Date, fieldType: SheetFieldTypeEnum) {
-	if (!isSheetWeekFieldType(fieldType)) {
+export function formatDataTableWeekDateRange(value: DataTableRecordValue | Date, fieldType: DataTableFieldTypeEnum) {
+	if (!isDataTableWeekFieldType(fieldType)) {
 		return '';
 	}
 
-	const start = parseDateKey(normalizeSheetWeekDateValue(value, fieldType));
+	const start = parseDateKey(normalizeDataTableWeekDateValue(value, fieldType));
 	if (!start) {
 		return '';
 	}
 
 	const end = addDays(start, 6);
-	const startText = getSheetWeekDisplayMonthDay(start, true);
-	const endText = getSheetWeekDisplayMonthDay(end, start.getUTCMonth() !== end.getUTCMonth());
+	const startText = getDataTableWeekDisplayMonthDay(start, true);
+	const endText = getDataTableWeekDisplayMonthDay(end, start.getUTCMonth() !== end.getUTCMonth());
 
 	return `${startText} - ${endText}`;
 }
@@ -420,17 +420,17 @@ export function formatSheetWeekDateRange(value: SheetRecordValue | Date, fieldTy
  * Return whether one saved view has a usable generated grouped-row model.
  */
 
-export function isSheetViewGeneratedRowsView(view: SheetDesignViewObj | null | undefined) {
+export function isDataTableViewGeneratedRowsView(view: DataTableDesignViewObj | null | undefined) {
 	return view?.rowModel?.type === 'GROUPED_ROWS' &&
 		typeof view.rowModel.generator?.keyPrefix === 'string' &&
 		!!view.rowModel.generator.keyPrefix;
 }
 
 /*
- * Return validated stored views from a sheet design object.
+ * Return validated stored views from a dataTable design object.
  */
 
-export function getSheetDesignViews(design: SheetDesignObj | null | undefined) {
+export function getDataTableDesignViews(design: DataTableDesignObj | null | undefined) {
 	const views = design?.views;
 	if (!Array.isArray(views)) {
 		return [];
@@ -446,19 +446,19 @@ export function getSheetDesignViews(design: SheetDesignObj | null | undefined) {
 			view.layout === 'GRID' &&
 			Array.isArray(view.columns)
 		);
-	}) as SheetDesignViewObj[];
+	}) as DataTableDesignViewObj[];
 }
 
 /*
- * Return the stored views in the order that sheet tabs should display them.
+ * Return the stored views in the order that dataTable tabs should display them.
  */
 
-export function getOrderedSheetDesignViews(design: SheetDesignObj | null | undefined) {
-	const views = getSheetDesignViews(design);
+export function getOrderedDataTableDesignViews(design: DataTableDesignObj | null | undefined) {
+	const views = getDataTableDesignViews(design);
 	const viewsById = new Map(views.map((view) => [view.id, view]));
 	const orderedViews = (design?.viewsOrder || [])
 		.map((viewId) => viewsById.get(viewId))
-		.filter(Boolean) as SheetDesignViewObj[];
+		.filter(Boolean) as DataTableDesignViewObj[];
 	const orderedIds = new Set(orderedViews.map((view) => view.id));
 	const remainingViews = views.filter((view) => !orderedIds.has(view.id));
 
@@ -466,15 +466,15 @@ export function getOrderedSheetDesignViews(design: SheetDesignObj | null | undef
 }
 
 /*
- * Return the displayable columns for one sheet view in saved order.
+ * Return the displayable columns for one dataTable view in saved order.
  */
 
-export function getOrderedSheetDesignViewColumns(view: SheetDesignViewObj | null | undefined) {
+export function getOrderedDataTableDesignViewColumns(view: DataTableDesignViewObj | null | undefined) {
 	const columns = Array.isArray(view?.columns) ? view.columns : [];
 	const columnsByKey = new Map(columns.map((column) => [column.key, column]));
 	const orderedColumns = (view?.columnsOrder || [])
 		.map((columnKey) => columnsByKey.get(columnKey))
-		.filter(Boolean) as SheetDesignViewColumnObj[];
+		.filter(Boolean) as DataTableDesignViewColumnObj[];
 	const orderedKeys = new Set(orderedColumns.map((column) => column.key));
 	const remainingColumns = columns.filter((column) => !orderedKeys.has(column.key));
 
@@ -485,7 +485,7 @@ export function getOrderedSheetDesignViewColumns(view: SheetDesignViewObj | null
  * Return every column key once, honoring a saved order before appending missing keys.
  */
 
-export function getCompleteSheetColumnOrder(
+export function getCompleteDataTableColumnOrder(
 	columnKeys: string[],
 	savedOrder?: string[] | null,
 ) {
@@ -515,17 +515,17 @@ export function getCompleteSheetColumnOrder(
 }
 
 /*
- * Move one visible sheet column while preserving hidden or unrendered key slots.
+ * Move one visible dataTable column while preserving hidden or unrendered key slots.
  */
 
-export function moveVisibleSheetColumnKeyInOrder(params: {
+export function moveVisibleDataTableColumnKeyInOrder(params: {
 	allColumnKeys: string[];
 	fromKey: string;
 	savedOrder?: string[] | null;
 	toVisibleIndex: number;
 	visibleColumnKeys: string[];
 }) {
-	const fullOrder = getCompleteSheetColumnOrder(params.allColumnKeys, params.savedOrder);
+	const fullOrder = getCompleteDataTableColumnOrder(params.allColumnKeys, params.savedOrder);
 	const visibleKeySet = new Set(params.visibleColumnKeys);
 	const visibleOrder = fullOrder.filter((key) => visibleKeySet.has(key));
 	const fromIndex = visibleOrder.indexOf(params.fromKey);
@@ -561,8 +561,8 @@ export function moveVisibleSheetColumnKeyInOrder(params: {
  * Return the inclusive start and end dates for one generated date series.
  */
 
-function getSheetViewDateSeriesRange(
-	dateSeries: NonNullable<NonNullable<SheetDesignViewObj['rowModel']>['generator']>['dateSeries'],
+function getDataTableViewDateSeriesRange(
+	dateSeries: NonNullable<NonNullable<DataTableDesignViewObj['rowModel']>['generator']>['dateSeries'],
 	referenceDate: Date,
 ) {
 	if (!dateSeries?.range) {
@@ -590,11 +590,11 @@ function getSheetViewDateSeriesRange(
  * Return generated date points for one date series.
  */
 
-function getSheetViewDateSeriesValues(
-	dateSeries: NonNullable<NonNullable<SheetDesignViewObj['rowModel']>['generator']>['dateSeries'],
+function getDataTableViewDateSeriesValues(
+	dateSeries: NonNullable<NonNullable<DataTableDesignViewObj['rowModel']>['generator']>['dateSeries'],
 	referenceDate: Date,
 ) {
-	const range = getSheetViewDateSeriesRange(dateSeries, referenceDate);
+	const range = getDataTableViewDateSeriesRange(dateSeries, referenceDate);
 	if (!dateSeries?.key || !range) {
 		return [];
 	}
@@ -630,9 +630,9 @@ function getSheetViewDateSeriesValues(
  * Return generated dimension values from static values or master cell options.
  */
 
-function getSheetViewGeneratorDimensionValues(
-	dimension: SheetDesignViewGeneratorDimensionObj,
-	masterCellsByKey: Map<string, SheetDesignCellObj>,
+function getDataTableViewGeneratorDimensionValues(
+	dimension: DataTableDesignViewGeneratorDimensionObj,
+	masterCellsByKey: Map<string, DataTableDesignCellObj>,
 ) {
 	if (!dimension?.key || !dimension.source) {
 		return [];
@@ -670,9 +670,9 @@ function getSheetViewGeneratorDimensionValues(
  * Return all dimension value groups for a generated grouped-row view.
  */
 
-function getSheetViewGeneratorValueGroups(
-	view: SheetDesignViewObj,
-	masterCells: SheetDesignCellObj[],
+function getDataTableViewGeneratorValueGroups(
+	view: DataTableDesignViewObj,
+	masterCells: DataTableDesignCellObj[],
 	referenceDate: Date,
 ) {
 	const generator = view.rowModel?.generator;
@@ -685,13 +685,13 @@ function getSheetViewGeneratorValueGroups(
 		sourceCellKey?: string | null;
 	}>> = [];
 
-	const dateValues = getSheetViewDateSeriesValues(generator?.dateSeries, referenceDate);
+	const dateValues = getDataTableViewDateSeriesValues(generator?.dateSeries, referenceDate);
 	if (dateValues.length) {
 		groups.push(dateValues);
 	}
 
 	(generator?.dimensions || []).forEach((dimension) => {
-		const values = getSheetViewGeneratorDimensionValues(dimension, masterCellsByKey);
+		const values = getDataTableViewGeneratorDimensionValues(dimension, masterCellsByKey);
 		if (values.length) {
 			groups.push(values);
 		}
@@ -704,7 +704,7 @@ function getSheetViewGeneratorValueGroups(
  * Return every cartesian combination of generated date and dimension values.
  */
 
-function getSheetViewGeneratorCombinations(
+function getDataTableViewGeneratorCombinations(
 	groups: Array<Array<{
 		key: string;
 		value: string;
@@ -732,7 +732,7 @@ function getSheetViewGeneratorCombinations(
  * Return the stable row key for one generated row combination.
  */
 
-function getSheetViewGeneratedRowKey(
+function getDataTableViewGeneratedRowKey(
 	keyPrefix: string,
 	combination: Array<{
 		key: string;
@@ -748,18 +748,18 @@ function getSheetViewGeneratedRowKey(
  * Return generated row definitions for one grouped-row view generator.
  */
 
-export function getSheetViewGeneratedRowDefinitions(
-	view: SheetDesignViewObj,
-	masterCells: SheetDesignCellObj[],
+export function getDataTableViewGeneratedRowDefinitions(
+	view: DataTableDesignViewObj,
+	masterCells: DataTableDesignCellObj[],
 	referenceDate: Date = new Date(),
 ) {
-	if (!isSheetViewGeneratedRowsView(view)) {
+	if (!isDataTableViewGeneratedRowsView(view)) {
 		return [];
 	}
 
 	const generator = view.rowModel!.generator!;
-	const groups = getSheetViewGeneratorValueGroups(view, masterCells, referenceDate);
-	const combinations = getSheetViewGeneratorCombinations(groups);
+	const groups = getDataTableViewGeneratorValueGroups(view, masterCells, referenceDate);
+	const combinations = getDataTableViewGeneratorCombinations(groups);
 
 	return combinations.map((combination, index) => {
 		const cellValues = combination.reduce((values, value) => {
@@ -770,7 +770,7 @@ export function getSheetViewGeneratedRowDefinitions(
 		const dimensionValues = combination.filter((value) => value.key !== generator.dateSeries?.key);
 
 		return {
-			viewRowKey: getSheetViewGeneratedRowKey(generator.keyPrefix, combination),
+			viewRowKey: getDataTableViewGeneratedRowKey(generator.keyPrefix, combination),
 			position: index + 1,
 			cellValues,
 			criteria: {
@@ -788,7 +788,7 @@ export function getSheetViewGeneratedRowDefinitions(
 					sourceCellKey: value.sourceCellKey,
 				})),
 			},
-		} satisfies GeneratedSheetViewRowDefinition;
+		} satisfies GeneratedDataTableViewRowDefinition;
 	});
 }
 
@@ -796,11 +796,11 @@ export function getSheetViewGeneratedRowDefinitions(
  * Convert a view column into the same design-cell shape used by the grid renderer.
  */
 
-export function mapSheetDesignViewColumnToCell(
-	column: SheetDesignViewColumnObj,
-	masterCellsByKey: Map<string, SheetDesignCellObj>,
+export function mapDataTableDesignViewColumnToCell(
+	column: DataTableDesignViewColumnObj,
+	masterCellsByKey: Map<string, DataTableDesignCellObj>,
 ) {
-	const masterCell = isSheetViewMasterCellColumn(column)
+	const masterCell = isDataTableViewMasterCellColumn(column)
 		? masterCellsByKey.get(column.source!.cellKey!)
 		: null;
 
@@ -809,7 +809,7 @@ export function mapSheetDesignViewColumnToCell(
 		label: column.label || masterCell?.label || column.key,
 		humanLabel: column.humanLabel ?? null,
 		iconName: column.iconName ?? masterCell?.iconName ?? null,
-		fieldType: masterCell?.fieldType || column.fieldType || column.humanFieldType as SheetFieldTypeEnum,
+		fieldType: masterCell?.fieldType || column.fieldType || column.humanFieldType as DataTableFieldTypeEnum,
 		humanFieldType: column.humanFieldType,
 		format: masterCell?.format ?? null,
 		source: column.source?.type === 'RELATED_RECORD' && column.source.path && column.source.table
@@ -828,7 +828,7 @@ export function mapSheetDesignViewColumnToCell(
 		indexed: masterCell?.indexed,
 		width: column.width ?? null,
 		viewSource: column.source || null,
-	} as SheetDesignCellObj & {
-		viewSource?: SheetDesignViewColumnObj['source'] | null;
+	} as DataTableDesignCellObj & {
+		viewSource?: DataTableDesignViewColumnObj['source'] | null;
 	};
 }

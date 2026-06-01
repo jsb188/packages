@@ -1,4 +1,4 @@
-import type { SheetCellGQL, SheetDesignGQL, SheetRowGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { DataTableCellGQL, DataTableDesignGQL, DataTableRowGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { clampSheetColumnWidth, getSheetCellKey } from '@jsb188/react-web/ui/SheetUI';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -8,15 +8,15 @@ type ElementSize = {
 	width: number;
 };
 
-export type SheetRowsState = {
+export type DataTableRowsState = {
 	hasMoreRows: boolean;
 	rowIds: string[];
-	rowsById: Record<string, SheetRowGQL>;
+	rowsById: Record<string, DataTableRowGQL>;
 	rowSignaturesById: Record<string, string>;
 	sourceKey: string;
 };
 
-export type SheetDesignPatchInput = {
+export type DataTableDesignPatchInput = {
 	cells?: Array<{
 		format?: string | null;
 		humanLabel?: string | null;
@@ -30,28 +30,28 @@ export type SheetDesignPatchInput = {
 	}>;
 };
 
-type SheetDesignCellPatchInput = NonNullable<SheetDesignPatchInput['cells']>[number];
+type DataTableDesignCellPatchInput = NonNullable<DataTableDesignPatchInput['cells']>[number];
 
-type SheetDesignReducerState = {
-	localPatch: SheetDesignPatchInput | null;
-	serverDesign: SheetDesignGQL;
-	sheetId: string;
+type DataTableDesignReducerState = {
+	localPatch: DataTableDesignPatchInput | null;
+	serverDesign: DataTableDesignGQL;
+	dataTableId: string;
 };
 
-type SheetDesignReducerAction =
+type DataTableDesignReducerAction =
 	| {
-		design: SheetDesignGQL;
-		sheetId: string;
+		design: DataTableDesignGQL;
+		dataTableId: string;
 		type: 'server_design_received';
 	}
 	| {
-		patch: SheetDesignPatchInput;
+		patch: DataTableDesignPatchInput;
 		type: 'local_patch_queued';
 	};
 
-type SheetOptimisticCellValues = Record<string, string | null>;
+type DataTableOptimisticCellValues = Record<string, string | null>;
 
-type SheetCellValueReducerAction =
+type DataTableCellValueReducerAction =
 	| {
 		type: 'reset';
 	}
@@ -72,10 +72,10 @@ type SheetCellValueReducerAction =
 	};
 
 /*
- * Build an empty row collection state for one sheet.
+ * Build an empty row collection state for one dataTable.
  */
 
-export function getInitialSheetRowsState(sourceKey: string): SheetRowsState {
+export function getInitialDataTableRowsState(sourceKey: string): DataTableRowsState {
 	return {
 		hasMoreRows: true,
 		rowIds: [],
@@ -86,18 +86,18 @@ export function getInitialSheetRowsState(sourceKey: string): SheetRowsState {
 }
 
 /*
- * Return the identity for the current sheet row source.
+ * Return the identity for the current dataTable row source.
  */
 
-export function getSheetRowsSourceKey(sheetId: string, viewId?: string | null) {
-	return `${sheetId}:${viewId || 'master'}`;
+export function getDataTableRowsSourceKey(dataTableId: string, viewId?: string | null) {
+	return `${dataTableId}:${viewId || 'master'}`;
 }
 
 /*
- * Show a refresh floating message when sheet row queries receive reset-only updates.
+ * Show a refresh floating message when dataTable row queries receive reset-only updates.
  */
 
-export function useFloatingMessageForSheetRowsReset(
+export function useFloatingMessageForDataTableRowsReset(
 	resetOnlyTime: string | undefined,
 	setFloatingMessage?: SetFloatingMessage,
 ) {
@@ -119,10 +119,10 @@ export function useFloatingMessageForSheetRowsReset(
 }
 
 /*
- * Return a stable comparison key for one sheet cell payload.
+ * Return a stable comparison key for one dataTable cell payload.
  */
 
-function getSheetCellStateKey(cell: SheetCellGQL) {
+function getDataTableCellStateKey(cell: DataTableCellGQL) {
 	return [
 		cell.id,
 		cell.cellKey,
@@ -138,16 +138,16 @@ function getSheetCellStateKey(cell: SheetCellGQL) {
 }
 
 /*
- * Return a stable comparison key for one sheet row payload.
+ * Return a stable comparison key for one dataTable row payload.
  */
 
-function getSheetRowStateKey(row: SheetRowGQL) {
+function getDataTableRowStateKey(row: DataTableRowGQL) {
 	return [
 		row.id,
 		row.position,
 		row.cursor ?? '',
 		row.updatedAt ?? '',
-		...(row.cells || []).map(getSheetCellStateKey).sort(),
+		...(row.cells || []).map(getDataTableCellStateKey).sort(),
 	].join('\u0000');
 }
 
@@ -155,7 +155,7 @@ function getSheetRowStateKey(row: SheetRowGQL) {
  * Return whether two ordered row id collections have the same contents.
  */
 
-function areSheetRowIdsEqual(a: string[], b: string[]) {
+function areDataTableRowIdsEqual(a: string[], b: string[]) {
 	return a.length === b.length && a.every((rowId, index) => rowId === b[index]);
 }
 
@@ -163,9 +163,9 @@ function areSheetRowIdsEqual(a: string[], b: string[]) {
  * Merge fetched row ids while preserving the server's visual query order.
  */
 
-function mergeSheetRowIds(
+function mergeDataTableRowIds(
 	currentRowIds: string[],
-	rows: SheetRowGQL[],
+	rows: DataTableRowGQL[],
 	appendRows: boolean,
 ) {
 	const nextRowIds = Array.from(new Set(rows.map((row) => row.id)));
@@ -183,20 +183,20 @@ function mergeSheetRowIds(
  * Merge one fetched page of rows into the loaded row collection.
  */
 
-export function mergeSheetRowsState(
-	currentState: SheetRowsState,
+export function mergeDataTableRowsState(
+	currentState: DataTableRowsState,
 	sourceKey: string,
-	rows: SheetRowGQL[],
+	rows: DataTableRowGQL[],
 	limit: number,
 	appendRows = false,
-): SheetRowsState {
-	const baseState = currentState.sourceKey === sourceKey ? currentState : getInitialSheetRowsState(sourceKey);
+): DataTableRowsState {
+	const baseState = currentState.sourceKey === sourceKey ? currentState : getInitialDataTableRowsState(sourceKey);
 	let rowsById = baseState.rowsById;
 	let rowSignaturesById = baseState.rowSignaturesById;
 	let changedRows = baseState !== currentState;
 
 	rows.forEach((row) => {
-		const rowSignature = getSheetRowStateKey(row);
+		const rowSignature = getDataTableRowStateKey(row);
 
 		if (rowSignaturesById[row.id] === rowSignature) {
 			return;
@@ -213,8 +213,8 @@ export function mergeSheetRowsState(
 	});
 
 	const hasMoreRows = rows.length < limit ? false : baseState.hasMoreRows;
-	const rowIds = mergeSheetRowIds(baseState.rowIds, rows, appendRows);
-	const changedRowIds = !areSheetRowIdsEqual(baseState.rowIds, rowIds);
+	const rowIds = mergeDataTableRowIds(baseState.rowIds, rows, appendRows);
+	const changedRowIds = !areDataTableRowIdsEqual(baseState.rowIds, rowIds);
 
 	if (
 		currentState.sourceKey === sourceKey &&
@@ -235,10 +235,10 @@ export function mergeSheetRowsState(
 }
 
 /*
- * Return whether two optional ordered sheet design key lists are identical.
+ * Return whether two optional ordered dataTable design key lists are identical.
  */
 
-function areSheetDesignCellsOrdersEqual(a?: string[] | null, b?: string[] | null) {
+function areDataTableDesignCellsOrdersEqual(a?: string[] | null, b?: string[] | null) {
 	const aOrder = a || [];
 	const bOrder = b || [];
 
@@ -246,22 +246,22 @@ function areSheetDesignCellsOrdersEqual(a?: string[] | null, b?: string[] | null
 }
 
 /*
- * Return whether two optional ordered sheet view key lists are identical.
+ * Return whether two optional ordered dataTable view key lists are identical.
  */
 
-function areSheetDesignViewOrdersEqual(a?: string[] | null, b?: string[] | null) {
-	return areSheetDesignCellsOrdersEqual(a, b);
+function areDataTableDesignViewOrdersEqual(a?: string[] | null, b?: string[] | null) {
+	return areDataTableDesignCellsOrdersEqual(a, b);
 }
 
 /*
- * Merge two sparse sheet design patches while keeping the newest cell patch per key.
+ * Merge two sparse dataTable design patches while keeping the newest cell patch per key.
  */
 
-export function mergeSheetDesignPatch(
-	currentPatch: SheetDesignPatchInput | null,
-	nextPatch: SheetDesignPatchInput,
-): SheetDesignPatchInput {
-	const mergedPatch: SheetDesignPatchInput = {
+export function mergeDataTableDesignPatch(
+	currentPatch: DataTableDesignPatchInput | null,
+	nextPatch: DataTableDesignPatchInput,
+): DataTableDesignPatchInput {
+	const mergedPatch: DataTableDesignPatchInput = {
 		...(currentPatch || {}),
 	};
 
@@ -300,13 +300,13 @@ export function mergeSheetDesignPatch(
 }
 
 /*
- * Merge local sheet design edits over the latest GraphQL design baseline.
+ * Merge local dataTable design edits over the latest GraphQL design baseline.
  */
 
-export function mergeSheetDesignWithPatch(
-	serverDesign: SheetDesignGQL,
-	localPatch: SheetDesignPatchInput | null,
-): SheetDesignGQL {
+export function mergeDataTableDesignWithPatch(
+	serverDesign: DataTableDesignGQL,
+	localPatch: DataTableDesignPatchInput | null,
+): DataTableDesignGQL {
 	if (!localPatch) {
 		return serverDesign;
 	}
@@ -360,19 +360,19 @@ export function mergeSheetDesignWithPatch(
 }
 
 /*
- * Drop local sheet design edits once the refreshed server design contains them.
+ * Drop local dataTable design edits once the refreshed server design contains them.
  */
 
-function removeConfirmedSheetDesignPatchValues(
-	localPatch: SheetDesignPatchInput | null,
-	serverDesign: SheetDesignGQL,
+function removeConfirmedDataTableDesignPatchValues(
+	localPatch: DataTableDesignPatchInput | null,
+	serverDesign: DataTableDesignGQL,
 ) {
 	if (!localPatch) {
 		return null;
 	}
 
-	let nextPatch: SheetDesignPatchInput | null = null;
-	const serverCellsByKey = new Map<string, SheetDesignGQL['cells'][number]>();
+	let nextPatch: DataTableDesignPatchInput | null = null;
+	const serverCellsByKey = new Map<string, DataTableDesignGQL['cells'][number]>();
 
 	serverDesign.cells.forEach((cell) => {
 		if (!serverCellsByKey.has(cell.key)) {
@@ -382,7 +382,7 @@ function removeConfirmedSheetDesignPatchValues(
 
 	localPatch.cells?.forEach((patchCell) => {
 		const serverCell = serverCellsByKey.get(patchCell.key);
-		const nextCell: SheetDesignCellPatchInput = {
+		const nextCell: DataTableDesignCellPatchInput = {
 			key: patchCell.key,
 		};
 
@@ -406,14 +406,14 @@ function removeConfirmedSheetDesignPatchValues(
 		}
 
 		if (nextCell.width !== undefined || nextCell.humanLabel !== undefined || nextCell.format !== undefined) {
-			nextPatch = mergeSheetDesignPatch(nextPatch, {
+			nextPatch = mergeDataTableDesignPatch(nextPatch, {
 				cells: [nextCell],
 			});
 		}
 	});
 
-	if (localPatch.cellsOrder && !areSheetDesignCellsOrdersEqual(localPatch.cellsOrder, serverDesign.cellsOrder)) {
-		nextPatch = mergeSheetDesignPatch(nextPatch, {
+	if (localPatch.cellsOrder && !areDataTableDesignCellsOrdersEqual(localPatch.cellsOrder, serverDesign.cellsOrder)) {
+		nextPatch = mergeDataTableDesignPatch(nextPatch, {
 			cellsOrder: localPatch.cellsOrder,
 		});
 	}
@@ -421,8 +421,8 @@ function removeConfirmedSheetDesignPatchValues(
 	localPatch.views?.forEach((patchView) => {
 		const serverView = serverDesign.views?.find((view) => view.id === patchView.id);
 
-		if (patchView.columnsOrder && !areSheetDesignViewOrdersEqual(patchView.columnsOrder, serverView?.columnsOrder)) {
-			nextPatch = mergeSheetDesignPatch(nextPatch, {
+		if (patchView.columnsOrder && !areDataTableDesignViewOrdersEqual(patchView.columnsOrder, serverView?.columnsOrder)) {
+			nextPatch = mergeDataTableDesignPatch(nextPatch, {
 				views: [{
 					id: patchView.id,
 					columnsOrder: patchView.columnsOrder,
@@ -435,51 +435,51 @@ function removeConfirmedSheetDesignPatchValues(
 }
 
 /*
- * Keep the sheet design reducer initialized for one sheet id.
+ * Keep the dataTable design reducer initialized for one dataTable id.
  */
 
-export function getInitialSheetDesignReducerState(sheetId: string, serverDesign: SheetDesignGQL): SheetDesignReducerState {
+export function getInitialDataTableDesignReducerState(dataTableId: string, serverDesign: DataTableDesignGQL): DataTableDesignReducerState {
 	return {
 		localPatch: null,
 		serverDesign,
-		sheetId,
+		dataTableId,
 	};
 }
 
 /*
- * Own the local sheet design overlay that should survive GraphQL refreshes.
+ * Own the local dataTable design overlay that should survive GraphQL refreshes.
  */
 
-export function sheetDesignReducer(
-	state: SheetDesignReducerState,
-	action: SheetDesignReducerAction,
-): SheetDesignReducerState {
+export function dataTableDesignReducer(
+	state: DataTableDesignReducerState,
+	action: DataTableDesignReducerAction,
+): DataTableDesignReducerState {
 	if (action.type === 'server_design_received') {
-		if (state.sheetId !== action.sheetId) {
-			return getInitialSheetDesignReducerState(action.sheetId, action.design);
+		if (state.dataTableId !== action.dataTableId) {
+			return getInitialDataTableDesignReducerState(action.dataTableId, action.design);
 		}
 
 		return {
 			...state,
-			localPatch: removeConfirmedSheetDesignPatchValues(state.localPatch, action.design),
+			localPatch: removeConfirmedDataTableDesignPatchValues(state.localPatch, action.design),
 			serverDesign: action.design,
 		};
 	}
 
 	return {
 		...state,
-		localPatch: mergeSheetDesignPatch(state.localPatch, action.patch),
+		localPatch: mergeDataTableDesignPatch(state.localPatch, action.patch),
 	};
 }
 
 /*
- * Keep local sheet cell edits visible until refreshed server data confirms them.
+ * Keep local dataTable cell edits visible until refreshed server data confirms them.
  */
 
-export function sheetCellValueReducer(
-	state: SheetOptimisticCellValues,
-	action: SheetCellValueReducerAction,
-): SheetOptimisticCellValues {
+export function dataTableCellValueReducer(
+	state: DataTableOptimisticCellValues,
+	action: DataTableCellValueReducerAction,
+): DataTableOptimisticCellValues {
 	if (action.type === 'reset') {
 		return {};
 	}

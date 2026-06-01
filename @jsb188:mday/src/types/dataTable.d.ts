@@ -1,12 +1,12 @@
-import type { SHEET_FIELD_TYPE_ENUMS } from '../constants/sheet.ts';
+import type { DATA_TABLE_FIELD_TYPE_ENUMS } from '../constants/dataTable.ts';
 
-export type SheetFieldTypeEnum = typeof SHEET_FIELD_TYPE_ENUMS[number];
+export type DataTableFieldTypeEnum = typeof DATA_TABLE_FIELD_TYPE_ENUMS[number];
 
-export type SheetFieldTypeGQL = SheetFieldTypeEnum;
+export type DataTableFieldTypeGQL = DataTableFieldTypeEnum;
 
-export type SheetCellReferenceStatus = 'NONE' | 'ACTIVE' | 'DELETED';
+export type DataTableCellReferenceStatus = 'NONE' | 'ACTIVE' | 'DELETED';
 
-export type SheetRecordValue =
+export type DataTableRecordValue =
 	| string
 	| number
 	| boolean
@@ -14,35 +14,35 @@ export type SheetRecordValue =
 	| Record<string, any>
 	| any[];
 
-export interface SheetDesignCellOptionObj {
+export interface DataTableDesignCellOptionObj {
 	label: string;
 	value: string;
 	color?: string | null;
 }
 
-export interface SheetDesignCellObj {
+export interface DataTableDesignCellObj {
 	key: string;
 	label: string;
 	humanLabel?: string | null;
 	iconName?: string | null;
-	fieldType: SheetFieldTypeEnum;
-	humanFieldType: SheetFieldTypeEnum;
+	fieldType: DataTableFieldTypeEnum;
+	humanFieldType: DataTableFieldTypeEnum;
 	format?: string | null;
 	instructions?: string | null;
 	source?: {
 		path: string;
 		table: string;
 	} | null;
-	options?: SheetDesignCellOptionObj[];
+	options?: DataTableDesignCellOptionObj[];
 	openLink?: boolean;
 	humansOnly?: boolean;
 	humansCannotEdit?: boolean; // If true, humans cannot edit this cell
-	hidden?: boolean; // If true, this cell is hidden from the default sheet grid
+	hidden?: boolean; // If true, this cell is hidden from the default dataTable grid
 	indexed?: boolean;
 	width?: number | null;
 }
 
-export interface SheetDesignViewColumnSourceObj {
+export interface DataTableDesignViewColumnSourceObj {
 	type: 'MASTER_CELL' | 'FORMULA' | 'STATIC' | 'DIMENSION' | 'CUSTOM' | 'RELATED_RECORD' | 'COMPUTED';
 	cellKey?: string | null;
 	formulaKey?: string | null;
@@ -54,13 +54,13 @@ export interface SheetDesignViewColumnSourceObj {
 	operation?: 'SUM' | null;
 }
 
-export interface SheetDesignViewDimensionObj {
+export interface DataTableDesignViewDimensionObj {
 	key: string;
 	label?: string | null;
-	source?: SheetDesignViewColumnSourceObj | null;
+	source?: DataTableDesignViewColumnSourceObj | null;
 }
 
-export interface SheetDesignViewGeneratorDateSeriesObj {
+export interface DataTableDesignViewGeneratorDateSeriesObj {
 	key: string;
 	label?: string | null;
 	sourceCellKey?: string | null;
@@ -73,7 +73,7 @@ export interface SheetDesignViewGeneratorDateSeriesObj {
 	};
 }
 
-export interface SheetDesignViewGeneratorDimensionObj {
+export interface DataTableDesignViewGeneratorDimensionObj {
 	key: string;
 	label?: string | null;
 	source:
@@ -90,41 +90,41 @@ export interface SheetDesignViewGeneratorDimensionObj {
 		};
 }
 
-export interface SheetDesignViewGeneratorMeasureObj {
+export interface DataTableDesignViewGeneratorMeasureObj {
 	key: string;
 	label?: string | null;
 	operation: 'COUNT' | 'SUM';
 	sourceCellKey?: string | null;
 }
 
-export interface SheetDesignViewGeneratorObj {
+export interface DataTableDesignViewGeneratorObj {
 	keyPrefix: string;
-	dateSeries?: SheetDesignViewGeneratorDateSeriesObj;
-	dimensions?: SheetDesignViewGeneratorDimensionObj[];
-	measures?: SheetDesignViewGeneratorMeasureObj[];
+	dateSeries?: DataTableDesignViewGeneratorDateSeriesObj;
+	dimensions?: DataTableDesignViewGeneratorDimensionObj[];
+	measures?: DataTableDesignViewGeneratorMeasureObj[];
 }
 
-export interface SheetDesignViewRowModelObj {
+export interface DataTableDesignViewRowModelObj {
 	type: 'MASTER_ROWS' | 'GROUPED_ROWS';
-	dimensions?: SheetDesignViewDimensionObj[];
-	generator?: SheetDesignViewGeneratorObj | null;
+	dimensions?: DataTableDesignViewDimensionObj[];
+	generator?: DataTableDesignViewGeneratorObj | null;
 }
 
-export interface SheetDesignViewColumnObj {
+export interface DataTableDesignViewColumnObj {
 	key: string;
 	label: string;
 	humanLabel?: string | null;
 	iconName?: string | null;
-	fieldType?: SheetFieldTypeEnum | null;
-	humanFieldType: SheetFieldTypeEnum;
-	source?: SheetDesignViewColumnSourceObj | null;
-	options?: SheetDesignCellOptionObj[];
+	fieldType?: DataTableFieldTypeEnum | null;
+	humanFieldType: DataTableFieldTypeEnum;
+	source?: DataTableDesignViewColumnSourceObj | null;
+	options?: DataTableDesignCellOptionObj[];
 	openLink?: boolean;
 	humansCannotEdit?: boolean;
 	width?: number | null;
 }
 
-export interface SheetDesignViewFilterObj {
+export interface DataTableDesignViewFilterObj {
 	id: string;
 	columnKey: string;
 	operator: string;
@@ -132,66 +132,66 @@ export interface SheetDesignViewFilterObj {
 	enabled?: boolean;
 }
 
-export interface SheetDesignViewSortObj {
+export interface DataTableDesignViewSortObj {
 	columnKey: string;
 	direction: 'ASC' | 'DESC';
 }
 
-export interface SheetDesignViewGroupObj {
+export interface DataTableDesignViewGroupObj {
 	columnKey: string;
 	direction?: 'ASC' | 'DESC';
 }
 
-export interface SheetDesignViewObj {
+export interface DataTableDesignViewObj {
 	id: string;
 	name: string;
 	layout: 'GRID';
 	iconName?: string | null;
 	color?: string | null;
 	description?: string | null;
-	rowModel?: SheetDesignViewRowModelObj | null;
-	columns: SheetDesignViewColumnObj[];
+	rowModel?: DataTableDesignViewRowModelObj | null;
+	columns: DataTableDesignViewColumnObj[];
 	columnsOrder?: string[];
-	filters?: SheetDesignViewFilterObj[];
-	sorts?: SheetDesignViewSortObj[];
-	groups?: SheetDesignViewGroupObj[];
+	filters?: DataTableDesignViewFilterObj[];
+	sorts?: DataTableDesignViewSortObj[];
+	groups?: DataTableDesignViewGroupObj[];
 	stickyTop?: number | null;
 	stickyLeft?: number | null;
 	humansCannotEdit?: boolean | null;
 }
 
-export interface SheetDesignObj {
-	cells: SheetDesignCellObj[];
+export interface DataTableDesignObj {
+	cells: DataTableDesignCellObj[];
 	cellsOrder?: string[];
-	views?: SheetDesignViewObj[];
+	views?: DataTableDesignViewObj[];
 	viewsOrder?: string[];
 	defaultViewId?: string | null;
 	instructions?: string;
-	humansCannotEdit?: boolean; // If true, humans cannot edit any cells in this sheet
+	humansCannotEdit?: boolean; // If true, humans cannot edit any cells in this dataTable
 	stickyTop?: number;
 	stickyLeft?: number;
 }
 
-export interface SheetData {
-	__table: 'sheets';
+export interface DataTableData {
+	__table: 'data_tables';
 
 	id: number | bigint;
 	organizationId: number | bigint;
 	name: string;
 	title: string;
 	description?: string | null;
-	design: SheetDesignObj;
+	design: DataTableDesignObj;
 	active: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 }
 
-export interface SheetRowData {
-	__table: 'sheet_rows';
+export interface DataTableRowData {
+	__table: 'data_table_rows';
 
 	id: number | bigint;
 	organizationId: number | bigint;
-	sheetId: number | bigint;
+	dataTableId: number | bigint;
 	identifier?: string | null;
 	viewId?: string | null;
 	viewRowKey?: string | null;
@@ -199,15 +199,15 @@ export interface SheetRowData {
 	metadata: Record<string, any>;
 }
 
-export interface SheetRecordData {
-	__table: 'sheet_records';
+export interface DataTableRecordData {
+	__table: 'data_table_records';
 
 	id: number | bigint;
-	sheetId: number | bigint;
-	sheetRowId: number | bigint;
+	dataTableId: number | bigint;
+	dataTableRowId: number | bigint;
 	cellKey: string;
 	iconName?: string | null;
-	value?: SheetRecordValue;
+	value?: DataTableRecordValue;
 	textValue?: string | null;
 	numberValue?: number | null;
 	booleanValue?: boolean | null;
@@ -215,41 +215,41 @@ export interface SheetRecordData {
 	datetimeValue?: Date | string | null;
 	relatedTable?: string | null;
 	relatedId?: number | bigint | null;
-	referenceSheetId?: number | bigint | null;
-	referenceSheetRowId?: number | bigint | null;
+	referenceDataTableId?: number | bigint | null;
+	referenceDataTableRowId?: number | bigint | null;
 	referenceCellKey?: string | null;
 	createdAt: Date;
 	updatedAt: Date;
 }
 
-export interface SheetCellReferenceGQL {
-	sheetId?: string | null;
-	sheetRowId?: string | null;
+export interface DataTableCellReferenceGQL {
+	dataTableId?: string | null;
+	dataTableRowId?: string | null;
 	cellKey?: string | null;
 }
 
-export interface SheetDesignCellOptionGQL {
+export interface DataTableDesignCellOptionGQL {
 	label: string;
 	value: string;
 	color?: string | null;
 }
 
-export interface SheetDesignCellSourceGQL {
+export interface DataTableDesignCellSourceGQL {
 	path: string;
 	table: string;
 }
 
-export interface SheetDesignCellGQL {
+export interface DataTableDesignCellGQL {
 	key: string;
 	label: string;
 	humanLabel?: string | null;
 	iconName?: string | null;
-	fieldType: SheetFieldTypeGQL;
-	humanFieldType: SheetFieldTypeGQL;
+	fieldType: DataTableFieldTypeGQL;
+	humanFieldType: DataTableFieldTypeGQL;
 	format?: string | null;
 	instructions?: string | null;
-	source?: SheetDesignCellSourceGQL | null;
-	options?: SheetDesignCellOptionGQL[];
+	source?: DataTableDesignCellSourceGQL | null;
+	options?: DataTableDesignCellOptionGQL[];
 	openLink?: boolean | null;
 	humansOnly?: boolean | null;
 	humansCannotEdit?: boolean | null;
@@ -258,7 +258,7 @@ export interface SheetDesignCellGQL {
 	width?: number | null;
 }
 
-export interface SheetDesignViewColumnSourceGQL {
+export interface DataTableDesignViewColumnSourceGQL {
 	type: 'MASTER_CELL' | 'FORMULA' | 'STATIC' | 'DIMENSION' | 'CUSTOM' | 'RELATED_RECORD' | 'COMPUTED';
 	cellKey?: string | null;
 	formulaKey?: string | null;
@@ -270,13 +270,13 @@ export interface SheetDesignViewColumnSourceGQL {
 	operation?: 'SUM' | null;
 }
 
-export interface SheetDesignViewDimensionGQL {
+export interface DataTableDesignViewDimensionGQL {
 	key: string;
 	label?: string | null;
-	source?: SheetDesignViewColumnSourceGQL | null;
+	source?: DataTableDesignViewColumnSourceGQL | null;
 }
 
-export interface SheetDesignViewGeneratorDateSeriesGQL {
+export interface DataTableDesignViewGeneratorDateSeriesGQL {
 	key: string;
 	label?: string | null;
 	sourceCellKey?: string | null;
@@ -289,7 +289,7 @@ export interface SheetDesignViewGeneratorDateSeriesGQL {
 	};
 }
 
-export interface SheetDesignViewGeneratorDimensionGQL {
+export interface DataTableDesignViewGeneratorDimensionGQL {
 	key: string;
 	label?: string | null;
 	source:
@@ -306,41 +306,41 @@ export interface SheetDesignViewGeneratorDimensionGQL {
 		};
 }
 
-export interface SheetDesignViewGeneratorMeasureGQL {
+export interface DataTableDesignViewGeneratorMeasureGQL {
 	key: string;
 	label?: string | null;
 	operation: 'COUNT' | 'SUM';
 	sourceCellKey?: string | null;
 }
 
-export interface SheetDesignViewGeneratorGQL {
+export interface DataTableDesignViewGeneratorGQL {
 	keyPrefix: string;
-	dateSeries?: SheetDesignViewGeneratorDateSeriesGQL | null;
-	dimensions?: SheetDesignViewGeneratorDimensionGQL[];
-	measures?: SheetDesignViewGeneratorMeasureGQL[];
+	dateSeries?: DataTableDesignViewGeneratorDateSeriesGQL | null;
+	dimensions?: DataTableDesignViewGeneratorDimensionGQL[];
+	measures?: DataTableDesignViewGeneratorMeasureGQL[];
 }
 
-export interface SheetDesignViewRowModelGQL {
+export interface DataTableDesignViewRowModelGQL {
 	type: 'MASTER_ROWS' | 'GROUPED_ROWS';
-	dimensions?: SheetDesignViewDimensionGQL[];
-	generator?: SheetDesignViewGeneratorGQL | null;
+	dimensions?: DataTableDesignViewDimensionGQL[];
+	generator?: DataTableDesignViewGeneratorGQL | null;
 }
 
-export interface SheetDesignViewColumnGQL {
+export interface DataTableDesignViewColumnGQL {
 	key: string;
 	label: string;
 	humanLabel?: string | null;
 	iconName?: string | null;
-	fieldType?: SheetFieldTypeGQL | null;
-	humanFieldType: SheetFieldTypeGQL;
-	source?: SheetDesignViewColumnSourceGQL | null;
-	options?: SheetDesignCellOptionGQL[];
+	fieldType?: DataTableFieldTypeGQL | null;
+	humanFieldType: DataTableFieldTypeGQL;
+	source?: DataTableDesignViewColumnSourceGQL | null;
+	options?: DataTableDesignCellOptionGQL[];
 	openLink?: boolean | null;
 	humansCannotEdit?: boolean | null;
 	width?: number | null;
 }
 
-export interface SheetDesignViewFilterGQL {
+export interface DataTableDesignViewFilterGQL {
 	id: string;
 	columnKey: string;
 	operator: string;
@@ -348,39 +348,39 @@ export interface SheetDesignViewFilterGQL {
 	enabled?: boolean | null;
 }
 
-export interface SheetDesignViewSortGQL {
+export interface DataTableDesignViewSortGQL {
 	columnKey: string;
 	direction: 'ASC' | 'DESC';
 }
 
-export interface SheetDesignViewGroupGQL {
+export interface DataTableDesignViewGroupGQL {
 	columnKey: string;
 	direction?: 'ASC' | 'DESC' | null;
 }
 
-export interface SheetDesignViewGQL {
+export interface DataTableDesignViewGQL {
 	id: string;
 	name: string;
 	layout: 'GRID';
 	iconName?: string | null;
 	color?: string | null;
 	description?: string | null;
-	rowModel?: SheetDesignViewRowModelGQL | null;
-	columns: SheetDesignViewColumnGQL[];
+	rowModel?: DataTableDesignViewRowModelGQL | null;
+	columns: DataTableDesignViewColumnGQL[];
 	columnsOrder: string[];
-	filters: SheetDesignViewFilterGQL[];
-	sorts: SheetDesignViewSortGQL[];
-	groups: SheetDesignViewGroupGQL[];
+	filters: DataTableDesignViewFilterGQL[];
+	sorts: DataTableDesignViewSortGQL[];
+	groups: DataTableDesignViewGroupGQL[];
 	stickyTop?: number | null;
 	stickyLeft?: number | null;
 	humansCannotEdit?: boolean | null;
 }
 
-export interface SheetDesignGQL {
+export interface DataTableDesignGQL {
 	id: string;
-	cells: SheetDesignCellGQL[];
+	cells: DataTableDesignCellGQL[];
 	cellsOrder: string[];
-	views?: SheetDesignViewGQL[];
+	views?: DataTableDesignViewGQL[];
 	viewsOrder?: string[];
 	defaultViewId?: string | null;
 	instructions?: string | null;
@@ -389,7 +389,7 @@ export interface SheetDesignGQL {
 	stickyLeft?: number | null;
 }
 
-export interface SheetGQL {
+export interface DataTableGQL {
 	__deleted?: boolean;
 
 	id: string;
@@ -398,36 +398,36 @@ export interface SheetGQL {
 	name: string;
 	title: string;
 	description?: string | null;
-	design: SheetDesignGQL;
+	design: DataTableDesignGQL;
 	active: boolean;
 
 	createdAt: string;
 	updatedAt: string;
 }
 
-export interface SheetRowGQL {
+export interface DataTableRowGQL {
 	__deleted?: boolean;
 
 	id: string;
 	cursor: string;
 	organizationId: string;
-	sheetId: string;
+	dataTableId: string;
 
 	identifier?: string | null;
 	viewId?: string | null;
 	viewRowKey?: string | null;
 	position: number;
 	metadata: string;
-	cells?: SheetCellGQL[];
+	cells?: DataTableCellGQL[];
 	updatedAt?: string | null;
 }
 
-export interface SheetCellGQL {
+export interface DataTableCellGQL {
 	__deleted?: boolean;
 
 	id: string;
-	sheetId: string;
-	sheetRowId: string;
+	dataTableId: string;
+	dataTableRowId: string;
 
 	cellKey: string;
 	iconName?: string | null;
@@ -439,8 +439,8 @@ export interface SheetCellGQL {
 	datetimeValue?: string | null;
 	relatedTable?: string | null;
 	relatedId?: string | null;
-	reference?: SheetCellReferenceGQL | null;
-	referenceStatus?: SheetCellReferenceStatus | null;
+	reference?: DataTableCellReferenceGQL | null;
+	referenceStatus?: DataTableCellReferenceStatus | null;
 
 	createdAt: string;
 	updatedAt: string;

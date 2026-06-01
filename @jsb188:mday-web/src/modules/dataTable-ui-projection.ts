@@ -8,7 +8,7 @@ import {
 } from '@jsb188/react-web/ui/SheetUI';
 
 /*
- * Build the external render-store snapshot for one visual sheet cell.
+ * Build the external render-store snapshot for one visual dataTable cell.
  */
 
 export function getSheetUICellRenderSnapshot(params: {
@@ -38,7 +38,7 @@ export function getSheetUICellRenderSnapshot(params: {
  * Return the render-store keys touched by a selected or editing cell transition.
  */
 
-export function getSheetInteractionRenderKeys(params: {
+export function getDataTableInteractionRenderKeys(params: {
 	currentEditState?: SheetUIEditState | null;
 	currentSelectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	currentSelectedCellState?: SheetUISelectedCellState | null;

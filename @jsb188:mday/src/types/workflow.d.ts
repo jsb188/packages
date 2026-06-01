@@ -18,7 +18,7 @@ export interface WorkflowPrompts {
 	main: BuildSingleTextLine[];
 	identity?: BuildSingleTextLine[];
 	progressReport?: BuildSingleTextLine[];
-	sheet?: BuildSingleTextLine[];
+	dataTable?: BuildSingleTextLine[];
 	summary?: BuildSingleTextLine[];
 }
 
@@ -58,8 +58,8 @@ export interface WorkflowData {
 		effort: 'minimal' | 'low' | 'medium' | 'high';
 		verbosity: 'low' | 'medium' | 'high';
 		steps: WorkflowStep[];
-		requireSheets?: boolean;
-		sheetRowIdentifier?: 'logId' | 'reportSubmissionId' | null;
+		requireDataTables?: boolean;
+		dataTableRowIdentifier?: 'logId' | 'reportSubmissionId' | null;
 		config: Record<string, string | number | boolean | null> & {
 			endTime: string; // HHMM format
 		};
@@ -97,23 +97,23 @@ export interface WorkflowRunData {
 }
 
 /**
- * Workflow sheet target data object
+ * Workflow dataTable target data object
  */
 
-export interface WorkflowSheetTargetData {
-	__table: 'workflow_sheet_targets';
+export interface WorkflowDataTableTargetData {
+	__table: 'workflow_data_table_targets';
 
 	id: number | bigint;
 	workflowId: number | bigint;
-	sheetId: number | bigint;
+	dataTableId: number | bigint;
 }
 
 /**
- * Workflow sheet write receipt data object
+ * Workflow dataTable write receipt data object
  */
 
-export interface WorkflowSheetRecordWriteData {
-	__table: 'workflow_sheet_record_writes';
+export interface WorkflowDataTableRecordWriteData {
+	__table: 'workflow_data_table_record_writes';
 
 	id: number | bigint;
 	organizationId: number | bigint;
@@ -121,8 +121,8 @@ export interface WorkflowSheetRecordWriteData {
 	workflowRunId?: number | bigint | null;
 	logId?: number | bigint | null;
 	reportSubmissionId?: number | bigint | null;
-	sheetId: number | bigint;
-	sheetRowId?: number | bigint | null;
+	dataTableId: number | bigint;
+	dataTableRowId?: number | bigint | null;
 	status: 'CREATED' | 'UPDATED' | 'SKIPPED' | 'FAILED';
 	error?: string | null;
 	metadata: Record<string, any>;

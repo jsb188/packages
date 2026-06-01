@@ -21,9 +21,9 @@ type InboundContactDraftValues = {
 	phone: string;
 };
 
-type SheetInboundContactEditorTab = 'CONTACT' | 'ORGANIZATION';
+type DataTableInboundContactEditorTab = 'CONTACT' | 'ORGANIZATION';
 
-type SheetInboundContactEditorProps = {
+type DataTableInboundContactEditorProps = {
 	clickSource?: SheetUIEditorClickSource;
 	displayValue: string;
 	inboundContactId: string;
@@ -32,16 +32,16 @@ type SheetInboundContactEditorProps = {
 	onClose: () => void;
 };
 
-type SheetInboundContactSchemaItem = ReturnType<typeof makeEditInboundContactSchema>['listData'][number];
+type DataTableInboundContactSchemaItem = ReturnType<typeof makeEditInboundContactSchema>['listData'][number];
 
-type SheetInboundContactContactTabProps = {
+type DataTableInboundContactContactTabProps = {
 	disabled: boolean;
-	renderSchemaField: (schemaItem: SheetInboundContactSchemaItem) => ReactNode;
+	renderSchemaField: (schemaItem: DataTableInboundContactSchemaItem) => ReactNode;
 	saving: boolean;
 	schema: ReturnType<typeof makeEditInboundContactSchema>;
 };
 
-type SheetInboundContactOrganizationTabProps = {
+type DataTableInboundContactOrganizationTabProps = {
 	associatedOrganizationNameById: Map<string, string>;
 	disabled: boolean;
 	onChildOrganizationClick: (childOrganization: OrganizationChildGQL) => void;
@@ -50,8 +50,8 @@ type SheetInboundContactOrganizationTabProps = {
 	selectedOrganizationIds?: string[];
 };
 
-type SheetInboundContactEditorContentProps = SheetInboundContactContactTabProps & SheetInboundContactOrganizationTabProps & {
-	activeTab: SheetInboundContactEditorTab;
+type DataTableInboundContactEditorContentProps = DataTableInboundContactContactTabProps & DataTableInboundContactOrganizationTabProps & {
+	activeTab: DataTableInboundContactEditorTab;
 };
 
 const MAX_SELECTED_ASSOCIATED_ORGANIZATIONS = 5;
@@ -78,7 +78,7 @@ function isInboundContactDraftField(field: string): field is keyof InboundContac
 }
 
 /*
- * Check whether a contact field should be read-only in the sheet editor.
+ * Check whether a contact field should be read-only in the dataTable editor.
  */
 
 function isReadOnlyInboundContactDraftField(field: keyof InboundContactDraftValues) {
@@ -151,7 +151,7 @@ function escapeInlineHTML(text: string) {
  * Render the contact tab fields and its pinned save action.
  */
 
-function SheetInboundContactContactTab(p: SheetInboundContactContactTabProps) {
+function DataTableInboundContactContactTab(p: DataTableInboundContactContactTabProps) {
 	return <>
 		<div className='pt_12 px_6 v_stretch gap_5'>
 			{p.schema.listData.map(p.renderSchemaField)}
@@ -169,7 +169,7 @@ function SheetInboundContactContactTab(p: SheetInboundContactContactTabProps) {
  * Render one selectable child organization row for the organization tab.
  */
 
-function SheetInboundContactOrganizationItem(p: {
+function DataTableInboundContactOrganizationItem(p: {
 	childOrganization: OrganizationChildGQL;
 	onClick: (childOrganization: OrganizationChildGQL) => void;
 	selected: boolean;
@@ -195,7 +195,7 @@ function SheetInboundContactOrganizationItem(p: {
  * Render the organization tab child organization list and its pinned save action.
  */
 
-function SheetInboundContactOrganizationTab(p: SheetInboundContactOrganizationTabProps) {
+function DataTableInboundContactOrganizationTab(p: DataTableInboundContactOrganizationTabProps) {
 	const { childOrganizations } = useChildOrganizations({
 		organizationId: p.organizationId,
 		limit: 250,
@@ -247,7 +247,7 @@ function SheetInboundContactOrganizationTab(p: SheetInboundContactOrganizationTa
           </span>
         </div>
 			)) : childOrganizations.map((childOrganization: OrganizationChildGQL) => (
-				<SheetInboundContactOrganizationItem
+				<DataTableInboundContactOrganizationItem
 						childOrganization={childOrganization}
 						key={childOrganization.id}
 						onClick={p.onChildOrganizationClick}
@@ -276,17 +276,17 @@ function SheetInboundContactOrganizationTab(p: SheetInboundContactOrganizationTa
  * Render the active inbound contact editor tab content.
  */
 
-function SheetInboundContactEditorContent(p: SheetInboundContactEditorContentProps) {
+function DataTableInboundContactEditorContent(p: DataTableInboundContactEditorContentProps) {
 	switch (p.activeTab) {
 		case 'CONTACT':
-			return <SheetInboundContactContactTab
+			return <DataTableInboundContactContactTab
 				disabled={p.disabled}
 				renderSchemaField={p.renderSchemaField}
 				saving={p.saving}
 				schema={p.schema}
 			/>;
 		case 'ORGANIZATION':
-			return <SheetInboundContactOrganizationTab
+			return <DataTableInboundContactOrganizationTab
 				associatedOrganizationNameById={p.associatedOrganizationNameById}
 				disabled={p.disabled}
 				onChildOrganizationClick={p.onChildOrganizationClick}
@@ -300,10 +300,10 @@ function SheetInboundContactEditorContent(p: SheetInboundContactEditorContentPro
 }
 
 /*
- * Render the sheet-local form for editing one inbound contact.
+ * Render the dataTable-local form for editing one inbound contact.
  */
 
-export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
+export function DataTableInboundContactEditor(p: DataTableInboundContactEditorProps) {
 	const { inboundContact, initialLoading } = useInboundContact({
 		organizationId: p.organizationId,
 		inboundContactId: p.inboundContactId,
@@ -311,7 +311,7 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 	const { editInboundContact, saving } = useEditInboundContact({}, p.openModalPopUp);
 	const [draftValues, setDraftValues] = useState(() => getInboundContactDraftValues(inboundContact, p.displayValue));
 	const [selectedOrganizationIds, setSelectedOrganizationIds] = useState(() => getInboundContactAssociatedOrganizationIds(inboundContact));
-	const [activeTab, setActiveTab] = useState<SheetInboundContactEditorTab>('CONTACT');
+	const [activeTab, setActiveTab] = useState<DataTableInboundContactEditorTab>('CONTACT');
 	const schema = makeEditInboundContactSchema('sheet_inbound_contact', '', draftValues);
 	const disabled = !!initialLoading;
 	const saveDisabled = disabled || saving;
@@ -323,7 +323,7 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 	}, [inboundContact, p.displayValue]);
 
 	/*
-	 * Update one inbound contact draft field inside the sheet-local editor.
+	 * Update one inbound contact draft field inside the dataTable-local editor.
 	 */
 
 	function setDraftField(field: keyof InboundContactDraftValues, value: string) {
@@ -393,10 +393,10 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 	}
 
 	/*
-	 * Render a schema-backed inbound contact field inside the sheet overlay editor.
+	 * Render a schema-backed inbound contact field inside the dataTable overlay editor.
 	 */
 
-	function renderSchemaField(schemaItem: SheetInboundContactSchemaItem) {
+	function renderSchemaField(schemaItem: DataTableInboundContactSchemaItem) {
 		const { __type, item } = schemaItem;
 		const { name, label, description, maxLength, placeholder, autoComplete, type } = item;
 
@@ -508,7 +508,7 @@ export function SheetInboundContactEditor(p: SheetInboundContactEditorProps) {
 			]}
 		/>
 
-		<SheetInboundContactEditorContent
+		<DataTableInboundContactEditorContent
 			activeTab={activeTab}
 			associatedOrganizationNameById={associatedOrganizationNameById}
 			disabled={disabled}

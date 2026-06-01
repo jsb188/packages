@@ -100,17 +100,14 @@ export const POPUP_DEFAULT_VALUES = {
     // Not allowed in chat
     iconName: 'lock-square-rounded-filled',
   },
-  '20021': {
-    iconName: 'mood-sad-dizzy',
-  },
   '10000': {
     preset: 'force_reload',
-    iconName: 'confetti',
+    // iconName: 'confetti', // This is controlled via i18n now
   },
   '10012': {
     preset: 'force_reload',
     title: 'error.login_changed',
-    iconName: 'question-circle',
+    iconName: 'question-circle', // Deprecated; icon names are controlled via i18n now
   },
 } as Record<string, Record<string, string>>;
 

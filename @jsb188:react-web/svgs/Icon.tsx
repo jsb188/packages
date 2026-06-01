@@ -145,7 +145,6 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   progress_error: 'progress-x',
   receipt: 'receipt-dollar',
   seeding: 'organic-seedling-grow',
-  smile: 'confetti',
   settings: 'settings',
   shop_market: 'farmers-market-kiosk',
   shop_vendor: 'farmers-market-vendor',
@@ -168,7 +167,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   time_recurring: 'time-daily-2',
   upload: 'upload-bottom',
   general_workflow: 'workflow-teamwork-cog-hand',
-  sheet: 'workflow-data-table-2',
+  dataTable: 'workflow-data-table-2',
 
   // Org departments
   DIRECTORY_ACCOUNTS_RECEIVABLE: 'receipt-dollar',

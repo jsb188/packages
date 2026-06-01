@@ -2,30 +2,30 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { formatCurrency } from '@jsb188/app/utils/number.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import { useEditSheetCell, useEditSheetDesign } from '@jsb188/graphql/hooks/use-sheet-mtn';
-import { useReactiveSheetRows, useSheetRows } from '@jsb188/graphql/hooks/use-sheet-qry';
-import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
+import { useEditDataTableCell, useEditDataTableDesign } from '@jsb188/graphql/hooks/use-dataTable-mtn';
+import { useReactiveDataTableRows, useDataTableRows } from '@jsb188/graphql/hooks/use-dataTable-qry';
+import { DATA_TABLE_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/dataTable.ts';
 import type {
-	SheetCellGQL,
-	SheetDesignCellGQL,
-	SheetDesignGQL,
-	SheetDesignViewColumnGQL,
-	SheetDesignViewGQL,
-	SheetFieldTypeGQL,
-	SheetGQL,
-	SheetRowGQL,
-} from '@jsb188/mday/types/sheet.d.ts';
+	DataTableCellGQL,
+	DataTableDesignCellGQL,
+	DataTableDesignGQL,
+	DataTableDesignViewColumnGQL,
+	DataTableDesignViewGQL,
+	DataTableFieldTypeGQL,
+	DataTableGQL,
+	DataTableRowGQL,
+} from '@jsb188/mday/types/dataTable.d.ts';
 import {
-	formatSheetWeekDateRange,
-	getOrderedSheetDesignViewColumns,
-	getOrderedSheetDesignViews,
-	isSheetDateLikeFieldType,
-	isSheetNumberLikeFieldType,
-	isSheetWeekFieldType,
-	mapSheetDesignViewColumnToCell,
-	moveVisibleSheetColumnKeyInOrder,
-	normalizeSheetDateLikeValue,
-} from '@jsb188/mday/utils/sheet.ts';
+	formatDataTableWeekDateRange,
+	getOrderedDataTableDesignViewColumns,
+	getOrderedDataTableDesignViews,
+	isDataTableDateLikeFieldType,
+	isDataTableNumberLikeFieldType,
+	isDataTableWeekFieldType,
+	mapDataTableDesignViewColumnToCell,
+	moveVisibleDataTableColumnKeyInOrder,
+	normalizeDataTableDateLikeValue,
+} from '@jsb188/mday/utils/dataTable.ts';
 import { Calendar, type CalendarSelectedObj } from '@jsb188/react-web/modules/Calendar';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
@@ -61,51 +61,51 @@ import { copyTextToClipboard, useIsomorphicLayoutEffect } from '@jsb188/react-we
 import { useKeyDown, useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { DateTime } from 'luxon';
 import { type ReactNode, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { SheetInboundContactEditor } from './Sheet-InboundContact.tsx';
-import { type SheetArrowNavigationDirection, type SheetContextMenuTarget, useSheetContextMenu } from './Sheet-ContextMenu.tsx';
+import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
+import { type DataTableArrowNavigationDirection, type DataTableContextMenuTarget, useDataTableContextMenu } from './DataTable-ContextMenu.tsx';
 import {
 	getActiveEditState,
 	getActiveHeaderEditState,
 	getDismissedLocalEditorCell,
-	getInitialSheetInteractionState,
+	getInitialDataTableInteractionState,
 	getOpenLocalEditorState,
 	getSelectedCellState,
 	getSelectedCellSelection,
 	getSelectedHeaderCellKey,
-	getSheetSelectedCellStateFromEditState,
-	sheetInteractionReducer,
-	type SheetInteractionCellSelection,
-	type SheetInteractionState,
-} from './sheet-interaction-state.ts';
-import { createSheetUICellRenderStore } from './sheet-render-store.ts';
+	getDataTableSelectedCellStateFromEditState,
+	dataTableInteractionReducer,
+	type DataTableInteractionCellSelection,
+	type DataTableInteractionState,
+} from './dataTable-interaction-state.ts';
+import { createDataTableUICellRenderStore } from './dataTable-render-store.ts';
 import {
-	getInitialSheetDesignReducerState,
-	getInitialSheetRowsState,
-	getSheetRowsSourceKey,
-	mergeSheetDesignPatch,
-	mergeSheetDesignWithPatch,
-	mergeSheetRowsState,
-	sheetCellValueReducer,
-	type SheetDesignPatchInput,
-	sheetDesignReducer,
-	type SheetRowsState,
+	getInitialDataTableDesignReducerState,
+	getInitialDataTableRowsState,
+	getDataTableRowsSourceKey,
+	mergeDataTableDesignPatch,
+	mergeDataTableDesignWithPatch,
+	mergeDataTableRowsState,
+	dataTableCellValueReducer,
+	type DataTableDesignPatchInput,
+	dataTableDesignReducer,
+	type DataTableRowsState,
 	useElementSize,
-	useFloatingMessageForSheetRowsReset,
-} from './use-sheet-states.ts';
+	useFloatingMessageForDataTableRowsReset,
+} from './use-dataTable-states.ts';
 import {
-	getSheetArrowNavigationScrollState,
-	getSheetArrowNavigationSelection,
-	type SheetArrowNavigationRuntime,
-} from './sheet-viewport.ts';
+	getDataTableArrowNavigationScrollState,
+	getDataTableArrowNavigationSelection,
+	type DataTableArrowNavigationRuntime,
+} from './dataTable-viewport.ts';
 import {
-	getSheetNextActiveSelectedCell,
-	getSheetOrderedSelectedCells,
-	getSheetPasteTargets,
-	getSheetRangeSelection,
-	getSheetShortcutArrowDirection,
-	parseSheetClipboardText,
-} from './sheet-shortcuts.ts';
-import { getSheetUICellRenderSnapshot } from './sheet-ui-projection.ts';
+	getDataTableNextActiveSelectedCell,
+	getDataTableOrderedSelectedCells,
+	getDataTablePasteTargets,
+	getDataTableRangeSelection,
+	getDataTableShortcutArrowDirection,
+	parseDataTableClipboardText,
+} from './dataTable-shortcuts.ts';
+import { getSheetUICellRenderSnapshot } from './dataTable-ui-projection.ts';
 
 /**
  * Dev code
@@ -118,8 +118,8 @@ const __USE_NATIVE_CONTEXT_MENU_WITH_ALT__ = (globalThis?.location?.href || '').
  * Types
  */
 
-export interface SheetProps {
-	sheet: SheetGQL;
+export interface DataTableProps {
+	dataTable: DataTableGQL;
 	children?: ReactNode;
 	className?: string;
 	limit?: number;
@@ -131,56 +131,56 @@ export interface SheetProps {
 	timeZone?: string | null;
 }
 
-type SheetParsedEditorValue = {
+type DataTableParsedEditorValue = {
 	value: string | null;
 	error?: string;
 };
 
-type SheetCellLookup = {
-	cell?: SheetCellGQL | null;
-	designCell: SheetRuntimeDesignCell;
-	row: SheetRowGQL;
+type DataTableCellLookup = {
+	cell?: DataTableCellGQL | null;
+	designCell: DataTableRuntimeDesignCell;
+	row: DataTableRowGQL;
 };
 
-type SheetOpenCellParams = {
-	cell?: SheetCellGQL | null;
+type DataTableOpenCellParams = {
+	cell?: DataTableCellGQL | null;
 	clickSource?: SheetUIEditorClickSource;
-	designCell: SheetDesignCellGQL;
-	row: SheetRowGQL;
-	sheet: SheetGQL;
+	designCell: DataTableDesignCellGQL;
+	row: DataTableRowGQL;
+	dataTable: DataTableGQL;
 };
 
-type SheetOpenCellLinkParams = SheetOpenCellParams & {
-	openInboundContactEditor: (params: SheetOpenCellParams) => void;
+type DataTableOpenCellLinkParams = DataTableOpenCellParams & {
+	openInboundContactEditor: (params: DataTableOpenCellParams) => void;
 	openModalScreen: ReturnType<typeof useOpenModalScreen>;
 	setFloatingMessage?: SetFloatingMessage;
 };
 
-type SheetRuntimeState = {
+type DataTableRuntimeState = {
 	columnMetricsByKey: Map<string, SheetColumnMetric>;
-	designCellsByKey: Map<string, SheetRuntimeDesignCell>;
+	designCellsByKey: Map<string, DataTableRuntimeDesignCell>;
 	designEditable: boolean;
 	disabled?: boolean;
 	editState?: SheetUIEditState | null;
 	optimisticValues: Record<string, string | null>;
-	openCell: (params: SheetOpenCellParams) => void;
-	rowCellsById: Map<string, Map<string, SheetCellGQL>>;
-	rowsById: Map<string, SheetRowGQL>;
-	saveCellValue: (lookup: SheetCellLookup, value: string | null) => Promise<void>;
-	sheet: SheetGQL;
+	openCell: (params: DataTableOpenCellParams) => void;
+	rowCellsById: Map<string, Map<string, DataTableCellGQL>>;
+	rowsById: Map<string, DataTableRowGQL>;
+	saveCellValue: (lookup: DataTableCellLookup, value: string | null) => Promise<void>;
+	dataTable: DataTableGQL;
 	startColumnResize: (columnKey: string, clientX: number) => void;
 	startColumnReorder: (columnKey: string, clientX: number) => void;
 	timeZone?: string | null;
 };
 
-type SheetRuntimeDesignCell = SheetDesignCellGQL & {
+type DataTableRuntimeDesignCell = DataTableDesignCellGQL & {
 	runtimeKey?: string;
-	viewSource?: SheetDesignViewColumnGQL['source'] | null;
+	viewSource?: DataTableDesignViewColumnGQL['source'] | null;
 };
 
-type SheetEditorFieldType = SheetFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT';
+type SheetEditorFieldType = DataTableFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT';
 
-type SheetResizeState = {
+type DataTableResizeState = {
 	columnKey: string;
 	designCellKey: string;
 	latestWidth?: number;
@@ -188,7 +188,7 @@ type SheetResizeState = {
 	startWidth: number;
 };
 
-type SheetColumnReorderRuntime = {
+type DataTableColumnReorderRuntime = {
 	activeViewId: string | null;
 	allColumnKeys: string[];
 	metrics: SheetColumnMetric[];
@@ -196,7 +196,7 @@ type SheetColumnReorderRuntime = {
 	visibleColumnKeys: string[];
 };
 
-type SheetColumnReorderState = {
+type DataTableColumnReorderState = {
 	columnKey: string;
 	latestClientX: number;
 	latestToVisibleIndex: number;
@@ -207,13 +207,13 @@ type SheetColumnReorderState = {
 	started: boolean;
 };
 
-type SheetColumnReorderVisualState = {
+type DataTableColumnReorderVisualState = {
 	columnKey: string;
 	dragLeft: number;
 	toVisibleIndex: number;
 };
 
-type SheetCellDragSelectionState = {
+type DataTableCellDragSelectionState = {
 	anchorCell: {
 		cellKey: string;
 		rowId: string;
@@ -226,7 +226,7 @@ type SheetCellDragSelectionState = {
 	started: boolean;
 };
 
-type SheetLocalEditorPosition = {
+type DataTableLocalEditorPosition = {
 	isStickyLeft: boolean;
 	left: number;
 	rowWidth: number;
@@ -234,44 +234,44 @@ type SheetLocalEditorPosition = {
 	width: number;
 };
 
-type SheetSelectionBoxPosition = {
+type DataTableSelectionBoxPosition = {
 	height: number;
 	left: number;
 	top: number;
 	width: number;
 };
 
-type SheetPaginationState = {
+type DataTablePaginationState = {
 	hasMoreRows: boolean;
 	lastCursor: string | null;
 };
 
-type SheetShortcutMutationSummary = {
+type DataTableShortcutMutationSummary = {
 	failed: number;
 	saved: number;
 	skipped: number;
 };
 
-type SheetDesignMutationRuntime = {
-	editSheetDesign: (params: {
+type DataTableDesignMutationRuntime = {
+	editDataTableDesign: (params: {
 		variables: {
 			organizationId: string;
-			sheetId: string;
-			design: SheetDesignPatchInput;
+			dataTableId: string;
+			design: DataTableDesignPatchInput;
 		};
 	}) => Promise<unknown> | unknown;
 	organizationId: string;
-	sheetId: string;
+	dataTableId: string;
 };
 
-type SheetTab = {
+type DataTableTab = {
 	id: string | null;
 	iconName?: string | null;
 	name: string;
-	view?: SheetDesignViewGQL | null;
+	view?: DataTableDesignViewGQL | null;
 };
 
-type SheetContextMenuCellTarget = SheetContextMenuTarget<SheetCellLookup>;
+type DataTableContextMenuCellTarget = DataTableContextMenuTarget<DataTableCellLookup>;
 
 /**
  * Constants
@@ -301,13 +301,13 @@ const SHEET_READ_ONLY_TAG_Z_INDEX = 32;
 const SHEET_DATE_KEY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 /*
- * Return ordered design cells from immutable sheet design configuration.
+ * Return ordered design cells from immutable dataTable design configuration.
  */
 
-export function getOrderedSheetDesignCells(sheet: SheetGQL): SheetDesignCellGQL[] {
-	const cells = sheet.design?.cells || [];
+export function getOrderedDataTableDesignCells(dataTable: DataTableGQL): DataTableDesignCellGQL[] {
+	const cells = dataTable.design?.cells || [];
 	const cellsByKey = new Map(cells.map((cell) => [cell.key, cell]));
-	const orderedCells = (sheet.design?.cellsOrder || []).map((key) => cellsByKey.get(key)).filter((cell) => cell && !cell.hidden) as SheetDesignCellGQL[];
+	const orderedCells = (dataTable.design?.cellsOrder || []).map((key) => cellsByKey.get(key)).filter((cell) => cell && !cell.hidden) as DataTableDesignCellGQL[];
 	const orderedKeys = new Set(orderedCells.map((cell) => cell.key));
 	const remainingCells = cells.filter((cell) => !cell.hidden && !orderedKeys.has(cell.key));
 
@@ -318,7 +318,7 @@ export function getOrderedSheetDesignCells(sheet: SheetGQL): SheetDesignCellGQL[
  * Return the source master cell key that one runtime column should read and write.
  */
 
-function getSheetRuntimeCellKey(designCell: SheetRuntimeDesignCell) {
+function getDataTableRuntimeCellKey(designCell: DataTableRuntimeDesignCell) {
 	if (designCell.viewSource?.type === 'MASTER_CELL' && designCell.viewSource.cellKey) {
 		return designCell.viewSource.cellKey;
 	}
@@ -330,7 +330,7 @@ function getSheetRuntimeCellKey(designCell: SheetRuntimeDesignCell) {
  * Return the UI/runtime identity for one column, which can differ from the stored cell key.
  */
 
-function getSheetRuntimeColumnKey(designCell: Pick<SheetRuntimeDesignCell, 'key' | 'runtimeKey'>) {
+function getDataTableRuntimeColumnKey(designCell: Pick<DataTableRuntimeDesignCell, 'key' | 'runtimeKey'>) {
 	return designCell.runtimeKey || designCell.key;
 }
 
@@ -338,7 +338,7 @@ function getSheetRuntimeColumnKey(designCell: Pick<SheetRuntimeDesignCell, 'key'
  * Add stable runtime keys to columns only when duplicate stored keys would collide in the grid.
  */
 
-function getSheetRuntimeDesignCellsWithUniqueKeys(cells: SheetRuntimeDesignCell[]) {
+function getDataTableRuntimeDesignCellsWithUniqueKeys(cells: DataTableRuntimeDesignCell[]) {
 	const counts = new Map<string, number>();
 	const seen = new Map<string, number>();
 
@@ -365,11 +365,11 @@ function getSheetRuntimeDesignCellsWithUniqueKeys(cells: SheetRuntimeDesignCell[
 }
 
 /*
- * Return ordered view tabs, with the virtual master sheet first.
+ * Return ordered view tabs, with the virtual master dataTable first.
  */
 
-function getSheetTabs(sheet: SheetGQL, views: SheetDesignViewGQL[]): SheetTab[] {
-	const masterTab: SheetTab = {
+function getDataTableTabs(dataTable: DataTableGQL, views: DataTableDesignViewGQL[]): DataTableTab[] {
+	const masterTab: DataTableTab = {
 		id: null,
 		iconName: 'database-2',
 		name: 'Data',
@@ -389,7 +389,7 @@ function getSheetTabs(sheet: SheetGQL, views: SheetDesignViewGQL[]): SheetTab[] 
  * Return the saved view matching a selected view id.
  */
 
-function getSelectedSheetView(views: SheetDesignViewGQL[], selectedViewId: string | null) {
+function getSelectedDataTableView(views: DataTableDesignViewGQL[], selectedViewId: string | null) {
 	return selectedViewId ? views.find((view) => view.id === selectedViewId) || null : null;
 }
 
@@ -397,20 +397,20 @@ function getSelectedSheetView(views: SheetDesignViewGQL[], selectedViewId: strin
  * Return the saved default view id when it still points at a valid view.
  */
 
-function getValidDefaultSheetViewId(design: SheetDesignGQL | null | undefined) {
+function getValidDefaultDataTableViewId(design: DataTableDesignGQL | null | undefined) {
 	const defaultViewId = design?.defaultViewId || null;
 	if (!defaultViewId) {
 		return null;
 	}
 
-	return getOrderedSheetDesignViews(design as any).some((view) => view.id === defaultViewId) ? defaultViewId : null;
+	return getOrderedDataTableDesignViews(design as any).some((view) => view.id === defaultViewId) ? defaultViewId : null;
 }
 
 /*
- * Return whether one view column should be visible in the sheet grid.
+ * Return whether one view column should be visible in the dataTable grid.
  */
 
-function isSheetViewColumnVisible(column: SheetDesignViewColumnGQL, masterCellsByKey: Map<string, SheetDesignCellGQL>) {
+function isDataTableViewColumnVisible(column: DataTableDesignViewColumnGQL, masterCellsByKey: Map<string, DataTableDesignCellGQL>) {
 	if (column.source?.type !== 'MASTER_CELL' || !column.source.cellKey) {
 		return true;
 	}
@@ -419,29 +419,29 @@ function isSheetViewColumnVisible(column: SheetDesignViewColumnGQL, masterCellsB
 }
 
 /*
- * Convert saved view columns into runtime grid columns backed by master sheet cells.
+ * Convert saved view columns into runtime grid columns backed by master dataTable cells.
  */
 
-function getSheetViewRuntimeCells(view: SheetDesignViewGQL, masterCells: SheetDesignCellGQL[]): SheetRuntimeDesignCell[] {
+function getDataTableViewRuntimeCells(view: DataTableDesignViewGQL, masterCells: DataTableDesignCellGQL[]): DataTableRuntimeDesignCell[] {
 	const masterCellsByKey = new Map(masterCells.map((cell) => [cell.key, cell]));
 
-	return getOrderedSheetDesignViewColumns(view as any)
-		.filter((column) => isSheetViewColumnVisible(column as SheetDesignViewColumnGQL, masterCellsByKey))
+	return getOrderedDataTableDesignViewColumns(view as any)
+		.filter((column) => isDataTableViewColumnVisible(column as DataTableDesignViewColumnGQL, masterCellsByKey))
 		.map((column) => {
-			return mapSheetDesignViewColumnToCell(column as any, masterCellsByKey as any) as SheetRuntimeDesignCell;
+			return mapDataTableDesignViewColumnToCell(column as any, masterCellsByKey as any) as DataTableRuntimeDesignCell;
 		});
 }
 
 /*
- * Return persisted column widths from ordered sheet design cells.
+ * Return persisted column widths from ordered dataTable design cells.
  */
 
-function getSheetDesignColumnWidths(designCells: SheetRuntimeDesignCell[]) {
+function getDataTableDesignColumnWidths(designCells: DataTableRuntimeDesignCell[]) {
 	const columnWidths: SheetColumnWidths = {};
 
 	designCells.forEach((designCell) => {
 		if (Number.isFinite(designCell.width)) {
-			columnWidths[getSheetRuntimeColumnKey(designCell)] = clampSheetColumnWidth(Number(designCell.width));
+			columnWidths[getDataTableRuntimeColumnKey(designCell)] = clampSheetColumnWidth(Number(designCell.width));
 		}
 	});
 
@@ -449,50 +449,50 @@ function getSheetDesignColumnWidths(designCells: SheetRuntimeDesignCell[]) {
 }
 
 /*
- * Return every master sheet design cell key, including hidden cells.
+ * Return every master dataTable design cell key, including hidden cells.
  */
 
-function getAllSheetDesignCellKeys(design: SheetDesignGQL | null | undefined) {
+function getAllDataTableDesignCellKeys(design: DataTableDesignGQL | null | undefined) {
 	return (design?.cells || []).map((cell) => cell.key).filter(Boolean);
 }
 
 /*
- * Return every column key stored on a sheet view, including currently hidden columns.
+ * Return every column key stored on a dataTable view, including currently hidden columns.
  */
 
-function getAllSheetDesignViewColumnKeys(view: SheetDesignViewGQL | null | undefined) {
+function getAllDataTableDesignViewColumnKeys(view: DataTableDesignViewGQL | null | undefined) {
 	return (view?.columns || []).map((column) => column.key).filter(Boolean);
 }
 
 /*
- * Return the current reorder persistence target for the active sheet tab.
+ * Return the current reorder persistence target for the active dataTable tab.
  */
 
-function getSheetColumnReorderRuntime(params: { activeView?: SheetDesignViewGQL | null; columnMetrics: SheetColumnMetric[]; design: SheetDesignGQL; visibleColumnKeys: string[] }) {
+function getDataTableColumnReorderRuntime(params: { activeView?: DataTableDesignViewGQL | null; columnMetrics: SheetColumnMetric[]; design: DataTableDesignGQL; visibleColumnKeys: string[] }) {
 	if (params.activeView) {
 		return {
 			activeViewId: params.activeView.id,
-			allColumnKeys: getAllSheetDesignViewColumnKeys(params.activeView),
+			allColumnKeys: getAllDataTableDesignViewColumnKeys(params.activeView),
 			metrics: params.columnMetrics,
 			savedOrder: params.activeView.columnsOrder,
 			visibleColumnKeys: params.visibleColumnKeys,
-		} satisfies SheetColumnReorderRuntime;
+		} satisfies DataTableColumnReorderRuntime;
 	}
 
 	return {
 		activeViewId: null,
-		allColumnKeys: getAllSheetDesignCellKeys(params.design),
+		allColumnKeys: getAllDataTableDesignCellKeys(params.design),
 		metrics: params.columnMetrics,
 		savedOrder: params.design.cellsOrder,
 		visibleColumnKeys: params.visibleColumnKeys,
-	} satisfies SheetColumnReorderRuntime;
+	} satisfies DataTableColumnReorderRuntime;
 }
 
 /*
  * Return the horizontal rectangle for a dragged header at one pointer position.
  */
 
-function getSheetColumnReorderDraggedRect(params: { clientX: number; startClientX: number; startLeft: number; width: number }) {
+function getDataTableColumnReorderDraggedRect(params: { clientX: number; startClientX: number; startLeft: number; width: number }) {
 	const left = params.startLeft + params.clientX - params.startClientX;
 
 	return {
@@ -505,7 +505,7 @@ function getSheetColumnReorderDraggedRect(params: { clientX: number; startClient
  * Return the visual insertion index nearest to a pointer X coordinate.
  */
 
-function getSheetColumnReorderTargetIndex(params: {
+function getDataTableColumnReorderTargetIndex(params: {
 	clientX: number;
 	draggedColumnIndex?: number;
 	draggedRect?: {
@@ -561,7 +561,7 @@ function getSheetColumnReorderTargetIndex(params: {
  * Convert a raw insertion slot into the visible-key index used after removing the dragged key.
  */
 
-function getSheetColumnReorderMoveIndex(visibleColumnKeys: string[], fromKey: string, toVisibleIndex: number) {
+function getDataTableColumnReorderMoveIndex(visibleColumnKeys: string[], fromKey: string, toVisibleIndex: number) {
 	const fromIndex = visibleColumnKeys.indexOf(fromKey);
 	const boundedIndex = Math.max(0, Math.min(toVisibleIndex, visibleColumnKeys.length));
 
@@ -584,7 +584,7 @@ function getSheetColumnMetricHeaderLeft(metric: SheetColumnMetric, scrollLeft: n
  * Return the header-row insertion guide left coordinate for a reorder target.
  */
 
-function getSheetColumnReorderGuideLeft(metrics: SheetColumnMetric[], toVisibleIndex: number, scrollLeft: number, stickyColumnCount: number) {
+function getDataTableColumnReorderGuideLeft(metrics: SheetColumnMetric[], toVisibleIndex: number, scrollLeft: number, stickyColumnCount: number) {
 	const targetMetric = metrics[toVisibleIndex];
 	if (targetMetric) {
 		return getSheetColumnMetricHeaderLeft(targetMetric, scrollLeft, stickyColumnCount) - 1;
@@ -602,7 +602,7 @@ function getSheetColumnReorderGuideLeft(metrics: SheetColumnMetric[], toVisibleI
  * Return transform offsets that make header cells slide aside during a column drag.
  */
 
-function getSheetColumnReorderHeaderDisplacements(params: {
+function getDataTableColumnReorderHeaderDisplacements(params: {
 	columnKey: string;
 	metrics: SheetColumnMetric[];
 	scrollLeft: number;
@@ -615,7 +615,7 @@ function getSheetColumnReorderHeaderDisplacements(params: {
 		return null;
 	}
 
-	const toIndex = getSheetColumnReorderMoveIndex(params.visibleColumnKeys, params.columnKey, params.toVisibleIndex);
+	const toIndex = getDataTableColumnReorderMoveIndex(params.visibleColumnKeys, params.columnKey, params.toVisibleIndex);
 	if (fromIndex === toIndex) {
 		return null;
 	}
@@ -662,10 +662,10 @@ function getSheetColumnReorderHeaderDisplacements(params: {
 }
 
 /*
- * Return the human-facing header label for one sheet design cell.
+ * Return the human-facing header label for one dataTable design cell.
  */
 
-function getSheetDesignCellHeaderLabel(designCell: SheetDesignCellGQL) {
+function getDataTableDesignCellHeaderLabel(designCell: DataTableDesignCellGQL) {
 	return designCell.humanLabel || designCell.label || designCell.key;
 }
 
@@ -673,8 +673,8 @@ function getSheetDesignCellHeaderLabel(designCell: SheetDesignCellGQL) {
  * Convert a header editor draft into the stored human label patch value.
  */
 
-function getSheetHeaderHumanLabelPatchValue(designCell: SheetDesignCellGQL, draftValue: string) {
-	const value = draftValue.trim().slice(0, SHEET_HUMAN_LABEL_MAX_LENGTH);
+function getDataTableHeaderHumanLabelPatchValue(designCell: DataTableDesignCellGQL, draftValue: string) {
+	const value = draftValue.trim().slice(0, DATA_TABLE_HUMAN_LABEL_MAX_LENGTH);
 	const fallbackLabel = designCell.label || designCell.key;
 
 	return value && value !== fallbackLabel ? value : null;
@@ -684,7 +684,7 @@ function getSheetHeaderHumanLabelPatchValue(designCell: SheetDesignCellGQL, draf
  * Return the field type that should drive human-facing edit behavior.
  */
 
-function getSheetEditorFieldType(designCell: Pick<SheetDesignCellGQL, 'fieldType' | 'humanFieldType'>) {
+function getSheetEditorFieldType(designCell: Pick<DataTableDesignCellGQL, 'fieldType' | 'humanFieldType'>) {
 	const fieldType = designCell.fieldType as SheetEditorFieldType;
 
 	if (fieldType === 'ID_OR_TEXT') {
@@ -702,7 +702,7 @@ function getSheetEditorFieldType(designCell: Pick<SheetDesignCellGQL, 'fieldType
  * Return whether one runtime cell is available for direct human edits.
  */
 
-function canEditSheetRuntimeCell(params: { activeView?: SheetDesignViewGQL | null; design: SheetDesignGQL; designCell: SheetDesignCellGQL; disabled?: boolean }) {
+function canEditDataTableRuntimeCell(params: { activeView?: DataTableDesignViewGQL | null; design: DataTableDesignGQL; designCell: DataTableDesignCellGQL; disabled?: boolean }) {
 	return !params.disabled && !params.design.humansCannotEdit && !params.activeView?.humansCannotEdit && !params.designCell.humansCannotEdit;
 }
 
@@ -710,13 +710,13 @@ function canEditSheetRuntimeCell(params: { activeView?: SheetDesignViewGQL | nul
  * Convert a GraphQL design cell into an app-agnostic UI column.
  */
 
-function getSheetUIColumn(designCell: SheetRuntimeDesignCell): SheetUIColumn {
-	const columnKey = getSheetRuntimeColumnKey(designCell);
+function getSheetUIColumn(designCell: DataTableRuntimeDesignCell): SheetUIColumn {
+	const columnKey = getDataTableRuntimeColumnKey(designCell);
 
 	return {
 		id: columnKey,
 		key: columnKey,
-		label: getSheetDesignCellHeaderLabel(designCell),
+		label: getDataTableDesignCellHeaderLabel(designCell),
 		fieldType: getSheetEditorFieldType(designCell) as SheetUIFieldType,
 		humanFieldType: designCell.humanFieldType as SheetUIFieldType,
 		options: designCell.options || [],
@@ -726,10 +726,10 @@ function getSheetUIColumn(designCell: SheetRuntimeDesignCell): SheetUIColumn {
 }
 
 /*
- * Parse one persisted sheet cell string into a displayable JavaScript value.
+ * Parse one persisted dataTable cell string into a displayable JavaScript value.
  */
 
-function parseSheetRawValue(value?: unknown | null) {
+function parseDataTableRawValue(value?: unknown | null) {
 	if (value === undefined || value === null || value === '') {
 		return null;
 	}
@@ -746,10 +746,10 @@ function parseSheetRawValue(value?: unknown | null) {
 }
 
 /*
- * Convert any sheet value into the string shown inside a grid cell.
+ * Convert any dataTable value into the string shown inside a grid cell.
  */
 
-function stringifySheetDisplayValue(value: unknown) {
+function stringifyDataTableDisplayValue(value: unknown) {
 	if (value === undefined || value === null) {
 		return '';
 	}
@@ -769,7 +769,7 @@ function stringifySheetDisplayValue(value: unknown) {
  * Return the persisted cell value for a given field type.
  */
 
-function getSheetCellSerializedValue(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL, optimisticValue?: string | null) {
+function getDataTableCellSerializedValue(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
 	if (optimisticValue !== undefined) {
 		return optimisticValue;
 	}
@@ -778,7 +778,7 @@ function getSheetCellSerializedValue(cell: SheetCellGQL | null | undefined, desi
 		return null;
 	}
 
-	if (isSheetNumberLikeFieldType(designCell.fieldType) && typeof cell.numberValue === 'number' && Number.isFinite(cell.numberValue)) {
+	if (isDataTableNumberLikeFieldType(designCell.fieldType) && typeof cell.numberValue === 'number' && Number.isFinite(cell.numberValue)) {
 		return String(cell.numberValue);
 	}
 
@@ -786,7 +786,7 @@ function getSheetCellSerializedValue(cell: SheetCellGQL | null | undefined, desi
 		return String(cell.booleanValue);
 	}
 
-	if (isSheetDateLikeFieldType(designCell.fieldType) && cell.dateValue) {
+	if (isDataTableDateLikeFieldType(designCell.fieldType) && cell.dateValue) {
 		return String(cell.dateValue).split('T')[0];
 	}
 
@@ -798,26 +798,26 @@ function getSheetCellSerializedValue(cell: SheetCellGQL | null | undefined, desi
 }
 
 /*
- * Return whether one cell displays a live value from another sheet cell.
+ * Return whether one cell displays a live value from another dataTable cell.
  */
 
-function isSheetReferenceCell(cell: SheetCellGQL | null | undefined) {
+function isDataTableReferenceCell(cell: DataTableCellGQL | null | undefined) {
 	return cell?.referenceStatus === 'ACTIVE' || cell?.referenceStatus === 'DELETED';
 }
 
 /*
- * Find the sheet cell for one design column on a row.
+ * Find the dataTable cell for one design column on a row.
  */
 
-function getSheetCellForDesign(row: SheetRowGQL, designCell: SheetRuntimeDesignCell) {
-	return row.cells?.find((cell) => cell.cellKey === getSheetRuntimeCellKey(designCell)) || null;
+function getDataTableCellForDesign(row: DataTableRowGQL, designCell: DataTableRuntimeDesignCell) {
+	return row.cells?.find((cell) => cell.cellKey === getDataTableRuntimeCellKey(designCell)) || null;
 }
 
 /*
- * Return one sheet cell's numeric value for client-side computed view fallback.
+ * Return one dataTable cell's numeric value for client-side computed view fallback.
  */
 
-function getSheetCellNumericValue(cell: SheetCellGQL | null | undefined) {
+function getDataTableCellNumericValue(cell: DataTableCellGQL | null | undefined) {
 	if (!cell) {
 		return 0;
 	}
@@ -826,7 +826,7 @@ function getSheetCellNumericValue(cell: SheetCellGQL | null | undefined) {
 		return cell.numberValue;
 	}
 
-	const rawValue = parseSheetRawValue(cell.value ?? cell.textValue ?? null);
+	const rawValue = parseDataTableRawValue(cell.value ?? cell.textValue ?? null);
 	const numberValue = Number(rawValue);
 
 	return Number.isFinite(numberValue) ? numberValue : 0;
@@ -836,19 +836,19 @@ function getSheetCellNumericValue(cell: SheetCellGQL | null | undefined) {
  * Build a read-only computed cell when the server row is missing its synthetic computed cell.
  */
 
-function getSheetComputedFallbackCell(row: SheetRowGQL, rowCellMap: Map<string, SheetCellGQL> | null | undefined, designCell: SheetRuntimeDesignCell) {
+function getDataTableComputedFallbackCell(row: DataTableRowGQL, rowCellMap: Map<string, DataTableCellGQL> | null | undefined, designCell: DataTableRuntimeDesignCell) {
 	if (designCell.viewSource?.type !== 'COMPUTED' || designCell.viewSource.operation !== 'SUM') {
 		return null;
 	}
 
 	const value = (designCell.viewSource.sourceCellKeys || []).reduce((sum, cellKey) => {
-		return sum + getSheetCellNumericValue(rowCellMap?.get(cellKey));
+		return sum + getDataTableCellNumericValue(rowCellMap?.get(cellKey));
 	}, 0);
 
 	return {
 		id: `synthetic:${row.id}:${designCell.key}`,
-		sheetId: row.sheetId,
-		sheetRowId: row.id,
+		dataTableId: row.dataTableId,
+		dataTableRowId: row.id,
 		cellKey: designCell.key,
 		value: String(value),
 		textValue: String(value),
@@ -860,47 +860,47 @@ function getSheetComputedFallbackCell(row: SheetRowGQL, rowCellMap: Map<string, 
 		referenceStatus: null,
 		createdAt: '',
 		updatedAt: '',
-	} satisfies SheetCellGQL;
+	} satisfies DataTableCellGQL;
 }
 
 /*
  * Find the server cell for one design column or build a computed view fallback.
  */
 
-function getSheetCellForRuntimeColumn(row: SheetRowGQL, rowCellMap: Map<string, SheetCellGQL> | null | undefined, designCell: SheetRuntimeDesignCell) {
-	return rowCellMap?.get(getSheetRuntimeCellKey(designCell)) || getSheetComputedFallbackCell(row, rowCellMap, designCell);
+function getDataTableCellForRuntimeColumn(row: DataTableRowGQL, rowCellMap: Map<string, DataTableCellGQL> | null | undefined, designCell: DataTableRuntimeDesignCell) {
+	return rowCellMap?.get(getDataTableRuntimeCellKey(designCell)) || getDataTableComputedFallbackCell(row, rowCellMap, designCell);
 }
 
 /*
  * Find the label for a select value from one design cell.
  */
 
-function getSheetOptionLabel(designCell: SheetDesignCellGQL, value: string) {
+function getDataTableOptionLabel(designCell: DataTableDesignCellGQL, value: string) {
 	return designCell.options?.find((option) => option.value === value)?.label || value;
 }
 
 /*
- * Check whether one sheet field type should display select option styling.
+ * Check whether one dataTable field type should display select option styling.
  */
 
-function isSheetSelectDisplayFieldType(humanFieldType: SheetFieldTypeGQL) {
+function isDataTableSelectDisplayFieldType(humanFieldType: DataTableFieldTypeGQL) {
 	return humanFieldType === 'SELECT' || humanFieldType === 'SELECT_OR_TEXT';
 }
 
 /*
- * Return the background color class for one select-style sheet cell value.
+ * Return the background color class for one select-style dataTable cell value.
  */
 
-function getSheetSelectDisplayColorClassName(designCell: SheetDesignCellGQL, value: string) {
+function getDataTableSelectDisplayColorClassName(designCell: DataTableDesignCellGQL, value: string) {
 	const option = designCell.options?.find((item) => item.value === value);
 	return `bg_${getValidSheetOptionColor(option?.color)}_md`;
 }
 
 /*
- * Return the hover background class for one select-style sheet cell with a matched option color.
+ * Return the hover background class for one select-style dataTable cell with a matched option color.
  */
 
-function getSheetSelectCellClassName(designCell: SheetDesignCellGQL, value: string) {
+function getDataTableSelectCellClassName(designCell: DataTableDesignCellGQL, value: string) {
 	const option = designCell.options?.find((item) => item.value === value);
 	return `bg_${getValidSheetOptionColor(option?.color)}_fd_hv`;
 }
@@ -909,15 +909,15 @@ function getSheetSelectCellClassName(designCell: SheetDesignCellGQL, value: stri
  * Return whether a value is a calendar date key that must not shift by timezone.
  */
 
-function isSheetDateKeyValue(value: unknown): value is string {
+function isDataTableDateKeyValue(value: unknown): value is string {
 	return typeof value === 'string' && SHEET_DATE_KEY_REGEX.test(value);
 }
 
 /*
- * Apply the sheet display timezone to one DateTime when the timezone is valid.
+ * Apply the dataTable display timezone to one DateTime when the timezone is valid.
  */
 
-function getSheetDateTimeInDisplayZone(dateTime: DateTime, timeZone?: string | null) {
+function getDataTableDateTimeInDisplayZone(dateTime: DateTime, timeZone?: string | null) {
 	if (!timeZone) {
 		return dateTime;
 	}
@@ -930,29 +930,29 @@ function getSheetDateTimeInDisplayZone(dateTime: DateTime, timeZone?: string | n
  * Format one readable date value without applying timezone shifts to date keys.
  */
 
-function getReadableSheetDateDisplayValue(value: string | number | Date, timeZone?: string | null) {
+function getReadableDataTableDateDisplayValue(value: string | number | Date, timeZone?: string | null) {
 	try {
-		return getReadableCalDate(value instanceof Date ? value : String(value), isSheetDateKeyValue(value) ? null : timeZone);
+		return getReadableCalDate(value instanceof Date ? value : String(value), isDataTableDateKeyValue(value) ? null : timeZone);
 	} catch {
 		return null;
 	}
 }
 
 /*
- * Parse one sheet date-like display value into a Luxon DateTime.
+ * Parse one dataTable date-like display value into a Luxon DateTime.
  */
 
-function getSheetDateTimeFromDisplayValue(value: unknown, timeZone?: string | null) {
-	if (isSheetDateKeyValue(value)) {
+function getDataTableDateTimeFromDisplayValue(value: unknown, timeZone?: string | null) {
+	if (isDataTableDateKeyValue(value)) {
 		return DateTime.fromISO(value);
 	}
 
 	if (value instanceof Date) {
-		return getSheetDateTimeInDisplayZone(DateTime.fromJSDate(value), timeZone);
+		return getDataTableDateTimeInDisplayZone(DateTime.fromJSDate(value), timeZone);
 	}
 
 	if (typeof value === 'number') {
-		return getSheetDateTimeInDisplayZone(DateTime.fromMillis(value), timeZone);
+		return getDataTableDateTimeInDisplayZone(DateTime.fromMillis(value), timeZone);
 	}
 
 	if (typeof value === 'string') {
@@ -961,22 +961,22 @@ function getSheetDateTimeFromDisplayValue(value: unknown, timeZone?: string | nu
 			return dateTime;
 		}
 
-		return getSheetDateTimeInDisplayZone(DateTime.fromISO(value), timeZone);
+		return getDataTableDateTimeInDisplayZone(DateTime.fromISO(value), timeZone);
 	}
 
 	return null;
 }
 
 /*
- * Format one date-like sheet value with a Luxon format string.
+ * Format one date-like dataTable value with a Luxon format string.
  */
 
-function getFormattedSheetDateDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
+function getFormattedDataTableDateDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
 	if (!format) {
 		return null;
 	}
 
-	const dateTime = getSheetDateTimeFromDisplayValue(value, timeZone);
+	const dateTime = getDataTableDateTimeFromDisplayValue(value, timeZone);
 	if (!dateTime?.isValid) {
 		return null;
 	}
@@ -985,77 +985,77 @@ function getFormattedSheetDateDisplayValue(value: unknown, format?: string | nul
 }
 
 /*
- * Format one sheet DATE value for display in the grid.
+ * Format one dataTable DATE value for display in the grid.
  */
 
-function getSheetDateDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
+function getDataTableDateDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
 	if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
 		return '';
 	}
 
-	const formattedValue = getFormattedSheetDateDisplayValue(value, format, timeZone);
+	const formattedValue = getFormattedDataTableDateDisplayValue(value, format, timeZone);
 	if (formattedValue) {
 		return formattedValue;
 	}
 
-	return getReadableSheetDateDisplayValue(value, timeZone) || stringifySheetDisplayValue(value);
+	return getReadableDataTableDateDisplayValue(value, timeZone) || stringifyDataTableDisplayValue(value);
 }
 
 /*
- * Format one sheet DATETIME value for display in the grid.
+ * Format one dataTable DATETIME value for display in the grid.
  */
 
-function getSheetDateTimeDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
+function getDataTableDateTimeDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
 	if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
 		return '';
 	}
 
-	const formattedValue = getFormattedSheetDateDisplayValue(value, format, timeZone);
+	const formattedValue = getFormattedDataTableDateDisplayValue(value, format, timeZone);
 	if (formattedValue) {
 		return formattedValue;
 	}
 
-	const dateTime = getSheetDateTimeFromDisplayValue(value, timeZone);
+	const dateTime = getDataTableDateTimeFromDisplayValue(value, timeZone);
 	if (dateTime?.isValid) {
 		return dateTime.toLocaleString(DateTime.DATETIME_MED);
 	}
 
-	return stringifySheetDisplayValue(value);
+	return stringifyDataTableDisplayValue(value);
 }
 
 /*
- * Format one sheet week value for display in the grid.
+ * Format one dataTable week value for display in the grid.
  */
 
-function getSheetWeekDisplayValue(value: unknown, fieldType: SheetFieldTypeGQL) {
+function getDataTableWeekDisplayValue(value: unknown, fieldType: DataTableFieldTypeGQL) {
 	if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
 		return '';
 	}
 
-	return formatSheetWeekDateRange(value instanceof Date ? value : String(value), fieldType) || stringifySheetDisplayValue(value);
+	return formatDataTableWeekDateRange(value instanceof Date ? value : String(value), fieldType) || stringifyDataTableDisplayValue(value);
 }
 
 /*
  * Convert one cell and design column into the display string shown in the grid.
  */
 
-function getSheetCellDisplayValue(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL, optimisticValue?: string | null, timeZone?: string | null) {
+function getSheetCellDisplayValue(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null, timeZone?: string | null) {
 	if (cell?.referenceStatus === 'DELETED') {
-		return getSheetTranslatedText('sheet.reference_deleted', 'Deleted reference');
+		return getDataTableTranslatedText('dataTable.reference_deleted', 'Deleted reference');
 	}
 
-	const rawValue = parseSheetRawValue(getSheetCellSerializedValue(cell, designCell, optimisticValue));
+	const rawValue = parseDataTableRawValue(getDataTableCellSerializedValue(cell, designCell, optimisticValue));
 
 	if (designCell.humanFieldType === 'DATE') {
-		return getSheetDateDisplayValue(rawValue, designCell.format, timeZone);
+		return getDataTableDateDisplayValue(rawValue, designCell.format, timeZone);
 	}
 
 	if (designCell.humanFieldType === 'DATETIME') {
-		return getSheetDateTimeDisplayValue(rawValue, designCell.format, timeZone);
+		return getDataTableDateTimeDisplayValue(rawValue, designCell.format, timeZone);
 	}
 
-	if (isSheetWeekFieldType(designCell.humanFieldType)) {
-		return getSheetWeekDisplayValue(rawValue, designCell.humanFieldType);
+	if (isDataTableWeekFieldType(designCell.humanFieldType)) {
+		return getDataTableWeekDisplayValue(rawValue, designCell.humanFieldType);
 	}
 
 	if (designCell.humanFieldType === 'PRICE' && typeof rawValue !== 'undefined' && rawValue !== null) {
@@ -1063,7 +1063,7 @@ function getSheetCellDisplayValue(cell: SheetCellGQL | null | undefined, designC
 	}
 
 	if ((designCell.humanFieldType === 'SELECT' || designCell.humanFieldType === 'SELECT_OR_TEXT') && typeof rawValue === 'string') {
-		return getSheetOptionLabel(designCell, rawValue);
+		return getDataTableOptionLabel(designCell, rawValue);
 	}
 
 	if (designCell.humanFieldType === 'MULTI_SELECT') {
@@ -1076,53 +1076,53 @@ function getSheetCellDisplayValue(cell: SheetCellGQL | null | undefined, designC
 						.filter(Boolean)
 				: [];
 
-		return values.map((value) => getSheetOptionLabel(designCell, String(value))).join(', ');
+		return values.map((value) => getDataTableOptionLabel(designCell, String(value))).join(', ');
 	}
 
-	return stringifySheetDisplayValue(rawValue);
+	return stringifyDataTableDisplayValue(rawValue);
 }
 
 /*
  * Return the display class for one cell value shown in the grid.
  */
 
-function getSheetCellDisplayClassName(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL, optimisticValue?: string | null) {
-	if (!isSheetSelectDisplayFieldType(designCell.humanFieldType)) {
+function getDataTableCellDisplayClassName(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
+	if (!isDataTableSelectDisplayFieldType(designCell.humanFieldType)) {
 		return undefined;
 	}
 
-	const rawValue = parseSheetRawValue(getSheetCellSerializedValue(cell, designCell, optimisticValue));
+	const rawValue = parseDataTableRawValue(getDataTableCellSerializedValue(cell, designCell, optimisticValue));
 	if (typeof rawValue !== 'string' || !rawValue) {
 		return undefined;
 	}
 
-	return ['ellip', 'px_5', 'py_2', 'r_4', getSheetSelectDisplayColorClassName(designCell, rawValue)].join(' ');
+	return ['ellip', 'px_5', 'py_2', 'r_4', getDataTableSelectDisplayColorClassName(designCell, rawValue)].join(' ');
 }
 
 /*
  * Return the container class for one cell value shown in the grid.
  */
 
-function getSheetCellClassName(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL, optimisticValue?: string | null) {
-	if (!isSheetSelectDisplayFieldType(designCell.humanFieldType)) {
+function getDataTableCellClassName(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
+	if (!isDataTableSelectDisplayFieldType(designCell.humanFieldType)) {
 		return undefined;
 	}
 
-	const rawValue = parseSheetRawValue(getSheetCellSerializedValue(cell, designCell, optimisticValue));
+	const rawValue = parseDataTableRawValue(getDataTableCellSerializedValue(cell, designCell, optimisticValue));
 	if (typeof rawValue !== 'string' || !rawValue) {
 		return undefined;
 	}
 
-	return getSheetSelectCellClassName(designCell, rawValue);
+	return getDataTableSelectCellClassName(designCell, rawValue);
 }
 
 /*
  * Convert one cell value into an editable draft string.
  */
 
-function getSheetEditorDraftValue(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL, optimisticValue?: string | null) {
-	const serializedValue = getSheetCellSerializedValue(cell, designCell, optimisticValue);
-	const rawValue = parseSheetRawValue(serializedValue);
+function getSheetEditorDraftValue(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
+	const serializedValue = getDataTableCellSerializedValue(cell, designCell, optimisticValue);
+	const rawValue = parseDataTableRawValue(serializedValue);
 	const fieldType = getSheetEditorFieldType(designCell);
 
 	if (fieldType === 'MULTI_SELECT' && Array.isArray(rawValue)) {
@@ -1133,22 +1133,22 @@ function getSheetEditorDraftValue(cell: SheetCellGQL | null | undefined, designC
 		return rawValue.slice(0, 16);
 	}
 
-	return stringifySheetDisplayValue(rawValue);
+	return stringifyDataTableDisplayValue(rawValue);
 }
 
 /*
  * Return a compact key for design options that affect rendered cell text.
  */
 
-function getSheetDesignOptionsStateKey(designCell: SheetDesignCellGQL) {
+function getDataTableDesignOptionsStateKey(designCell: DataTableDesignCellGQL) {
 	return (designCell.options || []).map((option) => [option.label, option.value, option.color || ''].join('\u0001')).join('\u0002');
 }
 
 /*
- * Return whether one sheet text value points to an external HTTP URL.
+ * Return whether one dataTable text value points to an external HTTP URL.
  */
 
-function isSheetExternalLinkTextValue(value: unknown): value is string {
+function isDataTableExternalLinkTextValue(value: unknown): value is string {
 	return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
 }
 
@@ -1156,7 +1156,7 @@ function isSheetExternalLinkTextValue(value: unknown): value is string {
  * Return whether one field type should use document-link styling when a related record exists.
  */
 
-function isSheetDocumentLinkFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT' | null) {
+function isDataTableDocumentLinkFieldType(fieldType?: DataTableFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT' | null) {
 	return fieldType === 'ID' || fieldType === 'ID_OR_TEXT';
 }
 
@@ -1164,7 +1164,7 @@ function isSheetDocumentLinkFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFie
  * Return whether one cell has a usable related record target.
  */
 
-function hasSheetCellRelatedId(cell?: SheetCellGQL | null) {
+function hasDataTableCellRelatedId(cell?: DataTableCellGQL | null) {
 	return cell?.relatedId !== null && cell?.relatedId !== undefined && String(cell.relatedId).trim() !== '';
 }
 
@@ -1172,36 +1172,36 @@ function hasSheetCellRelatedId(cell?: SheetCellGQL | null) {
  * Return whether a related table name points to inbound contacts.
  */
 
-function isSheetInboundContactRelatedTable(relatedTable?: string | null) {
+function isDataTableInboundContactRelatedTable(relatedTable?: string | null) {
 	return relatedTable === 'inbound_contact' || relatedTable === 'inbound_contacts';
 }
 
 /*
- * Return whether one sheet cell has enough data to open from the grid.
+ * Return whether one dataTable cell has enough data to open from the grid.
  */
 
-function canOpenSheetCellLink(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL) {
+function canOpenDataTableCellLink(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL) {
 	if (!designCell.openLink) {
 		return false;
 	}
 
-	return isSheetExternalLinkTextValue(cell?.textValue) || (hasSheetCellRelatedId(cell) && isSheetDocumentLinkFieldType(designCell.fieldType as SheetFieldTypeGQL | 'ID_OR_TEXT'));
+	return isDataTableExternalLinkTextValue(cell?.textValue) || (hasDataTableCellRelatedId(cell) && isDataTableDocumentLinkFieldType(designCell.fieldType as DataTableFieldTypeGQL | 'ID_OR_TEXT'));
 }
 
 /*
- * Return the derived open-link icon for one sheet cell when no explicit icon is set.
+ * Return the derived open-link icon for one dataTable cell when no explicit icon is set.
  */
 
-function getSheetOpenLinkIconName(cell: SheetCellGQL | null | undefined, designCell: SheetDesignCellGQL) {
-	if (!canOpenSheetCellLink(cell, designCell)) {
+function getDataTableOpenLinkIconName(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL) {
+	if (!canOpenDataTableCellLink(cell, designCell)) {
 		return null;
 	}
 
-	if (isSheetExternalLinkTextValue(cell?.textValue)) {
+	if (isDataTableExternalLinkTextValue(cell?.textValue)) {
 		return 'external-link';
 	}
 
-	if (hasSheetCellRelatedId(cell) && isSheetDocumentLinkFieldType(designCell.fieldType as SheetFieldTypeGQL | 'ID_OR_TEXT')) {
+	if (hasDataTableCellRelatedId(cell) && isDataTableDocumentLinkFieldType(designCell.fieldType as DataTableFieldTypeGQL | 'ID_OR_TEXT')) {
 		return 'notes-paper-text';
 	}
 
@@ -1215,9 +1215,9 @@ function getSheetOpenLinkIconName(cell: SheetCellGQL | null | undefined, designC
 function getSheetUICellSignature(p: {
 	canEdit: boolean;
 	canOpen: boolean;
-	designCell: SheetDesignCellGQL;
+	designCell: DataTableDesignCellGQL;
 	iconName?: string | null;
-	referenceStatus?: SheetCellGQL['referenceStatus'] | null;
+	referenceStatus?: DataTableCellGQL['referenceStatus'] | null;
 	serializedValue: string | null;
 	timeZone?: string | null;
 }) {
@@ -1231,7 +1231,7 @@ function getSheetUICellSignature(p: {
 		p.designCell.humanFieldType,
 		p.designCell.format ?? '',
 		p.timeZone ?? '',
-		getSheetDesignOptionsStateKey(p.designCell),
+		getDataTableDesignOptionsStateKey(p.designCell),
 	].join('\u0000');
 }
 
@@ -1239,7 +1239,7 @@ function getSheetUICellSignature(p: {
  * Build per-row cell maps once so visible row generation can use O(1) lookups.
  */
 
-function getSheetRowCellsById(rows: SheetRowGQL[]) {
+function getDataTableRowCellsById(rows: DataTableRowGQL[]) {
 	return new Map(
 		rows.map((row) => {
 			return [row.id, new Map((row.cells || []).map((cell) => [cell.cellKey, cell]))];
@@ -1251,23 +1251,23 @@ function getSheetRowCellsById(rows: SheetRowGQL[]) {
  * Return the opacity class used for one loading mock row.
  */
 
-function getSheetMockRowOpacityClass(rowIndex: number) {
+function getDataTableMockRowOpacityClass(rowIndex: number) {
 	return SHEET_MOCK_ROW_OPACITY_CLASSES[rowIndex] || '';
 }
 
 /*
- * Return whether the last visual row is viewport filler rather than sheet data.
+ * Return whether the last visual row is viewport filler rather than dataTable data.
  */
 
-function hasSheetPlaceholderTail(isSheetRowsReady: boolean, renderedRowCount: number, visualRowCount: number) {
-	return isSheetRowsReady && renderedRowCount < visualRowCount;
+function hasDataTablePlaceholderTail(isDataTableRowsReady: boolean, renderedRowCount: number, visualRowCount: number) {
+	return isDataTableRowsReady && renderedRowCount < visualRowCount;
 }
 
 /*
  * Return the body height used by visual rows when the last row is viewport filler.
  */
 
-function getSheetVisualRowsHeight(visualRowCount: number, viewportHeight: number, stickyHeaderHeight: number, hasPlaceholderTail_: boolean) {
+function getDataTableVisualRowsHeight(visualRowCount: number, viewportHeight: number, stickyHeaderHeight: number, hasPlaceholderTail_: boolean) {
 	if (!hasPlaceholderTail_ || visualRowCount === 0) {
 		return visualRowCount * SHEET_ROW_HEIGHT;
 	}
@@ -1279,7 +1279,7 @@ function getSheetVisualRowsHeight(visualRowCount: number, viewportHeight: number
  * Return the rendered height for one visual row.
  */
 
-function getSheetVisualRowHeight(rowIndex: number, visualRowCount: number, viewportHeight: number, stickyHeaderHeight: number, hasPlaceholderTail_: boolean) {
+function getDataTableVisualRowHeight(rowIndex: number, visualRowCount: number, viewportHeight: number, stickyHeaderHeight: number, hasPlaceholderTail_: boolean) {
 	if (!hasPlaceholderTail_ || rowIndex !== visualRowCount - 1) {
 		return SHEET_ROW_HEIGHT;
 	}
@@ -1294,11 +1294,11 @@ function getSheetVisualRowHeight(rowIndex: number, visualRowCount: number, viewp
  * Build one mock cell for the loading rows shown before row data is ready.
  */
 
-function getSheetMockUICell(cellKey: string, rowIndex: number): SheetUICell {
+function getDataTableMockUICell(cellKey: string, rowIndex: number): SheetUICell {
 	return {
 		cellKey,
 		displayValue: SHEET_MOCK_CELL_TEXT,
-		displayClassName: ['mock active bl min_w_50_pc', getSheetMockRowOpacityClass(rowIndex)].filter(Boolean).join(' '),
+		displayClassName: ['mock active bl min_w_50_pc', getDataTableMockRowOpacityClass(rowIndex)].filter(Boolean).join(' '),
 		draftValue: '',
 	};
 }
@@ -1307,7 +1307,7 @@ function getSheetMockUICell(cellKey: string, rowIndex: number): SheetUICell {
  * Parse the current editor draft into the serialized value stored by GraphQL.
  */
 
-function isValidSheetDateInputValue(value: string) {
+function isValidDataTableDateInputValue(value: string) {
 	const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 	if (!match) {
 		return false;
@@ -1325,9 +1325,9 @@ function isValidSheetDateInputValue(value: string) {
  * Return whether one editor datetime value can be parsed safely.
  */
 
-function isValidSheetDateTimeInputValue(value: string) {
+function isValidDataTableDateTimeInputValue(value: string) {
 	const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/);
-	if (!match || !isValidSheetDateInputValue(`${match[1]}-${match[2]}-${match[3]}`)) {
+	if (!match || !isValidDataTableDateInputValue(`${match[1]}-${match[2]}-${match[3]}`)) {
 		return false;
 	}
 
@@ -1339,10 +1339,10 @@ function isValidSheetDateTimeInputValue(value: string) {
 }
 
 /*
- * Return whether one editor value matches a saved sheet option.
+ * Return whether one editor value matches a saved dataTable option.
  */
 
-function isSheetEditorOptionValue(designCell: SheetDesignCellGQL, value: unknown) {
+function isSheetEditorOptionValue(designCell: DataTableDesignCellGQL, value: unknown) {
 	return (designCell.options || []).some((option) => String(option.value) === String(value));
 }
 
@@ -1350,7 +1350,7 @@ function isSheetEditorOptionValue(designCell: SheetDesignCellGQL, value: unknown
  * Parse the current editor draft into the serialized value stored by GraphQL.
  */
 
-export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue: string): SheetParsedEditorValue {
+export function parseSheetEditorValue(designCell: DataTableDesignCellGQL, draftValue: string): DataTableParsedEditorValue {
 	const fieldType = getSheetEditorFieldType(designCell);
 	const value = draftValue.trim();
 
@@ -1358,7 +1358,7 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 		return { value: null };
 	}
 
-	if (isSheetNumberLikeFieldType(fieldType)) {
+	if (isDataTableNumberLikeFieldType(fieldType)) {
 		const numberValue = Number(value);
 
 		if (!Number.isFinite(numberValue)) {
@@ -1382,19 +1382,19 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 		return { value };
 	}
 
-	if (isSheetDateLikeFieldType(fieldType)) {
-		if (!isValidSheetDateInputValue(value)) {
+	if (isDataTableDateLikeFieldType(fieldType)) {
+		if (!isValidDataTableDateInputValue(value)) {
 			return {
 				error: 'Invalid date',
 				value: null,
 			};
 		}
 
-		return { value: normalizeSheetDateLikeValue(value, fieldType) };
+		return { value: normalizeDataTableDateLikeValue(value, fieldType) };
 	}
 
 	if (fieldType === 'DATETIME') {
-		if (!isValidSheetDateTimeInputValue(value)) {
+		if (!isValidDataTableDateTimeInputValue(value)) {
 			return {
 				error: 'Invalid datetime',
 				value: null,
@@ -1468,73 +1468,73 @@ export function parseSheetEditorValue(designCell: SheetDesignCellGQL, draftValue
 }
 
 /*
- * Return whether one field type uses the sheet-owned select-style editor.
+ * Return whether one field type uses the dataTable-owned select-style editor.
  */
 
-function isSheetSelectEditorFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFieldType | null) {
+function isSheetSelectEditorFieldType(fieldType?: DataTableFieldTypeGQL | SheetUIFieldType | null) {
 	return fieldType === 'SELECT' || fieldType === 'SELECT_OR_TEXT' || fieldType === 'MULTI_SELECT' || fieldType === 'BOOLEAN';
 }
 
 /*
- * Return whether one field type uses the sheet-owned date or date-time editor.
+ * Return whether one field type uses the dataTable-owned date or date-time editor.
  */
 
-function isSheetDateEditorFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFieldType | null) {
+function isDataTableDateEditorFieldType(fieldType?: DataTableFieldTypeGQL | SheetUIFieldType | null) {
 	return fieldType === 'DATE' || fieldType === 'WEEK_OF_MON' || fieldType === 'WEEK_OF_SUN' || fieldType === 'DATETIME';
 }
 
 /*
- * Return whether one field type uses any sheet-owned absolute editor.
+ * Return whether one field type uses any dataTable-owned absolute editor.
  */
 
-function isSheetLocalEditorFieldType(fieldType?: SheetFieldTypeGQL | SheetUIFieldType | null) {
-	return isSheetSelectEditorFieldType(fieldType) || isSheetDateEditorFieldType(fieldType);
+function isDataTableLocalEditorFieldType(fieldType?: DataTableFieldTypeGQL | SheetUIFieldType | null) {
+	return isSheetSelectEditorFieldType(fieldType) || isDataTableDateEditorFieldType(fieldType);
 }
 
 /*
  * Return translated UI text when translations are loaded, with a stable fallback for tests.
  */
 
-function getSheetTranslatedText(key: string, fallback: string) {
+function getDataTableTranslatedText(key: string, fallback: string) {
 	return i18n.has(key) ? i18n.t(key) : fallback;
 }
 
 /*
- * Return default boolean options when the sheet design does not provide them.
+ * Return default boolean options when the dataTable design does not provide them.
  */
 
-function getSheetBooleanFallbackOptions() {
+function getDataTableBooleanFallbackOptions() {
 	return [
 		{
 			color: null,
-			label: getSheetTranslatedText('form.yes', 'Yes'),
+			label: getDataTableTranslatedText('form.yes', 'Yes'),
 			value: 'true',
 		},
 		{
 			color: null,
-			label: getSheetTranslatedText('form.no', 'No'),
+			label: getDataTableTranslatedText('form.no', 'No'),
 			value: 'false',
 		},
 	];
 }
 
 /*
- * Return the option list shown by the sheet-owned select-style editor.
+ * Return the option list shown by the dataTable-owned select-style editor.
  */
 
-function getSheetSelectEditorOptions(designCell: SheetDesignCellGQL) {
+function getSheetSelectEditorOptions(designCell: DataTableDesignCellGQL) {
 	if (getSheetEditorFieldType(designCell) === 'BOOLEAN' && !designCell.options?.length) {
-		return getSheetBooleanFallbackOptions();
+		return getDataTableBooleanFallbackOptions();
 	}
 
 	return designCell.options || [];
 }
 
 /*
- * Format one calendar selection as the serialized sheet date value.
+ * Format one calendar selection as the serialized dataTable date value.
  */
 
-function getSheetCalendarDateValue(value: CalendarSelectedObj) {
+function getDataTableCalendarDateValue(value: CalendarSelectedObj) {
 	const year = String(value.year).padStart(4, '0');
 	const month = String(value.month).padStart(2, '0');
 	const day = String(value.day).padStart(2, '0');
@@ -1546,17 +1546,17 @@ function getSheetCalendarDateValue(value: CalendarSelectedObj) {
  * Return the date portion from a date or date-time editor draft.
  */
 
-function getSheetDateEditorDateValue(draftValue: string) {
+function getDataTableDateEditorDateValue(draftValue: string) {
 	const dateValue = draftValue.trim().split('T')[0] || '';
 
-	return isValidSheetDateInputValue(dateValue) ? dateValue : '';
+	return isValidDataTableDateInputValue(dateValue) ? dateValue : '';
 }
 
 /*
  * Return the time portion from a date-time editor draft.
  */
 
-function getSheetDateTimeEditorTimeValue(draftValue: string) {
+function getDataTableDateTimeEditorTimeValue(draftValue: string) {
 	const match = draftValue.trim().match(/T(\d{2}:\d{2})/);
 
 	return match?.[1] || '00:00';
@@ -1566,18 +1566,18 @@ function getSheetDateTimeEditorTimeValue(draftValue: string) {
  * Return a valid serialized date-time draft from date and time editor parts.
  */
 
-function getSheetDateTimeEditorDraftValue(dateValue: string, timeValue: string) {
-	const normalizedDate = isValidSheetDateInputValue(dateValue) ? dateValue : '';
+function getDataTableDateTimeEditorDraftValue(dateValue: string, timeValue: string) {
+	const normalizedDate = isValidDataTableDateInputValue(dateValue) ? dateValue : '';
 	const normalizedTime = /^\d{2}:\d{2}$/.test(timeValue) ? timeValue : '00:00';
 
 	return normalizedDate ? `${normalizedDate}T${normalizedTime}` : '';
 }
 
 /*
- * Calculate the stable sheet-canvas position for a sheet-local editor.
+ * Calculate the stable dataTable-canvas position for a dataTable-local editor.
  */
 
-function getSheetLocalEditorPosition(params: {
+function getDataTableLocalEditorPosition(params: {
 	columnMetric?: SheetColumnMetric;
 	hasPlaceholderTail: boolean;
 	rowIndex: number;
@@ -1587,13 +1587,13 @@ function getSheetLocalEditorPosition(params: {
 	viewportHeight: number;
 	visualRowCount: number;
 	width?: number;
-}): SheetLocalEditorPosition | null {
+}): DataTableLocalEditorPosition | null {
 	if (!params.columnMetric || params.rowIndex < 0) {
 		return null;
 	}
 
 	const isStickyLeft = params.columnMetric.columnIndex < params.stickyColumnCount;
-	const rowHeight = getSheetVisualRowHeight(params.rowIndex, params.visualRowCount, params.viewportHeight, params.stickyHeaderHeight, params.hasPlaceholderTail);
+	const rowHeight = getDataTableVisualRowHeight(params.rowIndex, params.visualRowCount, params.viewportHeight, params.stickyHeaderHeight, params.hasPlaceholderTail);
 	const left = SHEET_ROW_NUMBER_WIDTH + params.columnMetric.left + (isStickyLeft ? 0 : SHEET_STICKY_SPACER_SIZE) + SHEET_LOCAL_EDITOR_LEFT_OFFSET;
 	const width = params.width ?? Math.min(Math.max(SHEET_SELECT_EDITOR_MAX_WIDTH, params.columnMetric.width), Math.max(SHEET_SELECT_EDITOR_MIN_WIDTH, params.columnMetric.width));
 
@@ -1607,16 +1607,16 @@ function getSheetLocalEditorPosition(params: {
 }
 
 /*
- * Return the canvas position for a compact tag anchored above a selected sheet cell.
+ * Return the canvas position for a compact tag anchored above a selected dataTable cell.
  */
 
-function getSheetSelectedCellTagPosition(params: {
+function getDataTableSelectedCellTagPosition(params: {
 	columnMetric?: SheetColumnMetric;
 	rowIndex: number;
 	rowWidth: number;
 	stickyColumnCount: number;
 	stickyHeaderHeight: number;
-}): SheetLocalEditorPosition | null {
+}): DataTableLocalEditorPosition | null {
 	if (!params.columnMetric || params.rowIndex < 0) {
 		return null;
 	}
@@ -1638,13 +1638,13 @@ function getSheetSelectedCellTagPosition(params: {
  * Return one rectangle that surrounds the active multi-cell selection.
  */
 
-function getSheetSelectionBoxPosition(params: {
+function getDataTableSelectionBoxPosition(params: {
 	columnMetrics: SheetColumnMetric[];
-	renderedRows: SheetRowGQL[];
-	selection?: SheetInteractionCellSelection | null;
+	renderedRows: DataTableRowGQL[];
+	selection?: DataTableInteractionCellSelection | null;
 	stickyColumnCount: number;
 	stickyHeaderHeight: number;
-}): SheetSelectionBoxPosition | null {
+}): DataTableSelectionBoxPosition | null {
 	const selection = params.selection;
 
 	if (!selection || Object.keys(selection.selectedCellKeyMap).length <= 1) {
@@ -1688,7 +1688,7 @@ function getSheetSelectionBoxPosition(params: {
 }
 
 /*
- * Read the current value from an active sheet editor element.
+ * Read the current value from an active dataTable editor element.
  */
 
 function getSheetEditorElementValue(element: HTMLElement) {
@@ -1703,7 +1703,7 @@ function getSheetEditorElementValue(element: HTMLElement) {
  * Find the closest matching element from a delegated DOM event target.
  */
 
-function getClosestSheetElement(target: EventTarget | null, selector: string) {
+function getClosestDataTableElement(target: EventTarget | null, selector: string) {
 	if (!(target instanceof Element)) {
 		return null;
 	}
@@ -1712,10 +1712,10 @@ function getClosestSheetElement(target: EventTarget | null, selector: string) {
 }
 
 /*
- * Return whether the active document element belongs to non-sheet text input.
+ * Return whether the active document element belongs to non-dataTable text input.
  */
 
-function isSheetShortcutBlockedByActiveInput() {
+function isDataTableShortcutBlockedByActiveInput() {
 	const activeElement = globalThis.document?.activeElement as HTMLElement | null;
 
 	if (!activeElement) {
@@ -1730,10 +1730,10 @@ function isSheetShortcutBlockedByActiveInput() {
 }
 
 /*
- * Read plain text from the browser clipboard for sheet paste operations.
+ * Read plain text from the browser clipboard for dataTable paste operations.
  */
 
-async function readSheetClipboardText() {
+async function readDataTableClipboardText() {
 	if (typeof navigator?.clipboard?.readText !== 'function') {
 		return '';
 	}
@@ -1745,7 +1745,7 @@ async function readSheetClipboardText() {
  * Read one cell lookup from the latest runtime state.
  */
 
-function getSheetCellLookup(runtime: SheetRuntimeState, rowId?: string | null, cellKey?: string | null): SheetCellLookup | null {
+function getDataTableCellLookup(runtime: DataTableRuntimeState, rowId?: string | null, cellKey?: string | null): DataTableCellLookup | null {
 	if (!rowId || !cellKey) {
 		return null;
 	}
@@ -1758,7 +1758,7 @@ function getSheetCellLookup(runtime: SheetRuntimeState, rowId?: string | null, c
 	}
 
 	return {
-		cell: runtime.rowCellsById.get(row.id)?.get(getSheetRuntimeCellKey(designCell)) || null,
+		cell: runtime.rowCellsById.get(row.id)?.get(getDataTableRuntimeCellKey(designCell)) || null,
 		designCell,
 		row,
 	};
@@ -1768,29 +1768,29 @@ function getSheetCellLookup(runtime: SheetRuntimeState, rowId?: string | null, c
  * Return whether one lookup targets a related-document cell whose editing is blocked.
  */
 
-function isSheetRelatedDocumentEditBlocked(lookup: SheetCellLookup) {
+function isDataTableRelatedDocumentEditBlocked(lookup: DataTableCellLookup) {
 	const fieldType = lookup.designCell.humanFieldType || lookup.designCell.fieldType;
 
-	return fieldType === 'ID' && !!lookup.cell?.relatedTable && hasSheetCellRelatedId(lookup.cell);
+	return fieldType === 'ID' && !!lookup.cell?.relatedTable && hasDataTableCellRelatedId(lookup.cell);
 }
 
 /*
- * Return whether one sheet cell lookup can accept shortcut-driven writes.
+ * Return whether one dataTable cell lookup can accept shortcut-driven writes.
  */
 
-function canWriteSheetShortcutCell(params: {
-	activeView?: SheetDesignViewGQL | null;
-	design: SheetDesignGQL;
+function canWriteDataTableShortcutCell(params: {
+	activeView?: DataTableDesignViewGQL | null;
+	design: DataTableDesignGQL;
 	disabled?: boolean;
-	lookup: SheetCellLookup;
+	lookup: DataTableCellLookup;
 }) {
 	const { activeView, design, disabled, lookup } = params;
 
 	return Boolean(
 		!lookup.row.__deleted &&
-		!isSheetReferenceCell(lookup.cell) &&
-		!isSheetRelatedDocumentEditBlocked(lookup) &&
-		canEditSheetRuntimeCell({
+		!isDataTableReferenceCell(lookup.cell) &&
+		!isDataTableRelatedDocumentEditBlocked(lookup) &&
+		canEditDataTableRuntimeCell({
 			activeView,
 			design,
 			designCell: lookup.designCell,
@@ -1800,20 +1800,20 @@ function canWriteSheetShortcutCell(params: {
 }
 
 /*
- * Build tab-separated clipboard text for selected sheet cells.
+ * Build tab-separated clipboard text for selected dataTable cells.
  */
 
-function getSheetSelectionClipboardText(params: {
+function getDataTableSelectionClipboardText(params: {
 	columnMetrics: SheetColumnMetric[];
-	renderedRows: SheetRowGQL[];
-	runtime: SheetRuntimeState;
-	selection: SheetInteractionCellSelection;
+	renderedRows: DataTableRowGQL[];
+	runtime: DataTableRuntimeState;
+	selection: DataTableInteractionCellSelection;
 }) {
 	const rowTexts: string[] = [];
 	const selectedRows = new Set<string>();
 	const selectedColumns = new Set<string>();
 
-	getSheetOrderedSelectedCells({
+	getDataTableOrderedSelectedCells({
 		columnMetrics: params.columnMetrics,
 		renderedRows: params.renderedRows,
 		selection: params.selection,
@@ -1834,8 +1834,8 @@ function getSheetSelectionClipboardText(params: {
 				return;
 			}
 
-			const lookup = getSheetCellLookup(params.runtime, row.id, metric.column.key);
-			const optimisticKey = lookup ? getSheetCellKey(lookup.row.id, getSheetRuntimeColumnKey(lookup.designCell)) : '';
+			const lookup = getDataTableCellLookup(params.runtime, row.id, metric.column.key);
+			const optimisticKey = lookup ? getSheetCellKey(lookup.row.id, getDataTableRuntimeColumnKey(lookup.designCell)) : '';
 
 			values.push(lookup ? getSheetCellDisplayValue(lookup.cell, lookup.designCell, params.runtime.optimisticValues[optimisticKey], params.runtime.timeZone) : '');
 		});
@@ -1850,12 +1850,12 @@ function getSheetSelectionClipboardText(params: {
  * Return the floating-message text for one shortcut mutation result.
  */
 
-function getSheetShortcutSummaryText(action: 'clear' | 'paste', summary: SheetShortcutMutationSummary) {
-	const key = action === 'paste' ? 'sheet.shortcut_paste_summary' : 'sheet.shortcut_clear_summary';
+function getDataTableShortcutSummaryText(action: 'clear' | 'paste', summary: DataTableShortcutMutationSummary) {
+	const key = action === 'paste' ? 'dataTable.shortcut_paste_summary' : 'dataTable.shortcut_clear_summary';
 	const fallback = action === 'paste'
 		? 'Pasted %{savedCount} cells, skipped %{skippedCount}, failed %{failedCount}.'
 		: 'Cleared %{savedCount} cells, skipped %{skippedCount}, failed %{failedCount}.';
-	const translatedText = getSheetTranslatedText(key, fallback);
+	const translatedText = getDataTableTranslatedText(key, fallback);
 
 	return translatedText
 		.replace('%{savedCount}', String(summary.saved))
@@ -1864,46 +1864,46 @@ function getSheetShortcutSummaryText(action: 'clear' | 'paste', summary: SheetSh
 }
 
 /*
- * Build the compact context-menu target for one resolved sheet cell.
+ * Build the compact context-menu target for one resolved dataTable cell.
  */
 
-function getSheetContextMenuCellTarget(
-	runtime: SheetRuntimeState,
-	lookup: SheetCellLookup,
+function getDataTableContextMenuCellTarget(
+	runtime: DataTableRuntimeState,
+	lookup: DataTableCellLookup,
 	rowIndex: number,
-	activeView: SheetDesignViewGQL | null,
-	design: SheetDesignGQL,
-): SheetContextMenuCellTarget {
-	const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+	activeView: DataTableDesignViewGQL | null,
+	design: DataTableDesignGQL,
+): DataTableContextMenuCellTarget {
+	const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 	const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
 
 	return {
 		canDeleteRow: !lookup.row.__deleted && !runtime.disabled && !design.humansCannotEdit && !activeView?.humansCannotEdit && !lookup.row.viewId,
 		canEdit:
-			canEditSheetRuntimeCell({
+			canEditDataTableRuntimeCell({
 				activeView,
 				design,
 				designCell: lookup.designCell,
 				disabled: runtime.disabled || lookup.row.__deleted,
-			}) && !isSheetReferenceCell(lookup.cell),
-		canOpen: !lookup.row.__deleted && canOpenSheetCellLink(lookup.cell, lookup.designCell),
+			}) && !isDataTableReferenceCell(lookup.cell),
+		canOpen: !lookup.row.__deleted && canOpenDataTableCellLink(lookup.cell, lookup.designCell),
 		cellKey: runtimeKey,
 		displayValue: getSheetCellDisplayValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey], runtime.timeZone),
 		lookup,
-		organizationId: runtime.sheet.organizationId,
+		organizationId: runtime.dataTable.organizationId,
 		rowId: lookup.row.id,
 		rowNumber: rowIndex >= 0 ? rowIndex + 1 : null,
-		sheetId: runtime.sheet.id,
+		dataTableId: runtime.dataTable.id,
 		viewId: lookup.row.viewId,
 	};
 }
 
 /*
- * Build the active cell edit state for one resolved sheet cell lookup.
+ * Build the active cell edit state for one resolved dataTable cell lookup.
  */
 
-function getSheetCellEditState(runtime: SheetRuntimeState, lookup: SheetCellLookup, clickSource?: SheetUIEditorClickSource): SheetUIEditState {
-	const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+function getDataTableCellEditState(runtime: DataTableRuntimeState, lookup: DataTableCellLookup, clickSource?: SheetUIEditorClickSource): SheetUIEditState {
+	const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 	const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
 
 	return {
@@ -1915,46 +1915,46 @@ function getSheetCellEditState(runtime: SheetRuntimeState, lookup: SheetCellLook
 }
 
 /*
- * Build the active cell edit state for a custom sheet-local overlay editor.
+ * Build the active cell edit state for a custom dataTable-local overlay editor.
  */
 
-function getSheetCellOverlayEditState(runtime: SheetRuntimeState, lookup: SheetCellLookup, clickSource?: SheetUIEditorClickSource): SheetUIEditState {
+function getDataTableCellOverlayEditState(runtime: DataTableRuntimeState, lookup: DataTableCellLookup, clickSource?: SheetUIEditorClickSource): SheetUIEditState {
 	return {
-		...getSheetCellEditState(runtime, lookup, clickSource),
+		...getDataTableCellEditState(runtime, lookup, clickSource),
 		disableInlineEditor: true,
 	};
 }
 
 /*
- * Check whether a lookup is already represented by the active sheet edit state.
+ * Check whether a lookup is already represented by the active dataTable edit state.
  */
 
-function isSheetEditStateLookup(editState: SheetUIEditState | null | undefined, lookup: SheetCellLookup) {
-	return editState?.rowId === lookup.row.id && editState.cellKey === getSheetRuntimeColumnKey(lookup.designCell);
+function isDataTableEditStateLookup(editState: SheetUIEditState | null | undefined, lookup: DataTableCellLookup) {
+	return editState?.rowId === lookup.row.id && editState.cellKey === getDataTableRuntimeColumnKey(lookup.designCell);
 }
 
 /*
- * Check whether a lookup owns the currently open sheet-local editor.
+ * Check whether a lookup owns the currently open dataTable-local editor.
  */
 
-function isSheetLocalEditorEditStateLookup(editState: SheetUIEditState | null | undefined, lookup: SheetCellLookup) {
-	return isSheetEditStateLookup(editState, lookup) && (!!editState?.disableInlineEditor || isSheetLocalEditorFieldType(getSheetEditorFieldType(lookup.designCell)));
+function isDataTableLocalEditorEditStateLookup(editState: SheetUIEditState | null | undefined, lookup: DataTableCellLookup) {
+	return isDataTableEditStateLookup(editState, lookup) && (!!editState?.disableInlineEditor || isDataTableLocalEditorFieldType(getSheetEditorFieldType(lookup.designCell)));
 }
 
 /*
  * Handle edit attempts for related-document ID cells before entering inline edit mode.
  */
 
-function handleSheetRelatedDocumentCellEdit(lookup: SheetCellLookup, setFloatingMessage?: SetFloatingMessage) {
+function handleDataTableRelatedDocumentCellEdit(lookup: DataTableCellLookup, setFloatingMessage?: SetFloatingMessage) {
 	const fieldType = lookup.designCell.humanFieldType || lookup.designCell.fieldType;
-	if (fieldType !== 'ID' || !lookup.cell?.relatedTable || !hasSheetCellRelatedId(lookup.cell)) {
+	if (fieldType !== 'ID' || !lookup.cell?.relatedTable || !hasDataTableCellRelatedId(lookup.cell)) {
 		return false;
 	}
 
 	switch (lookup.cell.relatedTable) {
 		case 'logs':
 			setFloatingMessage?.({
-				text: getSheetTranslatedText('sheet.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
+				text: getDataTableTranslatedText('dataTable.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
 				type: 'NOTICE',
 			});
 			return true;
@@ -1962,7 +1962,7 @@ function handleSheetRelatedDocumentCellEdit(lookup: SheetCellLookup, setFloating
 		case 'inbound_contacts':
 		default:
 			setFloatingMessage?.({
-				text: getSheetTranslatedText('sheet.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
+				text: getDataTableTranslatedText('dataTable.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
 				type: 'NOTICE',
 			});
 			return true;
@@ -1970,18 +1970,18 @@ function handleSheetRelatedDocumentCellEdit(lookup: SheetCellLookup, setFloating
 }
 
 /*
- * Return whether one resolved sheet lookup points at an inbound contact ID cell.
+ * Return whether one resolved dataTable lookup points at an inbound contact ID cell.
  */
 
-function isSheetInboundContactIdLookup(lookup: SheetCellLookup) {
-	return lookup.designCell.fieldType === 'ID' && isSheetInboundContactRelatedTable(lookup.cell?.relatedTable) && hasSheetCellRelatedId(lookup.cell);
+function isDataTableInboundContactIdLookup(lookup: DataTableCellLookup) {
+	return lookup.designCell.fieldType === 'ID' && isDataTableInboundContactRelatedTable(lookup.cell?.relatedTable) && hasDataTableCellRelatedId(lookup.cell);
 }
 
 /*
- * Anchor a sheet-local editor to stable sheet-canvas coordinates.
+ * Anchor a dataTable-local editor to stable dataTable-canvas coordinates.
  */
 
-function SheetLocalEditorContainer(p: { children: ReactNode; position: SheetLocalEditorPosition }) {
+function DataTableLocalEditorContainer(p: { children: ReactNode; position: DataTableLocalEditorPosition }) {
 	const editorTop = p.position.top;
 
 	if (p.position.isStickyLeft) {
@@ -2031,7 +2031,7 @@ function SheetLocalEditorContainer(p: { children: ReactNode; position: SheetLoca
  * Render the read-only tag above a selected cell while preserving sticky-column positioning.
  */
 
-function SheetReadOnlyTag(p: { position: SheetLocalEditorPosition }) {
+function DataTableReadOnlyTag(p: { position: DataTableLocalEditorPosition }) {
 	const tag = (
 		<div
 			className="abs noclick nowrap px_5 py_4 ft_tn ft_medium lh_1 bg_contrast"
@@ -2091,18 +2091,18 @@ function SheetReadOnlyTag(p: { position: SheetLocalEditorPosition }) {
 }
 
 /*
- * Render the sheet-owned calendar editor for DATE and DATETIME cells.
+ * Render the dataTable-owned calendar editor for DATE and DATETIME cells.
  */
 
-function SheetDateEditor(p: {
+function DataTableDateEditor(p: {
 	clickSource?: SheetUIEditorClickSource;
 	editState: SheetUIEditState;
-	lookup: SheetCellLookup;
-	onDateValue: (lookup: SheetCellLookup, draftValue: string) => void;
-	onDateTimeSave: (lookup: SheetCellLookup, draftValue: string) => void;
+	lookup: DataTableCellLookup;
+	onDateValue: (lookup: DataTableCellLookup, draftValue: string) => void;
+	onDateTimeSave: (lookup: DataTableCellLookup, draftValue: string) => void;
 }) {
-	const initialDateValue = getSheetDateEditorDateValue(p.editState.draftValue);
-	const initialTimeValue = getSheetDateTimeEditorTimeValue(p.editState.draftValue);
+	const initialDateValue = getDataTableDateEditorDateValue(p.editState.draftValue);
+	const initialTimeValue = getDataTableDateTimeEditorTimeValue(p.editState.draftValue);
 	const [dateValue, setDateValue] = useState(initialDateValue);
 	const [timeValue, setTimeValue] = useState(initialTimeValue);
 	const isDateTime = getSheetEditorFieldType(p.lookup.designCell) === 'DATETIME';
@@ -2130,7 +2130,7 @@ function SheetDateEditor(p: {
 						return;
 					}
 
-					const nextDateValue = getSheetCalendarDateValue(nextValue);
+					const nextDateValue = getDataTableCalendarDateValue(nextValue);
 					if (isDateTime) {
 						setDateValue(nextDateValue);
 						return;
@@ -2146,7 +2146,7 @@ function SheetDateEditor(p: {
 					data-sheet-date-time-editor-form="true"
 					onSubmit={(event) => {
 						event.preventDefault();
-						p.onDateTimeSave(p.lookup, getSheetDateTimeEditorDraftValue(dateValue, timeValue));
+						p.onDateTimeSave(p.lookup, getDataTableDateTimeEditorDraftValue(dateValue, timeValue));
 					}}
 				>
 					<input
@@ -2159,7 +2159,7 @@ function SheetDateEditor(p: {
 						value={timeValue}
 					/>
 					<button className="h_28 px_8 bg_primary cl_white ft_xs" type="submit">
-						{getSheetTranslatedText('form.save', 'Save')}
+						{getDataTableTranslatedText('form.save', 'Save')}
 					</button>
 				</form>
 			) : null}
@@ -2168,37 +2168,37 @@ function SheetDateEditor(p: {
 }
 
 /*
- * Return the external URL stored in one open-link sheet cell.
+ * Return the external URL stored in one open-link dataTable cell.
  */
 
-function getSheetOpenCellExternalUrl(cell: SheetCellGQL | null | undefined) {
+function getDataTableOpenCellExternalUrl(cell: DataTableCellGQL | null | undefined) {
 	const textValue = cell?.textValue;
 
-	if (isSheetExternalLinkTextValue(textValue)) {
+	if (isDataTableExternalLinkTextValue(textValue)) {
 		return textValue;
 	}
 
 	const value = cell?.value as unknown;
 
-	if (isSheetExternalLinkTextValue(value)) {
+	if (isDataTableExternalLinkTextValue(value)) {
 		return value;
 	}
 
 	if (value && typeof value === 'object' && !Array.isArray(value)) {
 		const nestedValue = (value as { value?: unknown }).value;
-		return isSheetExternalLinkTextValue(nestedValue) ? nestedValue : null;
+		return isDataTableExternalLinkTextValue(nestedValue) ? nestedValue : null;
 	}
 
 	return null;
 }
 
 /*
- * Open one clickable sheet cell using its external URL or related document target.
+ * Open one clickable dataTable cell using its external URL or related document target.
  */
 
-function openSheetCellLink(params: SheetOpenCellLinkParams) {
+function openDataTableCellLink(params: DataTableOpenCellLinkParams) {
 	const { cell, openInboundContactEditor, openModalScreen, setFloatingMessage } = params;
-	const externalUrl = getSheetOpenCellExternalUrl(cell);
+	const externalUrl = getDataTableOpenCellExternalUrl(cell);
 
 	if (externalUrl) {
 		window.open(externalUrl, '_blank', 'noopener,noreferrer');
@@ -2206,7 +2206,7 @@ function openSheetCellLink(params: SheetOpenCellLinkParams) {
 	}
 
 	if (cell?.relatedId) {
-		if (isSheetInboundContactRelatedTable(cell.relatedTable)) {
+		if (isDataTableInboundContactRelatedTable(cell.relatedTable)) {
 			openInboundContactEditor(params);
 			return;
 		}
@@ -2226,16 +2226,16 @@ function openSheetCellLink(params: SheetOpenCellLinkParams) {
 	}
 
 	setFloatingMessage?.({
-		text: i18n.t('sheet.unsupported_link_msg'),
+		text: i18n.t('dataTable.unsupported_link_msg'),
 		type: 'NOTICE',
 	});
 }
 
 /*
- * Render a GraphQL-backed spreadsheet for an immutable sheet design.
+ * Render a GraphQL-backed spreadsheet for an immutable dataTable design.
  */
 
-export function Sheet(p: SheetProps) {
+export function Sheet(p: DataTableProps) {
 	const {
 		allowEdit,
 		bufferColumns = SHEET_BUFFER_COLUMNS,
@@ -2245,37 +2245,37 @@ export function Sheet(p: SheetProps) {
 		disabled,
 		limit = SHEET_ROWS_LIMIT,
 		setFloatingMessage,
-		sheet,
+		dataTable,
 		timeZone,
 	} = p;
-	const sheetId = sheet.id;
-	const organizationId = sheet.organizationId;
+	const dataTableId = dataTable.id;
+	const organizationId = dataTable.organizationId;
 	const effectiveDisabled = disabled || !allowEdit;
 	const openModalPopUp = useOpenModalPopUp();
 	const openModalScreen = useOpenModalScreen();
 	const scrollElement = useElementSize<HTMLDivElement>();
 	const fetchingMoreRef = useRef(false);
-	const runtimeRef = useRef<SheetRuntimeState | null>(null);
-	const resizeStateRef = useRef<SheetResizeState | null>(null);
+	const runtimeRef = useRef<DataTableRuntimeState | null>(null);
+	const resizeStateRef = useRef<DataTableResizeState | null>(null);
 	const resizeFrameRef = useRef<number | null>(null);
 	const resizeCleanupRef = useRef<(() => void) | null>(null);
-	const columnReorderRuntimeRef = useRef<SheetColumnReorderRuntime | null>(null);
-	const columnReorderStateRef = useRef<SheetColumnReorderState | null>(null);
+	const columnReorderRuntimeRef = useRef<DataTableColumnReorderRuntime | null>(null);
+	const columnReorderStateRef = useRef<DataTableColumnReorderState | null>(null);
 	const columnReorderFrameRef = useRef<number | null>(null);
 	const columnReorderCleanupRef = useRef<(() => void) | null>(null);
-	const cellDragSelectionStateRef = useRef<SheetCellDragSelectionState | null>(null);
+	const cellDragSelectionStateRef = useRef<DataTableCellDragSelectionState | null>(null);
 	const suppressNextCellClickRef = useRef(false);
-	const sheetGridContainerRef = useRef<HTMLDivElement | null>(null);
+	const dataTableGridContainerRef = useRef<HTMLDivElement | null>(null);
 	const designSaveInFlightRef = useRef(false);
-	const pendingDesignPatchRef = useRef<SheetDesignPatchInput | null>(null);
+	const pendingDesignPatchRef = useRef<DataTableDesignPatchInput | null>(null);
 	const inFlightDesignPatchRef = useRef<{
-		patch: SheetDesignPatchInput;
-		sheetId: string;
+		patch: DataTableDesignPatchInput;
+		dataTableId: string;
 	} | null>(null);
-	const drainSheetDesignSaveRef = useRef<(() => void) | null>(null);
+	const drainDataTableDesignSaveRef = useRef<(() => void) | null>(null);
 	const latestSavedColumnWidthsRef = useRef<SheetColumnWidths>({});
-	const designMutationRuntimeRef = useRef<SheetDesignMutationRuntime | null>(null);
-	const cellRenderStoreRef = useRef(createSheetUICellRenderStore());
+	const designMutationRuntimeRef = useRef<DataTableDesignMutationRuntime | null>(null);
+	const cellRenderStoreRef = useRef(createDataTableUICellRenderStore());
 	const cellUICacheRef = useRef(
 		new Map<
 			string,
@@ -2288,38 +2288,38 @@ export function Sheet(p: SheetProps) {
 	const cellSaveVersionRef = useRef<Record<string, number>>({});
 	const committingEditorRef = useRef(false);
 	const scrollFrameRef = useRef<number | null>(null);
-	const sheetArrowNavigationRuntimeRef = useRef<SheetArrowNavigationRuntime | null>(null);
+	const dataTableArrowNavigationRuntimeRef = useRef<DataTableArrowNavigationRuntime | null>(null);
 	const pendingScrollRef = useRef({
 		scrollLeft: 0,
 		scrollTop: 0,
 	});
-	const paginationRef = useRef<SheetPaginationState>({
+	const paginationRef = useRef<DataTablePaginationState>({
 		hasMoreRows: true,
 		lastCursor: null,
 	});
 	const [interactionState, dispatchInteractionAction] = useReducer(
-		sheetInteractionReducer<SheetCellLookup>,
+		dataTableInteractionReducer<DataTableCellLookup>,
 		undefined,
-		() => getInitialSheetInteractionState() as SheetInteractionState<SheetCellLookup>,
+		() => getInitialDataTableInteractionState() as DataTableInteractionState<DataTableCellLookup>,
 	);
-	const [columnReorderVisualState, setColumnReorderVisualState] = useState<SheetColumnReorderVisualState | null>(null);
-	const [optimisticValues, dispatchOptimisticValues] = useReducer(sheetCellValueReducer, {});
+	const [columnReorderVisualState, setColumnReorderVisualState] = useState<DataTableColumnReorderVisualState | null>(null);
+	const [optimisticValues, dispatchOptimisticValues] = useReducer(dataTableCellValueReducer, {});
 	const [resizingColumnKey, setResizingColumnKey] = useState<string | null>(null);
 	const [columnWidthDrafts, setColumnWidthDrafts] = useState<SheetColumnWidths>({});
-	const interactionStateRef = useRef<SheetInteractionState<SheetCellLookup>>(interactionState);
-	const [selectedViewId, setSelectedViewId] = useState<string | null>(() => getValidDefaultSheetViewId(sheet.design));
-	const [designState, dispatchDesignState] = useReducer(sheetDesignReducer, undefined, () => getInitialSheetDesignReducerState(sheetId, sheet.design));
+	const interactionStateRef = useRef<DataTableInteractionState<DataTableCellLookup>>(interactionState);
+	const [selectedViewId, setSelectedViewId] = useState<string | null>(() => getValidDefaultDataTableViewId(dataTable.design));
+	const [designState, dispatchDesignState] = useReducer(dataTableDesignReducer, undefined, () => getInitialDataTableDesignReducerState(dataTableId, dataTable.design));
 	const [scrollState, setScrollState] = useState({
 		scrollLeft: 0,
 		scrollTop: 0,
 	});
-	const { editSheetCell } = useEditSheetCell();
-	const { editSheetDesign } = useEditSheetDesign();
+	const { editDataTableCell } = useEditDataTableCell();
+	const { editDataTableDesign } = useEditDataTableDesign();
 	const [keyDown, setKeyDown] = useKeyDown();
 
 	interactionStateRef.current = interactionState;
 	const dispatchInteractionState = useCallback((action: Parameters<typeof dispatchInteractionAction>[0]) => {
-		interactionStateRef.current = sheetInteractionReducer(interactionStateRef.current, action);
+		interactionStateRef.current = dataTableInteractionReducer(interactionStateRef.current, action);
 		dispatchInteractionAction(action);
 	}, []);
 	const editState = getActiveEditState(interactionState);
@@ -2331,70 +2331,70 @@ export function Sheet(p: SheetProps) {
 	const inboundContactEditorState = getOpenLocalEditorState(interactionState);
 
 	const effectiveDesign = useMemo(() => {
-		if (designState.sheetId !== sheetId) {
-			return sheet.design;
+		if (designState.dataTableId !== dataTableId) {
+			return dataTable.design;
 		}
 
-		return mergeSheetDesignWithPatch(designState.serverDesign, designState.localPatch);
-	}, [designState.localPatch, designState.serverDesign, designState.sheetId, sheet.design, sheetId]);
+		return mergeDataTableDesignWithPatch(designState.serverDesign, designState.localPatch);
+	}, [designState.localPatch, designState.serverDesign, designState.dataTableId, dataTable.design, dataTableId]);
 	const effectiveSheet = useMemo(() => {
 		return {
-			...sheet,
+			...dataTable,
 			design: effectiveDesign,
 		};
-	}, [effectiveDesign, sheet]);
-	const sheetViews = useMemo(() => {
-		return getOrderedSheetDesignViews(effectiveDesign as any) as SheetDesignViewGQL[];
+	}, [effectiveDesign, dataTable]);
+	const dataTableViews = useMemo(() => {
+		return getOrderedDataTableDesignViews(effectiveDesign as any) as DataTableDesignViewGQL[];
 	}, [effectiveDesign]);
 	const activeView = useMemo(() => {
-		return getSelectedSheetView(sheetViews, selectedViewId);
-	}, [selectedViewId, sheetViews]);
-	const sheetRowsFilter = useMemo(() => {
+		return getSelectedDataTableView(dataTableViews, selectedViewId);
+	}, [selectedViewId, dataTableViews]);
+	const dataTableRowsFilter = useMemo(() => {
 		return activeView ? { viewId: activeView.id } : null;
 	}, [activeView]);
-	const sheetRowsQueryParams = useMemo(() => {
+	const dataTableRowsQueryParams = useMemo(() => {
 		return { openModalPopUp };
 	}, [openModalPopUp]);
 	const rowSourceKey = useMemo(() => {
-		return getSheetRowsSourceKey(sheetId, activeView?.id || null);
-	}, [activeView?.id, sheetId]);
-	const [rowState, setRowState] = useState<SheetRowsState>(() => getInitialSheetRowsState(rowSourceKey));
-	const { sheetRows, fetchMore, resetOnlyTime, variables: sheetRowsVariables } = useSheetRows(sheetId, organizationId, null, limit, sheetRowsFilter, sheetRowsQueryParams);
-	useFloatingMessageForSheetRowsReset(resetOnlyTime, setFloatingMessage);
-	const isSheetRowsDataCurrent =
-		String(sheetRowsVariables?.sheetId || '') === String(sheetId || '') &&
-		String(sheetRowsVariables?.organizationId || '') === String(organizationId || '') &&
-		(sheetRowsVariables?.filter?.viewId || null) === (sheetRowsFilter?.viewId || null);
-	const isSheetRowsReady = Array.isArray(sheetRows) && isSheetRowsDataCurrent;
+		return getDataTableRowsSourceKey(dataTableId, activeView?.id || null);
+	}, [activeView?.id, dataTableId]);
+	const [rowState, setRowState] = useState<DataTableRowsState>(() => getInitialDataTableRowsState(rowSourceKey));
+	const { dataTableRows, fetchMore, resetOnlyTime, variables: dataTableRowsVariables } = useDataTableRows(dataTableId, organizationId, null, limit, dataTableRowsFilter, dataTableRowsQueryParams);
+	useFloatingMessageForDataTableRowsReset(resetOnlyTime, setFloatingMessage);
+	const isDataTableRowsDataCurrent =
+		String(dataTableRowsVariables?.dataTableId || '') === String(dataTableId || '') &&
+		String(dataTableRowsVariables?.organizationId || '') === String(organizationId || '') &&
+		(dataTableRowsVariables?.filter?.viewId || null) === (dataTableRowsFilter?.viewId || null);
+	const isDataTableRowsReady = Array.isArray(dataTableRows) && isDataTableRowsDataCurrent;
 	const masterDesignCells = useMemo(() => {
 		return effectiveSheet.design?.cells || [];
 	}, [effectiveSheet.design?.cells]);
 	const masterColumns = useMemo(() => {
-		return getOrderedSheetDesignCells(effectiveSheet);
+		return getOrderedDataTableDesignCells(effectiveSheet);
 	}, [effectiveSheet]);
 	const serverColumns = useMemo(() => {
-		return getOrderedSheetDesignCells({
-			...sheet,
-			design: designState.sheetId === sheetId ? designState.serverDesign : sheet.design,
+		return getOrderedDataTableDesignCells({
+			...dataTable,
+			design: designState.dataTableId === dataTableId ? designState.serverDesign : dataTable.design,
 		});
-	}, [designState.serverDesign, designState.sheetId, sheet, sheet.design, sheetId]);
+	}, [designState.serverDesign, designState.dataTableId, dataTable, dataTable.design, dataTableId]);
 	const columns = useMemo(() => {
-		return getSheetRuntimeDesignCellsWithUniqueKeys(activeView ? getSheetViewRuntimeCells(activeView, masterDesignCells) : masterColumns);
+		return getDataTableRuntimeDesignCellsWithUniqueKeys(activeView ? getDataTableViewRuntimeCells(activeView, masterDesignCells) : masterColumns);
 	}, [activeView, masterColumns, masterDesignCells]);
 	const columnKeys = useMemo(() => {
-		return columns.map(getSheetRuntimeColumnKey);
+		return columns.map(getDataTableRuntimeColumnKey);
 	}, [columns]);
 	const uiColumns = useMemo(() => {
 		return columns.map(getSheetUIColumn);
 	}, [columns]);
 	const savedColumnWidths = useMemo(() => {
-		return getSheetDesignColumnWidths(serverColumns);
+		return getDataTableDesignColumnWidths(serverColumns);
 	}, [serverColumns]);
 	latestSavedColumnWidthsRef.current = savedColumnWidths;
 	const mergedColumnWidths = useMemo(() => {
 		return {
 			...savedColumnWidths,
-			...getSheetDesignColumnWidths(columns),
+			...getDataTableDesignColumnWidths(columns),
 			...columnWidthDrafts,
 		};
 	}, [columnWidthDrafts, columns, savedColumnWidths]);
@@ -2418,10 +2418,10 @@ export function Sheet(p: SheetProps) {
 		return new Map(columnMetricsData.metrics.map((metric) => [metric.column.id, metric]));
 	}, [columnMetricsData.metrics]);
 	const designCellsByKey = useMemo(() => {
-		return new Map(columns.map((cell) => [getSheetRuntimeColumnKey(cell), cell]));
+		return new Map(columns.map((cell) => [getDataTableRuntimeColumnKey(cell), cell]));
 	}, [columns]);
 
-	columnReorderRuntimeRef.current = getSheetColumnReorderRuntime({
+	columnReorderRuntimeRef.current = getDataTableColumnReorderRuntime({
 		activeView,
 		columnMetrics: columnReorderMetrics,
 		design: effectiveDesign,
@@ -2437,7 +2437,7 @@ export function Sheet(p: SheetProps) {
 		});
 		setColumnWidthDrafts({});
 		setColumnReorderVisualState(null);
-		setRowState(getInitialSheetRowsState(rowSourceKey));
+		setRowState(getInitialDataTableRowsState(rowSourceKey));
 		setScrollState({
 			scrollLeft: 0,
 			scrollTop: 0,
@@ -2447,11 +2447,11 @@ export function Sheet(p: SheetProps) {
 	}, [rowSourceKey]);
 
 	/*
-	 * Restore the active editor cell as the sheet's single-click selected cell.
+	 * Restore the active editor cell as the dataTable's single-click selected cell.
 	 */
 
 	const restoreSingleClickedCellFromEditState = useCallback((editStateToRestore?: SheetUIEditState | null) => {
-		const nextSingleClickedCell = getSheetSelectedCellStateFromEditState(editStateToRestore ?? getActiveEditState(interactionStateRef.current));
+		const nextSingleClickedCell = getDataTableSelectedCellStateFromEditState(editStateToRestore ?? getActiveEditState(interactionStateRef.current));
 
 		if (nextSingleClickedCell) {
 			dispatchInteractionState({
@@ -2494,34 +2494,34 @@ export function Sheet(p: SheetProps) {
 	);
 
 	useIsomorphicLayoutEffect(() => {
-		setSelectedViewId(getValidDefaultSheetViewId(sheet.design));
-	}, [sheetId]);
+		setSelectedViewId(getValidDefaultDataTableViewId(dataTable.design));
+	}, [dataTableId]);
 
 	useEffect(() => {
-		if (selectedViewId && !sheetViews.some((view) => view.id === selectedViewId)) {
-			setSelectedViewId(getValidDefaultSheetViewId(effectiveDesign));
+		if (selectedViewId && !dataTableViews.some((view) => view.id === selectedViewId)) {
+			setSelectedViewId(getValidDefaultDataTableViewId(effectiveDesign));
 		}
-	}, [effectiveDesign, selectedViewId, sheetViews]);
+	}, [effectiveDesign, selectedViewId, dataTableViews]);
 
 	useEffect(() => {
 		dispatchDesignState({
-			design: sheet.design,
-			sheetId,
+			design: dataTable.design,
+			dataTableId,
 			type: 'server_design_received',
 		});
-	}, [sheet.design, sheetId]);
+	}, [dataTable.design, dataTableId]);
 
 	designMutationRuntimeRef.current = {
-		editSheetDesign,
+		editDataTableDesign,
 		organizationId,
-		sheetId,
+		dataTableId,
 	};
 
 	useIsomorphicLayoutEffect(() => {
-		if (isSheetRowsReady) {
-			setRowState((currentState) => mergeSheetRowsState(currentState, rowSourceKey, sheetRows as SheetRowGQL[], limit));
+		if (isDataTableRowsReady) {
+			setRowState((currentState) => mergeDataTableRowsState(currentState, rowSourceKey, dataTableRows as DataTableRowGQL[], limit));
 		}
-	}, [isSheetRowsReady, limit, rowSourceKey, sheetRows]);
+	}, [isDataTableRowsReady, limit, rowSourceKey, dataTableRows]);
 
 	useEffect(() => {
 		const loadedRowIds = new Set(rowState.rowIds);
@@ -2544,8 +2544,8 @@ export function Sheet(p: SheetProps) {
 
 		return rowState.rowIds.map((rowId) => rowState.rowsById[rowId]).filter(Boolean);
 	}, [rowState.rowIds, rowState.rowsById, rowStateMatchesSource]);
-	const reactiveRows = useReactiveSheetRows(rows) as SheetRowGQL[] | null;
-	const renderedRows = isSheetRowsReady && rowStateMatchesSource ? reactiveRows || rows : [];
+	const reactiveRows = useReactiveDataTableRows(rows) as DataTableRowGQL[] | null;
+	const renderedRows = isDataTableRowsReady && rowStateMatchesSource ? reactiveRows || rows : [];
 	const rowsById = useMemo(() => {
 		return new Map(renderedRows.map((row) => [row.id, row]));
 	}, [renderedRows]);
@@ -2553,9 +2553,9 @@ export function Sheet(p: SheetProps) {
 		return new Map(renderedRows.map((row, index) => [row.id, index]));
 	}, [renderedRows]);
 	const rowCellsById = useMemo(() => {
-		return getSheetRowCellsById(renderedRows);
+		return getDataTableRowCellsById(renderedRows);
 	}, [renderedRows]);
-	const selectedCellLookup = useMemo<SheetCellLookup | null>(() => {
+	const selectedCellLookup = useMemo<DataTableCellLookup | null>(() => {
 		if (!singleClickedCellState) {
 			return null;
 		}
@@ -2568,15 +2568,15 @@ export function Sheet(p: SheetProps) {
 		}
 
 		return {
-			cell: rowCellsById.get(row.id)?.get(getSheetRuntimeCellKey(designCell)) || null,
+			cell: rowCellsById.get(row.id)?.get(getDataTableRuntimeCellKey(designCell)) || null,
 			designCell,
 			row,
 		};
 	}, [designCellsByKey, rowCellsById, rowsById, singleClickedCellState]);
-	const activeDateEditorLookup = useMemo<SheetCellLookup | null>(() => {
+	const activeDateEditorLookup = useMemo<DataTableCellLookup | null>(() => {
 		const designCell = editState?.cellKey ? designCellsByKey.get(editState.cellKey) : null;
 
-		if (!editState || !designCell || !isSheetDateEditorFieldType(getSheetEditorFieldType(designCell))) {
+		if (!editState || !designCell || !isDataTableDateEditorFieldType(getSheetEditorFieldType(designCell))) {
 			return null;
 		}
 
@@ -2587,12 +2587,12 @@ export function Sheet(p: SheetProps) {
 		}
 
 		return {
-			cell: rowCellsById.get(row.id)?.get(getSheetRuntimeCellKey(designCell)) || null,
+			cell: rowCellsById.get(row.id)?.get(getDataTableRuntimeCellKey(designCell)) || null,
 			designCell,
 			row,
 		};
 	}, [designCellsByKey, editState, rowCellsById, rowsById]);
-	const activeSelectEditorLookup = useMemo<SheetCellLookup | null>(() => {
+	const activeSelectEditorLookup = useMemo<DataTableCellLookup | null>(() => {
 		const designCell = editState?.cellKey ? designCellsByKey.get(editState.cellKey) : null;
 
 		if (!editState || !designCell || !isSheetSelectEditorFieldType(getSheetEditorFieldType(designCell))) {
@@ -2606,7 +2606,7 @@ export function Sheet(p: SheetProps) {
 		}
 
 		return {
-			cell: rowCellsById.get(row.id)?.get(getSheetRuntimeCellKey(designCell)) || null,
+			cell: rowCellsById.get(row.id)?.get(getDataTableRuntimeCellKey(designCell)) || null,
 			designCell,
 			row,
 		};
@@ -2622,8 +2622,8 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			const cell = rowCellsById.get(rowId)?.get(getSheetRuntimeCellKey(designCell));
-			const serverValue = getSheetCellSerializedValue(cell, designCell);
+			const cell = rowCellsById.get(rowId)?.get(getDataTableRuntimeCellKey(designCell));
+			const serverValue = getDataTableCellSerializedValue(cell, designCell);
 
 			if (serverValue === optimisticValue) {
 				confirmedKeys.push(optimisticKey);
@@ -2643,8 +2643,8 @@ export function Sheet(p: SheetProps) {
 		lastCursor: renderedRows[renderedRows.length - 1]?.cursor || null,
 	};
 	const saveCellValue = useCallback(
-		async (lookup: SheetCellLookup, value: string | null) => {
-			const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+		async (lookup: DataTableCellLookup, value: string | null) => {
+			const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 			const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
 			const saveVersion = (cellSaveVersionRef.current[optimisticKey] || 0) + 1;
 			cellSaveVersionRef.current[optimisticKey] = saveVersion;
@@ -2657,31 +2657,31 @@ export function Sheet(p: SheetProps) {
 			});
 
 			try {
-				const result = await editSheetCell({
+				const result = await editDataTableCell({
 					variables: {
 						organizationId,
-						sheetId,
-						sheetRowId: lookup.row.id,
-						cellKey: getSheetRuntimeCellKey(lookup.designCell),
+						dataTableId,
+						dataTableRowId: lookup.row.id,
+						cellKey: getDataTableRuntimeCellKey(lookup.designCell),
 						viewId: activeView?.id || null,
 						viewCellKey: activeView ? lookup.designCell.key : null,
 						value,
 					},
 				});
 
-				const savedCell = result?.editSheetCell as SheetCellGQL | null | undefined;
-				const savedCellKey = getSheetRuntimeCellKey(lookup.designCell);
+				const savedCell = result?.editDataTableCell as DataTableCellGQL | null | undefined;
+				const savedCellKey = getDataTableRuntimeCellKey(lookup.designCell);
 				if (
 					cellSaveVersionRef.current[optimisticKey] === saveVersion &&
 					savedCell &&
-					String(savedCell.sheetRowId) === String(lookup.row.id) &&
+					String(savedCell.dataTableRowId) === String(lookup.row.id) &&
 					savedCell.cellKey === savedCellKey
 				) {
 					dispatchOptimisticValues({
 						cellKey: runtimeKey,
 						rowId: lookup.row.id,
 						type: 'local_value_queued',
-						value: getSheetCellSerializedValue(savedCell, lookup.designCell),
+						value: getDataTableCellSerializedValue(savedCell, lookup.designCell),
 					});
 				}
 			} catch (error) {
@@ -2695,7 +2695,7 @@ export function Sheet(p: SheetProps) {
 				throw error;
 			}
 		},
-		[activeView, editSheetCell, organizationId, sheetId],
+		[activeView, editDataTableCell, organizationId, dataTableId],
 	);
 	const fetchMoreRows = useCallback(async () => {
 		const pagination = paginationRef.current;
@@ -2709,24 +2709,24 @@ export function Sheet(p: SheetProps) {
 		try {
 			const result = await fetchMore({
 				variables: {
-					sheetId,
+					dataTableId,
 					organizationId,
 					cursor: pagination.lastCursor,
 					limit,
-					filter: sheetRowsFilter,
+					filter: dataTableRowsFilter,
 				},
 			});
-			const nextRows = result?.data?.sheetRows || result?.sheetRows || [];
+			const nextRows = result?.data?.dataTableRows || result?.dataTableRows || [];
 
 			if (Array.isArray(nextRows)) {
-				setRowState((currentState) => mergeSheetRowsState(currentState, rowSourceKey, nextRows as SheetRowGQL[], limit, true));
+				setRowState((currentState) => mergeDataTableRowsState(currentState, rowSourceKey, nextRows as DataTableRowGQL[], limit, true));
 			}
 		} finally {
 			fetchingMoreRef.current = false;
 		}
-	}, [fetchMore, limit, organizationId, rowSourceKey, sheetId, sheetRowsFilter]);
+	}, [fetchMore, limit, organizationId, rowSourceKey, dataTableId, dataTableRowsFilter]);
 
-	const drainSheetDesignSave = useCallback(() => {
+	const drainDataTableDesignSave = useCallback(() => {
 		if (designSaveInFlightRef.current || !pendingDesignPatchRef.current) {
 			return;
 		}
@@ -2741,16 +2741,16 @@ export function Sheet(p: SheetProps) {
 		pendingDesignPatchRef.current = null;
 		inFlightDesignPatchRef.current = {
 			patch: pendingPatch,
-			sheetId: runtime.sheetId,
+			dataTableId: runtime.dataTableId,
 		};
 		designSaveInFlightRef.current = true;
 
 		void (async () => {
 			try {
-				await runtime.editSheetDesign({
+				await runtime.editDataTableDesign({
 					variables: {
 						organizationId: runtime.organizationId,
-						sheetId: runtime.sheetId,
+						dataTableId: runtime.dataTableId,
 						design: pendingPatch,
 					},
 				});
@@ -2761,20 +2761,20 @@ export function Sheet(p: SheetProps) {
 				inFlightDesignPatchRef.current = null;
 
 				if (pendingDesignPatchRef.current) {
-					drainSheetDesignSaveRef.current?.();
+					drainDataTableDesignSaveRef.current?.();
 				}
 			}
 		})();
 	}, []);
 
-	drainSheetDesignSaveRef.current = drainSheetDesignSave;
+	drainDataTableDesignSaveRef.current = drainDataTableDesignSave;
 
-	const queueSheetDesignSave = useCallback(
-		(patch: SheetDesignPatchInput) => {
-			pendingDesignPatchRef.current = mergeSheetDesignPatch(pendingDesignPatchRef.current, patch);
-			drainSheetDesignSave();
+	const queueDataTableDesignSave = useCallback(
+		(patch: DataTableDesignPatchInput) => {
+			pendingDesignPatchRef.current = mergeDataTableDesignPatch(pendingDesignPatchRef.current, patch);
+			drainDataTableDesignSave();
 		},
-		[drainSheetDesignSave],
+		[drainDataTableDesignSave],
 	);
 
 	const commitHeaderEditorElement = useCallback(
@@ -2793,7 +2793,7 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			const humanLabel = getSheetHeaderHumanLabelPatchValue(designCell, getSheetEditorElementValue(editorElement));
+			const humanLabel = getDataTableHeaderHumanLabelPatchValue(designCell, getSheetEditorElementValue(editorElement));
 			const currentHumanLabel = designCell.humanLabel || null;
 
 			if (currentHumanLabel === humanLabel) {
@@ -2813,13 +2813,13 @@ export function Sheet(p: SheetProps) {
 				patch,
 				type: 'local_patch_queued',
 			});
-			queueSheetDesignSave(patch);
+			queueDataTableDesignSave(patch);
 		},
-		[queueSheetDesignSave],
+		[queueDataTableDesignSave],
 	);
 
 	/*
-	 * Enter header edit mode for one design cell when the sheet design can be edited.
+	 * Enter header edit mode for one design cell when the dataTable design can be edited.
 	 */
 
 	const startHeaderEdit = useCallback((cellKey: string) => {
@@ -2832,8 +2832,8 @@ export function Sheet(p: SheetProps) {
 
 		dispatchInteractionState({
 			headerEditState: {
-				cellKey: getSheetRuntimeColumnKey(designCell),
-				draftValue: getSheetDesignCellHeaderLabel(designCell),
+				cellKey: getDataTableRuntimeColumnKey(designCell),
+				draftValue: getDataTableDesignCellHeaderLabel(designCell),
 			},
 			type: 'header_edit_started',
 		});
@@ -2893,10 +2893,10 @@ export function Sheet(p: SheetProps) {
 					const savedWidth = latestSavedColumnWidthsRef.current[resizeState.designCellKey] || SHEET_COLUMN_WIDTH;
 					const hasQueuedWidthPatch = Boolean(
 						pendingDesignPatchRef.current?.cells?.some((cell) => cell.key === resizeState.designCellKey) ||
-							(inFlightDesignPatchRef.current?.sheetId === sheetId && inFlightDesignPatchRef.current.patch.cells?.some((cell) => cell.key === resizeState.designCellKey)),
+							(inFlightDesignPatchRef.current?.dataTableId === dataTableId && inFlightDesignPatchRef.current.patch.cells?.some((cell) => cell.key === resizeState.designCellKey)),
 					);
 					if (!updatesRuntimeColumnDirectly || savedWidth !== latestWidth || hasQueuedWidthPatch) {
-						queueSheetDesignSave({
+						queueDataTableDesignSave({
 							cells: [
 								{
 									key: resizeState.designCellKey,
@@ -2971,7 +2971,7 @@ export function Sheet(p: SheetProps) {
 				window.removeEventListener('contextmenu', onContextMenu, true);
 			};
 		},
-		[queueSheetDesignSave, sheetId],
+		[queueDataTableDesignSave, dataTableId],
 	);
 
 	const startColumnReorder = useCallback(
@@ -2988,10 +2988,10 @@ export function Sheet(p: SheetProps) {
 			columnReorderCleanupRef.current?.();
 
 			const startLeft = getSheetColumnMetricHeaderLeft(metric, scrollState.scrollLeft, stickyColumnCount);
-			const initialTargetIndex = getSheetColumnReorderTargetIndex({
+			const initialTargetIndex = getDataTableColumnReorderTargetIndex({
 				clientX,
 				draggedColumnIndex: metric.columnIndex,
-				draggedRect: getSheetColumnReorderDraggedRect({
+				draggedRect: getDataTableColumnReorderDraggedRect({
 					clientX,
 					startClientX: clientX,
 					startLeft,
@@ -3056,10 +3056,10 @@ export function Sheet(p: SheetProps) {
 
 				if (reorderState && latestClientX !== undefined) {
 					reorderState.latestClientX = latestClientX;
-					reorderState.latestToVisibleIndex = getSheetColumnReorderTargetIndex({
+					reorderState.latestToVisibleIndex = getDataTableColumnReorderTargetIndex({
 						clientX: latestClientX,
 						draggedColumnIndex: reorderState.startColumnIndex,
-						draggedRect: getSheetColumnReorderDraggedRect({
+						draggedRect: getDataTableColumnReorderDraggedRect({
 							clientX: latestClientX,
 							startClientX: reorderState.startClientX,
 							startLeft: reorderState.startLeft,
@@ -3074,17 +3074,17 @@ export function Sheet(p: SheetProps) {
 
 				if (reorderState?.started) {
 					const fromIndex = reorderRuntime.visibleColumnKeys.indexOf(reorderState.columnKey);
-					const toVisibleIndex = getSheetColumnReorderMoveIndex(reorderRuntime.visibleColumnKeys, reorderState.columnKey, reorderState.latestToVisibleIndex);
+					const toVisibleIndex = getDataTableColumnReorderMoveIndex(reorderRuntime.visibleColumnKeys, reorderState.columnKey, reorderState.latestToVisibleIndex);
 
 					if (fromIndex >= 0 && fromIndex !== toVisibleIndex) {
-						const nextOrder = moveVisibleSheetColumnKeyInOrder({
+						const nextOrder = moveVisibleDataTableColumnKeyInOrder({
 							allColumnKeys: reorderRuntime.allColumnKeys,
 							fromKey: reorderState.columnKey,
 							savedOrder: reorderRuntime.savedOrder,
 							toVisibleIndex,
 							visibleColumnKeys: reorderRuntime.visibleColumnKeys,
 						});
-						const patch: SheetDesignPatchInput = reorderRuntime.activeViewId
+						const patch: DataTableDesignPatchInput = reorderRuntime.activeViewId
 							? {
 									views: [
 										{
@@ -3101,7 +3101,7 @@ export function Sheet(p: SheetProps) {
 							patch,
 							type: 'local_patch_queued',
 						});
-						queueSheetDesignSave(patch);
+						queueDataTableDesignSave(patch);
 					}
 				}
 
@@ -3136,10 +3136,10 @@ export function Sheet(p: SheetProps) {
 
 				event.preventDefault();
 				reorderState.latestClientX = event.clientX;
-				reorderState.latestToVisibleIndex = getSheetColumnReorderTargetIndex({
+				reorderState.latestToVisibleIndex = getDataTableColumnReorderTargetIndex({
 					clientX: event.clientX,
 					draggedColumnIndex: reorderState.startColumnIndex,
-					draggedRect: getSheetColumnReorderDraggedRect({
+					draggedRect: getDataTableColumnReorderDraggedRect({
 						clientX: event.clientX,
 						startClientX: reorderState.startClientX,
 						startLeft: reorderState.startLeft,
@@ -3170,7 +3170,7 @@ export function Sheet(p: SheetProps) {
 				window.removeEventListener('contextmenu', onContextMenu, true);
 			};
 		},
-		[queueSheetDesignSave, scrollElement.node, scrollState.scrollLeft, stickyColumnCount],
+		[queueDataTableDesignSave, scrollElement.node, scrollState.scrollLeft, stickyColumnCount],
 	);
 	const commitEditorElement = useCallback(
 		async (editorElement: HTMLElement) => {
@@ -3179,21 +3179,21 @@ export function Sheet(p: SheetProps) {
 			}
 
 			const runtime = runtimeRef.current;
-			const lookup = runtime ? getSheetCellLookup(runtime, editorElement.dataset.rowId, editorElement.dataset.cellKey) : null;
+			const lookup = runtime ? getDataTableCellLookup(runtime, editorElement.dataset.rowId, editorElement.dataset.cellKey) : null;
 
 			if (!runtime || !lookup) {
 				dismissCellEditorToSelectedCell();
 				return;
 			}
 
-			if (isSheetLocalEditorFieldType(getSheetEditorFieldType(lookup.designCell))) {
+			if (isDataTableLocalEditorFieldType(getSheetEditorFieldType(lookup.designCell))) {
 				return;
 			}
 
 			const draftValue = getSheetEditorElementValue(editorElement);
 			const parsedValue = parseSheetEditorValue(lookup.designCell, draftValue);
-			const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
-			const editStateToRestore = isSheetEditStateLookup(runtime.editState, lookup)
+			const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
+			const editStateToRestore = isDataTableEditStateLookup(runtime.editState, lookup)
 				? runtime.editState
 				: {
 						cellKey: runtimeKey,
@@ -3217,7 +3217,7 @@ export function Sheet(p: SheetProps) {
 			}
 
 			const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
-			const currentValue = getSheetCellSerializedValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey]);
+			const currentValue = getDataTableCellSerializedValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey]);
 
 			if (!__DISABLE_EDIT_STATE_RESET__) {
 				dismissCellEditorToSelectedCell(editStateToRestore);
@@ -3250,16 +3250,16 @@ export function Sheet(p: SheetProps) {
 	);
 
 	/*
-	 * Open the inbound contact overlay editor from one sheet cell lookup.
+	 * Open the inbound contact overlay editor from one dataTable cell lookup.
 	 */
 
-	function openInboundContactLocalEditor(lookup: SheetCellLookup, clickSource: SheetUIEditorClickSource) {
+	function openInboundContactLocalEditor(lookup: DataTableCellLookup, clickSource: SheetUIEditorClickSource) {
 		const runtime = runtimeRef.current;
 		const displayValue = getSheetCellDisplayValue(lookup.cell, lookup.designCell, undefined, timeZone);
 		const editState = runtime
-			? getSheetCellOverlayEditState(runtime, lookup, clickSource)
+			? getDataTableCellOverlayEditState(runtime, lookup, clickSource)
 			: {
-					cellKey: getSheetRuntimeColumnKey(lookup.designCell),
+					cellKey: getDataTableRuntimeColumnKey(lookup.designCell),
 					clickSource,
 					disableInlineEditor: true,
 					draftValue: getSheetEditorDraftValue(lookup.cell, lookup.designCell),
@@ -3284,10 +3284,10 @@ export function Sheet(p: SheetProps) {
 		disabled: effectiveDisabled,
 		editState,
 		optimisticValues,
-		openCell: (params: SheetOpenCellParams) => {
-			openSheetCellLink({
+		openCell: (params: DataTableOpenCellParams) => {
+			openDataTableCellLink({
 				...params,
-				openInboundContactEditor: (openParams: SheetOpenCellParams) => {
+				openInboundContactEditor: (openParams: DataTableOpenCellParams) => {
 					const currentRuntime = runtimeRef.current;
 					const lookup = {
 						cell: openParams.cell,
@@ -3296,9 +3296,9 @@ export function Sheet(p: SheetProps) {
 					};
 					const clickSource = openParams.clickSource || 'CELL_BACKGROUND';
 					const editState = currentRuntime
-						? getSheetCellOverlayEditState(currentRuntime, lookup, clickSource)
+						? getDataTableCellOverlayEditState(currentRuntime, lookup, clickSource)
 						: {
-								cellKey: getSheetRuntimeColumnKey(openParams.designCell),
+								cellKey: getDataTableRuntimeColumnKey(openParams.designCell),
 								clickSource,
 								disableInlineEditor: true,
 								draftValue: getSheetEditorDraftValue(openParams.cell, openParams.designCell),
@@ -3322,18 +3322,18 @@ export function Sheet(p: SheetProps) {
 		rowCellsById,
 		rowsById,
 		saveCellValue,
-		sheet: effectiveSheet,
+		dataTable: effectiveSheet,
 		startColumnReorder,
 		startColumnResize,
 		timeZone,
 	};
 
 	/*
-	 * Open editor behavior for one target selected from the Sheet context menu.
+	 * Open editor behavior for one target selected from the DataTable context menu.
 	 */
 
-	const handleSheetContextMenuEditCell = useCallback(
-		(target: SheetContextMenuCellTarget) => {
+	const handleDataTableContextMenuEditCell = useCallback(
+		(target: DataTableContextMenuCellTarget) => {
 			const runtime = runtimeRef.current;
 			const lookup = target.lookup;
 
@@ -3341,24 +3341,24 @@ export function Sheet(p: SheetProps) {
 				!runtime ||
 				lookup.row.__deleted ||
 				runtime.disabled ||
-				runtime.sheet.design?.humansCannotEdit ||
+				runtime.dataTable.design?.humansCannotEdit ||
 				lookup.designCell.humansCannotEdit ||
-				isSheetReferenceCell(lookup.cell)
+				isDataTableReferenceCell(lookup.cell)
 			) {
 				return;
 			}
 
-			if (isSheetInboundContactIdLookup(lookup)) {
+			if (isDataTableInboundContactIdLookup(lookup)) {
 				openInboundContactLocalEditor(lookup, 'CELL_BACKGROUND');
 				return;
 			}
 
-			if (handleSheetRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
+			if (handleDataTableRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
 				return;
 			}
 
 			dispatchInteractionState({
-				editState: getSheetCellEditState(runtime, lookup, 'CELL_BACKGROUND'),
+				editState: getDataTableCellEditState(runtime, lookup, 'CELL_BACKGROUND'),
 				type: 'cell_edit_started',
 			});
 		},
@@ -3366,14 +3366,14 @@ export function Sheet(p: SheetProps) {
 	);
 
 	/*
-	 * Open link behavior for one target selected from the Sheet context menu.
+	 * Open link behavior for one target selected from the DataTable context menu.
 	 */
 
-	const handleSheetContextMenuOpenCell = useCallback((target: SheetContextMenuCellTarget) => {
+	const handleDataTableContextMenuOpenCell = useCallback((target: DataTableContextMenuCellTarget) => {
 		const runtime = runtimeRef.current;
 		const lookup = target.lookup;
 
-		if (!runtime || lookup.row.__deleted || !canOpenSheetCellLink(lookup.cell, lookup.designCell)) {
+		if (!runtime || lookup.row.__deleted || !canOpenDataTableCellLink(lookup.cell, lookup.designCell)) {
 			return;
 		}
 
@@ -3382,15 +3382,15 @@ export function Sheet(p: SheetProps) {
 			clickSource: 'CELL_LINK',
 			designCell: lookup.designCell,
 			row: lookup.row,
-			sheet: runtime.sheet,
+			dataTable: runtime.dataTable,
 		});
 	}, []);
 
 	/*
-	 * Scroll the sheet viewport just enough to keep one cell visible.
+	 * Scroll the dataTable viewport just enough to keep one cell visible.
 	 */
 
-	const scrollSheetSelectedCellIntoView = useCallback((navigationRuntime: SheetArrowNavigationRuntime, selectedCellState: { cellKey: string; rowId: string }) => {
+	const scrollDataTableSelectedCellIntoView = useCallback((navigationRuntime: DataTableArrowNavigationRuntime, selectedCellState: { cellKey: string; rowId: string }) => {
 		const nextColumnMetric = navigationRuntime.columnMetrics.find((metric) => metric.column.key === selectedCellState.cellKey);
 		const nextRowIndex = navigationRuntime.renderedRows.findIndex((row) => row.id === selectedCellState.rowId);
 
@@ -3398,7 +3398,7 @@ export function Sheet(p: SheetProps) {
 			return;
 		}
 
-		const nextScrollState = getSheetArrowNavigationScrollState({
+		const nextScrollState = getDataTableArrowNavigationScrollState({
 			columnMetric: nextColumnMetric,
 			rowIndex: nextRowIndex,
 			runtime: navigationRuntime,
@@ -3420,18 +3420,18 @@ export function Sheet(p: SheetProps) {
 	}, []);
 
 	/*
-	 * Move the selected sheet cell by one keyboard arrow step.
+	 * Move the selected dataTable cell by one keyboard arrow step.
 	 */
 
-	const handleSheetArrowKeyNavigation = useCallback((direction: SheetArrowNavigationDirection, extendSelection = false) => {
-		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+	const handleDataTableArrowKeyNavigation = useCallback((direction: DataTableArrowNavigationDirection, extendSelection = false) => {
+		const navigationRuntime = dataTableArrowNavigationRuntimeRef.current;
 		const selectedCellState = getSelectedCellState(interactionStateRef.current);
 		const selectedSelection = getSelectedCellSelection(interactionStateRef.current);
 		const navigationCellState = extendSelection
 			? selectedSelection?.rangeEndCell || selectedCellState
 			: selectedCellState;
 		const nextSelectedCellState = navigationRuntime
-			? getSheetArrowNavigationSelection({
+			? getDataTableArrowNavigationSelection({
 					columnMetrics: navigationRuntime.columnMetrics,
 					direction,
 					renderedRows: navigationRuntime.renderedRows,
@@ -3443,10 +3443,10 @@ export function Sheet(p: SheetProps) {
 			return;
 		}
 
-		scrollSheetSelectedCellIntoView(navigationRuntime, nextSelectedCellState);
+		scrollDataTableSelectedCellIntoView(navigationRuntime, nextSelectedCellState);
 		if (extendSelection) {
 			dispatchInteractionState({
-				selection: getSheetRangeSelection({
+				selection: getDataTableRangeSelection({
 					activeCell: nextSelectedCellState,
 					anchorCell: selectedSelection?.anchorCell || selectedCellState || nextSelectedCellState,
 					columnMetrics: navigationRuntime.columnMetrics,
@@ -3462,22 +3462,22 @@ export function Sheet(p: SheetProps) {
 			cell: nextSelectedCellState,
 			type: 'cell_selected',
 		});
-	}, [scrollSheetSelectedCellIntoView]);
+	}, [scrollDataTableSelectedCellIntoView]);
 
 	/*
 	 * Move only the active cell border through the current multi-cell selection.
 	 */
 
-	const handleSheetTabKeyNavigation = useCallback((direction: 'forward' | 'backward') => {
-		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+	const handleDataTableTabKeyNavigation = useCallback((direction: 'forward' | 'backward') => {
+		const navigationRuntime = dataTableArrowNavigationRuntimeRef.current;
 		const selectedSelection = getSelectedCellSelection(interactionStateRef.current);
 
 		if (!navigationRuntime || !selectedSelection || Object.keys(selectedSelection.selectedCellKeyMap).length <= 1) {
-			handleSheetArrowKeyNavigation(direction === 'backward' ? 'left' : 'right');
+			handleDataTableArrowKeyNavigation(direction === 'backward' ? 'left' : 'right');
 			return;
 		}
 
-		const nextActiveCell = getSheetNextActiveSelectedCell({
+		const nextActiveCell = getDataTableNextActiveSelectedCell({
 			columnMetrics: navigationRuntime.columnMetrics,
 			direction,
 			renderedRows: navigationRuntime.renderedRows,
@@ -3488,7 +3488,7 @@ export function Sheet(p: SheetProps) {
 			return;
 		}
 
-		scrollSheetSelectedCellIntoView(navigationRuntime, nextActiveCell);
+		scrollDataTableSelectedCellIntoView(navigationRuntime, nextActiveCell);
 		dispatchInteractionState({
 			selection: {
 				...selectedSelection,
@@ -3496,27 +3496,27 @@ export function Sheet(p: SheetProps) {
 			},
 			type: 'cell_range_selected',
 		});
-	}, [handleSheetArrowKeyNavigation, scrollSheetSelectedCellIntoView]);
+	}, [handleDataTableArrowKeyNavigation, scrollDataTableSelectedCellIntoView]);
 
 	/*
 	 * Return a selectable body cell state from one rendered cell element.
 	 */
 
-	const getSheetBodyCellStateFromElement = useCallback((cellElement?: HTMLElement | null) => {
+	const getDataTableBodyCellStateFromElement = useCallback((cellElement?: HTMLElement | null) => {
 		const runtime = runtimeRef.current;
 
 		if (!runtime || !cellElement?.dataset.rowId || !cellElement.dataset.cellKey) {
 			return null;
 		}
 
-		const lookup = getSheetCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
+		const lookup = getDataTableCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
 
 		if (!lookup || lookup.row.__deleted) {
 			return null;
 		}
 
 		return {
-			cellKey: getSheetRuntimeColumnKey(lookup.designCell),
+			cellKey: getDataTableRuntimeColumnKey(lookup.designCell),
 			rowId: lookup.row.id,
 		};
 	}, []);
@@ -3525,9 +3525,9 @@ export function Sheet(p: SheetProps) {
 	 * Extend the active mouse drag selection to one body cell.
 	 */
 
-	const updateSheetCellDragSelection = useCallback((targetCell: { cellKey: string; rowId: string }) => {
+	const updateDataTableCellDragSelection = useCallback((targetCell: { cellKey: string; rowId: string }) => {
 		const dragState = cellDragSelectionStateRef.current;
-		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+		const navigationRuntime = dataTableArrowNavigationRuntimeRef.current;
 
 		if (!dragState || !navigationRuntime) {
 			return;
@@ -3543,7 +3543,7 @@ export function Sheet(p: SheetProps) {
 		dragState.started = true;
 		suppressNextCellClickRef.current = true;
 		dispatchInteractionState({
-			selection: getSheetRangeSelection({
+			selection: getDataTableRangeSelection({
 				activeCell: targetCell,
 				anchorCell: dragState.anchorCell,
 				columnMetrics: navigationRuntime.columnMetrics,
@@ -3554,9 +3554,9 @@ export function Sheet(p: SheetProps) {
 		});
 	}, []);
 
-	const { closeSheetContextMenu, openSheetContextMenu } = useSheetContextMenu<SheetCellLookup>({
-		onEditCell: handleSheetContextMenuEditCell,
-		onOpenCell: handleSheetContextMenuOpenCell,
+	const { closeDataTableContextMenu, openDataTableContextMenu } = useDataTableContextMenu<DataTableCellLookup>({
+		onEditCell: handleDataTableContextMenuEditCell,
+		onOpenCell: handleDataTableContextMenuOpenCell,
 		openModalPopUp,
 	});
 
@@ -3564,32 +3564,32 @@ export function Sheet(p: SheetProps) {
 	 * Open the current selected cell through the same rules used by the context menu.
 	 */
 
-	const openSelectedSheetCellEditor = useCallback(() => {
+	const openSelectedDataTableCellEditor = useCallback(() => {
 		const runtime = runtimeRef.current;
 		const selectedCellState = getSelectedCellState(interactionStateRef.current);
-		const lookup = runtime && selectedCellState ? getSheetCellLookup(runtime, selectedCellState.rowId, selectedCellState.cellKey) : null;
+		const lookup = runtime && selectedCellState ? getDataTableCellLookup(runtime, selectedCellState.rowId, selectedCellState.cellKey) : null;
 
 		if (!runtime || !lookup) {
 			return;
 		}
 
-		handleSheetContextMenuEditCell(getSheetContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, activeView, effectiveDesign));
-	}, [activeView, effectiveDesign, handleSheetContextMenuEditCell, rowIndexById]);
+		handleDataTableContextMenuEditCell(getDataTableContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, activeView, effectiveDesign));
+	}, [activeView, effectiveDesign, handleDataTableContextMenuEditCell, rowIndexById]);
 
 	/*
-	 * Copy the active sheet selection to the system clipboard as TSV text.
+	 * Copy the active dataTable selection to the system clipboard as TSV text.
 	 */
 
-	const copySelectedSheetCells = useCallback(() => {
+	const copySelectedDataTableCells = useCallback(() => {
 		const runtime = runtimeRef.current;
-		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+		const navigationRuntime = dataTableArrowNavigationRuntimeRef.current;
 		const selection = getSelectedCellSelection(interactionStateRef.current);
 
 		if (!runtime || !navigationRuntime || !selection) {
 			return;
 		}
 
-		void copyTextToClipboard(getSheetSelectionClipboardText({
+		void copyTextToClipboard(getDataTableSelectionClipboardText({
 			columnMetrics: navigationRuntime.columnMetrics,
 			renderedRows: navigationRuntime.renderedRows,
 			runtime,
@@ -3598,12 +3598,12 @@ export function Sheet(p: SheetProps) {
 	}, []);
 
 	/*
-	 * Apply one parsed shortcut write to a sheet cell when allowed.
+	 * Apply one parsed shortcut write to a dataTable cell when allowed.
 	 */
 
-	const saveSheetShortcutCellValue = useCallback(
-		async (runtime: SheetRuntimeState, lookup: SheetCellLookup, draftValue: string, summary: SheetShortcutMutationSummary) => {
-			if (!canWriteSheetShortcutCell({
+	const saveDataTableShortcutCellValue = useCallback(
+		async (runtime: DataTableRuntimeState, lookup: DataTableCellLookup, draftValue: string, summary: DataTableShortcutMutationSummary) => {
+			if (!canWriteDataTableShortcutCell({
 				activeView,
 				design: effectiveDesign,
 				disabled: runtime.disabled,
@@ -3619,9 +3619,9 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+			const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 			const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
-			const currentValue = getSheetCellSerializedValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey]);
+			const currentValue = getDataTableCellSerializedValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey]);
 
 			if (currentValue === parsedValue.value) {
 				summary.skipped += 1;
@@ -3639,123 +3639,123 @@ export function Sheet(p: SheetProps) {
 	);
 
 	/*
-	 * Paste clipboard text into the loaded sheet grid with per-cell validation.
+	 * Paste clipboard text into the loaded dataTable grid with per-cell validation.
 	 */
 
-	const pasteSelectedSheetCells = useCallback(
+	const pasteSelectedDataTableCells = useCallback(
 		async (clipboardText: string) => {
 			const runtime = runtimeRef.current;
-			const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+			const navigationRuntime = dataTableArrowNavigationRuntimeRef.current;
 			const selection = getSelectedCellSelection(interactionStateRef.current);
 
 			if (!runtime || !navigationRuntime || !selection) {
 				return;
 			}
 
-			const summary: SheetShortcutMutationSummary = {
+			const summary: DataTableShortcutMutationSummary = {
 				failed: 0,
 				saved: 0,
 				skipped: 0,
 			};
-			const pasteTargets = getSheetPasteTargets({
+			const pasteTargets = getDataTablePasteTargets({
 				activeCell: selection.activeCell,
-				clipboardGrid: parseSheetClipboardText(clipboardText),
+				clipboardGrid: parseDataTableClipboardText(clipboardText),
 				columnMetrics: navigationRuntime.columnMetrics,
 				renderedRows: navigationRuntime.renderedRows,
 				selection,
 			});
 
 			for (const target of pasteTargets) {
-				const lookup = getSheetCellLookup(runtime, target.rowId, target.cellKey);
+				const lookup = getDataTableCellLookup(runtime, target.rowId, target.cellKey);
 
 				if (!lookup) {
 					summary.skipped += 1;
 					continue;
 				}
 
-				await saveSheetShortcutCellValue(runtime, lookup, target.value, summary);
+				await saveDataTableShortcutCellValue(runtime, lookup, target.value, summary);
 			}
 
 			setFloatingMessage?.({
-				text: getSheetShortcutSummaryText('paste', summary),
+				text: getDataTableShortcutSummaryText('paste', summary),
 				type: summary.failed ? 'WARNING' : 'NOTICE',
 			});
 		},
-		[saveSheetShortcutCellValue, setFloatingMessage],
+		[saveDataTableShortcutCellValue, setFloatingMessage],
 	);
 
 	/*
-	 * Clear every editable cell in the active sheet selection.
+	 * Clear every editable cell in the active dataTable selection.
 	 */
 
-	const clearSelectedSheetCells = useCallback(
+	const clearSelectedDataTableCells = useCallback(
 		async () => {
 			const runtime = runtimeRef.current;
-			const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+			const navigationRuntime = dataTableArrowNavigationRuntimeRef.current;
 			const selection = getSelectedCellSelection(interactionStateRef.current);
 
 			if (!runtime || !navigationRuntime || !selection) {
 				return;
 			}
 
-			const summary: SheetShortcutMutationSummary = {
+			const summary: DataTableShortcutMutationSummary = {
 				failed: 0,
 				saved: 0,
 				skipped: 0,
 			};
-			const selectedCells = getSheetOrderedSelectedCells({
+			const selectedCells = getDataTableOrderedSelectedCells({
 				columnMetrics: navigationRuntime.columnMetrics,
 				renderedRows: navigationRuntime.renderedRows,
 				selection,
 			});
 
 			for (const selectedCell of selectedCells) {
-				const lookup = getSheetCellLookup(runtime, selectedCell.rowId, selectedCell.cellKey);
+				const lookup = getDataTableCellLookup(runtime, selectedCell.rowId, selectedCell.cellKey);
 
 				if (!lookup) {
 					summary.skipped += 1;
 					continue;
 				}
 
-				await saveSheetShortcutCellValue(runtime, lookup, '', summary);
+				await saveDataTableShortcutCellValue(runtime, lookup, '', summary);
 			}
 
 			setFloatingMessage?.({
-				text: getSheetShortcutSummaryText('clear', summary),
+				text: getDataTableShortcutSummaryText('clear', summary),
 				type: summary.failed ? 'WARNING' : 'NOTICE',
 			});
 		},
-		[saveSheetShortcutCellValue, setFloatingMessage],
+		[saveDataTableShortcutCellValue, setFloatingMessage],
 	);
 
 	/*
-	 * Own every keyboard shortcut for the Sheet grid in one global handler.
+	 * Own every keyboard shortcut for the DataTable grid in one global handler.
 	 */
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
 			const activeElement = globalThis.document?.activeElement as HTMLElement | null;
-			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]') ||
+			const headerEditorElement = getClosestDataTableElement(event.target, '[data-sheet-header-editor="true"]') ||
 				(activeElement?.closest('[data-sheet-header-editor="true"]') as HTMLElement | null);
-			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]') ||
+			const editorElement = getClosestDataTableElement(event.target, '[data-sheet-editor="true"]') ||
 				(activeElement?.closest('[data-sheet-editor="true"]') as HTMLElement | null);
-			const localEditorElement = getClosestSheetElement(
+			const localEditorElement = getClosestDataTableElement(
 				event.target,
 				'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
 			) || (activeElement?.closest('[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]') as HTMLElement | null);
-			const arrowDirection = getSheetShortcutArrowDirection(event.key);
+			const arrowDirection = getDataTableShortcutArrowDirection(event.key);
 			const metaKey = event.metaKey || event.ctrlKey;
-			const isSheetShortcutKey = Boolean(
+			const isDataTableShortcutKey = Boolean(
 				arrowDirection ||
 				event.key === 'Enter' ||
 				event.key === 'Escape' ||
 				event.key === 'Tab' ||
 				event.key === 'Delete' ||
 				event.key === 'Backspace' ||
-				(metaKey && (event.key.toLowerCase() === 'c' || event.key.toLowerCase() === 'v'))
+				(metaKey && (event.key.toLowerCase() === 'a' || event.key.toLowerCase() === 'c' || event.key.toLowerCase() === 'v'))
 			);
 
-			if (!isSheetShortcutKey || keyDown.alert || keyDown.modal || isSheetShortcutBlockedByActiveInput()) {
+			if (!isDataTableShortcutKey || keyDown.alert || keyDown.modal || isDataTableShortcutBlockedByActiveInput()) {
 				return;
 			}
 
@@ -3816,7 +3816,7 @@ export function Sheet(p: SheetProps) {
 						await commitEditorElement(editorElement);
 
 						if (event.key === 'Tab') {
-							handleSheetTabKeyNavigation(event.shiftKey ? 'backward' : 'forward');
+							handleDataTableTabKeyNavigation(event.shiftKey ? 'backward' : 'forward');
 						}
 
 						finishKeyDown();
@@ -3858,7 +3858,7 @@ export function Sheet(p: SheetProps) {
 			if (arrowDirection) {
 				event.preventDefault();
 				event.stopImmediatePropagation();
-				handleSheetArrowKeyNavigation(arrowDirection, event.shiftKey);
+				handleDataTableArrowKeyNavigation(arrowDirection, event.shiftKey);
 				finishKeyDown();
 				return;
 			}
@@ -3866,7 +3866,36 @@ export function Sheet(p: SheetProps) {
 			if (event.key === 'Tab') {
 				event.preventDefault();
 				event.stopImmediatePropagation();
-				handleSheetTabKeyNavigation(event.shiftKey ? 'backward' : 'forward');
+				handleDataTableTabKeyNavigation(event.shiftKey ? 'backward' : 'forward');
+				finishKeyDown();
+				return;
+			}
+
+			if (metaKey && event.key.toLowerCase() === 'a') {
+				const navigationRuntime = dataTableArrowNavigationRuntimeRef.current;
+				const firstCell = navigationRuntime?.columnMetrics[0]?.column.key && navigationRuntime.renderedRows[0]
+					? { cellKey: navigationRuntime.columnMetrics[0].column.key, rowId: navigationRuntime.renderedRows[0].id }
+					: null;
+				const lastCell = navigationRuntime?.columnMetrics.at(-1)?.column.key && navigationRuntime.renderedRows.at(-1)
+					? { cellKey: navigationRuntime.columnMetrics.at(-1)!.column.key, rowId: navigationRuntime.renderedRows.at(-1)!.id }
+					: null;
+
+				event.preventDefault();
+				event.stopImmediatePropagation();
+
+				if (navigationRuntime && firstCell && lastCell) {
+					dispatchInteractionState({
+						selection: getDataTableRangeSelection({
+							activeCell: lastCell,
+							anchorCell: firstCell,
+							columnMetrics: navigationRuntime.columnMetrics,
+							renderedRows: navigationRuntime.renderedRows,
+							selectedActiveCell: getSelectedCellState(interactionStateRef.current) || firstCell,
+						}),
+						type: 'cell_range_selected',
+					});
+				}
+
 				finishKeyDown();
 				return;
 			}
@@ -3874,7 +3903,7 @@ export function Sheet(p: SheetProps) {
 			if (metaKey && event.key.toLowerCase() === 'c') {
 				event.preventDefault();
 				event.stopImmediatePropagation();
-				copySelectedSheetCells();
+				copySelectedDataTableCells();
 				finishKeyDown();
 				return;
 			}
@@ -3883,7 +3912,7 @@ export function Sheet(p: SheetProps) {
 				event.preventDefault();
 				event.stopImmediatePropagation();
 				void (async () => {
-					await pasteSelectedSheetCells(await readSheetClipboardText());
+					await pasteSelectedDataTableCells(await readDataTableClipboardText());
 					finishKeyDown();
 				})();
 				return;
@@ -3893,7 +3922,7 @@ export function Sheet(p: SheetProps) {
 				event.preventDefault();
 				event.stopImmediatePropagation();
 				void (async () => {
-					await clearSelectedSheetCells();
+					await clearSelectedDataTableCells();
 					finishKeyDown();
 				})();
 				return;
@@ -3902,7 +3931,7 @@ export function Sheet(p: SheetProps) {
 			if (event.key === 'Enter' && !event.shiftKey) {
 				event.preventDefault();
 				event.stopImmediatePropagation();
-				openSelectedSheetCellEditor();
+				openSelectedDataTableCellEditor();
 				finishKeyDown();
 				return;
 			}
@@ -3934,17 +3963,17 @@ export function Sheet(p: SheetProps) {
 			globalThis.removeEventListener?.('keydown', onKeyDown, true);
 		};
 	}, [
-		clearSelectedSheetCells,
+		clearSelectedDataTableCells,
 		commitEditorElement,
 		commitHeaderEditorElement,
-		copySelectedSheetCells,
+		copySelectedDataTableCells,
 		dismissCellEditorToSelectedCell,
-		handleSheetArrowKeyNavigation,
-		handleSheetTabKeyNavigation,
+		handleDataTableArrowKeyNavigation,
+		handleDataTableTabKeyNavigation,
 		keyDown.alert,
 		keyDown.modal,
-		openSelectedSheetCellEditor,
-		pasteSelectedSheetCells,
+		openSelectedDataTableCellEditor,
+		pasteSelectedDataTableCells,
 		setKeyDown,
 	]);
 
@@ -3956,7 +3985,7 @@ export function Sheet(p: SheetProps) {
 		}
 
 		const onScroll = () => {
-			closeSheetContextMenu();
+			closeDataTableContextMenu();
 			pendingScrollRef.current = {
 				scrollLeft: scrollNode.scrollLeft,
 				scrollTop: scrollNode.scrollTop,
@@ -3980,15 +4009,15 @@ export function Sheet(p: SheetProps) {
 			});
 		};
 		const onClick = (event: MouseEvent) => {
-			const localEditorElement = getClosestSheetElement(
+			const localEditorElement = getClosestDataTableElement(
 				event.target,
 				'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
 			);
-			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]');
-			const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
-			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
-			const openTriggerElement = getClosestSheetElement(event.target, '[data-sheet-cell-open-trigger="true"]');
-			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
+			const headerEditorElement = getClosestDataTableElement(event.target, '[data-sheet-header-editor="true"]');
+			const headerElement = getClosestDataTableElement(event.target, '[data-sheet-header-cell="true"]');
+			const editorElement = getClosestDataTableElement(event.target, '[data-sheet-editor="true"]');
+			const openTriggerElement = getClosestDataTableElement(event.target, '[data-sheet-cell-open-trigger="true"]');
+			const cellElement = getClosestDataTableElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (localEditorElement || headerEditorElement) {
@@ -4029,24 +4058,24 @@ export function Sheet(p: SheetProps) {
 			}
 
 			const lookupElement = cellElement || editorElement;
-			const lookup = getSheetCellLookup(runtime, lookupElement?.dataset.rowId, lookupElement?.dataset.cellKey);
+			const lookup = getDataTableCellLookup(runtime, lookupElement?.dataset.rowId, lookupElement?.dataset.cellKey);
 
 			if (openTriggerElement) {
-				if (lookup && !lookup.row.__deleted && canOpenSheetCellLink(lookup.cell, lookup.designCell)) {
+				if (lookup && !lookup.row.__deleted && canOpenDataTableCellLink(lookup.cell, lookup.designCell)) {
 					runtime.openCell({
 						cell: lookup.cell,
 						clickSource: 'CELL_LINK',
 						designCell: lookup.designCell,
 						row: lookup.row,
-						sheet: runtime.sheet,
+						dataTable: runtime.dataTable,
 					});
 				}
 
 				return;
 			}
 
-			if (lookup && isSheetLocalEditorEditStateLookup(runtime.editState, lookup)) {
-				const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+			if (lookup && isDataTableLocalEditorEditStateLookup(runtime.editState, lookup)) {
+				const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 				const nextSingleClickedCell = {
 					cellKey: runtimeKey,
 					rowId: lookup.row.id,
@@ -4068,24 +4097,24 @@ export function Sheet(p: SheetProps) {
 			}
 
 			if (lookup) {
-				const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+				const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 				const currentSingleClickedCell = getSelectedCellState(interactionStateRef.current);
 				const lastDismissedLocalEditorCell = getDismissedLocalEditorCell(interactionStateRef.current);
 				const isSameSingleClickedCell = currentSingleClickedCell?.rowId === lookup.row.id && currentSingleClickedCell.cellKey === runtimeKey;
 				const isSameDismissedLocalEditorCell = lastDismissedLocalEditorCell?.rowId === lookup.row.id && lastDismissedLocalEditorCell.cellKey === runtimeKey;
 
 				if ((isSameSingleClickedCell || isSameDismissedLocalEditorCell) && cellElement.dataset.sheetCellEditable === 'true' && !runtime.disabled && !lookup.row.__deleted) {
-					if (isSheetInboundContactIdLookup(lookup)) {
+					if (isDataTableInboundContactIdLookup(lookup)) {
 						openInboundContactLocalEditor(lookup, 'CELL_BACKGROUND');
 						return;
 					}
 
-					if (handleSheetRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
+					if (handleDataTableRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
 						return;
 					}
 
 					dispatchInteractionState({
-						editState: getSheetCellEditState(runtime, lookup, 'CELL_BACKGROUND'),
+						editState: getDataTableCellEditState(runtime, lookup, 'CELL_BACKGROUND'),
 						type: 'cell_edit_started',
 					});
 					return;
@@ -4104,12 +4133,12 @@ export function Sheet(p: SheetProps) {
 			}
 		};
 		const onDoubleClick = (event: MouseEvent) => {
-			const localEditorElement = getClosestSheetElement(
+			const localEditorElement = getClosestDataTableElement(
 				event.target,
 				'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
 			);
-			const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
-			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
+			const headerElement = getClosestDataTableElement(event.target, '[data-sheet-header-cell="true"]');
+			const cellElement = getClosestDataTableElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (localEditorElement) {
@@ -4125,29 +4154,29 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			const lookup = getSheetCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
+			const lookup = getDataTableCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
 
-			if (!lookup || lookup.row.__deleted || runtime.sheet.design?.humansCannotEdit || lookup.designCell.humansCannotEdit || isSheetReferenceCell(lookup.cell)) {
+			if (!lookup || lookup.row.__deleted || runtime.dataTable.design?.humansCannotEdit || lookup.designCell.humansCannotEdit || isDataTableReferenceCell(lookup.cell)) {
 				return;
 			}
 
-			if (isSheetInboundContactIdLookup(lookup)) {
+			if (isDataTableInboundContactIdLookup(lookup)) {
 				openInboundContactLocalEditor(lookup, 'CELL_BACKGROUND');
 				return;
 			}
 
-			if (handleSheetRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
+			if (handleDataTableRelatedDocumentCellEdit(lookup, setFloatingMessage)) {
 				return;
 			}
 
 			dispatchInteractionState({
-				editState: getSheetCellEditState(runtime, lookup, 'CELL_BACKGROUND'),
+				editState: getDataTableCellEditState(runtime, lookup, 'CELL_BACKGROUND'),
 				type: 'cell_edit_started',
 			});
 		};
 		const onFocusOut = (event: FocusEvent) => {
-			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]');
-			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
+			const headerEditorElement = getClosestDataTableElement(event.target, '[data-sheet-header-editor="true"]');
+			const editorElement = getClosestDataTableElement(event.target, '[data-sheet-editor="true"]');
 
 			if (headerEditorElement) {
 				commitHeaderEditorElement(headerEditorElement);
@@ -4159,7 +4188,7 @@ export function Sheet(p: SheetProps) {
 			}
 		};
 		const onInput = (event: Event) => {
-			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
+			const editorElement = getClosestDataTableElement(event.target, '[data-sheet-editor="true"]');
 			const runtime = runtimeRef.current;
 
 			if (editorElement && runtime?.editState?.error) {
@@ -4175,15 +4204,15 @@ export function Sheet(p: SheetProps) {
 			}
 		};
 		const onPointerDown = (event: PointerEvent) => {
-			const localEditorElement = getClosestSheetElement(
+			const localEditorElement = getClosestDataTableElement(
 				event.target,
 				'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
 			);
-			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
-			const handleElement = getClosestSheetElement(event.target, '[data-sheet-column-resize-handle]');
-			const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
-			const openTriggerElement = getClosestSheetElement(event.target, '[data-sheet-cell-open-trigger="true"]');
-			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
+			const editorElement = getClosestDataTableElement(event.target, '[data-sheet-editor="true"]');
+			const handleElement = getClosestDataTableElement(event.target, '[data-sheet-column-resize-handle]');
+			const headerElement = getClosestDataTableElement(event.target, '[data-sheet-header-cell="true"]');
+			const openTriggerElement = getClosestDataTableElement(event.target, '[data-sheet-cell-open-trigger="true"]');
+			const cellElement = getClosestDataTableElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (!runtime || runtime.disabled) {
@@ -4224,7 +4253,7 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			const anchorCell = getSheetBodyCellStateFromElement(cellElement);
+			const anchorCell = getDataTableBodyCellStateFromElement(cellElement);
 
 			if (!anchorCell) {
 				return;
@@ -4245,15 +4274,15 @@ export function Sheet(p: SheetProps) {
 				}
 
 				const targetElement = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY) as HTMLElement | null;
-				const targetCellElement = getClosestSheetElement(targetElement, '[data-sheet-cell="true"]');
-				const targetCell = getSheetBodyCellStateFromElement(targetCellElement);
+				const targetCellElement = getClosestDataTableElement(targetElement, '[data-sheet-cell="true"]');
+				const targetCell = getDataTableBodyCellStateFromElement(targetCellElement);
 
 				if (!targetCell) {
 					return;
 				}
 
 				moveEvent.preventDefault();
-				updateSheetCellDragSelection(targetCell);
+				updateDataTableCellDragSelection(targetCell);
 			};
 			const onPointerUp = (upEvent: PointerEvent) => {
 				const dragState = cellDragSelectionStateRef.current;
@@ -4277,12 +4306,12 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			const localEditorElement = getClosestSheetElement(
+			const localEditorElement = getClosestDataTableElement(
 				event.target,
 				'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
 			);
-			const handleElement = getClosestSheetElement(event.target, '[data-sheet-column-resize-handle]');
-			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
+			const handleElement = getClosestDataTableElement(event.target, '[data-sheet-column-resize-handle]');
+			const cellElement = getClosestDataTableElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (handleElement) {
@@ -4298,12 +4327,12 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			const lookup = getSheetCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
+			const lookup = getDataTableCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
 			if (!lookup) {
 				return;
 			}
 
-			const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+			const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 			const nextSingleClickedCell = {
 				cellKey: runtimeKey,
 				rowId: lookup.row.id,
@@ -4314,7 +4343,7 @@ export function Sheet(p: SheetProps) {
 				cell: nextSingleClickedCell,
 				type: 'cell_selected',
 			});
-			openSheetContextMenu(event, getSheetContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, activeView, effectiveDesign));
+			openDataTableContextMenu(event, getDataTableContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, activeView, effectiveDesign));
 		};
 
 		scrollNode.addEventListener('scroll', onScroll, { passive: true });
@@ -4341,14 +4370,14 @@ export function Sheet(p: SheetProps) {
 		};
 	}, [
 		activeView,
-		closeSheetContextMenu,
+		closeDataTableContextMenu,
 		effectiveDesign,
-		getSheetBodyCellStateFromElement,
-		openSheetContextMenu,
+		getDataTableBodyCellStateFromElement,
+		openDataTableContextMenu,
 		rowIndexById,
 		scrollElement.node,
 		startHeaderEdit,
-		updateSheetCellDragSelection,
+		updateDataTableCellDragSelection,
 	]);
 
 	useEffect(() => {
@@ -4371,9 +4400,9 @@ export function Sheet(p: SheetProps) {
 	const viewportHeight = scrollElement.size.height || stickyHeaderHeight + SHEET_ROW_HEIGHT * 20;
 	const viewportWidth = scrollElement.size.width || SHEET_ROW_NUMBER_WIDTH + 5 * SHEET_COLUMN_WIDTH;
 	const minimumVisualRowCount = getSheetMinimumRowCount(viewportHeight, stickyHeaderHeight);
-	const visualRowCount = Math.max(isSheetRowsReady ? renderedRows.length : SHEET_MOCK_ROW_COUNT, minimumVisualRowCount);
-	const hasPlaceholderTail = hasSheetPlaceholderTail(isSheetRowsReady, renderedRows.length, visualRowCount);
-	const visualRowsHeight = getSheetVisualRowsHeight(visualRowCount, viewportHeight, stickyHeaderHeight, hasPlaceholderTail);
+	const visualRowCount = Math.max(isDataTableRowsReady ? renderedRows.length : SHEET_MOCK_ROW_COUNT, minimumVisualRowCount);
+	const hasPlaceholderTail = hasDataTablePlaceholderTail(isDataTableRowsReady, renderedRows.length, visualRowCount);
+	const visualRowsHeight = getDataTableVisualRowsHeight(visualRowCount, viewportHeight, stickyHeaderHeight, hasPlaceholderTail);
 	const totalWidth = SHEET_ROW_NUMBER_WIDTH + columnMetricsData.totalWidth + SHEET_STICKY_SPACER_SIZE + SHEET_ROW_RIGHT_PADDING;
 	const rowContentWidth = SHEET_ROW_NUMBER_WIDTH + columnMetricsData.totalWidth + SHEET_STICKY_SPACER_SIZE;
 	const stickyColumnEndLeft =
@@ -4382,14 +4411,14 @@ export function Sheet(p: SheetProps) {
 			return metric.columnIndex < stickyColumnCount ? total + metric.width : total;
 		}, 0);
 	const totalHeight = stickyHeaderHeight + visualRowsHeight;
-	const sheetSurfaceHeight = Math.max(totalHeight, viewportHeight);
-	const sheetSurfaceTop = 0;
+	const dataTableSurfaceHeight = Math.max(totalHeight, viewportHeight);
+	const dataTableSurfaceTop = 0;
 	const columnOffsetsWithStickySpacer = useMemo(() => {
 		return columnMetricsData.offsets.map((offset, index) => {
 			return index > stickyColumnCount ? offset + SHEET_STICKY_SPACER_SIZE : offset;
 		});
 	}, [columnMetricsData.offsets, stickyColumnCount]);
-	sheetArrowNavigationRuntimeRef.current = {
+	dataTableArrowNavigationRuntimeRef.current = {
 		columnMetrics: columnMetricsData.metrics,
 		renderedRows,
 		scrollLeft: scrollState.scrollLeft,
@@ -4405,7 +4434,7 @@ export function Sheet(p: SheetProps) {
 	};
 
 	useEffect(() => {
-		if (!isSheetRowsReady) {
+		if (!isDataTableRowsReady) {
 			return;
 		}
 
@@ -4422,7 +4451,7 @@ export function Sheet(p: SheetProps) {
 		if (distanceFromBottom <= SHEET_FETCH_BUFFER_ROWS * SHEET_ROW_HEIGHT) {
 			void fetchMoreRows();
 		}
-	}, [fetchMoreRows, isSheetRowsReady, renderedRows.length, scrollElement.size.height, scrollState.scrollTop, totalHeight, viewportHeight, visualRowCount]);
+	}, [fetchMoreRows, isDataTableRowsReady, renderedRows.length, scrollElement.size.height, scrollState.scrollTop, totalHeight, viewportHeight, visualRowCount]);
 
 	const visibleRange = useMemo(() => {
 		return getSheetVisibleRange({
@@ -4485,8 +4514,8 @@ export function Sheet(p: SheetProps) {
 		for (let rowIndex = visibleRange.rowStart; rowIndex < visibleRange.rowEnd; rowIndex += 1) {
 			const row = rowsByIndex[rowIndex];
 			const rowDeleted = !!row?.__deleted;
-			const isMockRow = !isSheetRowsReady && rowIndex < SHEET_MOCK_ROW_COUNT;
-			const rowHeight = getSheetVisualRowHeight(rowIndex, visualRowCount, viewportHeight, stickyHeaderHeight, hasPlaceholderTail);
+			const isMockRow = !isDataTableRowsReady && rowIndex < SHEET_MOCK_ROW_COUNT;
+			const rowHeight = getDataTableVisualRowHeight(rowIndex, visualRowCount, viewportHeight, stickyHeaderHeight, hasPlaceholderTail);
 			const rowCellMap = row ? rowCellsById.get(row.id) : null;
 			const cellsByKey: Record<string, SheetUICell | undefined> = {};
 
@@ -4498,20 +4527,20 @@ export function Sheet(p: SheetProps) {
 						return;
 					}
 
-					const runtimeKey = getSheetRuntimeColumnKey(designCell);
-					const cell = getSheetCellForRuntimeColumn(row, rowCellMap, designCell);
+					const runtimeKey = getDataTableRuntimeColumnKey(designCell);
+					const cell = getDataTableCellForRuntimeColumn(row, rowCellMap, designCell);
 					const optimisticKey = getSheetCellKey(row.id, runtimeKey);
 					const optimisticValue = optimisticValues[optimisticKey];
-					const serializedValue = getSheetCellSerializedValue(cell, designCell, optimisticValue);
+					const serializedValue = getDataTableCellSerializedValue(cell, designCell, optimisticValue);
 					const canEdit =
-						canEditSheetRuntimeCell({
+						canEditDataTableRuntimeCell({
 							activeView,
 							design: effectiveDesign,
 							designCell,
 							disabled: effectiveDisabled || rowDeleted,
-						}) && !isSheetReferenceCell(cell);
-					const canOpen = !rowDeleted && canOpenSheetCellLink(cell, designCell);
-					const iconName = (cell && 'iconName' in cell ? cell.iconName : null) || designCell.iconName || getSheetOpenLinkIconName(cell, designCell);
+						}) && !isDataTableReferenceCell(cell);
+					const canOpen = !rowDeleted && canOpenDataTableCellLink(cell, designCell);
+					const iconName = (cell && 'iconName' in cell ? cell.iconName : null) || designCell.iconName || getDataTableOpenLinkIconName(cell, designCell);
 					const signature = getSheetUICellSignature({
 						canEdit,
 						canOpen,
@@ -4538,8 +4567,8 @@ export function Sheet(p: SheetProps) {
 					}
 
 					const displayValue = getSheetCellDisplayValue(cell, designCell, optimisticValue, timeZone);
-					const cellClassName = getSheetCellClassName(cell, designCell, optimisticValue);
-					const displayClassName = getSheetCellDisplayClassName(cell, designCell, optimisticValue);
+					const cellClassName = getDataTableCellClassName(cell, designCell, optimisticValue);
+					const displayClassName = getDataTableCellDisplayClassName(cell, designCell, optimisticValue);
 					const draftValue = getSheetEditorDraftValue(cell, designCell, optimisticValue);
 					const uiCell: SheetUICell = {
 						cellKey: runtimeKey,
@@ -4569,7 +4598,7 @@ export function Sheet(p: SheetProps) {
 				});
 			} else if (isMockRow) {
 				visibleColumns.forEach((columnMetric) => {
-					cellsByKey[columnMetric.column.key] = getSheetMockUICell(columnMetric.column.key, rowIndex);
+					cellsByKey[columnMetric.column.key] = getDataTableMockUICell(columnMetric.column.key, rowIndex);
 				});
 			}
 
@@ -4595,7 +4624,7 @@ export function Sheet(p: SheetProps) {
 		editState,
 		effectiveDisabled,
 		hasPlaceholderTail,
-		isSheetRowsReady,
+		isDataTableRowsReady,
 		optimisticValues,
 		rowCellsById,
 		renderedRows,
@@ -4614,11 +4643,11 @@ export function Sheet(p: SheetProps) {
 	]);
 
 	/*
-	 * Save one sheet-local editor draft through the same mutation path used by inline editors.
+	 * Save one dataTable-local editor draft through the same mutation path used by inline editors.
 	 */
 
 	const saveLocalEditorDraftValue = useCallback(
-		async (lookup: SheetCellLookup, draftValue: string, closeAfterSave: boolean) => {
+		async (lookup: DataTableCellLookup, draftValue: string, closeAfterSave: boolean) => {
 			const runtime = runtimeRef.current;
 
 			if (!runtime) {
@@ -4630,7 +4659,7 @@ export function Sheet(p: SheetProps) {
 			}
 
 			const parsedValue = parseSheetEditorValue(lookup.designCell, draftValue);
-			const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+			const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 
 			if (parsedValue.error) {
 				dispatchInteractionState({
@@ -4647,7 +4676,7 @@ export function Sheet(p: SheetProps) {
 			}
 
 			const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
-			const currentValue = getSheetCellSerializedValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey]);
+			const currentValue = getDataTableCellSerializedValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey]);
 
 			if (closeAfterSave && !__DISABLE_EDIT_STATE_RESET__) {
 				dismissCellEditorToSelectedCell(runtime.editState);
@@ -4690,14 +4719,14 @@ export function Sheet(p: SheetProps) {
 	 */
 
 	const handleSelectEditorOptionValue = useCallback(
-		(lookup: SheetCellLookup, value: string) => {
+		(lookup: DataTableCellLookup, value: string) => {
 			if (getSheetEditorFieldType(lookup.designCell) !== 'MULTI_SELECT') {
 				void saveLocalEditorDraftValue(lookup, value, true);
 				return;
 			}
 
 			const selectedValues = getSheetMultiSelectEditorValueSet(
-				editState?.rowId === lookup.row.id && editState.cellKey === getSheetRuntimeColumnKey(lookup.designCell)
+				editState?.rowId === lookup.row.id && editState.cellKey === getDataTableRuntimeColumnKey(lookup.designCell)
 					? editState.draftValue
 					: getSheetEditorDraftValue(lookup.cell, lookup.designCell),
 			);
@@ -4718,7 +4747,7 @@ export function Sheet(p: SheetProps) {
 	 */
 
 	const handleSelectEditorCustomTextSave = useCallback(
-		(lookup: SheetCellLookup, draftValue: string) => {
+		(lookup: DataTableCellLookup, draftValue: string) => {
 			void saveLocalEditorDraftValue(lookup, draftValue, true);
 		},
 		[saveLocalEditorDraftValue],
@@ -4729,7 +4758,7 @@ export function Sheet(p: SheetProps) {
 	 */
 
 	const handleDateEditorDateValue = useCallback(
-		(lookup: SheetCellLookup, draftValue: string) => {
+		(lookup: DataTableCellLookup, draftValue: string) => {
 			void saveLocalEditorDraftValue(lookup, draftValue, true);
 		},
 		[saveLocalEditorDraftValue],
@@ -4740,7 +4769,7 @@ export function Sheet(p: SheetProps) {
 	 */
 
 	const handleDateEditorDateTimeSave = useCallback(
-		(lookup: SheetCellLookup, draftValue: string) => {
+		(lookup: DataTableCellLookup, draftValue: string) => {
 			void saveLocalEditorDraftValue(lookup, draftValue, true);
 		},
 		[saveLocalEditorDraftValue],
@@ -4751,8 +4780,8 @@ export function Sheet(p: SheetProps) {
 			return null;
 		}
 
-		return getSheetLocalEditorPosition({
-			columnMetric: columnMetricsByKey.get(getSheetRuntimeColumnKey(activeSelectEditorLookup.designCell)),
+		return getDataTableLocalEditorPosition({
+			columnMetric: columnMetricsByKey.get(getDataTableRuntimeColumnKey(activeSelectEditorLookup.designCell)),
 			hasPlaceholderTail,
 			rowIndex: rowIndexById.get(activeSelectEditorLookup.row.id) ?? -1,
 			rowWidth: Math.max(totalWidth, viewportWidth),
@@ -4780,8 +4809,8 @@ export function Sheet(p: SheetProps) {
 			return null;
 		}
 
-		return getSheetLocalEditorPosition({
-			columnMetric: columnMetricsByKey.get(getSheetRuntimeColumnKey(activeDateEditorLookup.designCell)),
+		return getDataTableLocalEditorPosition({
+			columnMetric: columnMetricsByKey.get(getDataTableRuntimeColumnKey(activeDateEditorLookup.designCell)),
 			hasPlaceholderTail,
 			rowIndex: rowIndexById.get(activeDateEditorLookup.row.id) ?? -1,
 			rowWidth: Math.max(totalWidth, viewportWidth),
@@ -4810,9 +4839,9 @@ export function Sheet(p: SheetProps) {
 		}
 
 		const { lookup } = inboundContactEditorState;
-		const columnMetric = columnMetricsByKey.get(getSheetRuntimeColumnKey(lookup.designCell));
+		const columnMetric = columnMetricsByKey.get(getDataTableRuntimeColumnKey(lookup.designCell));
 
-		return getSheetLocalEditorPosition({
+		return getDataTableLocalEditorPosition({
 			columnMetric,
 			hasPlaceholderTail,
 			rowIndex: rowIndexById.get(lookup.row.id) ?? -1,
@@ -4839,19 +4868,19 @@ export function Sheet(p: SheetProps) {
 		if (
 			!selectedCellLookup ||
 			effectiveDisabled ||
-			(canEditSheetRuntimeCell({
+			(canEditDataTableRuntimeCell({
 				activeView,
 				design: effectiveDesign,
 				designCell: selectedCellLookup.designCell,
 				disabled: effectiveDisabled,
 			}) &&
-				!isSheetReferenceCell(selectedCellLookup.cell))
+				!isDataTableReferenceCell(selectedCellLookup.cell))
 		) {
 			return null;
 		}
 
-		return getSheetSelectedCellTagPosition({
-			columnMetric: columnMetricsByKey.get(getSheetRuntimeColumnKey(selectedCellLookup.designCell)),
+		return getDataTableSelectedCellTagPosition({
+			columnMetric: columnMetricsByKey.get(getDataTableRuntimeColumnKey(selectedCellLookup.designCell)),
 			rowIndex: rowIndexById.get(selectedCellLookup.row.id) ?? -1,
 			rowWidth: Math.max(totalWidth, viewportWidth),
 			stickyColumnCount,
@@ -4859,7 +4888,7 @@ export function Sheet(p: SheetProps) {
 		});
 	}, [activeView, columnMetricsByKey, effectiveDesign, effectiveDisabled, rowIndexById, selectedCellLookup, stickyColumnCount, stickyHeaderHeight, totalWidth, viewportWidth]);
 	const selectedRangeBoxPosition = useMemo(() => {
-		return getSheetSelectionBoxPosition({
+		return getDataTableSelectionBoxPosition({
 			columnMetrics: columnMetricsData.metrics,
 			renderedRows,
 			selection: selectedCellSelection,
@@ -4890,10 +4919,10 @@ export function Sheet(p: SheetProps) {
 			}
 
 			const runtime = runtimeRef.current;
-			const activeCellElement = getClosestSheetElement(target, '[data-sheet-cell="true"]');
-			const activeCellLookup = runtime && activeCellElement ? getSheetCellLookup(runtime, activeCellElement.dataset.rowId, activeCellElement.dataset.cellKey) : null;
+			const activeCellElement = getClosestDataTableElement(target, '[data-sheet-cell="true"]');
+			const activeCellLookup = runtime && activeCellElement ? getDataTableCellLookup(runtime, activeCellElement.dataset.rowId, activeCellElement.dataset.cellKey) : null;
 
-			if (activeCellLookup && isSheetLocalEditorEditStateLookup(runtime?.editState, activeCellLookup)) {
+			if (activeCellLookup && isDataTableLocalEditorEditStateLookup(runtime?.editState, activeCellLookup)) {
 				return;
 			}
 
@@ -4934,11 +4963,11 @@ export function Sheet(p: SheetProps) {
 
 		return {
 			columnKey: highlightedResizeColumnKey,
-			height: sheetSurfaceHeight,
+			height: dataTableSurfaceHeight,
 			left:
 				(isStickyLeft ? scrollState.scrollLeft : 0) + SHEET_ROW_NUMBER_WIDTH + metric.left + (metric.columnIndex < stickyColumnCount ? 0 : SHEET_STICKY_SPACER_SIZE) + metric.width,
 		};
-	}, [columnMetricsByKey, columnReorderVisualState, highlightedResizeColumnKey, scrollState.scrollLeft, stickyColumnCount, sheetSurfaceHeight]);
+	}, [columnMetricsByKey, columnReorderVisualState, highlightedResizeColumnKey, scrollState.scrollLeft, stickyColumnCount, dataTableSurfaceHeight]);
 	const columnReorderGuide = useMemo<SheetUIColumnReorderGuide | null>(() => {
 		if (!columnReorderVisualState) {
 			return null;
@@ -4947,7 +4976,7 @@ export function Sheet(p: SheetProps) {
 		return {
 			columnKey: columnReorderVisualState.columnKey,
 			height: SHEET_HEADER_HEIGHT,
-			left: getSheetColumnReorderGuideLeft(columnReorderMetrics, columnReorderVisualState.toVisibleIndex, scrollState.scrollLeft, stickyColumnCount),
+			left: getDataTableColumnReorderGuideLeft(columnReorderMetrics, columnReorderVisualState.toVisibleIndex, scrollState.scrollLeft, stickyColumnCount),
 		};
 	}, [columnReorderMetrics, columnReorderVisualState, scrollState.scrollLeft, stickyColumnCount]);
 	const columnReorderDrag = useMemo<SheetUIColumnReorderDrag | null>(() => {
@@ -4972,7 +5001,7 @@ export function Sheet(p: SheetProps) {
 			return null;
 		}
 
-		return getSheetColumnReorderHeaderDisplacements({
+		return getDataTableColumnReorderHeaderDisplacements({
 			columnKey: columnReorderVisualState.columnKey,
 			metrics: columnReorderMetrics,
 			scrollLeft: scrollState.scrollLeft,
@@ -4982,8 +5011,8 @@ export function Sheet(p: SheetProps) {
 		});
 	}, [columnKeys, columnReorderMetrics, columnReorderVisualState, scrollState.scrollLeft, stickyColumnCount]);
 
-	const sheetTabs = getSheetTabs(sheet, sheetViews);
-	const sheetLocalEditorOverlay = (
+	const dataTableTabs = getDataTableTabs(dataTable, dataTableViews);
+	const dataTableLocalEditorOverlay = (
 		<>
 			{selectedRangeBoxPosition ? <div
 				className="sheet_selection_box abs noclick"
@@ -4995,12 +5024,12 @@ export function Sheet(p: SheetProps) {
 					width: selectedRangeBoxPosition.width,
 				}}
 			/> : null}
-			{selectedReadOnlyCellPosition ? <SheetReadOnlyTag position={selectedReadOnlyCellPosition} /> : null}
+			{selectedReadOnlyCellPosition ? <DataTableReadOnlyTag position={selectedReadOnlyCellPosition} /> : null}
 			{activeSelectEditorLookup && editState && selectEditorPosition ? (
-				<SheetLocalEditorContainer position={selectEditorPosition}>
+				<DataTableLocalEditorContainer position={selectEditorPosition}>
 					<div
 						onClick={(event) => {
-							const optionElement = getClosestSheetElement(event.target, '[data-sheet-select-editor-option]');
+							const optionElement = getClosestDataTableElement(event.target, '[data-sheet-select-editor-option]');
 							const value = optionElement?.getAttribute('data-sheet-select-editor-option');
 
 							if (value === undefined || value === null) {
@@ -5028,11 +5057,11 @@ export function Sheet(p: SheetProps) {
 							options={getSheetSelectEditorOptions(activeSelectEditorLookup.designCell)}
 						/>
 					</div>
-				</SheetLocalEditorContainer>
+				</DataTableLocalEditorContainer>
 			) : null}
 			{activeDateEditorLookup && editState && dateEditorPosition ? (
-				<SheetLocalEditorContainer position={dateEditorPosition}>
-					<SheetDateEditor
+				<DataTableLocalEditorContainer position={dateEditorPosition}>
+					<DataTableDateEditor
 						clickSource={editState.clickSource}
 						key={`${editState.rowId}:${editState.cellKey}`}
 						editState={editState}
@@ -5040,11 +5069,11 @@ export function Sheet(p: SheetProps) {
 						onDateTimeSave={handleDateEditorDateTimeSave}
 						onDateValue={handleDateEditorDateValue}
 					/>
-				</SheetLocalEditorContainer>
+				</DataTableLocalEditorContainer>
 			) : null}
 			{inboundContactEditorState && inboundContactEditorPosition ? (
-				<SheetLocalEditorContainer position={inboundContactEditorPosition}>
-					<SheetInboundContactEditor
+				<DataTableLocalEditorContainer position={inboundContactEditorPosition}>
+					<DataTableInboundContactEditor
 						clickSource={inboundContactEditorState.clickSource}
 						displayValue={inboundContactEditorState.displayValue}
 						inboundContactId={String(inboundContactEditorState.lookup.cell?.relatedId || '')}
@@ -5056,11 +5085,11 @@ export function Sheet(p: SheetProps) {
 						openModalPopUp={openModalPopUp}
 						organizationId={organizationId}
 					/>
-				</SheetLocalEditorContainer>
+				</DataTableLocalEditorContainer>
 			) : null}
 		</>
 	);
-	const sheetGrid = (
+	const dataTableGrid = (
 		<SheetUI
 			canvasHeight={Math.max(totalHeight, viewportHeight)}
 			canvasWidth={Math.max(totalWidth, viewportWidth)}
@@ -5080,15 +5109,15 @@ export function Sheet(p: SheetProps) {
 			selectedHeaderCellKey={selectedHeaderCellKey}
 			headerSpacerWidth={rowContentWidth}
 			headerWidth={Math.max(totalWidth, viewportWidth)}
-			overlayContent={sheetLocalEditorOverlay}
+			overlayContent={dataTableLocalEditorOverlay}
 			resizeGuide={resizeGuide}
 			rows={visibleRows}
 			scrollLeft={scrollState.scrollLeft}
 			scrollRef={scrollElement.ref}
 			selectedCellKeyMap={selectedCellKeyMap}
 			selectedCellState={singleClickedCellState}
-			sheetSurfaceHeight={sheetSurfaceHeight}
-			sheetSurfaceTop={sheetSurfaceTop}
+			sheetSurfaceHeight={dataTableSurfaceHeight}
+			sheetSurfaceTop={dataTableSurfaceTop}
 			stickyColumnEndLeft={stickyColumnEndLeft}
 			stickyColumnCount={stickyColumnCount}
 		/>
@@ -5096,12 +5125,12 @@ export function Sheet(p: SheetProps) {
 
 	return (
 		<div className={cn('v_stretch h_f w_f rel bg', className)} data-sheet-with-views="true">
-			<div ref={sheetGridContainerRef} className="f h_0 rel" data-sheet-grid-container="true">
-				{sheetGrid}
+			<div ref={dataTableGridContainerRef} className="f h_0 rel" data-sheet-grid-container="true">
+				{dataTableGrid}
 			</div>
 
 			<nav className="no_shrink h_45 h_bottom gap_6 bd_t_1 bd_lt bg_alt px_8 z5" data-sheet-view-tabs="true">
-				{sheetTabs.map((tab) => {
+				{dataTableTabs.map((tab) => {
 					const selected = tab.id === selectedViewId;
 
 					return (

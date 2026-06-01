@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
-import type { SheetCellGQL, SheetDesignCellGQL, SheetGQL, SheetRowGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { DataTableCellGQL, DataTableDesignCellGQL, DataTableGQL, DataTableRowGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import { configI18n } from '@jsb188/app';
 import i18n from '@jsb188/app/i18n/index.ts';
-import { SHEET_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/sheet.ts';
+import { DATA_TABLE_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/dataTable.ts';
 import {
 	SHEET_COLUMN_WIDTH,
 	SHEET_HEADER_HEIGHT,
@@ -21,17 +21,17 @@ configI18n();
 
 const hookState = vi.hoisted(() => ({
 	editInboundContact: vi.fn(),
-	editSheetCell: vi.fn(),
-	editSheetDesign: vi.fn(),
+	editDataTableCell: vi.fn(),
+	editDataTableDesign: vi.fn(),
 	fetchMoreRows: vi.fn(),
-	getSheetRows: null as (() => any[]) | null,
+	getDataTableRows: null as (() => any[]) | null,
 	childOrganizations: [] as any[],
 	inboundContact: null as any,
 	inboundContactInitialLoading: false,
 	inboundContactSaving: false,
 	lastChildOrganizationsArgs: null as any[] | null,
 	lastInboundContactArgs: null as any[] | null,
-	lastSheetRowsArgs: null as any[] | null,
+	lastDataTableRowsArgs: null as any[] | null,
 	keyDown: {
 		alert: false,
 		metaKey: false,
@@ -41,21 +41,21 @@ const hookState = vi.hoisted(() => ({
 	openModalPopUp: vi.fn(),
 	openModalScreen: vi.fn(),
 	resetOnlyTime: '' as string | undefined,
-	sheetRows: [] as any[],
-	sheetRowsVariables: null as any,
+	dataTableRows: [] as any[],
+	dataTableRowsVariables: null as any,
 }));
 
-vi.mock('@jsb188/graphql/hooks/use-sheet-qry', () => ({
-	useReactiveSheetRows: (rows: any[]) => rows,
-	useSheetRows: (...args: any[]) => {
-		hookState.lastSheetRowsArgs = args;
+vi.mock('@jsb188/graphql/hooks/use-dataTable-qry', () => ({
+	useReactiveDataTableRows: (rows: any[]) => rows,
+	useDataTableRows: (...args: any[]) => {
+		hookState.lastDataTableRowsArgs = args;
 
 		return {
 			fetchMore: hookState.fetchMoreRows,
 			resetOnlyTime: hookState.resetOnlyTime,
-			sheetRows: hookState.getSheetRows ? hookState.getSheetRows() : hookState.sheetRows,
-			variables: hookState.sheetRowsVariables || {
-				sheetId: args[0],
+			dataTableRows: hookState.getDataTableRows ? hookState.getDataTableRows() : hookState.dataTableRows,
+			variables: hookState.dataTableRowsVariables || {
+				dataTableId: args[0],
 				organizationId: args[1],
 				cursor: args[2],
 				limit: args[3],
@@ -65,12 +65,12 @@ vi.mock('@jsb188/graphql/hooks/use-sheet-qry', () => ({
 	},
 }));
 
-vi.mock('@jsb188/graphql/hooks/use-sheet-mtn', () => ({
-	useEditSheetCell: () => ({
-		editSheetCell: hookState.editSheetCell,
+vi.mock('@jsb188/graphql/hooks/use-dataTable-mtn', () => ({
+	useEditDataTableCell: () => ({
+		editDataTableCell: hookState.editDataTableCell,
 	}),
-	useEditSheetDesign: () => ({
-		editSheetDesign: hookState.editSheetDesign,
+	useEditDataTableDesign: () => ({
+		editDataTableDesign: hookState.editDataTableDesign,
 	}),
 }));
 
@@ -126,7 +126,7 @@ let currentRoot: Root | null = null;
  * Build one design cell for Sheet container tests.
  */
 
-function createDesignCell(key: string, overrides: Partial<SheetDesignCellGQL> = {}): SheetDesignCellGQL {
+function createDesignCell(key: string, overrides: Partial<DataTableDesignCellGQL> = {}): DataTableDesignCellGQL {
 	return {
 		key,
 		label: key.toUpperCase(),
@@ -141,11 +141,11 @@ function createDesignCell(key: string, overrides: Partial<SheetDesignCellGQL> = 
  * Build one sheet cell for Sheet container tests.
  */
 
-function createCell(rowId: string, cellKey: string, value: string, overrides: Partial<SheetCellGQL> = {}): SheetCellGQL {
+function createCell(rowId: string, cellKey: string, value: string, overrides: Partial<DataTableCellGQL> = {}): DataTableCellGQL {
 	return {
 		id: `${rowId}:${cellKey}`,
-		sheetId: 'sheet-1',
-		sheetRowId: rowId,
+		dataTableId: 'sheet-1',
+		dataTableRowId: rowId,
 		cellKey,
 		value,
 		textValue: value,
@@ -159,14 +159,14 @@ function createCell(rowId: string, cellKey: string, value: string, overrides: Pa
  * Build one sheet row for Sheet container tests.
  */
 
-function createRow(position: number, values: Record<string, string> = { name: `Row ${position}` }): SheetRowGQL {
+function createRow(position: number, values: Record<string, string> = { name: `Row ${position}` }): DataTableRowGQL {
 	const rowId = `row-${position}`;
 
 	return {
 		id: rowId,
 		cursor: `cursor-${position}`,
 		organizationId: 'org-1',
-		sheetId: 'sheet-1',
+		dataTableId: 'sheet-1',
 		position,
 		metadata: '{}',
 		cells: Object.entries(values).map(([cellKey, value]) => createCell(rowId, cellKey, value)),
@@ -177,7 +177,7 @@ function createRow(position: number, values: Record<string, string> = { name: `R
  * Build one sheet object for Sheet container tests.
  */
 
-function createSheet(overrides: Partial<SheetGQL> = {}): SheetGQL {
+function createDataTable(overrides: Partial<DataTableGQL> = {}): DataTableGQL {
 	const cells = [
 		createDesignCell('name'),
 		createDesignCell('status', { openLink: true }),
@@ -251,7 +251,7 @@ async function renderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) {
 		currentRoot?.render(
 			<Sheet
 				allowEdit
-				sheet={createSheet()}
+				dataTable={createDataTable()}
 				{...props}
 			/>,
 		);
@@ -272,7 +272,7 @@ async function rerenderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) 
 		currentRoot?.render(
 			<Sheet
 				allowEdit
-				sheet={createSheet()}
+				dataTable={createDataTable()}
 				{...props}
 			/>,
 		);
@@ -305,11 +305,11 @@ beforeEach(() => {
 			id: 'contact-1',
 		},
 	});
-	hookState.editSheetCell.mockReset().mockResolvedValue({ data: {} });
-	hookState.editSheetDesign.mockReset().mockResolvedValue({ data: {} });
-	hookState.fetchMoreRows.mockReset().mockResolvedValue({ data: { sheetRows: [] } });
+	hookState.editDataTableCell.mockReset().mockResolvedValue({ data: {} });
+	hookState.editDataTableDesign.mockReset().mockResolvedValue({ data: {} });
+	hookState.fetchMoreRows.mockReset().mockResolvedValue({ data: { dataTableRows: [] } });
 	hookState.childOrganizations = [];
-	hookState.getSheetRows = null;
+	hookState.getDataTableRows = null;
 	hookState.inboundContact = null;
 	hookState.inboundContactInitialLoading = false;
 	hookState.inboundContactSaving = false;
@@ -321,12 +321,12 @@ beforeEach(() => {
 	};
 	hookState.lastChildOrganizationsArgs = null;
 	hookState.lastInboundContactArgs = null;
-	hookState.lastSheetRowsArgs = null;
+	hookState.lastDataTableRowsArgs = null;
 	hookState.openModalPopUp.mockReset();
 	hookState.openModalScreen.mockReset();
 	hookState.resetOnlyTime = '';
-	hookState.sheetRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
-	hookState.sheetRowsVariables = null;
+	hookState.dataTableRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
+	hookState.dataTableRowsVariables = null;
 	Object.defineProperty(window, 'open', {
 		configurable: true,
 		value: vi.fn(),
@@ -413,7 +413,7 @@ describe('Sheet container', () => {
 	});
 
 	it('uses cell icon names before design fallback icon names', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'name'
@@ -423,7 +423,7 @@ describe('Sheet container', () => {
 				}
 				: cell),
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {}),
 			cells: [
 				createCell('row-0', 'name', 'Alpha', {
@@ -433,7 +433,7 @@ describe('Sheet container', () => {
 			],
 		}];
 
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const firstCell = host.querySelector('[data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement | null;
 
 		expect(firstCell?.querySelector('.icon-circle-check')).not.toBeNull();
@@ -441,7 +441,7 @@ describe('Sheet container', () => {
 	});
 
 	it('uses design icon names when cells do not have icon names', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'name'
@@ -452,7 +452,7 @@ describe('Sheet container', () => {
 				: cell),
 		};
 
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const firstCell = host.querySelector('[data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement | null;
 
 		expect(firstCell?.querySelector('.icon-circle-check')).not.toBeNull();
@@ -460,15 +460,15 @@ describe('Sheet container', () => {
 	});
 
 	it('renders deleted reference cells as read-only markers', async () => {
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {}),
 			cells: [
 				createCell('row-0', 'name', '', {
 					value: null,
 					textValue: null,
 					reference: {
-						sheetId: 'sheet-2',
-						sheetRowId: null,
+						dataTableId: 'sheet-2',
+						dataTableRowId: null,
 						cellKey: 'name',
 					},
 					referenceStatus: 'DELETED',
@@ -575,7 +575,7 @@ describe('Sheet container', () => {
 	});
 
 	it('moves selected cells vertically with arrow keys', async () => {
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(0, { name: 'Alpha', status: 'Open' }),
 			createRow(1, { name: 'Beta', status: 'Closed' }),
 		];
@@ -597,7 +597,7 @@ describe('Sheet container', () => {
 	});
 
 	it('extends and collapses cell ranges with Shift arrow keys', async () => {
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(0, { name: 'Alpha', status: 'Open' }),
 			createRow(1, { name: 'Beta', status: 'Closed' }),
 		];
@@ -637,7 +637,7 @@ describe('Sheet container', () => {
 			},
 		});
 
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(0, { name: 'Alpha', status: 'Open' }),
 			createRow(1, { name: 'Beta', status: 'Closed' }),
 		];
@@ -658,7 +658,7 @@ describe('Sheet container', () => {
 	it('pastes valid cells and skips invalid or read-only destinations', async () => {
 		const readText = vi.fn().mockResolvedValue('Beta\tabc\tBlocked');
 		const setFloatingMessage = vi.fn();
-		const sheet = createSheet();
+		const sheet = createDataTable();
 
 		sheet.design = {
 			...sheet.design,
@@ -674,7 +674,7 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['name', 'quantity', 'locked'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			locked: 'Original',
 			name: 'Alpha',
 			quantity: '1',
@@ -685,23 +685,23 @@ describe('Sheet container', () => {
 				readText,
 			},
 		});
-		const host = await renderSheet({ setFloatingMessage, sheet });
+		const host = await renderSheet({ setFloatingMessage, dataTable: sheet });
 		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
 
 		await act(async () => {
 			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		});
 		await flushRender();
-		await pressSheetKey('v', { setFloatingMessage, sheet }, { metaKey: true });
+		await pressSheetKey('v', { setFloatingMessage, dataTable: sheet }, { metaKey: true });
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledTimes(1);
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledTimes(1);
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: {
 				cellKey: 'name',
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
-				sheetRowId: 'row-0',
+				dataTableId: 'sheet-1',
+				dataTableRowId: 'row-0',
 				value: 'Beta',
 				viewCellKey: null,
 				viewId: null,
@@ -715,7 +715,7 @@ describe('Sheet container', () => {
 
 	it('clears editable selected cells and skips read-only cells', async () => {
 		const setFloatingMessage = vi.fn();
-		const sheet = createSheet();
+		const sheet = createDataTable();
 
 		sheet.design = {
 			...sheet.design,
@@ -728,26 +728,26 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['name', 'status', 'locked'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			locked: 'Original',
 			name: 'Alpha',
 			status: 'Open',
 		})];
-		const host = await renderSheet({ setFloatingMessage, sheet });
+		const host = await renderSheet({ setFloatingMessage, dataTable: sheet });
 		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
 
 		await act(async () => {
 			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		});
 		await flushRender();
-		await pressSheetKey('ArrowRight', { setFloatingMessage, sheet }, { shiftKey: true });
-		await pressSheetKey('ArrowRight', { setFloatingMessage, sheet }, { shiftKey: true });
-		await pressSheetKey('Delete', { setFloatingMessage, sheet });
+		await pressSheetKey('ArrowRight', { setFloatingMessage, dataTable: sheet }, { shiftKey: true });
+		await pressSheetKey('ArrowRight', { setFloatingMessage, dataTable: sheet }, { shiftKey: true });
+		await pressSheetKey('Delete', { setFloatingMessage, dataTable: sheet });
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledTimes(2);
-		expect(hookState.editSheetCell.mock.calls.map((call) => call[0].variables.cellKey)).toEqual(['name', 'status']);
-		expect(hookState.editSheetCell.mock.calls.map((call) => call[0].variables.value)).toEqual([null, null]);
+		expect(hookState.editDataTableCell).toHaveBeenCalledTimes(2);
+		expect(hookState.editDataTableCell.mock.calls.map((call) => call[0].variables.cellKey)).toEqual(['name', 'status']);
+		expect(hookState.editDataTableCell.mock.calls.map((call) => call[0].variables.value)).toEqual([null, null]);
 		expect(setFloatingMessage).toHaveBeenCalledWith(expect.objectContaining({
 			text: 'Cleared 2 cells, skipped 1, failed 0.',
 			type: 'NOTICE',
@@ -823,7 +823,7 @@ describe('Sheet container', () => {
 	});
 
 	it('scrolls selected arrow-key targets into view', async () => {
-		hookState.sheetRows = Array.from({ length: 12 }, (_, index) => createRow(index, {
+		hookState.dataTableRows = Array.from({ length: 12 }, (_, index) => createRow(index, {
 			name: `Row ${index}`,
 			status: index % 2 ? 'Closed' : 'Open',
 		}));
@@ -847,8 +847,8 @@ describe('Sheet container', () => {
 	});
 
 	it('derives external-link icons for open-link cells with HTTP text values', async () => {
-		const sheet = createSheet();
-		hookState.sheetRows = [{
+		const sheet = createDataTable();
+		hookState.dataTableRows = [{
 			...createRow(0, {}),
 			cells: [
 				createCell('row-0', 'name', 'Alpha'),
@@ -856,14 +856,14 @@ describe('Sheet container', () => {
 			],
 		}];
 
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement | null;
 
 		expect(statusCell?.querySelector('.icon-external-link')).not.toBeNull();
 	});
 
 	it('derives notes-paper-text icons for open-link ID cells with related IDs', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'status'
@@ -874,7 +874,7 @@ describe('Sheet container', () => {
 				}
 				: cell),
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {}),
 			cells: [
 				createCell('row-0', 'name', 'Alpha'),
@@ -884,14 +884,14 @@ describe('Sheet container', () => {
 			],
 		}];
 
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement | null;
 
 		expect(statusCell?.querySelector('.icon-notes-paper-text')).not.toBeNull();
 	});
 
 	it('uses explicit icon names before derived open-link icon names', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'status'
@@ -901,7 +901,7 @@ describe('Sheet container', () => {
 				}
 				: cell),
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {}),
 			cells: [
 				createCell('row-0', 'name', 'Alpha'),
@@ -911,7 +911,7 @@ describe('Sheet container', () => {
 			],
 		}];
 
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement | null;
 
 		expect(statusCell?.querySelector('.icon-circle-check')).not.toBeNull();
@@ -920,7 +920,7 @@ describe('Sheet container', () => {
 	});
 
 	it('uses design icon names before derived open-link icon names', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'status'
@@ -930,7 +930,7 @@ describe('Sheet container', () => {
 				}
 				: cell),
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {}),
 			cells: [
 				createCell('row-0', 'name', 'Alpha'),
@@ -938,7 +938,7 @@ describe('Sheet container', () => {
 			],
 		}];
 
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-cell-key="status"][data-sheet-cell="true"]') as HTMLElement | null;
 
 		expect(statusCell?.querySelector('.icon-circle')).not.toBeNull();
@@ -946,7 +946,7 @@ describe('Sheet container', () => {
 	});
 
 	it('preserves fetched sheet row order instead of sorting by row position', async () => {
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(2, { name: 'Third fetched', status: 'Open' }),
 			createRow(0, { name: 'First fetched', status: 'Open' }),
 			createRow(1, { name: 'Second fetched', status: 'Open' }),
@@ -963,7 +963,7 @@ describe('Sheet container', () => {
 			'Second fetched',
 		]);
 
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(1, { name: 'Second fetched', status: 'Open' }),
 			createRow(2, { name: 'Third fetched', status: 'Open' }),
 			createRow(0, { name: 'First fetched', status: 'Open' }),
@@ -996,7 +996,7 @@ describe('Sheet container', () => {
 	});
 
 	it('renders human labels in sheet headers when they exist', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'name'
@@ -1006,14 +1006,14 @@ describe('Sheet container', () => {
 				}
 				: cell),
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const nameHeader = host.querySelector('[data-sheet-header-cell="true"]') as HTMLElement;
 
 		expect(nameHeader.textContent).toBe('Human Name');
 	});
 
 	it('does not render hidden master sheet design cells', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'status'
@@ -1023,7 +1023,7 @@ describe('Sheet container', () => {
 				}
 				: cell),
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 
 		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]')).not.toBeNull();
 		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]')).toBeNull();
@@ -1031,7 +1031,7 @@ describe('Sheet container', () => {
 	});
 
 	it('does not render view columns backed by hidden master cells', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'status'
@@ -1068,7 +1068,7 @@ describe('Sheet container', () => {
 			}],
 			viewsOrder: ['review'],
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const reviewTab = host.querySelector('[data-sheet-view-tab="review"]') as HTMLElement;
 
 		await act(async () => {
@@ -1097,11 +1097,11 @@ describe('Sheet container', () => {
 		expect(viewTabs.className).not.toContain('abs_b');
 		expect(viewTabs.className).toContain('no_shrink');
 		expect(viewTabs.className).toContain('h_45');
-		expect(hookState.lastSheetRowsArgs?.[4]).toBeNull();
+		expect(hookState.lastDataTableRowsArgs?.[4]).toBeNull();
 	});
 
 	it('renders saved views as bottom tabs and refetches rows with a view filter', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			views: [{
@@ -1125,7 +1125,7 @@ describe('Sheet container', () => {
 			}],
 			viewsOrder: ['active_jobs'],
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const viewTabs = host.querySelector('[data-sheet-view-tabs="true"]');
 		const dataTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
 		const activeJobsTab = host.querySelector('[data-sheet-view-tab="active_jobs"]') as HTMLElement;
@@ -1133,7 +1133,7 @@ describe('Sheet container', () => {
 		expect(viewTabs).not.toBeNull();
 		expect(dataTab.textContent).toBe('Data');
 		expect(activeJobsTab.textContent).toBe('Active Jobs');
-		expect(hookState.lastSheetRowsArgs?.[4]).toBeNull();
+		expect(hookState.lastDataTableRowsArgs?.[4]).toBeNull();
 
 		await act(async () => {
 			activeJobsTab.click();
@@ -1142,7 +1142,7 @@ describe('Sheet container', () => {
 		await flushRender();
 		await flushRender();
 
-		expect(hookState.lastSheetRowsArgs?.[4]).toEqual({
+		expect(hookState.lastDataTableRowsArgs?.[4]).toEqual({
 			viewId: 'active_jobs',
 		});
 		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('Job');
@@ -1161,12 +1161,12 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: {
 				cellKey: 'name',
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
-				sheetRowId: 'row-0',
+				dataTableId: 'sheet-1',
+				dataTableRowId: 'row-0',
 				viewCellKey: 'job_name',
 				viewId: 'active_jobs',
 				value: 'Beta',
@@ -1175,7 +1175,7 @@ describe('Sheet container', () => {
 	});
 
 	it('renders computed and related view cells as read-only columns', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			views: [{
@@ -1209,11 +1209,11 @@ describe('Sheet container', () => {
 			}],
 			viewsOrder: ['weekly_fulfillment'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			region: 'North',
 			crates: '12',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const currentWeekTab = host.querySelector('[data-sheet-view-tab="weekly_fulfillment"]') as HTMLElement;
 
 		await act(async () => {
@@ -1237,11 +1237,11 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
-		expect(hookState.editSheetCell).not.toHaveBeenCalled();
+		expect(hookState.editDataTableCell).not.toHaveBeenCalled();
 	});
 
 	it('renders computed view cells from source cells when synthetic cells are missing', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -1292,8 +1292,8 @@ describe('Sheet container', () => {
 				numberValue: 5,
 			}),
 		];
-		hookState.sheetRows = [row];
-		const host = await renderSheet({ sheet });
+		hookState.dataTableRows = [row];
+		const host = await renderSheet({ dataTable: sheet });
 		const marketsTodayTab = host.querySelector('[data-sheet-view-tab="markets_today"]') as HTMLElement;
 
 		await act(async () => {
@@ -1310,7 +1310,7 @@ describe('Sheet container', () => {
 	});
 
 	it('renders select-style values as colored pills from sheet design options', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		const cells = [
 			createDesignCell('name'),
 			createDesignCell('status', {
@@ -1343,14 +1343,14 @@ describe('Sheet container', () => {
 			cells,
 			cellsOrder: cells.map((cell) => cell.key),
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			status: 'Open',
 			defaultStatus: 'Default',
 			reason: 'Needs review',
 		})];
 
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 		const defaultStatusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="defaultStatus"]') as HTMLElement;
 		const reasonCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"]') as HTMLElement;
@@ -1373,7 +1373,7 @@ describe('Sheet container', () => {
 	});
 
 	it('does not apply editable hover backgrounds to non-editable cells', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		const cells = [
 			createDesignCell('name', {
 				humansCannotEdit: true,
@@ -1394,12 +1394,12 @@ describe('Sheet container', () => {
 			cells,
 			cellsOrder: cells.map((cell) => cell.key),
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			status: 'Open',
 		})];
 
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
@@ -1481,7 +1481,7 @@ describe('Sheet container', () => {
 	});
 
 	it('prefers typed mirror values over raw persisted strings when rendering cells', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -1505,15 +1505,15 @@ describe('Sheet container', () => {
 				booleanValue: false,
 			}),
 		];
-		hookState.sheetRows = [row];
-		const host = await renderSheet({ sheet });
+		hookState.dataTableRows = [row];
+		const host = await renderSheet({ dataTable: sheet });
 
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="count"]')?.textContent).toBe('42');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="enabled"]')?.textContent).toBe('false');
 	});
 
 	it('formats price and week fields for display', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -1556,8 +1556,8 @@ describe('Sheet container', () => {
 			}),
 			createCell(row.id, 'related_week', '2026-05-27'),
 		];
-		hookState.sheetRows = [row];
-		const host = await renderSheet({ sheet });
+		hookState.dataTableRows = [row];
+		const host = await renderSheet({ dataTable: sheet });
 
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="price"]')?.textContent).toBe('$12.50');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="same_month_week"]')?.textContent).toBe('May 18 - 24');
@@ -1567,7 +1567,7 @@ describe('Sheet container', () => {
 	});
 
 	it('formats date and datetime cells with design cell format', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -1599,8 +1599,8 @@ describe('Sheet container', () => {
 			}),
 			createCell(row.id, 'related_date', '2026-05-18'),
 		];
-		hookState.sheetRows = [row];
-		const host = await renderSheet({ sheet });
+		hookState.dataTableRows = [row];
+		const host = await renderSheet({ dataTable: sheet });
 
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="date"]')?.textContent).toBe('Mon, May 18');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="datetime"]')?.textContent).toBe('May 18, 2:30 PM');
@@ -1608,7 +1608,7 @@ describe('Sheet container', () => {
 	});
 
 	it('selects a valid saved default view on first render', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			defaultViewId: 'active_jobs',
@@ -1632,16 +1632,16 @@ describe('Sheet container', () => {
 			}],
 			viewsOrder: ['active_jobs'],
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 
-		expect(hookState.lastSheetRowsArgs?.[4]).toEqual({
+		expect(hookState.lastDataTableRowsArgs?.[4]).toEqual({
 			viewId: 'active_jobs',
 		});
 		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('Job');
 	});
 
 	it('falls back to the database tab when a saved default view is missing', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			defaultViewId: 'missing_view',
@@ -1665,9 +1665,9 @@ describe('Sheet container', () => {
 			}],
 			viewsOrder: ['active_jobs'],
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 
-		expect(hookState.lastSheetRowsArgs?.[4]).toBeNull();
+		expect(hookState.lastDataTableRowsArgs?.[4]).toBeNull();
 		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('NAME');
 	});
 
@@ -1692,7 +1692,7 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		expect(host.querySelector('[data-sheet-header-editor="true"]')).toBeNull();
-		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledWith({
 			variables: {
 				design: {
 					cells: [{
@@ -1701,14 +1701,14 @@ describe('Sheet container', () => {
 					}],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 		expect(nameHeader.textContent).toBe('Display Name');
 	});
 
 	it('caps saved header human labels to seventy characters', async () => {
-		const longLabel = 'A'.repeat(SHEET_HUMAN_LABEL_MAX_LENGTH + 10);
+		const longLabel = 'A'.repeat(DATA_TABLE_HUMAN_LABEL_MAX_LENGTH + 10);
 		const host = await renderSheet();
 		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
 
@@ -1725,19 +1725,19 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledWith({
 			variables: {
 				design: {
 					cells: [{
-						humanLabel: 'A'.repeat(SHEET_HUMAN_LABEL_MAX_LENGTH),
+						humanLabel: 'A'.repeat(DATA_TABLE_HUMAN_LABEL_MAX_LENGTH),
 						key: 'name',
 					}],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
-		expect(nameHeader.textContent).toBe('A'.repeat(SHEET_HUMAN_LABEL_MAX_LENGTH));
+		expect(nameHeader.textContent).toBe('A'.repeat(DATA_TABLE_HUMAN_LABEL_MAX_LENGTH));
 	});
 
 	it('does not enter header edit mode when editing is denied', async () => {
@@ -1756,9 +1756,9 @@ describe('Sheet container', () => {
 		const lockedNameCell = createDesignCell('name', { humansCannotEdit: true });
 		const statusCell = createDesignCell('status');
 		const host = await renderSheet({
-			sheet: createSheet({
+			dataTable: createDataTable({
 				design: {
-					...createSheet().design,
+					...createDataTable().design,
 					cells: [lockedNameCell, statusCell],
 					cellsOrder: ['name', 'status'],
 				},
@@ -1816,12 +1816,12 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		expect(host.querySelector('[data-sheet-header-editor="true"]')).toBeNull();
-		expect(hookState.editSheetDesign).not.toHaveBeenCalled();
+		expect(hookState.editDataTableDesign).not.toHaveBeenCalled();
 	});
 
 	it('queues header human label saves until the in-flight design save finishes', async () => {
 		let resolveFirstSave: ((value: unknown) => void) | null = null;
-		hookState.editSheetDesign.mockImplementationOnce(() => new Promise((resolve) => {
+		hookState.editDataTableDesign.mockImplementationOnce(() => new Promise((resolve) => {
 			resolveFirstSave = resolve;
 		}));
 		const host = await renderSheet();
@@ -1841,7 +1841,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
+		expect(hookState.editDataTableDesign).toHaveBeenCalledTimes(1);
 
 		await act(async () => {
 			statusHeader.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
@@ -1856,7 +1856,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
+		expect(hookState.editDataTableDesign).toHaveBeenCalledTimes(1);
 
 		await act(async () => {
 			resolveFirstSave?.({ data: {} });
@@ -1864,8 +1864,8 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(2);
-		expect(hookState.editSheetDesign).toHaveBeenLastCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledTimes(2);
+		expect(hookState.editDataTableDesign).toHaveBeenLastCalledWith({
 			variables: {
 				design: {
 					cells: [{
@@ -1874,7 +1874,7 @@ describe('Sheet container', () => {
 					}],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 	});
@@ -1894,7 +1894,7 @@ describe('Sheet container', () => {
 	});
 
 	it('keeps sticky-left columns rendered during far horizontal scroll', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		const cells = Array.from({ length: 8 }, (_, index) => createDesignCell(index === 0 ? 'name' : `col_${index}`));
 		sheet.design = {
 			...sheet.design,
@@ -1902,10 +1902,10 @@ describe('Sheet container', () => {
 			cellsOrder: cells.map((cell) => cell.key),
 			stickyLeft: 1,
 		};
-		hookState.sheetRows = [createRow(0, Object.fromEntries(cells.map((cell, index) => [cell.key, `Value ${index}`])))];
+		hookState.dataTableRows = [createRow(0, Object.fromEntries(cells.map((cell, index) => [cell.key, `Value ${index}`])))];
 		const host = await renderSheet({
 			bufferColumns: 0,
-			sheet,
+			dataTable: sheet,
 		});
 		const viewport = host.querySelector('[data-sheet-scroll-viewport="true"]') as HTMLElement;
 
@@ -1956,7 +1956,7 @@ describe('Sheet container', () => {
 	});
 
 	it('renders five fading mock rows while sheet rows are not ready', async () => {
-		hookState.sheetRows = undefined as any;
+		hookState.dataTableRows = undefined as any;
 		Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
 			configurable: true,
 			get() {
@@ -1989,16 +1989,16 @@ describe('Sheet container', () => {
 	});
 
 	it('does not render rows from stale sheet row query variables', async () => {
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(0, { name: 'Alpha', status: 'Open' }),
 			createRow(1, { name: 'Beta', status: 'Closed' }),
 		];
-		hookState.sheetRowsVariables = {
+		hookState.dataTableRowsVariables = {
 			cursor: null,
 			filter: null,
 			limit: 200,
 			organizationId: 'org-1',
-			sheetId: 'previous-sheet',
+			dataTableId: 'previous-sheet',
 		};
 
 		const host = await renderSheet();
@@ -2008,7 +2008,7 @@ describe('Sheet container', () => {
 		expect(host.textContent).not.toContain('Beta');
 		expect(host.querySelectorAll('.mock.active')).not.toHaveLength(0);
 
-		hookState.sheetRowsVariables = null;
+		hookState.dataTableRowsVariables = null;
 		await rerenderSheet();
 
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]')?.textContent).toBe('Alpha');
@@ -2016,7 +2016,7 @@ describe('Sheet container', () => {
 	});
 
 	it('removes rows that disappear from a refreshed sheet row query', async () => {
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(0, { name: 'Alpha', status: 'Open' }),
 			createRow(1, { name: 'Beta', status: 'Closed' }),
 		];
@@ -2025,7 +2025,7 @@ describe('Sheet container', () => {
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]')?.textContent).toBe('Alpha');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-1"]')?.textContent).toBe('Beta');
 
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(1, { name: 'Beta', status: 'Closed' }),
 		];
 		await rerenderSheet();
@@ -2036,7 +2036,7 @@ describe('Sheet container', () => {
 	});
 
 	it('renders persisted design widths before local resize drafts', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: sheet.design.cells.map((cell) => cell.key === 'name'
@@ -2046,7 +2046,7 @@ describe('Sheet container', () => {
 				}
 				: cell),
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const canvas = host.querySelector('.sheet_ui_canvas') as HTMLElement;
 		const headerSpacer = host.querySelector('[data-sheet-sticky-header-spacer="true"]') as HTMLElement;
 		const nameHeader = host.querySelector('[data-sheet-header-cell="true"]') as HTMLElement;
@@ -2060,7 +2060,7 @@ describe('Sheet container', () => {
 	});
 
 	it('does not update forever when sheet rows are returned as new equivalent objects', async () => {
-		hookState.getSheetRows = () => [createRow(0, { name: 'Alpha', status: 'Open' })];
+		hookState.getDataTableRows = () => [createRow(0, { name: 'Alpha', status: 'Open' })];
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 		await renderSheet();
@@ -2074,20 +2074,20 @@ describe('Sheet container', () => {
 
 		expect(getNameCell().textContent).toBe('Alpha');
 
-		hookState.sheetRows = [createRow(0, { name: 'Server Beta', status: 'Open' })];
+		hookState.dataTableRows = [createRow(0, { name: 'Server Beta', status: 'Open' })];
 		await rerenderSheet();
 
 		expect(getNameCell().textContent).toBe('Server Beta');
 	});
 
 	it('updates rendered cell icons when refreshed rows keep the same ids and values', async () => {
-		hookState.sheetRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
+		hookState.dataTableRows = [createRow(0, { name: 'Alpha', status: 'Open' })];
 		const host = await renderSheet();
 		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"][data-row-id="row-0"]') as HTMLElement;
 
 		expect(getNameCell().querySelector('.icon-circle-check')).toBeNull();
 
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {}),
 			cells: [
 				createCell('row-0', 'name', 'Alpha', {
@@ -2103,7 +2103,7 @@ describe('Sheet container', () => {
 	});
 
 	it('deduplicates repeated sheet row ids from refreshed row payloads', async () => {
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(0, { name: 'Alpha', status: 'Open' }),
 			createRow(0, { name: 'Alpha', status: 'Open' }),
 		];
@@ -2116,7 +2116,7 @@ describe('Sheet container', () => {
 	});
 
 	it('fetches more rows when scrolling near the bottom', async () => {
-		hookState.sheetRows = Array.from({ length: 30 }, (_, index) => createRow(index));
+		hookState.dataTableRows = Array.from({ length: 30 }, (_, index) => createRow(index));
 		const host = await renderSheet({ limit: 30 });
 		const viewport = host.querySelector('[data-sheet-scroll-viewport="true"]') as HTMLElement;
 
@@ -2139,7 +2139,7 @@ describe('Sheet container', () => {
 				filter: null,
 				limit: 30,
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 	});
@@ -2162,12 +2162,12 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: {
 				cellKey: 'name',
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
-				sheetRowId: 'row-0',
+				dataTableId: 'sheet-1',
+				dataTableRowId: 'row-0',
 				viewCellKey: null,
 				viewId: null,
 				value: 'Beta',
@@ -2215,12 +2215,12 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: {
 				cellKey: 'name',
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
-				sheetRowId: 'row-0',
+				dataTableId: 'sheet-1',
+				dataTableRowId: 'row-0',
 				viewCellKey: null,
 				viewId: null,
 				value: null,
@@ -2248,7 +2248,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Beta',
 			status: 'Open',
 		})];
@@ -2353,7 +2353,7 @@ describe('Sheet container', () => {
 	});
 
 	it('uses selected select-cell color classes on single click', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2369,7 +2369,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {
@@ -2382,7 +2382,7 @@ describe('Sheet container', () => {
 	});
 
 	it('opens a sheet-owned select editor on the second click and saves an option', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2397,11 +2397,11 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			status: 'open',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {
@@ -2425,12 +2425,12 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: {
 				cellKey: 'status',
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
-				sheetRowId: 'row-0',
+				dataTableId: 'sheet-1',
+				dataTableRowId: 'row-0',
 				viewCellKey: null,
 				viewId: null,
 				value: 'closed',
@@ -2440,7 +2440,7 @@ describe('Sheet container', () => {
 		});
 
 		it('shows a custom select value as a visible option when it is not in the option list', async () => {
-			const sheet = createSheet();
+			const sheet = createDataTable();
 			sheet.design = {
 				...sheet.design,
 				cells: [
@@ -2456,10 +2456,10 @@ describe('Sheet container', () => {
 				],
 				cellsOrder: ['status'],
 			};
-			hookState.sheetRows = [createRow(0, {
+			hookState.dataTableRows = [createRow(0, {
 				status: 'Legacy',
 			})];
-			const host = await renderSheet({ sheet });
+			const host = await renderSheet({ dataTable: sheet });
 			const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 			await act(async () => {
@@ -2477,7 +2477,7 @@ describe('Sheet container', () => {
 		});
 
 		it('anchors sheet-owned select editors in sheet-canvas coordinates across scroll', async () => {
-			const sheet = createSheet();
+			const sheet = createDataTable();
 			sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2491,11 +2491,11 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			status: 'open',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const viewport = host.querySelector('[data-sheet-scroll-viewport="true"]') as HTMLElement;
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
@@ -2538,7 +2538,7 @@ describe('Sheet container', () => {
 	});
 
 	it('uses translated yes and no options for boolean editors without design options', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2549,10 +2549,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['enabled'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			enabled: 'false',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const enabledCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="enabled"]') as HTMLElement;
 
 		await act(async () => {
@@ -2572,7 +2572,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'enabled',
 				value: 'true',
@@ -2582,7 +2582,7 @@ describe('Sheet container', () => {
 	});
 
 	it('toggles multi-select options, saves JSON values, and keeps the editor open', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2597,10 +2597,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['tags'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			tags: JSON.stringify(['market']),
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const tagsCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="tags"]') as HTMLElement;
 
 		await act(async () => {
@@ -2616,7 +2616,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'tags',
 				value: JSON.stringify(['market', 'prep']),
@@ -2626,7 +2626,7 @@ describe('Sheet container', () => {
 	});
 
 	it('saves select-or-text option clicks and custom typed values', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2640,10 +2640,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['reason'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			reason: 'custom',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const reasonCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"]') as HTMLElement;
 
 		await act(async () => {
@@ -2661,7 +2661,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'reason',
 				value: 'listed',
@@ -2683,7 +2683,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'reason',
 				value: 'Typed reason',
@@ -2693,7 +2693,7 @@ describe('Sheet container', () => {
 	});
 
 	it('leaves select-or-text custom input empty when the draft matches an option value or label', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2707,11 +2707,11 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['reason'],
 		};
-		hookState.sheetRows = [
+		hookState.dataTableRows = [
 			createRow(0, { reason: 'WEBSITE' }),
 			createRow(1, { reason: 'Website' }),
 		];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const valueMatchCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"][data-row-id="row-0"]') as HTMLElement;
 		const labelMatchCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="reason"][data-row-id="row-1"]') as HTMLElement;
 
@@ -2731,7 +2731,7 @@ describe('Sheet container', () => {
 	});
 
 	it('uses the returned edit cell fragment to replace a normalized optimistic value', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2745,13 +2745,13 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['source'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			source: '',
 		})];
-		hookState.editSheetCell.mockResolvedValueOnce({
-			editSheetCell: createCell('row-0', 'source', 'WEBSITE'),
+		hookState.editDataTableCell.mockResolvedValueOnce({
+			editDataTableCell: createCell('row-0', 'source', 'WEBSITE'),
 		});
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const sourceCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="source"]') as HTMLElement;
 
 		await act(async () => {
@@ -2769,7 +2769,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'source',
 				value: 'weBSIte',
@@ -2779,7 +2779,7 @@ describe('Sheet container', () => {
 	});
 
 	it('uses fieldType rather than humanFieldType to choose select edit behavior', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2801,11 +2801,11 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['status', 'note'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			note: '',
 			status: '',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 		const noteCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="note"]') as HTMLElement;
 
@@ -2828,7 +2828,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'status',
 				value: 'closed',
@@ -2845,12 +2845,12 @@ describe('Sheet container', () => {
 	});
 
 	it('uses humanFieldType to choose edit behavior for ID_OR_TEXT cells', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
 				createDesignCell('document', {
-					fieldType: 'ID_OR_TEXT' as unknown as SheetDesignCellGQL['fieldType'],
+					fieldType: 'ID_OR_TEXT' as unknown as DataTableDesignCellGQL['fieldType'],
 					humanFieldType: 'SELECT',
 					options: [
 						{ label: 'Ready', value: 'ready' },
@@ -2860,10 +2860,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['document'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			document: '',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const documentCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="document"]') as HTMLElement;
 
 		await act(async () => {
@@ -2882,7 +2882,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'document',
 				value: 'blocked',
@@ -2891,7 +2891,7 @@ describe('Sheet container', () => {
 	});
 
 	it('uses SELECT_OR_TEXT humanFieldType to choose edit behavior for ID cells', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2906,10 +2906,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['document'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			document: '',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const documentCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="document"]') as HTMLElement;
 
 		await act(async () => {
@@ -2928,7 +2928,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenLastCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'document',
 				value: 'blocked',
@@ -2937,7 +2937,7 @@ describe('Sheet container', () => {
 	});
 
 	it('dismisses select-style editors with outside clicks and escape without saving', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2951,10 +2951,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['status'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			status: 'open',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {
@@ -2983,11 +2983,11 @@ describe('Sheet container', () => {
 
 		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
 		expect(statusCell.className).toContain('single_clicked');
-		expect(hookState.editSheetCell).not.toHaveBeenCalled();
+		expect(hookState.editDataTableCell).not.toHaveBeenCalled();
 	});
 
 	it('opens a sheet-owned date calendar editor and saves the selected date', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -2998,10 +2998,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['dueDate'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			dueDate: '2026-02-01',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const dateCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="dueDate"]') as HTMLElement;
 
 		await act(async () => {
@@ -3022,7 +3022,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'dueDate',
 				value: '2026-02-28',
@@ -3032,7 +3032,7 @@ describe('Sheet container', () => {
 	});
 
 	it('opens a sheet-owned date-time editor and saves date plus time', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3043,10 +3043,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['startsAt'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			startsAt: '2026-05-21T09:30',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const dateTimeCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="startsAt"]') as HTMLElement;
 
 		await act(async () => {
@@ -3083,7 +3083,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
 			variables: expect.objectContaining({
 				cellKey: 'startsAt',
 				value: '2026-05-22T14:45',
@@ -3093,7 +3093,7 @@ describe('Sheet container', () => {
 	});
 
 	it('defaults missing date-time editor time to midnight', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3104,10 +3104,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['startsAt'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			startsAt: '2026-05-21',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const dateTimeCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="startsAt"]') as HTMLElement;
 
 		await act(async () => {
@@ -3121,7 +3121,7 @@ describe('Sheet container', () => {
 	});
 
 	it('dismisses date editors with outside clicks and escape without saving', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3132,10 +3132,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['dueDate'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			dueDate: '2026-02-01',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const dateCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="dueDate"]') as HTMLElement;
 
 		await act(async () => {
@@ -3163,12 +3163,12 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		expect(host.querySelector('[data-sheet-date-editor="true"]')).toBeNull();
-		expect(hookState.editSheetCell).not.toHaveBeenCalled();
+		expect(hookState.editDataTableCell).not.toHaveBeenCalled();
 	});
 
 	it('keeps date editors open with an error when saving fails', async () => {
-		hookState.editSheetCell.mockRejectedValueOnce(new Error('Save failed'));
-		const sheet = createSheet();
+		hookState.editDataTableCell.mockRejectedValueOnce(new Error('Save failed'));
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3179,10 +3179,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['dueDate'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			dueDate: '2026-02-01',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const dateCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="dueDate"]') as HTMLElement;
 
 		await act(async () => {
@@ -3199,13 +3199,13 @@ describe('Sheet container', () => {
 		await flushRender();
 		await flushRender();
 
-		expect(hookState.editSheetCell).toHaveBeenCalled();
+		expect(hookState.editDataTableCell).toHaveBeenCalled();
 		expect(host.querySelector('[data-sheet-date-editor="true"]')).not.toBeNull();
 		expect(host.querySelector('[data-sheet-editor="true"]')).not.toBeNull();
 	});
 
 	it('keeps local edited cell values until server data confirms them', async () => {
-		hookState.editSheetCell.mockImplementationOnce(() => new Promise(() => {}));
+		hookState.editDataTableCell.mockImplementationOnce(() => new Promise(() => {}));
 		const host = await renderSheet();
 		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
 
@@ -3228,14 +3228,14 @@ describe('Sheet container', () => {
 
 		expect(getNameCell().textContent).toBe('Beta');
 
-		hookState.sheetRows = [createRow(0, { name: 'Beta', status: 'Open' })];
+		hookState.dataTableRows = [createRow(0, { name: 'Beta', status: 'Open' })];
 		await rerenderSheet();
 
 		expect(getNameCell().textContent).toBe('Beta');
 	});
 
 	it('rolls back local edited cell values when the save mutation fails', async () => {
-		hookState.editSheetCell.mockRejectedValueOnce(new Error('Save failed'));
+		hookState.editDataTableCell.mockRejectedValueOnce(new Error('Save failed'));
 		const host = await renderSheet();
 		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
 
@@ -3267,7 +3267,7 @@ describe('Sheet container', () => {
 	});
 
 	it('enters inline edit mode for ID field types', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3278,7 +3278,7 @@ describe('Sheet container', () => {
 				createDesignCell('status', { openLink: true }),
 			],
 		};
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const nameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
 
 		await act(async () => {
@@ -3294,7 +3294,7 @@ describe('Sheet container', () => {
 
 	it('blocks double-click editing for related ID cells', async () => {
 		const setFloatingMessage = vi.fn();
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3305,7 +3305,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {
 				name: 'Alpha',
 				status: 'Log 1',
@@ -3318,7 +3318,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		}];
-		const host = await renderSheet({ setFloatingMessage, sheet });
+		const host = await renderSheet({ setFloatingMessage, dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {
@@ -3335,18 +3335,18 @@ describe('Sheet container', () => {
 
 	it('blocks selected-click editing for related ID_OR_TEXT cells', async () => {
 		const setFloatingMessage = vi.fn();
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
 				createDesignCell('name'),
 				createDesignCell('status', {
-					fieldType: 'ID_OR_TEXT' as unknown as SheetDesignCellGQL['fieldType'],
+					fieldType: 'ID_OR_TEXT' as unknown as DataTableDesignCellGQL['fieldType'],
 					humanFieldType: 'ID',
 				}),
 			],
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {
 				name: 'Alpha',
 				status: 'Contact 1',
@@ -3359,7 +3359,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		}];
-		const host = await renderSheet({ setFloatingMessage, sheet });
+		const host = await renderSheet({ setFloatingMessage, dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {
@@ -3377,18 +3377,18 @@ describe('Sheet container', () => {
 
 	it('uses background-click edit rules when Enter is pressed on related ID_OR_TEXT cells', async () => {
 		const setFloatingMessage = vi.fn();
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
 				createDesignCell('name'),
 				createDesignCell('status', {
-					fieldType: 'ID_OR_TEXT' as unknown as SheetDesignCellGQL['fieldType'],
+					fieldType: 'ID_OR_TEXT' as unknown as DataTableDesignCellGQL['fieldType'],
 					humanFieldType: 'ID',
 				}),
 			],
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {
 				name: 'Alpha',
 				status: 'Contact 1',
@@ -3401,14 +3401,14 @@ describe('Sheet container', () => {
 				}),
 			],
 		}];
-		const host = await renderSheet({ setFloatingMessage, sheet });
+		const host = await renderSheet({ setFloatingMessage, dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {
 			statusCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		});
 		await flushRender();
-		await pressSheetKey('Enter', { setFloatingMessage, sheet });
+		await pressSheetKey('Enter', { setFloatingMessage, dataTable: sheet });
 
 		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
 		expect(setFloatingMessage).toHaveBeenCalledWith({
@@ -3419,7 +3419,7 @@ describe('Sheet container', () => {
 
 	it('routes open-link display clicks through the container handler', async () => {
 		const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3430,11 +3430,11 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			status: 'https://example.com/orders/501',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
 
@@ -3452,7 +3452,7 @@ describe('Sheet container', () => {
 	});
 
 	it('opens related log ID cells in the log entry modal', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3465,7 +3465,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {
 				name: 'Alpha',
 				status: 'Log 1',
@@ -3478,7 +3478,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		}];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
 
@@ -3496,7 +3496,7 @@ describe('Sheet container', () => {
 
 	it('opens inbound contact ID cells in a sheet-local overlay editor', async () => {
 		const setFloatingMessage = vi.fn();
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3509,7 +3509,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {
 				name: 'Alpha',
 				status: 'Contact 1',
@@ -3522,7 +3522,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		}];
-		const host = await renderSheet({ setFloatingMessage, sheet });
+		const host = await renderSheet({ setFloatingMessage, dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
 
@@ -3567,7 +3567,7 @@ describe('Sheet container', () => {
 
 	it('populates the inbound contact overlay editor when GraphQL data loads', async () => {
 		const setFloatingMessage = vi.fn();
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		hookState.inboundContactInitialLoading = true;
 		sheet.design = {
 			...sheet.design,
@@ -3581,7 +3581,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {
 				name: 'Alpha',
 				status: 'Contact 1',
@@ -3594,7 +3594,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		}];
-		const host = await renderSheet({ setFloatingMessage, sheet });
+		const host = await renderSheet({ setFloatingMessage, dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
 
@@ -3635,7 +3635,7 @@ describe('Sheet container', () => {
 		};
 		hookState.inboundContactInitialLoading = false;
 
-		await rerenderSheet({ setFloatingMessage, sheet });
+		await rerenderSheet({ setFloatingMessage, dataTable: sheet });
 
 		editor = host.querySelector('[data-sheet-inbound-contact-editor="true"]') as HTMLElement;
 		expect(editor.getAttribute('aria-busy')).toBe('false');
@@ -3649,7 +3649,7 @@ describe('Sheet container', () => {
 	});
 
 	it('renders child organizations in the inbound contact organization tab', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		hookState.inboundContact = {
 			id: 'contact-1',
 			organizationId: 'org-1',
@@ -3689,7 +3689,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [{
+		hookState.dataTableRows = [{
 			...createRow(0, {
 				name: 'Alpha',
 				status: 'Contact 1',
@@ -3702,7 +3702,7 @@ describe('Sheet container', () => {
 				}),
 			],
 		}];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 		const openTrigger = statusCell.querySelector('[data-sheet-cell-open-trigger="true"]') as HTMLElement;
 
@@ -3753,7 +3753,7 @@ describe('Sheet container', () => {
 
 	it('opens link display clicks from local edit mode', async () => {
 		const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3765,11 +3765,11 @@ describe('Sheet container', () => {
 				}),
 			],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			status: 'https://example.com/orders/501',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const statusCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]') as HTMLElement;
 
 		await act(async () => {
@@ -3837,7 +3837,7 @@ describe('Sheet container', () => {
 	});
 
 	it('resizes only the dragged header when duplicate column keys are rendered', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3846,10 +3846,10 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: [],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const headers = Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')) as HTMLElement[];
 		const resizeHandles = Array.from(host.querySelectorAll('[data-sheet-column-resize-handle]')) as HTMLElement[];
 
@@ -3878,7 +3878,7 @@ describe('Sheet container', () => {
 
 		expect(headers[0]?.style.width).toBe('210px');
 		expect(headers[1]?.style.width).toBe('160px');
-		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledWith({
 			variables: {
 				design: {
 					cells: [{
@@ -3887,7 +3887,7 @@ describe('Sheet container', () => {
 					}],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 	});
@@ -3918,11 +3918,11 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		expect(nameHeader.style.width).toBe('160px');
-		expect(hookState.editSheetDesign).not.toHaveBeenCalled();
+		expect(hookState.editDataTableDesign).not.toHaveBeenCalled();
 	});
 
 	it('reorders database columns by dragging header cells and persists cellsOrder once', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -3934,12 +3934,12 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['name', 'secret', 'status'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			secret: 'Hidden',
 			status: 'Open',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
 
 		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
@@ -3980,20 +3980,20 @@ describe('Sheet container', () => {
 			'NAME',
 		]);
 		expect(host.querySelector('[data-sheet-column-reorder-guide="name"]')).toBeNull();
-		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
-		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledTimes(1);
+		expect(hookState.editDataTableDesign).toHaveBeenCalledWith({
 			variables: {
 				design: {
 					cellsOrder: ['status', 'secret', 'name'],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 	});
 
 	it('uses the dragged header edge to trigger reorder when a wide column moves over a narrow column', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -4006,11 +4006,11 @@ describe('Sheet container', () => {
 			],
 			cellsOrder: ['name', 'status'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			status: 'Open',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const nameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]') as HTMLElement;
 
 		await act(async () => {
@@ -4045,13 +4045,13 @@ describe('Sheet container', () => {
 			'STATUS',
 			'NAME',
 		]);
-		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledWith({
 			variables: {
 				design: {
 					cellsOrder: ['status', 'name'],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 	});
@@ -4084,7 +4084,7 @@ describe('Sheet container', () => {
 			'NAME',
 			'STATUS',
 		]);
-		expect(hookState.editSheetDesign).not.toHaveBeenCalled();
+		expect(hookState.editDataTableDesign).not.toHaveBeenCalled();
 	});
 
 	it('does not show the resize divider guide on hover alone', async () => {
@@ -4147,7 +4147,7 @@ describe('Sheet container', () => {
 	});
 
 	it('reorders saved view columns without changing the database column order', async () => {
-		const sheet = createSheet();
+		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
 			cells: [
@@ -4194,12 +4194,12 @@ describe('Sheet container', () => {
 			}],
 			viewsOrder: ['active_jobs'],
 		};
-		hookState.sheetRows = [createRow(0, {
+		hookState.dataTableRows = [createRow(0, {
 			name: 'Alpha',
 			owner: 'Sam',
 			status: 'Hidden',
 		})];
-		const host = await renderSheet({ sheet });
+		const host = await renderSheet({ dataTable: sheet });
 		const activeJobsTab = host.querySelector('[data-sheet-view-tab="active_jobs"]') as HTMLElement;
 
 		await act(async () => {
@@ -4239,7 +4239,7 @@ describe('Sheet container', () => {
 			'Owner',
 			'Job',
 		]);
-		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledWith({
 			variables: {
 				design: {
 					views: [{
@@ -4248,7 +4248,7 @@ describe('Sheet container', () => {
 					}],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 
@@ -4289,8 +4289,8 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
-		expect(hookState.editSheetDesign).toHaveBeenCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledTimes(1);
+		expect(hookState.editDataTableDesign).toHaveBeenCalledWith({
 			variables: {
 				design: {
 					cells: [{
@@ -4299,7 +4299,7 @@ describe('Sheet container', () => {
 					}],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 	});
@@ -4332,12 +4332,12 @@ describe('Sheet container', () => {
 		expect(getNameHeader().style.width).toBe('210px');
 
 		await rerenderSheet({
-			sheet: createSheet(),
+			dataTable: createDataTable(),
 		});
 
 		expect(getNameHeader().style.width).toBe('210px');
 
-		const confirmedSheet = createSheet();
+		const confirmedSheet = createDataTable();
 		confirmedSheet.design = {
 			...confirmedSheet.design,
 			cells: confirmedSheet.design.cells.map((cell) => cell.key === 'name'
@@ -4349,12 +4349,12 @@ describe('Sheet container', () => {
 		};
 
 		await rerenderSheet({
-			sheet: confirmedSheet,
+			dataTable: confirmedSheet,
 		});
 
 		expect(getNameHeader().style.width).toBe('210px');
 
-		const newerSheet = createSheet();
+		const newerSheet = createDataTable();
 		newerSheet.design = {
 			...newerSheet.design,
 			cells: newerSheet.design.cells.map((cell) => cell.key === 'name'
@@ -4366,7 +4366,7 @@ describe('Sheet container', () => {
 		};
 
 		await rerenderSheet({
-			sheet: newerSheet,
+			dataTable: newerSheet,
 		});
 
 		expect(getNameHeader().style.width).toBe('240px');
@@ -4374,7 +4374,7 @@ describe('Sheet container', () => {
 
 	it('queues in-flight design saves and collapses pending width patches to the latest value', async () => {
 		let resolveFirstSave: ((value: unknown) => void) | null = null;
-		hookState.editSheetDesign.mockImplementationOnce(() => new Promise((resolve) => {
+		hookState.editDataTableDesign.mockImplementationOnce(() => new Promise((resolve) => {
 			resolveFirstSave = resolve;
 		}));
 		const host = await renderSheet();
@@ -4440,7 +4440,7 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(1);
+		expect(hookState.editDataTableDesign).toHaveBeenCalledTimes(1);
 
 		await act(async () => {
 			resolveFirstSave?.({ data: {} });
@@ -4448,8 +4448,8 @@ describe('Sheet container', () => {
 		});
 		await flushRender();
 
-		expect(hookState.editSheetDesign).toHaveBeenCalledTimes(2);
-		expect(hookState.editSheetDesign).toHaveBeenLastCalledWith({
+		expect(hookState.editDataTableDesign).toHaveBeenCalledTimes(2);
+		expect(hookState.editDataTableDesign).toHaveBeenLastCalledWith({
 			variables: {
 				design: {
 					cells: [{
@@ -4458,7 +4458,7 @@ describe('Sheet container', () => {
 					}],
 				},
 				organizationId: 'org-1',
-				sheetId: 'sheet-1',
+				dataTableId: 'sheet-1',
 			},
 		});
 	});

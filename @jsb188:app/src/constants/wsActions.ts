@@ -10,8 +10,9 @@ const WS_ACTIONS = {
 	auth_reset: 'auth_reset',
 
 	// App
+	alert: 'alert',
 	data_update: 'du',
-  app_context_update: 'acu',
+	app_context_update: 'acu',
 
 	// Account
 	me: 'me:',

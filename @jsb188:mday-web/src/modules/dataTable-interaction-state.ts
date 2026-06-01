@@ -7,27 +7,27 @@ import type {
 } from '@jsb188/react-web/ui/SheetUI';
 import { getSheetCellKey } from '@jsb188/react-web/ui/SheetUI';
 
-export type SheetInteractionLocalEditorState<Lookup = unknown> = {
+export type DataTableInteractionLocalEditorState<Lookup = unknown> = {
 	clickSource: SheetUIEditorClickSource;
 	displayValue: string;
 	lookup: Lookup;
 };
 
-export type SheetInteractionCellSelection = {
+export type DataTableInteractionCellSelection = {
 	activeCell: SheetUISelectedCellState;
 	anchorCell: SheetUISelectedCellState;
 	rangeEndCell?: SheetUISelectedCellState;
 	selectedCellKeyMap: SheetUISelectedCellKeyMap;
 };
 
-export type SheetInteractionState<Lookup = unknown> =
+export type DataTableInteractionState<Lookup = unknown> =
 	| {
 			mode: 'idle';
 		}
 	| {
 			dismissedLocalEditorCell?: SheetUISelectedCellState | null;
 			mode: 'cellSelected';
-			selection: SheetInteractionCellSelection;
+			selection: DataTableInteractionCellSelection;
 		}
 	| {
 			editState: SheetUIEditState;
@@ -43,11 +43,11 @@ export type SheetInteractionState<Lookup = unknown> =
 		}
 	| {
 			editState: SheetUIEditState;
-			localEditorState: SheetInteractionLocalEditorState<Lookup>;
+			localEditorState: DataTableInteractionLocalEditorState<Lookup>;
 			mode: 'localEditorOpen';
 		};
 
-export type SheetInteractionAction<Lookup = unknown> =
+export type DataTableInteractionAction<Lookup = unknown> =
 	| {
 			type: 'reset';
 		}
@@ -59,7 +59,7 @@ export type SheetInteractionAction<Lookup = unknown> =
 			type: 'cell_selected';
 		}
 	| {
-			selection: SheetInteractionCellSelection;
+			selection: DataTableInteractionCellSelection;
 			type: 'cell_range_selected';
 		}
 	| {
@@ -72,7 +72,7 @@ export type SheetInteractionAction<Lookup = unknown> =
 		}
 	| {
 			editState: SheetUIEditState;
-			localEditorState: SheetInteractionLocalEditorState<Lookup>;
+			localEditorState: DataTableInteractionLocalEditorState<Lookup>;
 			type: 'local_editor_opened';
 		}
 	| {
@@ -92,10 +92,10 @@ export type SheetInteractionAction<Lookup = unknown> =
 		};
 
 /*
- * Build the default no-selection sheet interaction state.
+ * Build the default no-selection dataTable interaction state.
  */
 
-export function getInitialSheetInteractionState<Lookup = unknown>(): SheetInteractionState<Lookup> {
+export function getInitialDataTableInteractionState<Lookup = unknown>(): DataTableInteractionState<Lookup> {
 	return {
 		mode: 'idle',
 	};
@@ -105,7 +105,7 @@ export function getInitialSheetInteractionState<Lookup = unknown>(): SheetIntera
  * Return the selected-cell state matching one active cell editor.
  */
 
-export function getSheetSelectedCellStateFromEditState(editState: SheetUIEditState | null | undefined): SheetUISelectedCellState | null {
+export function getDataTableSelectedCellStateFromEditState(editState: SheetUIEditState | null | undefined): SheetUISelectedCellState | null {
 	if (!editState?.rowId || !editState.cellKey) {
 		return null;
 	}
@@ -120,15 +120,15 @@ export function getSheetSelectedCellStateFromEditState(editState: SheetUIEditSta
  * Return whether two selected-cell identities point at the same visual cell.
  */
 
-export function areSheetSelectedCellsEqual(a?: SheetUISelectedCellState | null, b?: SheetUISelectedCellState | null) {
+export function areDataTableSelectedCellsEqual(a?: SheetUISelectedCellState | null, b?: SheetUISelectedCellState | null) {
 	return a?.rowId === b?.rowId && a?.cellKey === b?.cellKey;
 }
 
 /*
- * Build a single-cell selection state for one active sheet cell.
+ * Build a single-cell selection state for one active dataTable cell.
  */
 
-export function getSheetSingleCellSelection(cell: SheetUISelectedCellState): SheetInteractionCellSelection {
+export function getDataTableSingleCellSelection(cell: SheetUISelectedCellState): DataTableInteractionCellSelection {
 	return {
 		activeCell: cell,
 		anchorCell: cell,
@@ -143,7 +143,7 @@ export function getSheetSingleCellSelection(cell: SheetUISelectedCellState): She
  * Return the cell currently highlighted by the interaction state.
  */
 
-export function getSelectedCellState(state: SheetInteractionState): SheetUISelectedCellState | null {
+export function getSelectedCellState(state: DataTableInteractionState): SheetUISelectedCellState | null {
 	return state.mode === 'cellSelected' ? state.selection.activeCell : null;
 }
 
@@ -151,15 +151,15 @@ export function getSelectedCellState(state: SheetInteractionState): SheetUISelec
  * Return the active rectangular cell selection from the interaction state.
  */
 
-export function getSelectedCellSelection(state: SheetInteractionState): SheetInteractionCellSelection | null {
+export function getSelectedCellSelection(state: DataTableInteractionState): DataTableInteractionCellSelection | null {
 	return state.mode === 'cellSelected' ? state.selection : null;
 }
 
 /*
- * Return the inline or sheet-local active edit state.
+ * Return the inline or dataTable-local active edit state.
  */
 
-export function getActiveEditState(state: SheetInteractionState): SheetUIEditState | null {
+export function getActiveEditState(state: DataTableInteractionState): SheetUIEditState | null {
 	if (state.mode === 'cellEditing' || state.mode === 'localEditorOpen') {
 		return state.editState;
 	}
@@ -171,7 +171,7 @@ export function getActiveEditState(state: SheetInteractionState): SheetUIEditSta
  * Return the active header edit state.
  */
 
-export function getActiveHeaderEditState(state: SheetInteractionState): SheetUIHeaderEditState | null {
+export function getActiveHeaderEditState(state: DataTableInteractionState): SheetUIHeaderEditState | null {
 	return state.mode === 'headerEditing' ? state.headerEditState : null;
 }
 
@@ -179,15 +179,15 @@ export function getActiveHeaderEditState(state: SheetInteractionState): SheetUIH
  * Return the currently selected header cell key.
  */
 
-export function getSelectedHeaderCellKey(state: SheetInteractionState): string | null {
+export function getSelectedHeaderCellKey(state: DataTableInteractionState): string | null {
 	return state.mode === 'headerSelected' ? state.cellKey : null;
 }
 
 /*
- * Return the sheet-local editor state when one is open.
+ * Return the dataTable-local editor state when one is open.
  */
 
-export function getOpenLocalEditorState<Lookup>(state: SheetInteractionState<Lookup>): SheetInteractionLocalEditorState<Lookup> | null {
+export function getOpenLocalEditorState<Lookup>(state: DataTableInteractionState<Lookup>): DataTableInteractionLocalEditorState<Lookup> | null {
 	return state.mode === 'localEditorOpen' ? state.localEditorState : null;
 }
 
@@ -195,27 +195,27 @@ export function getOpenLocalEditorState<Lookup>(state: SheetInteractionState<Loo
  * Return the last local-editor cell that was dismissed by clicking the cell again.
  */
 
-export function getDismissedLocalEditorCell(state: SheetInteractionState): SheetUISelectedCellState | null {
+export function getDismissedLocalEditorCell(state: DataTableInteractionState): SheetUISelectedCellState | null {
 	return state.mode === 'cellSelected' ? state.dismissedLocalEditorCell || null : null;
 }
 
 /*
- * Own all transient sheet selection and edit-mode transitions.
+ * Own all transient dataTable selection and edit-mode transitions.
  */
 
-export function sheetInteractionReducer<Lookup>(
-	state: SheetInteractionState<Lookup>,
-	action: SheetInteractionAction<Lookup>,
-): SheetInteractionState<Lookup> {
+export function dataTableInteractionReducer<Lookup>(
+	state: DataTableInteractionState<Lookup>,
+	action: DataTableInteractionAction<Lookup>,
+): DataTableInteractionState<Lookup> {
 	switch (action.type) {
 		case 'reset':
 		case 'clear':
 		case 'header_edit_dismissed':
-			return getInitialSheetInteractionState();
+			return getInitialDataTableInteractionState();
 		case 'cell_selected':
 			if (
 				state.mode === 'cellSelected' &&
-				areSheetSelectedCellsEqual(state.selection.activeCell, action.cell) &&
+				areDataTableSelectedCellsEqual(state.selection.activeCell, action.cell) &&
 				Object.keys(state.selection.selectedCellKeyMap).length === 1 &&
 				!state.dismissedLocalEditorCell
 			) {
@@ -224,7 +224,7 @@ export function sheetInteractionReducer<Lookup>(
 
 			return {
 				mode: 'cellSelected',
-				selection: getSheetSingleCellSelection(action.cell),
+				selection: getDataTableSingleCellSelection(action.cell),
 			};
 		case 'cell_range_selected':
 			return {
@@ -235,7 +235,7 @@ export function sheetInteractionReducer<Lookup>(
 			return {
 				dismissedLocalEditorCell: action.cell,
 				mode: 'cellSelected',
-				selection: getSheetSingleCellSelection(action.cell),
+				selection: getDataTableSingleCellSelection(action.cell),
 			};
 		case 'cell_edit_started':
 			return {
@@ -249,14 +249,14 @@ export function sheetInteractionReducer<Lookup>(
 				mode: 'localEditorOpen',
 			};
 		case 'cell_editor_dismissed': {
-			const selectedCell = getSheetSelectedCellStateFromEditState(action.editState || getActiveEditState(state));
+			const selectedCell = getDataTableSelectedCellStateFromEditState(action.editState || getActiveEditState(state));
 
 			return selectedCell
 				? {
 						mode: 'cellSelected',
-						selection: getSheetSingleCellSelection(selectedCell),
+						selection: getDataTableSingleCellSelection(selectedCell),
 					}
-				: getInitialSheetInteractionState();
+				: getInitialDataTableInteractionState();
 		}
 		case 'header_selected':
 			return action.cellKey
@@ -264,7 +264,7 @@ export function sheetInteractionReducer<Lookup>(
 						cellKey: action.cellKey,
 						mode: 'headerSelected',
 					}
-				: getInitialSheetInteractionState();
+				: getInitialDataTableInteractionState();
 		case 'header_edit_started':
 			return {
 				headerEditState: action.headerEditState,

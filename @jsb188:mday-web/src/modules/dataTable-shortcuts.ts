@@ -1,17 +1,17 @@
-import type { SheetRowGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { DataTableRowGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import {
 	getSheetCellKey,
 	type SheetColumnMetric,
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
-import type { SheetArrowNavigationDirection } from './Sheet-ContextMenu.tsx';
-import { type SheetInteractionCellSelection } from './sheet-interaction-state.ts';
+import type { DataTableArrowNavigationDirection } from './DataTable-ContextMenu.tsx';
+import { type DataTableInteractionCellSelection } from './dataTable-interaction-state.ts';
 
 /*
- * Return the browser arrow key as a sheet navigation direction.
+ * Return the browser arrow key as a dataTable navigation direction.
  */
 
-export function getSheetShortcutArrowDirection(pressed?: string | null): SheetArrowNavigationDirection | null {
+export function getDataTableShortcutArrowDirection(pressed?: string | null): DataTableArrowNavigationDirection | null {
 	switch (pressed) {
 		case 'ArrowLeft':
 			return 'left';
@@ -30,18 +30,18 @@ export function getSheetShortcutArrowDirection(pressed?: string | null): SheetAr
  * Build a rectangular selection between an anchor cell and active cell.
  */
 
-export function getSheetRangeSelection(params: {
+export function getDataTableRangeSelection(params: {
 	activeCell: SheetUISelectedCellState;
 	anchorCell: SheetUISelectedCellState;
 	columnMetrics: SheetColumnMetric[];
-	renderedRows: SheetRowGQL[];
+	renderedRows: DataTableRowGQL[];
 	selectedActiveCell?: SheetUISelectedCellState;
-}): SheetInteractionCellSelection {
+}): DataTableInteractionCellSelection {
 	const activeColumnIndex = params.columnMetrics.findIndex((metric) => metric.column.key === params.activeCell.cellKey);
 	const anchorColumnIndex = params.columnMetrics.findIndex((metric) => metric.column.key === params.anchorCell.cellKey);
 	const activeRowIndex = params.renderedRows.findIndex((row) => row.id === params.activeCell.rowId);
 	const anchorRowIndex = params.renderedRows.findIndex((row) => row.id === params.anchorCell.rowId);
-	const selectedCellKeyMap: SheetInteractionCellSelection['selectedCellKeyMap'] = {};
+	const selectedCellKeyMap: DataTableInteractionCellSelection['selectedCellKeyMap'] = {};
 
 	if (activeColumnIndex < 0 || anchorColumnIndex < 0 || activeRowIndex < 0 || anchorRowIndex < 0) {
 		selectedCellKeyMap[getSheetCellKey(params.activeCell.rowId, params.activeCell.cellKey)] = true;
@@ -85,10 +85,10 @@ export function getSheetRangeSelection(params: {
  * Return selected cells in row-major order for clipboard operations.
  */
 
-export function getSheetOrderedSelectedCells(params: {
+export function getDataTableOrderedSelectedCells(params: {
 	columnMetrics: SheetColumnMetric[];
-	renderedRows: SheetRowGQL[];
-	selection: SheetInteractionCellSelection;
+	renderedRows: DataTableRowGQL[];
+	selection: DataTableInteractionCellSelection;
 }) {
 	const cells: SheetUISelectedCellState[] = [];
 
@@ -110,13 +110,13 @@ export function getSheetOrderedSelectedCells(params: {
  * Return the next active cell within the current selected cells.
  */
 
-export function getSheetNextActiveSelectedCell(params: {
+export function getDataTableNextActiveSelectedCell(params: {
 	columnMetrics: SheetColumnMetric[];
 	direction: 'forward' | 'backward';
-	renderedRows: SheetRowGQL[];
-	selection: SheetInteractionCellSelection;
+	renderedRows: DataTableRowGQL[];
+	selection: DataTableInteractionCellSelection;
 }) {
-	const selectedCells = getSheetOrderedSelectedCells({
+	const selectedCells = getDataTableOrderedSelectedCells({
 		columnMetrics: params.columnMetrics,
 		renderedRows: params.renderedRows,
 		selection: params.selection,
@@ -144,7 +144,7 @@ export function getSheetNextActiveSelectedCell(params: {
  * Parse one delimited clipboard row with basic quoted-cell support.
  */
 
-function parseSheetDelimitedClipboardRow(rowText: string, delimiter: string) {
+function parseDataTableDelimitedClipboardRow(rowText: string, delimiter: string) {
 	const values: string[] = [];
 	let currentValue = '';
 	let quoted = false;
@@ -182,7 +182,7 @@ function parseSheetDelimitedClipboardRow(rowText: string, delimiter: string) {
  * Convert clipboard text from spreadsheets into a rectangular value grid.
  */
 
-export function parseSheetClipboardText(text: string) {
+export function parseDataTableClipboardText(text: string) {
 	const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 	const textWithoutTrailingLineBreak = normalizedText.endsWith('\n') ? normalizedText.slice(0, -1) : normalizedText;
 	const delimiter = textWithoutTrailingLineBreak.includes('\t') ? '\t' : ',';
@@ -192,22 +192,22 @@ export function parseSheetClipboardText(text: string) {
 	}
 
 	return textWithoutTrailingLineBreak.split('\n').map((rowText) => {
-		return parseSheetDelimitedClipboardRow(rowText, delimiter);
+		return parseDataTableDelimitedClipboardRow(rowText, delimiter);
 	});
 }
 
 /*
- * Map pasted clipboard values onto loaded sheet cells.
+ * Map pasted clipboard values onto loaded dataTable cells.
  */
 
-export function getSheetPasteTargets(params: {
+export function getDataTablePasteTargets(params: {
 	activeCell: SheetUISelectedCellState;
 	clipboardGrid: string[][];
 	columnMetrics: SheetColumnMetric[];
-	renderedRows: SheetRowGQL[];
-	selection: SheetInteractionCellSelection;
+	renderedRows: DataTableRowGQL[];
+	selection: DataTableInteractionCellSelection;
 }) {
-	const selectionCells = getSheetOrderedSelectedCells({
+	const selectionCells = getDataTableOrderedSelectedCells({
 		columnMetrics: params.columnMetrics,
 		renderedRows: params.renderedRows,
 		selection: params.selection,
