@@ -18,13 +18,15 @@
 }
 
 .sheet_ui_cell.active,
+.sheet_ui_header_cell.active,
 .sheet_ui_editor:focus {
   color: rgb(var(--color-default));
   outline: none;
 }
 
-.sheet_ui_cell.single-clicked,
-.sheet_ui_cell.active {
+.sheet_ui_cell.single_clicked,
+.sheet_ui_cell.active,
+.sheet_ui_header_cell.active {
   overflow: visible;
 }
 
@@ -36,6 +38,13 @@
   position: relative;
 }
 
+/*
+We're not going to show border on editing HEADER cells because:
+1. the overflow on horizontal scroll hides the upper border
+2. we're going to make header cells clickable and go into full edit mode for the entire column later.
+*/
+
+/* .sheet_ui_header_cell.active::before { */
 .sheet_ui_cell.active::before {
   content: ' ';
   position: absolute;
@@ -48,7 +57,7 @@
   z-index: 1;
 }
 
-.sheet_ui_cell.single-clicked::before {
+.sheet_ui_cell.single_clicked::before {
   content: ' ';
   position: absolute;
   left: -1px;
@@ -63,6 +72,22 @@
 
 .sheet_ui_cell.not_editable::before {
   border-color: var(--color-contrast);
+}
+
+.sheet_selection_box {
+  z-index: 3;
+}
+
+.sheet_selection_box::before {
+  content: ' ';
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid var(--color-contrast);
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* .sheet_ui_editor.error:focus::before {

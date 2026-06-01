@@ -1,14 +1,23 @@
 import type {
+	SheetUISelectedCellKeyMap,
 	SheetUIEditState,
 	SheetUIEditorClickSource,
 	SheetUIHeaderEditState,
 	SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
+import { getSheetCellKey } from '@jsb188/react-web/ui/SheetUI';
 
 export type SheetInteractionLocalEditorState<Lookup = unknown> = {
 	clickSource: SheetUIEditorClickSource;
 	displayValue: string;
 	lookup: Lookup;
+};
+
+export type SheetInteractionCellSelection = {
+	activeCell: SheetUISelectedCellState;
+	anchorCell: SheetUISelectedCellState;
+	rangeEndCell?: SheetUISelectedCellState;
+	selectedCellKeyMap: SheetUISelectedCellKeyMap;
 };
 
 export type SheetInteractionState<Lookup = unknown> =
@@ -18,7 +27,7 @@ export type SheetInteractionState<Lookup = unknown> =
 	| {
 			dismissedLocalEditorCell?: SheetUISelectedCellState | null;
 			mode: 'cellSelected';
-			selectedCell: SheetUISelectedCellState;
+			selection: SheetInteractionCellSelection;
 		}
 	| {
 			editState: SheetUIEditState;
@@ -48,6 +57,10 @@ export type SheetInteractionAction<Lookup = unknown> =
 	| {
 			cell: SheetUISelectedCellState;
 			type: 'cell_selected';
+		}
+	| {
+			selection: SheetInteractionCellSelection;
+			type: 'cell_range_selected';
 		}
 	| {
 			cell: SheetUISelectedCellState;
@@ -82,7 +95,7 @@ export type SheetInteractionAction<Lookup = unknown> =
  * Build the default no-selection sheet interaction state.
  */
 
-export function getInitialSheetInteractionState(): SheetInteractionState {
+export function getInitialSheetInteractionState<Lookup = unknown>(): SheetInteractionState<Lookup> {
 	return {
 		mode: 'idle',
 	};
@@ -112,11 +125,34 @@ export function areSheetSelectedCellsEqual(a?: SheetUISelectedCellState | null, 
 }
 
 /*
+ * Build a single-cell selection state for one active sheet cell.
+ */
+
+export function getSheetSingleCellSelection(cell: SheetUISelectedCellState): SheetInteractionCellSelection {
+	return {
+		activeCell: cell,
+		anchorCell: cell,
+		rangeEndCell: cell,
+		selectedCellKeyMap: {
+			[getSheetCellKey(cell.rowId, cell.cellKey)]: true,
+		},
+	};
+}
+
+/*
  * Return the cell currently highlighted by the interaction state.
  */
 
 export function getSelectedCellState(state: SheetInteractionState): SheetUISelectedCellState | null {
-	return state.mode === 'cellSelected' ? state.selectedCell : null;
+	return state.mode === 'cellSelected' ? state.selection.activeCell : null;
+}
+
+/*
+ * Return the active rectangular cell selection from the interaction state.
+ */
+
+export function getSelectedCellSelection(state: SheetInteractionState): SheetInteractionCellSelection | null {
+	return state.mode === 'cellSelected' ? state.selection : null;
 }
 
 /*
@@ -177,19 +213,29 @@ export function sheetInteractionReducer<Lookup>(
 		case 'header_edit_dismissed':
 			return getInitialSheetInteractionState();
 		case 'cell_selected':
-			if (state.mode === 'cellSelected' && areSheetSelectedCellsEqual(state.selectedCell, action.cell) && !state.dismissedLocalEditorCell) {
+			if (
+				state.mode === 'cellSelected' &&
+				areSheetSelectedCellsEqual(state.selection.activeCell, action.cell) &&
+				Object.keys(state.selection.selectedCellKeyMap).length === 1 &&
+				!state.dismissedLocalEditorCell
+			) {
 				return state;
 			}
 
 			return {
 				mode: 'cellSelected',
-				selectedCell: action.cell,
+				selection: getSheetSingleCellSelection(action.cell),
+			};
+		case 'cell_range_selected':
+			return {
+				mode: 'cellSelected',
+				selection: action.selection,
 			};
 		case 'local_editor_dismissed_to_cell':
 			return {
 				dismissedLocalEditorCell: action.cell,
 				mode: 'cellSelected',
-				selectedCell: action.cell,
+				selection: getSheetSingleCellSelection(action.cell),
 			};
 		case 'cell_edit_started':
 			return {
@@ -208,7 +254,7 @@ export function sheetInteractionReducer<Lookup>(
 			return selectedCell
 				? {
 						mode: 'cellSelected',
-						selectedCell,
+						selection: getSheetSingleCellSelection(selectedCell),
 					}
 				: getInitialSheetInteractionState();
 		}

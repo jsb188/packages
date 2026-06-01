@@ -4,7 +4,7 @@ import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import SSE from '@jsb188/sse';
 import { useEffect, useState } from 'react';
 import { loadFragment, loadQuery, resetQuery, updateQuery } from '../cache/index.ts';
-import { useQuery } from '../client/index.ts';
+import { useQuery, useReactiveFragmentMap } from '../client/index.ts';
 import { aiChatMessagesQry, aiChatQry, aiChatsQry } from '../gql/queries/aiChatQueries.ts';
 import handleSSEData, { type PublishPayload } from '../sse.ts';
 import type { UpdateObserversFn, UseQueryParams } from '../types.d.ts';
@@ -30,7 +30,7 @@ interface UseAIChatWithSSEParams extends UseQueryParams {
 
 function getAIChatsQueryKey(
   organizationId?: string | null,
-  filter?: 'CAL_DATE' | 'CHATS',
+  filter?: 'CAL_DATE' | 'CHATS' | 'ARCHIVED',
 ) {
   if (!organizationId || !filter) {
     return '';
@@ -145,7 +145,7 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
     if (dataAIChatId) {
       const queryKey = getAIChatsQueryKey(
         aiChat.organizationId,
-        aiChat.calDate ? 'CAL_DATE' : 'CHATS'
+        aiChat.calDate ? 'CAL_DATE' : aiChat.archivedAt ? 'ARCHIVED' : 'CHATS'
       );
       const queryCache = loadQuery(queryKey);
 
@@ -221,9 +221,10 @@ export function updateAIChats(
 ) {
   if (aiChat) {
     const isCalDate = !!aiChat.calDate;
+    const isArchived = !!aiChat.archivedAt;
     const queryKey = getAIChatsQueryKey(
       organizationId || aiChat.organizationId,
-      isCalDate ? 'CAL_DATE' : 'CHATS'
+      isCalDate ? 'CAL_DATE' : isArchived ? 'ARCHIVED' : 'CHATS'
     );
     const fragmentKey = `$aiChatFragment:${aiChat.id}`;
 
@@ -255,7 +256,7 @@ export function updateAIChats(
  * Fetch AI chats list
  */
 
-  export function useAIChats(organizationId: string, filter?: 'CAL_DATE' | 'CHATS') {
+export function useAIChats(organizationId: string, filter?: 'CAL_DATE' | 'CHATS' | 'ARCHIVED') {
   const { data, ...other } = useQuery(aiChatsQry, {
     variables: {
       organizationId,
@@ -271,4 +272,12 @@ export function updateAIChats(
     aiChats: data?.aiChats,
     ...other
   };
+}
+
+/**
+ * Get reactive AI chat fragments for a list.
+ */
+
+export function useReactiveAIChatFragmentMap(currentData?: any[] | null) {
+  return useReactiveFragmentMap(currentData || null, 'aiChatFragment');
 }

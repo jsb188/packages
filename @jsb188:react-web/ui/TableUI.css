@@ -62,3 +62,7 @@
 .table_grid_row.__deleted > .table_grid_cell .tdcol {
   opacity: .4;
 }
+
+.sheet_ui_header_cell.single_clicked {
+  background-color: var(--color-zinc-fade);
+}

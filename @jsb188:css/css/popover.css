@@ -102,7 +102,7 @@
 /* Pop over; list break */
 
 .po_list_break {
-  margin: 3px 0;
+  margin: 4px 0;
   border-top: solid 1px var(--color-darker-light);
 }
 

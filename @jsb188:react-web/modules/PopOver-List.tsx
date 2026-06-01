@@ -325,7 +325,7 @@ export function PopOverList(p: PopOverHandlerProps & {
       shadowClassName={shadowClassName}
       className={designClassName}
     >
-      <div className={cn('inside y_scr_hidden gap_1', className)} style={remainingHeight ? { maxHeight: remainingHeight } : undefined}>
+      <div className={cn('inside y_scr_hidden', className)} style={remainingHeight ? { maxHeight: remainingHeight } : undefined}>
         {notReady
         ? <div className='p_md'>
           <ActivityDots />
@@ -410,7 +410,7 @@ export function PopOverCheckList(p: PopOverHandlerProps & {
       shadowClassName={shadowClassName}
       className={designClassName}
     >
-      <div className={cn('inside y_scr_hidden gap_1', className)}>
+      <div className={cn('inside y_scr_hidden', className)}>
         {notReady
         ? <div className='p_md'>
           <ActivityDots />
@@ -525,7 +525,7 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
       shadowClassName={shadowClassName}
       className={designClassName}
     >
-      <div className={cn('inside y_scr_hidden gap_1', className)}>
+      <div className={cn('inside y_scr_hidden', className)}>
         {notReady
         ? <div className='p_md'>
           <ActivityDots />

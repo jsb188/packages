@@ -2,7 +2,7 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { getAvatarLetters } from '@jsb188/react-web/ui/Avatar';
 import { MockAvatar, MockText } from '@jsb188/react-web/ui/Loading';
 import { EmojiWrapper } from '@jsb188/react-web/ui/Markdown';
-import { memo, useState } from 'react';
+import { memo, useState, type MouseEvent } from 'react';
 import { Icon } from '../svgs/Icon';
 import { SmartLink } from './Button';
 
@@ -111,12 +111,15 @@ export const SidebarSubtitle = memo((p: {
   rightIconName?: string;
   rightIconClassName?: string;
   onClick?: (e: any) => void;
+  onContextMenu?: (e: MouseEvent<HTMLDivElement>) => void;
 }) => {
-  const { text, iconName, rightIconName, rightIconClassName, onClick, paddingClassName, marginClassName } = p;
+  const { text, iconName, rightIconName, rightIconClassName, onClick, onContextMenu, paddingClassName, marginClassName } = p;
 
   return <div
     role={onClick ? 'button' : undefined}
     onClick={onClick}
+    onContextMenu={onContextMenu}
+    data-sidebar-context-target={onContextMenu ? 'true' : undefined}
     className={cn(
       'cl_md ft_xs h_item lh_1 r_xs',
       paddingClassName ?? 'px_12 py_5',
@@ -154,8 +157,13 @@ export const SidebarNestedNavItem = memo((p: {
   currentPath?: string;
   currentPathPrefix?: string;
   initialExpanded?: boolean;
+  onOpenLinkContextMenu?: (e: MouseEvent<HTMLElement>, to?: string | null) => void;
+  onOpenContextMenu?: (e: MouseEvent<HTMLElement>, p: {
+    expanded: boolean;
+    setExpanded: (expanded: boolean) => void;
+  }) => void;
 }) => {
-  const { text, navList, currentPath, currentPathPrefix, initialExpanded } = p;
+  const { text, navList, currentPath, initialExpanded, onOpenLinkContextMenu, onOpenContextMenu } = p;
   const [expanded, setExpanded] = useState(initialExpanded !== false);
 
   return <>
@@ -167,6 +175,10 @@ export const SidebarNestedNavItem = memo((p: {
       text={text}
       rightIconName={expanded ? 'chevron-down-filled' : 'chevron-right-filled'}
       onClick={() => setExpanded(!expanded)}
+      onContextMenu={(e) => onOpenContextMenu?.(e, {
+        expanded,
+        setExpanded,
+      })}
     />
 
     {expanded &&
@@ -178,6 +190,7 @@ export const SidebarNestedNavItem = memo((p: {
           key={i}
           currentPath={currentPath}
           selected={isSidebarItemSelected(currentPath, item.to)}
+          onContextMenu={(e) => onOpenLinkContextMenu?.(e, item.to)}
           {...item}
         />
       ))}
@@ -197,22 +210,25 @@ interface SidebarItemProps {
   currentPath?: string;
   to?: string;
   onClick?: (e: any) => void;
+  onContextMenu?: (e: MouseEvent<HTMLElement>) => void;
   text: string;
   iconName?: string;
   rightIconName?: string;
 }
 
 export const SidebarItem = memo((p: SidebarItemProps) => {
-  const { text, iconName, rightIconName, currentPath, to, selected, onClick, className } = p;
+  const { text, iconName, rightIconName, currentPath, to, selected, onClick, onContextMenu, className } = p;
   return <SmartLink
     className={cn(
       'mx_6 my_2 py_3 r_xs bl ft_sm cl_df',
       selected ? 'bg_darker_2 disabled' : 'bg_darker_2_hv',
       className
     )}
+    data-sidebar-context-target={onContextMenu ? 'true' : undefined}
     disabled={currentPath === to}
     to={to}
     onClick={onClick}
+    onContextMenu={onContextMenu}
   >
     {/* <div className='h_item px_12 py_2 ic_df lh_3'> */}
     <div className='h_item px_11 pt_3 pb_2 ic_df lh_2'>

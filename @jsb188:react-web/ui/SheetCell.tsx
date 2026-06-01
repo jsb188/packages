@@ -12,6 +12,7 @@ import type {
 	SheetUICellRenderStore,
 	SheetUIHeaderEditState,
 	SheetUIRowSlot,
+	SheetUISelectedCellKeyMap,
 	SheetUISelectedCellState,
 } from './SheetUI';
 
@@ -36,12 +37,15 @@ const SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET = 1;
 const SHEET_STICKY_LEFT_Z_INDEX = 34;
 const SHEET_STICKY_HEADER_Z_INDEX = 31;
 const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 32;
+const SHEET_ACTIVE_HEADER_Z_INDEX = 33;
 const SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX = 34;
 const SHEET_COLUMN_REORDER_GUIDE_Z_INDEX = 35;
 const SHEET_COLUMN_REORDER_DRAG_Z_INDEX = 36;
 const STICKY_CELL_BG_CSS = 'bg';
 const STICKY_SPACER_BG_CSS = 'bg_darker_1';
 const CELL_BG_CSS = 'bg';
+const SHEET_DEFAULT_CELL_CLASS_NAME = 'bg_main_fd_hv';
+const SHEET_SELECT_DEFAULT_CELL_CLASS_NAME = 'bg_zinc_fd_hv';
 
 /*
  * Return whether one visual column should stay pinned to the left edge.
@@ -64,10 +68,31 @@ function isSheetGridCellEditing(p: {
 }
 
 /*
- * Return whether one rendered grid cell is in single-click selected mode.
+ * Return whether one rendered grid cell is included in the selected range.
  */
 
 function isSheetGridCellSelected(p: {
+	column: SheetUIColumn;
+	rowId?: string | null;
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+	selectedCellState?: SheetUISelectedCellState | null;
+}) {
+	const cellRenderKey = p.rowId ? `${p.rowId}:${p.column.key}` : '';
+
+	return Boolean(
+		p.rowId &&
+		(
+			p.selectedCellKeyMap?.[cellRenderKey] ||
+			(p.selectedCellState?.rowId === p.rowId && p.selectedCellState.cellKey === p.column.key)
+		),
+	);
+}
+
+/*
+ * Return whether one rendered grid cell is the active selected cell.
+ */
+
+function isSheetGridCellActiveSelected(p: {
 	column: SheetUIColumn;
 	rowId?: string | null;
 	selectedCellState?: SheetUISelectedCellState | null;
@@ -83,15 +108,20 @@ function areSheetGridCellSelectedPropsEqual(
 	prev: {
 		column: SheetUIColumn;
 		rowId?: string | null;
+		selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 		selectedCellState?: SheetUISelectedCellState | null;
 	},
 	next: {
 		column: SheetUIColumn;
 		rowId?: string | null;
+		selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 		selectedCellState?: SheetUISelectedCellState | null;
 	},
 ) {
-	return isSheetGridCellSelected(prev) === isSheetGridCellSelected(next);
+	return (
+		isSheetGridCellSelected(prev) === isSheetGridCellSelected(next) &&
+		isSheetGridCellActiveSelected(prev) === isSheetGridCellActiveSelected(next)
+	);
 }
 
 /*
@@ -138,11 +168,13 @@ function useSheetGridCellRenderSnapshot(p: {
 	column: SheetUIColumn;
 	editState?: SheetUIEditState | null;
 	rowId?: string | null;
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
 }) {
 	const rowId = p.rowId || '';
 	const cellKey = p.column.key;
 	const fallbackSnapshot = {
+		active: isSheetGridCellActiveSelected(p),
 		cell: p.cell,
 		editState: isSheetGridCellEditing(p) ? p.editState : null,
 		selected: isSheetGridCellSelected(p),
@@ -192,11 +224,21 @@ function getSheetSingleClickedCellClassName(className: string) {
 }
 
 /*
+ * Return the fallback hover background for a sheet cell without a custom color.
+ */
+
+function getSheetDefaultCellClassName(fieldType: SheetUIColumn['fieldType']) {
+	return fieldType === 'SELECT' || fieldType === 'SELECT_OR_TEXT'
+		? SHEET_SELECT_DEFAULT_CELL_CLASS_NAME
+		: SHEET_DEFAULT_CELL_CLASS_NAME;
+}
+
+/*
  * Return the editable hover background class for one header cell.
  */
 
-function getSheetHeaderEditableClassName() {
-	return 'bg_zinc_fd_hv';
+function getSheetHeaderEditableClassName(fieldType: SheetUIColumn['fieldType']) {
+	return getSheetDefaultCellClassName(fieldType);
 }
 
 /*
@@ -312,21 +354,26 @@ export const SheetHeaderCell = memo((p: {
 	columnReorderOffset?: number;
 	hasColumnReorderTransition?: boolean;
 	isColumnReorderDragging?: boolean;
+	selectedHeaderCellKey?: string | null;
 }) => {
 	const isEditing = p.headerEditState?.cellKey === p.column.key;
+	const isSelected = !isEditing && p.selectedHeaderCellKey === p.column.key;
 	const isEditable = Boolean(p.headerCellsEditable);
 	const isReorderable = Boolean(p.columnReorderEnabled && !isEditing);
 	const reorderOffset = p.columnReorderOffset || 0;
+	const defaultCellClassName = getSheetDefaultCellClassName(p.column.fieldType);
+	const defaultSelectedCellClassName = getSheetSingleClickedCellClassName(defaultCellClassName);
 
 	return <div
 		className={cn(
 			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt h_item ft_medium cl_md no_wrap z3',
 			isReorderable ? 'cs_default_to_grabing' : '',
-			isEditable ? getSheetHeaderEditableClassName() : '',
+			isEditable ? getSheetHeaderEditableClassName(p.column.fieldType) : '',
 			isEditing ? 'active' : 'px_8',
+			isSelected ? `single_clicked ${defaultSelectedCellClassName}` : isEditing ? '' : 'bg',
 			!isEditing ? 'unsel' : '',
 			STICKY_CELL_BG_CSS,
-			p.isColumnReorderDragging ? 'bg' : '',
+			// p.isColumnReorderDragging ? 'bg' : '',
 		)}
 		data-cell-key={p.column.key}
 		data-sheet-header-cell='true'
@@ -340,13 +387,13 @@ export const SheetHeaderCell = memo((p: {
 			transform: reorderOffset ? `translateX(${reorderOffset}px)` : undefined,
 			transition: p.hasColumnReorderTransition ? 'transform 120ms ease' : undefined,
 			width: p.columnWidth,
-			zIndex: p.isStickyLeft ? SHEET_STICKY_LEFT_HEADER_Z_INDEX : undefined,
+			zIndex: isEditing ? SHEET_ACTIVE_HEADER_Z_INDEX : p.isStickyLeft ? SHEET_STICKY_LEFT_HEADER_Z_INDEX : undefined,
 		}}
 	>
 		{isEditing
 			? <input
 				autoFocus
-				className={cn('sheet_ui_editor bg stock px_8 ft_xs ft_normal', p.headerEditState?.error ? 'error' : '')}
+				className={cn('sheet_ui_editor stock px_8 ft_xs ft_normal', defaultSelectedCellClassName, p.headerEditState?.error ? 'error' : '')}
 				data-cell-key={p.column.key}
 				data-sheet-header-editor='true'
 				defaultValue={p.headerEditState?.draftValue || ''}
@@ -366,6 +413,7 @@ export const SheetHeaderCell = memo((p: {
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
 	prev.headerEditState?.error === next.headerEditState?.error &&
+	prev.selectedHeaderCellKey === next.selectedHeaderCellKey &&
 	prev.headerLeft === next.headerLeft &&
 	prev.columnWidth === next.columnWidth &&
 	prev.hasColumnReorderTransition === next.hasColumnReorderTransition &&
@@ -509,6 +557,7 @@ export const SheetHeaderArea = memo((p: {
 	columns: SheetColumnMetric[];
 	headerCellsEditable?: boolean;
 	headerEditState?: SheetUIHeaderEditState | null;
+	selectedHeaderCellKey?: string | null;
 	headerSpacerWidth: number;
 	headerWidth: number;
 	scrollLeft: number;
@@ -553,6 +602,7 @@ export const SheetHeaderArea = memo((p: {
 					columnReorderOffset={p.columnReorderDisplacements?.[columnMetric.column.key] || 0}
 					headerCellsEditable={p.headerCellsEditable}
 					headerEditState={p.headerEditState}
+					selectedHeaderCellKey={p.selectedHeaderCellKey}
 					headerLeft={headerLeft}
 					columnWidth={columnMetric.width}
 					hasColumnReorderTransition={Boolean(p.columnReorderDrag && !isColumnReorderDragging)}
@@ -626,6 +676,7 @@ export const SheetHeaderArea = memo((p: {
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
 	prev.headerEditState?.error === next.headerEditState?.error &&
+	prev.selectedHeaderCellKey === next.selectedHeaderCellKey &&
 	prev.headerSpacerWidth === next.headerSpacerWidth &&
 	prev.headerWidth === next.headerWidth &&
 	prev.scrollLeft === next.scrollLeft &&
@@ -993,6 +1044,7 @@ export const SheetGridCell = memo((p: {
 	rowId?: string | null;
 	rowIndex: number;
 	rowTop: number;
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
 	renderCallback?: (rowId: string | null, cellKey: string) => void;
 }) => {
@@ -1006,25 +1058,28 @@ export const SheetGridCell = memo((p: {
 	const shouldRenderInlineEditor = isEditing && !editState?.disableInlineEditor;
 	const isInlineEditing = shouldRenderInlineEditor && !!p.rowId;
 	const isSelected = !isEditing && Boolean(cellSnapshot.selected);
-	const isCellActive = isEditing || (isSelected && !isEditable);
+	const isSelectionActive = isSelected && Boolean(cellSnapshot.active);
+	const isCellActive = isEditing || (isSelectionActive && !isEditable);
 	const displayValue = cell?.displayValue || '';
 	const displayFieldType = getSheetColumnHumanFieldType(p.column);
 	const pickerDisplay = getSheetPickerCellDisplayValue(displayFieldType, displayValue);
 	const iconName = cell?.iconName || '';
 	const isReadOnlyCell = Boolean(p.rowId && cell && !isEditable);
+	const defaultCellClassName = getSheetDefaultCellClassName(p.column.fieldType);
 	const editableCellClassName = isEditable
 		? isSelected
-			? getSheetSingleClickedCellClassName(cell?.cellClassName || 'bg_zinc_fd_hv') + ' single-clicked'
-			: cell?.cellClassName || 'bg_zinc_fd_hv'
+			? getSheetSingleClickedCellClassName(cell?.cellClassName || defaultCellClassName) + (isSelectionActive ? ' single_clicked' : '')
+			: cell?.cellClassName || defaultCellClassName
 		: '';
 	const selectedReadOnlyCellClassName = isReadOnlyCell && isSelected
-		? getSheetSingleClickedCellClassName(cell?.cellClassName || 'bg_zinc_fd_hv') + ' single-clicked'
+		? getSheetSingleClickedCellClassName(cell?.cellClassName || defaultCellClassName) + (isSelectionActive ? ' single_clicked' : '')
 		: '';
 	const borderClassName = p.isPlaceholderRow
 		? ''
-		: isSelected
-			? 'bd_r_1 bd_b_1'
-			: 'bd_r_1 bd_b_1 bd_lt';
+    : 'bd_r_1 bd_b_1 bd_lt';
+		// : isSelected
+		// 	? 'bd_r_1bd_b_1'
+		// 	: 'bd_r_1 bd_b_1 bd_lt';
 
 	const cellClassName = cn(
 		'sheet_ui_cell of abs h_item cl_df',

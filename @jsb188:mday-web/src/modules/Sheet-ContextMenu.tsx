@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
-import { useKeyDown, usePopOver, type OpenModalPopUpFn } from '@jsb188/react/states';
+import { usePopOver, type OpenModalPopUpFn } from '@jsb188/react/states';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { useCallback, useEffect, useRef } from 'react';
@@ -33,56 +33,10 @@ export type SheetContextMenuTarget<Lookup = unknown> = {
 };
 
 type UseSheetContextMenuParams<Lookup> = {
-	copyShortcutDisabled?: boolean;
-	onArrowKeyNavigation?: (direction: SheetArrowNavigationDirection) => void;
-	onEnterKeyEdit?: (target: SheetContextMenuTarget<Lookup>) => void;
 	openModalPopUp: OpenModalPopUpFn;
 	onEditCell: (target: SheetContextMenuTarget<Lookup>) => void;
 	onOpenCell: (target: SheetContextMenuTarget<Lookup>) => void;
-	selectedTarget?: SheetContextMenuTarget<Lookup> | null;
 };
-
-/*
- * Return whether the active document element is already handling text input.
- */
-
-function isSheetCopyShortcutInputActive() {
-	const activeElement = globalThis.document?.activeElement as HTMLElement | null;
-
-	return !!activeElement && (
-		activeElement.matches('input, textarea, select, [contenteditable="true"]') ||
-		!!activeElement.closest('[data-sheet-editor="true"], [data-sheet-header-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]')
-	);
-}
-
-/*
- * Return whether the active document element is already handling a sheet-local editor.
- */
-
-function isSheetEditorInputActive() {
-	const activeElement = globalThis.document?.activeElement as HTMLElement | null;
-
-	return !!activeElement && !!activeElement.closest('[data-sheet-editor="true"], [data-sheet-header-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]');
-}
-
-/*
- * Convert a browser Arrow key value into a sheet navigation direction.
- */
-
-function getSheetArrowNavigationDirection(pressed?: string | null): SheetArrowNavigationDirection | null {
-	switch (pressed) {
-		case 'ArrowLeft':
-			return 'left';
-		case 'ArrowRight':
-			return 'right';
-		case 'ArrowUp':
-			return 'up';
-		case 'ArrowDown':
-			return 'down';
-		default:
-			return null;
-	}
-}
 
 /*
  * Copy one sheet context-menu target's display value to the clipboard.
@@ -162,30 +116,17 @@ function openSheetDeleteRowPopUp<Lookup>(
 }
 
 /*
- * Own the Sheet context-menu PopOver actions and copy shortcut behavior.
+ * Own the Sheet context-menu PopOver actions.
  */
 
 export function useSheetContextMenu<Lookup>(p: UseSheetContextMenuParams<Lookup>) {
 	const {
-		copyShortcutDisabled,
-		onArrowKeyNavigation,
-		onEnterKeyEdit,
 		onEditCell,
 		onOpenCell,
 		openModalPopUp,
-		selectedTarget,
 	} = p;
-	const [keyDown, setKeyDown] = useKeyDown();
 	const { closePopOver, openPopOver, popOver } = usePopOver();
 	const activeTargetRef = useRef<SheetContextMenuTarget<Lookup> | null>(null);
-	const onArrowKeyNavigationRef = useRef<typeof onArrowKeyNavigation>(onArrowKeyNavigation);
-	const onEnterKeyEditRef = useRef<typeof onEnterKeyEdit>(onEnterKeyEdit);
-	const pendingSheetKeyboardPressedRef = useRef<string | null>(null);
-	const selectedTargetRef = useRef<SheetContextMenuTarget<Lookup> | null>(selectedTarget || null);
-
-	onArrowKeyNavigationRef.current = onArrowKeyNavigation;
-	onEnterKeyEditRef.current = onEnterKeyEdit;
-	selectedTargetRef.current = selectedTarget || null;
 
 	/*
 	 * Open a PopOver menu at the user's pointer position.
@@ -266,89 +207,6 @@ export function useSheetContextMenu<Lookup>(p: UseSheetContextMenuParams<Lookup>
 			default:
 		}
 	}, [closePopOver, onEditCell, onOpenCell, openModalPopUp, popOver?.globalState]);
-
-	useEffect(() => {
-		const canHandleSheetKeyboard = (pressed: string | null | undefined) => {
-			const target = selectedTargetRef.current;
-
-			return Boolean(
-				!copyShortcutDisabled &&
-				!keyDown.alert &&
-				!keyDown.modal &&
-				!keyDown.metaKey &&
-				(
-					(getSheetArrowNavigationDirection(pressed) && onArrowKeyNavigationRef.current) ||
-					(pressed === 'Enter' && target && onEnterKeyEditRef.current)
-				) &&
-				!isSheetEditorInputActive()
-			);
-		};
-		const onKeyDown = (event: KeyboardEvent) => {
-			const arrowDirection = getSheetArrowNavigationDirection(event.key);
-			const shouldSuppressSheetArrowScroll = Boolean(
-				arrowDirection &&
-				copyShortcutDisabled &&
-				!keyDown.alert &&
-				!keyDown.modal &&
-				!keyDown.metaKey
-			);
-
-			if (shouldSuppressSheetArrowScroll) {
-				event.preventDefault();
-				event.stopImmediatePropagation();
-				return;
-			}
-
-			if (!canHandleSheetKeyboard(event.key)) {
-				return;
-			}
-
-			event.preventDefault();
-			event.stopImmediatePropagation();
-			pendingSheetKeyboardPressedRef.current = event.key;
-			setKeyDown({
-				metaKey: event.metaKey || event.ctrlKey,
-				pressed: event.key,
-			});
-		};
-		const target = selectedTargetRef.current;
-		const arrowDirection = getSheetArrowNavigationDirection(keyDown.pressed);
-		const pendingSheetKeyboardPressed = pendingSheetKeyboardPressedRef.current;
-
-		globalThis.addEventListener?.('keydown', onKeyDown, true);
-
-		if (arrowDirection && pendingSheetKeyboardPressed === keyDown.pressed && canHandleSheetKeyboard(keyDown.pressed)) {
-			pendingSheetKeyboardPressedRef.current = null;
-			onArrowKeyNavigationRef.current?.(arrowDirection);
-			setKeyDown({
-				metaKey: false,
-				pressed: null,
-			});
-		} else if (keyDown.pressed === 'Enter' && pendingSheetKeyboardPressed === keyDown.pressed && target && canHandleSheetKeyboard(keyDown.pressed)) {
-			pendingSheetKeyboardPressedRef.current = null;
-			onEnterKeyEditRef.current?.(target);
-			setKeyDown({
-				metaKey: false,
-				pressed: null,
-			});
-		} else if (
-			copyShortcutDisabled ||
-			keyDown.alert ||
-			keyDown.modal ||
-			!keyDown.metaKey ||
-			keyDown.pressed?.toLowerCase() !== 'c' ||
-			!target ||
-			isSheetCopyShortcutInputActive()
-		) {
-			// No-op.
-		} else {
-			copySheetContextMenuCellValue(target);
-		}
-
-		return () => {
-			globalThis.removeEventListener?.('keydown', onKeyDown, true);
-		};
-	}, [copyShortcutDisabled, keyDown, setKeyDown]);
 
 	return {
 		closeSheetContextMenu,

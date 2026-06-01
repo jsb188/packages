@@ -721,14 +721,39 @@ button.pill.bg_active:not(:disabled):active, button.pill.bg_alt:not(:disabled):a
 .bd_dotted { border-style: dotted; }
 
 .bd_invis, .bd_invis_hv:hover { border-color: transparent; }
+.bd_l_invis, .bd_l_invis_hv:hover { border-left-color: transparent; }
+.bd_r_invis, .bd_r_invis_hv:hover { border-right-color: transparent; }
+.bd_t_invis, .bd_t_invis_hv:hover { border-top-color: transparent; }
+.bd_b_invis, .bd_b_invis_hv:hover { border-bottom-color: transparent; }
+
 .bd_lt, .bd_lt_hv:hover { border-color: var(--color-darker-light); }
+.bd_l_lt, .bd_l_lt_hv:hover { border-left-color: var(--color-darker-light); }
+.bd_r_lt, .bd_r_lt_hv:hover { border-right-color: var(--color-darker-light); }
+.bd_t_lt, .bd_t_lt_hv:hover { border-top-color: var(--color-darker-light); }
+.bd_b_lt, .bd_b_lt_hv:hover { border-bottom-color: var(--color-darker-light); }
+
 .bd_md, .bd_md_hv:hover { border-color: var(--color-darker-medium); }
+.bd_l_md, .bd_l_md_hv:hover { border-left-color: var(--color-darker-medium); }
+.bd_r_md, .bd_r_md_hv:hover { border-right-color: var(--color-darker-medium); }
+.bd_t_md, .bd_t_md_hv:hover { border-top-color: var(--color-darker-medium); }
+.bd_b_md, .bd_b_md_hv:hover { border-bottom-color: var(--color-darker-medium); }
+
 .bd_bd, .bd_bd_hv:hover { border-color: var(--color-darker-bold); }
+.bd_l_bd, .bd_l_bd_hv:hover { border-left-color: var(--color-darker-bold); }
+.bd_r_bd, .bd_r_bd_hv:hover { border-right-color: var(--color-darker-bold); }
+.bd_t_bd, .bd_t_bd_hv:hover { border-top-color: var(--color-darker-bold); }
+.bd_b_bd, .bd_b_bd_hv:hover { border-bottom-color: var(--color-darker-bold); }
+
+.bd_contrast { border-color: var(--color-contrast); }
+.bd_l_contrast { border-left-color: var(--color-contrast); }
+.bd_r_contrast { border-right-color: var(--color-contrast); }
+.bd_t_contrast { border-top-color: var(--color-contrast); }
+.bd_b_contrast { border-bottom-color: var(--color-contrast); }
+
 .bd_ih, .bd_ih_hv:hover { border-color: inherit; }
 .bd_err, .bd_err_hv:hover { border-color: rgb(var(--color-error)); }
 
 .bd_solid { border-color: var(--color-solid); }
-.bd_contrast { border-color: var(--color-contrast); }
 
 .bd_darker_1 { border-color: rgba(var(--color-darker-rgb), .078); }
 .bd_darker_2 { border-color: rgba(var(--color-darker-rgb), .15); }

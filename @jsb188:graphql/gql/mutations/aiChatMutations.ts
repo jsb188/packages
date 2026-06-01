@@ -21,6 +21,23 @@ mutation startAIChat (
 ${aiChatFragment}
 `;
 
+export const editAIChatMtn = gql`
+mutation editAIChat (
+  $aiChatId: GenericID!
+  $archived: Boolean!
+) {
+  editAIChat (
+    aiChatId: $aiChatId
+    archived: $archived
+  ) {
+    cursor
+    ...aiChatFragment
+  }
+}
+
+${aiChatFragment}
+`;
+
 export const sendAIChatMessageMtn = gql`
 mutation sendAIChatMessage (
   $aiChatId: GenericID!

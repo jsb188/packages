@@ -4,6 +4,7 @@ export const aiChatFragment = `fragment aiChatFragment on AIChat {
   accountId
   calDate
   summary
+  archivedAt
   createdAt
   updatedAt
 }`;

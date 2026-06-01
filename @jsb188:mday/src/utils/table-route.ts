@@ -15,10 +15,17 @@ export function clampTableRouteColumnWidth(width: number) {
 }
 
 /*
- * Return whether a settings route or column key can be safely stored in JSONB.
+ * Return whether a route table column key can be safely stored in settings JSONB.
  */
-export function isValidTableRouteSettingsKey(value: string | null | undefined) {
+export function isValidTableRouteColumnSettingsKey(value: string | null | undefined) {
 	return !!value && /^[A-Za-z0-9_-]+$/.test(value);
+}
+
+/*
+ * Return whether a table route id can be safely stored in settings JSONB.
+ */
+export function isValidTableRouteIdSettingsKey(value: string | null | undefined) {
+	return !!value && /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(value);
 }
 
 /*
@@ -26,9 +33,10 @@ export function isValidTableRouteSettingsKey(value: string | null | undefined) {
  */
 export function getTableRouteIdFromPathname(pathname: string, fallbackRouteId = 'table') {
 	const segments = pathname.split('/').filter(Boolean);
-	const routeId = segments[0] === 'app' ? segments[1] : segments[0];
+	const routeSegments = segments[0] === 'app' ? segments.slice(1) : segments;
+	const routeId = routeSegments.join('/');
 
-	return isValidTableRouteSettingsKey(routeId) ? routeId : fallbackRouteId;
+	return isValidTableRouteIdSettingsKey(routeId) ? routeId : fallbackRouteId;
 }
 
 /*
@@ -37,7 +45,7 @@ export function getTableRouteIdFromPathname(pathname: string, fallbackRouteId = 
 export function getTableRouteIdFromOrgRouteCursor(cursor: string | null | undefined) {
 	const routeId = String(cursor || '').split(':')[2];
 
-	return isValidTableRouteSettingsKey(routeId) ? routeId : null;
+	return isValidTableRouteIdSettingsKey(routeId) ? routeId : null;
 }
 
 /*
@@ -55,7 +63,7 @@ export function getTableRouteColumnWidthsFromStrings(values: string[] | null | u
 		const [columnKey, widthValue] = parts;
 		const width = Number(widthValue);
 
-		if (parts.length !== 2 || !isValidTableRouteSettingsKey(columnKey) || !Number.isFinite(width)) {
+		if (parts.length !== 2 || !isValidTableRouteColumnSettingsKey(columnKey) || !Number.isFinite(width)) {
 			continue;
 		}
 
@@ -74,7 +82,7 @@ export function getTableRouteColumnWidthStrings(widths: TableRouteColumnWidths |
 	}
 
 	return Object.entries(widths).reduce((acc, [columnKey, width]) => {
-		if (!isValidTableRouteSettingsKey(columnKey) || !Number.isFinite(width)) {
+		if (!isValidTableRouteColumnSettingsKey(columnKey) || !Number.isFinite(width)) {
 			return acc;
 		}
 
@@ -94,7 +102,7 @@ export function getOrganizationSettingsRoutesList(
 	}
 
 	return Object.entries(routes)
-		.filter(([routeId]) => isValidTableRouteSettingsKey(routeId))
+		.filter(([routeId]) => isValidTableRouteIdSettingsKey(routeId))
 		.map(([routeId, route]) => ({
 			routeId,
 			columnWidths: route?.columnWidths || {},

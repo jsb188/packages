@@ -1,7 +1,7 @@
 import { resetQuery, updateFragment, updateQuery } from '../cache/index.ts';
 import { useMutation } from '../client/index.ts';
 import { updateAIChats } from './use-aiChat-qry.ts';
-import { deleteAIChatMtn, sendAIChatMessageMtn, startAIChatMtn, stopAIChatMessageMtn } from '../gql/mutations/aiChatMutations.ts';
+import { deleteAIChatMtn, editAIChatMtn, sendAIChatMessageMtn, startAIChatMtn, stopAIChatMessageMtn } from '../gql/mutations/aiChatMutations.ts';
 import type { UseMutationParams } from '../types.d.ts';
 import { useOpenModalPopUp } from '@jsb188/react/states';
 import { useEffect, useRef } from 'react';
@@ -32,6 +32,31 @@ export function useStartAIChat(params: UseMutationParams = {}) {
   return {
     startAIChat,
     ...mtnValues,
+  };
+}
+
+/**
+ * Edit AI chat
+ */
+
+export function useEditAIChat(params: UseMutationParams = {}) {
+
+  const { onCompleted, onError } = params;
+  const openModalPopUp = useOpenModalPopUp();
+
+  const [editAIChat, mtnValues, mtnHandlers] = useMutation(
+    editAIChatMtn,
+    {
+      openModalPopUp,
+      onCompleted,
+      onError,
+    },
+  );
+
+  return {
+    editAIChat,
+    ...mtnValues,
+    ...mtnHandlers,
   };
 }
 

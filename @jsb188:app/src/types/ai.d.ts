@@ -28,6 +28,7 @@ export interface AIChatData {
   id: string;
   calDate: string;
   summary: string;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -15,6 +15,7 @@ function areSheetCellRenderSnapshotsEqual(
 	b: SheetUICellRenderSnapshot,
 ) {
 	return a?.cell === b.cell &&
+		Boolean(a?.active) === Boolean(b.active) &&
 		a?.editState === b.editState &&
 		Boolean(a?.selected) === Boolean(b.selected);
 }
@@ -32,6 +33,7 @@ export function createSheetUICellRenderStore(): SheetUICellRenderStore & {
 	const pendingKeys = new Set<string>();
 	let flushQueued = false;
 	const emptySnapshot: SheetUICellRenderSnapshot = {
+		active: false,
 		editState: null,
 		selected: false,
 	};

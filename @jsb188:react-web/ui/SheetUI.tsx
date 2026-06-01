@@ -118,6 +118,8 @@ export type SheetUISelectedCellState = {
 	cellKey: string;
 };
 
+export type SheetUISelectedCellKeyMap = Record<string, true>;
+
 export type SheetUIHeaderEditState = {
 	cellKey: string;
 	draftValue: string;
@@ -162,6 +164,7 @@ export type SheetUIColumnReorderDrag = {
 export type SheetUIColumnReorderDisplacements = Record<string, number>;
 
 export type SheetUICellRenderSnapshot = {
+	active?: boolean;
 	cell?: SheetUICell;
 	editState?: SheetUIEditState | null;
 	selected?: boolean;
@@ -194,12 +197,14 @@ export interface SheetUIProps {
 	headerCellsEditable?: boolean;
 	headerContent?: ReactNode;
 	headerEditState?: SheetUIHeaderEditState | null;
+	selectedHeaderCellKey?: string | null;
 	headerSpacerWidth?: number;
 	headerWidth: number;
 	resizeGuide?: SheetUIResizeGuide | null;
 	rows: SheetUIRowSlot[];
 	scrollLeft: number;
 	scrollRef?: Ref<HTMLDivElement>;
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
 	sheetSurfaceHeight?: number;
 	sheetSurfaceTop?: number;
@@ -544,6 +549,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 					columns={p.columns}
 					headerCellsEditable={p.headerCellsEditable}
 					headerEditState={p.headerEditState}
+					selectedHeaderCellKey={p.selectedHeaderCellKey}
 					headerSpacerWidth={p.headerSpacerWidth ?? p.headerWidth}
 					headerWidth={p.headerWidth}
 					scrollLeft={p.scrollLeft}
@@ -645,6 +651,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 							rowId={rowSlot.rowId}
 							rowIndex={rowSlot.rowIndex}
 							rowTop={rowSlot.rowTop}
+							selectedCellKeyMap={p.selectedCellKeyMap}
 							selectedCellState={p.selectedCellState}
 						/>;
 					});
@@ -681,6 +688,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
 	prev.headerEditState?.error === next.headerEditState?.error &&
+	prev.selectedHeaderCellKey === next.selectedHeaderCellKey &&
 	prev.headerSpacerWidth === next.headerSpacerWidth &&
 	prev.headerWidth === next.headerWidth &&
 	prev.id === next.id &&
@@ -692,6 +700,7 @@ export const SheetUI = memo((p: SheetUIProps) => {
 	prev.rows === next.rows &&
 	prev.scrollLeft === next.scrollLeft &&
 	prev.scrollRef === next.scrollRef &&
+	prev.selectedCellKeyMap === next.selectedCellKeyMap &&
 	prev.selectedCellState?.rowId === next.selectedCellState?.rowId &&
 	prev.selectedCellState?.cellKey === next.selectedCellState?.cellKey &&
 	prev.sheetSurfaceHeight === next.sheetSurfaceHeight &&

@@ -135,7 +135,7 @@ function renderTableCellInnerContent(p: Pick<TableCellBaseProps, 'children' | 'i
     ? null
     : children && typeof children !== 'string'
     ? children
-    : <span className='shift_down ellip'>
+    : <span className={cn('shift_down ellip', !children && 'cl_lt')}>
       {children || placeholderText}
     </span>}
   </>;

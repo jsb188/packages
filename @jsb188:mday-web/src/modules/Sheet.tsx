@@ -57,8 +57,8 @@ import {
 	type SheetUIResizeGuide,
 	type SheetUIRowSlot,
 } from '@jsb188/react-web/ui/SheetUI';
-import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
-import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
+import { copyTextToClipboard, useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
+import { useKeyDown, useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { DateTime } from 'luxon';
 import { type ReactNode, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { SheetInboundContactEditor } from './Sheet-InboundContact.tsx';
@@ -70,9 +70,11 @@ import {
 	getInitialSheetInteractionState,
 	getOpenLocalEditorState,
 	getSelectedCellState,
+	getSelectedCellSelection,
 	getSelectedHeaderCellKey,
 	getSheetSelectedCellStateFromEditState,
 	sheetInteractionReducer,
+	type SheetInteractionCellSelection,
 	type SheetInteractionState,
 } from './sheet-interaction-state.ts';
 import { createSheetUICellRenderStore } from './sheet-render-store.ts';
@@ -95,6 +97,14 @@ import {
 	getSheetArrowNavigationSelection,
 	type SheetArrowNavigationRuntime,
 } from './sheet-viewport.ts';
+import {
+	getSheetNextActiveSelectedCell,
+	getSheetOrderedSelectedCells,
+	getSheetPasteTargets,
+	getSheetRangeSelection,
+	getSheetShortcutArrowDirection,
+	parseSheetClipboardText,
+} from './sheet-shortcuts.ts';
 import { getSheetUICellRenderSnapshot } from './sheet-ui-projection.ts';
 
 /**
@@ -203,6 +213,19 @@ type SheetColumnReorderVisualState = {
 	toVisibleIndex: number;
 };
 
+type SheetCellDragSelectionState = {
+	anchorCell: {
+		cellKey: string;
+		rowId: string;
+	};
+	latestCell: {
+		cellKey: string;
+		rowId: string;
+	};
+	pointerId: number;
+	started: boolean;
+};
+
 type SheetLocalEditorPosition = {
 	isStickyLeft: boolean;
 	left: number;
@@ -211,9 +234,22 @@ type SheetLocalEditorPosition = {
 	width: number;
 };
 
+type SheetSelectionBoxPosition = {
+	height: number;
+	left: number;
+	top: number;
+	width: number;
+};
+
 type SheetPaginationState = {
 	hasMoreRows: boolean;
 	lastCursor: string | null;
+};
+
+type SheetShortcutMutationSummary = {
+	failed: number;
+	saved: number;
+	skipped: number;
 };
 
 type SheetDesignMutationRuntime = {
@@ -1599,6 +1635,59 @@ function getSheetSelectedCellTagPosition(params: {
 }
 
 /*
+ * Return one rectangle that surrounds the active multi-cell selection.
+ */
+
+function getSheetSelectionBoxPosition(params: {
+	columnMetrics: SheetColumnMetric[];
+	renderedRows: SheetRowGQL[];
+	selection?: SheetInteractionCellSelection | null;
+	stickyColumnCount: number;
+	stickyHeaderHeight: number;
+}): SheetSelectionBoxPosition | null {
+	const selection = params.selection;
+
+	if (!selection || Object.keys(selection.selectedCellKeyMap).length <= 1) {
+		return null;
+	}
+
+	let selectedCount = 0;
+	let minColumnLeft = Infinity;
+	let maxColumnRight = -Infinity;
+	let minRowIndex = Infinity;
+	let maxRowIndex = -Infinity;
+
+	params.renderedRows.forEach((row, rowIndex) => {
+		params.columnMetrics.forEach((metric) => {
+			if (!selection.selectedCellKeyMap[getSheetCellKey(row.id, metric.column.key)]) {
+				return;
+			}
+
+			const isStickyLeft = metric.columnIndex < params.stickyColumnCount;
+			const displayLeft = metric.left + (isStickyLeft ? 0 : SHEET_STICKY_SPACER_SIZE);
+			const displayRight = displayLeft + metric.width;
+
+			selectedCount += 1;
+			minColumnLeft = Math.min(minColumnLeft, displayLeft);
+			maxColumnRight = Math.max(maxColumnRight, displayRight);
+			minRowIndex = Math.min(minRowIndex, rowIndex);
+			maxRowIndex = Math.max(maxRowIndex, rowIndex);
+		});
+	});
+
+	if (selectedCount <= 1 || !Number.isFinite(minColumnLeft) || !Number.isFinite(maxColumnRight) || !Number.isFinite(minRowIndex) || !Number.isFinite(maxRowIndex)) {
+		return null;
+	}
+
+	return {
+		height: (maxRowIndex - minRowIndex + 1) * SHEET_ROW_HEIGHT + 1,
+		left: SHEET_ROW_NUMBER_WIDTH + minColumnLeft - 1,
+		top: params.stickyHeaderHeight + minRowIndex * SHEET_ROW_HEIGHT - 1,
+		width: maxColumnRight - minColumnLeft + 1,
+	};
+}
+
+/*
  * Read the current value from an active sheet editor element.
  */
 
@@ -1623,6 +1712,36 @@ function getClosestSheetElement(target: EventTarget | null, selector: string) {
 }
 
 /*
+ * Return whether the active document element belongs to non-sheet text input.
+ */
+
+function isSheetShortcutBlockedByActiveInput() {
+	const activeElement = globalThis.document?.activeElement as HTMLElement | null;
+
+	if (!activeElement) {
+		return false;
+	}
+
+	if (activeElement.closest('[data-sheet-editor="true"], [data-sheet-header-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]')) {
+		return false;
+	}
+
+	return activeElement.matches('input, textarea, select, [contenteditable="true"]');
+}
+
+/*
+ * Read plain text from the browser clipboard for sheet paste operations.
+ */
+
+async function readSheetClipboardText() {
+	if (typeof navigator?.clipboard?.readText !== 'function') {
+		return '';
+	}
+
+	return navigator.clipboard.readText();
+}
+
+/*
  * Read one cell lookup from the latest runtime state.
  */
 
@@ -1643,6 +1762,105 @@ function getSheetCellLookup(runtime: SheetRuntimeState, rowId?: string | null, c
 		designCell,
 		row,
 	};
+}
+
+/*
+ * Return whether one lookup targets a related-document cell whose editing is blocked.
+ */
+
+function isSheetRelatedDocumentEditBlocked(lookup: SheetCellLookup) {
+	const fieldType = lookup.designCell.humanFieldType || lookup.designCell.fieldType;
+
+	return fieldType === 'ID' && !!lookup.cell?.relatedTable && hasSheetCellRelatedId(lookup.cell);
+}
+
+/*
+ * Return whether one sheet cell lookup can accept shortcut-driven writes.
+ */
+
+function canWriteSheetShortcutCell(params: {
+	activeView?: SheetDesignViewGQL | null;
+	design: SheetDesignGQL;
+	disabled?: boolean;
+	lookup: SheetCellLookup;
+}) {
+	const { activeView, design, disabled, lookup } = params;
+
+	return Boolean(
+		!lookup.row.__deleted &&
+		!isSheetReferenceCell(lookup.cell) &&
+		!isSheetRelatedDocumentEditBlocked(lookup) &&
+		canEditSheetRuntimeCell({
+			activeView,
+			design,
+			designCell: lookup.designCell,
+			disabled,
+		}),
+	);
+}
+
+/*
+ * Build tab-separated clipboard text for selected sheet cells.
+ */
+
+function getSheetSelectionClipboardText(params: {
+	columnMetrics: SheetColumnMetric[];
+	renderedRows: SheetRowGQL[];
+	runtime: SheetRuntimeState;
+	selection: SheetInteractionCellSelection;
+}) {
+	const rowTexts: string[] = [];
+	const selectedRows = new Set<string>();
+	const selectedColumns = new Set<string>();
+
+	getSheetOrderedSelectedCells({
+		columnMetrics: params.columnMetrics,
+		renderedRows: params.renderedRows,
+		selection: params.selection,
+	}).forEach((cell) => {
+		selectedRows.add(cell.rowId);
+		selectedColumns.add(cell.cellKey);
+	});
+
+	params.renderedRows.forEach((row) => {
+		if (!selectedRows.has(row.id)) {
+			return;
+		}
+
+		const values: string[] = [];
+
+		params.columnMetrics.forEach((metric) => {
+			if (!selectedColumns.has(metric.column.key) || !params.selection.selectedCellKeyMap[getSheetCellKey(row.id, metric.column.key)]) {
+				return;
+			}
+
+			const lookup = getSheetCellLookup(params.runtime, row.id, metric.column.key);
+			const optimisticKey = lookup ? getSheetCellKey(lookup.row.id, getSheetRuntimeColumnKey(lookup.designCell)) : '';
+
+			values.push(lookup ? getSheetCellDisplayValue(lookup.cell, lookup.designCell, params.runtime.optimisticValues[optimisticKey], params.runtime.timeZone) : '');
+		});
+
+		rowTexts.push(values.join('\t'));
+	});
+
+	return rowTexts.join('\n');
+}
+
+/*
+ * Return the floating-message text for one shortcut mutation result.
+ */
+
+function getSheetShortcutSummaryText(action: 'clear' | 'paste', summary: SheetShortcutMutationSummary) {
+	const key = action === 'paste' ? 'sheet.shortcut_paste_summary' : 'sheet.shortcut_clear_summary';
+	const fallback = action === 'paste'
+		? 'Pasted %{savedCount} cells, skipped %{skippedCount}, failed %{failedCount}.'
+		: 'Cleared %{savedCount} cells, skipped %{skippedCount}, failed %{failedCount}.';
+	const translatedText = getSheetTranslatedText(key, fallback);
+
+	return translatedText
+		.replace('%{savedCount}', String(summary.saved))
+		.replace('%{skippedCount}', String(summary.skipped))
+		.replace('%{failedCount}', String(summary.failed));
 }
 
 /*
@@ -2045,6 +2263,8 @@ export function Sheet(p: SheetProps) {
 	const columnReorderStateRef = useRef<SheetColumnReorderState | null>(null);
 	const columnReorderFrameRef = useRef<number | null>(null);
 	const columnReorderCleanupRef = useRef<(() => void) | null>(null);
+	const cellDragSelectionStateRef = useRef<SheetCellDragSelectionState | null>(null);
+	const suppressNextCellClickRef = useRef(false);
 	const sheetGridContainerRef = useRef<HTMLDivElement | null>(null);
 	const designSaveInFlightRef = useRef(false);
 	const pendingDesignPatchRef = useRef<SheetDesignPatchInput | null>(null);
@@ -2095,6 +2315,7 @@ export function Sheet(p: SheetProps) {
 	});
 	const { editSheetCell } = useEditSheetCell();
 	const { editSheetDesign } = useEditSheetDesign();
+	const [keyDown, setKeyDown] = useKeyDown();
 
 	interactionStateRef.current = interactionState;
 	const dispatchInteractionState = useCallback((action: Parameters<typeof dispatchInteractionAction>[0]) => {
@@ -2103,7 +2324,10 @@ export function Sheet(p: SheetProps) {
 	}, []);
 	const editState = getActiveEditState(interactionState);
 	const headerEditState = getActiveHeaderEditState(interactionState);
+	const selectedHeaderCellKey = getSelectedHeaderCellKey(interactionState);
 	const singleClickedCellState = getSelectedCellState(interactionState);
+	const selectedCellSelection = getSelectedCellSelection(interactionState);
+	const selectedCellKeyMap = selectedCellSelection?.selectedCellKeyMap || null;
 	const inboundContactEditorState = getOpenLocalEditorState(interactionState);
 
 	const effectiveDesign = useMemo(() => {
@@ -3163,27 +3387,12 @@ export function Sheet(p: SheetProps) {
 	}, []);
 
 	/*
-	 * Move the selected sheet cell by one keyboard arrow step.
+	 * Scroll the sheet viewport just enough to keep one cell visible.
 	 */
 
-	const handleSheetArrowKeyNavigation = useCallback((direction: SheetArrowNavigationDirection) => {
-		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
-		const selectedCellState = getSelectedCellState(interactionStateRef.current);
-		const nextSelectedCellState = navigationRuntime
-			? getSheetArrowNavigationSelection({
-					columnMetrics: navigationRuntime.columnMetrics,
-					direction,
-					renderedRows: navigationRuntime.renderedRows,
-					selectedCellState,
-				})
-			: null;
-
-		if (!navigationRuntime || !nextSelectedCellState) {
-			return;
-		}
-
-		const nextColumnMetric = navigationRuntime.columnMetrics.find((metric) => metric.column.key === nextSelectedCellState.cellKey);
-		const nextRowIndex = navigationRuntime.renderedRows.findIndex((row) => row.id === nextSelectedCellState.rowId);
+	const scrollSheetSelectedCellIntoView = useCallback((navigationRuntime: SheetArrowNavigationRuntime, selectedCellState: { cellKey: string; rowId: string }) => {
+		const nextColumnMetric = navigationRuntime.columnMetrics.find((metric) => metric.column.key === selectedCellState.cellKey);
+		const nextRowIndex = navigationRuntime.renderedRows.findIndex((row) => row.id === selectedCellState.rowId);
 
 		if (!nextColumnMetric || nextRowIndex < 0) {
 			return;
@@ -3208,31 +3417,536 @@ export function Sheet(p: SheetProps) {
 
 			return nextScrollState;
 		});
+	}, []);
+
+	/*
+	 * Move the selected sheet cell by one keyboard arrow step.
+	 */
+
+	const handleSheetArrowKeyNavigation = useCallback((direction: SheetArrowNavigationDirection, extendSelection = false) => {
+		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+		const selectedCellState = getSelectedCellState(interactionStateRef.current);
+		const selectedSelection = getSelectedCellSelection(interactionStateRef.current);
+		const navigationCellState = extendSelection
+			? selectedSelection?.rangeEndCell || selectedCellState
+			: selectedCellState;
+		const nextSelectedCellState = navigationRuntime
+			? getSheetArrowNavigationSelection({
+					columnMetrics: navigationRuntime.columnMetrics,
+					direction,
+					renderedRows: navigationRuntime.renderedRows,
+					selectedCellState: navigationCellState,
+				})
+			: null;
+
+		if (!navigationRuntime || !nextSelectedCellState) {
+			return;
+		}
+
+		scrollSheetSelectedCellIntoView(navigationRuntime, nextSelectedCellState);
+		if (extendSelection) {
+			dispatchInteractionState({
+				selection: getSheetRangeSelection({
+					activeCell: nextSelectedCellState,
+					anchorCell: selectedSelection?.anchorCell || selectedCellState || nextSelectedCellState,
+					columnMetrics: navigationRuntime.columnMetrics,
+					renderedRows: navigationRuntime.renderedRows,
+					selectedActiveCell: selectedSelection?.activeCell || selectedCellState || nextSelectedCellState,
+				}),
+				type: 'cell_range_selected',
+			});
+			return;
+		}
+
 		dispatchInteractionState({
 			cell: nextSelectedCellState,
 			type: 'cell_selected',
 		});
-	}, []);
+	}, [scrollSheetSelectedCellIntoView]);
 
-	const selectedSheetContextMenuTarget = useMemo<SheetContextMenuCellTarget | null>(() => {
+	/*
+	 * Move only the active cell border through the current multi-cell selection.
+	 */
+
+	const handleSheetTabKeyNavigation = useCallback((direction: 'forward' | 'backward') => {
+		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+		const selectedSelection = getSelectedCellSelection(interactionStateRef.current);
+
+		if (!navigationRuntime || !selectedSelection || Object.keys(selectedSelection.selectedCellKeyMap).length <= 1) {
+			handleSheetArrowKeyNavigation(direction === 'backward' ? 'left' : 'right');
+			return;
+		}
+
+		const nextActiveCell = getSheetNextActiveSelectedCell({
+			columnMetrics: navigationRuntime.columnMetrics,
+			direction,
+			renderedRows: navigationRuntime.renderedRows,
+			selection: selectedSelection,
+		});
+
+		if (!nextActiveCell) {
+			return;
+		}
+
+		scrollSheetSelectedCellIntoView(navigationRuntime, nextActiveCell);
+		dispatchInteractionState({
+			selection: {
+				...selectedSelection,
+				activeCell: nextActiveCell,
+			},
+			type: 'cell_range_selected',
+		});
+	}, [handleSheetArrowKeyNavigation, scrollSheetSelectedCellIntoView]);
+
+	/*
+	 * Return a selectable body cell state from one rendered cell element.
+	 */
+
+	const getSheetBodyCellStateFromElement = useCallback((cellElement?: HTMLElement | null) => {
 		const runtime = runtimeRef.current;
 
-		if (!runtime || !selectedCellLookup) {
+		if (!runtime || !cellElement?.dataset.rowId || !cellElement.dataset.cellKey) {
 			return null;
 		}
 
-		return getSheetContextMenuCellTarget(runtime, selectedCellLookup, rowIndexById.get(selectedCellLookup.row.id) ?? -1, activeView, effectiveDesign);
-	}, [activeView, effectiveDesign, optimisticValues, rowIndexById, selectedCellLookup, timeZone]);
+		const lookup = getSheetCellLookup(runtime, cellElement.dataset.rowId, cellElement.dataset.cellKey);
+
+		if (!lookup || lookup.row.__deleted) {
+			return null;
+		}
+
+		return {
+			cellKey: getSheetRuntimeColumnKey(lookup.designCell),
+			rowId: lookup.row.id,
+		};
+	}, []);
+
+	/*
+	 * Extend the active mouse drag selection to one body cell.
+	 */
+
+	const updateSheetCellDragSelection = useCallback((targetCell: { cellKey: string; rowId: string }) => {
+		const dragState = cellDragSelectionStateRef.current;
+		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+
+		if (!dragState || !navigationRuntime) {
+			return;
+		}
+
+		const isSameLatestCell = dragState.latestCell.rowId === targetCell.rowId && dragState.latestCell.cellKey === targetCell.cellKey;
+
+		if (isSameLatestCell) {
+			return;
+		}
+
+		dragState.latestCell = targetCell;
+		dragState.started = true;
+		suppressNextCellClickRef.current = true;
+		dispatchInteractionState({
+			selection: getSheetRangeSelection({
+				activeCell: targetCell,
+				anchorCell: dragState.anchorCell,
+				columnMetrics: navigationRuntime.columnMetrics,
+				renderedRows: navigationRuntime.renderedRows,
+				selectedActiveCell: dragState.anchorCell,
+			}),
+			type: 'cell_range_selected',
+		});
+	}, []);
 
 	const { closeSheetContextMenu, openSheetContextMenu } = useSheetContextMenu<SheetCellLookup>({
-		copyShortcutDisabled: !!editState || !!headerEditState || !!inboundContactEditorState,
-		onArrowKeyNavigation: handleSheetArrowKeyNavigation,
-		onEnterKeyEdit: handleSheetContextMenuEditCell,
 		onEditCell: handleSheetContextMenuEditCell,
 		onOpenCell: handleSheetContextMenuOpenCell,
 		openModalPopUp,
-		selectedTarget: selectedSheetContextMenuTarget,
 	});
+
+	/*
+	 * Open the current selected cell through the same rules used by the context menu.
+	 */
+
+	const openSelectedSheetCellEditor = useCallback(() => {
+		const runtime = runtimeRef.current;
+		const selectedCellState = getSelectedCellState(interactionStateRef.current);
+		const lookup = runtime && selectedCellState ? getSheetCellLookup(runtime, selectedCellState.rowId, selectedCellState.cellKey) : null;
+
+		if (!runtime || !lookup) {
+			return;
+		}
+
+		handleSheetContextMenuEditCell(getSheetContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, activeView, effectiveDesign));
+	}, [activeView, effectiveDesign, handleSheetContextMenuEditCell, rowIndexById]);
+
+	/*
+	 * Copy the active sheet selection to the system clipboard as TSV text.
+	 */
+
+	const copySelectedSheetCells = useCallback(() => {
+		const runtime = runtimeRef.current;
+		const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+		const selection = getSelectedCellSelection(interactionStateRef.current);
+
+		if (!runtime || !navigationRuntime || !selection) {
+			return;
+		}
+
+		void copyTextToClipboard(getSheetSelectionClipboardText({
+			columnMetrics: navigationRuntime.columnMetrics,
+			renderedRows: navigationRuntime.renderedRows,
+			runtime,
+			selection,
+		}));
+	}, []);
+
+	/*
+	 * Apply one parsed shortcut write to a sheet cell when allowed.
+	 */
+
+	const saveSheetShortcutCellValue = useCallback(
+		async (runtime: SheetRuntimeState, lookup: SheetCellLookup, draftValue: string, summary: SheetShortcutMutationSummary) => {
+			if (!canWriteSheetShortcutCell({
+				activeView,
+				design: effectiveDesign,
+				disabled: runtime.disabled,
+				lookup,
+			})) {
+				summary.skipped += 1;
+				return;
+			}
+
+			const parsedValue = parseSheetEditorValue(lookup.designCell, draftValue);
+			if (parsedValue.error) {
+				summary.skipped += 1;
+				return;
+			}
+
+			const runtimeKey = getSheetRuntimeColumnKey(lookup.designCell);
+			const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
+			const currentValue = getSheetCellSerializedValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey]);
+
+			if (currentValue === parsedValue.value) {
+				summary.skipped += 1;
+				return;
+			}
+
+			try {
+				await runtime.saveCellValue(lookup, parsedValue.value);
+				summary.saved += 1;
+			} catch {
+				summary.failed += 1;
+			}
+		},
+		[activeView, effectiveDesign],
+	);
+
+	/*
+	 * Paste clipboard text into the loaded sheet grid with per-cell validation.
+	 */
+
+	const pasteSelectedSheetCells = useCallback(
+		async (clipboardText: string) => {
+			const runtime = runtimeRef.current;
+			const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+			const selection = getSelectedCellSelection(interactionStateRef.current);
+
+			if (!runtime || !navigationRuntime || !selection) {
+				return;
+			}
+
+			const summary: SheetShortcutMutationSummary = {
+				failed: 0,
+				saved: 0,
+				skipped: 0,
+			};
+			const pasteTargets = getSheetPasteTargets({
+				activeCell: selection.activeCell,
+				clipboardGrid: parseSheetClipboardText(clipboardText),
+				columnMetrics: navigationRuntime.columnMetrics,
+				renderedRows: navigationRuntime.renderedRows,
+				selection,
+			});
+
+			for (const target of pasteTargets) {
+				const lookup = getSheetCellLookup(runtime, target.rowId, target.cellKey);
+
+				if (!lookup) {
+					summary.skipped += 1;
+					continue;
+				}
+
+				await saveSheetShortcutCellValue(runtime, lookup, target.value, summary);
+			}
+
+			setFloatingMessage?.({
+				text: getSheetShortcutSummaryText('paste', summary),
+				type: summary.failed ? 'WARNING' : 'NOTICE',
+			});
+		},
+		[saveSheetShortcutCellValue, setFloatingMessage],
+	);
+
+	/*
+	 * Clear every editable cell in the active sheet selection.
+	 */
+
+	const clearSelectedSheetCells = useCallback(
+		async () => {
+			const runtime = runtimeRef.current;
+			const navigationRuntime = sheetArrowNavigationRuntimeRef.current;
+			const selection = getSelectedCellSelection(interactionStateRef.current);
+
+			if (!runtime || !navigationRuntime || !selection) {
+				return;
+			}
+
+			const summary: SheetShortcutMutationSummary = {
+				failed: 0,
+				saved: 0,
+				skipped: 0,
+			};
+			const selectedCells = getSheetOrderedSelectedCells({
+				columnMetrics: navigationRuntime.columnMetrics,
+				renderedRows: navigationRuntime.renderedRows,
+				selection,
+			});
+
+			for (const selectedCell of selectedCells) {
+				const lookup = getSheetCellLookup(runtime, selectedCell.rowId, selectedCell.cellKey);
+
+				if (!lookup) {
+					summary.skipped += 1;
+					continue;
+				}
+
+				await saveSheetShortcutCellValue(runtime, lookup, '', summary);
+			}
+
+			setFloatingMessage?.({
+				text: getSheetShortcutSummaryText('clear', summary),
+				type: summary.failed ? 'WARNING' : 'NOTICE',
+			});
+		},
+		[saveSheetShortcutCellValue, setFloatingMessage],
+	);
+
+	/*
+	 * Own every keyboard shortcut for the Sheet grid in one global handler.
+	 */
+
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			const activeElement = globalThis.document?.activeElement as HTMLElement | null;
+			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]') ||
+				(activeElement?.closest('[data-sheet-header-editor="true"]') as HTMLElement | null);
+			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]') ||
+				(activeElement?.closest('[data-sheet-editor="true"]') as HTMLElement | null);
+			const localEditorElement = getClosestSheetElement(
+				event.target,
+				'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
+			) || (activeElement?.closest('[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]') as HTMLElement | null);
+			const arrowDirection = getSheetShortcutArrowDirection(event.key);
+			const metaKey = event.metaKey || event.ctrlKey;
+			const isSheetShortcutKey = Boolean(
+				arrowDirection ||
+				event.key === 'Enter' ||
+				event.key === 'Escape' ||
+				event.key === 'Tab' ||
+				event.key === 'Delete' ||
+				event.key === 'Backspace' ||
+				(metaKey && (event.key.toLowerCase() === 'c' || event.key.toLowerCase() === 'v'))
+			);
+
+			if (!isSheetShortcutKey || keyDown.alert || keyDown.modal || isSheetShortcutBlockedByActiveInput()) {
+				return;
+			}
+
+			setKeyDown({
+				metaKey,
+				pressed: event.key,
+			});
+
+			const finishKeyDown = () => {
+				setKeyDown({
+					metaKey: false,
+					pressed: null,
+				});
+			};
+
+			if (headerEditorElement) {
+				if (event.key === 'Escape') {
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					dispatchInteractionState({
+						type: 'header_edit_dismissed',
+					});
+					finishKeyDown();
+					return;
+				}
+
+				if (event.key === 'Enter') {
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					commitHeaderEditorElement(headerEditorElement);
+					finishKeyDown();
+				}
+
+				finishKeyDown();
+				return;
+			}
+
+			if (editorElement) {
+				if (arrowDirection) {
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					finishKeyDown();
+					return;
+				}
+
+				if (event.key === 'Escape') {
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					dismissCellEditorToSelectedCell();
+					finishKeyDown();
+					return;
+				}
+
+				if ((event.key === 'Enter' && editorElement.dataset.fieldType !== 'JSON' && !event.shiftKey) || event.key === 'Tab') {
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					void (async () => {
+						await commitEditorElement(editorElement);
+
+						if (event.key === 'Tab') {
+							handleSheetTabKeyNavigation(event.shiftKey ? 'backward' : 'forward');
+						}
+
+						finishKeyDown();
+					})();
+				}
+
+				finishKeyDown();
+				return;
+			}
+
+			if (localEditorElement) {
+				if (event.key === 'Escape') {
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					dismissCellEditorToSelectedCell(undefined, {
+						clearInboundContactEditor: true,
+					});
+					finishKeyDown();
+				}
+
+				finishKeyDown();
+				return;
+			}
+
+			if (getActiveEditState(interactionStateRef.current)) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+
+				if (event.key === 'Escape') {
+					dismissCellEditorToSelectedCell(undefined, {
+						clearInboundContactEditor: true,
+					});
+				}
+
+				finishKeyDown();
+				return;
+			}
+
+			if (arrowDirection) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				handleSheetArrowKeyNavigation(arrowDirection, event.shiftKey);
+				finishKeyDown();
+				return;
+			}
+
+			if (event.key === 'Tab') {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				handleSheetTabKeyNavigation(event.shiftKey ? 'backward' : 'forward');
+				finishKeyDown();
+				return;
+			}
+
+			if (metaKey && event.key.toLowerCase() === 'c') {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				copySelectedSheetCells();
+				finishKeyDown();
+				return;
+			}
+
+			if (metaKey && event.key.toLowerCase() === 'v') {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				void (async () => {
+					await pasteSelectedSheetCells(await readSheetClipboardText());
+					finishKeyDown();
+				})();
+				return;
+			}
+
+			if (event.key === 'Delete' || event.key === 'Backspace') {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				void (async () => {
+					await clearSelectedSheetCells();
+					finishKeyDown();
+				})();
+				return;
+			}
+
+			if (event.key === 'Enter' && !event.shiftKey) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				openSelectedSheetCellEditor();
+				finishKeyDown();
+				return;
+			}
+
+			if (event.key === 'Escape') {
+				const selection = getSelectedCellSelection(interactionStateRef.current);
+
+				event.preventDefault();
+				event.stopImmediatePropagation();
+
+				if (selection) {
+					dispatchInteractionState({
+						cell: selection.activeCell,
+						type: 'cell_selected',
+					});
+				} else {
+					dismissCellEditorToSelectedCell(undefined, {
+						clearInboundContactEditor: true,
+					});
+				}
+
+				finishKeyDown();
+			}
+		};
+
+		globalThis.addEventListener?.('keydown', onKeyDown, true);
+
+		return () => {
+			globalThis.removeEventListener?.('keydown', onKeyDown, true);
+		};
+	}, [
+		clearSelectedSheetCells,
+		commitEditorElement,
+		commitHeaderEditorElement,
+		copySelectedSheetCells,
+		dismissCellEditorToSelectedCell,
+		handleSheetArrowKeyNavigation,
+		handleSheetTabKeyNavigation,
+		keyDown.alert,
+		keyDown.modal,
+		openSelectedSheetCellEditor,
+		pasteSelectedSheetCells,
+		setKeyDown,
+	]);
 
 	useEffect(() => {
 		const scrollNode = scrollElement.node;
@@ -3286,6 +4000,13 @@ export function Sheet(p: SheetProps) {
 					type: 'clear',
 				});
 				return;
+			}
+
+			if (suppressNextCellClickRef.current) {
+				suppressNextCellClickRef.current = false;
+				if (cellElement) {
+					return;
+				}
 			}
 
 			if (headerElement) {
@@ -3453,78 +4174,16 @@ export function Sheet(p: SheetProps) {
 				});
 			}
 		};
-		const onKeyDown = (event: KeyboardEvent) => {
-			const headerEditorElement = getClosestSheetElement(event.target, '[data-sheet-header-editor="true"]');
-			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
-
-			if (headerEditorElement) {
-				if (event.key === 'Escape') {
-					event.preventDefault();
-					dispatchInteractionState({
-						type: 'header_edit_dismissed',
-					});
-					return;
-				}
-
-				if (event.key === 'Enter') {
-					event.preventDefault();
-					commitHeaderEditorElement(headerEditorElement);
-				}
-
-				return;
-			}
-
-			if (!editorElement) {
-				if (event.key !== 'Enter' || event.shiftKey) {
-					return;
-				}
-
-				const runtime = runtimeRef.current;
-				const selectedCellState = getSelectedCellState(interactionStateRef.current);
-				const lookup = runtime && selectedCellState
-					? getSheetCellLookup(runtime, selectedCellState.rowId, selectedCellState.cellKey)
-					: null;
-				const fieldType = lookup ? getSheetEditorFieldType(lookup.designCell) : null;
-
-				if (
-					!runtime ||
-					!lookup ||
-					lookup.row.__deleted ||
-					runtime.disabled ||
-					isSheetLocalEditorFieldType(fieldType) ||
-					isSheetReferenceCell(lookup.cell) ||
-					!canEditSheetRuntimeCell({
-						activeView,
-						design: effectiveDesign,
-						designCell: lookup.designCell,
-						disabled: runtime.disabled,
-					})
-				) {
-					return;
-				}
-
-				event.preventDefault();
-				dispatchInteractionState({
-					editState: getSheetCellEditState(runtime, lookup, 'CELL_BACKGROUND'),
-					type: 'cell_edit_started',
-				});
-				return;
-			}
-
-			if (event.key === 'Escape') {
-				event.preventDefault();
-				dismissCellEditorToSelectedCell();
-				return;
-			}
-
-			if (event.key === 'Enter' && editorElement.dataset.fieldType !== 'JSON' && !event.shiftKey) {
-				event.preventDefault();
-				void commitEditorElement(editorElement);
-			}
-		};
 		const onPointerDown = (event: PointerEvent) => {
+			const localEditorElement = getClosestSheetElement(
+				event.target,
+				'[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]',
+			);
+			const editorElement = getClosestSheetElement(event.target, '[data-sheet-editor="true"]');
 			const handleElement = getClosestSheetElement(event.target, '[data-sheet-column-resize-handle]');
 			const headerElement = getClosestSheetElement(event.target, '[data-sheet-header-cell="true"]');
+			const openTriggerElement = getClosestSheetElement(event.target, '[data-sheet-cell-open-trigger="true"]');
+			const cellElement = getClosestSheetElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (!runtime || runtime.disabled) {
@@ -3551,14 +4210,67 @@ export function Sheet(p: SheetProps) {
 				return;
 			}
 
-			if (!headerElement || headerElement.dataset.sheetHeaderReorderable !== 'true' || event.button !== 0) {
+			if (headerElement) {
+				if (headerElement.dataset.sheetHeaderReorderable === 'true' && event.button === 0) {
+					const columnKey = headerElement.dataset.cellKey;
+					if (columnKey) {
+						runtime.startColumnReorder(columnKey, event.clientX);
+					}
+				}
 				return;
 			}
 
-			const columnKey = headerElement.dataset.cellKey;
-			if (columnKey) {
-				runtime.startColumnReorder(columnKey, event.clientX);
+			if (localEditorElement || editorElement || openTriggerElement || event.button !== 0) {
+				return;
 			}
+
+			const anchorCell = getSheetBodyCellStateFromElement(cellElement);
+
+			if (!anchorCell) {
+				return;
+			}
+
+			cellDragSelectionStateRef.current = {
+				anchorCell,
+				latestCell: anchorCell,
+				pointerId: event.pointerId,
+				started: false,
+			};
+
+			const onPointerMove = (moveEvent: PointerEvent) => {
+				const dragState = cellDragSelectionStateRef.current;
+
+				if (!dragState || dragState.pointerId !== moveEvent.pointerId) {
+					return;
+				}
+
+				const targetElement = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY) as HTMLElement | null;
+				const targetCellElement = getClosestSheetElement(targetElement, '[data-sheet-cell="true"]');
+				const targetCell = getSheetBodyCellStateFromElement(targetCellElement);
+
+				if (!targetCell) {
+					return;
+				}
+
+				moveEvent.preventDefault();
+				updateSheetCellDragSelection(targetCell);
+			};
+			const onPointerUp = (upEvent: PointerEvent) => {
+				const dragState = cellDragSelectionStateRef.current;
+
+				if (dragState?.pointerId === upEvent.pointerId) {
+					suppressNextCellClickRef.current = Boolean(dragState.started);
+					cellDragSelectionStateRef.current = null;
+				}
+
+				window.removeEventListener('pointermove', onPointerMove);
+				window.removeEventListener('pointerup', onPointerUp);
+				window.removeEventListener('pointercancel', onPointerUp);
+			};
+
+			window.addEventListener('pointermove', onPointerMove);
+			window.addEventListener('pointerup', onPointerUp);
+			window.addEventListener('pointercancel', onPointerUp);
 		};
 		const onContextMenu = (event: MouseEvent) => {
 			if (__USE_NATIVE_CONTEXT_MENU_WITH_ALT__ && event.altKey) {
@@ -3610,7 +4322,6 @@ export function Sheet(p: SheetProps) {
 		scrollNode.addEventListener('dblclick', onDoubleClick);
 		scrollNode.addEventListener('focusout', onFocusOut);
 		scrollNode.addEventListener('input', onInput);
-		scrollNode.addEventListener('keydown', onKeyDown);
 		scrollNode.addEventListener('pointerdown', onPointerDown);
 		scrollNode.addEventListener('contextmenu', onContextMenu);
 
@@ -3620,7 +4331,6 @@ export function Sheet(p: SheetProps) {
 			scrollNode.removeEventListener('dblclick', onDoubleClick);
 			scrollNode.removeEventListener('focusout', onFocusOut);
 			scrollNode.removeEventListener('input', onInput);
-			scrollNode.removeEventListener('keydown', onKeyDown);
 			scrollNode.removeEventListener('pointerdown', onPointerDown);
 			scrollNode.removeEventListener('contextmenu', onContextMenu);
 
@@ -3632,20 +4342,20 @@ export function Sheet(p: SheetProps) {
 	}, [
 		activeView,
 		closeSheetContextMenu,
-		commitEditorElement,
-		commitHeaderEditorElement,
-		dismissCellEditorToSelectedCell,
 		effectiveDesign,
+		getSheetBodyCellStateFromElement,
 		openSheetContextMenu,
 		rowIndexById,
 		scrollElement.node,
 		startHeaderEdit,
+		updateSheetCellDragSelection,
 	]);
 
 	useEffect(() => {
 		return () => {
 			resizeCleanupRef.current?.();
 			columnReorderCleanupRef.current?.();
+			cellDragSelectionStateRef.current = null;
 
 			if (resizeFrameRef.current !== null) {
 				cancelAnimationFrame(resizeFrameRef.current);
@@ -3821,6 +4531,7 @@ export function Sheet(p: SheetProps) {
 							cellKey: runtimeKey,
 							editState,
 							rowId: row.id,
+							selectedCellKeyMap,
 							selectedCellState: singleClickedCellState,
 						}));
 						return;
@@ -3852,6 +4563,7 @@ export function Sheet(p: SheetProps) {
 						cellKey: runtimeKey,
 						editState,
 						rowId: row.id,
+						selectedCellKeyMap,
 						selectedCellState: singleClickedCellState,
 					}));
 				});
@@ -3888,6 +4600,7 @@ export function Sheet(p: SheetProps) {
 		rowCellsById,
 		renderedRows,
 		effectiveDesign.humansCannotEdit,
+		selectedCellKeyMap,
 		singleClickedCellState,
 		stickyHeaderHeight,
 		timeZone,
@@ -4145,6 +4858,15 @@ export function Sheet(p: SheetProps) {
 			stickyHeaderHeight,
 		});
 	}, [activeView, columnMetricsByKey, effectiveDesign, effectiveDisabled, rowIndexById, selectedCellLookup, stickyColumnCount, stickyHeaderHeight, totalWidth, viewportWidth]);
+	const selectedRangeBoxPosition = useMemo(() => {
+		return getSheetSelectionBoxPosition({
+			columnMetrics: columnMetricsData.metrics,
+			renderedRows,
+			selection: selectedCellSelection,
+			stickyColumnCount,
+			stickyHeaderHeight,
+		});
+	}, [columnMetricsData.metrics, renderedRows, selectedCellSelection, stickyColumnCount, stickyHeaderHeight]);
 
 	useEffect(() => {
 		if ((!activeSelectEditorLookup || !selectEditorPosition) && (!activeDateEditorLookup || !dateEditorPosition) && (!inboundContactEditorState || !inboundContactEditorPosition)) {
@@ -4179,25 +4901,12 @@ export function Sheet(p: SheetProps) {
 				clearInboundContactEditor: true,
 			});
 		};
-		const onKeyDown = (event: KeyboardEvent) => {
-			if (event.key !== 'Escape') {
-				return;
-			}
-
-			event.preventDefault();
-			dismissCellEditorToSelectedCell(undefined, {
-				clearInboundContactEditor: true,
-			});
-		};
-
 		document.addEventListener('pointerdown', onOutsidePointer, true);
 		document.addEventListener('click', onOutsidePointer, true);
-		document.addEventListener('keydown', onKeyDown);
 
 		return () => {
 			document.removeEventListener('pointerdown', onOutsidePointer, true);
 			document.removeEventListener('click', onOutsidePointer, true);
-			document.removeEventListener('keydown', onKeyDown);
 		};
 	}, [
 		activeDateEditorLookup,
@@ -4276,6 +4985,16 @@ export function Sheet(p: SheetProps) {
 	const sheetTabs = getSheetTabs(sheet, sheetViews);
 	const sheetLocalEditorOverlay = (
 		<>
+			{selectedRangeBoxPosition ? <div
+				className="sheet_selection_box abs noclick"
+				data-sheet-selection-box="true"
+				style={{
+					height: selectedRangeBoxPosition.height,
+					left: selectedRangeBoxPosition.left,
+					top: selectedRangeBoxPosition.top,
+					width: selectedRangeBoxPosition.width,
+				}}
+			/> : null}
 			{selectedReadOnlyCellPosition ? <SheetReadOnlyTag position={selectedReadOnlyCellPosition} /> : null}
 			{activeSelectEditorLookup && editState && selectEditorPosition ? (
 				<SheetLocalEditorContainer position={selectEditorPosition}>
@@ -4358,6 +5077,7 @@ export function Sheet(p: SheetProps) {
 			headerCellsEditable={!activeView && !effectiveDisabled}
 			headerContent={children}
 			headerEditState={headerEditState}
+			selectedHeaderCellKey={selectedHeaderCellKey}
 			headerSpacerWidth={rowContentWidth}
 			headerWidth={Math.max(totalWidth, viewportWidth)}
 			overlayContent={sheetLocalEditorOverlay}
@@ -4365,6 +5085,7 @@ export function Sheet(p: SheetProps) {
 			rows={visibleRows}
 			scrollLeft={scrollState.scrollLeft}
 			scrollRef={scrollElement.ref}
+			selectedCellKeyMap={selectedCellKeyMap}
 			selectedCellState={singleClickedCellState}
 			sheetSurfaceHeight={sheetSurfaceHeight}
 			sheetSurfaceTop={sheetSurfaceTop}
