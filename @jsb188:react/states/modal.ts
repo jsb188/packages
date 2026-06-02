@@ -102,7 +102,7 @@ export const POPUP_DEFAULT_VALUES = {
   },
   '10000': {
     preset: 'force_reload',
-    // iconName: 'confetti', // This is controlled via i18n now
+    // iconName: '..', // This is controlled via i18n now
   },
   '10012': {
     preset: 'force_reload',

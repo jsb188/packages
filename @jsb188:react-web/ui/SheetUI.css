@@ -1,8 +1,12 @@
 .sheet_ui_scroll {
-  overflow: auto;
   overscroll-behavior: none;
   overscroll-behavior-x: none;
   overscroll-behavior-y: none;
+}
+
+.sheet_ui_scroll:focus,
+.sheet_ui_scroll:focus-visible {
+  outline: none;
 }
 
 .sheet_ui_canvas {
@@ -31,7 +35,7 @@
 }
 
 .sheet_ui_cell.active {
-  z-index: 33;
+  z-index: 34;
 }
 
 .sheet_ui_editor:focus {
@@ -57,6 +61,11 @@ We're not going to show border on editing HEADER cells because:
   z-index: 1;
 }
 
+.sheet_ui_cell.single_clicked {
+  border-color: var(--color-contrast);
+  border-color: red !important;
+}
+
 .sheet_ui_cell.single_clicked::before {
   content: ' ';
   position: absolute;
@@ -64,8 +73,7 @@ We're not going to show border on editing HEADER cells because:
   top: -1px;
   right: -1px;
   bottom: -1px;
-  border-width: 1px;
-  border-style: solid;
+  border: 1px solid var(--color-contrast);
   pointer-events: none;
   z-index: 1;
 }
@@ -85,7 +93,7 @@ We're not going to show border on editing HEADER cells because:
   top: 0;
   right: 0;
   bottom: 0;
-  border: 1px solid var(--color-contrast);
+  border: 1px dashed var(--color-contrast);
   pointer-events: none;
   z-index: 1;
 }

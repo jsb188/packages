@@ -29,6 +29,24 @@ mutation editDataTableCell (
 ${dataTableCellFragment}
 `;
 
+export const editDataTableCellsMtn = gql`
+mutation editDataTableCells (
+  $organizationId: GenericID!
+  $dataTableId: GenericID!
+  $cells: [DataTableCellEditInput!]!
+) {
+  editDataTableCells (
+    organizationId: $organizationId
+    dataTableId: $dataTableId
+    cells: $cells
+  ) {
+    ...dataTableCellFragment
+  }
+}
+
+${dataTableCellFragment}
+`;
+
 export const deleteDataTableRowMtn = gql`
 mutation deleteDataTableRow (
   $organizationId: GenericID!

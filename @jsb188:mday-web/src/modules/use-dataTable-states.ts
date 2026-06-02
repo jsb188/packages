@@ -1,12 +1,7 @@
 import type { DataTableCellGQL, DataTableDesignGQL, DataTableRowGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { clampSheetColumnWidth, getSheetCellKey } from '@jsb188/react-web/ui/SheetUI';
-import { useCallback, useEffect, useRef, useState } from 'react';
-
-type ElementSize = {
-	height: number;
-	width: number;
-};
+import { useEffect, useRef, useState } from 'react';
 
 export type DataTableRowsState = {
 	hasMoreRows: boolean;
@@ -530,68 +525,5 @@ export function dataTableCellValueReducer(
 	return {
 		...state,
 		[optimisticKey]: action.value,
-	};
-}
-
-/*
- * Keep the current size of one DOM element in React state.
- */
-
-export function useElementSize<T extends HTMLElement>() {
-	const [node, setNode] = useState<T | null>(null);
-	const [size, setSize] = useState<ElementSize>({
-		height: 0,
-		width: 0,
-	});
-	/*
-	 * Store the latest observed element node.
-	 */
-
-	const ref = useCallback((nextNode: T | null) => {
-		setNode(nextNode);
-	}, []);
-
-	useEffect(() => {
-		if (!node) {
-			return;
-		}
-
-		/*
-		 * Read the element dimensions and skip React updates when they did not change.
-		 */
-
-		const updateSize = () => {
-			setSize((currentSize) => {
-				const nextSize = {
-					height: node.clientHeight || 0,
-					width: node.clientWidth || 0,
-				};
-
-				if (currentSize.height === nextSize.height && currentSize.width === nextSize.width) {
-					return currentSize;
-				}
-
-				return nextSize;
-			});
-		};
-
-		updateSize();
-
-		if (typeof ResizeObserver === 'undefined') {
-			return;
-		}
-
-		const observer = new ResizeObserver(updateSize);
-		observer.observe(node);
-
-		return () => {
-			observer.disconnect();
-		};
-	}, [node]);
-
-	return {
-		node,
-		ref,
-		size,
 	};
 }

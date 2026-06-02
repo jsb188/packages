@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import type { ClosePopOverFn, POListItemObj, POListItemPickerObj, PONavAvatarItemObj, PONListSubtitleObj, POTextObj, TooltipProps } from '@jsb188/react/types/PopOver.d';
+import type { ClosePopOverFn, POListItemObj, POListItemPickerObj, PONavAvatarItemObj, PONListSubtitleObj, POStateValue, POTextObj, TooltipProps } from '@jsb188/react/types/PopOver.d';
 import { forwardRef, memo, useEffect, useRef, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
@@ -15,7 +15,7 @@ import Markdown from './Markdown';
  */
 
 export interface PONavItemBase {
-  onClickItem: (name: string | null, value: string | boolean | null, notEventBased?: boolean, dismissOnClick?: boolean) => void;
+  onClickItem: (name: string | null, value: POStateValue, notEventBased?: boolean, dismissOnClick?: boolean) => void;
   saving: boolean;
   selected?: boolean;
   disabled?: boolean;

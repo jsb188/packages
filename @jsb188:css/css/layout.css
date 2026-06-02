@@ -207,6 +207,10 @@ body.p_auth {
   overflow-y: scroll;
 }
 
+.app_scr.of_x {
+  overflow-x: scroll;
+}
+
 @media (--gte-mobile-portrait) {
   .app_scr {
     -webkit-overflow-scrolling: touch;
@@ -223,7 +227,9 @@ body.p_auth {
 
   .app_scr::-webkit-scrollbar {
     width: 18px;
-    background-color: rgb(var(--color-bg-alt));
+    height: 18px;
+    /* background-color: rgb(var(--color-bg-active)); */
+    background-color: rgb(var(--color-bg));
   }
 
   .app_scr::-webkit-scrollbar-track {
@@ -243,12 +249,17 @@ body.p_auth {
   }
 
   .app_scr::-webkit-scrollbar-thumb {
-    /* background-color: rgb(var(--color-bg-medium)); */
-    background-color: rgb(var(--color-bg-active));
+    background-color: rgb(var(--color-bg-medium));
+    /* background-color: rgb(var(--color-bg-active)); */
   }
 
   .app_scr:hover::-webkit-scrollbar-thumb {
-    /* background-color: rgb(var(--color-bg-medium)); */
-    background-color: rgb(var(--color-bg-active));
+    background-color: rgb(var(--color-bg-medium));
+    /* background-color: rgb(var(--color-bg-active)); */
+  }
+
+  .app_scr::-webkit-scrollbar-thumb:active {
+    background-color: rgb(var(--color-bg-strong));
+    /* background-color: rgb(var(--color-bg-active)); */
   }
 }

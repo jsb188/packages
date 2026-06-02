@@ -281,7 +281,7 @@ export const TableDataRow = memo((p: HTMLAttributes<HTMLDivElement> & {
     className={cn(
       'lh_1 table_grid_row',
       // clickable ? 'link bg_zinc_fd_hv' : '',
-      clickable ? 'link bg_primary_fd_hv_solid' : '',
+      clickable ? 'link bg_primary_fd_solid_hv' : '',
       __deleted ? '__deleted' : '',
       className,
     )}

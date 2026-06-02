@@ -1,5 +1,5 @@
 import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ElementType } from 'react';
 
 /**
  * Utility types
@@ -16,27 +16,44 @@ export interface ClientRectValues {
   y: number;
 }
 
+export type POPosition = 'top' | 'left' | 'right' | 'bottom' | 'bottom_left' | 'bottom_right';
+export type AbsolutePosition = Pick<CSSProperties, 'left' | 'right' | 'top' | 'bottom'>;
+
+export type POItemValue = string | number | boolean | null;
+export type POStateValue = any;
+export type POFormState = Record<string, POStateValue>;
+export type POListItemClickFn = (
+  name: string | null,
+  value?: POStateValue,
+  notEventBased?: boolean,
+  dismissOnClick?: boolean,
+) => void;
+
 /**
- * Pop over interfaces
+ * Pop over list items
  */
 
- export interface PONListSubtitleObj {
-  __type: 'LIST_SUBTITLE';
+export interface POItemBase {
+  __type: string;
   hidden?: boolean;
+}
+
+export interface POListSubtitleObj extends POItemBase {
+  __type: 'LIST_SUBTITLE';
   text: string;
   textClassName?: string;
   colorIndicator?: ColorEnum;
 }
 
-export interface POListBreakObj {
+export type PONListSubtitleObj = POListSubtitleObj;
+
+export interface POListBreakObj extends POItemBase {
   __type: 'BREAK';
-  hidden?: boolean;
 }
 
-export interface POListItemObj {
-  __type: 'LIST_ITEM' | 'LIST_ITEM_COPY' | 'CHECK_LIST_ITEM' | 'SINGLE_OPTION_LIST_ITEM' | 'LIST_ITEM_POPUP';
-  name?: string; // Name for form, for formValues object; if not set, index will be used
-  value?: string | boolean | null;
+export interface POActionListItemBase extends POItemBase {
+  name?: string;
+  value?: POItemValue;
   text: string;
   description?: string | null;
   className?: string;
@@ -44,158 +61,174 @@ export interface POListItemObj {
   colorIndicator?: ColorEnum;
   avatarDisplayName?: string;
   photoUri?: string | null;
-  LinkComponent?: any;
+  LinkComponent?: ElementType;
   allowDisabledOnClick?: boolean;
   iconName?: string;
   rightIconName?: string;
   rightIconClassName?: string;
   selected?: boolean;
-  hidden?: boolean;
   disabled?: boolean;
-  onClick?: (name: string | null, value?: any, notEventBased?: boolean, dismissOnClick?: boolean) => void; // optional, if you want to bypass globalState handlers
-
-  // Presets
+  onClick?: POListItemClickFn;
   preset?: 'small' | 'default';
-
-  // Web props
   to?: string;
+}
 
-  // Mobile props
-  // ?
+export interface POListItemObj extends POActionListItemBase {
+  __type: 'LIST_ITEM' | 'LIST_ITEM_COPY';
+}
+
+export interface POCheckListItemObj extends Omit<POActionListItemBase, 'onClick'> {
+  __type: 'CHECK_LIST_ITEM' | 'SINGLE_OPTION_LIST_ITEM';
+}
+
+export interface POModalItemObj extends Omit<POActionListItemBase, 'onClick'> {
+  __type: 'LIST_ITEM_POPUP' | 'LIST_ITEM_MODAL';
+  variables: POStateValue;
+  useMutationArgs?: POStateValue[];
 }
 
 export interface POListItemPickerOptionObj {
   iconName: string;
   selectedIconName: string;
   className?: string;
-  value: string | boolean | null;
+  value: POItemValue;
 }
 
-export interface POListItemPickerObj extends Omit<POListItemObj, '__type' | 'text' | 'value' | 'iconName'> {
+export interface POListItemPickerObj extends Omit<POActionListItemBase, '__type' | 'text' | 'value' | 'iconName' | 'onClick'> {
   __type: 'LIST_ITEM_PICKER';
   label: string;
   options: POListItemPickerOptionObj[];
-  selectedValue?: string | boolean | null;
-
+  selectedValue?: POItemValue;
   mutationName: string;
-  useMutation?: (...args: any[]) => Record<string, any>;
-  useMutationArgs?: any[];
-  mutationVariables?: Record<string, any> | ((value: any) => Record<string, any>);
+  useMutation?: (...args: POStateValue[]) => Record<string, POStateValue>;
+  useMutationArgs?: POStateValue[];
+  mutationVariables?: Record<string, POStateValue> | ((value: POStateValue) => Record<string, POStateValue>);
 }
 
-export interface POModalItemObj extends POListItemObj {
-  __type: 'LIST_ITEM_POPUP' | 'LIST_ITEM_MODAL';
-  variables: any; // Variables for the pop up
-  useMutationArgs?: any[];
+export interface POListColorsObj extends POItemBase {
+  __type: 'LIST_COLORS';
+  name?: string;
+  colors?: readonly string[];
+  selectedValue?: string | null;
+  className?: string;
+  disabled?: boolean;
 }
 
-export interface POCheckListItemObj extends POListItemObj {
-  __type: 'CHECK_LIST_ITEM' | 'SINGLE_OPTION_LIST_ITEM';
-  name?: string; // Name for form, for formValues object; if not set, index will be used
-  hidden?: boolean;
+export interface POListSubmenuObj extends Pick<POListVariables, 'notReady' | 'designClassName' | 'shadowClassName' | 'className' | 'savingValue'> {
+  initialState?: POFormState | null;
+  options: POListIfaceItem[];
 }
 
-export interface PONavAvatarItemObj {
+export interface POListSubmenuItemObj extends Omit<POActionListItemBase, '__type' | 'onClick'> {
+  __type: 'LIST_SUBMENU_ITEM';
+  submenu: POListSubmenuObj;
+}
+
+export interface PONavAvatarItemObj extends POItemBase {
   __type: 'AVATAR_ITEM';
-  name?: string; // Name for form, for formValues object; if not set, index will be used
+  name?: string;
   value?: string | null;
   text: string;
   label: string;
   avatarDisplayName?: string;
   photoUri?: string | null;
   className?: string;
-  LinkComponent?: any;
+  LinkComponent?: ElementType;
   allowDisabledOnClick?: boolean;
   rightIconName?: string;
-  hidden?: boolean;
   square?: boolean;
   disabled?: boolean;
-
-  // Web props
   to?: string;
-
-  // Mobile props
-  // ?
 }
 
-export interface PODatePickerObj {
+export interface PODateItemBase extends POItemBase {
+  name?: string;
+  minDate?: Date;
+  maxDate?: Date;
+}
+
+export interface PODatePickerObj extends PODateItemBase {
   __type: 'DATE_PICKER';
-  hidden?: boolean;
-  name?: string; // Name for form, for formValues object; if not set, index will be used
-  minDate?: Date; // Optional minimum date
-  maxDate?: Date; // Optional maximum date
 }
 
-export interface PODateRangeObj extends PODatePickerObj {
+export interface PODateRangeObj extends PODateItemBase {
   __type: 'DATE_RANGE';
 }
 
-export interface POTextObj {
+export interface POTextObj extends POItemBase {
   __type: 'TEXT';
-  hidden?: boolean;
   text: string;
   className?: string;
   designClassName?: string;
 }
 
-export type POListIfaceItem = PONavAvatarItemObj | PONListSubtitleObj | POListBreakObj | POListItemObj | POCheckListItemObj | POListItemPickerObj | POModalItemObj | PODatePickerObj | PODateRangeObj | POTextObj;
-export type POCheckListIfaceItem = PONListSubtitleObj | POListBreakObj | POCheckListItemObj;
+export type POListIfaceItem =
+  | PONavAvatarItemObj
+  | POListSubtitleObj
+  | POListBreakObj
+  | POListItemObj
+  | POCheckListItemObj
+  | POListItemPickerObj
+  | POListColorsObj
+  | POListSubmenuItemObj
+  | POModalItemObj
+  | PODatePickerObj
+  | PODateRangeObj
+  | POTextObj;
+
+export type POCheckListIfaceItem = POListSubtitleObj | POListBreakObj | POCheckListItemObj;
+
+/**
+ * Pop over ifaces
+ */
+
+export interface POListVariables {
+  notReady?: boolean;
+  designClassName?: string;
+  shadowClassName?: string;
+  className?: string;
+  savingValue?: POItemValue;
+  iconName?: string;
+  title?: string;
+  description?: string;
+  displayName?: string;
+  photoUri?: string | null;
+  initialState?: POFormState | POStateValue[] | POItemValue;
+  options: POListIfaceItem[];
+  addFooterButton?: boolean;
+  footerButtonText?: string;
+  LinkComponent?: ElementType;
+  remainingHeight?: number;
+}
 
 export interface POListIface {
   name: 'PO_LIST';
-  variables: {
-    notReady?: boolean;
-    designClassName?: string;
-    shadowClassName?: string;
-    className?: string;
-    savingValue?: string;
-    iconName?: string;
-    title?: string;
-    description?: string;
-    displayName?: string;
-    photoUri?: string | null;
-    initialState?: Record<string, any>;
-    options: POListIfaceItem[];
-    addFooterButton?: boolean;
-    footerButtonText?: string;
-    LinkComponent?: any;
-    remainingHeight?: number; // Auto calc'd from <PopOverWrapper />
-  };
+  variables: POListVariables;
+}
+
+export interface POCheckListVariables extends Omit<POListVariables, 'options' | 'initialState'> {
+  options: POCheckListIfaceItem[];
+  initialState?: POItemValue[];
 }
 
 export interface POCheckListIface {
   name: 'PO_CHECK_LIST';
-  variables: {
-    notReady?: boolean;
-    className?: string;
-    designClassName?: string;
-    shadowClassName?: string;
-    savingValue?: string;
-    iconName?: string;
-    title?: string;
-    description?: string;
-    displayName?: string;
-    photoUri?: string | null;
-    options: POCheckListIfaceItem[];
-    initialState?: (string | null)[];
-    addFooterButton?: boolean;
-    footerButtonText?: string;
-  };
+  variables: POCheckListVariables;
 }
 
 export interface POImageIface {
-  name: 'PO_VIEW_IMAGE'
+  name: 'PO_VIEW_IMAGE';
   variables: {
     imageUri: string;
     alt?: string;
-    rect: any;
-  }
+    rect?: ClientRectValues;
+  };
 }
 
 export interface POLabelsAndValuesIface {
   name: 'PO_LABELS_AND_VALUES';
   variables: {
-    name: string; // Name for form, for formValues object
+    name: string;
     designClassName?: string;
     shadowClassName?: string;
     className?: string;
@@ -215,25 +248,24 @@ export interface POLabelsAndValuesIface {
       quantity?: number;
       unit?: string;
     }[];
-  }
+  };
 }
 
 export type PopOverIface = POListIface | POCheckListIface | POImageIface | POLabelsAndValuesIface;
+export type PopOverName = PopOverIface['name'] | (string & {});
+export type PopOverVariables = PopOverIface['variables'] | Record<string, POStateValue>;
 
 /**
  * Pop overs
  */
 
-export type POPosition = 'top' | 'left' | 'right' | 'bottom' | 'bottom_left' | 'bottom_right';
-
-interface FixedElementProps {
-  id: string; // This ensures that the popover doesn't reset from within the same mouse pointer element
+export interface PopOverPositionProps {
   className: string;
   position: POPosition;
-  variables: any;
+  variables: PopOverVariables;
   popOverWidth: number;
   popOverHeight: number;
-  rect?: ClientRectValues;
+  rect: ClientRectValues;
   offsetX: number;
   offsetY: number;
   leftEdgeThreshold: number;
@@ -243,33 +275,32 @@ interface FixedElementProps {
   hover: boolean;
 }
 
-export interface PopOverProps extends Partial<FixedElementProps> {
+export interface PopOverProps extends Partial<PopOverPositionProps> {
   id?: string;
-  name: string; // Used to be "__type"
-  closing?: boolean; // If true, multiple close() functions are triggered to animate & close popover
-  zClassName?: string; // Class name for z-index, e.g. 'z6', 'z7', etc.
+  name: PopOverName;
+  closing?: boolean;
+  zClassName?: string;
   animationClassName?: string;
   doNotTrackHover?: boolean;
-  doNotFixToBottom?: boolean; // If true, popover will not adjust position to fit in viewport
-  doNotRemoveOnPageEvents?: boolean; // If true, popover will be removed when the user scrolls or navigation events
-  scrollAreaDOMId?: string | null; // Some pages have different parts as the main body, this is the scroll element that need to be tracked
-  globalState?: Record<string, any> | null; // Use this to listen to state changes from outside the popover
+  doNotFixToBottom?: boolean;
+  doNotRemoveOnPageEvents?: boolean;
+  scrollAreaDOMId?: string | null;
+  globalState?: PopOverGlobalStateObj | null;
 }
 
-export interface UpdatePopOverParams {
-  name: string;
-  variables: Record<string, any>;
+export interface UpdatePopOverParams extends Record<string, POStateValue> {
+  name: PopOverName;
 }
 
 export interface PopOverGlobalStateParams {
   action: 'ITEM' | 'ITEM_AUTO' | 'SUBMIT' | 'MOUNT' | 'UNMOUNT';
-  name?: string | null; // Name of form item
-  value: any;
+  name?: string | null;
+  value: POStateValue;
   doNotClosePopOver?: boolean;
 }
 
 export interface PopOverGlobalStateObj extends PopOverGlobalStateParams {
-  id: string;
+  id?: string;
 }
 
 export type OpenPopOverFn = (data: PopOverProps) => void;
@@ -293,9 +324,8 @@ export interface PopOverHookProps extends PopOverHandlerProps {
  * Tooltips
  */
 
-export type AbsolutePosition = Pick<CSSProperties, 'left' | 'right' | 'top' | 'bottom'>;
-
-export interface TooltipProps extends Partial<FixedElementProps> {
+export interface TooltipProps extends Partial<Omit<PopOverPositionProps, 'variables'>> {
+  id?: string;
   absolute?: AbsolutePosition;
   __html?: string;
   title?: string;

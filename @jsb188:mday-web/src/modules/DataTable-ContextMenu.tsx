@@ -1,9 +1,10 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
-import { usePopOver, type OpenModalPopUpFn } from '@jsb188/react/states';
+import { type OpenModalPopUpFn } from '@jsb188/react/states';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { getSheetGridContextMenuPopOverId, useSheetGridContextMenu } from './sheet-grid-context-menu.ts';
 
 export const SHEET_CONTEXT_MENU_ID = 'dataTable-context-menu';
 export const SHEET_DELETE_ROW_POPUP_PRESET = 'DELETE_SHEET_ROW';
@@ -44,14 +45,6 @@ type UseDataTableContextMenuParams<Lookup> = {
 
 function copyDataTableContextMenuCellValue(target: DataTableContextMenuTarget) {
 	void copyTextToClipboard(target.displayValue || '');
-}
-
-/*
- * Return the PopOver remount key for one dataTable cell context menu.
- */
-
-function getDataTableContextMenuPopOverId(target: Pick<DataTableContextMenuTarget, 'cellKey' | 'rowId'>) {
-	return `${SHEET_CONTEXT_MENU_ID}:${target.rowId}:${target.cellKey}`;
 }
 
 /*
@@ -125,61 +118,22 @@ export function useDataTableContextMenu<Lookup>(p: UseDataTableContextMenuParams
 		onOpenCell,
 		openModalPopUp,
 	} = p;
-	const { closePopOver, openPopOver, popOver } = usePopOver();
-	const activeTargetRef = useRef<DataTableContextMenuTarget<Lookup> | null>(null);
-
-	/*
-	 * Open a PopOver menu at the user's pointer position.
-	 */
-
-	const openDataTableContextMenu = useCallback((event: MouseEvent, target: DataTableContextMenuTarget<Lookup>) => {
-		activeTargetRef.current = target;
-		openPopOver({
-			animationClassName: 'anim_dropdown_top_right on_mount spd_0',
-			doNotFixToBottom: true,
-			id: getDataTableContextMenuPopOverId(target),
-			name: 'PO_LIST',
-			offsetX: 0,
-			offsetY: 4,
-			position: 'bottom_left',
-			rect: {
-				bottom: event.clientY,
-				height: 0,
-				left: event.clientX,
-				right: event.clientX,
-				top: event.clientY,
-				width: 0,
-				x: event.clientX,
-				y: event.clientY,
-			},
-			variables: {
-				className: 'min_w_180',
-				options: getDataTableContextMenuOptions(target),
-			},
-			zClassName: 'z8',
-		});
-	}, [openPopOver]);
-
-	/*
-	 * Close the active DataTable context menu when it is currently mounted.
-	 */
-
-	const closeDataTableContextMenu = useCallback(() => {
-		const target = activeTargetRef.current;
-
-		if (!target || popOver?.id !== getDataTableContextMenuPopOverId(target)) {
-			return;
-		}
-
-		activeTargetRef.current = null;
-		closePopOver();
-	}, [closePopOver, popOver?.id]);
+	const {
+		activeTargetRef,
+		closeContextMenu: closeDataTableContextMenu,
+		closePopOver,
+		openContextMenu: openDataTableContextMenu,
+		popOver,
+	} = useSheetGridContextMenu<DataTableContextMenuTarget<Lookup>>({
+		contextMenuId: SHEET_CONTEXT_MENU_ID,
+		getOptions: getDataTableContextMenuOptions,
+	});
 
 	useEffect(() => {
 		const { action, id, value } = popOver?.globalState || {};
 		const target = activeTargetRef.current;
 
-		if (!target || id !== getDataTableContextMenuPopOverId(target) || action !== 'ITEM') {
+		if (!target || id !== getSheetGridContextMenuPopOverId(SHEET_CONTEXT_MENU_ID, target) || action !== 'ITEM') {
 			return;
 		}
 

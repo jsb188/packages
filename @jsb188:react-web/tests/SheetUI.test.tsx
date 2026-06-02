@@ -12,9 +12,12 @@ import {
 	SHEET_STICKY_SPACER_SIZE,
 	SheetUI,
 	clampSheetColumnWidth,
+	clampSheetRowHeight,
 	getSheetColumnIndexAtOffset,
 	getSheetColumnMetrics,
 	getSheetMinimumRowCount,
+	getSheetRowIndexAtOffset,
+	getSheetRowMetrics,
 	getSheetVisibleRange,
 	type SheetUICell,
 	type SheetUICellRenderSnapshot,
@@ -230,6 +233,32 @@ describe('SheetUI helpers', () => {
 		})).toMatchObject({
 			columnStart: 1,
 			columnEnd: 3,
+		});
+	});
+
+	it('calculates variable-height row offsets for visible ranges', () => {
+		const metrics = getSheetRowMetrics(['1', '2', '3'], {
+			'1': 48,
+			'2': 80,
+		});
+
+		expect(clampSheetRowHeight(10)).toBe(22);
+		expect(metrics.offsets).toEqual([0, 48, 128, 160]);
+		expect(getSheetRowIndexAtOffset(metrics.offsets, 47)).toBe(0);
+		expect(getSheetRowIndexAtOffset(metrics.offsets, 48)).toBe(1);
+		expect(getSheetVisibleRange({
+			bufferColumns: 0,
+			bufferRows: 0,
+			columnCount: 1,
+			containerHeight: SHEET_HEADER_HEIGHT + 70,
+			containerWidth: 160,
+			rowCount: 3,
+			rowOffsets: metrics.offsets,
+			scrollLeft: 0,
+			scrollTop: SHEET_HEADER_HEIGHT + 50,
+		})).toMatchObject({
+			rowStart: 1,
+			rowEnd: 2,
 		});
 	});
 });

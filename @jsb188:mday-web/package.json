@@ -6,6 +6,7 @@
   "author": "jsb188",
   "type": "module",
   "exports": {
+    "./DataTable": "./src/modules/DataTable.tsx",
     "./Sheet": "./src/modules/Sheet.tsx",
     "./utils/route": "./src/utils/route-helpers.ts",
     "./utils/log-web": "./src/utils/log-web.ts",

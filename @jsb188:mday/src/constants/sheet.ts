@@ -1,0 +1,20 @@
+export const SHEET_CELL_SOURCE_TYPE_ENUMS = [
+	'USER',
+	'REGION_GENERATED',
+	'REGION_OVERRIDE',
+] as const;
+
+export const SHEET_REGION_TYPE_ENUMS = [
+	'DATA_TABLE',
+] as const;
+
+export const SHEET_REGION_CONFLICT_POLICY_ENUMS = [
+	'TRUNCATE_AT_FIRST_BLOCKER',
+] as const;
+
+export const SHEET_DEFAULT_ROW_COUNT = 1000;
+export const SHEET_DEFAULT_COLUMN_COUNT = 26;
+export const SHEET_VIEWPORT_MAX_ROWS = 400;
+export const SHEET_VIEWPORT_MAX_COLUMNS = 100;
+export const SHEET_DEFAULT_COLUMN_WIDTH = 160;
+export const SHEET_DEFAULT_ROW_HEIGHT = 28;

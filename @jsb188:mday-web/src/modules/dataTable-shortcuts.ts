@@ -1,29 +1,21 @@
 import type { DataTableRowGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import {
-	getSheetCellKey,
 	type SheetColumnMetric,
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
-import type { DataTableArrowNavigationDirection } from './DataTable-ContextMenu.tsx';
 import { type DataTableInteractionCellSelection } from './dataTable-interaction-state.ts';
+import {
+	getSheetGridRangeSelection,
+	getNextActiveSheetSelectedCell,
+	getOrderedSheetSelectedCells,
+} from './sheet-selection.ts';
 
 /*
- * Return the browser arrow key as a dataTable navigation direction.
+ * Return DataTable row ids in their rendered order for shared grid helpers.
  */
 
-export function getDataTableShortcutArrowDirection(pressed?: string | null): DataTableArrowNavigationDirection | null {
-	switch (pressed) {
-		case 'ArrowLeft':
-			return 'left';
-		case 'ArrowRight':
-			return 'right';
-		case 'ArrowUp':
-			return 'up';
-		case 'ArrowDown':
-			return 'down';
-		default:
-			return null;
-	}
+function getDataTableRenderedRowIds(renderedRows: DataTableRowGQL[]) {
+	return renderedRows.map((row) => row.id);
 }
 
 /*
@@ -37,48 +29,13 @@ export function getDataTableRangeSelection(params: {
 	renderedRows: DataTableRowGQL[];
 	selectedActiveCell?: SheetUISelectedCellState;
 }): DataTableInteractionCellSelection {
-	const activeColumnIndex = params.columnMetrics.findIndex((metric) => metric.column.key === params.activeCell.cellKey);
-	const anchorColumnIndex = params.columnMetrics.findIndex((metric) => metric.column.key === params.anchorCell.cellKey);
-	const activeRowIndex = params.renderedRows.findIndex((row) => row.id === params.activeCell.rowId);
-	const anchorRowIndex = params.renderedRows.findIndex((row) => row.id === params.anchorCell.rowId);
-	const selectedCellKeyMap: DataTableInteractionCellSelection['selectedCellKeyMap'] = {};
-
-	if (activeColumnIndex < 0 || anchorColumnIndex < 0 || activeRowIndex < 0 || anchorRowIndex < 0) {
-		selectedCellKeyMap[getSheetCellKey(params.activeCell.rowId, params.activeCell.cellKey)] = true;
-
-		return {
-			activeCell: params.selectedActiveCell || params.anchorCell,
-			anchorCell: params.anchorCell,
-			rangeEndCell: params.activeCell,
-			selectedCellKeyMap,
-		};
-	}
-
-	const columnStart = Math.min(activeColumnIndex, anchorColumnIndex);
-	const columnEnd = Math.max(activeColumnIndex, anchorColumnIndex);
-	const rowStart = Math.min(activeRowIndex, anchorRowIndex);
-	const rowEnd = Math.max(activeRowIndex, anchorRowIndex);
-
-	for (let rowIndex = rowStart; rowIndex <= rowEnd; rowIndex += 1) {
-		const row = params.renderedRows[rowIndex];
-		if (!row) {
-			continue;
-		}
-
-		for (let columnIndex = columnStart; columnIndex <= columnEnd; columnIndex += 1) {
-			const column = params.columnMetrics[columnIndex]?.column;
-			if (column) {
-				selectedCellKeyMap[getSheetCellKey(row.id, column.key)] = true;
-			}
-		}
-	}
-
-	return {
-		activeCell: params.selectedActiveCell || params.anchorCell,
+	return getSheetGridRangeSelection({
+		activeCell: params.activeCell,
 		anchorCell: params.anchorCell,
-		rangeEndCell: params.activeCell,
-		selectedCellKeyMap,
-	};
+		columnMetrics: params.columnMetrics,
+		rowIds: getDataTableRenderedRowIds(params.renderedRows),
+		selectedActiveCell: params.selectedActiveCell,
+	});
 }
 
 /*
@@ -90,20 +47,11 @@ export function getDataTableOrderedSelectedCells(params: {
 	renderedRows: DataTableRowGQL[];
 	selection: DataTableInteractionCellSelection;
 }) {
-	const cells: SheetUISelectedCellState[] = [];
-
-	params.renderedRows.forEach((row) => {
-		params.columnMetrics.forEach((metric) => {
-			if (params.selection.selectedCellKeyMap[getSheetCellKey(row.id, metric.column.key)]) {
-				cells.push({
-					cellKey: metric.column.key,
-					rowId: row.id,
-				});
-			}
-		});
+	return getOrderedSheetSelectedCells({
+		columnMetrics: params.columnMetrics,
+		rowIds: getDataTableRenderedRowIds(params.renderedRows),
+		selectedCellKeyMap: params.selection.selectedCellKeyMap,
 	});
-
-	return cells;
 }
 
 /*
@@ -116,28 +64,13 @@ export function getDataTableNextActiveSelectedCell(params: {
 	renderedRows: DataTableRowGQL[];
 	selection: DataTableInteractionCellSelection;
 }) {
-	const selectedCells = getDataTableOrderedSelectedCells({
+	return getNextActiveSheetSelectedCell({
+		activeCell: params.selection.activeCell,
 		columnMetrics: params.columnMetrics,
-		renderedRows: params.renderedRows,
-		selection: params.selection,
+		direction: params.direction,
+		rowIds: getDataTableRenderedRowIds(params.renderedRows),
+		selectedCellKeyMap: params.selection.selectedCellKeyMap,
 	});
-
-	if (!selectedCells.length) {
-		return null;
-	}
-
-	if (selectedCells.length === 1) {
-		return selectedCells[0] || null;
-	}
-
-	const activeIndex = selectedCells.findIndex((cell) => {
-		return cell.rowId === params.selection.activeCell.rowId && cell.cellKey === params.selection.activeCell.cellKey;
-	});
-	const currentIndex = activeIndex >= 0 ? activeIndex : 0;
-	const offset = params.direction === 'backward' ? -1 : 1;
-	const nextIndex = (currentIndex + offset + selectedCells.length) % selectedCells.length;
-
-	return selectedCells[nextIndex] || null;
 }
 
 /*

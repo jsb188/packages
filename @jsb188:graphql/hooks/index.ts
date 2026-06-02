@@ -3,7 +3,7 @@ import type { ServerErrorObj, SimpleErrorType } from '@jsb188/app/types/app.d.ts
 import { normalizeServerError } from '@jsb188/app/utils/api.ts';
 import { delay, makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import { isServerErrorGQL } from '@jsb188/graphql/utils';
-import { useConnectedToServerValue, useFragmentObserverValue, useQueryObserverValue, useScreenIsFocusedValue, useSetFragmentObserver, useSetQueryObserver } from '@jsb188/react/states';
+import { useConnectedToServerValue, useQueryObserverValue, useScreenIsFocusedValue, useSetFragmentObserver, useSetQueryObserver } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { checkDataCompleteness, clearQueryResetStatus, fetchCachedData, getQueryRefreshTime, loadDataFromCache, loadFragment, removeStaleCache } from '../cache/index.ts';
 import { QUERY_EXPIRE_TIMES } from '../cache/config.ts';
@@ -535,13 +535,22 @@ export function useReactiveFragmentMap(
   fragmentName_: string,
 ) {
   const fragmentName = `$${fragmentName_}`;
-  const observe = data?.map((d) => fragmentName + ':' + d.id);
-  const observeStr = observe?.join(',');
-  const fragmentObserver = useFragmentObserverValue();
+  const observeStr = useMemo<string>(() => data?.map((d) => fragmentName + ':' + d.id).join(',') || '', [data, fragmentName]);
+  const observe = useMemo<string[]>(() => observeStr.split(',').filter(Boolean), [observeStr]);
+  const observeIndex = useMemo<Map<string, number>>(() => {
+    const indexMap = new Map<string, number>();
+
+    observe.forEach((key: string, index: number) => {
+      indexMap.set(key, index);
+    });
+
+    return indexMap;
+  }, [observe]);
+  const fragmentObserver = useFragmentKeyObserver(observe);
 
   const [changedData, setChangedData] = useState({
     count: fragmentObserver.count,
-    lastObserve: observe,
+    lastObserveStr: observeStr,
     data: getReactiveFragmentMapData(data, observe)
   });
 
@@ -550,58 +559,61 @@ export function useReactiveFragmentMap(
     // But that caused the render to happen 3 times more, I don't know why.
     // I only solved it by using useEffect()
 
-    const dataToUpdate = changedData.data || data;
-    if (
-      dataToUpdate &&
-      observe &&
-      fragmentObserver.count !== changedData.count
-    ) {
+    if (fragmentObserver.count !== changedData.count) {
+      const dataToUpdate = changedData.data || data;
       let newData;
-      for (let i = 0; i < observe.length; i++) {
-        const key = observe[i];
 
-        if (fragmentObserver.list.includes(key)) {
-          if (!newData) {
-            newData = dataToUpdate.slice(0);
-          }
-
-          if (newData[i]) {
-            const fragmentData = loadFragment(key);
-            if (fragmentData) {
-              newData[i] = {
-                ...newData[i],
-                ...fragmentData,
-              };
-            }
-          }
+      for (const key of fragmentObserver.list) {
+        const index = observeIndex.get(key);
+        if (index === undefined || !dataToUpdate?.[index]) {
+          continue;
         }
+
+        const fragmentData = loadFragment(key);
+        if (!fragmentData) {
+          continue;
+        }
+
+        if (!newData) {
+          newData = dataToUpdate.slice(0);
+        }
+
+        newData[index] = {
+          ...newData[index],
+          ...fragmentData,
+        };
       }
 
       if (newData) {
         setChangedData({
           ...changedData,
           count: fragmentObserver.count,
-          data: newData.slice(0)
+          data: newData,
+        });
+      } else {
+        setChangedData({
+          ...changedData,
+          count: fragmentObserver.count,
         });
       }
     }
-  }, [fragmentObserver.list]);
+  }, [fragmentObserver.count]);
 
   useEffect(() => {
-    if (changedData.lastObserve?.join(',') !== observeStr) {
+    if (changedData.lastObserveStr !== observeStr) {
       setChangedData({
         ...changedData,
         data: getReactiveFragmentMapData(data, observe),
-        lastObserve: observe,
+        lastObserveStr: observeStr,
       });
     }
   }, [observeStr]);
 
-  if (changedData.lastObserve?.join(',') !== observeStr) {
+  if (changedData.lastObserveStr !== observeStr) {
     return getReactiveFragmentMapData(data, observe);
   }
 
-  return getReactiveFragmentMapData(data, observe) || changedData.data;
+  return changedData.data || data;
 }
 
 /**
@@ -813,6 +825,7 @@ export function useQuery(
     lastUpdatedCount: 0,
     lastRefreshTriggerTime: '',
   });
+  const qryValuesVariablesKey = makeVariablesKey(qryValues.variables);
 
   const { updatedCount, forceRefetch, resetOnlyTime, qryReset: { triggerTime, refreshTime } } = useWatchQuery(
     query,
@@ -965,7 +978,7 @@ export function useQuery(
       !skip && (
         (triggerTime && triggerTime !== qryValues.lastRefreshTriggerTime) ||
         updatedCount !== qryValues.lastUpdatedCount ||
-        variablesKey !== makeVariablesKey(qryValues.variables) ||
+        variablesKey !== qryValuesVariablesKey ||
         !checkDataCompleteness(qryValues.data, query)
       )
     ) {
@@ -992,7 +1005,7 @@ export function useQuery(
         doQuery();
       }
     }
-  }, [variablesKey, skip, updatedCount, triggerTime]);
+  }, [variablesKey, qryValuesVariablesKey, qryValues.loading, skip, updatedCount, triggerTime]);
 
   // Refetch when the app reconnects and has no data
 
@@ -1045,7 +1058,7 @@ export function useQuery(
     return result;
   }, [doQuery, skip]);
 
-  const qryValuesMatchVariables = variablesKey === makeVariablesKey(qryValues.variables);
+  const qryValuesMatchVariables = variablesKey === qryValuesVariablesKey;
   const queryData = loadDataFromCache(
     qryValuesMatchVariables ? qryValues.data : null,
     query,

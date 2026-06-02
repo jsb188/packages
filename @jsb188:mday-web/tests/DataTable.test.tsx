@@ -15,7 +15,7 @@ import type { ComponentProps } from 'react';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Sheet, parseSheetEditorValue } from '../src/modules/Sheet';
+import { DataTable, parseSheetEditorValue } from '../src/modules/DataTable';
 
 configI18n();
 
@@ -239,7 +239,7 @@ function setNativeInputValue(element: HTMLInputElement | HTMLTextAreaElement, va
  * Render the Sheet container into a test root.
  */
 
-async function renderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) {
+async function renderSheet(props: Partial<ComponentProps<typeof DataTable>> = {}) {
 	const host = document.getElementById('test-root');
 	if (!host) {
 		throw new Error('Missing test root element');
@@ -249,7 +249,7 @@ async function renderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) {
 
 	await act(async () => {
 		currentRoot?.render(
-			<Sheet
+			<DataTable
 				allowEdit
 				dataTable={createDataTable()}
 				{...props}
@@ -267,10 +267,10 @@ async function renderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) {
  * Re-render the current Sheet test root with new props.
  */
 
-async function rerenderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) {
+async function rerenderSheet(props: Partial<ComponentProps<typeof DataTable>> = {}) {
 	await act(async () => {
 		currentRoot?.render(
-			<Sheet
+			<DataTable
 				allowEdit
 				dataTable={createDataTable()}
 				{...props}
@@ -286,7 +286,7 @@ async function rerenderSheet(props: Partial<ComponentProps<typeof Sheet>> = {}) 
  * Dispatch one mocked app-level keydown value through the Sheet container.
  */
 
-async function pressSheetKey(key: string, props: Partial<ComponentProps<typeof Sheet>> = {}, init: KeyboardEventInit = {}) {
+async function pressSheetKey(key: string, props: Partial<ComponentProps<typeof DataTable>> = {}, init: KeyboardEventInit = {}) {
 	globalThis.dispatchEvent(new KeyboardEvent('keydown', {
 		bubbles: true,
 		cancelable: true,

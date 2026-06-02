@@ -4,13 +4,13 @@ import {
 	type SheetUICellRenderStore,
 } from '@jsb188/react-web/ui/SheetUI';
 
-type DataTableRenderStoreListener = () => void;
+type SheetGridRenderStoreListener = () => void;
 
 /*
- * Return whether two cell render snapshots expose the same UI state.
+ * Return whether two sheet-like cell render snapshots expose the same UI state.
  */
 
-function areDataTableCellRenderSnapshotsEqual(
+function areSheetGridCellRenderSnapshotsEqual(
 	a: SheetUICellRenderSnapshot | undefined,
 	b: SheetUICellRenderSnapshot,
 ) {
@@ -21,15 +21,15 @@ function areDataTableCellRenderSnapshotsEqual(
 }
 
 /*
- * Create the small per-cell subscription store used by the DataTable grid renderer.
+ * Create the small per-cell subscription store used by sheet-like grid renderers.
  */
 
-export function createDataTableUICellRenderStore(): SheetUICellRenderStore & {
+export function createSheetGridUICellRenderStore(): SheetUICellRenderStore & {
 	deleteMissing: (activeKeys: Set<string>) => void;
 	setSnapshot: (rowId: string, cellKey: string, snapshot: SheetUICellRenderSnapshot) => void;
 } {
 	const snapshots = new Map<string, SheetUICellRenderSnapshot>();
-	const listeners = new Map<string, Set<DataTableRenderStoreListener>>();
+	const listeners = new Map<string, Set<SheetGridRenderStoreListener>>();
 	const pendingKeys = new Set<string>();
 	let flushQueued = false;
 	const emptySnapshot: SheetUICellRenderSnapshot = {
@@ -77,16 +77,16 @@ export function createDataTableUICellRenderStore(): SheetUICellRenderStore & {
 		setSnapshot: (rowId: string, cellKey: string, snapshot: SheetUICellRenderSnapshot) => {
 			const key = getSheetCellKey(rowId, cellKey);
 
-			if (areDataTableCellRenderSnapshotsEqual(snapshots.get(key), snapshot)) {
+			if (areSheetGridCellRenderSnapshotsEqual(snapshots.get(key), snapshot)) {
 				return;
 			}
 
 			snapshots.set(key, snapshot);
 			queueEmit(key);
 		},
-		subscribe: (rowId: string, cellKey: string, listener: DataTableRenderStoreListener) => {
+		subscribe: (rowId: string, cellKey: string, listener: SheetGridRenderStoreListener) => {
 			const key = getSheetCellKey(rowId, cellKey);
-			const keyListeners = listeners.get(key) || new Set<DataTableRenderStoreListener>();
+			const keyListeners = listeners.get(key) || new Set<SheetGridRenderStoreListener>();
 
 			keyListeners.add(listener);
 			listeners.set(key, keyListeners);

@@ -16,6 +16,7 @@ import log from './log.ts';
 import message from './message.ts';
 import org from './org.ts';
 import product from './product.ts';
+import sheet from './sheet.ts';
 import workflow from './workflow.ts';
 
 export const i18nTranslations = {
@@ -32,6 +33,7 @@ export const i18nTranslations = {
   message,
   org,
   product,
+  sheet,
   workflow,
 } as Record<string, any>;
 

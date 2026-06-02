@@ -12,6 +12,7 @@
     "./constants/organization.ts": "./src/constants/organization.ts",
     "./constants/product.ts": "./src/constants/product.ts",
     "./constants/dataTable.ts": "./src/constants/dataTable.ts",
+    "./constants/sheet.ts": "./src/constants/sheet.ts",
     "./constants/storage.ts": "./src/constants/storage.ts",
     "./types/email.d.ts": "./src/types/email.d.ts",
     "./types/inboundContact.d.ts": "./src/types/inboundContact.d.ts",
@@ -30,6 +31,7 @@
     "./types/product.d.ts": "./src/types/product.d.ts",
     "./types/report.d.ts": "./src/types/report.d.ts",
     "./types/dataTable.d.ts": "./src/types/dataTable.d.ts",
+    "./types/sheet.d.ts": "./src/types/sheet.d.ts",
     "./types/workflow.d.ts": "./src/types/workflow.d.ts",
     "./utils/email.ts": "./src/utils/email.ts",
     "./utils/log.ts": "./src/utils/log.ts",
@@ -37,6 +39,7 @@
     "./utils/product-calEvent.ts": "./src/utils/product-calEvent.ts",
     "./utils/report.ts": "./src/utils/report.ts",
     "./utils/dataTable.ts": "./src/utils/dataTable.ts",
+    "./utils/sheet.ts": "./src/utils/sheet.ts",
     "./utils/table-route.ts": "./src/utils/table-route.ts",
     "./utils/square.ts": "./src/utils/square.ts",
     "./utils/workflow.ts": "./src/utils/workflow.ts"

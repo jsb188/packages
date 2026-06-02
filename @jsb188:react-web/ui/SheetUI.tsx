@@ -1,28 +1,21 @@
 import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
-import { cn } from '@jsb188/app/utils/string.ts';
-import { memo, type CSSProperties, type ReactNode, type Ref } from 'react';
+import { type CSSProperties, type ReactNode, type Ref } from 'react';
 import { Icon } from '../svgs/Icon';
 import { SheetSaveButton } from './SheetEditor';
+import { SheetGridSurface } from './SheetGridSurface';
 import {
 	SHEET_COLUMN_MAX_WIDTH,
 	SHEET_COLUMN_MIN_WIDTH,
 	SHEET_COLUMN_WIDTH,
 	SHEET_HEADER_HEIGHT,
 	SHEET_ROW_HEIGHT,
+	SHEET_ROW_MAX_HEIGHT,
+	SHEET_ROW_MIN_HEIGHT,
 	SHEET_ROW_NUMBER_WIDTH,
 	SHEET_STICKY_SPACER_SIZE,
 	SheetCellDisplayValue,
-	SheetGridCell,
-	SheetHeaderArea,
-	SheetPlaceholderRowFillCell,
-	SheetRowNumberSlot,
-	SheetStickyColumnSpacerSlot,
-	SheetTopLeftRowNumberSlot,
-	isSheetColumnSticky,
-	isSheetPlaceholderRowSlot,
 } from './SheetCell';
-import './SheetUI.css';
 
 export {
 	SHEET_COLUMN_MAX_WIDTH,
@@ -30,6 +23,8 @@ export {
 	SHEET_COLUMN_WIDTH,
 	SHEET_HEADER_HEIGHT,
 	SHEET_ROW_HEIGHT,
+	SHEET_ROW_MAX_HEIGHT,
+	SHEET_ROW_MIN_HEIGHT,
 	SHEET_ROW_NUMBER_WIDTH,
 	SHEET_STICKY_SPACER_SIZE,
 	SheetCellDisplayValue,
@@ -39,11 +34,11 @@ export {
 	type SheetSaveButtonProps,
 } from './SheetEditor';
 
+const SHEET_VISIBLE_ROW_RANGE_MULTIPLIER = 1.5;
+
 /**
  * Types
  */
-
-const SHEET_COLUMN_RESIZE_GUIDE_Z_INDEX = 44;
 
 export type SheetCellKey = `${string}:${string}`;
 
@@ -73,6 +68,8 @@ export type SheetUIColumn = {
 	key: string;
 	label: string;
 	fieldType: SheetUIFieldType;
+	headerClassName?: string;
+	headerLayoutClassName?: string;
 	humanFieldType?: SheetUIFieldType | null;
 	options?: SheetUIOption[];
 	openLink?: boolean | null;
@@ -87,6 +84,7 @@ export type SheetUICell = {
 	canEdit?: boolean;
 	canOpen?: boolean;
 	cellClassName?: string;
+	cellStyle?: Pick<CSSProperties, 'backgroundColor' | 'color'>;
 	displayClassName?: string;
 };
 
@@ -134,6 +132,14 @@ export type SheetColumnMetric = {
 };
 
 export type SheetColumnWidths = Record<string, number>;
+export type SheetRowHeights = Record<string, number>;
+
+export type SheetRowMetric = {
+	height: number;
+	rowIndex: number;
+	rowKey: string;
+	top: number;
+};
 
 export type SheetVisibleRange = {
 	rowStart: number;
@@ -146,6 +152,12 @@ export type SheetUIResizeGuide = {
 	columnKey: string;
 	height: number;
 	left: number;
+};
+
+export type SheetUIRowResizeGuide = {
+	rowKey: string;
+	top: number;
+	width: number;
 };
 
 export type SheetUIColumnReorderGuide = {
@@ -201,6 +213,8 @@ export interface SheetUIProps {
 	headerSpacerWidth?: number;
 	headerWidth: number;
 	resizeGuide?: SheetUIResizeGuide | null;
+	rowResizeEnabled?: boolean;
+	rowResizeGuide?: SheetUIRowResizeGuide | null;
 	rows: SheetUIRowSlot[];
 	scrollLeft: number;
 	scrollRef?: Ref<HTMLDivElement>;
@@ -231,6 +245,14 @@ export function getSheetCellKey(rowId: string, cellKey: string): SheetCellKey {
 
 export function clampSheetColumnWidth(width: number) {
 	return Math.min(SHEET_COLUMN_MAX_WIDTH, Math.max(SHEET_COLUMN_MIN_WIDTH, Math.round(width)));
+}
+
+/*
+ * Keep a user-resized row height inside the usable spreadsheet range.
+ */
+
+export function clampSheetRowHeight(height: number) {
+	return Math.min(SHEET_ROW_MAX_HEIGHT, Math.max(SHEET_ROW_MIN_HEIGHT, Math.round(height)));
 }
 
 /*
@@ -310,6 +332,36 @@ export function getSheetColumnMetrics(columns: SheetUIColumn[], columnWidths: Sh
 		metrics,
 		offsets,
 		totalWidth,
+	};
+}
+
+/*
+ * Convert row heights into stable offsets for variable-height virtualization.
+ */
+
+export function getSheetRowMetrics(rowKeys: string[], rowHeights: SheetRowHeights = {}) {
+	const metrics: SheetRowMetric[] = [];
+	const offsets = [0];
+	let totalHeight = 0;
+
+	rowKeys.forEach((rowKey, rowIndex) => {
+		const height = clampSheetRowHeight(rowHeights[rowKey] || SHEET_ROW_HEIGHT);
+
+		metrics.push({
+			height,
+			rowIndex,
+			rowKey,
+			top: totalHeight,
+		});
+
+		totalHeight += height;
+		offsets.push(totalHeight);
+	});
+
+	return {
+		metrics,
+		offsets,
+		totalHeight,
 	};
 }
 
@@ -455,6 +507,30 @@ export function getSheetColumnIndexAtOffset(columnOffsets: number[], offset: num
 }
 
 /*
+ * Find the variable-height row index at one vertical scroll offset.
+ */
+
+export function getSheetRowIndexAtOffset(rowOffsets: number[], offset: number) {
+	const lastRowIndex = Math.max(0, rowOffsets.length - 2);
+	let low = 0;
+	let high = lastRowIndex;
+	let result = 0;
+
+	while (low <= high) {
+		const mid = Math.floor((low + high) / 2);
+
+		if ((rowOffsets[mid] || 0) <= offset) {
+			result = mid;
+			low = mid + 1;
+		} else {
+			high = mid - 1;
+		}
+	}
+
+	return Math.min(result, lastRowIndex);
+}
+
+/*
  * Calculate the rows and columns that should be rendered for one viewport.
  */
 
@@ -466,6 +542,7 @@ export function getSheetVisibleRange(params: {
 	containerHeight: number;
 	containerWidth: number;
 	headerHeight?: number;
+	rowOffsets?: number[];
 	rowCount: number;
 	scrollLeft: number;
 	scrollTop: number;
@@ -478,6 +555,7 @@ export function getSheetVisibleRange(params: {
 		containerHeight,
 		containerWidth,
 		headerHeight = SHEET_HEADER_HEIGHT,
+		rowOffsets,
 		rowCount,
 		scrollLeft,
 		scrollTop,
@@ -486,8 +564,16 @@ export function getSheetVisibleRange(params: {
 	const bodyScrollTop = Math.max(0, scrollTop - headerHeight);
 	const bodyScrollLeft = Math.max(0, scrollLeft - SHEET_ROW_NUMBER_WIDTH);
 	const bodyScrollRight = Math.max(bodyScrollLeft, bodyScrollLeft + containerWidth - 1);
-	const visibleRowCount = Math.ceil(Math.max(0, containerHeight - headerHeight) / SHEET_ROW_HEIGHT);
-	const rowStart = Math.max(0, Math.floor(bodyScrollTop / SHEET_ROW_HEIGHT) - bufferRows);
+	const visibleBodyHeight = Math.max(0, containerHeight - headerHeight);
+	const visibleRowCount = Math.ceil(visibleBodyHeight / SHEET_ROW_HEIGHT);
+	const bodyScrollBottom = Math.max(bodyScrollTop, bodyScrollTop + visibleBodyHeight - 1);
+	const firstVisibleRowIndex = rowOffsets?.length
+		? getSheetRowIndexAtOffset(rowOffsets, bodyScrollTop)
+		: Math.floor(bodyScrollTop / SHEET_ROW_HEIGHT);
+	const lastVisibleRowIndex = rowOffsets?.length
+		? getSheetRowIndexAtOffset(rowOffsets, bodyScrollBottom)
+		: Math.floor(bodyScrollBottom / SHEET_ROW_HEIGHT);
+	const rowStart = Math.max(0, firstVisibleRowIndex - bufferRows);
 	const firstVisibleColumnIndex = columnOffsets?.length
 		? getSheetColumnIndexAtOffset(columnOffsets, bodyScrollLeft)
 		: Math.floor(bodyScrollLeft / SHEET_COLUMN_WIDTH);
@@ -495,221 +581,24 @@ export function getSheetVisibleRange(params: {
 		? getSheetColumnIndexAtOffset(columnOffsets, bodyScrollRight)
 		: Math.floor(bodyScrollRight / SHEET_COLUMN_WIDTH);
 	const columnStart = Math.max(0, firstVisibleColumnIndex - bufferColumns);
+	const baseRowEnd = Math.min(rowCount, rowOffsets?.length ? lastVisibleRowIndex + 1 + bufferRows : rowStart + visibleRowCount + bufferRows * 2);
+	const baseLoadedRowCount = Math.max(0, baseRowEnd - rowStart);
+	const extraLoadedRowCount = Math.ceil(baseLoadedRowCount * (SHEET_VISIBLE_ROW_RANGE_MULTIPLIER - 1));
 
 	return {
 		rowStart,
-		rowEnd: Math.min(rowCount, rowStart + visibleRowCount + bufferRows * 2),
+		rowEnd: Math.min(rowCount, baseRowEnd + extraLoadedRowCount),
 		columnStart,
 		columnEnd: Math.min(columnCount, lastVisibleColumnIndex + 1 + bufferColumns),
 	};
 }
 
 /*
- * Render a virtualized spreadsheet grid from already-computed UI props.
+ * Render the shared grid surface through the Sheet-specific UI boundary.
  */
 
-export const SheetUI = memo((p: SheetUIProps) => {
-	const sheetSurfaceHeight = p.sheetSurfaceHeight ?? p.canvasHeight;
-	const sheetSurfaceTop = p.sheetSurfaceTop ?? 0;
-	const stickyColumnEndLeft = p.stickyColumnEndLeft ?? SHEET_ROW_NUMBER_WIDTH;
-
-	return <div
-		id={p.id}
-		className={cn('v_stretch h_f w_f rel bg', p.className)}
-		style={p.style}
-	>
-		{p.headerContent
-			? <div
-				className='no_shrink bd_b_1 bd_lt'
-				data-sheet-header-content='true'
-			>
-				{p.headerContent}
-			</div>
-			: null}
-
-		<div
-			ref={p.scrollRef}
-			className='sheet_ui_scroll f w_f rel bg_fade ft_xs'
-			data-sheet-scroll-viewport='true'
-		>
-			<div
-				className='sheet_ui_canvas w_f h_f rel bg_fade'
-				data-cell-count={p.cellCount}
-				style={{
-					height: p.canvasHeight,
-					width: p.canvasWidth,
-				}}
-			>
-				<SheetHeaderArea
-					columnReorderDrag={p.columnReorderDrag}
-					columnReorderDisplacements={p.columnReorderDisplacements}
-					columnReorderEnabled={p.columnReorderEnabled}
-					columnReorderGuide={p.columnReorderGuide}
-					columnCount={p.columnCount}
-					columns={p.columns}
-					headerCellsEditable={p.headerCellsEditable}
-					headerEditState={p.headerEditState}
-					selectedHeaderCellKey={p.selectedHeaderCellKey}
-					headerSpacerWidth={p.headerSpacerWidth ?? p.headerWidth}
-					headerWidth={p.headerWidth}
-					scrollLeft={p.scrollLeft}
-					stickyColumnEndLeft={stickyColumnEndLeft}
-					stickyColumnCount={p.stickyColumnCount}
-				/>
-
-				{p.resizeGuide
-					? <div
-						className='abs noclick'
-						data-sheet-resize-guide-layer='true'
-						style={{
-							height: sheetSurfaceHeight,
-							left: 0,
-							overflow: 'hidden',
-							top: sheetSurfaceTop,
-							width: p.canvasWidth,
-							zIndex: SHEET_COLUMN_RESIZE_GUIDE_Z_INDEX,
-						}}
-					>
-						<div className='rel h_f w_f'>
-							<div
-								className='bg_primary noclick'
-								data-sheet-column-resize-guide={p.resizeGuide.columnKey}
-								style={{
-									height: p.resizeGuide.height,
-									left: p.resizeGuide.left - 1.5,
-									position: 'absolute',
-									top: 0,
-									width: 3,
-									zIndex: SHEET_COLUMN_RESIZE_GUIDE_Z_INDEX,
-								}}
-							/>
-						</div>
-					</div>
-					: null}
-
-				<SheetTopLeftRowNumberSlot rowWidth={Math.max(p.headerSpacerWidth ?? p.headerWidth, p.canvasWidth)} />
-
-				{p.rows.map((rowSlot) => {
-					return <SheetRowNumberSlot
-						key={rowSlot.rowKey}
-							isPlaceholderRow={isSheetPlaceholderRowSlot(rowSlot)}
-							deleted={rowSlot.deleted}
-							rowId={rowSlot.rowId}
-							rowIndex={rowSlot.rowIndex}
-						rowNumber={rowSlot.rowNumber}
-						rowHeight={rowSlot.rowHeight}
-						rowTop={rowSlot.rowTop}
-						rowWidth={rowSlot.rowWidth}
-					/>;
-				})}
-
-				{p.rows.map((rowSlot) => {
-					return <SheetStickyColumnSpacerSlot
-						key={`${rowSlot.rowKey}:sticky-column-spacer`}
-							left={stickyColumnEndLeft}
-							deleted={rowSlot.deleted}
-							rowId={rowSlot.rowId}
-							rowHeight={rowSlot.rowHeight}
-						rowTop={rowSlot.rowTop}
-						rowWidth={rowSlot.rowWidth}
-					/>;
-				})}
-
-				{p.rows.map((rowSlot) => {
-					const isPlaceholderRow = isSheetPlaceholderRowSlot(rowSlot);
-
-					if (isPlaceholderRow) {
-						return <SheetPlaceholderRowFillCell
-							key={`${rowSlot.rowKey}:placeholder-row-fill`}
-							contentWidth={p.headerSpacerWidth}
-							rowHeight={rowSlot.rowHeight}
-							rowTop={rowSlot.rowTop}
-							rowWidth={rowSlot.rowWidth}
-						/>;
-					}
-
-					return p.columns.map((columnMetric) => {
-						const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
-						const cellLeft = (isStickyLeft ? p.scrollLeft : 0) +
-							SHEET_ROW_NUMBER_WIDTH +
-							columnMetric.left;
-
-						return <SheetGridCell
-							key={`${rowSlot.rowKey}:${columnMetric.column.key}`}
-							cell={rowSlot.cellsByKey[columnMetric.column.key]}
-							cellStore={p.cellStore}
-							cellLeft={cellLeft}
-							column={columnMetric.column}
-							columnIndex={columnMetric.columnIndex}
-							columnWidth={columnMetric.width}
-							editState={p.editState}
-								isPlaceholderRow={isPlaceholderRow}
-								isStickyLeft={isStickyLeft}
-								rowDeleted={rowSlot.deleted}
-								renderCallback={p.cellRenderCallback}
-							rowHeight={rowSlot.rowHeight}
-							rowId={rowSlot.rowId}
-							rowIndex={rowSlot.rowIndex}
-							rowTop={rowSlot.rowTop}
-							selectedCellKeyMap={p.selectedCellKeyMap}
-							selectedCellState={p.selectedCellState}
-						/>;
-					});
-				})}
-
-				{p.overlayContent}
-			</div>
-		</div>
-	</div>;
-}, (prev, next) => (
-	prev.canvasHeight === next.canvasHeight &&
-	prev.canvasWidth === next.canvasWidth &&
-	prev.cellCount === next.cellCount &&
-	prev.cellStore === next.cellStore &&
-	prev.className === next.className &&
-	prev.columnReorderDrag?.columnKey === next.columnReorderDrag?.columnKey &&
-	prev.columnReorderDrag?.label === next.columnReorderDrag?.label &&
-	prev.columnReorderDrag?.left === next.columnReorderDrag?.left &&
-	prev.columnReorderDrag?.width === next.columnReorderDrag?.width &&
-	prev.columnReorderDisplacements === next.columnReorderDisplacements &&
-	prev.columnReorderEnabled === next.columnReorderEnabled &&
-	prev.columnReorderGuide?.columnKey === next.columnReorderGuide?.columnKey &&
-	prev.columnReorderGuide?.height === next.columnReorderGuide?.height &&
-	prev.columnReorderGuide?.left === next.columnReorderGuide?.left &&
-	prev.columnCount === next.columnCount &&
-	prev.columns === next.columns &&
-	prev.editState?.rowId === next.editState?.rowId &&
-	prev.editState?.cellKey === next.editState?.cellKey &&
-	prev.editState?.draftValue === next.editState?.draftValue &&
-	prev.editState?.disableInlineEditor === next.editState?.disableInlineEditor &&
-	prev.editState?.error === next.editState?.error &&
-	prev.headerCellsEditable === next.headerCellsEditable &&
-	prev.headerContent === next.headerContent &&
-	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
-	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
-	prev.headerEditState?.error === next.headerEditState?.error &&
-	prev.selectedHeaderCellKey === next.selectedHeaderCellKey &&
-	prev.headerSpacerWidth === next.headerSpacerWidth &&
-	prev.headerWidth === next.headerWidth &&
-	prev.id === next.id &&
-	prev.cellRenderCallback === next.cellRenderCallback &&
-	prev.overlayContent === next.overlayContent &&
-	prev.resizeGuide?.columnKey === next.resizeGuide?.columnKey &&
-	prev.resizeGuide?.height === next.resizeGuide?.height &&
-	prev.resizeGuide?.left === next.resizeGuide?.left &&
-	prev.rows === next.rows &&
-	prev.scrollLeft === next.scrollLeft &&
-	prev.scrollRef === next.scrollRef &&
-	prev.selectedCellKeyMap === next.selectedCellKeyMap &&
-	prev.selectedCellState?.rowId === next.selectedCellState?.rowId &&
-	prev.selectedCellState?.cellKey === next.selectedCellState?.cellKey &&
-	prev.sheetSurfaceHeight === next.sheetSurfaceHeight &&
-	prev.sheetSurfaceTop === next.sheetSurfaceTop &&
-	prev.stickyColumnEndLeft === next.stickyColumnEndLeft &&
-	prev.stickyColumnCount === next.stickyColumnCount &&
-	prev.style === next.style
-));
-
-SheetUI.displayName = 'SheetUI';
+export function SheetUI(p: SheetUIProps) {
+	return <SheetGridSurface {...p} />;
+}
 
 export default SheetUI;

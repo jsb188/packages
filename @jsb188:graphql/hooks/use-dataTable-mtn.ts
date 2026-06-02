@@ -1,6 +1,6 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn } from '@jsb188/react/states';
-import { deleteDataTableRowMtn, editDataTableCellMtn, editDataTableDesignMtn } from '../gql/mutations/dataTableMutations.ts';
+import { deleteDataTableRowMtn, editDataTableCellMtn, editDataTableCellsMtn, editDataTableDesignMtn } from '../gql/mutations/dataTableMutations.ts';
 import { useMutation } from './index.ts';
 
 /**
@@ -18,6 +18,27 @@ export function useEditDataTableCell(params: UseMutationParams = {}, openModalPo
 
 	return {
 		editDataTableCell,
+		updateObservers,
+		...mtnValues,
+		...mtnHandlers,
+	};
+}
+
+/**
+ * Edit multiple dataTable cell values.
+ */
+
+export function useEditDataTableCells(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+	const [editDataTableCells, mtnValues, mtnHandlers, updateObservers] = useMutation(
+		editDataTableCellsMtn,
+		{
+			openModalPopUp,
+			...params,
+		},
+	);
+
+	return {
+		editDataTableCells,
 		updateObservers,
 		...mtnValues,
 		...mtnHandlers,

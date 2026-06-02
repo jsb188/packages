@@ -2,13 +2,22 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
-import type { POCheckListIface, POCheckListIfaceItem, PODatePickerObj, PODateRangeObj, POLabelsAndValuesIface, POListIface, POListIfaceItem, POListItemObj, POListItemPickerObj, POModalItemObj, PONavAvatarItemObj, PONListSubtitleObj, PopOverHandlerProps, POTextObj } from '@jsb188/react/types/PopOver.d';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import type { POCheckListIface, POCheckListIfaceItem, POCheckListItemObj, PODatePickerObj, PODateRangeObj, POLabelsAndValuesIface, POListColorsObj, POListIface, POListIfaceItem, POListItemObj, POListItemPickerObj, POListSubmenuItemObj, POModalItemObj, PopOverHandlerProps, POStateValue } from '@jsb188/react/types/PopOver.d';
+import { type CSSProperties, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
 import { POLabelsAndValues, POListBreak, POListItem, POListItemCopy, POListItemPicker, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
 import type { CalendarSelectedObj, OnChangeCalendarDayFn } from './Calendar';
 import { Calendar, CalendarDateRange, getCalendarSelector } from './Calendar';
+
+type POListSubmenuState = {
+  item: POListSubmenuItemObj;
+  itemName: string;
+  left: number;
+  top: number;
+};
+
+export const DEFAULT_PO_LIST_COLORS = ['#000000', '#FFFFFF'] as const;
 
 /**
  * Pop over date range picker
@@ -121,6 +130,18 @@ interface POOpenModalListItemProps extends PONavItemBase {
   item: POModalItemObj;
 }
 
+/*
+ * Return a modal-backed option as a normal clickable list item.
+ */
+
+function getPOModalDisplayListItem(item: POModalItemObj): POListItemObj {
+  return {
+    ...item,
+    __type: 'LIST_ITEM',
+    value: item.value ?? true,
+  };
+}
+
 const POPopUpListItem = memo((p: POOpenModalListItemProps) => {
   const { item } = p;
   const openModalPopUp = useOpenModalPopUp();
@@ -131,8 +152,7 @@ const POPopUpListItem = memo((p: POOpenModalListItemProps) => {
 
   return <POListItem
     {...p}
-    // @ts-expect-error - Not all interfaces have "value" property
-    item={!item || item.value !== undefined ? item : { ...item, value: true }}
+    item={getPOModalDisplayListItem(item)}
     onClickItem={onClickItem}
   />;
 });
@@ -153,8 +173,7 @@ const POModalScreenListItem = memo((p: POOpenModalListItemProps) => {
 
   return <POListItem
     {...p}
-    // @ts-expect-error - Not all interfaces have "value" property
-    item={!item || item.value !== undefined ? item : { ...item, value: true }}
+    item={getPOModalDisplayListItem(item)}
     onClickItem={onClickItem}
   />;
 });
@@ -200,6 +219,190 @@ const POListItemPickerWithData = memo((p: PONavItemBase & {
 
 POListItemPickerWithData.displayName = 'POListItemPickerWithData';
 
+/*
+ * Render one PO_LIST color grid item.
+ */
+
+const POListColors = memo((p: PONavItemBase & {
+  name: string;
+  value?: string | null;
+  item: POListColorsObj;
+}) => {
+  const { item, name, onClickItem, value } = p;
+  const { className, colors, disabled, selectedValue } = item;
+  const selectedColor = value ?? selectedValue;
+  const displayColors = colors?.length ? colors : DEFAULT_PO_LIST_COLORS;
+
+  return <div
+    className={cn('grid gap_4 p_8', className)}
+    style={{ gridTemplateColumns: 'repeat(10, 20px)' }}
+  >
+    {displayColors.map((color, i) => {
+      const selected = selectedColor === color;
+      return <button
+        key={`${name}_${color}_${i}`}
+        name={name}
+        disabled={disabled}
+        className={cn('w_20 h_20 r_4 bd_1 bg_alt_hv', selected ? 'bd_bd' : 'bd_lt', disabled && 'op_40')}
+        onClick={() => onClickItem(name, color)}
+        style={{ backgroundColor: color }}
+        type='button'
+      />;
+    })}
+  </div>;
+});
+
+POListColors.displayName = 'POListColors';
+
+/*
+ * Return the stable form name for one PO_LIST option item.
+ */
+
+function getPOListItemName(item: POListIfaceItem, index: number) {
+  return 'name' in item && item.name ? item.name : index.toString();
+}
+
+/*
+ * Return the option value used by PO_LIST selected and saving states.
+ */
+
+function getPOListItemValue(item: POListIfaceItem) {
+  return 'value' in item ? item.value : undefined;
+}
+
+/*
+ * Return an object-shaped form state for named PO_LIST item updates.
+ */
+
+function getPOListFormStateObject(value: POStateValue): Record<string, POStateValue> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
+/*
+ * Return the current value for one item from scalar or object-shaped PO_LIST state.
+ */
+
+function getPOListCurrentValue(formValues: POStateValue, name: string) {
+  return formValues && typeof formValues === 'object' && !Array.isArray(formValues) ? formValues[name] : formValues;
+}
+
+/*
+ * Return PO_LIST form state after one named item changes.
+ */
+
+function getNextPOListFormState(prev: POStateValue, name: string | null, value: POStateValue) {
+  if (name === null) {
+    return prev;
+  }
+
+  return {
+    ...getPOListFormStateObject(prev),
+    [name]: value,
+  };
+}
+
+/*
+ * Return whether one PO_LIST option opens a nested submenu.
+ */
+
+function isPOListSubmenuItem(item: POListIfaceItem): item is POListSubmenuItemObj {
+  return item.__type === 'LIST_SUBMENU_ITEM';
+}
+
+/*
+ * Build submenu panel coordinates relative to the parent PO_LIST wrapper.
+ */
+
+function getPOListSubmenuState(params: {
+  item: POListSubmenuItemObj;
+  itemElement: HTMLElement;
+  itemName: string;
+  wrapperElement: HTMLElement;
+}): POListSubmenuState {
+  const itemRect = params.itemElement.getBoundingClientRect();
+  const wrapperRect = params.wrapperElement.getBoundingClientRect();
+  const parentWidth = wrapperRect.width;
+  const expectedSubmenuWidth = Math.max(parentWidth, 180);
+  const openLeft = itemRect.right + expectedSubmenuWidth > globalThis.window.innerWidth - 10;
+
+  return {
+    item: params.item,
+    itemName: params.itemName,
+    left: openLeft ? -parentWidth : parentWidth,
+    top: itemRect.top - wrapperRect.top,
+  };
+}
+
+/*
+ * Return the absolute style for the currently open submenu panel.
+ */
+
+function getPOListSubmenuPanelStyle(submenuState: POListSubmenuState): CSSProperties {
+  return {
+    left: submenuState.left,
+    position: 'absolute',
+    top: submenuState.top,
+    zIndex: 1,
+  };
+}
+
+/*
+ * Render one PO_LIST item that opens a nested child list inside the same popover.
+ */
+
+const POListSubmenuItem = memo((p: PONavItemBase & {
+  item: POListSubmenuItemObj;
+  name: string;
+  onOpenSubmenu: (item: POListSubmenuItemObj, itemName: string, itemElement: HTMLElement) => void;
+}) => {
+  const itemRef = useRef<HTMLDivElement>(null);
+  const { item, name, onOpenSubmenu, ...rest } = p;
+  const onClickItem = () => {
+    if (itemRef.current) {
+      onOpenSubmenu(item, name, itemRef.current);
+    }
+  };
+  const listItem: POListItemObj = {
+    ...item,
+    __type: 'LIST_ITEM',
+    rightIconName: item.rightIconName || 'chevron-right',
+    value: item.value ?? true,
+    onClick: onClickItem,
+  };
+
+  return <div ref={itemRef}>
+    <POListItem
+      {...rest}
+      name={name}
+      item={listItem}
+    />
+  </div>;
+});
+
+POListSubmenuItem.displayName = 'POListSubmenuItem';
+
+/*
+ * Return one checklist option as a normal list item with checklist icon state.
+ */
+
+function getPOChecklistDisplayListItem(item: POCheckListItemObj, checked?: boolean): POListItemObj {
+  if (item.__type === 'SINGLE_OPTION_LIST_ITEM') {
+    return {
+      ...item,
+      __type: 'LIST_ITEM',
+      rightIconClassName: 'cl_df',
+      rightIconName: checked ? 'check' : undefined,
+    };
+  }
+
+  return {
+    ...item,
+    __type: 'LIST_ITEM',
+    rightIconClassName: checked ? 'cl_bd' : 'cl_lt',
+    rightIconName: checked ? 'circle-check' : 'circle',
+  };
+}
+
 /**
  * Ifaces for pop over nav item
  */
@@ -209,47 +412,107 @@ export function PONavItemIface(p: PONavItemBase & {
   value?: any;
   item: POListIfaceItem;
   checked?: boolean;
+  onOpenSubmenu?: (item: POListSubmenuItemObj, itemName: string, itemElement: HTMLElement) => void;
 }) {
-  const { item, checked, ...other } = p;
+  const { item, checked, onOpenSubmenu, ...other } = p;
   const { __type } = item;
 
   switch (__type) {
     case 'LIST_SUBTITLE':
-      return <POListSubtitle item={item as PONListSubtitleObj} />;
+      return <POListSubtitle item={item} />;
     case 'BREAK':
       return <POListBreak />;
     case 'LIST_ITEM':
-      return <POListItem {...other} item={item as POListItemObj} />;
+      return <POListItem {...other} item={item} />;
     case 'LIST_ITEM_COPY':
-      return <POListItemCopy {...other} item={item as POListItemObj} />;
+      return <POListItemCopy {...other} item={item} />;
     case 'LIST_ITEM_POPUP':
-      return <POPopUpListItem {...other} item={item as POModalItemObj} />;
+      return <POPopUpListItem {...other} item={item} />;
     case 'LIST_ITEM_PICKER':
-      return <POListItemPickerWithData {...other} item={item as POListItemPickerObj} />;
+      return <POListItemPickerWithData {...other} item={item} />;
+    case 'LIST_COLORS':
+      return <POListColors {...other} item={item} />;
+    case 'LIST_SUBMENU_ITEM':
+      return <POListSubmenuItem
+        {...other}
+        item={item}
+        onOpenSubmenu={onOpenSubmenu || (() => {})}
+      />;
     case 'LIST_ITEM_MODAL':
-      return <POModalScreenListItem {...other} item={item as POModalItemObj} />;
-    case 'CHECK_LIST_ITEM': {
-      const rightIconName = checked ? 'circle-check' : 'circle';
-      const rightIconClassName = checked ? 'cl_bd' : 'cl_lt';
-      return <POListItem {...other} item={{ ...item, rightIconName, rightIconClassName } as POListItemObj} />;
-    } case 'SINGLE_OPTION_LIST_ITEM': {
-      const rightIconName = checked && 'check';
-      const rightIconClassName = 'cl_df';
-      return <POListItem {...other} item={{ ...item, rightIconName, rightIconClassName } as POListItemObj} />;
-    } case 'AVATAR_ITEM':
-      return <PONavAvatarItem {...other} item={item as PONavAvatarItemObj} />;
+      return <POModalScreenListItem {...other} item={item} />;
+    case 'CHECK_LIST_ITEM':
+    case 'SINGLE_OPTION_LIST_ITEM':
+      return <POListItem {...other} item={getPOChecklistDisplayListItem(item, checked)} />;
+    case 'AVATAR_ITEM':
+      return <PONavAvatarItem {...other} item={item} />;
     case 'DATE_RANGE':
-      return <PODateRange {...other} item={item as PODateRangeObj} />;
+      return <PODateRange {...other} item={item} />;
     case 'DATE_PICKER':
-      return <PODatePicker {...other} item={item as PODatePickerObj} />;
+      return <PODatePicker {...other} item={item} />;
     case 'TEXT':
-      return <POText item={item as POTextObj} />;
+      return <POText item={item} />;
     default:
   }
 
   console.warn('Unknown pop over iface name:', __type);
   return null;
 }
+
+/*
+ * Render the visible option items for a PO_LIST body.
+ */
+
+const POListItems = memo((p: {
+  className?: string;
+  formValues: POStateValue;
+  itemKeyPrefix?: string;
+  notReady?: boolean;
+  onClickItem: PONavItemBase['onClickItem'];
+  onClickSubmenuItem?: PONavItemBase['onClickItem'];
+  onOpenSubmenu?: (item: POListSubmenuItemObj, itemName: string, itemElement: HTMLElement) => void;
+  options: POListIfaceItem[];
+  remainingHeight?: number;
+  savingValue?: POListIface['variables']['savingValue'];
+}) => {
+  const {
+    className,
+    formValues,
+    itemKeyPrefix,
+    notReady,
+    onClickItem,
+    onClickSubmenuItem,
+    onOpenSubmenu,
+    options,
+    remainingHeight,
+    savingValue,
+  } = p;
+  const style = remainingHeight ? { maxHeight: remainingHeight } : undefined;
+
+  return <div className={cn('inside y_scr_hidden', className)} style={style}>
+    {notReady
+    ? <div className='p_md'>
+      <ActivityDots />
+    </div>
+    : options.filter((item: POListIfaceItem) => !item.hidden).map((item: POListIfaceItem, i: number) => {
+      const itemName = getPOListItemName(item, i);
+      const itemValue = getPOListItemValue(item);
+      const currentValue = getPOListCurrentValue(formValues, itemName);
+
+      return <PONavItemIface
+        key={itemKeyPrefix ? `${itemKeyPrefix}:${i}` : i}
+        name={itemName}
+        item={item}
+        value={currentValue}
+        onClickItem={isPOListSubmenuItem(item) && onClickSubmenuItem ? onClickSubmenuItem : onClickItem}
+        onOpenSubmenu={onOpenSubmenu}
+        checked={currentValue !== undefined && currentValue === itemValue}
+        saving={savingValue !== undefined && savingValue === itemValue}
+      />;
+    })}
+  </div>;
+});
+
+POListItems.displayName = 'POListItems';
 
 /**
  * Nav list popover
@@ -276,7 +539,9 @@ export function PopOverList(p: PopOverHandlerProps & {
 
   const divRef = useRef<HTMLDivElement>(null);
   const dismissFn = closePopOver ? () => closePopOver() : undefined;
-  const [formValues, setFormValues] = useState(initialState === null ? null : (initialState || {}));
+  const [formValues, setFormValues] = useState<POStateValue>(initialState === null ? null : (initialState || {}));
+  const [submenuState, setSubmenuState] = useState<POListSubmenuState | null>(null);
+  const [submenuFormValues, setSubmenuFormValues] = useState<POStateValue>({});
 
   useOnClickOutside(divRef, true, false, 'ignore_outside_click', dismissFn);
 
@@ -306,10 +571,41 @@ export function PopOverList(p: PopOverHandlerProps & {
       value
     });
 
-    setFormValues(prev => ({
-      ...prev,
-      [name!]: value
+    setFormValues(prev => getNextPOListFormState(prev, name, value));
+  };
+
+  const onClickParentItem = (name: string | null, value: any, notEventBased?: boolean, dismissOnClick?: boolean) => {
+    setSubmenuState(null);
+    onClickItem(name, value, notEventBased, dismissOnClick);
+  };
+
+  const onClickSubmenuItem = (name: string | null, value: any, notEventBased?: boolean, dismissOnClick?: boolean) => {
+    if (dismissOnClick) {
+      dismissFn?.();
+      return;
+    }
+
+    setPopOverState({
+      action: notEventBased ? 'ITEM_AUTO' : 'ITEM',
+      name,
+      value
+    });
+
+    setSubmenuFormValues(prev => getNextPOListFormState(prev, name, value));
+  };
+
+  const onOpenSubmenu = (item: POListSubmenuItemObj, itemName: string, itemElement: HTMLElement) => {
+    if (!divRef.current) {
+      return;
+    }
+
+    setSubmenuState(getPOListSubmenuState({
+      item,
+      itemElement,
+      itemName,
+      wrapperElement: divRef.current,
     }));
+    setSubmenuFormValues(item.submenu.initialState === null ? null : (item.submenu.initialState || {}));
   };
 
   const onSubmit = () => {
@@ -320,44 +616,51 @@ export function PopOverList(p: PopOverHandlerProps & {
   };
 
   return (
-    <PopOverListContainer
-      ref={divRef}
-      shadowClassName={shadowClassName}
-      className={designClassName}
-    >
-      <div className={cn('inside y_scr_hidden', className)} style={remainingHeight ? { maxHeight: remainingHeight } : undefined}>
-        {notReady
-        ? <div className='p_md'>
-          <ActivityDots />
-        </div>
-        : options.filter((item: POListIfaceItem) => !item.hidden).map((item: POListIfaceItem, i: number) => {
-          // @ts-expect-error - Not all interfaces have "name" property
-          const itemName = item.name || i.toString();
-          // @ts-expect-error - Not all interfaces have "value" property
-          const itemValue = item.value;
-          const currentValue = formValues && typeof formValues === 'object' ? formValues[itemName] : formValues;
-          // console.log(itemName, initialState, formValues, currentValue, itemValue);
-
-          return <PONavItemIface
-            key={i}
-            name={itemName}
-            item={item}
-            value={currentValue}
-            onClickItem={onClickItem}
-            checked={currentValue !== undefined && currentValue === itemValue}
-            saving={savingValue !== undefined && savingValue === itemValue}
-            // selected={selectedValue !== undefined && selectedValue === itemValue}
-          />;
-        })}
-      </div>
-
-      {addFooterButton && (
-        <PopOverListFooterButton
-          onClick={onSubmit}
-          text={footerButtonText || i18n.t('form.apply')}
+    <div ref={divRef} className='rel'>
+      <PopOverListContainer
+        shadowClassName={shadowClassName}
+        className={designClassName}
+      >
+        <POListItems
+          className={className}
+          formValues={formValues}
+          notReady={notReady}
+          onClickItem={onClickParentItem}
+          onClickSubmenuItem={onClickItem}
+          onOpenSubmenu={onOpenSubmenu}
+          options={options}
+          remainingHeight={remainingHeight}
+          savingValue={savingValue}
         />
+
+        {addFooterButton && (
+          <PopOverListFooterButton
+            onClick={onSubmit}
+            text={footerButtonText || i18n.t('form.apply')}
+          />
+        )}
+      </PopOverListContainer>
+
+      {submenuState && (
+        <div style={getPOListSubmenuPanelStyle(submenuState)}>
+          <PopOverListContainer
+            shadowClassName={submenuState.item.submenu.shadowClassName}
+            className={submenuState.item.submenu.designClassName}
+          >
+            <POListItems
+              className={submenuState.item.submenu.className}
+              formValues={submenuFormValues}
+              itemKeyPrefix={submenuState.itemName}
+              notReady={submenuState.item.submenu.notReady}
+              onClickItem={onClickSubmenuItem}
+              onOpenSubmenu={onOpenSubmenu}
+              options={submenuState.item.submenu.options}
+              savingValue={submenuState.item.submenu.savingValue}
+            />
+          </PopOverListContainer>
+        </div>
       )}
-    </PopOverListContainer>
+    </div>
   );
 }
 
@@ -416,10 +719,8 @@ export function PopOverCheckList(p: PopOverHandlerProps & {
           <ActivityDots />
         </div>
         : options.filter((item: POCheckListIfaceItem) => !item.hidden).map((item: POCheckListIfaceItem, i: number) => {
-          // @ts-expect-error - Ignored because some components such as <PONavItemBreak /> don't have value
-          const itemValue = item.value;
-          // @ts-expect-error - Not all interfaces have "name" property
-          const itemName = item.name || i.toString();
+          const itemValue = getPOListItemValue(item);
+          const itemName = getPOListItemName(item, i);
 
           return <PONavItemIface
             key={i}
@@ -427,7 +728,7 @@ export function PopOverCheckList(p: PopOverHandlerProps & {
             item={item}
             onClickItem={onClickItem}
             saving={savingValue !== undefined && savingValue === itemValue}
-            checked={checked.includes(itemValue)}
+            checked={itemValue !== undefined && checked.includes(itemValue)}
             selected={false}
           />;
         })}
@@ -497,7 +798,6 @@ export function PopOverLabelsAndValues(p: PopOverHandlerProps & {
         updatedValues.push({
           label: name === 'label' ? value : '',
           value: name === 'value' ? value : '',
-          // @ts-expect-error - "quantity" is optional
           quantity: name === 'quantity' ? Number(value) : null, // If you use "", GraphQL will error out from Float scalar
           unit: name === 'unit' ? value : '',
         });

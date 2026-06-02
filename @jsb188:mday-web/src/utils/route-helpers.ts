@@ -31,6 +31,8 @@ type ValidRoutePath =
   | '/app/c/'
   | '/app/workflows-test'
   | '/app/workflows'
+  | '/app/sheets'
+  | '/app/s/'
   | '/app/emails'
   | '/app/logs'
   | '/app/greenhouse'
@@ -54,7 +56,7 @@ type ValidRoutePath =
 
   // Reports
   | '/app/r/'
-  | '/app/data-tables/'
+  | '/app/d/'
   | '/app/p/';
   // | '/app/r/water-source/';
 
@@ -101,6 +103,16 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app/workflows',
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
+  },
+  '/app/sheets': {
+    to: '/app/sheets',
+    text: 'app.sheets',
+    iconName: COMMON_ICON_NAMES.sheet,
+  },
+  '/app/s/': {
+    to: '/app/s/',
+    text: 'app.sheets',
+    iconName: COMMON_ICON_NAMES.sheet,
   },
   '/app/emails': {
     to: '/app/emails',
@@ -274,10 +286,10 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     iconName: COMMON_ICON_NAMES.generic_report,
     hasPhysicalToolbar: 'NEVER',
   },
-  '/app/data-tables/': {
-    to: '/app/data-tables/',
+  '/app/d/': {
+    to: '/app/d/',
     text: 'form.dataTables',
-    iconName: COMMON_ICON_NAMES.dataTable,
+    iconName: COMMON_ICON_NAMES.data_table,
     hasPhysicalToolbar: 'NEVER',
   },
   '/app/p/': {
@@ -626,9 +638,9 @@ export function getNavigationList(
     const dataTablesSection = {
       text: i18n.t('form.dataTables'),
       navList: dataTables.map((dataTable) => ({
-        to: makePathname('/app/data-tables/', dataTable.id),
+        to: makePathname('/app/d/', dataTable.id),
         text: dataTable.title || dataTable.name,
-        iconName: COMMON_ICON_NAMES.dataTable,
+        iconName: COMMON_ICON_NAMES.data_table,
       })),
     };
 
@@ -647,6 +659,7 @@ export function getNavigationList(
     initialExpanded: true,
     navList: [
       ROUTES_DICT['/app/workflows'],
+      // ROUTES_DICT['/app/sheets'],
       // ROUTES_DICT['/app/emails'],
       ROUTES_DICT['/app/logs']
     ]

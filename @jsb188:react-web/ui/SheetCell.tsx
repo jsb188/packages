@@ -25,6 +25,8 @@ export const SHEET_COLUMN_MIN_WIDTH = 72;
 export const SHEET_COLUMN_MAX_WIDTH = 640;
 export const SHEET_ROW_NUMBER_WIDTH = 44;
 export const SHEET_ROW_HEIGHT = 32;
+export const SHEET_ROW_MIN_HEIGHT = 22;
+export const SHEET_ROW_MAX_HEIGHT = 240;
 export const SHEET_HEADER_HEIGHT = 32;
 export const SHEET_STICKY_SPACER_SIZE = 4;
 
@@ -34,11 +36,14 @@ export const SHEET_STICKY_SPACER_SIZE = 4;
 
 const SHEET_COLUMN_RESIZE_HANDLE_WIDTH = 18;
 const SHEET_COLUMN_RESIZE_HANDLE_LEFT_OFFSET = 1;
+const SHEET_ROW_RESIZE_HANDLE_HEIGHT = 12;
+const SHEET_ROW_RESIZE_HANDLE_TOP_OFFSET = 1;
 const SHEET_STICKY_LEFT_Z_INDEX = 34;
 const SHEET_STICKY_HEADER_Z_INDEX = 31;
 const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 32;
 const SHEET_ACTIVE_HEADER_Z_INDEX = 33;
 const SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX = 34;
+const SHEET_ROW_RESIZE_HANDLE_Z_INDEX = 34;
 const SHEET_COLUMN_REORDER_GUIDE_Z_INDEX = 35;
 const SHEET_COLUMN_REORDER_DRAG_Z_INDEX = 36;
 const STICKY_CELL_BG_CSS = 'bg';
@@ -213,14 +218,22 @@ export function isSheetPlaceholderRowSlot(rowSlot: SheetUIRowSlot) {
 
 function getSheetSingleClickedCellClassName(className: string) {
 	return className.split(/\s+/).map((classPart) => {
-		const colorClassMatch = classPart.match(/^bg_(.+)_fd_hv$/);
+		const colorClassMatch = classPart.match(/^(bg_.+_fd(?:_solid)?)_hv$/);
 
 		if (colorClassMatch) {
-			return `bg_${colorClassMatch[1]}_fd`;
+			return colorClassMatch[1];
 		}
 
 		return classPart;
 	}).join(' ');
+}
+
+/*
+ * Return cell classes that will not override an inline custom background color.
+ */
+
+function getSheetCustomBackgroundCellClassName(className: string) {
+	return className.split(/\s+/).filter((classPart) => !/^bg_/.test(classPart)).join(' ');
 }
 
 /*
@@ -363,10 +376,13 @@ export const SheetHeaderCell = memo((p: {
 	const reorderOffset = p.columnReorderOffset || 0;
 	const defaultCellClassName = getSheetDefaultCellClassName(p.column.fieldType);
 	const defaultSelectedCellClassName = getSheetSingleClickedCellClassName(defaultCellClassName);
+	const headerLayoutClassName = p.column.headerLayoutClassName || 'h_item';
 
 	return <div
 		className={cn(
-			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt h_item ft_medium cl_md no_wrap z3',
+			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt ft_medium cl_md no_wrap z3',
+			headerLayoutClassName,
+			p.column.headerClassName,
 			isReorderable ? 'cs_default_to_grabing' : '',
 			isEditable ? getSheetHeaderEditableClassName(p.column.fieldType) : '',
 			isEditing ? 'active' : 'px_8',
@@ -405,6 +421,8 @@ export const SheetHeaderCell = memo((p: {
 	prev.column.id === next.column.id &&
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
+	prev.column.headerClassName === next.column.headerClassName &&
+	prev.column.headerLayoutClassName === next.column.headerLayoutClassName &&
 	prev.column.humansCannotEdit === next.column.humansCannotEdit &&
 	prev.columnIndex === next.columnIndex &&
 	prev.columnReorderEnabled === next.columnReorderEnabled &&
@@ -529,7 +547,7 @@ export const SheetStickyColumnHeaderSpacer = memo((p: {
 	left: number;
 }) => {
 	return <div
-		className={cn('sheet_ui_header_cell of abs sticky w_4 h_32 z3', STICKY_SPACER_BG_CSS)}
+		className={cn('sheet_ui_header_cell of abs sticky w_4 h_32 z4', STICKY_SPACER_BG_CSS)}
 		data-sheet-sticky-column-header-spacer='true'
 		style={{
 			left: p.left,
@@ -769,6 +787,7 @@ export const SheetRowNumberCell = memo((p: {
 	rowIndex: number;
 	rowNumber?: number | null;
 	rowHeight?: number;
+	rowResizeEnabled?: boolean;
 }) => {
 	const rowContentHeight = p.rowContentHeight ?? p.rowHeight ?? SHEET_ROW_HEIGHT;
 
@@ -804,10 +823,53 @@ export const SheetRowNumberCell = memo((p: {
 	prev.rowId === next.rowId &&
 	prev.rowIndex === next.rowIndex &&
 	prev.rowNumber === next.rowNumber &&
-	prev.rowHeight === next.rowHeight
+	prev.rowHeight === next.rowHeight &&
+	prev.rowResizeEnabled === next.rowResizeEnabled
 ));
 
 SheetRowNumberCell.displayName = 'SheetRowNumberCell';
+
+/*
+ * Render one row resize handle outside the row number cell stacking context.
+ */
+
+export const SheetRowResizeHandle = memo((p: {
+	disabled?: boolean;
+	rowHeight: number;
+	rowId?: string | null;
+	rowIndex: number;
+	rowTop: number;
+	rowWidth: number;
+}) => {
+	return <div
+		aria-label={`Resize row ${p.rowIndex + 1}`}
+		aria-orientation='horizontal'
+		className={cn('abs', p.disabled ? '' : 'cs_back hv_area')}
+		data-row-id={p.rowId || undefined}
+		data-row-index={p.rowIndex}
+		data-sheet-row-resize-handle={p.rowId || String(p.rowIndex)}
+		role='separator'
+		style={{
+			cursor: 'row-resize',
+			height: SHEET_ROW_RESIZE_HANDLE_HEIGHT,
+			left: 0,
+			pointerEvents: p.disabled ? 'none' : 'auto',
+			top: p.rowTop + p.rowHeight - SHEET_ROW_RESIZE_HANDLE_HEIGHT / 2 - SHEET_ROW_RESIZE_HANDLE_TOP_OFFSET,
+			visibility: p.disabled ? 'hidden' : undefined,
+			width: p.rowWidth,
+			zIndex: SHEET_ROW_RESIZE_HANDLE_Z_INDEX,
+		}}
+	/>;
+}, (prev, next) => (
+	prev.disabled === next.disabled &&
+	prev.rowHeight === next.rowHeight &&
+	prev.rowId === next.rowId &&
+	prev.rowIndex === next.rowIndex &&
+	prev.rowTop === next.rowTop &&
+	prev.rowWidth === next.rowWidth
+));
+
+SheetRowResizeHandle.displayName = 'SheetRowResizeHandle';
 
 /*
  * Position one virtual row number while letting the browser handle sticky-left.
@@ -820,6 +882,7 @@ export const SheetRowNumberSlot = memo((p: {
 	rowIndex: number;
 	rowNumber?: number | null;
 	rowHeight?: number;
+	rowResizeEnabled?: boolean;
 	rowTop: number;
 	rowWidth: number;
 }) => {
@@ -843,7 +906,18 @@ export const SheetRowNumberSlot = memo((p: {
 			rowIndex={p.rowIndex}
 			rowNumber={p.rowNumber}
 			rowHeight={rowHeight}
+			rowResizeEnabled={p.rowResizeEnabled}
 		/>
+
+		{p.rowResizeEnabled
+			? <SheetRowResizeHandle
+				rowHeight={rowHeight}
+				rowId={p.rowId}
+				rowIndex={p.rowIndex}
+				rowTop={0}
+				rowWidth={SHEET_ROW_NUMBER_WIDTH}
+			/>
+			: null}
 	</div>;
 	}, (prev, next) => (
 		prev.deleted === next.deleted &&
@@ -852,6 +926,7 @@ export const SheetRowNumberSlot = memo((p: {
 	prev.rowIndex === next.rowIndex &&
 	prev.rowNumber === next.rowNumber &&
 	prev.rowHeight === next.rowHeight &&
+	prev.rowResizeEnabled === next.rowResizeEnabled &&
 	prev.rowTop === next.rowTop &&
 	prev.rowWidth === next.rowWidth
 ));
@@ -1064,15 +1139,22 @@ export const SheetGridCell = memo((p: {
 	const displayFieldType = getSheetColumnHumanFieldType(p.column);
 	const pickerDisplay = getSheetPickerCellDisplayValue(displayFieldType, displayValue);
 	const iconName = cell?.iconName || '';
+	const cellStyle = cell?.cellStyle || {};
+	const hasCustomCellBackground = Boolean(cellStyle.backgroundColor);
+	const showCustomBackgroundSelectedOverlay = hasCustomCellBackground && isSelected && isSelectionActive && !isEditing;
 	const isReadOnlyCell = Boolean(p.rowId && cell && !isEditable);
 	const defaultCellClassName = getSheetDefaultCellClassName(p.column.fieldType);
-	const editableCellClassName = isEditable
+	const selectedCellClassName = hasCustomCellBackground
+		? getSheetCustomBackgroundCellClassName(cell?.cellClassName || '')
+		: getSheetSingleClickedCellClassName(cell?.cellClassName || defaultCellClassName);
+	const isSingleClicked = (isEditable || isReadOnlyCell) && isSelected && isSelectionActive;
+	const editableContentClassName = isEditable
 		? isSelected
-			? getSheetSingleClickedCellClassName(cell?.cellClassName || defaultCellClassName) + (isSelectionActive ? ' single_clicked' : '')
+			? selectedCellClassName
 			: cell?.cellClassName || defaultCellClassName
 		: '';
-	const selectedReadOnlyCellClassName = isReadOnlyCell && isSelected
-		? getSheetSingleClickedCellClassName(cell?.cellClassName || defaultCellClassName) + (isSelectionActive ? ' single_clicked' : '')
+	const selectedReadOnlyContentClassName = isReadOnlyCell && isSelected
+		? selectedCellClassName
 		: '';
 	const borderClassName = p.isPlaceholderRow
 		? ''
@@ -1082,20 +1164,24 @@ export const SheetGridCell = memo((p: {
 		// 	: 'bd_r_1 bd_b_1 bd_lt';
 
 	const cellClassName = cn(
-		'sheet_ui_cell of abs h_item cl_df',
-		editableCellClassName,
-		selectedReadOnlyCellClassName,
+		'sheet_ui_cell of abs',
 		borderClassName,
 		isCellActive ? 'active z4 hv_area' : '',
-		// !isEditing || !isInlineEditing ? 'px_6 unsel' : '',
-		!isInlineEditing ? 'px_6 unsel' : '',
+		isSingleClicked ? 'single_clicked' : '',
 		isEditable && isSelected && !isEditing ? 'pointer' : '',
 		// p.cell?.canOpen ? 'link' : '', // Don't use .link class
     !p.rowId ? 'noclick' : '',
     isReadOnlyCell ? 'not_editable' : '',
     p.rowDeleted ? '__deleted' : '',
-    !displayValue && !isSheetDateCellFieldType(displayFieldType) ? 'cl_darker_2' : '',
 		p.isStickyLeft ? STICKY_CELL_BG_CSS : CELL_BG_CSS,
+	);
+	const cellContentClassName = cn(
+		'fs h_item cl_df',
+		editableContentClassName,
+		selectedReadOnlyContentClassName,
+		showCustomBackgroundSelectedOverlay ? 'bg_main_fd' : '',
+		!isInlineEditing ? 'px_6 unsel' : '',
+		!displayValue && !isSheetDateCellFieldType(displayFieldType) ? 'cl_darker_2' : '',
 	);
 
 	return <div
@@ -1106,6 +1192,7 @@ export const SheetGridCell = memo((p: {
 		data-sheet-cell-editable={isEditable ? 'true' : undefined}
 		data-sheet-cell-open-link={cell?.canOpen ? 'true' : undefined}
 		style={{
+			color: cellStyle.color,
 			height: p.rowHeight ?? SHEET_ROW_HEIGHT,
 			left: p.cellLeft,
 			top: p.rowTop,
@@ -1113,24 +1200,45 @@ export const SheetGridCell = memo((p: {
 			zIndex: p.isStickyLeft ? SHEET_STICKY_LEFT_Z_INDEX : undefined,
 		}}
 	>
-		{isInlineEditing
-			? <SheetCellEditor
-				cell={cell}
-				cellKey={p.column.key}
-				column={p.column}
-				draftValue={editState?.draftValue || ''}
-				error={editState?.error}
-				rowId={p.rowId!}
-				/>
-				: <SheetCellDisplayValue
-					canOpen={cell?.canOpen}
-					className={pickerDisplay.className}
-					displayClassName={cell?.displayClassName}
-					displayValue={pickerDisplay.value}
-					iconName={iconName}
-					isCellActive={isCellActive}
-					showSelectChevron={isEditable && isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
-				/>}
+		<div
+			className='h_item h_f w_f'
+			style={{
+				backgroundColor: cellStyle.backgroundColor,
+			}}
+		>
+			<div className={cellContentClassName}>
+				{isInlineEditing
+					? <SheetCellEditor
+						cell={cell}
+						cellKey={p.column.key}
+						column={p.column}
+						draftValue={editState?.draftValue || ''}
+						error={editState?.error}
+						rowId={p.rowId!}
+						/>
+					: showCustomBackgroundSelectedOverlay
+						? <span className='rel z2 h_item f'>
+							<SheetCellDisplayValue
+								canOpen={cell?.canOpen}
+								className={pickerDisplay.className}
+								displayClassName={cell?.displayClassName}
+								displayValue={pickerDisplay.value}
+								iconName={iconName}
+								isCellActive={isCellActive}
+								showSelectChevron={isEditable && isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
+							/>
+						</span>
+						: <SheetCellDisplayValue
+							canOpen={cell?.canOpen}
+							className={pickerDisplay.className}
+							displayClassName={cell?.displayClassName}
+							displayValue={pickerDisplay.value}
+							iconName={iconName}
+							isCellActive={isCellActive}
+							showSelectChevron={isEditable && isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
+						/>}
+			</div>
+		</div>
 	</div>;
 }, (prev, next) => (
 	prev.cell === next.cell &&

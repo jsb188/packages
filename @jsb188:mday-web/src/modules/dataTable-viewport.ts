@@ -7,6 +7,7 @@ import {
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
 import type { DataTableArrowNavigationDirection } from './DataTable-ContextMenu.tsx';
+import { getSheetGridArrowNavigationSelection } from './sheet-selection.ts';
 
 export type DataTableArrowNavigationRuntime = {
 	columnMetrics: SheetColumnMetric[];
@@ -33,52 +34,12 @@ export function getDataTableArrowNavigationSelection(params: {
 	renderedRows: DataTableRowGQL[];
 	selectedCellState?: SheetUISelectedCellState | null;
 }) {
-	const { columnMetrics, direction, renderedRows, selectedCellState } = params;
-
-	if (!columnMetrics.length || !renderedRows.length) {
-		return null;
-	}
-
-	const currentColumnIndex = selectedCellState ? columnMetrics.findIndex((metric) => metric.column.key === selectedCellState.cellKey) : -1;
-	const currentRowIndex = selectedCellState ? renderedRows.findIndex((row) => row.id === selectedCellState.rowId) : -1;
-
-	if (currentColumnIndex < 0 || currentRowIndex < 0) {
-		return {
-			cellKey: columnMetrics[0].column.key,
-			rowId: renderedRows[0].id,
-		};
-	}
-
-	let nextColumnIndex = currentColumnIndex;
-	let nextRowIndex = currentRowIndex;
-
-	switch (direction) {
-		case 'left':
-			nextColumnIndex = Math.max(0, currentColumnIndex - 1);
-			break;
-		case 'right':
-			nextColumnIndex = Math.min(columnMetrics.length - 1, currentColumnIndex + 1);
-			break;
-		case 'up':
-			nextRowIndex = Math.max(0, currentRowIndex - 1);
-			break;
-		case 'down':
-			nextRowIndex = Math.min(renderedRows.length - 1, currentRowIndex + 1);
-			break;
-		default:
-	}
-
-	const nextColumn = columnMetrics[nextColumnIndex];
-	const nextRow = renderedRows[nextRowIndex];
-
-	if (!nextColumn || !nextRow) {
-		return null;
-	}
-
-	return {
-		cellKey: nextColumn.column.key,
-		rowId: nextRow.id,
-	};
+	return getSheetGridArrowNavigationSelection({
+		columnMetrics: params.columnMetrics,
+		direction: params.direction,
+		rowIds: params.renderedRows.map((row) => row.id),
+		selectedCellState: params.selectedCellState,
+	});
 }
 
 /*
