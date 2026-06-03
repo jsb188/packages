@@ -117,6 +117,7 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
 
   options {
     conflictPolicy
+    endRowIndex
     includeHeaderRow
   }
 

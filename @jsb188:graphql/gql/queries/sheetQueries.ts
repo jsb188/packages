@@ -46,10 +46,6 @@ query sheetGrid (
   ) {
     ...sheetGridFragment
 
-    sheet {
-      ...sheetFragment
-    }
-
     cells {
       ...sheetCellFragment
     }
@@ -65,7 +61,6 @@ query sheetGrid (
 }
 
 ${sheetGridFragment}
-${sheetFragment}
 ${sheetCellFragment}
 ${sheetRangeFragment}
 ${sheetRegionFragment}

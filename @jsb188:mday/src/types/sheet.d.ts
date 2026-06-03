@@ -134,6 +134,7 @@ export interface SheetRegionColumnObj {
 
 export interface SheetRegionOptionsObj {
 	conflictPolicy?: SheetRegionConflictPolicyEnum | null;
+	endRowIndex?: number | null;
 	includeHeaderRow?: boolean | null;
 }
 
@@ -180,7 +181,6 @@ export interface SheetGridPageInfoObj {
 
 export interface SheetGridObj {
 	id: number | bigint;
-	sheet: SheetData;
 	viewport: SheetGridViewportObj;
 	rows: SheetGridRowObj[];
 	cells: SheetCellData[];
@@ -288,7 +288,6 @@ export interface SheetRegionGQL {
 
 export interface SheetGridGQL {
 	id?: string | null;
-	sheet?: SheetGQL | null;
 	viewport?: SheetGridViewportObj | null;
 	rows?: SheetGridRowGQL[];
 	cells?: SheetCellGQL[];

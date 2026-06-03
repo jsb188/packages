@@ -12,6 +12,7 @@ directories=(
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:mday-web"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:react"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:react-web"
+  "/Users/saeho/Documents/apps/nebula/packages/@jsb188:sheet"
   "/Users/saeho/Documents/apps/nebula/packages/@jsb188:sse"
 )
 

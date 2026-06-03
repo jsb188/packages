@@ -1,7 +1,15 @@
 import type { DataTableCellGQL, DataTableDesignGQL, DataTableRowGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
-import { clampSheetColumnWidth, getSheetCellKey } from '@jsb188/react-web/ui/SheetUI';
-import { useEffect, useRef, useState } from 'react';
+import { clampSheetColumnWidth, getSheetCellKey, type SheetColumnWidths } from '@jsb188/react-web/ui/SheetUI';
+import { atom } from 'jotai';
+import { useEffect, useRef } from 'react';
+import {
+	dataTableInteractionReducer,
+	getInitialDataTableInteractionState,
+	type DataTableInteractionAction,
+	type DataTableInteractionState,
+} from '../modules/dataTable-interaction-state.ts';
+import { createGridStateAtoms, createReducerDispatchAtom } from './grid-state.tsx';
 
 export type DataTableRowsState = {
 	hasMoreRows: boolean;
@@ -27,13 +35,13 @@ export type DataTableDesignPatchInput = {
 
 type DataTableDesignCellPatchInput = NonNullable<DataTableDesignPatchInput['cells']>[number];
 
-type DataTableDesignReducerState = {
+export type DataTableDesignReducerState = {
 	localPatch: DataTableDesignPatchInput | null;
 	serverDesign: DataTableDesignGQL;
 	dataTableId: string;
 };
 
-type DataTableDesignReducerAction =
+export type DataTableDesignReducerAction =
 	| {
 		design: DataTableDesignGQL;
 		dataTableId: string;
@@ -44,9 +52,9 @@ type DataTableDesignReducerAction =
 		type: 'local_patch_queued';
 	};
 
-type DataTableOptimisticCellValues = Record<string, string | null>;
+export type DataTableOptimisticCellValues = Record<string, string | null>;
 
-type DataTableCellValueReducerAction =
+export type DataTableCellValueReducerAction =
 	| {
 		type: 'reset';
 	}
@@ -65,6 +73,38 @@ type DataTableCellValueReducerAction =
 		type: 'local_value_queued';
 		value: string | null;
 	};
+
+export type DataTableColumnReorderVisualState = {
+	columnKey: string;
+	dragLeft: number;
+	toVisibleIndex: number;
+};
+
+/*
+ * Create the full DataTable atom group for one mounted DataTable instance.
+ */
+export function createDataTableStateAtoms() {
+	const gridAtoms = createGridStateAtoms();
+	const interactionStateAtom = atom<DataTableInteractionState>(getInitialDataTableInteractionState());
+
+	return {
+		...gridAtoms,
+		columnReorderVisualStateAtom: atom<DataTableColumnReorderVisualState | null>(null),
+		columnWidthDraftsAtom: atom<SheetColumnWidths>({}),
+		designStateAtom: atom<DataTableDesignReducerState | null>(null),
+		dispatchInteractionAtom: createReducerDispatchAtom<DataTableInteractionState, DataTableInteractionAction>(
+			interactionStateAtom,
+			dataTableInteractionReducer,
+		),
+		interactionStateAtom,
+		optimisticValuesAtom: atom<DataTableOptimisticCellValues>({}),
+		resizingColumnKeyAtom: atom<string | null>(null),
+		rowsStateAtom: atom<DataTableRowsState | null>(null),
+		selectedViewIdAtom: atom<string | null | undefined>(undefined),
+	};
+}
+
+export type DataTableStateAtoms = ReturnType<typeof createDataTableStateAtoms>;
 
 /*
  * Build an empty row collection state for one dataTable.

@@ -230,10 +230,19 @@ body.p_auth {
     height: 18px;
     /* background-color: rgb(var(--color-bg-active)); */
     background-color: rgb(var(--color-bg));
+    /* border: solid 1px red; */
+  }
+
+  .app_scr::-webkit-scrollbar:vertical {
+    border-left: solid 1px rgb(var(--color-bg-active));
+  }
+
+  .app_scr::-webkit-scrollbar:horizontal {
+    border-top: solid 1px rgb(var(--color-bg-active));
   }
 
   .app_scr::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 0 5px rgb(var(--color-bg));
+    /* box-shadow: inset 0 0 0 5px rgb(var(--color-bg)); */
     border-radius: 9px;
   }
 
@@ -249,17 +258,18 @@ body.p_auth {
   }
 
   .app_scr::-webkit-scrollbar-thumb {
-    background-color: rgb(var(--color-bg-medium));
-    /* background-color: rgb(var(--color-bg-active)); */
+    /* background-color: rgb(var(--color-bg-medium)); */
+    background-color: rgb(var(--color-bg-active));
   }
 
   .app_scr:hover::-webkit-scrollbar-thumb {
-    background-color: rgb(var(--color-bg-medium));
-    /* background-color: rgb(var(--color-bg-active)); */
+    /* background-color: rgb(var(--color-bg-medium)); */
+    background-color: rgb(var(--color-bg-active));
   }
 
   .app_scr::-webkit-scrollbar-thumb:active {
-    background-color: rgb(var(--color-bg-strong));
+    /* background-color: rgb(var(--color-bg-strong)); */
+    background-color: rgb(var(--color-bg-medium));
     /* background-color: rgb(var(--color-bg-active)); */
   }
 }

@@ -38,7 +38,6 @@ export const RULES = {
   organizationRelationship: true,
   organizationSites: true,
   platformProducts: true,
-  productsList: true,
   report: true,
   reportGroups: true,
   reports: true,

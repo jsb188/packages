@@ -31,7 +31,7 @@ type ValidRoutePath =
   | '/app/c/'
   | '/app/workflows-test'
   | '/app/workflows'
-  | '/app/sheets'
+  | '/app/workspace'
   | '/app/s/'
   | '/app/emails'
   | '/app/logs'
@@ -49,7 +49,6 @@ type ValidRoutePath =
   | '/app/biosecurity'
   | '/app/employees'
   | '/app/vendors'
-  | '/app/markets'
   | '/app/receipts'
   | '/app/growers'
   | '/app/foreign-growers'
@@ -104,9 +103,9 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
   },
-  '/app/sheets': {
-    to: '/app/sheets',
-    text: 'app.sheets',
+  '/app/workspace': {
+    to: '/app/workspace',
+    text: 'app.workspace',
     iconName: COMMON_ICON_NAMES.sheet,
   },
   '/app/s/': {
@@ -246,13 +245,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     allowedOperations: ['FARMERS_MARKET'],
     requiredFeature: F.normal_logging
   },
-  '/app/markets': {
-    to: '/app/markets',
-    text: 'form.markets',
-    iconName: COMMON_ICON_NAMES.shop_market,
-
-    allowedOperations: ['FARMERS_MARKET'],
-  },
   '/app/receipts': {
     to: ('/app/receipts') as ValidRoutePath,
     text: 'form.market_receipts',
@@ -288,7 +280,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   },
   '/app/d/': {
     to: '/app/d/',
-    text: 'form.dataTables',
+    text: 'form.data_tables',
     iconName: COMMON_ICON_NAMES.data_table,
     hasPhysicalToolbar: 'NEVER',
   },
@@ -592,7 +584,6 @@ export function getNavigationList(
           text: i18n.t(`org.type_active.${operation}`),
           navList: [
             ROUTES_DICT['/app/vendors'],
-            // ROUTES_DICT['/app/markets'],
             ROUTES_DICT['/app/receipts'],
           ]
         },
@@ -636,7 +627,7 @@ export function getNavigationList(
 
   if (dataTables) {
     const dataTablesSection = {
-      text: i18n.t('form.dataTables'),
+      text: i18n.t('form.data_tables'),
       navList: dataTables.map((dataTable) => ({
         to: makePathname('/app/d/', dataTable.id),
         text: dataTable.title || dataTable.name,
@@ -659,7 +650,7 @@ export function getNavigationList(
     initialExpanded: true,
     navList: [
       ROUTES_DICT['/app/workflows'],
-      // ROUTES_DICT['/app/sheets'],
+      // ROUTES_DICT['/app/workspace'],
       // ROUTES_DICT['/app/emails'],
       ROUTES_DICT['/app/logs']
     ]

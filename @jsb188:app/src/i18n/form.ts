@@ -39,7 +39,7 @@ export default {
     content_missing: 'Content missing',
     content_not_found_msg: 'The content you are looking for could not be found.',
     reports: 'Reports',
-    dataTables: 'DataTables',
+    data_tables: 'Data Tables',
     form: 'Form',
     ranch: 'Ranch',
     section: 'Section',

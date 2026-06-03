@@ -5,7 +5,7 @@ import {
   ROLE_CATEGORY_ENUMS,
   ROLE_ENUMS
 } from '../constants/organization.ts';
-import { PRODUCT_FEATURES } from '../constants/product.ts';
+import { PRODUCT_FEATURES } from '../constants/organization.ts';
 
 import type { AddressObj } from '@jsb188/app/types/other.d.ts';
 import type { IntegrationConnectionData, IntegrationConnectionGQL } from './integration.d.ts';

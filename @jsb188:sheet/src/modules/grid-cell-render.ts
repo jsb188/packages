@@ -8,10 +8,10 @@ import {
 } from '@jsb188/react-web/ui/SheetUI';
 
 /*
- * Build the external render-store snapshot for one visual dataTable cell.
+ * Build the external render-store snapshot for one visual grid cell.
  */
 
-export function getSheetUICellRenderSnapshot(params: {
+export function getGridCellRenderSnapshot(params: {
 	cell?: SheetUICell;
 	cellKey: string;
 	editState?: SheetUIEditState | null;
@@ -38,7 +38,7 @@ export function getSheetUICellRenderSnapshot(params: {
  * Return the render-store keys touched by a selected or editing cell transition.
  */
 
-export function getDataTableInteractionRenderKeys(params: {
+export function getGridInteractionRenderKeys(params: {
 	currentEditState?: SheetUIEditState | null;
 	currentSelectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	currentSelectedCellState?: SheetUISelectedCellState | null;
@@ -63,9 +63,13 @@ export function getDataTableInteractionRenderKeys(params: {
 		params.currentSelectedCellKeyMap,
 		params.nextSelectedCellKeyMap,
 	].forEach((cellKeyMap) => {
-		Object.keys(cellKeyMap || {}).forEach((cellKey) => {
+		if (!cellKeyMap) {
+			return;
+		}
+
+		for (const cellKey in cellKeyMap) {
 			keys.add(cellKey);
-		});
+		}
 	});
 
 	return keys;

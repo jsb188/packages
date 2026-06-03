@@ -470,8 +470,8 @@ h1.ft_xxl, h2.ft_xxl, h3.ft_xxl, h4.ft_xxl, h5.ft_xxl, h6.ft_xxl, .ft_heading_xx
 
 .pill_lg {
   position: relative;
-  min-width: 4.75rem;
-  height: 4.75rem;
+  min-width: 4.2rem;
+  height: 4.2rem;
   padding-left: 1em;
   padding-right: 1em;
   padding-bottom: 2px;

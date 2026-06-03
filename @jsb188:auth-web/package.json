@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/auth-web",
-  "version": "1.1.8",
+  "version": "1.1.10",
   "description": "Authentication module for web.",
   "license": "ISC",
   "author": "jsb188",
@@ -11,13 +11,13 @@
     "./schemas/address": "./src/schemas/address.ts"
   },
   "peerDependencies": {
-    "@jsb188/app": "1.1.8",
-    "@jsb188/graphql": "1.1.8",
-    "@jsb188/react": "1.1.8",
-    "@jsb188/react-web": "1.1.8",
-    "jotai": "^2.13.1",
-    "react": "^19.1.1",
-    "react-router": "^7.15.0"
+    "@jsb188/app": "1.1.10",
+    "@jsb188/graphql": "1.1.10",
+    "@jsb188/react": "1.1.10",
+    "@jsb188/react-web": "1.1.10",
+    "jotai": "^2.20.0",
+    "react": "^19.2.7",
+    "react-router": "^7.16.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

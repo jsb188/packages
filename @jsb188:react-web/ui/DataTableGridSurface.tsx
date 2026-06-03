@@ -2,12 +2,12 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, type ReactNode } from 'react';
 import {
 	SHEET_ROW_NUMBER_WIDTH,
-	SheetGridCell,
-	SheetHeaderArea,
-	SheetPlaceholderRowFillCell,
-	SheetRowNumberSlot,
-	SheetStickyColumnSpacerSlot,
-	SheetTopLeftRowNumberSlot,
+	SheetGridCell as DataTableGridCell,
+	SheetHeaderArea as DataTableHeaderArea,
+	SheetPlaceholderRowFillCell as DataTablePlaceholderRowFillCell,
+	SheetRowNumberSlot as DataTableRowNumberSlot,
+	SheetStickyColumnSpacerSlot as DataTableStickyColumnSpacerSlot,
+	SheetTopLeftRowNumberSlot as DataTableTopLeftRowNumberSlot,
 	isSheetColumnSticky,
 	isSheetPlaceholderRowSlot,
 } from './SheetCell';
@@ -17,13 +17,13 @@ import './SheetUI.css';
 const SHEET_COLUMN_RESIZE_GUIDE_Z_INDEX = 44;
 const SHEET_ROW_RESIZE_GUIDE_Z_INDEX = 44;
 
-export type SheetGridSurfaceProps = SheetUIProps;
+export type DataTableGridSurfaceProps = SheetUIProps;
 
 /*
  * Render one absolute overlay layer for resize guides.
  */
 
-function SheetResizeGuideLayer(p: {
+function DataTableResizeGuideLayer(p: {
 	children: ReactNode;
 	dataAttribute: 'data-sheet-resize-guide-layer' | 'data-sheet-row-resize-guide-layer';
 	height: number;
@@ -50,13 +50,14 @@ function SheetResizeGuideLayer(p: {
 }
 
 /*
- * Render the shared virtualized spreadsheet-like grid surface.
+ * Render the DataTable-owned virtualized spreadsheet-like DOM grid surface.
  */
 
-export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
+export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	const sheetSurfaceHeight = p.sheetSurfaceHeight ?? p.canvasHeight;
 	const sheetSurfaceTop = p.sheetSurfaceTop ?? 0;
 	const stickyColumnEndLeft = p.stickyColumnEndLeft ?? SHEET_ROW_NUMBER_WIDTH;
+	const headerContentWidth = p.headerSpacerWidth ?? p.headerWidth;
 
 	return <div
 		id={p.id}
@@ -66,6 +67,9 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 		{p.headerContent
 			? <div
 				className='no_shrink bd_b_1 bd_lt'
+				style={{
+					width: headerContentWidth,
+				}}
 				data-sheet-header-content='true'
 			>
 				{p.headerContent}
@@ -88,7 +92,7 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 					width: p.canvasWidth,
 				}}
 			>
-				<SheetHeaderArea
+				<DataTableHeaderArea
 					columnReorderDrag={p.columnReorderDrag}
 					columnReorderDisplacements={p.columnReorderDisplacements}
 					columnReorderEnabled={p.columnReorderEnabled}
@@ -106,7 +110,7 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 				/>
 
 				{p.resizeGuide
-					? <SheetResizeGuideLayer
+					? <DataTableResizeGuideLayer
 						dataAttribute='data-sheet-resize-guide-layer'
 						height={sheetSurfaceHeight}
 						top={sheetSurfaceTop}
@@ -114,7 +118,7 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 						zIndex={SHEET_COLUMN_RESIZE_GUIDE_Z_INDEX}
 					>
 						<div
-							className='bg_primary noclick'
+					className='bg_active noclick'
 							data-sheet-column-resize-guide={p.resizeGuide.columnKey}
 							style={{
 								height: p.resizeGuide.height,
@@ -125,11 +129,11 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 								zIndex: SHEET_COLUMN_RESIZE_GUIDE_Z_INDEX,
 							}}
 						/>
-					</SheetResizeGuideLayer>
+					</DataTableResizeGuideLayer>
 					: null}
 
 				{p.rowResizeGuide
-					? <SheetResizeGuideLayer
+					? <DataTableResizeGuideLayer
 						dataAttribute='data-sheet-row-resize-guide-layer'
 						height={sheetSurfaceHeight}
 						top={sheetSurfaceTop}
@@ -137,7 +141,7 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 						zIndex={SHEET_ROW_RESIZE_GUIDE_Z_INDEX}
 					>
 						<div
-							className='bg_primary noclick'
+					className='bg_active noclick'
 							data-sheet-row-resize-guide={p.rowResizeGuide.rowKey}
 							style={{
 								height: 3,
@@ -148,13 +152,13 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 								zIndex: SHEET_ROW_RESIZE_GUIDE_Z_INDEX,
 							}}
 						/>
-					</SheetResizeGuideLayer>
+					</DataTableResizeGuideLayer>
 					: null}
 
-				<SheetTopLeftRowNumberSlot rowWidth={Math.max(p.headerSpacerWidth ?? p.headerWidth, p.canvasWidth)} />
+				<DataTableTopLeftRowNumberSlot rowWidth={Math.max(p.headerSpacerWidth ?? p.headerWidth, p.canvasWidth)} />
 
 				{p.rows.map((rowSlot) => {
-					return <SheetRowNumberSlot
+					return <DataTableRowNumberSlot
 						key={rowSlot.rowKey}
 						isPlaceholderRow={isSheetPlaceholderRowSlot(rowSlot)}
 						deleted={rowSlot.deleted}
@@ -169,7 +173,7 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 				})}
 
 				{p.rows.map((rowSlot) => {
-					return <SheetStickyColumnSpacerSlot
+					return <DataTableStickyColumnSpacerSlot
 						key={`${rowSlot.rowKey}:sticky-column-spacer`}
 						left={stickyColumnEndLeft}
 						deleted={rowSlot.deleted}
@@ -184,7 +188,7 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 					const isPlaceholderRow = isSheetPlaceholderRowSlot(rowSlot);
 
 					if (isPlaceholderRow) {
-						return <SheetPlaceholderRowFillCell
+						return <DataTablePlaceholderRowFillCell
 							key={`${rowSlot.rowKey}:placeholder-row-fill`}
 							contentWidth={p.headerSpacerWidth}
 							rowHeight={rowSlot.rowHeight}
@@ -199,7 +203,7 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 							SHEET_ROW_NUMBER_WIDTH +
 							columnMetric.left;
 
-						return <SheetGridCell
+						return <DataTableGridCell
 							key={`${rowSlot.rowKey}:${columnMetric.column.key}`}
 							cell={rowSlot.cellsByKey[columnMetric.column.key]}
 							cellStore={p.cellStore}
@@ -279,6 +283,6 @@ export const SheetGridSurface = memo((p: SheetGridSurfaceProps) => {
 	prev.style === next.style
 ));
 
-SheetGridSurface.displayName = 'SheetGridSurface';
+DataTableGridSurface.displayName = 'DataTableGridSurface';
 
-export default SheetGridSurface;
+export default DataTableGridSurface;

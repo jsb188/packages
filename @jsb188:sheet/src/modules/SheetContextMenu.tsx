@@ -3,7 +3,7 @@ import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { useEffect } from 'react';
-import { getSheetGridContextMenuPopOverId, useSheetGridContextMenu } from './sheet-grid-context-menu.ts';
+import { getGridContextMenuPopOverId, useGridContextMenu } from './grid-context-menu.ts';
 
 const SHEET_CONTEXT_MENU_ID = 'sheet-context-menu';
 
@@ -49,7 +49,6 @@ type UseSheetContextMenuParams = {
 /*
  * Copy one Sheet context-menu target's display value to the clipboard.
  */
-
 function copySheetContextMenuCellValue(target: SheetContextMenuTarget) {
 	void copyTextToClipboard(target.displayValue || '');
 }
@@ -57,7 +56,6 @@ function copySheetContextMenuCellValue(target: SheetContextMenuTarget) {
 /*
  * Build the PopOver list options for one Sheet context-menu target.
  */
-
 function getSheetContextMenuOptions(target: SheetContextMenuTarget): POListIfaceItem[] {
 	return [{
 		__type: 'LIST_ITEM',
@@ -103,7 +101,6 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget): POListIface
 /*
  * Own the Sheet context-menu PopOver actions.
  */
-
 export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 	const {
 		onEditCell,
@@ -115,7 +112,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		closePopOver,
 		openContextMenu: openSheetContextMenu,
 		popOver,
-	} = useSheetGridContextMenu({
+	} = useGridContextMenu({
 		contextMenuId: SHEET_CONTEXT_MENU_ID,
 		getOptions: getSheetContextMenuOptions,
 	});
@@ -124,7 +121,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		const { action, id, name, value } = popOver?.globalState || {};
 		const target = activeTargetRef.current;
 
-		if (!target || id !== getSheetGridContextMenuPopOverId(SHEET_CONTEXT_MENU_ID, target) || action !== 'ITEM') {
+		if (!target || id !== getGridContextMenuPopOverId(SHEET_CONTEXT_MENU_ID, target) || action !== 'ITEM') {
 			return;
 		}
 
@@ -152,10 +149,11 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 				break;
 			default:
 		}
-	}, [closePopOver, onEditCell, onFormatCells, popOver?.globalState]);
+	}, [activeTargetRef, closePopOver, onEditCell, onFormatCells, popOver?.globalState]);
 
 	return {
 		closeSheetContextMenu,
 		openSheetContextMenu,
 	};
 }
+

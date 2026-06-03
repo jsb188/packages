@@ -132,9 +132,20 @@ export default {
     20068: 'Your new phone number cannot be the same as your current phone number.',
     20069: '"%{value}" is not a valid AI inbox handle.',
     20070: 'Another organization already uses the AI inbox handle "%{value}".',
-    20071: 'This dataTable was not found.\nIt may have been deleted.',
-    20072: 'The dataTable design update was invalid.',
+    '20071_icon': 'database-warning',
+    20071: 'This Data Table was not found.\nIt may have been deleted.',
+    '20072_icon': 'database-warning',
+    20072: 'Data Table design could not be updated.',
+    '20073_icon': 'database-warning',
+    20073: 'This Data Table cell cannot be edited.',
     20074: 'Inbound contacts must have an email address or phone number.',
+    20075: 'Table column width settings are invalid.',
+    '20076_icon': 'layers-grid-warning',
+    20076: 'Data for this sheet could not be found.',
+    '20077_icon': 'layers-grid-warning',
+    20077: 'Sheet could not be updated.',
+    '20078_icon': 'layers-grid-warning',
+    20078: 'This sheet cell cannot be edited.',
 
     // 3x
 

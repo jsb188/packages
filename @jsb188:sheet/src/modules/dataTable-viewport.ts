@@ -7,7 +7,7 @@ import {
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
 import type { DataTableArrowNavigationDirection } from './DataTable-ContextMenu.tsx';
-import { getSheetGridArrowNavigationSelection } from './sheet-selection.ts';
+import { getGridArrowNavigationSelection } from '@jsb188/sheet/modules/grid-selection';
 
 export type DataTableArrowNavigationRuntime = {
 	columnMetrics: SheetColumnMetric[];
@@ -34,7 +34,7 @@ export function getDataTableArrowNavigationSelection(params: {
 	renderedRows: DataTableRowGQL[];
 	selectedCellState?: SheetUISelectedCellState | null;
 }) {
-	return getSheetGridArrowNavigationSelection({
+	return getGridArrowNavigationSelection({
 		columnMetrics: params.columnMetrics,
 		direction: params.direction,
 		rowIds: params.renderedRows.map((row) => row.id),

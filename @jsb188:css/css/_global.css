@@ -852,7 +852,6 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .shadow, .shadow_hv:hover { box-shadow: var(--shadow); }
 .shadow_md, .shadow_hv_md:hover { box-shadow: 0 5px 10px rgba(0,0,0,.078), 0 12px 20px rgba(0,0,0,.078), 0 0 0 1px rgba(0,0,0,.05); }
 .shadow_lg, .shadow_hv_lg:hover { box-shadow: 0 10px 15px rgba(0,0,0,.1), 0 20px 25px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.05); }
-.shadow_folder, .shadow_folder_hv:hover { box-shadow: inset 0 0 30px rgba(var(--color-darker-rgb), .12), 0 6px 18px -12px rgba(var(--color-darker-rgb), .14); }
 .shadow_soft, .shadow_soft_hv:hover { box-shadow: var(--shadow-soft); }
 .shadow_soft_lg, .shadow_soft_lg_hv:hover { box-shadow: var(--shadow-soft-lg); }
 .shadow_line, .shadow_line_hv:hover { box-shadow: var(--shadow-line); }

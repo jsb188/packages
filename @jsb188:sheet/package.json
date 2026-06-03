@@ -1,0 +1,40 @@
+{
+  "name": "@jsb188/sheet",
+  "version": "1.1.10",
+  "description": "<canvas> Sheet module for web.",
+  "license": "ISC",
+  "author": "jsb188",
+  "type": "module",
+  "exports": {
+    ".": "./src/main.ts",
+    "./DataTable": "./src/modules/DataTable.tsx",
+    "./modules/dataTable-interaction-state": "./src/modules/dataTable-interaction-state.ts",
+    "./modules/SheetContextMenu": "./src/modules/SheetContextMenu.tsx",
+    "./modules/grid-cell-render": "./src/modules/grid-cell-render.ts",
+    "./modules/grid-clipboard": "./src/modules/grid-clipboard.ts",
+    "./modules/grid-context-menu": "./src/modules/grid-context-menu.ts",
+    "./modules/grid-keyboard": "./src/modules/grid-keyboard.ts",
+    "./modules/grid-render-store": "./src/modules/grid-render-store.ts",
+    "./modules/grid-runtime": "./src/modules/grid-runtime.ts",
+    "./modules/grid-selection": "./src/modules/grid-selection.ts",
+    "./modules/grid-viewport": "./src/modules/grid-viewport.ts",
+    "./states/dataTable-state": "./src/states/dataTable-state.ts",
+    "./states/grid-state": "./src/states/grid-state.tsx",
+    "./states/sheet-state": "./src/states/sheet-state.ts"
+  },
+  "peerDependencies": {
+    "@jsb188/app": "1.1.10",
+    "@jsb188/graphql": "1.1.10",
+    "@jsb188/mday": "1.1.10",
+    "@jsb188/react": "1.1.10",
+    "@jsb188/react-web": "1.1.10",
+    "jotai": "^2.20.0",
+    "luxon": "^3.6.1",
+    "react": "^19.2.7",
+    "react-router": "^7.16.0"
+  },
+  "scripts": {
+    "test": "vitest run --config ./vitest.config.ts",
+    "build": "tsc"
+  }
+}

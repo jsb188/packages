@@ -2,21 +2,21 @@ import { usePopOver } from '@jsb188/react/states';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import { useCallback, useRef } from 'react';
 
-export type SheetGridContextMenuTargetBase = {
+export type GridContextMenuTargetBase = {
 	cellKey: string;
 	rowId: string;
 };
 
-type UseSheetGridContextMenuParams<Target extends SheetGridContextMenuTargetBase> = {
+type UseGridContextMenuParams<Target extends GridContextMenuTargetBase> = {
 	contextMenuId: string;
 	getOptions: (target: Target) => POListIfaceItem[];
 };
 
 /*
- * Return the PopOver remount key for one shared sheet-grid context menu target.
+ * Return the PopOver remount key for one shared grid context menu target.
  */
 
-export function getSheetGridContextMenuPopOverId(contextMenuId: string, target: SheetGridContextMenuTargetBase) {
+export function getGridContextMenuPopOverId(contextMenuId: string, target: GridContextMenuTargetBase) {
 	return `${contextMenuId}:${target.rowId}:${target.cellKey}`;
 }
 
@@ -24,7 +24,7 @@ export function getSheetGridContextMenuPopOverId(contextMenuId: string, target: 
  * Return whether one event target lives inside a mounted PopOver.
  */
 
-function isSheetGridContextMenuPopOverTarget(target: EventTarget | null) {
+function isGridContextMenuPopOverTarget(target: EventTarget | null) {
 	return target instanceof Element && Boolean(target.closest('.popover'));
 }
 
@@ -32,25 +32,25 @@ function isSheetGridContextMenuPopOverTarget(target: EventTarget | null) {
  * Return whether one grid pointerdown should dismiss the mounted context menu.
  */
 
-export function shouldDismissSheetGridContextMenuOnPointerDown(event: PointerEvent) {
-	return event.button === 0 && !isSheetGridContextMenuPopOverTarget(event.target);
+export function shouldDismissGridContextMenuOnPointerDown(event: PointerEvent) {
+	return event.button === 0 && !isGridContextMenuPopOverTarget(event.target);
 }
 
 /*
  * Close a mounted grid context menu when one primary pointerdown starts in the grid.
  */
 
-export function dismissSheetGridContextMenuOnPointerDown(event: PointerEvent, closeContextMenu: () => void) {
-	if (shouldDismissSheetGridContextMenuOnPointerDown(event)) {
+export function dismissGridContextMenuOnPointerDown(event: PointerEvent, closeContextMenu: () => void) {
+	if (shouldDismissGridContextMenuOnPointerDown(event)) {
 		closeContextMenu();
 	}
 }
 
 /*
- * Own shared PopOver open, close, and active-target state for sheet-like context menus.
+ * Own shared PopOver open, close, and active-target state for grid context menus.
  */
 
-export function useSheetGridContextMenu<Target extends SheetGridContextMenuTargetBase>(params: UseSheetGridContextMenuParams<Target>) {
+export function useGridContextMenu<Target extends GridContextMenuTargetBase>(params: UseGridContextMenuParams<Target>) {
 	const { contextMenuId, getOptions } = params;
 	const { closePopOver, openPopOver, popOver } = usePopOver();
 	const activeTargetRef = useRef<Target | null>(null);
@@ -64,7 +64,7 @@ export function useSheetGridContextMenu<Target extends SheetGridContextMenuTarge
 		openPopOver({
 			animationClassName: 'anim_dropdown_top_right on_mount spd_0',
 			doNotFixToBottom: true,
-			id: getSheetGridContextMenuPopOverId(contextMenuId, target),
+			id: getGridContextMenuPopOverId(contextMenuId, target),
 			name: 'PO_LIST',
 			offsetX: 0,
 			offsetY: 4,
@@ -94,7 +94,7 @@ export function useSheetGridContextMenu<Target extends SheetGridContextMenuTarge
 	const closeContextMenu = useCallback(() => {
 		const target = activeTargetRef.current;
 
-		if (!target || popOver?.id !== getSheetGridContextMenuPopOverId(contextMenuId, target)) {
+		if (!target || popOver?.id !== getGridContextMenuPopOverId(contextMenuId, target)) {
 			return;
 		}
 

@@ -1,6 +1,6 @@
 {
   "name": "@jsb188/react-web",
-  "version": "1.1.8",
+  "version": "1.1.10",
   "description": "Contains react utils, components, and modules for Web.",
   "license": "ISC",
   "author": "jsb188",
@@ -28,6 +28,7 @@
     "./ui/Avatar": "./ui/Avatar.tsx",
     "./ui/Button": "./ui/Button.tsx",
     "./ui/CardUI": "./ui/CardUI.tsx",
+    "./ui/DataTableGridSurface": "./ui/DataTableGridSurface.tsx",
     "./ui/DataTableUI": "./ui/DataTableUI.tsx",
     "./ui/Form": "./ui/FormUI.tsx",
     "./ui/Loading": "./ui/Loading.tsx",
@@ -38,7 +39,6 @@
     "./ui/SidebarUI": "./ui/SidebarUI.tsx",
     "./ui/PageFiltersUI": "./ui/PageFiltersUI.tsx",
     "./ui/SheetEditor": "./ui/SheetEditor.tsx",
-    "./ui/SheetGridSurface": "./ui/SheetGridSurface.tsx",
     "./ui/SheetUI": "./ui/SheetUI.tsx",
     "./ui/TableUI": "./ui/TableUI.tsx",
     "./ui/TableListUI": "./ui/TableListUI.tsx",
@@ -50,19 +50,19 @@
     "./types/dom.d": "./types/dom.d.ts"
   },
   "peerDependencies": {
-    "@jsb188/app": "1.1.8",
-    "@jsb188/graphql": "1.1.8",
-    "@jsb188/react": "1.1.8",
+    "@jsb188/app": "1.1.10",
+    "@jsb188/graphql": "1.1.10",
+    "@jsb188/react": "1.1.10",
     "is-ip": "^5.0.1",
-    "jotai": "^2.13.1",
-    "react": "^19.1.1",
-    "react-router": "^7.15.0"
+    "jotai": "^2.20.0",
+    "react": "^19.2.7",
+    "react-router": "^7.16.0"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",
-    "react-dom": "^19.1.1",
-    "vite": "^8.0.10",
-    "vitest": "^4.1.5"
+    "react-dom": "^19.2.7",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
   },
   "scripts": {
     "test": "vitest run --config ./vitest.config.ts"

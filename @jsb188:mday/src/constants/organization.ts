@@ -61,3 +61,33 @@ export const COMPLIANCE_DOCUMENT_TYPE_MAP = {
 export const COMPLIANCE_DOCUMENT_TYPE_ENUMS = Object.values(COMPLIANCE_DOCUMENT_TYPE_MAP);
 
 export const COMPLIANCE_DOCUMENT_TYPE_LABELS = Object.keys(COMPLIANCE_DOCUMENT_TYPE_MAP);
+
+/**
+ * Organization features by operation.
+ */
+
+export const FEATURES_BY_OPERATION = {
+	ARABLE: [
+		'NORMAL_LOGGING', // First item is always the default
+		'FOOD_SAFETY',
+		'GLOBAL_GAP',
+	],
+	FARMERS_MARKET: [
+		'NORMAL_LOGGING',
+		'MARKET_ATTENDANCE',
+	],
+	LIVESTOCK: [
+		'NORMAL_LOGGING',
+	],
+	GROWER_NETWORK: [
+		'NORMAL_LOGGING',
+		'SITE_INSPECTION',
+	],
+};
+
+export const PRODUCT_FEATURES = [
+	...FEATURES_BY_OPERATION.ARABLE,
+	...FEATURES_BY_OPERATION.FARMERS_MARKET,
+	...FEATURES_BY_OPERATION.LIVESTOCK,
+	...FEATURES_BY_OPERATION.GROWER_NETWORK,
+].filter((value, index, self) => self.indexOf(value) === index);

@@ -1,28 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export type SheetGridElementSize = {
+export type GridElementSize = {
 	height: number;
 	width: number;
 };
 
-export type SheetGridCellSelection = {
+export type GridCellSelection = {
 	cellKey: string;
 	rowId: string;
 };
 
-export type SheetGridKeyboardElementSelectors = {
+export type GridKeyboardElementSelectors = {
 	editorSelector?: string;
 	headerEditorSelector?: string;
 	localEditorSelector?: string;
 };
 
 /*
- * Keep the current size of one sheet-like grid DOM element in React state.
+ * Keep the current size of one grid DOM element in React state.
  */
 
-export function useSheetGridElementSize<T extends HTMLElement>() {
+export function useGridElementSize<T extends HTMLElement>() {
 	const [node, setNode] = useState<T | null>(null);
-	const [size, setSize] = useState<SheetGridElementSize>({
+	const [size, setSize] = useState<GridElementSize>({
 		height: 0,
 		width: 0,
 	});
@@ -76,7 +76,7 @@ export function useSheetGridElementSize<T extends HTMLElement>() {
  * Return the current browser window height for screen-sized grid rendering.
  */
 
-export function useSheetGridWindowHeight() {
+export function useGridWindowHeight() {
 	const [windowHeight, setWindowHeight] = useState(() => globalThis.window?.innerHeight || 0);
 
 	useEffect(() => {
@@ -99,7 +99,7 @@ export function useSheetGridWindowHeight() {
  * Find the closest matching HTMLElement from a delegated DOM event target.
  */
 
-export function getClosestSheetGridElement(target: EventTarget | null, selector: string) {
+export function getClosestGridElement(target: EventTarget | null, selector: string) {
 	if (!(target instanceof Element)) {
 		return null;
 	}
@@ -108,10 +108,10 @@ export function getClosestSheetGridElement(target: EventTarget | null, selector:
 }
 
 /*
- * Return the sheet-like cell coordinate stored on one rendered DOM cell.
+ * Return the grid cell coordinate stored on one rendered DOM cell.
  */
 
-export function getSheetGridCellSelectionFromElement(cellElement?: Element | null): SheetGridCellSelection | null {
+export function getGridCellSelectionFromElement(cellElement?: Element | null): GridCellSelection | null {
 	if (!(cellElement instanceof HTMLElement)) {
 		return null;
 	}
@@ -130,17 +130,17 @@ export function getSheetGridCellSelectionFromElement(cellElement?: Element | nul
 }
 
 /*
- * Return the active editor elements for one sheet-like grid keyboard event.
+ * Return the active editor elements for one grid keyboard event.
  */
 
-export function getSheetGridKeyboardElements(event: KeyboardEvent, selectors: SheetGridKeyboardElementSelectors) {
+export function getGridKeyboardElements(event: KeyboardEvent, selectors: GridKeyboardElementSelectors) {
 	const activeElement = globalThis.document?.activeElement as HTMLElement | null;
 	const findElement = (selector?: string) => {
 		if (!selector) {
 			return null;
 		}
 
-		return getClosestSheetGridElement(event.target, selector) ||
+		return getClosestGridElement(event.target, selector) ||
 			(activeElement?.closest(selector) as HTMLElement | null);
 	};
 
@@ -152,10 +152,10 @@ export function getSheetGridKeyboardElements(event: KeyboardEvent, selectors: Sh
 }
 
 /*
- * Return whether one keydown event should open text editing for a sheet-like grid cell.
+ * Return whether one keydown event should open text editing for a grid cell.
  */
 
-export function isSheetGridTextInputKey(event: KeyboardEvent) {
+export function isGridTextInputKey(event: KeyboardEvent) {
 	return event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey;
 }
 
@@ -163,7 +163,7 @@ export function isSheetGridTextInputKey(event: KeyboardEvent) {
  * Return whether the active document element belongs to non-grid text input.
  */
 
-export function isSheetGridShortcutBlockedByActiveInput(editorSelector: string) {
+export function isGridShortcutBlockedByActiveInput(editorSelector: string) {
 	const activeElement = globalThis.document?.activeElement as HTMLElement | null;
 
 	if (!activeElement) {

@@ -3,7 +3,6 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import { type CSSProperties, type ReactNode, type Ref } from 'react';
 import { Icon } from '../svgs/Icon';
 import { SheetSaveButton } from './SheetEditor';
-import { SheetGridSurface } from './SheetGridSurface';
 import {
 	SHEET_COLUMN_MAX_WIDTH,
 	SHEET_COLUMN_MIN_WIDTH,
@@ -544,6 +543,7 @@ export function getSheetVisibleRange(params: {
 	headerHeight?: number;
 	rowOffsets?: number[];
 	rowCount: number;
+	rowRangeMultiplier?: number;
 	scrollLeft: number;
 	scrollTop: number;
 }): SheetVisibleRange {
@@ -557,6 +557,7 @@ export function getSheetVisibleRange(params: {
 		headerHeight = SHEET_HEADER_HEIGHT,
 		rowOffsets,
 		rowCount,
+		rowRangeMultiplier = SHEET_VISIBLE_ROW_RANGE_MULTIPLIER,
 		scrollLeft,
 		scrollTop,
 	} = params;
@@ -583,7 +584,7 @@ export function getSheetVisibleRange(params: {
 	const columnStart = Math.max(0, firstVisibleColumnIndex - bufferColumns);
 	const baseRowEnd = Math.min(rowCount, rowOffsets?.length ? lastVisibleRowIndex + 1 + bufferRows : rowStart + visibleRowCount + bufferRows * 2);
 	const baseLoadedRowCount = Math.max(0, baseRowEnd - rowStart);
-	const extraLoadedRowCount = Math.ceil(baseLoadedRowCount * (SHEET_VISIBLE_ROW_RANGE_MULTIPLIER - 1));
+	const extraLoadedRowCount = Math.ceil(baseLoadedRowCount * (Math.max(1, rowRangeMultiplier) - 1));
 
 	return {
 		rowStart,
@@ -592,13 +593,3 @@ export function getSheetVisibleRange(params: {
 		columnEnd: Math.min(columnCount, lastVisibleColumnIndex + 1 + bufferColumns),
 	};
 }
-
-/*
- * Render the shared grid surface through the Sheet-specific UI boundary.
- */
-
-export function SheetUI(p: SheetUIProps) {
-	return <SheetGridSurface {...p} />;
-}
-
-export default SheetUI;

@@ -8,10 +8,10 @@ import {
 } from '@jsb188/react-web/ui/SheetUI';
 
 /*
- * Return cells that are visible in the current Sheet viewport.
+ * Return cells that are visible in the current grid viewport.
  */
 
-export function getSheetViewportVisibleCells(params: {
+export function getGridViewportVisibleCells(params: {
 	columnMetrics: SheetColumnMetric[];
 	columnOffsets: number[];
 	frozenColumnCount: number;

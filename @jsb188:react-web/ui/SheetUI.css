@@ -35,7 +35,7 @@
 }
 
 .sheet_ui_cell.active {
-  z-index: 34;
+  z-index: 33;
 }
 
 .sheet_ui_editor:focus {

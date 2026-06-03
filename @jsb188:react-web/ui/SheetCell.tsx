@@ -794,7 +794,7 @@ export const SheetRowNumberCell = memo((p: {
 	return <div
 		className={cn(
 				'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
-				'bd_r_1 bd_b_1 bd_lt',
+				'bd_lt',
 				p.deleted ? '__deleted' : '',
 				STICKY_CELL_BG_CSS,
 		)}
@@ -953,9 +953,9 @@ export const SheetTopLeftRowNumberSlot = memo((p: {
 		}}
 	>
 		<div
-			className={cn(
+		className={cn(
 				'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
-				'bd_r_1 bd_lt',
+				'',
 				STICKY_CELL_BG_CSS,
 			)}
 			style={{

@@ -5,5 +5,6 @@ export default {
 		fill_color: 'Fill color',
 		format_cells: 'Format cells',
 		text_color: 'Text color',
+		work_in_progress: 'Work In Progress',
 	},
 };

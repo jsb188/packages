@@ -55,31 +55,38 @@ import {
 	type SheetUIFieldType,
 	type SheetUIResizeGuide,
 	type SheetUIRowSlot,
+	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
 import { DataTableUI } from '@jsb188/react-web/ui/DataTableUI';
 import { copyTextToClipboard, useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import { useKeyDown, useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
+import { useAtom } from 'jotai';
 import { DateTime } from 'luxon';
-import { type ReactNode, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
 import { type DataTableArrowNavigationDirection, type DataTableContextMenuTarget, useDataTableContextMenu } from './DataTable-ContextMenu.tsx';
-import { dismissSheetGridContextMenuOnPointerDown } from './sheet-grid-context-menu.ts';
+import { dismissGridContextMenuOnPointerDown } from '@jsb188/sheet/modules/grid-context-menu';
 import {
 	getActiveEditState,
 	getActiveHeaderEditState,
 	getDismissedLocalEditorCell,
-	getInitialDataTableInteractionState,
 	getOpenLocalEditorState,
 	getSelectedCellState,
 	getSelectedCellSelection,
 	getSelectedHeaderCellKey,
 	getDataTableSelectedCellStateFromEditState,
 	dataTableInteractionReducer,
+	type DataTableInteractionAction,
 	type DataTableInteractionCellSelection,
 	type DataTableInteractionState,
 } from './dataTable-interaction-state.ts';
-import { createSheetGridUICellRenderStore } from './sheet-grid-render-store.ts';
 import {
+	getGridCellRenderSnapshot,
+	getGridInteractionRenderKeys,
+} from '@jsb188/sheet/modules/grid-cell-render';
+import { createGridUICellRenderStore } from '@jsb188/sheet/modules/grid-render-store';
+import {
+	createDataTableStateAtoms,
 	getInitialDataTableDesignReducerState,
 	getInitialDataTableRowsState,
 	getDataTableRowsSourceKey,
@@ -91,7 +98,11 @@ import {
 	dataTableDesignReducer,
 	type DataTableRowsState,
 	useFloatingMessageForDataTableRowsReset,
-} from './use-dataTable-states.ts';
+	type DataTableColumnReorderVisualState,
+	type DataTableDesignReducerAction,
+	type DataTableCellValueReducerAction,
+	type DataTableStateAtoms,
+} from '../states/dataTable-state.ts';
 import {
 	getDataTableArrowNavigationScrollState,
 	getDataTableArrowNavigationSelection,
@@ -104,18 +115,17 @@ import {
 	getDataTableRangeSelection,
 	parseDataTableClipboardText,
 } from './dataTable-shortcuts.ts';
-import { getSheetUICellRenderSnapshot } from './dataTable-ui-projection.ts';
-import { addSheetGridKeyboardEventListener, handleSheetGridKeyboardEvent } from './sheet-grid-keyboard.ts';
+import { addGridKeyboardEventListener, handleGridKeyboardEvent } from '@jsb188/sheet/modules/grid-keyboard';
 import {
-	getClosestSheetGridElement,
-	getSheetGridKeyboardElements,
-	isSheetGridShortcutBlockedByActiveInput,
-	useSheetGridElementSize,
-} from './sheet-grid-runtime.ts';
+	getClosestGridElement,
+	getGridKeyboardElements,
+	isGridShortcutBlockedByActiveInput,
+	useGridElementSize,
+} from '@jsb188/sheet/modules/grid-runtime';
 import {
-	getSheetGridSelectionBoxPosition,
-	type SheetGridSelectionBoxPosition,
-} from './sheet-selection.ts';
+	getGridSelectionBoxPosition,
+	type GridSelectionBoxPosition,
+} from '@jsb188/sheet/modules/grid-selection';
 import { sendCellSaveBeacon } from './cell-save-beacon.ts';
 import { groupCellSaveItemsByTarget, sendGroupedCellSaveItems, useDebouncedCellSaveBatch } from './use-debounced-cell-save-batch.ts';
 
@@ -219,12 +229,6 @@ type DataTableColumnReorderState = {
 	started: boolean;
 };
 
-type DataTableColumnReorderVisualState = {
-	columnKey: string;
-	dragLeft: number;
-	toVisibleIndex: number;
-};
-
 type DataTableCellDragSelectionState = {
 	anchorCell: {
 		cellKey: string;
@@ -246,7 +250,7 @@ type DataTableLocalEditorPosition = {
 	width: number;
 };
 
-type DataTableSelectionBoxPosition = SheetGridSelectionBoxPosition;
+type DataTableSelectionBoxPosition = GridSelectionBoxPosition;
 
 type DataTablePaginationState = {
 	hasMoreRows: boolean;
@@ -317,7 +321,7 @@ const SHEET_LOCAL_EDITOR_Z_INDEX = 32;
 const SHEET_STICKY_LOCAL_EDITOR_Z_INDEX = 43;
 const SHEET_READ_ONLY_TAG_HEIGHT = 18;
 const SHEET_READ_ONLY_TAG_TOP_OFFSET = 4;
-const SHEET_READ_ONLY_TAG_Z_INDEX = 34;
+const SHEET_READ_ONLY_TAG_Z_INDEX = 33;
 const SHEET_DATE_KEY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const DATA_TABLE_LOCAL_EDITOR_SELECTOR = '[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
 const DATA_TABLE_GRID_EDITOR_SELECTOR = '[data-sheet-editor="true"], [data-sheet-header-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
@@ -1258,6 +1262,18 @@ function getSheetUICellSignature(p: {
 }
 
 /*
+ * Split one visual grid render key into the row id and runtime cell key.
+ */
+function getDataTableCellRenderKeyParts(renderKey: string) {
+	const [rowId, ...cellKeyParts] = renderKey.split(':');
+
+	return {
+		cellKey: cellKeyParts.join(':'),
+		rowId: rowId || '',
+	};
+}
+
+/*
  * Build per-row cell maps once so visible row generation can use O(1) lookups.
  */
 
@@ -1667,7 +1683,7 @@ function getDataTableSelectionBoxPosition(params: {
 	stickyColumnCount: number;
 	stickyHeaderHeight: number;
 }): DataTableSelectionBoxPosition | null {
-	return getSheetGridSelectionBoxPosition({
+	return getGridSelectionBoxPosition({
 		columnMetrics: params.columnMetrics,
 		getColumnDisplayLeft: (metric) => {
 			return metric.left + (metric.columnIndex < params.stickyColumnCount ? 0 : SHEET_STICKY_SPACER_SIZE);
@@ -2200,7 +2216,27 @@ function openDataTableCellLink(params: DataTableOpenCellLinkParams) {
  * Render a GraphQL-backed spreadsheet for an immutable dataTable design.
  */
 
+/*
+ * Render one DataTable inside an isolated local grid state store.
+ */
 export function DataTable(p: DataTableProps) {
+	const stateAtomsRef = useRef<DataTableStateAtoms | null>(null);
+
+	if (!stateAtomsRef.current) {
+		stateAtomsRef.current = createDataTableStateAtoms();
+	}
+
+	return <DataTableContent {...p} stateAtoms={stateAtomsRef.current} />;
+}
+
+type DataTableContentProps = DataTableProps & {
+	stateAtoms: DataTableStateAtoms;
+};
+
+/*
+ * Render the stateful DataTable implementation bound to the nearest grid state store.
+ */
+function DataTableContent(p: DataTableContentProps) {
 	const {
 		allowEdit,
 		bufferColumns = SHEET_BUFFER_COLUMNS,
@@ -2218,7 +2254,7 @@ export function DataTable(p: DataTableProps) {
 	const effectiveDisabled = disabled || !allowEdit;
 	const openModalPopUp = useOpenModalPopUp();
 	const openModalScreen = useOpenModalScreen();
-	const scrollElement = useSheetGridElementSize<HTMLDivElement>();
+	const scrollElement = useGridElementSize<HTMLDivElement>();
 	const fetchingMoreRef = useRef(false);
 	const runtimeRef = useRef<DataTableRuntimeState | null>(null);
 	const resizeStateRef = useRef<DataTableResizeState | null>(null);
@@ -2240,7 +2276,7 @@ export function DataTable(p: DataTableProps) {
 	const drainDataTableDesignSaveRef = useRef<(() => void) | null>(null);
 	const latestSavedColumnWidthsRef = useRef<SheetColumnWidths>({});
 	const designMutationRuntimeRef = useRef<DataTableDesignMutationRuntime | null>(null);
-	const cellRenderStoreRef = useRef(createSheetGridUICellRenderStore());
+	const cellRenderStoreRef = useRef(createGridUICellRenderStore());
 	const cellUICacheRef = useRef(
 		new Map<
 			string,
@@ -2262,31 +2298,74 @@ export function DataTable(p: DataTableProps) {
 		hasMoreRows: true,
 		lastCursor: null,
 	});
-	const [interactionState, dispatchInteractionAction] = useReducer(
-		dataTableInteractionReducer<DataTableCellLookup>,
-		undefined,
-		() => getInitialDataTableInteractionState() as DataTableInteractionState<DataTableCellLookup>,
-	);
-	const [columnReorderVisualState, setColumnReorderVisualState] = useState<DataTableColumnReorderVisualState | null>(null);
-	const [optimisticValues, dispatchOptimisticValues] = useReducer(dataTableCellValueReducer, {});
-	const [resizingColumnKey, setResizingColumnKey] = useState<string | null>(null);
-	const [columnWidthDrafts, setColumnWidthDrafts] = useState<SheetColumnWidths>({});
+	const [interactionStateValue, setInteractionStateValue] = useAtom(p.stateAtoms.interactionStateAtom);
+	const interactionState = interactionStateValue as DataTableInteractionState<DataTableCellLookup>;
+	const [columnReorderVisualState, setColumnReorderVisualState] = useAtom(p.stateAtoms.columnReorderVisualStateAtom);
+	const [optimisticValues, setOptimisticValues] = useAtom(p.stateAtoms.optimisticValuesAtom);
+	const [resizingColumnKey, setResizingColumnKey] = useAtom(p.stateAtoms.resizingColumnKeyAtom);
+	const [columnWidthDrafts, setColumnWidthDrafts] = useAtom(p.stateAtoms.columnWidthDraftsAtom);
 	const interactionStateRef = useRef<DataTableInteractionState<DataTableCellLookup>>(interactionState);
-	const [selectedViewId, setSelectedViewId] = useState<string | null>(() => getValidDefaultDataTableViewId(dataTable.design));
-	const [designState, dispatchDesignState] = useReducer(dataTableDesignReducer, undefined, () => getInitialDataTableDesignReducerState(dataTableId, dataTable.design));
-	const [scrollState, setScrollState] = useState({
-		scrollLeft: 0,
-		scrollTop: 0,
-	});
+	const [selectedViewIdState, setSelectedViewId] = useAtom(p.stateAtoms.selectedViewIdAtom);
+	const [designStateValue, setDesignState] = useAtom(p.stateAtoms.designStateAtom);
+	const [scrollState, setScrollState] = useAtom(p.stateAtoms.scrollStateAtom);
 	const { editDataTableCells } = useEditDataTableCells();
 	const { editDataTableDesign } = useEditDataTableDesign();
 	const [keyDown, setKeyDown] = useKeyDown();
 
 	interactionStateRef.current = interactionState;
-	const dispatchInteractionState = useCallback((action: Parameters<typeof dispatchInteractionAction>[0]) => {
-		interactionStateRef.current = dataTableInteractionReducer(interactionStateRef.current, action);
-		dispatchInteractionAction(action);
+	const selectedViewId = selectedViewIdState === undefined ? getValidDefaultDataTableViewId(dataTable.design) : selectedViewIdState;
+	const fallbackDesignState = useMemo(() => {
+		return getInitialDataTableDesignReducerState(dataTableId, dataTable.design);
+	}, [dataTable.design, dataTableId]);
+	const designState = designStateValue || fallbackDesignState;
+	const updateInteractionRenderSnapshots = useCallback((currentState: DataTableInteractionState<DataTableCellLookup>, nextState: DataTableInteractionState<DataTableCellLookup>) => {
+		const nextEditState = getActiveEditState(nextState);
+		const nextSelectedCellState = getSelectedCellState(nextState);
+		const nextSelectedCellSelection = getSelectedCellSelection(nextState);
+		const renderKeys = getGridInteractionRenderKeys({
+			currentEditState: getActiveEditState(currentState),
+			currentSelectedCellKeyMap: getSelectedCellSelection(currentState)?.selectedCellKeyMap || null,
+			currentSelectedCellState: getSelectedCellState(currentState),
+			nextEditState,
+			nextSelectedCellKeyMap: nextSelectedCellSelection?.selectedCellKeyMap || null,
+			nextSelectedCellState,
+		});
+
+		renderKeys.forEach((renderKey) => {
+			const { cellKey, rowId } = getDataTableCellRenderKeyParts(renderKey);
+
+			if (!rowId || !cellKey) {
+				return;
+			}
+
+			cellRenderStoreRef.current.setSnapshot(rowId, cellKey, getGridCellRenderSnapshot({
+				cell: cellUICacheRef.current.get(renderKey)?.cell,
+				cellKey,
+				editState: nextEditState,
+				rowId,
+				selectedCellKeyMap: nextSelectedCellSelection?.selectedCellKeyMap || null,
+				selectedCellState: nextSelectedCellState,
+			}));
+		});
 	}, []);
+	const dispatchInteractionState = useCallback((action: DataTableInteractionAction<DataTableCellLookup>) => {
+		const currentState = interactionStateRef.current;
+		const nextState = dataTableInteractionReducer(currentState, action);
+
+		if (nextState === currentState) {
+			return;
+		}
+
+		interactionStateRef.current = nextState;
+		setInteractionStateValue(nextState as DataTableInteractionState);
+		updateInteractionRenderSnapshots(currentState, nextState);
+	}, [setInteractionStateValue, updateInteractionRenderSnapshots]);
+	const dispatchOptimisticValues = useCallback((action: DataTableCellValueReducerAction) => {
+		setOptimisticValues((currentState) => dataTableCellValueReducer(currentState, action));
+	}, [setOptimisticValues]);
+	const dispatchDesignState = useCallback((action: DataTableDesignReducerAction) => {
+		setDesignState((currentState) => dataTableDesignReducer(currentState || fallbackDesignState, action));
+	}, [fallbackDesignState, setDesignState]);
 	const editState = getActiveEditState(interactionState);
 	const headerEditState = getActiveHeaderEditState(interactionState);
 	const selectedHeaderCellKey = getSelectedHeaderCellKey(interactionState);
@@ -2323,7 +2402,18 @@ export function DataTable(p: DataTableProps) {
 	const rowSourceKey = useMemo(() => {
 		return getDataTableRowsSourceKey(dataTableId, activeView?.id || null);
 	}, [activeView?.id, dataTableId]);
-	const [rowState, setRowState] = useState<DataTableRowsState>(() => getInitialDataTableRowsState(rowSourceKey));
+	const [rowStateValue, setRowStateValue] = useAtom(p.stateAtoms.rowsStateAtom);
+	const fallbackRowState = useMemo(() => {
+		return getInitialDataTableRowsState(rowSourceKey);
+	}, [rowSourceKey]);
+	const rowState = rowStateValue || fallbackRowState;
+	const setRowState = useCallback((update: DataTableRowsState | ((currentState: DataTableRowsState) => DataTableRowsState)) => {
+		setRowStateValue((currentState) => {
+			const baseState = currentState || getInitialDataTableRowsState(rowSourceKey);
+
+			return typeof update === 'function' ? update(baseState) : update;
+		});
+	}, [rowSourceKey, setRowStateValue]);
 	const { dataTableRows, fetchMore, resetOnlyTime, variables: dataTableRowsVariables } = useDataTableRows(dataTableId, organizationId, null, limit, dataTableRowsFilter, dataTableRowsQueryParams);
 	useFloatingMessageForDataTableRowsReset(resetOnlyTime, setFloatingMessage);
 	const isDataTableRowsDataCurrent =
@@ -3545,6 +3635,31 @@ export function DataTable(p: DataTableProps) {
 	}, []);
 
 	/*
+	 * Select a rectangular dataTable range from the active cell to one target cell.
+	 */
+	const selectDataTableCellRangeToTarget = useCallback((targetCell: SheetUISelectedCellState) => {
+		const navigationRuntime = dataTableArrowNavigationRuntimeRef.current;
+		const selectedCellState = getSelectedCellState(interactionStateRef.current);
+		const anchorCell = selectedCellState || targetCell;
+
+		if (!navigationRuntime) {
+			return;
+		}
+
+		scrollDataTableSelectedCellIntoView(navigationRuntime, targetCell);
+		dispatchInteractionState({
+			selection: getDataTableRangeSelection({
+				activeCell: targetCell,
+				anchorCell,
+				columnMetrics: navigationRuntime.columnMetrics,
+				renderedRows: navigationRuntime.renderedRows,
+				selectedActiveCell: anchorCell,
+			}),
+			type: 'cell_range_selected',
+		});
+	}, [scrollDataTableSelectedCellIntoView]);
+
+	/*
 	 * Extend the active mouse drag selection to one body cell.
 	 */
 
@@ -3761,7 +3876,7 @@ export function DataTable(p: DataTableProps) {
 				editorElement,
 				headerEditorElement,
 				localEditorElement,
-			} = getSheetGridKeyboardElements(event, {
+			} = getGridKeyboardElements(event, {
 				editorSelector: '[data-sheet-editor="true"]',
 				headerEditorSelector: '[data-sheet-header-editor="true"]',
 				localEditorSelector: DATA_TABLE_LOCAL_EDITOR_SELECTOR,
@@ -3804,12 +3919,12 @@ export function DataTable(p: DataTableProps) {
 				}
 			};
 
-			handleSheetGridKeyboardEvent(event, {
+			handleGridKeyboardEvent(event, {
 				editorElement,
 				headerEditorElement,
 				localEditorElement,
 			}, {
-				blocked: keyDown.alert || keyDown.modal || isSheetGridShortcutBlockedByActiveInput(DATA_TABLE_GRID_EDITOR_SELECTOR),
+				blocked: keyDown.alert || keyDown.modal || isGridShortcutBlockedByActiveInput(DATA_TABLE_GRID_EDITOR_SELECTOR),
 				hasActiveCell: !!dataTableArrowNavigationRuntimeRef.current,
 				hasActiveEditState: !!getActiveEditState(interactionStateRef.current),
 				onArrow: handleDataTableArrowKeyNavigation,
@@ -3855,10 +3970,10 @@ export function DataTable(p: DataTableProps) {
 			});
 		};
 
-		const removeSheetGridKeyboardEventListener = addSheetGridKeyboardEventListener(onKeyDown);
+		const removeGridKeyboardEventListener = addGridKeyboardEventListener(onKeyDown);
 
 		return () => {
-			removeSheetGridKeyboardEventListener();
+			removeGridKeyboardEventListener();
 		};
 	}, [
 		clearSelectedDataTableCells,
@@ -3907,15 +4022,15 @@ export function DataTable(p: DataTableProps) {
 			});
 		};
 		const onClick = (event: MouseEvent) => {
-			const localEditorElement = getClosestSheetGridElement(
+			const localEditorElement = getClosestGridElement(
 				event.target,
 				DATA_TABLE_LOCAL_EDITOR_SELECTOR,
 			);
-			const headerEditorElement = getClosestSheetGridElement(event.target, '[data-sheet-header-editor="true"]');
-			const headerElement = getClosestSheetGridElement(event.target, '[data-sheet-header-cell="true"]');
-			const editorElement = getClosestSheetGridElement(event.target, '[data-sheet-editor="true"]');
-			const openTriggerElement = getClosestSheetGridElement(event.target, '[data-sheet-cell-open-trigger="true"]');
-			const cellElement = getClosestSheetGridElement(event.target, '[data-sheet-cell="true"]');
+			const headerEditorElement = getClosestGridElement(event.target, '[data-sheet-header-editor="true"]');
+			const headerElement = getClosestGridElement(event.target, '[data-sheet-header-cell="true"]');
+			const editorElement = getClosestGridElement(event.target, '[data-sheet-editor="true"]');
+			const openTriggerElement = getClosestGridElement(event.target, '[data-sheet-cell-open-trigger="true"]');
+			const cellElement = getClosestGridElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (localEditorElement || headerEditorElement) {
@@ -3996,6 +4111,16 @@ export function DataTable(p: DataTableProps) {
 
 			if (lookup) {
 				const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
+				const nextSingleClickedCell = {
+					cellKey: runtimeKey,
+					rowId: lookup.row.id,
+				};
+
+				if (event.shiftKey && !lookup.row.__deleted) {
+					selectDataTableCellRangeToTarget(nextSingleClickedCell);
+					return;
+				}
+
 				const currentSingleClickedCell = getSelectedCellState(interactionStateRef.current);
 				const lastDismissedLocalEditorCell = getDismissedLocalEditorCell(interactionStateRef.current);
 				const isSameSingleClickedCell = currentSingleClickedCell?.rowId === lookup.row.id && currentSingleClickedCell.cellKey === runtimeKey;
@@ -4018,11 +4143,6 @@ export function DataTable(p: DataTableProps) {
 					return;
 				}
 
-				const nextSingleClickedCell = {
-					cellKey: runtimeKey,
-					rowId: lookup.row.id,
-				};
-
 				dispatchInteractionState({
 					cell: nextSingleClickedCell,
 					type: 'cell_selected',
@@ -4031,12 +4151,12 @@ export function DataTable(p: DataTableProps) {
 			}
 		};
 		const onDoubleClick = (event: MouseEvent) => {
-			const localEditorElement = getClosestSheetGridElement(
+			const localEditorElement = getClosestGridElement(
 				event.target,
 				DATA_TABLE_LOCAL_EDITOR_SELECTOR,
 			);
-			const headerElement = getClosestSheetGridElement(event.target, '[data-sheet-header-cell="true"]');
-			const cellElement = getClosestSheetGridElement(event.target, '[data-sheet-cell="true"]');
+			const headerElement = getClosestGridElement(event.target, '[data-sheet-header-cell="true"]');
+			const cellElement = getClosestGridElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (localEditorElement) {
@@ -4073,8 +4193,8 @@ export function DataTable(p: DataTableProps) {
 			});
 		};
 		const onFocusOut = (event: FocusEvent) => {
-			const headerEditorElement = getClosestSheetGridElement(event.target, '[data-sheet-header-editor="true"]');
-			const editorElement = getClosestSheetGridElement(event.target, '[data-sheet-editor="true"]');
+			const headerEditorElement = getClosestGridElement(event.target, '[data-sheet-header-editor="true"]');
+			const editorElement = getClosestGridElement(event.target, '[data-sheet-editor="true"]');
 
 			if (headerEditorElement) {
 				commitHeaderEditorElement(headerEditorElement);
@@ -4086,7 +4206,7 @@ export function DataTable(p: DataTableProps) {
 			}
 		};
 		const onInput = (event: Event) => {
-			const editorElement = getClosestSheetGridElement(event.target, '[data-sheet-editor="true"]');
+			const editorElement = getClosestGridElement(event.target, '[data-sheet-editor="true"]');
 			const runtime = runtimeRef.current;
 
 			if (editorElement && runtime?.editState?.error) {
@@ -4102,17 +4222,17 @@ export function DataTable(p: DataTableProps) {
 			}
 		};
 		const onPointerDown = (event: PointerEvent) => {
-			dismissSheetGridContextMenuOnPointerDown(event, closeDataTableContextMenu);
+			dismissGridContextMenuOnPointerDown(event, closeDataTableContextMenu);
 
-			const localEditorElement = getClosestSheetGridElement(
+			const localEditorElement = getClosestGridElement(
 				event.target,
 				DATA_TABLE_LOCAL_EDITOR_SELECTOR,
 			);
-			const editorElement = getClosestSheetGridElement(event.target, '[data-sheet-editor="true"]');
-			const handleElement = getClosestSheetGridElement(event.target, '[data-sheet-column-resize-handle]');
-			const headerElement = getClosestSheetGridElement(event.target, '[data-sheet-header-cell="true"]');
-			const openTriggerElement = getClosestSheetGridElement(event.target, '[data-sheet-cell-open-trigger="true"]');
-			const cellElement = getClosestSheetGridElement(event.target, '[data-sheet-cell="true"]');
+			const editorElement = getClosestGridElement(event.target, '[data-sheet-editor="true"]');
+			const handleElement = getClosestGridElement(event.target, '[data-sheet-column-resize-handle]');
+			const headerElement = getClosestGridElement(event.target, '[data-sheet-header-cell="true"]');
+			const openTriggerElement = getClosestGridElement(event.target, '[data-sheet-cell-open-trigger="true"]');
+			const cellElement = getClosestGridElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (!runtime || runtime.disabled) {
@@ -4159,6 +4279,10 @@ export function DataTable(p: DataTableProps) {
 				return;
 			}
 
+			if (event.shiftKey) {
+				return;
+			}
+
 			cellDragSelectionStateRef.current = {
 				anchorCell,
 				latestCell: anchorCell,
@@ -4174,7 +4298,7 @@ export function DataTable(p: DataTableProps) {
 				}
 
 				const targetElement = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY) as HTMLElement | null;
-				const targetCellElement = getClosestSheetGridElement(targetElement, '[data-sheet-cell="true"]');
+				const targetCellElement = getClosestGridElement(targetElement, '[data-sheet-cell="true"]');
 				const targetCell = getDataTableBodyCellStateFromElement(targetCellElement);
 
 				if (!targetCell) {
@@ -4206,12 +4330,12 @@ export function DataTable(p: DataTableProps) {
 				return;
 			}
 
-			const localEditorElement = getClosestSheetGridElement(
+			const localEditorElement = getClosestGridElement(
 				event.target,
 				DATA_TABLE_LOCAL_EDITOR_SELECTOR,
 			);
-			const handleElement = getClosestSheetGridElement(event.target, '[data-sheet-column-resize-handle]');
-			const cellElement = getClosestSheetGridElement(event.target, '[data-sheet-cell="true"]');
+			const handleElement = getClosestGridElement(event.target, '[data-sheet-column-resize-handle]');
+			const cellElement = getClosestGridElement(event.target, '[data-sheet-cell="true"]');
 			const runtime = runtimeRef.current;
 
 			if (handleElement) {
@@ -4276,6 +4400,7 @@ export function DataTable(p: DataTableProps) {
 		openDataTableContextMenu,
 		rowIndexById,
 		scrollElement.node,
+		selectDataTableCellRangeToTarget,
 		startHeaderEdit,
 		updateDataTableCellDragSelection,
 	]);
@@ -4406,6 +4531,10 @@ export function DataTable(p: DataTableProps) {
 			});
 	}, [columnMetricsData.metrics, stickyColumnCount, visibleRange.columnEnd, visibleRange.columnStart]);
 	const visibleRows = useMemo(() => {
+		const renderInteractionState = interactionStateRef.current;
+		const renderEditState = getActiveEditState(renderInteractionState);
+		const renderSelectedCellSelection = getSelectedCellSelection(renderInteractionState);
+		const renderSelectedCellState = getSelectedCellState(renderInteractionState);
 		const rowsByIndex = renderedRows;
 		const rowWidth = Math.max(totalWidth, viewportWidth);
 		const visibleRowSlots: SheetUIRowSlot[] = [];
@@ -4455,13 +4584,13 @@ export function DataTable(p: DataTableProps) {
 					if (cachedCell?.signature === signature) {
 						cellsByKey[runtimeKey] = cachedCell.cell;
 						activeRenderKeys.add(optimisticKey);
-						cellRenderStoreRef.current.setSnapshot(row.id, runtimeKey, getSheetUICellRenderSnapshot({
+						cellRenderStoreRef.current.setSnapshot(row.id, runtimeKey, getGridCellRenderSnapshot({
 							cell: cachedCell.cell,
 							cellKey: runtimeKey,
-							editState,
+							editState: renderEditState,
 							rowId: row.id,
-							selectedCellKeyMap,
-							selectedCellState: singleClickedCellState,
+							selectedCellKeyMap: renderSelectedCellSelection?.selectedCellKeyMap || null,
+							selectedCellState: renderSelectedCellState,
 						}));
 						return;
 					}
@@ -4487,13 +4616,13 @@ export function DataTable(p: DataTableProps) {
 					});
 					cellsByKey[runtimeKey] = uiCell;
 					activeRenderKeys.add(optimisticKey);
-					cellRenderStoreRef.current.setSnapshot(row.id, runtimeKey, getSheetUICellRenderSnapshot({
+					cellRenderStoreRef.current.setSnapshot(row.id, runtimeKey, getGridCellRenderSnapshot({
 						cell: uiCell,
 						cellKey: runtimeKey,
-						editState,
+						editState: renderEditState,
 						rowId: row.id,
-						selectedCellKeyMap,
-						selectedCellState: singleClickedCellState,
+						selectedCellKeyMap: renderSelectedCellSelection?.selectedCellKeyMap || null,
+						selectedCellState: renderSelectedCellState,
 					}));
 				});
 			} else if (isMockRow) {
@@ -4521,7 +4650,6 @@ export function DataTable(p: DataTableProps) {
 	}, [
 		activeView?.humansCannotEdit,
 		designCellsByKey,
-		editState,
 		effectiveDisabled,
 		hasPlaceholderTail,
 		isDataTableRowsReady,
@@ -4529,8 +4657,6 @@ export function DataTable(p: DataTableProps) {
 		rowCellsById,
 		renderedRows,
 		effectiveDesign.humansCannotEdit,
-		selectedCellKeyMap,
-		singleClickedCellState,
 		stickyHeaderHeight,
 		timeZone,
 		totalWidth,
@@ -4819,7 +4945,7 @@ export function DataTable(p: DataTableProps) {
 			}
 
 			const runtime = runtimeRef.current;
-			const activeCellElement = getClosestSheetGridElement(target, '[data-sheet-cell="true"]');
+			const activeCellElement = getClosestGridElement(target, '[data-sheet-cell="true"]');
 			const activeCellLookup = runtime && activeCellElement ? getDataTableCellLookup(runtime, activeCellElement.dataset.rowId, activeCellElement.dataset.cellKey) : null;
 
 			if (activeCellLookup && isDataTableLocalEditorEditStateLookup(runtime?.editState, activeCellLookup)) {
@@ -4929,7 +5055,7 @@ export function DataTable(p: DataTableProps) {
 				<DataTableLocalEditorContainer position={selectEditorPosition}>
 					<div
 						onClick={(event) => {
-							const optionElement = getClosestSheetGridElement(event.target, '[data-sheet-select-editor-option]');
+							const optionElement = getClosestGridElement(event.target, '[data-sheet-select-editor-option]');
 							const value = optionElement?.getAttribute('data-sheet-select-editor-option');
 
 							if (value === undefined || value === null) {
@@ -5002,7 +5128,7 @@ export function DataTable(p: DataTableProps) {
 			columnReorderGuide={columnReorderGuide}
 			columnCount={uiColumns.length}
 			columns={visibleColumns}
-			editState={editState}
+			editState={undefined}
 			headerCellsEditable={!activeView && !effectiveDisabled}
 			headerContent={children}
 			headerEditState={headerEditState}
@@ -5014,8 +5140,8 @@ export function DataTable(p: DataTableProps) {
 			rows={visibleRows}
 			scrollLeft={scrollState.scrollLeft}
 			scrollRef={scrollElement.ref}
-			selectedCellKeyMap={selectedCellKeyMap}
-			selectedCellState={singleClickedCellState}
+			selectedCellKeyMap={null}
+			selectedCellState={null}
 			sheetSurfaceHeight={dataTableSurfaceHeight}
 			sheetSurfaceTop={dataTableSurfaceTop}
 			stickyColumnEndLeft={stickyColumnEndLeft}

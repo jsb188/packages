@@ -5,22 +5,22 @@ import {
 	type SheetUISelectedCellKeyMap,
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
-import type { SheetGridArrowDirection } from './sheet-grid-keyboard.ts';
+import type { GridArrowDirection } from './grid-keyboard.ts';
 
-export type SheetGridSelectionBoxPosition = {
+export type GridSelectionBoxPosition = {
 	height: number;
 	left: number;
 	top: number;
 	width: number;
 };
 
-export type SheetGridSelectionBoxRowMetric = {
+export type GridSelectionBoxRowMetric = {
 	height: number;
 	rowKey: string;
 	top: number;
 };
 
-export type SheetGridCellRangeSelection = {
+export type GridCellRangeSelection = {
 	activeCell: SheetUISelectedCellState;
 	anchorCell: SheetUISelectedCellState;
 	rangeEndCell: SheetUISelectedCellState;
@@ -30,8 +30,7 @@ export type SheetGridCellRangeSelection = {
 /*
  * Build a selected-cell key map from already-ordered coordinate cells.
  */
-
-export function getSheetSelectedCellKeyMapFromCells(cells: SheetUISelectedCellState[]) {
+export function getGridSelectedCellKeyMapFromCells(cells: SheetUISelectedCellState[]) {
 	const selectedCellKeyMap: SheetUISelectedCellKeyMap = {};
 
 	cells.forEach((cell) => {
@@ -42,10 +41,78 @@ export function getSheetSelectedCellKeyMapFromCells(cells: SheetUISelectedCellSt
 }
 
 /*
+ * Return selected cells from a selected-cell key map in the map's key order.
+ */
+export function getGridSelectedCellsFromKeyMap(selectedCellKeyMap?: SheetUISelectedCellKeyMap | null) {
+	const selectedCells: SheetUISelectedCellState[] = [];
+
+	if (!selectedCellKeyMap) {
+		return selectedCells;
+	}
+
+	for (const key in selectedCellKeyMap) {
+		if (!selectedCellKeyMap[key]) {
+			continue;
+		}
+
+		const [rowId, cellKey] = key.split(':');
+
+		if (rowId && cellKey) {
+			selectedCells.push({
+				cellKey,
+				rowId,
+			});
+		}
+	}
+
+	return selectedCells;
+}
+
+/*
+ * Return an existing selected-cell map or fall back to a one-cell active selection.
+ */
+export function getGridResolvedSelectedCellKeyMap(params: {
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+	selectedCellState?: SheetUISelectedCellState | null;
+}) {
+	if (params.selectedCellKeyMap) {
+		return params.selectedCellKeyMap;
+	}
+
+	return params.selectedCellState
+		? getGridSelectedCellKeyMapFromCells([params.selectedCellState])
+		: null;
+}
+
+/*
+ * Return whether a selected-cell key map contains at least two selected cells.
+ */
+export function gridSelectedCellKeyMapHasMultipleCells(selectedCellKeyMap?: SheetUISelectedCellKeyMap | null) {
+	if (!selectedCellKeyMap) {
+		return false;
+	}
+
+	let selectedCount = 0;
+
+	for (const key in selectedCellKeyMap) {
+		if (!selectedCellKeyMap[key]) {
+			continue;
+		}
+
+		selectedCount += 1;
+
+		if (selectedCount > 1) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/*
  * Build a rectangular selected-cell key map from ordered row and column metrics.
  */
-
-export function getSheetSelectedCellKeyMapForGridRange(params: {
+export function getGridSelectedCellKeyMapForRange(params: {
 	activeCell: SheetUISelectedCellState;
 	anchorCell: SheetUISelectedCellState;
 	columnMetrics: SheetColumnMetric[];
@@ -57,7 +124,7 @@ export function getSheetSelectedCellKeyMapForGridRange(params: {
 	const anchorRowIndex = params.rowIds.indexOf(params.anchorCell.rowId);
 
 	if (activeColumnIndex < 0 || anchorColumnIndex < 0 || activeRowIndex < 0 || anchorRowIndex < 0) {
-		return getSheetSelectedCellKeyMapFromCells([params.activeCell]);
+		return getGridSelectedCellKeyMapFromCells([params.activeCell]);
 	}
 
 	const columnStart = Math.min(activeColumnIndex, anchorColumnIndex);
@@ -84,21 +151,20 @@ export function getSheetSelectedCellKeyMapForGridRange(params: {
 }
 
 /*
- * Build the full rectangular selection state for a generic sheet-like grid.
+ * Build the full rectangular selection state for a generic grid.
  */
-
-export function getSheetGridRangeSelection(params: {
+export function getGridRangeSelection(params: {
 	activeCell: SheetUISelectedCellState;
 	anchorCell: SheetUISelectedCellState;
 	columnMetrics: SheetColumnMetric[];
 	rowIds: string[];
 	selectedActiveCell?: SheetUISelectedCellState;
-}): SheetGridCellRangeSelection {
+}): GridCellRangeSelection {
 	return {
 		activeCell: params.selectedActiveCell || params.anchorCell,
 		anchorCell: params.anchorCell,
 		rangeEndCell: params.activeCell,
-		selectedCellKeyMap: getSheetSelectedCellKeyMapForGridRange({
+		selectedCellKeyMap: getGridSelectedCellKeyMapForRange({
 			activeCell: params.activeCell,
 			anchorCell: params.anchorCell,
 			columnMetrics: params.columnMetrics,
@@ -108,12 +174,11 @@ export function getSheetGridRangeSelection(params: {
 }
 
 /*
- * Return the next selected sheet-like grid cell after one arrow-key movement.
+ * Return the next selected grid cell after one arrow-key movement.
  */
-
-export function getSheetGridArrowNavigationSelection(params: {
+export function getGridArrowNavigationSelection(params: {
 	columnMetrics: SheetColumnMetric[];
-	direction: SheetGridArrowDirection;
+	direction: GridArrowDirection;
 	rowIds: string[];
 	selectedCellState?: SheetUISelectedCellState | null;
 }) {
@@ -169,7 +234,7 @@ export function getSheetGridArrowNavigationSelection(params: {
  * Return the stable anchor corner for an existing rectangular grid selection.
  */
 
-export function getSheetGridSelectionAnchorCell(params: {
+export function getGridSelectionAnchorCell(params: {
 	activeCell?: SheetUISelectedCellState | null;
 	columnMetrics: SheetColumnMetric[];
 	rowIds: string[];
@@ -177,7 +242,7 @@ export function getSheetGridSelectionAnchorCell(params: {
 }) {
 	const { activeCell, columnMetrics, rowIds, selectedCellKeyMap } = params;
 
-	if (!activeCell || !selectedCellKeyMap || Object.keys(selectedCellKeyMap).length <= 1) {
+	if (!activeCell || !selectedCellKeyMap || !gridSelectedCellKeyMapHasMultipleCells(selectedCellKeyMap)) {
 		return activeCell || null;
 	}
 
@@ -231,17 +296,17 @@ export function getSheetGridSelectionAnchorCell(params: {
 /*
  * Return one rectangle that surrounds an active multi-cell grid selection.
  */
-
-export function getSheetGridSelectionBoxPosition(params: {
+export function getGridSelectionBoxPosition(params: {
 	columnMetrics: SheetColumnMetric[];
 	getColumnDisplayLeft?: (metric: SheetColumnMetric) => number;
-	rowMetrics: SheetGridSelectionBoxRowMetric[];
+	getRowDisplayTop?: (metric: GridSelectionBoxRowMetric) => number;
+	rowMetrics: GridSelectionBoxRowMetric[];
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	stickyHeaderHeight: number;
-}): SheetGridSelectionBoxPosition | null {
+}): GridSelectionBoxPosition | null {
 	const selectedCellKeyMap = params.selectedCellKeyMap;
 
-	if (!selectedCellKeyMap || Object.keys(selectedCellKeyMap).length <= 1) {
+	if (!selectedCellKeyMap || !gridSelectedCellKeyMapHasMultipleCells(selectedCellKeyMap)) {
 		return null;
 	}
 
@@ -258,12 +323,13 @@ export function getSheetGridSelectionBoxPosition(params: {
 			}
 
 			const columnLeft = params.getColumnDisplayLeft?.(columnMetric) ?? columnMetric.left;
+			const rowTop = params.getRowDisplayTop?.(rowMetric) ?? rowMetric.top;
 
 			selectedCount += 1;
 			minColumnLeft = Math.min(minColumnLeft, columnLeft);
 			maxColumnRight = Math.max(maxColumnRight, columnLeft + columnMetric.width);
-			minRowTop = Math.min(minRowTop, rowMetric.top);
-			maxRowBottom = Math.max(maxRowBottom, rowMetric.top + rowMetric.height);
+			minRowTop = Math.min(minRowTop, rowTop);
+			maxRowBottom = Math.max(maxRowBottom, rowTop + rowMetric.height);
 		});
 	});
 
@@ -280,10 +346,9 @@ export function getSheetGridSelectionBoxPosition(params: {
 }
 
 /*
- * Return selected cells in row-major order from a generic sheet-like grid.
+ * Return selected cells in row-major order from a generic grid.
  */
-
-export function getOrderedSheetSelectedCells(params: {
+export function getOrderedGridSelectedCells(params: {
 	columnMetrics: SheetColumnMetric[];
 	rowIds: string[];
 	selectedCellKeyMap: SheetUISelectedCellKeyMap;
@@ -307,15 +372,14 @@ export function getOrderedSheetSelectedCells(params: {
 /*
  * Return the next active cell within the current selected cells.
  */
-
-export function getNextActiveSheetSelectedCell(params: {
+export function getNextActiveGridSelectedCell(params: {
 	activeCell?: SheetUISelectedCellState | null;
 	columnMetrics: SheetColumnMetric[];
 	direction: 'forward' | 'backward';
 	rowIds: string[];
 	selectedCellKeyMap: SheetUISelectedCellKeyMap;
 }) {
-	const selectedCells = getOrderedSheetSelectedCells({
+	const selectedCells = getOrderedGridSelectedCells({
 		columnMetrics: params.columnMetrics,
 		rowIds: params.rowIds,
 		selectedCellKeyMap: params.selectedCellKeyMap,

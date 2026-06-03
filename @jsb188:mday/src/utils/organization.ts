@@ -2,7 +2,7 @@ import { COLORS } from '@jsb188/app/constants/app.ts';
 import { intersection } from '@jsb188/app/utils/object.ts';
 import { shortenToSpace } from '@jsb188/app/utils/string.ts';
 import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone.ts';
-import { FEATURES_BY_OPERATION } from '../constants/product.ts';
+import { FEATURES_BY_OPERATION } from '../constants/organization.ts';
 import type {
   ACLPermissionEnum,
   MergedOrgContact,

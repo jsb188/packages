@@ -77,7 +77,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   alert_error: 'alert-circle',
   alert_warning_filled: 'alert-circle-filled',
   billing: 'credit-card',
-  broken_file: 'database-warning',
+  broken_file: 'server-warning-1',
   broken_link: 'link-broken-2',
   chat: 'message',
   click: 'click',
@@ -126,7 +126,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   mobile: 'device-mobile',
   moderator: 'gavel',
   network_error: 'wifi-off',
-  server_outage: 'database-warning',
+  server_outage: 'server-warning-1',
   not_pinned: 'pinned-off',
   org_info: 'office-building-double',
   site_locations: 'map-marks',
@@ -169,6 +169,8 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   general_workflow: 'workflow-teamwork-cog-hand',
   data_table: 'database-2',
   sheet: 'workflow-data-table-2',
+  not_found_sheet: 'layers-grid-warning',
+  not_found_data_table: 'database-warning',
 
   // Org departments
   DIRECTORY_ACCOUNTS_RECEIVABLE: 'receipt-dollar',

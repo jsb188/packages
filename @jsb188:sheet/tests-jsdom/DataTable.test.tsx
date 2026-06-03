@@ -15,7 +15,7 @@ import type { ComponentProps } from 'react';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DataTable, parseSheetEditorValue } from '../src/modules/DataTable';
+import { DataTable, parseSheetEditorValue } from '@jsb188/sheet/DataTable';
 
 configI18n();
 
@@ -100,6 +100,10 @@ vi.mock('@jsb188/graphql/hooks/use-organization-qry', () => ({
 			childOrganizations: hookState.childOrganizations,
 		};
 	},
+}));
+
+vi.mock('@jsb188/react-web/svgs/Icon', () => ({
+	Icon: (p: { name: string }) => <span className={`icon-${p.name}`} />,
 }));
 
 vi.mock('@jsb188/react/states', () => ({

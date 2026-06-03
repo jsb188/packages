@@ -1,19 +1,19 @@
-export type SheetGridArrowDirection = 'left' | 'right' | 'up' | 'down';
-export type SheetGridTabDirection = 'forward' | 'backward';
+export type GridArrowDirection = 'left' | 'right' | 'up' | 'down';
+export type GridTabDirection = 'forward' | 'backward';
 
-export type SheetGridKeyboardElements = {
+export type GridKeyboardElements = {
 	editorElement?: HTMLElement | null;
 	headerEditorElement?: HTMLElement | null;
 	localEditorElement?: HTMLElement | null;
 };
 
-export type SheetGridKeyboardHandlers = {
+export type GridKeyboardHandlers = {
 	blocked?: boolean;
 	hasActiveCell?: boolean;
 	hasActiveEditState?: boolean;
 	isTextInputKey?: boolean;
 	readClipboardText?: () => Promise<string>;
-	onArrow?: (direction: SheetGridArrowDirection, extendSelection: boolean) => void;
+	onArrow?: (direction: GridArrowDirection, extendSelection: boolean) => void;
 	onClear?: () => Promise<void> | void;
 	onCopy?: () => void;
 	onDismissActiveEditor?: () => void;
@@ -29,16 +29,16 @@ export type SheetGridKeyboardHandlers = {
 	onKeyStart?: (input: { metaKey: boolean; pressed: string }) => void;
 	onPaste?: (clipboardText: string) => Promise<void> | void;
 	onSelectAll?: () => void;
-	onTab?: (direction: SheetGridTabDirection) => void;
+	onTab?: (direction: GridTabDirection) => void;
 	onTextInput?: (pressed: string) => void;
 	stopImmediatePropagation?: boolean;
 };
 
 /*
- * Listen for global sheet-grid keyboard events with the shared capture-phase registration.
+ * Listen for global grid keyboard events with the shared capture-phase registration.
  */
 
-export function addSheetGridKeyboardEventListener(onKeyDown: (event: KeyboardEvent) => void) {
+export function addGridKeyboardEventListener(onKeyDown: (event: KeyboardEvent) => void) {
 	globalThis.addEventListener?.('keydown', onKeyDown, true);
 
 	return () => {
@@ -47,10 +47,10 @@ export function addSheetGridKeyboardEventListener(onKeyDown: (event: KeyboardEve
 }
 
 /*
- * Return the browser arrow key as a sheet-grid navigation direction.
+ * Return the browser arrow key as a grid navigation direction.
  */
 
-export function getSheetGridShortcutArrowDirection(pressed?: string | null): SheetGridArrowDirection | null {
+export function getGridShortcutArrowDirection(pressed?: string | null): GridArrowDirection | null {
 	switch (pressed) {
 		case 'ArrowLeft':
 			return 'left';
@@ -66,10 +66,10 @@ export function getSheetGridShortcutArrowDirection(pressed?: string | null): She
 }
 
 /*
- * Consume a keyboard event that belongs to a sheet-like grid interaction.
+ * Consume a keyboard event that belongs to a grid interaction.
  */
 
-function consumeSheetGridKeyboardEvent(event: KeyboardEvent, stopImmediatePropagation?: boolean) {
+function consumeGridKeyboardEvent(event: KeyboardEvent, stopImmediatePropagation?: boolean) {
 	event.preventDefault();
 
 	if (stopImmediatePropagation) {
@@ -78,23 +78,23 @@ function consumeSheetGridKeyboardEvent(event: KeyboardEvent, stopImmediatePropag
 }
 
 /*
- * Finish one sheet-grid shortcut, allowing callers to reset transient keyboard state.
+ * Finish one grid shortcut, allowing callers to reset transient keyboard state.
  */
 
-function finishSheetGridKeyboardEvent(handlers: SheetGridKeyboardHandlers) {
+function finishGridKeyboardEvent(handlers: GridKeyboardHandlers) {
 	handlers.onKeyFinish?.();
 }
 
 /*
- * Route one keyboard event through shared sheet-grid shortcut behavior.
+ * Route one keyboard event through shared grid shortcut behavior.
  */
 
-export function handleSheetGridKeyboardEvent(
+export function handleGridKeyboardEvent(
 	event: KeyboardEvent,
-	elements: SheetGridKeyboardElements,
-	handlers: SheetGridKeyboardHandlers,
+	elements: GridKeyboardElements,
+	handlers: GridKeyboardHandlers,
 ) {
-	const arrowDirection = getSheetGridShortcutArrowDirection(event.key);
+	const arrowDirection = getGridShortcutArrowDirection(event.key);
 	const metaKey = event.metaKey || event.ctrlKey;
 	const stopImmediatePropagation = handlers.stopImmediatePropagation;
 	const hasEditorShortcut = Boolean(elements.editorElement || elements.headerEditorElement || elements.localEditorElement || handlers.hasActiveEditState);
@@ -121,37 +121,37 @@ export function handleSheetGridKeyboardEvent(
 
 	if (elements.headerEditorElement) {
 		if (event.key === 'Escape') {
-			consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+			consumeGridKeyboardEvent(event, stopImmediatePropagation);
 			handlers.onDismissHeaderEditor?.();
-			finishSheetGridKeyboardEvent(handlers);
+			finishGridKeyboardEvent(handlers);
 			return true;
 		}
 
 		if (event.key === 'Enter') {
-			consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+			consumeGridKeyboardEvent(event, stopImmediatePropagation);
 			handlers.onHeaderEditorCommit?.(elements.headerEditorElement);
 		}
 
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (elements.editorElement) {
 		if (arrowDirection) {
-			consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
-			finishSheetGridKeyboardEvent(handlers);
+			consumeGridKeyboardEvent(event, stopImmediatePropagation);
+			finishGridKeyboardEvent(handlers);
 			return true;
 		}
 
 		if (event.key === 'Escape') {
-			consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+			consumeGridKeyboardEvent(event, stopImmediatePropagation);
 			handlers.onDismissEditor?.();
-			finishSheetGridKeyboardEvent(handlers);
+			finishGridKeyboardEvent(handlers);
 			return true;
 		}
 
 		if ((event.key === 'Enter' && elements.editorElement.dataset.fieldType !== 'JSON' && !event.shiftKey) || event.key === 'Tab') {
-			consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+			consumeGridKeyboardEvent(event, stopImmediatePropagation);
 			void (async () => {
 				await handlers.onEditorCommit?.(elements.editorElement!);
 				await handlers.onEditorCommitValue?.(elements.editorElement!);
@@ -160,108 +160,108 @@ export function handleSheetGridKeyboardEvent(
 					handlers.onTab?.(event.shiftKey ? 'backward' : 'forward');
 				}
 
-				finishSheetGridKeyboardEvent(handlers);
+				finishGridKeyboardEvent(handlers);
 			})();
 			return true;
 		}
 
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (elements.localEditorElement) {
 		if (event.key === 'Escape') {
-			consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+			consumeGridKeyboardEvent(event, stopImmediatePropagation);
 			handlers.onDismissLocalEditor?.();
 		}
 
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (handlers.hasActiveEditState) {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 
 		if (event.key === 'Escape') {
 			handlers.onDismissActiveEditor?.();
 		}
 
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (!handlers.hasActiveCell) {
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return false;
 	}
 
 	if (arrowDirection) {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onArrow?.(arrowDirection, event.shiftKey);
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (event.key === 'Tab') {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onTab?.(event.shiftKey ? 'backward' : 'forward');
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (metaKey && event.key.toLowerCase() === 'a') {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onSelectAll?.();
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (metaKey && event.key.toLowerCase() === 'c') {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onCopy?.();
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (metaKey && event.key.toLowerCase() === 'v') {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		void (async () => {
 			await handlers.onPaste?.(handlers.readClipboardText ? await handlers.readClipboardText() : '');
-			finishSheetGridKeyboardEvent(handlers);
+			finishGridKeyboardEvent(handlers);
 		})();
 		return true;
 	}
 
 	if (event.key === 'Delete' || event.key === 'Backspace') {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		void (async () => {
 			await handlers.onClear?.();
-			finishSheetGridKeyboardEvent(handlers);
+			finishGridKeyboardEvent(handlers);
 		})();
 		return true;
 	}
 
 	if (event.key === 'Enter' && !event.shiftKey) {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onEnter?.();
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (event.key === 'Escape') {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onEscapeSelection?.();
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
 	if (handlers.isTextInputKey) {
-		consumeSheetGridKeyboardEvent(event, stopImmediatePropagation);
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onTextInput?.(event.key);
-		finishSheetGridKeyboardEvent(handlers);
+		finishGridKeyboardEvent(handlers);
 		return true;
 	}
 
-	finishSheetGridKeyboardEvent(handlers);
+	finishGridKeyboardEvent(handlers);
 	return false;
 }

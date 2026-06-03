@@ -1,13 +1,13 @@
-import { SheetGridSurface, type SheetGridSurfaceProps } from './SheetGridSurface';
+import { DataTableGridSurface, type DataTableGridSurfaceProps } from './DataTableGridSurface';
 
-export type DataTableUIProps = SheetGridSurfaceProps;
+export type DataTableUIProps = DataTableGridSurfaceProps;
 
 /*
- * Render the shared grid surface through a DataTable-specific UI boundary.
+ * Render the DataTable-owned DOM grid surface.
  */
 
 export function DataTableUI(p: DataTableUIProps) {
-	return <SheetGridSurface {...p} />;
+	return <DataTableGridSurface {...p} />;
 }
 
 export default DataTableUI;

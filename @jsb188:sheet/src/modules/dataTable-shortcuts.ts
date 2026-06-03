@@ -3,12 +3,13 @@ import {
 	type SheetColumnMetric,
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
+import { parseGridClipboardText } from '@jsb188/sheet/modules/grid-clipboard';
 import { type DataTableInteractionCellSelection } from './dataTable-interaction-state.ts';
 import {
-	getSheetGridRangeSelection,
-	getNextActiveSheetSelectedCell,
-	getOrderedSheetSelectedCells,
-} from './sheet-selection.ts';
+	getGridRangeSelection,
+	getNextActiveGridSelectedCell,
+	getOrderedGridSelectedCells,
+} from '@jsb188/sheet/modules/grid-selection';
 
 /*
  * Return DataTable row ids in their rendered order for shared grid helpers.
@@ -29,7 +30,7 @@ export function getDataTableRangeSelection(params: {
 	renderedRows: DataTableRowGQL[];
 	selectedActiveCell?: SheetUISelectedCellState;
 }): DataTableInteractionCellSelection {
-	return getSheetGridRangeSelection({
+	return getGridRangeSelection({
 		activeCell: params.activeCell,
 		anchorCell: params.anchorCell,
 		columnMetrics: params.columnMetrics,
@@ -47,7 +48,7 @@ export function getDataTableOrderedSelectedCells(params: {
 	renderedRows: DataTableRowGQL[];
 	selection: DataTableInteractionCellSelection;
 }) {
-	return getOrderedSheetSelectedCells({
+	return getOrderedGridSelectedCells({
 		columnMetrics: params.columnMetrics,
 		rowIds: getDataTableRenderedRowIds(params.renderedRows),
 		selectedCellKeyMap: params.selection.selectedCellKeyMap,
@@ -64,7 +65,7 @@ export function getDataTableNextActiveSelectedCell(params: {
 	renderedRows: DataTableRowGQL[];
 	selection: DataTableInteractionCellSelection;
 }) {
-	return getNextActiveSheetSelectedCell({
+	return getNextActiveGridSelectedCell({
 		activeCell: params.selection.activeCell,
 		columnMetrics: params.columnMetrics,
 		direction: params.direction,
@@ -74,59 +75,11 @@ export function getDataTableNextActiveSelectedCell(params: {
 }
 
 /*
- * Parse one delimited clipboard row with basic quoted-cell support.
- */
-
-function parseDataTableDelimitedClipboardRow(rowText: string, delimiter: string) {
-	const values: string[] = [];
-	let currentValue = '';
-	let quoted = false;
-
-	for (let index = 0; index < rowText.length; index += 1) {
-		const char = rowText[index];
-		const nextChar = rowText[index + 1];
-
-		if (char === '"' && quoted && nextChar === '"') {
-			currentValue += '"';
-			index += 1;
-			continue;
-		}
-
-		if (char === '"') {
-			quoted = !quoted;
-			continue;
-		}
-
-		if (char === delimiter && !quoted) {
-			values.push(currentValue);
-			currentValue = '';
-			continue;
-		}
-
-		currentValue += char;
-	}
-
-	values.push(currentValue);
-
-	return values;
-}
-
-/*
  * Convert clipboard text from spreadsheets into a rectangular value grid.
  */
 
 export function parseDataTableClipboardText(text: string) {
-	const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-	const textWithoutTrailingLineBreak = normalizedText.endsWith('\n') ? normalizedText.slice(0, -1) : normalizedText;
-	const delimiter = textWithoutTrailingLineBreak.includes('\t') ? '\t' : ',';
-
-	if (!textWithoutTrailingLineBreak) {
-		return [['']];
-	}
-
-	return textWithoutTrailingLineBreak.split('\n').map((rowText) => {
-		return parseDataTableDelimitedClipboardRow(rowText, delimiter);
-	});
+	return parseGridClipboardText(text);
 }
 
 /*

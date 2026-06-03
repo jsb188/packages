@@ -1140,7 +1140,7 @@ describe('SheetUI rendering', () => {
 		expect(resizeHandle?.style.pointerEvents).toBe('auto');
 		expect(resizeHandle?.style.width).toBe('18px');
 		expect(resizeHandle?.style.zIndex).toBe('34');
-		expect(resizeGuide?.className).toContain('bg_primary');
+		expect(resizeGuide?.className).toContain('bg_active');
 		expect(resizeGuide?.className).not.toContain('bg_main');
 		expect(resizeGuide?.style.height).toBe('276px');
 		expect(resizeGuide?.style.left).toBe(`${SHEET_ROW_NUMBER_WIDTH + 158.5}px`);

@@ -4,7 +4,7 @@ import { type OpenModalPopUpFn } from '@jsb188/react/states';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { useEffect } from 'react';
-import { getSheetGridContextMenuPopOverId, useSheetGridContextMenu } from './sheet-grid-context-menu.ts';
+import { getGridContextMenuPopOverId, useGridContextMenu } from '@jsb188/sheet/modules/grid-context-menu';
 
 export const SHEET_CONTEXT_MENU_ID = 'dataTable-context-menu';
 export const SHEET_DELETE_ROW_POPUP_PRESET = 'DELETE_SHEET_ROW';
@@ -124,7 +124,7 @@ export function useDataTableContextMenu<Lookup>(p: UseDataTableContextMenuParams
 		closePopOver,
 		openContextMenu: openDataTableContextMenu,
 		popOver,
-	} = useSheetGridContextMenu<DataTableContextMenuTarget<Lookup>>({
+	} = useGridContextMenu<DataTableContextMenuTarget<Lookup>>({
 		contextMenuId: SHEET_CONTEXT_MENU_ID,
 		getOptions: getDataTableContextMenuOptions,
 	});
@@ -133,7 +133,7 @@ export function useDataTableContextMenu<Lookup>(p: UseDataTableContextMenuParams
 		const { action, id, value } = popOver?.globalState || {};
 		const target = activeTargetRef.current;
 
-		if (!target || id !== getSheetGridContextMenuPopOverId(SHEET_CONTEXT_MENU_ID, target) || action !== 'ITEM') {
+		if (!target || id !== getGridContextMenuPopOverId(SHEET_CONTEXT_MENU_ID, target) || action !== 'ITEM') {
 			return;
 		}
 
