@@ -1,8 +1,15 @@
 import { cn } from '@jsb188/app/utils/string.ts';
+import { SHEET_DATA_TABLE_REGION_MAX_ROWS } from '@jsb188/mday/constants/sheet.ts';
+import type {
+  DataTableCellGQL,
+  DataTableGQL,
+  DataTableRowGQL,
+} from '@jsb188/mday/types/dataTable.d.ts';
 import type {
   SheetCellGQL,
   SheetDesignObj,
   SheetRangeGQL,
+  SheetRegionGQL,
 } from '@jsb188/mday/types/sheet.d.ts';
 import {
   clampSheetColumnWidth,
@@ -12,6 +19,7 @@ import {
   getSheetColumnMetrics,
   getSheetRowIndexAtOffset,
   getSheetRowMetrics,
+  getSheetMultiSelectEditorValueSet,
   getSheetVisibleRange,
   SHEET_HEADER_HEIGHT,
   SHEET_ROW_HEIGHT,
@@ -23,12 +31,14 @@ import {
   type SheetUIResizeGuide,
   type SheetUIRowResizeGuide,
   type SheetUISelectedCellKeyMap,
+  type SheetUIEditorClickSource,
+  type SheetUIFieldType,
   type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
-import { useKeyDown } from '@jsb188/react/states';
+import { useKeyDown, useOpenModalPopUp } from '@jsb188/react/states';
 import { useAtom } from 'jotai';
-import { useCallback, useEffect, useMemo, useRef, type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
 import { SheetCanvasSurface } from '../ui/SheetCanvasSurface.tsx';
 import { SheetEditorOverlay, type SheetEditorOverlayPosition } from '../ui/SheetEditorOverlay.tsx';
 import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuTarget } from './SheetContextMenu.tsx';
@@ -41,6 +51,20 @@ import {
   handleGridKeyboardEvent,
   type GridArrowDirection,
 } from './grid-keyboard.ts';
+import {
+	getOptimisticSheetCellFromEditInput,
+	getSheetCellSnapshotEditInput,
+	getSheetClearEditInput,
+	getSheetValueEditInput,
+	sheetCellEditInputsAreEqual,
+	useSheetUndoRedo,
+	type SheetCellEditInput,
+	type SheetCellHistoryChange,
+	type SheetDataTableCellEditTarget,
+	type SheetDataTableCellHistoryChange,
+	type SheetDesignPatchInput,
+	type SheetUndoRedoEntry,
+} from './sheet-history.ts';
 import {
   getGridKeyboardElements,
   isGridShortcutBlockedByActiveInput,
@@ -89,35 +113,80 @@ import {
 import {
 	type SheetStateAtoms,
 } from '../states/sheet-state.ts';
+import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
+import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
+import {
+	DATA_TABLE_DATE_EDITOR_WIDTH,
+	DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH,
+	DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
+	DataTableDateEditor,
+	DataTableLocalEditorContainer,
+	DataTableSelectEditor,
+	canEditDataTableRuntimeCell,
+	getDataTableCellDisplayModel,
+	getDataTableCellSerializedValue,
+	getDataTableSheetUIColumn,
+	getSheetCellDisplayValue,
+	getSheetEditorDraftValue,
+	getSheetEditorElementValue as getDataTableEditorElementValue,
+	getSheetEditorFieldType,
+	handleDataTableRelatedDocumentCellEdit,
+	isDataTableDateEditorFieldType,
+	isDataTableInboundContactIdLookup,
+	isDataTableLocalEditorFieldType,
+	isDataTableReferenceCell,
+	isSheetSelectEditorFieldType,
+	parseSheetEditorValue,
+	type DataTableCellLookup,
+	type DataTableLocalEditorPosition,
+	type DataTableRuntimeDesignCell,
+} from './dataTable-cell-editing.tsx';
+
+export type { SheetCellEditInput, SheetDesignPatchInput } from './sheet-history.ts';
 
 const SHEET_CANVAS_ROW_RIGHT_PADDING = 64;
 const SHEET_CANVAS_COLUMN_RESIZE_HANDLE_WIDTH = 7;
 const SHEET_CANVAS_ROW_RESIZE_HANDLE_HEIGHT = 6;
-const SHEET_CANVAS_GRID_EDITOR_SELECTOR = '[data-sheet-editor="true"]';
+// This must match the .app_scr::-webkit-scrollbar width/height in packages/@jsb188:css/css/layout.css.
+const SHEET_CANVAS_APP_SCROLLBAR_SIZE = 19;
+const SHEET_CANVAS_TEXT_EDITOR_SELECTOR = '[data-sheet-editor="true"]';
+const SHEET_CANVAS_GRID_EDITOR_SELECTOR = '[data-sheet-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
+const SHEET_DEV_PARAM = 'dev';
 
-export type SheetCellEditInput = {
-	cell: {
-		columnIndex: number;
-		format?: string | null;
-		note?: string | null;
-		rawInput?: string | null;
-		regionId?: string | number | bigint | null;
-		rowIndex: number;
-		style?: string | null;
-		value?: string | null;
-	};
-	clear?: boolean | null;
-};
-
-export type SheetDesignPatchInput = {
-	columns?: string | null;
-	rows?: string | null;
+export type SheetPopulateDataTableRequest = {
+	boundedRows: boolean;
+	maxColumns: number;
+	maxRows: number;
+	startColumnIndex: number;
+	startRowIndex: number;
 };
 
 type SheetViewportRequest = {
 	columnCount: number;
 	startColumnIndex: number;
 };
+
+/*
+ * Return whether the current browser URL is a local development URL.
+ */
+function isSheetDevURL() {
+	const hostname = globalThis.location?.hostname;
+
+	return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+}
+
+/*
+ * Return whether the dev-only URL flag should keep Sheet edit mode open across blur and selection changes.
+ */
+function shouldSheetKeepEditModeFromURL() {
+	if (typeof globalThis.location === 'undefined' || !isSheetDevURL()) {
+		return false;
+	}
+
+	const value = new URLSearchParams(globalThis.location.search).get(SHEET_DEV_PARAM);
+
+	return value === '1' || value === 'true';
+}
 
 /*
  * Return whether two viewport requests ask for the same column window.
@@ -134,16 +203,33 @@ type SheetControllerProps = {
 	cellsByCoord: Map<string, SheetCellGQL>;
 	children?: ReactNode;
 	className?: string;
+	dataTables?: DataTableGQL[] | null;
 	design: SheetDesignObj;
 	disabled?: boolean;
 	hasMoreRows: boolean;
 	loadedRowCount: number;
 	onFetchMoreRows: () => Promise<void> | void;
+	onPopulateFromDataTable?: (request: SheetPopulateDataTableRequest) => void;
+	onRemoveDataTableRegion?: (regionId: string) => Promise<unknown> | unknown;
+	onSaveDataTableCells: (params: {
+		cells: Array<{
+			cellKey: string;
+			dataTableRowId: string;
+			value: string | null;
+			viewCellKey?: string | null;
+			viewId?: string | null;
+		}>;
+		dataTableId: string;
+	}) => Promise<unknown> | unknown;
 	onSaveCells: (cells: SheetCellEditInput[]) => Promise<unknown> | unknown;
 	onUpdateSheetDesign: (design: SheetDesignPatchInput) => Promise<unknown> | unknown;
 	onViewportRequest: (viewport: SheetViewportRequest) => void;
 	ranges: SheetRangeGQL[];
+	regions?: SheetRegionGQL[] | null;
+	setFloatingMessage?: SetFloatingMessage;
+	sourceDataTableCells?: DataTableCellGQL[] | null;
 	stateAtoms: SheetStateAtoms;
+	timeZone?: string | null;
 };
 
 type SheetCanvasHitCell = {
@@ -226,6 +312,273 @@ async function readSheetClipboardText() {
 	} catch {
 		return '';
 	}
+}
+
+/*
+ * Return DataTables keyed by their GraphQL id.
+ */
+function getSheetDataTablesById(dataTables?: DataTableGQL[] | null) {
+	return new Map((dataTables || [])
+		.filter((dataTable) => dataTable?.id)
+		.map((dataTable) => [String(dataTable.id), dataTable]));
+}
+
+/*
+ * Return active Sheet regions keyed by their GraphQL id.
+ */
+function getSheetRegionsById(regions?: SheetRegionGQL[] | null) {
+	return new Map((regions || [])
+		.filter((region) => region?.id)
+		.map((region) => [String(region.id), region]));
+}
+
+/*
+ * Return the configured one-based end row for one Sheet DataTable region.
+ */
+function getSheetDataTableRegionEndRow(region: SheetRegionGQL) {
+	const configuredEndRowIndex = Number(region.options?.endRowIndex || 0);
+	const startRowIndex = Number(region.startRowIndex || 0);
+
+	if (Number.isFinite(configuredEndRowIndex) && configuredEndRowIndex >= startRowIndex) {
+		return configuredEndRowIndex;
+	}
+
+	return startRowIndex + SHEET_DATA_TABLE_REGION_MAX_ROWS - 1;
+}
+
+/*
+ * Return the DataTable-backed Sheet region that owns one grid coordinate.
+ */
+function getSheetDataTableRegionAtCell(rowIndex: number, columnIndex: number, regions?: SheetRegionGQL[] | null) {
+	return (regions || []).find((region) => {
+		if (region.type !== 'DATA_TABLE' || !region.source?.dataTableId || !region.columns?.length) {
+			return false;
+		}
+
+		const startColumnIndex = Number(region.startColumnIndex || 0);
+		const endColumnIndex = startColumnIndex + region.columns.length - 1;
+		const startRowIndex = Number(region.startRowIndex || 0);
+		const endRowIndex = getSheetDataTableRegionEndRow(region);
+
+		return rowIndex >= startRowIndex &&
+			rowIndex <= endRowIndex &&
+			columnIndex >= startColumnIndex &&
+			columnIndex <= endColumnIndex;
+	}) || null;
+}
+
+/*
+ * Return a stable key for a DataTable source cell target.
+ */
+function getSheetDataTableSourceCellKey(dataTableId: string, dataTableRowId: string, cellKey: string) {
+	return `${dataTableId}:${dataTableRowId}:${cellKey}`;
+}
+
+/*
+ * Return hydrated source DataTable cells keyed by dataTable, row, and cell key.
+ */
+function getSourceDataTableCellsByTargetKey(cells?: DataTableCellGQL[] | null) {
+	return new Map((cells || [])
+		.filter((cell) => cell?.dataTableId && cell.dataTableRowId && cell.cellKey)
+		.map((cell) => [
+			getSheetDataTableSourceCellKey(String(cell.dataTableId), String(cell.dataTableRowId), String(cell.cellKey)),
+			cell,
+		]));
+}
+
+/*
+ * Return DataTable design cells indexed by table id and source cell key for Sheet-region lookups.
+ */
+function getSheetDataTableDesignCellsByTableId(dataTables?: DataTableGQL[] | null) {
+	return new Map((dataTables || []).map((dataTable) => {
+		return [
+			String(dataTable.id || ''),
+			new Map((dataTable.design?.cells || []).map((cell) => {
+				return [cell.key, cell as DataTableRuntimeDesignCell];
+			})),
+		];
+	}));
+}
+
+/*
+ * Build a minimal DataTable cell object from one generated Sheet cell.
+ */
+function getDataTableCellFromGeneratedSheetCell(
+	cell: SheetCellGQL,
+	dataTableId: string,
+	sourceRowId: string,
+	sourceCellKey: string,
+): DataTableCellGQL {
+	return {
+		id: cell.id || `sheet:${cell.sheetId}:${cell.rowIndex}:${cell.columnIndex}`,
+		dataTableId,
+		dataTableRowId: sourceRowId,
+		cellKey: sourceCellKey,
+		value: cell.value ?? cell.rawInput ?? null,
+		textValue: cell.textValue ?? null,
+		numberValue: cell.numberValue ?? null,
+		booleanValue: cell.booleanValue ?? null,
+		dateValue: cell.dateValue ?? null,
+		datetimeValue: cell.datetimeValue ?? null,
+		relatedTable: null,
+		relatedId: null,
+		reference: null,
+		referenceStatus: null,
+		createdAt: cell.createdAt || '',
+		updatedAt: cell.updatedAt || '',
+	};
+}
+
+/*
+ * Return the DataTable edit target represented by one Sheet grid coordinate.
+ */
+function getSheetDataTableCellEditTarget(params: {
+	cellKey?: string | null;
+	columnIndex?: number | null;
+	dataTablesById: Map<string, DataTableGQL>;
+	designCellsByDataTableId: Map<string, Map<string, DataTableRuntimeDesignCell>>;
+	effectiveCellsByCoord: Map<string, SheetCellGQL>;
+	regionsById: Map<string, SheetRegionGQL>;
+	rowId?: string | null;
+	rowIndex?: number | null;
+	sourceCellsByTargetKey: Map<string, DataTableCellGQL>;
+}) {
+	const rowIndex = params.rowIndex || getSheetCanvasRowIndexFromId(params.rowId);
+	const columnIndex = params.columnIndex || getSheetCanvasColumnIndexFromKey(params.cellKey);
+
+	if (!rowIndex || !columnIndex) {
+		return null;
+	}
+
+	const sheetCell = params.effectiveCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex));
+	if (sheetCell?.sourceType !== 'REGION_GENERATED' || !sheetCell.region?.sourceRowId || !sheetCell.region?.sourceCellKey) {
+		return null;
+	}
+
+	const regionId = String(sheetCell.region.regionId || sheetCell.regionId || '');
+	const region = params.regionsById.get(regionId);
+	const dataTableId = String(region?.source?.dataTableId || '');
+	const dataTable = dataTableId ? params.dataTablesById.get(dataTableId) : null;
+	const sourceRowId = String(sheetCell.region.sourceRowId);
+	const sourceCellKey = String(sheetCell.region.sourceCellKey);
+	const designCell = params.designCellsByDataTableId.get(dataTableId)?.get(sourceCellKey) || null;
+
+	if (!region || !dataTable || !designCell) {
+		return null;
+	}
+
+	const sourceCell = params.sourceCellsByTargetKey.get(getSheetDataTableSourceCellKey(dataTableId, sourceRowId, sourceCellKey)) ||
+		getDataTableCellFromGeneratedSheetCell(sheetCell, dataTableId, sourceRowId, sourceCellKey);
+	const row = {
+		id: sourceRowId,
+		organizationId: dataTable.organizationId || sheetCell.organizationId || '',
+		dataTableId,
+		viewId: region.sourceViewId || null,
+		cells: [sourceCell],
+	} as DataTableRowGQL;
+
+	return {
+		cellKey: String(columnIndex),
+		columnIndex,
+		dataTable,
+		lookup: {
+			cell: sourceCell,
+			designCell,
+			row,
+		},
+		region,
+		rowId: String(rowIndex),
+		rowIndex,
+		sourceCellKey,
+		sourceRowId,
+	} satisfies SheetDataTableCellEditTarget;
+}
+
+/*
+ * Return whether a DataTable-backed Sheet cell can enter edit mode.
+ */
+function canEditSheetDataTableCellTarget(target: SheetDataTableCellEditTarget, disabled?: boolean) {
+	if (!target.dataTable.design) {
+		return false;
+	}
+
+	return Boolean(
+		!disabled &&
+		canEditDataTableRuntimeCell({
+			design: target.dataTable.design,
+			designCell: target.lookup.designCell,
+			disabled,
+		}) &&
+		!isDataTableReferenceCell(target.lookup.cell),
+	);
+}
+
+/*
+ * Return a Sheet edit state for a DataTable-backed Sheet cell.
+ */
+function getSheetDataTableEditState(target: SheetDataTableCellEditTarget, optimisticValue?: string | null, clickSource?: SheetUIEditorClickSource) {
+	return {
+		cellKey: target.cellKey,
+		clickSource,
+		draftValue: getSheetEditorDraftValue(target.lookup.cell, target.lookup.designCell, optimisticValue),
+		rowId: target.rowId,
+	};
+}
+
+/*
+ * Return the overlay position used by DataTable local editors inside Sheet.
+ */
+function getSheetDataTableLocalEditorPosition(params: {
+	editorPosition: SheetEditorOverlayPosition | null;
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+	columnMetric?: SheetColumnMetric | null;
+	rowWidth: number;
+	width?: number;
+}) {
+	if (!params.editorPosition || !params.columnMetric) {
+		return null;
+	}
+
+	const isStickyLeft = params.columnMetric.columnIndex < params.stickyColumnCount;
+	const width = params.width ?? Math.min(Math.max(400, params.editorPosition.width), Math.max(140, params.editorPosition.width));
+
+	return {
+		isStickyLeft,
+		left: params.scrollLeft + params.editorPosition.left,
+		rowWidth: params.rowWidth,
+		top: params.scrollTop + params.editorPosition.top + params.editorPosition.height + 1,
+		width: width + DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET - 2,
+	} satisfies DataTableLocalEditorPosition;
+}
+
+/*
+ * Return the read-only tag position used by DataTable-backed Sheet cells.
+ */
+function getSheetDataTableReadOnlyTagPosition(params: {
+	columnMetric?: SheetColumnMetric | null;
+	rowMetric?: SheetRowMetric | null;
+	rowWidth: number;
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+}) {
+	if (!params.columnMetric || !params.rowMetric) {
+		return null;
+	}
+
+	const isStickyLeft = params.columnMetric.columnIndex < params.stickyColumnCount;
+	const left = params.scrollLeft + getSheetCanvasColumnDisplayLeft(params.columnMetric, params.scrollLeft, params.stickyColumnCount);
+	const top = params.scrollTop + getSheetCanvasRowDisplayTop(params.rowMetric, params.scrollTop) - 22;
+
+	return {
+		isStickyLeft,
+		left: left + 1,
+		rowWidth: params.rowWidth,
+		top: top + 1.5,
+		width: params.columnMetric.width,
+	} satisfies DataTableLocalEditorPosition;
 }
 
 /*
@@ -451,33 +804,6 @@ function getSheetCanvasSelectedCellsForColumns(params: {
 }
 
 /*
- * Return a sparse cell input for a text value edit.
- */
-function getSheetValueEditInput(rowIndex: number, columnIndex: number, value: string | null): SheetCellEditInput {
-	return {
-		cell: {
-			columnIndex,
-			rawInput: value,
-			rowIndex,
-			value,
-		},
-	};
-}
-
-/*
- * Return a sparse cell input that clears one coordinate.
- */
-function getSheetClearEditInput(rowIndex: number, columnIndex: number): SheetCellEditInput {
-	return {
-		cell: {
-			columnIndex,
-			rowIndex,
-		},
-		clear: true,
-	};
-}
-
-/*
  * Return the current editor overlay position for the active canvas cell.
  */
 function getSheetCanvasEditorPosition(params: {
@@ -623,16 +949,66 @@ function getSheetCanvasPointerHit(params: {
 }
 
 /*
+ * Return the cursor style for one Sheet pointer hit target.
+ */
+function getSheetCanvasPointerCursor(hit: SheetCanvasPointerHit, disabled?: boolean) {
+	if (disabled) {
+		return '';
+	}
+
+	if (hit.columnResize) {
+		return 'col-resize';
+	}
+
+	if (hit.rowResize) {
+		return 'row-resize';
+	}
+
+	return '';
+}
+
+/*
+ * Set the page cursor while canvas resizing is driven by window pointer events.
+ */
+function setSheetCanvasBodyCursor(cursor: string) {
+	if (typeof document === 'undefined') {
+		return '';
+	}
+
+	const previousCursor = document.body.style.cursor;
+	document.body.style.cursor = cursor;
+
+	return previousCursor;
+}
+
+/*
+ * Restore the page cursor after canvas resizing ends.
+ */
+function restoreSheetCanvasBodyCursor(previousCursor: string) {
+	if (typeof document !== 'undefined') {
+		document.body.style.cursor = previousCursor;
+	}
+}
+
+/*
  * Return the cell target used by the Sheet context menu.
  */
 function getSheetCanvasContextMenuTarget(params: {
+	canPopulateFromDataTable: boolean;
+	canRemoveCellsFromDataTable: boolean;
 	cell: SheetCanvasHitCell;
 	cellLookup: Map<string, SheetCanvasCell>;
+	regions?: SheetRegionGQL[] | null;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
 }) {
 	const renderKey = getSheetCellKey(params.cell.rowId, params.cell.cellKey);
 	const targetCell = params.cellLookup.get(renderKey);
+	const rowIndex = getSheetCanvasRowIndexFromId(params.cell.rowId);
+	const columnIndex = getSheetCanvasColumnIndexFromKey(params.cell.cellKey);
+	const dataTableRegion = rowIndex && columnIndex
+		? getSheetDataTableRegionAtCell(rowIndex, columnIndex, params.regions)
+		: null;
 	const selectedCells = params.selectedCellKeyMap && params.selectedCellKeyMap[renderKey]
 		? getGridSelectedCellsFromKeyMap(params.selectedCellKeyMap)
 		: [{
@@ -642,8 +1018,11 @@ function getSheetCanvasContextMenuTarget(params: {
 
 	return {
 		canEdit: true,
+		canPopulateFromDataTable: params.canPopulateFromDataTable,
+		canRemoveCellsFromDataTable: params.canRemoveCellsFromDataTable,
 		cells: selectedCells,
 		cellKey: params.cell.cellKey,
+		dataTableRegionId: dataTableRegion?.id ? String(dataTableRegion.id) : null,
 		displayValue: targetCell?.displayValue || '',
 		fillColor: targetCell?.style ? getSheetCanvasStyleColor(targetCell.style, ['backgroundColor', 'fillColor']) : null,
 		rowId: params.cell.rowId,
@@ -652,10 +1031,59 @@ function getSheetCanvasContextMenuTarget(params: {
 }
 
 /*
+ * Return the data table populate request represented by a Sheet context-menu target.
+ */
+function getSheetPopulateDataTableRequest(target: SheetContextMenuTarget, design: SheetDesignObj): SheetPopulateDataTableRequest | null {
+	let startRowIndex = Number.POSITIVE_INFINITY;
+	let startColumnIndex = Number.POSITIVE_INFINITY;
+	let endRowIndex = 0;
+	let endColumnIndex = 0;
+
+	target.cells.forEach((cell) => {
+		const rowIndex = getSheetCanvasRowIndexFromId(cell.rowId);
+		const columnIndex = getSheetCanvasColumnIndexFromKey(cell.cellKey);
+
+		if (!rowIndex || !columnIndex) {
+			return;
+		}
+
+		startRowIndex = Math.min(startRowIndex, rowIndex);
+		startColumnIndex = Math.min(startColumnIndex, columnIndex);
+		endRowIndex = Math.max(endRowIndex, rowIndex);
+		endColumnIndex = Math.max(endColumnIndex, columnIndex);
+	});
+
+	if (!Number.isFinite(startRowIndex) || !Number.isFinite(startColumnIndex)) {
+		return null;
+	}
+
+	const boundedRows = target.cells.length > 1;
+	const maxRows = boundedRows
+		? Math.min(SHEET_DATA_TABLE_REGION_MAX_ROWS, endRowIndex - startRowIndex + 1)
+		: Math.min(SHEET_DATA_TABLE_REGION_MAX_ROWS, Math.max(1, design.grid.rowCount - startRowIndex + 1));
+	const maxColumns = boundedRows
+		? endColumnIndex - startColumnIndex + 1
+		: Math.max(1, design.grid.columnCount - startColumnIndex + 1);
+
+	if (maxRows < 1 || maxColumns < 1) {
+		return null;
+	}
+
+	return {
+		boundedRows,
+		maxColumns,
+		maxRows,
+		startColumnIndex,
+		startRowIndex,
+	};
+}
+
+/*
  * Render the stateful canvas Sheet controller.
  */
 export function SheetController(p: SheetControllerProps) {
 	const [keyDown] = useKeyDown();
+	const openModalPopUp = useOpenModalPopUp();
 	const scrollElement = useGridElementSize<HTMLDivElement>();
 	const [scrollState, setScrollState] = useAtom(p.stateAtoms.scrollStateAtom);
 	const [selectedCellState, setSelectedCellState] = useAtom(p.stateAtoms.selectedCellStateAtom);
@@ -663,10 +1091,12 @@ export function SheetController(p: SheetControllerProps) {
 	const [headerSelection, setHeaderSelection] = useAtom(p.stateAtoms.headerSelectionAtom);
 	const [editState, setEditState] = useAtom(p.stateAtoms.editStateAtom);
 	const [optimisticCellsByCoord, setOptimisticCellsByCoord] = useAtom(p.stateAtoms.optimisticCellsByCoordAtom);
+	const [optimisticDataTableValues, setOptimisticDataTableValues] = useState<Record<string, string | null>>({});
 	const [localColumnWidths, setLocalColumnWidths] = useAtom(p.stateAtoms.localColumnWidthsAtom);
 	const [localRowHeights, setLocalRowHeights] = useAtom(p.stateAtoms.localRowHeightsAtom);
 	const [resizeState, setResizeState] = useAtom(p.stateAtoms.resizeStateAtom);
 	const [rowResizeState, setRowResizeState] = useAtom(p.stateAtoms.rowResizeStateAtom);
+	const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
 	const dragSelectionRef = useRef<SheetCanvasDragSelectionState | null>(null);
 	const fetchingMoreRef = useRef(false);
 	const designRef = useRef(p.design);
@@ -674,6 +1104,13 @@ export function SheetController(p: SheetControllerProps) {
 	const resizeStateRef = useRef<SheetCanvasResizeState | null>(null);
 	const rowResizeStateRef = useRef<SheetCanvasRowResizeState | null>(null);
 	const viewportRequestRef = useRef<SheetViewportRequest | null>(null);
+	const committingEditorRef = useRef(false);
+	const {
+		pushUndoEntry: pushSheetUndoEntry,
+		runApplyingHistory: runApplyingSheetHistory,
+		takeRedoEntry: takeSheetRedoEntry,
+		takeUndoEntry: takeSheetUndoEntry,
+	} = useSheetUndoRedo();
 	const runtimeRef = useRef<{
 		cellLookup: Map<string, SheetCanvasCell>;
 		columnMetrics: SheetColumnMetric[];
@@ -752,6 +1189,18 @@ export function SheetController(p: SheetControllerProps) {
 
 		return next;
 	}, [optimisticCellsByCoord, p.cellsByCoord]);
+	const dataTablesById = useMemo(() => {
+		return getSheetDataTablesById(p.dataTables);
+	}, [p.dataTables]);
+	const designCellsByDataTableId = useMemo(() => {
+		return getSheetDataTableDesignCellsByTableId(p.dataTables);
+	}, [p.dataTables]);
+	const regionsById = useMemo(() => {
+		return getSheetRegionsById(p.regions);
+	}, [p.regions]);
+	const sourceCellsByTargetKey = useMemo(() => {
+		return getSourceDataTableCellsByTargetKey(p.sourceDataTableCells);
+	}, [p.sourceDataTableCells]);
 	const cellLookup = useMemo(() => {
 		const cells = new Map<string, SheetCanvasCell>();
 		const visibleRows = rowMetricsData.metrics.slice(visibleRange.rowStart, visibleRange.rowEnd);
@@ -781,7 +1230,16 @@ export function SheetController(p: SheetControllerProps) {
 					return;
 				}
 
-				cells.set(getSheetCellKey(rowMetric.rowKey, String(columnIndex)), getSheetCanvasCell({
+				const dataTableTarget = getSheetDataTableCellEditTarget({
+					columnIndex,
+					dataTablesById,
+					designCellsByDataTableId,
+					effectiveCellsByCoord,
+					regionsById,
+					rowIndex,
+					sourceCellsByTargetKey,
+				});
+				const canvasCell = getSheetCanvasCell({
 					cell,
 					cellKey: String(columnIndex),
 					columnIndex,
@@ -789,12 +1247,38 @@ export function SheetController(p: SheetControllerProps) {
 					ranges: p.ranges,
 					rowId: rowMetric.rowKey,
 					rowIndex,
-				}));
+				});
+
+				if (dataTableTarget) {
+					const optimisticKey = getSheetDataTableSourceCellKey(
+						String(dataTableTarget.dataTable.id || ''),
+						dataTableTarget.sourceRowId,
+						dataTableTarget.sourceCellKey,
+					);
+					const optimisticValue = optimisticDataTableValues[optimisticKey];
+					const dataTableDisplay = getDataTableCellDisplayModel({
+						canEdit: canEditSheetDataTableCellTarget(dataTableTarget, p.disabled),
+						cell: dataTableTarget.lookup.cell,
+						designCell: dataTableTarget.lookup.designCell,
+						optimisticValue,
+						timeZone: p.timeZone,
+					});
+
+					cells.set(getSheetCellKey(rowMetric.rowKey, String(columnIndex)), {
+						...canvasCell,
+						dataTableDisplay,
+						displayValue: dataTableDisplay.text,
+						draftValue: dataTableDisplay.draftValue,
+					});
+					return;
+				}
+
+				cells.set(getSheetCellKey(rowMetric.rowKey, String(columnIndex)), canvasCell);
 			});
 		});
 
 		return cells;
-	}, [columnMetricsData.metrics, effectiveCellsByCoord, p.design, p.ranges, rowMetricsData.metrics, visibleRange.columnEnd, visibleRange.columnStart, visibleRange.rowEnd, visibleRange.rowStart]);
+	}, [columnMetricsData.metrics, dataTablesById, designCellsByDataTableId, effectiveCellsByCoord, optimisticDataTableValues, p.design, p.disabled, p.ranges, p.timeZone, regionsById, rowMetricsData.metrics, sourceCellsByTargetKey, visibleRange.columnEnd, visibleRange.columnStart, visibleRange.rowEnd, visibleRange.rowStart]);
 	const columnMetricsByKey = useMemo(() => {
 		return new Map(columnMetricsData.metrics.map((metric) => {
 			const canvasColumn = metric.column as SheetCanvasColumn;
@@ -815,7 +1299,89 @@ export function SheetController(p: SheetControllerProps) {
 			stickyColumnCount,
 		});
 	}, [columnMetricsByKey, editState, rowMetricsByKey, scrollState.scrollLeft, scrollState.scrollTop, stickyColumnCount]);
-	const activeEditorColumn = editState ? columnMetricsByKey.get(editState.cellKey)?.column || null : null;
+	const activeDataTableEditTarget = useMemo(() => {
+		if (!editState) {
+			return null;
+		}
+
+		return getSheetDataTableCellEditTarget({
+			cellKey: editState.cellKey,
+			dataTablesById,
+			designCellsByDataTableId,
+			effectiveCellsByCoord,
+			regionsById,
+			rowId: editState.rowId,
+			sourceCellsByTargetKey,
+		});
+	}, [dataTablesById, designCellsByDataTableId, editState, effectiveCellsByCoord, regionsById, sourceCellsByTargetKey]);
+	const activeDataTableFieldType = activeDataTableEditTarget
+		? getSheetEditorFieldType(activeDataTableEditTarget.lookup.designCell) as SheetUIFieldType
+		: null;
+	const activeDataTableLocalEditorPosition = useMemo(() => {
+		if (!activeDataTableEditTarget || !editorPosition || !activeDataTableFieldType) {
+			return null;
+		}
+
+		if (!isSheetSelectEditorFieldType(activeDataTableFieldType) && !isDataTableDateEditorFieldType(activeDataTableFieldType) && !isDataTableInboundContactIdLookup(activeDataTableEditTarget.lookup)) {
+			return null;
+		}
+
+		const width = isDataTableDateEditorFieldType(activeDataTableFieldType)
+			? DATA_TABLE_DATE_EDITOR_WIDTH
+			: isDataTableInboundContactIdLookup(activeDataTableEditTarget.lookup)
+				? Math.max(editorPosition.width, DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH)
+				: undefined;
+
+		return getSheetDataTableLocalEditorPosition({
+			columnMetric: columnMetricsByKey.get(activeDataTableEditTarget.cellKey),
+			editorPosition,
+			rowWidth: Math.max(totalWidth, viewportWidth),
+			scrollLeft: scrollState.scrollLeft,
+			scrollTop: scrollState.scrollTop,
+			stickyColumnCount,
+			width,
+		});
+	}, [activeDataTableEditTarget, activeDataTableFieldType, columnMetricsByKey, editorPosition, scrollState.scrollLeft, scrollState.scrollTop, stickyColumnCount, totalWidth, viewportWidth]);
+	const activeEditorColumn = editState
+		? activeDataTableEditTarget
+			? {
+					...getDataTableSheetUIColumn(activeDataTableEditTarget.lookup.designCell),
+					id: editState.cellKey,
+					key: editState.cellKey,
+				}
+			: columnMetricsByKey.get(editState.cellKey)?.column || null
+		: null;
+	const selectedDataTableReadOnlyCellPosition = useMemo(() => {
+		if (!selectedCellState || editState) {
+			return null;
+		}
+
+		const target = getSheetDataTableCellEditTarget({
+			cellKey: selectedCellState.cellKey,
+			dataTablesById,
+			designCellsByDataTableId,
+			effectiveCellsByCoord,
+			regionsById,
+			rowId: selectedCellState.rowId,
+			sourceCellsByTargetKey,
+		});
+
+		if (!target || canEditSheetDataTableCellTarget(target, p.disabled)) {
+			return null;
+		}
+
+		return getSheetDataTableReadOnlyTagPosition({
+			columnMetric: columnMetricsByKey.get(selectedCellState.cellKey),
+			rowMetric: rowMetricsByKey.get(selectedCellState.rowId),
+			rowWidth: Math.max(totalWidth, viewportWidth),
+			scrollLeft: scrollState.scrollLeft,
+			scrollTop: scrollState.scrollTop,
+			stickyColumnCount,
+		});
+	}, [columnMetricsByKey, dataTablesById, designCellsByDataTableId, editState, effectiveCellsByCoord, p.disabled, regionsById, rowMetricsByKey, scrollState.scrollLeft, scrollState.scrollTop, selectedCellState, sourceCellsByTargetKey, stickyColumnCount, totalWidth, viewportWidth]);
+	const keepEditModeForDev = useMemo(() => {
+		return shouldSheetKeepEditModeFromURL();
+	}, []);
 	const resizeGuide = useMemo<SheetUIResizeGuide | null>(() => {
 		if (!resizeState) {
 			return null;
@@ -979,13 +1545,22 @@ export function SheetController(p: SheetControllerProps) {
 		runtime.scrollNode.scrollTop = nextScrollState.scrollTop;
 	}, [stickyColumnCount]);
 
+	/*
+	 * Close the active editor for selection changes unless the local dev keep-edit flag is enabled.
+	 */
+	const closeSheetCellEditorForSelection = useCallback(() => {
+		if (!keepEditModeForDev) {
+			setEditState(null);
+		}
+	}, [keepEditModeForDev]);
+
 	const selectSheetCell = useCallback((cell: SheetUISelectedCellState, selectedMap?: SheetUISelectedCellKeyMap | null) => {
-		setEditState(null);
+		closeSheetCellEditorForSelection();
 		setHeaderSelection(null);
 		setSelectedCellState(cell);
 		setSelectedCellKeyMap(selectedMap || getGridSelectedCellKeyMapFromCells([cell]));
 		scrollCellIntoView(cell);
-	}, [scrollCellIntoView, setHeaderSelection]);
+	}, [closeSheetCellEditorForSelection, scrollCellIntoView, setHeaderSelection]);
 
 	/*
 	 * Select a rectangular cell range from the active cell to one target cell.
@@ -1007,14 +1582,14 @@ export function SheetController(p: SheetControllerProps) {
 			selectedActiveCell: anchorCell,
 		});
 
-		setEditState(null);
+		closeSheetCellEditorForSelection();
 		setHeaderSelection(null);
 		setSelectedCellState(selection.activeCell);
 		setSelectedCellKeyMap(selection.selectedCellKeyMap);
 		scrollCellIntoView(targetCell);
-	}, [scrollCellIntoView, selectSheetCell, selectedCellState, setHeaderSelection]);
+	}, [closeSheetCellEditorForSelection, scrollCellIntoView, selectSheetCell, selectedCellState, setHeaderSelection]);
 
-	const openSheetCellEditor = useCallback((cell?: SheetUISelectedCellState | null, initialValue?: string) => {
+	const openSheetCellEditor = useCallback((cell?: SheetUISelectedCellState | null, initialValue?: string, selectAllOnFocus = true) => {
 		const runtime = runtimeRef.current;
 		const targetCell = cell || selectedCellState;
 		const rowIndex = getSheetCanvasRowIndexFromId(targetCell?.rowId);
@@ -1024,18 +1599,179 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		const sourceCell = runtime.effectiveCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex));
-
 		setSelectedCellState(targetCell);
 		setSelectedCellKeyMap(getGridSelectedCellKeyMapFromCells([targetCell]));
 		setHeaderSelection(null);
+
+		const dataTableTarget = getSheetDataTableCellEditTarget({
+			columnIndex,
+			dataTablesById,
+			designCellsByDataTableId,
+			effectiveCellsByCoord: runtime.effectiveCellsByCoord,
+			regionsById,
+			rowIndex,
+			sourceCellsByTargetKey,
+		});
+
+		if (dataTableTarget) {
+			if (!canEditSheetDataTableCellTarget(dataTableTarget, p.disabled)) {
+				setEditState(null);
+				scrollCellIntoView(targetCell);
+				return;
+			}
+
+			if (!isDataTableInboundContactIdLookup(dataTableTarget.lookup) && handleDataTableRelatedDocumentCellEdit(dataTableTarget.lookup, p.setFloatingMessage)) {
+				setEditState(null);
+				scrollCellIntoView(targetCell);
+				return;
+			}
+
+			const optimisticKey = getSheetDataTableSourceCellKey(
+				String(dataTableTarget.dataTable.id || ''),
+				dataTableTarget.sourceRowId,
+				dataTableTarget.sourceCellKey,
+			);
+			const fieldType = getSheetEditorFieldType(dataTableTarget.lookup.designCell);
+			const localEditor = isDataTableLocalEditorFieldType(fieldType) || isDataTableInboundContactIdLookup(dataTableTarget.lookup);
+			const dataTableEditState = getSheetDataTableEditState(dataTableTarget, optimisticDataTableValues[optimisticKey], 'CELL_BACKGROUND');
+
+			setEditState({
+				...dataTableEditState,
+				disableInlineEditor: localEditor,
+				draftValue: initialValue ?? dataTableEditState.draftValue,
+				selectAllOnFocus,
+			});
+			scrollCellIntoView(targetCell);
+			return;
+		}
+
+		const sourceCell = runtime.effectiveCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex));
 		setEditState({
 			cellKey: targetCell.cellKey,
+			selectAllOnFocus,
 			draftValue: initialValue ?? getSheetCanvasCellDraftValue(sourceCell),
 			rowId: targetCell.rowId,
 		});
 		scrollCellIntoView(targetCell);
-	}, [p.disabled, scrollCellIntoView, selectedCellState, setHeaderSelection]);
+	}, [dataTablesById, designCellsByDataTableId, optimisticDataTableValues, p.disabled, p.setFloatingMessage, regionsById, scrollCellIntoView, selectedCellState, setHeaderSelection, sourceCellsByTargetKey]);
+
+	const applySheetCellInputs = useCallback(async (inputs: SheetCellEditInput[]) => {
+		const runtime = runtimeRef.current;
+
+		if (!inputs.length) {
+			return;
+		}
+
+		setOptimisticCellsByCoord((current) => {
+			const next = new Map(current);
+
+			inputs.forEach((input) => {
+				const key = getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex);
+				const currentCell = runtime?.effectiveCellsByCoord.get(key) || null;
+
+				next.set(key, getOptimisticSheetCellFromEditInput(input, currentCell));
+			});
+
+			return next;
+		});
+
+		await p.onSaveCells(inputs);
+	}, [p.onSaveCells]);
+
+	const applySheetDataTableCellChanges = useCallback(async (changes: SheetDataTableCellHistoryChange[], direction: 'after' | 'before') => {
+		if (!changes.length) {
+			return;
+		}
+
+		const groupedChanges = new Map<string, SheetDataTableCellHistoryChange[]>();
+
+		setOptimisticDataTableValues((current) => {
+			const next = { ...current };
+
+			changes.forEach((change) => {
+				const dataTableId = String(change.target.dataTable.id || '');
+
+				if (!dataTableId) {
+					return;
+				}
+
+				next[getSheetDataTableSourceCellKey(dataTableId, change.target.sourceRowId, change.target.sourceCellKey)] = change[direction];
+				groupedChanges.set(dataTableId, [
+					...(groupedChanges.get(dataTableId) || []),
+					change,
+				]);
+			});
+
+			return next;
+		});
+
+		for (const [dataTableId, groupChanges] of groupedChanges) {
+			await p.onSaveDataTableCells({
+				dataTableId,
+				cells: groupChanges.map((change) => ({
+					cellKey: change.target.sourceCellKey,
+					dataTableRowId: change.target.sourceRowId,
+					value: change[direction],
+					viewCellKey: change.target.region.sourceViewId ? change.target.sourceCellKey : null,
+					viewId: change.target.region.sourceViewId || null,
+				})),
+			});
+		}
+	}, [p.onSaveDataTableCells]);
+
+	const applySheetDesignPatch = useCallback(async (patch: SheetDesignPatchInput) => {
+		if (patch.columns) {
+			const columns = parseSheetJSONObject(patch.columns, {});
+
+			setLocalColumnWidths(getSheetCanvasColumnWidths({
+				...designRef.current,
+				columns,
+			}));
+		}
+
+		if (patch.rows) {
+			const rows = parseSheetJSONObject(patch.rows, {});
+
+			setLocalRowHeights(getSheetCanvasRowHeights({
+				...designRef.current,
+				rows,
+			}, rowCount));
+		}
+
+		await p.onUpdateSheetDesign(patch);
+	}, [p.onUpdateSheetDesign, rowCount, setLocalColumnWidths, setLocalRowHeights]);
+
+	const applySheetHistoryEntry = useCallback(async (entry: SheetUndoRedoEntry, direction: 'after' | 'before') => {
+		await runApplyingSheetHistory(async () => {
+			if (entry.sheetCells?.length) {
+				await applySheetCellInputs(entry.sheetCells.map((change) => change[direction]));
+			}
+
+			if (entry.dataTableCells?.length) {
+				await applySheetDataTableCellChanges(entry.dataTableCells, direction);
+			}
+
+			if (entry.design) {
+				await applySheetDesignPatch(entry.design[direction]);
+			}
+		});
+	}, [applySheetCellInputs, applySheetDataTableCellChanges, applySheetDesignPatch, runApplyingSheetHistory]);
+
+	const undoSheetHistory = useCallback(async () => {
+		const entry = takeSheetUndoEntry();
+
+		if (entry) {
+			await applySheetHistoryEntry(entry, 'before');
+		}
+	}, [applySheetHistoryEntry, takeSheetUndoEntry]);
+
+	const redoSheetHistory = useCallback(async () => {
+		const entry = takeSheetRedoEntry();
+
+		if (entry) {
+			await applySheetHistoryEntry(entry, 'after');
+		}
+	}, [applySheetHistoryEntry, takeSheetRedoEntry]);
 
 	const saveSheetCellValue = useCallback(async (cell: SheetUISelectedCellState, value: string | null) => {
 		const rowIndex = getSheetCanvasRowIndexFromId(cell.rowId);
@@ -1046,28 +1782,65 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		const coordKey = getSheetCanvasCoordKey(rowIndex, columnIndex);
+		const currentCell = runtimeRef.current?.effectiveCellsByCoord.get(coordKey) || null;
+		const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, currentCell);
+		const after = getSheetValueEditInput(rowIndex, columnIndex, value);
 
-		setOptimisticCellsByCoord((current) => {
-			const next = new Map(current);
-			const currentCell = runtimeRef.current?.effectiveCellsByCoord.get(coordKey) || {};
+		if (sheetCellEditInputsAreEqual(before, after)) {
+			return;
+		}
 
-			next.set(coordKey, {
-				...currentCell,
-				columnIndex,
-				rawInput: value,
-				rowIndex,
-				value,
-			} as SheetCellGQL);
+		pushSheetUndoEntry({
+			sheetCells: [{
+				after,
+				before,
+			}],
+		});
+		await applySheetCellInputs([after]);
+	}, [applySheetCellInputs, pushSheetUndoEntry]);
 
-			return next;
+	const saveDataTableCellValue = useCallback(async (target: SheetDataTableCellEditTarget, value: string | null) => {
+		const dataTableId = String(target.dataTable.id || '');
+		const optimisticKey = getSheetDataTableSourceCellKey(dataTableId, target.sourceRowId, target.sourceCellKey);
+		const currentValue = getDataTableCellSerializedValue(target.lookup.cell, target.lookup.designCell, optimisticDataTableValues[optimisticKey]);
+
+		if (!dataTableId || currentValue === value) {
+			return;
+		}
+
+		pushSheetUndoEntry({
+			dataTableCells: [{
+				after: value,
+				before: currentValue,
+				target,
+			}],
 		});
 
-		await p.onSaveCells([getSheetValueEditInput(rowIndex, columnIndex, value)]);
-	}, [p.onSaveCells]);
+		try {
+			await applySheetDataTableCellChanges([{
+				after: value,
+				before: currentValue,
+				target,
+			}], 'after');
+		} catch (error) {
+			setOptimisticDataTableValues((current) => {
+				const next = { ...current };
+				delete next[optimisticKey];
+				return next;
+			});
 
-	const commitEditorElement = useCallback(async (editorElement: HTMLElement) => {
+			throw error;
+		}
+	}, [applySheetDataTableCellChanges, optimisticDataTableValues, pushSheetUndoEntry]);
+
+	const commitEditorElement = useCallback(async (editorElement: HTMLElement, options?: { selectAfterCommit?: boolean }) => {
+		if (committingEditorRef.current) {
+			return;
+		}
+
 		const cellKey = editorElement.dataset.cellKey;
 		const rowId = editorElement.dataset.rowId;
+		const selectAfterCommit = options?.selectAfterCommit !== false;
 
 		if (!cellKey || !rowId) {
 			setEditState(null);
@@ -1078,11 +1851,70 @@ export function SheetController(p: SheetControllerProps) {
 			cellKey,
 			rowId,
 		};
+		const dataTableTarget = getSheetDataTableCellEditTarget({
+			cellKey,
+			dataTablesById,
+			designCellsByDataTableId,
+			effectiveCellsByCoord: runtimeRef.current?.effectiveCellsByCoord || new Map(),
+			regionsById,
+			rowId,
+			sourceCellsByTargetKey,
+		});
 
-		await saveSheetCellValue(nextCell, getSheetEditorElementValue(editorElement));
-		setEditState(null);
-		selectSheetCell(nextCell);
-	}, [saveSheetCellValue, selectSheetCell]);
+		if (dataTableTarget) {
+			const draftValue = getDataTableEditorElementValue(editorElement);
+			const parsedValue = parseSheetEditorValue(dataTableTarget.lookup.designCell, draftValue);
+
+			if (parsedValue.error) {
+				setEditState({
+					cellKey,
+					draftValue,
+					error: parsedValue.error,
+					rowId,
+				});
+				return;
+			}
+
+			try {
+				committingEditorRef.current = true;
+				await saveDataTableCellValue(dataTableTarget, parsedValue.value);
+				setEditState(null);
+				if (selectAfterCommit) {
+					selectSheetCell(nextCell);
+				}
+			} catch (error) {
+				setEditState({
+					cellKey,
+					draftValue,
+					error: error instanceof Error ? error.message : 'Unable to save cell',
+					rowId,
+				});
+			} finally {
+				committingEditorRef.current = false;
+			}
+			return;
+		}
+
+		const draftValue = getSheetEditorElementValue(editorElement);
+
+		try {
+			committingEditorRef.current = true;
+			await saveSheetCellValue(nextCell, draftValue);
+			setEditState(null);
+			if (selectAfterCommit) {
+				selectSheetCell(nextCell);
+			}
+		} catch (error) {
+			setEditState({
+				cellKey,
+				draftValue,
+				error: error instanceof Error ? error.message : 'Unable to save cell',
+				rowId,
+			});
+		} finally {
+			committingEditorRef.current = false;
+		}
+	}, [dataTablesById, designCellsByDataTableId, regionsById, saveDataTableCellValue, saveSheetCellValue, selectSheetCell, sourceCellsByTargetKey]);
 
 	const clearSelectedSheetCells = useCallback(async () => {
 		const runtime = runtimeRef.current;
@@ -1100,33 +1932,71 @@ export function SheetController(p: SheetControllerProps) {
 			rowIds: runtime.rowIds,
 			selectedCellKeyMap: selectedMap,
 		});
-		const inputs: SheetCellEditInput[] = [];
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
+		const dataTableCellChanges: SheetDataTableCellHistoryChange[] = [];
 
 		selectedCells.forEach((cell) => {
 			const rowIndex = getSheetCanvasRowIndexFromId(cell.rowId);
 			const columnIndex = getSheetCanvasColumnIndexFromKey(cell.cellKey);
 
-			if (rowIndex && columnIndex) {
-				inputs.push(getSheetClearEditInput(rowIndex, columnIndex));
+			if (!rowIndex || !columnIndex) {
+				return;
+			}
+
+			const dataTableTarget = getSheetDataTableCellEditTarget({
+				columnIndex,
+				dataTablesById,
+				designCellsByDataTableId,
+				effectiveCellsByCoord: runtime.effectiveCellsByCoord,
+				regionsById,
+				rowIndex,
+				sourceCellsByTargetKey,
+			});
+
+			if (dataTableTarget) {
+				if (!canEditSheetDataTableCellTarget(dataTableTarget, p.disabled)) {
+					return;
+				}
+
+				const parsedValue = parseSheetEditorValue(dataTableTarget.lookup.designCell, '');
+				const dataTableId = String(dataTableTarget.dataTable.id || '');
+				const optimisticKey = getSheetDataTableSourceCellKey(dataTableId, dataTableTarget.sourceRowId, dataTableTarget.sourceCellKey);
+				const currentValue = getDataTableCellSerializedValue(dataTableTarget.lookup.cell, dataTableTarget.lookup.designCell, optimisticDataTableValues[optimisticKey]);
+
+				if (!parsedValue.error && currentValue !== parsedValue.value) {
+					dataTableCellChanges.push({
+						after: parsedValue.value,
+						before: currentValue,
+						target: dataTableTarget,
+					});
+				}
+				return;
+			}
+
+			const key = getSheetCanvasCoordKey(rowIndex, columnIndex);
+			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, runtime.effectiveCellsByCoord.get(key));
+			const after = getSheetClearEditInput(rowIndex, columnIndex);
+
+			if (!sheetCellEditInputsAreEqual(before, after)) {
+				sheetCellChanges.push({
+					after,
+					before,
+				});
 			}
 		});
 
-		if (!inputs.length) {
+		if (!sheetCellChanges.length && !dataTableCellChanges.length) {
 			return;
 		}
 
-		setOptimisticCellsByCoord((current) => {
-			const next = new Map(current);
-
-			inputs.forEach((input) => {
-				next.delete(getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex));
-			});
-
-			return next;
+		pushSheetUndoEntry({
+			dataTableCells: dataTableCellChanges,
+			sheetCells: sheetCellChanges,
 		});
 
-		await p.onSaveCells(inputs);
-	}, [p.onSaveCells, selectedCellKeyMap, selectedCellState]);
+		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+		await applySheetDataTableCellChanges(dataTableCellChanges, 'after');
+	}, [applySheetCellInputs, applySheetDataTableCellChanges, dataTablesById, designCellsByDataTableId, optimisticDataTableValues, p.disabled, pushSheetUndoEntry, regionsById, selectedCellKeyMap, selectedCellState, sourceCellsByTargetKey]);
 
 	const copySelectedSheetCells = useCallback(() => {
 		const runtime = runtimeRef.current;
@@ -1176,7 +2046,8 @@ export function SheetController(p: SheetControllerProps) {
 
 			return String(canvasColumn.sheetColumnIndex) === activeCell.cellKey;
 		});
-		const inputs: SheetCellEditInput[] = [];
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
+		const dataTableCellChanges: SheetDataTableCellHistoryChange[] = [];
 
 		if (startRowIndex < 0 || startColumnIndex < 0) {
 			return;
@@ -1195,36 +2066,62 @@ export function SheetController(p: SheetControllerProps) {
 				const canvasColumn = metric?.column as SheetCanvasColumn | undefined;
 
 				if (canvasColumn) {
-					inputs.push(getSheetValueEditInput(rowIndex, canvasColumn.sheetColumnIndex, value));
+					const dataTableTarget = getSheetDataTableCellEditTarget({
+						columnIndex: canvasColumn.sheetColumnIndex,
+						dataTablesById,
+						designCellsByDataTableId,
+						effectiveCellsByCoord: runtime.effectiveCellsByCoord,
+						regionsById,
+						rowIndex,
+						sourceCellsByTargetKey,
+					});
+
+					if (dataTableTarget) {
+						if (!canEditSheetDataTableCellTarget(dataTableTarget, p.disabled)) {
+							return;
+						}
+
+						const parsedValue = parseSheetEditorValue(dataTableTarget.lookup.designCell, value);
+						const dataTableId = String(dataTableTarget.dataTable.id || '');
+						const optimisticKey = getSheetDataTableSourceCellKey(dataTableId, dataTableTarget.sourceRowId, dataTableTarget.sourceCellKey);
+						const currentValue = getDataTableCellSerializedValue(dataTableTarget.lookup.cell, dataTableTarget.lookup.designCell, optimisticDataTableValues[optimisticKey]);
+
+						if (!parsedValue.error && currentValue !== parsedValue.value) {
+							dataTableCellChanges.push({
+								after: parsedValue.value,
+								before: currentValue,
+								target: dataTableTarget,
+							});
+						}
+						return;
+					}
+
+					const key = getSheetCanvasCoordKey(rowIndex, canvasColumn.sheetColumnIndex);
+					const before = getSheetCellSnapshotEditInput(rowIndex, canvasColumn.sheetColumnIndex, runtime.effectiveCellsByCoord.get(key));
+					const after = getSheetValueEditInput(rowIndex, canvasColumn.sheetColumnIndex, value);
+
+					if (!sheetCellEditInputsAreEqual(before, after)) {
+						sheetCellChanges.push({
+							after,
+							before,
+						});
+					}
 				}
 			});
 		});
 
-		if (!inputs.length) {
+		if (!sheetCellChanges.length && !dataTableCellChanges.length) {
 			return;
 		}
 
-		setOptimisticCellsByCoord((current) => {
-			const next = new Map(current);
-
-			inputs.forEach((input) => {
-				const key = getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex);
-				const currentCell = runtime.effectiveCellsByCoord.get(key) || {};
-
-				next.set(key, {
-					...currentCell,
-					columnIndex: input.cell.columnIndex,
-					rawInput: input.cell.rawInput,
-					rowIndex: input.cell.rowIndex,
-					value: input.cell.value,
-				} as SheetCellGQL);
-			});
-
-			return next;
+		pushSheetUndoEntry({
+			dataTableCells: dataTableCellChanges,
+			sheetCells: sheetCellChanges,
 		});
 
-		await p.onSaveCells(inputs);
-	}, [p.onSaveCells, selectedCellState]);
+		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+		await applySheetDataTableCellChanges(dataTableCellChanges, 'after');
+	}, [applySheetCellInputs, applySheetDataTableCellChanges, dataTablesById, designCellsByDataTableId, optimisticDataTableValues, p.disabled, pushSheetUndoEntry, regionsById, selectedCellState, sourceCellsByTargetKey]);
 
 	const selectAllSheetCells = useCallback(() => {
 		const runtime = runtimeRef.current;
@@ -1256,11 +2153,11 @@ export function SheetController(p: SheetControllerProps) {
 			maxRowIndex: Math.min(rowCount, usedRange.maxRowIndex),
 		});
 
-		setEditState(null);
+		closeSheetCellEditorForSelection();
 		setHeaderSelection(null);
 		setSelectedCellState(activeCell);
 		setSelectedCellKeyMap(getGridSelectedCellKeyMapFromCells(selectedCells));
-	}, [p.design, p.ranges, rowCount, selectSheetCell, selectedCellState, setHeaderSelection]);
+	}, [closeSheetCellEditorForSelection, p.design, p.ranges, rowCount, selectSheetCell, selectedCellState, setHeaderSelection]);
 
 	const selectSheetRowRange = useCallback((startRowMetric: SheetRowMetric, endRowMetric: SheetRowMetric) => {
 		const runtime = runtimeRef.current;
@@ -1291,14 +2188,14 @@ export function SheetController(p: SheetControllerProps) {
 			rowIds,
 		});
 
-		setEditState(null);
+		closeSheetCellEditorForSelection();
 		setHeaderSelection({
 			rowIds,
 			type: 'ROW',
 		});
 		setSelectedCellState(activeCell);
 		setSelectedCellKeyMap(getGridSelectedCellKeyMapFromCells(selectedCells));
-	}, [setEditState, setHeaderSelection, setSelectedCellKeyMap, setSelectedCellState]);
+	}, [closeSheetCellEditorForSelection, setHeaderSelection, setSelectedCellKeyMap, setSelectedCellState]);
 
 	const selectSheetRow = useCallback((rowMetric: SheetRowMetric) => {
 		selectSheetRowRange(rowMetric, rowMetric);
@@ -1333,14 +2230,14 @@ export function SheetController(p: SheetControllerProps) {
 			rowIds: runtime.rowIds,
 		});
 
-		setEditState(null);
+		closeSheetCellEditorForSelection();
 		setHeaderSelection({
 			cellKeys,
 			type: 'COLUMN',
 		});
 		setSelectedCellState(activeCell);
 		setSelectedCellKeyMap(getGridSelectedCellKeyMapFromCells(selectedCells));
-	}, [setEditState, setHeaderSelection, setSelectedCellKeyMap, setSelectedCellState]);
+	}, [closeSheetCellEditorForSelection, setHeaderSelection, setSelectedCellKeyMap, setSelectedCellState]);
 
 	const selectSheetColumn = useCallback((columnMetric: SheetColumnMetric) => {
 		selectSheetColumnRange(columnMetric, columnMetric);
@@ -1374,7 +2271,7 @@ export function SheetController(p: SheetControllerProps) {
 				selectedActiveCell: nextCell,
 			});
 
-			setEditState(null);
+			closeSheetCellEditorForSelection();
 			setHeaderSelection(null);
 			setSelectedCellState(selection.activeCell);
 			setSelectedCellKeyMap(selection.selectedCellKeyMap);
@@ -1383,7 +2280,7 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		selectSheetCell(nextCell);
-	}, [scrollCellIntoView, selectSheetCell, selectedCellKeyMap, selectedCellState, setHeaderSelection]);
+	}, [closeSheetCellEditorForSelection, scrollCellIntoView, selectSheetCell, selectedCellKeyMap, selectedCellState, setHeaderSelection]);
 
 	const navigateSheetTab = useCallback((direction: 'forward' | 'backward') => {
 		const runtime = runtimeRef.current;
@@ -1417,7 +2314,7 @@ export function SheetController(p: SheetControllerProps) {
 
 	const handleSheetContextMenuFormatCells = useCallback(async (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => {
 		const runtime = runtimeRef.current;
-		const inputs: SheetCellEditInput[] = [];
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
 
 		if (!runtime) {
 			return;
@@ -1438,46 +2335,58 @@ export function SheetController(p: SheetControllerProps) {
 				...currentStyle,
 				[format.name]: format.value,
 			};
-
-			inputs.push({
+			const after = {
 				cell: {
 					columnIndex,
 					rowIndex,
 					style: JSON.stringify(nextStyle),
 				},
-			});
+			};
+			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, currentCell);
+
+			if (!sheetCellEditInputsAreEqual(before, after)) {
+				sheetCellChanges.push({
+					after,
+					before,
+				});
+			}
 		});
 
-		if (!inputs.length) {
+		if (!sheetCellChanges.length) {
 			return;
 		}
 
-		setOptimisticCellsByCoord((current) => {
-			const next = new Map(current);
-
-			inputs.forEach((input) => {
-				const key = getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex);
-				const currentCell = runtime.effectiveCellsByCoord.get(key) || {};
-
-				next.set(key, {
-					...currentCell,
-					columnIndex: input.cell.columnIndex,
-					rowIndex: input.cell.rowIndex,
-					style: input.cell.style || null,
-				} as SheetCellGQL);
-			});
-
-			return next;
+		pushSheetUndoEntry({
+			sheetCells: sheetCellChanges,
 		});
 
-		await p.onSaveCells(inputs);
-	}, [p.onSaveCells]);
+		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+	}, [applySheetCellInputs, pushSheetUndoEntry]);
+
+	const handleSheetContextMenuPopulateDataTable = useCallback((target: SheetContextMenuTarget) => {
+		const request = getSheetPopulateDataTableRequest(target, p.design);
+
+		if (request) {
+			p.onPopulateFromDataTable?.(request);
+		}
+	}, [p.design, p.onPopulateFromDataTable]);
+
+	const handleSheetContextMenuRemoveDataTableRegion = useCallback(async (target: SheetContextMenuTarget) => {
+		if (!target.dataTableRegionId) {
+			return;
+		}
+
+		await p.onRemoveDataTableRegion?.(target.dataTableRegionId);
+	}, [p.onRemoveDataTableRegion]);
+
 	const {
 		closeSheetContextMenu,
 		openSheetContextMenu,
 	} = useSheetContextMenu({
 		onEditCell: handleSheetContextMenuEditCell,
 		onFormatCells: handleSheetContextMenuFormatCells,
+		onPopulateFromDataTable: handleSheetContextMenuPopulateDataTable,
+		onRemoveCellsFromDataTable: handleSheetContextMenuRemoveDataTableRegion,
 	});
 
 	useEffect(() => {
@@ -1497,6 +2406,7 @@ export function SheetController(p: SheetControllerProps) {
 				onDismissActiveEditor: () => {
 					setEditState(null);
 				},
+				onDismissContextMenu: closeSheetContextMenu,
 				onDismissEditor: () => {
 					setEditState(null);
 				},
@@ -1510,11 +2420,13 @@ export function SheetController(p: SheetControllerProps) {
 					}));
 				},
 				onPaste: pasteSelectedSheetCells,
+				onRedo: redoSheetHistory,
 				onSelectAll: selectAllSheetCells,
 				onTab: navigateSheetTab,
 				onTextInput: (pressed) => {
-					openSheetCellEditor(selectedCellState, pressed);
+					openSheetCellEditor(selectedCellState, pressed, false);
 				},
+				onUndo: undoSheetHistory,
 				readClipboardText: readSheetClipboardText,
 				stopImmediatePropagation: true,
 			});
@@ -1527,6 +2439,7 @@ export function SheetController(p: SheetControllerProps) {
 		};
 	}, [
 		clearSelectedSheetCells,
+		closeSheetContextMenu,
 		commitEditorElement,
 		copySelectedSheetCells,
 		editState,
@@ -1536,8 +2449,10 @@ export function SheetController(p: SheetControllerProps) {
 		navigateSheetTab,
 		openSheetCellEditor,
 		pasteSelectedSheetCells,
+		redoSheetHistory,
 		selectAllSheetCells,
 		selectedCellState,
+		undoSheetHistory,
 	]);
 
 	const startColumnResize = useCallback((metric: SheetColumnMetric, clientX: number) => {
@@ -1567,6 +2482,7 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		const activeColumnKey = resizeState.columnKey;
+		const previousBodyCursor = setSheetCanvasBodyCursor('col-resize');
 		const onPointerMove = (event: globalThis.PointerEvent) => {
 			setResizeState((current) => {
 				if (!current || current.columnKey !== activeColumnKey) {
@@ -1599,7 +2515,19 @@ export function SheetController(p: SheetControllerProps) {
 					width: state.latestWidth,
 				},
 			};
+			const before = {
+				columns: JSON.stringify(design.columns || {}),
+			};
+			const after = {
+				columns: JSON.stringify(columns),
+			};
 
+			pushSheetUndoEntry({
+				design: {
+					after,
+					before,
+				},
+			});
 			setLocalColumnWidths((currentWidths) => ({
 				...currentWidths,
 				[state.columnKey]: state.latestWidth,
@@ -1607,6 +2535,13 @@ export function SheetController(p: SheetControllerProps) {
 			await onUpdateSheetDesignRef.current({
 				columns: JSON.stringify(columns),
 			});
+		};
+		const onKeyDown = (event: globalThis.KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				resizeStateRef.current = null;
+				setResizeState(null);
+			}
 		};
 
 		window.addEventListener('pointermove', onPointerMove);
@@ -1616,11 +2551,14 @@ export function SheetController(p: SheetControllerProps) {
 		window.addEventListener('pointercancel', onPointerUp, {
 			once: true,
 		});
+		window.addEventListener('keydown', onKeyDown);
 
 		return () => {
+			restoreSheetCanvasBodyCursor(previousBodyCursor);
 			window.removeEventListener('pointermove', onPointerMove);
 			window.removeEventListener('pointerup', onPointerUp);
 			window.removeEventListener('pointercancel', onPointerUp);
+			window.removeEventListener('keydown', onKeyDown);
 		};
 	}, [resizeState?.columnKey]);
 
@@ -1630,6 +2568,7 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		const activeRowKey = rowResizeState.rowKey;
+		const previousBodyCursor = setSheetCanvasBodyCursor('row-resize');
 		const onPointerMove = (event: globalThis.PointerEvent) => {
 			setRowResizeState((current) => {
 				if (!current || current.rowKey !== activeRowKey) {
@@ -1658,8 +2597,20 @@ export function SheetController(p: SheetControllerProps) {
 					height: state.latestHeight,
 				},
 			};
+			const before = {
+				rows: JSON.stringify(design.rows || {}),
+			};
+			const after = {
+				rows: JSON.stringify(rows),
+			};
 
 			setRowResizeState(null);
+			pushSheetUndoEntry({
+				design: {
+					after,
+					before,
+				},
+			});
 			setLocalRowHeights((currentHeights) => ({
 				...currentHeights,
 				[state.rowKey]: state.latestHeight,
@@ -1667,6 +2618,13 @@ export function SheetController(p: SheetControllerProps) {
 			await onUpdateSheetDesignRef.current({
 				rows: JSON.stringify(rows),
 			});
+		};
+		const onKeyDown = (event: globalThis.KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				rowResizeStateRef.current = null;
+				setRowResizeState(null);
+			}
 		};
 
 		window.addEventListener('pointermove', onPointerMove);
@@ -1676,11 +2634,14 @@ export function SheetController(p: SheetControllerProps) {
 		window.addEventListener('pointercancel', onPointerUp, {
 			once: true,
 		});
+		window.addEventListener('keydown', onKeyDown);
 
 		return () => {
+			restoreSheetCanvasBodyCursor(previousBodyCursor);
 			window.removeEventListener('pointermove', onPointerMove);
 			window.removeEventListener('pointerup', onPointerUp);
 			window.removeEventListener('pointercancel', onPointerUp);
+			window.removeEventListener('keydown', onKeyDown);
 		};
 	}, [rowResizeState?.rowKey]);
 
@@ -1689,6 +2650,21 @@ export function SheetController(p: SheetControllerProps) {
 
 		if (p.disabled || event.button !== 0 || event.target instanceof Element && event.target.closest(SHEET_CANVAS_GRID_EDITOR_SELECTOR)) {
 			return;
+		}
+
+		const scrollRect = event.currentTarget.getBoundingClientRect();
+		const isVerticalScrollbarClick = event.clientX >= scrollRect.right - SHEET_CANVAS_APP_SCROLLBAR_SIZE;
+		const isHorizontalScrollbarClick = event.clientY >= scrollRect.bottom - SHEET_CANVAS_APP_SCROLLBAR_SIZE;
+
+		if (isVerticalScrollbarClick || isHorizontalScrollbarClick) {
+			return;
+		}
+
+		const activeEditorElement = event.currentTarget.querySelector(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+		if (activeEditorElement) {
+			void commitEditorElement(activeEditorElement, {
+				selectAfterCommit: false,
+			});
 		}
 
 		const runtime = runtimeRef.current;
@@ -1910,7 +2886,7 @@ export function SheetController(p: SheetControllerProps) {
 				selectedActiveCell: dragState.anchorCell,
 			});
 
-			setEditState(null);
+			closeSheetCellEditorForSelection();
 			setHeaderSelection(null);
 			setSelectedCellState(selection.activeCell);
 			setSelectedCellKeyMap(selection.selectedCellKeyMap);
@@ -1928,7 +2904,46 @@ export function SheetController(p: SheetControllerProps) {
 		window.addEventListener('pointermove', onPointerMove);
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointercancel', onPointerUp);
-	}, [closeSheetContextMenu, p.disabled, selectSheetCell, selectSheetCellRangeToTarget, selectSheetColumn, selectSheetColumnRange, selectedCellState, selectSheetRow, selectSheetRowRange, setHeaderSelection, startColumnResize, startRowResize, stickyColumnCount]);
+	}, [closeSheetCellEditorForSelection, closeSheetContextMenu, commitEditorElement, p.disabled, selectSheetCell, selectSheetCellRangeToTarget, selectSheetColumn, selectSheetColumnRange, selectedCellState, selectSheetRow, selectSheetRowRange, setHeaderSelection, startColumnResize, startRowResize, stickyColumnCount]);
+
+	const handlePointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
+		const runtime = runtimeRef.current;
+		const hit = runtime ? getSheetCanvasPointerHit({
+			clientX: event.clientX,
+			clientY: event.clientY,
+			columnMetrics: runtime.columnMetrics,
+			columnOffsets: runtime.columnOffsets,
+			rowMetrics: runtime.rowMetrics,
+			rowOffsets: runtime.rowOffsets,
+			scrollLeft: runtime.scrollLeft,
+			scrollNode: runtime.scrollNode,
+			scrollTop: runtime.scrollTop,
+			stickyColumnCount,
+		}) : {};
+		const cursor = getSheetCanvasPointerCursor(hit, p.disabled);
+		const rowIndex = hit.cell ? getSheetCanvasRowIndexFromId(hit.cell.rowId) : null;
+		const columnIndex = hit.cell ? getSheetCanvasColumnIndexFromKey(hit.cell.cellKey) : null;
+		const dataTableRegion = rowIndex && columnIndex
+			? getSheetDataTableRegionAtCell(rowIndex, columnIndex, p.regions)
+			: null;
+		const nextHoveredRegionId = dataTableRegion?.id ? String(dataTableRegion.id) : null;
+
+		if (event.currentTarget.style.cursor !== cursor) {
+			event.currentTarget.style.cursor = cursor;
+		}
+
+		setHoveredRegionId((currentRegionId) => {
+			return currentRegionId === nextHoveredRegionId ? currentRegionId : nextHoveredRegionId;
+		});
+	}, [p.disabled, p.regions, stickyColumnCount]);
+
+	const handlePointerLeave = useCallback((event: PointerEvent<HTMLDivElement>) => {
+		if (event.currentTarget.style.cursor) {
+			event.currentTarget.style.cursor = '';
+		}
+
+		setHoveredRegionId(null);
+	}, []);
 
 	const handleDoubleClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
 		const runtime = runtimeRef.current;
@@ -1984,23 +2999,30 @@ export function SheetController(p: SheetControllerProps) {
 		event.preventDefault();
 		selectSheetCell(nextCell, nextSelectedCellKeyMap);
 		openSheetContextMenu(event.nativeEvent, getSheetCanvasContextMenuTarget({
+			canPopulateFromDataTable: Boolean(p.onPopulateFromDataTable),
+			canRemoveCellsFromDataTable: Boolean(p.onRemoveDataTableRegion) && !p.disabled,
 			cell: hit.cell,
 			cellLookup,
+			regions: p.regions,
 			selectedCellKeyMap: nextSelectedCellKeyMap,
 			selectedCellState: nextCell,
 		}));
-	}, [cellLookup, openSheetContextMenu, selectSheetCell, selectedCellKeyMap, selectedCellState, stickyColumnCount]);
+	}, [cellLookup, openSheetContextMenu, p.disabled, p.onPopulateFromDataTable, p.onRemoveDataTableRegion, p.regions, selectSheetCell, selectedCellKeyMap, selectedCellState, stickyColumnCount]);
 
 	const handleFocusOut = useCallback((event: FocusEvent<HTMLDivElement>) => {
-		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_GRID_EDITOR_SELECTOR) as HTMLElement | null;
+		if (keepEditModeForDev) {
+			return;
+		}
+
+		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
 
 		if (editorElement) {
 			void commitEditorElement(editorElement);
 		}
-	}, [commitEditorElement]);
+	}, [commitEditorElement, keepEditModeForDev]);
 
 	const handleInput = useCallback((event: FormEvent<HTMLDivElement>) => {
-		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_GRID_EDITOR_SELECTOR) as HTMLElement | null;
+		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
 
 		if (!editorElement || !editState?.error) {
 			return;
@@ -2013,8 +3035,92 @@ export function SheetController(p: SheetControllerProps) {
 		});
 	}, [editState]);
 
+	const saveDataTableLocalEditorDraftValue = useCallback(async (target: SheetDataTableCellEditTarget, draftValue: string, closeAfterSave: boolean) => {
+		const parsedValue = parseSheetEditorValue(target.lookup.designCell, draftValue);
+
+		if (parsedValue.error) {
+			setEditState({
+				cellKey: target.cellKey,
+				draftValue,
+				error: parsedValue.error,
+				rowId: target.rowId,
+			});
+			return;
+		}
+
+		try {
+			await saveDataTableCellValue(target, parsedValue.value);
+
+			if (closeAfterSave) {
+				setEditState(null);
+				selectSheetCell({
+					cellKey: target.cellKey,
+					rowId: target.rowId,
+				});
+				return;
+			}
+
+			setEditState({
+				cellKey: target.cellKey,
+				disableInlineEditor: true,
+				draftValue: parsedValue.value || '',
+				rowId: target.rowId,
+			});
+		} catch (error) {
+			setEditState({
+				cellKey: target.cellKey,
+				draftValue,
+				error: error instanceof Error ? error.message : 'Unable to save cell',
+				rowId: target.rowId,
+			});
+		}
+	}, [saveDataTableCellValue, selectSheetCell]);
+
+	const handleDataTableSelectEditorOptionValue = useCallback((lookup: DataTableCellLookup, value: string) => {
+		const target = activeDataTableEditTarget;
+
+		if (!target || target.lookup !== lookup) {
+			return;
+		}
+
+		if (getSheetEditorFieldType(lookup.designCell) !== 'MULTI_SELECT') {
+			void saveDataTableLocalEditorDraftValue(target, value, true);
+			return;
+		}
+
+		const selectedValues = getSheetMultiSelectEditorValueSet(editState?.draftValue || getSheetEditorDraftValue(lookup.cell, lookup.designCell));
+
+		if (selectedValues.has(value)) {
+			selectedValues.delete(value);
+		} else {
+			selectedValues.add(value);
+		}
+
+		void saveDataTableLocalEditorDraftValue(target, JSON.stringify(Array.from(selectedValues)), false);
+	}, [activeDataTableEditTarget, editState?.draftValue, saveDataTableLocalEditorDraftValue]);
+
+	const handleDataTableSelectEditorCustomTextSave = useCallback((lookup: DataTableCellLookup, draftValue: string) => {
+		const target = activeDataTableEditTarget;
+
+		if (!target || target.lookup !== lookup) {
+			return;
+		}
+
+		void saveDataTableLocalEditorDraftValue(target, draftValue, true);
+	}, [activeDataTableEditTarget, saveDataTableLocalEditorDraftValue]);
+
+	const handleDataTableDateEditorValue = useCallback((lookup: DataTableCellLookup, draftValue: string) => {
+		const target = activeDataTableEditTarget;
+
+		if (!target || target.lookup !== lookup) {
+			return;
+		}
+
+		void saveDataTableLocalEditorDraftValue(target, draftValue, true);
+	}, [activeDataTableEditTarget, saveDataTableLocalEditorDraftValue]);
+
 	const overlayContent = <>
-		{activeEditorColumn && editState && editorPosition
+		{activeEditorColumn && editState && editorPosition && !activeDataTableLocalEditorPosition
 			? <SheetEditorOverlay
 				column={activeEditorColumn}
 				editState={editState}
@@ -2022,6 +3128,47 @@ export function SheetController(p: SheetControllerProps) {
 				scrollLeft={scrollState.scrollLeft}
 				scrollTop={scrollState.scrollTop}
 			/>
+			: null}
+		{activeDataTableEditTarget && editState && activeDataTableLocalEditorPosition && activeDataTableFieldType && isSheetSelectEditorFieldType(activeDataTableFieldType)
+			? <DataTableLocalEditorContainer position={activeDataTableLocalEditorPosition}>
+				<DataTableSelectEditor
+					clickSource={editState.clickSource}
+					editState={editState}
+					fieldType={activeDataTableFieldType}
+					lookup={activeDataTableEditTarget.lookup}
+					onCustomTextSave={handleDataTableSelectEditorCustomTextSave}
+					onOptionValue={handleDataTableSelectEditorOptionValue}
+				/>
+			</DataTableLocalEditorContainer>
+			: null}
+		{activeDataTableEditTarget && editState && activeDataTableLocalEditorPosition && activeDataTableFieldType && isDataTableDateEditorFieldType(activeDataTableFieldType)
+			? <DataTableLocalEditorContainer position={activeDataTableLocalEditorPosition}>
+				<DataTableDateEditor
+					clickSource={editState.clickSource}
+					editState={editState}
+					lookup={activeDataTableEditTarget.lookup}
+					onDateTimeSave={handleDataTableDateEditorValue}
+					onDateValue={handleDataTableDateEditorValue}
+				/>
+			</DataTableLocalEditorContainer>
+			: null}
+		{activeDataTableEditTarget && activeDataTableLocalEditorPosition && isDataTableInboundContactIdLookup(activeDataTableEditTarget.lookup)
+			? <DataTableLocalEditorContainer position={activeDataTableLocalEditorPosition}>
+				<DataTableInboundContactEditor
+					clickSource={editState?.clickSource}
+					displayValue={getSheetCellDisplayValue(activeDataTableEditTarget.lookup.cell, activeDataTableEditTarget.lookup.designCell, undefined, p.timeZone)}
+					inboundContactId={String(activeDataTableEditTarget.lookup.cell?.relatedId || '')}
+					onClose={() => {
+						setEditState(null);
+						selectSheetCell({
+							cellKey: activeDataTableEditTarget.cellKey,
+							rowId: activeDataTableEditTarget.rowId,
+						});
+					}}
+					openModalPopUp={openModalPopUp}
+					organizationId={String(activeDataTableEditTarget.dataTable.organizationId || '')}
+				/>
+			</DataTableLocalEditorContainer>
 			: null}
 	</>;
 
@@ -2039,13 +3186,18 @@ export function SheetController(p: SheetControllerProps) {
 		onFocusOut={handleFocusOut}
 		onInput={handleInput}
 		onPointerDown={handlePointerDown}
+		onPointerLeave={handlePointerLeave}
+		onPointerMove={handlePointerMove}
 		overlayContent={overlayContent}
+		regions={p.regions}
+		hoveredRegionId={hoveredRegionId}
 		resizeGuide={resizeGuide}
 		rowMetrics={rowMetricsData.metrics}
 		rowResizeGuide={rowResizeGuide}
 		scrollLeft={scrollState.scrollLeft}
 		scrollRef={scrollElement.ref}
 		scrollTop={scrollState.scrollTop}
+		selectedReadOnlyCellPosition={selectedDataTableReadOnlyCellPosition}
 		selectedCellKeyMap={selectedCellKeyMap}
 		selectedCellState={selectedCellState}
 		stickyColumnCount={stickyColumnCount}

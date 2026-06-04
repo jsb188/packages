@@ -123,7 +123,6 @@ export interface SheetRangeData {
 export interface SheetRegionSourceObj {
 	type: 'DATA_TABLE';
 	dataTableId: number | bigint | string;
-	viewId?: string | null;
 }
 
 export interface SheetRegionColumnObj {
@@ -278,6 +277,7 @@ export interface SheetRegionGQL {
 	type?: SheetRegionTypeEnum | null;
 	startRowIndex?: number | null;
 	startColumnIndex?: number | null;
+	sourceViewId?: string | null;
 	source?: SheetRegionSourceObj | null;
 	columns?: SheetRegionColumnObj[];
 	options?: SheetRegionOptionsObj | null;

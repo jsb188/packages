@@ -56,7 +56,9 @@ function DataTableResizeGuideLayer(p: {
 export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	const sheetSurfaceHeight = p.sheetSurfaceHeight ?? p.canvasHeight;
 	const sheetSurfaceTop = p.sheetSurfaceTop ?? 0;
-	const stickyColumnEndLeft = p.stickyColumnEndLeft ?? SHEET_ROW_NUMBER_WIDTH;
+	const showRowNumbers = p.showRowNumbers !== false;
+	const rowHeaderWidth = p.rowHeaderWidth ?? (showRowNumbers ? SHEET_ROW_NUMBER_WIDTH : 0);
+	const stickyColumnEndLeft = p.stickyColumnEndLeft ?? rowHeaderWidth;
 	const headerContentWidth = p.headerSpacerWidth ?? p.headerWidth;
 
 	return <div
@@ -104,7 +106,10 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 					selectedHeaderCellKey={p.selectedHeaderCellKey}
 					headerSpacerWidth={p.headerSpacerWidth ?? p.headerWidth}
 					headerWidth={p.headerWidth}
+					isColumnResizeDragging={Boolean(p.resizeGuide)}
+					rowHeaderWidth={rowHeaderWidth}
 					scrollLeft={p.scrollLeft}
+					showRowNumbers={showRowNumbers}
 					stickyColumnEndLeft={stickyColumnEndLeft}
 					stickyColumnCount={p.stickyColumnCount}
 				/>
@@ -155,9 +160,11 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 					</DataTableResizeGuideLayer>
 					: null}
 
-				<DataTableTopLeftRowNumberSlot rowWidth={Math.max(p.headerSpacerWidth ?? p.headerWidth, p.canvasWidth)} />
+				{showRowNumbers
+					? <DataTableTopLeftRowNumberSlot rowWidth={Math.max(p.headerSpacerWidth ?? p.headerWidth, p.canvasWidth)} />
+					: null}
 
-				{p.rows.map((rowSlot) => {
+				{showRowNumbers ? p.rows.map((rowSlot) => {
 					return <DataTableRowNumberSlot
 						key={rowSlot.rowKey}
 						isPlaceholderRow={isSheetPlaceholderRowSlot(rowSlot)}
@@ -170,7 +177,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 						rowTop={rowSlot.rowTop}
 						rowWidth={rowSlot.rowWidth}
 					/>;
-				})}
+				}) : null}
 
 				{p.rows.map((rowSlot) => {
 					return <DataTableStickyColumnSpacerSlot
@@ -191,6 +198,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 						return <DataTablePlaceholderRowFillCell
 							key={`${rowSlot.rowKey}:placeholder-row-fill`}
 							contentWidth={p.headerSpacerWidth}
+							left={rowHeaderWidth}
 							rowHeight={rowSlot.rowHeight}
 							rowTop={rowSlot.rowTop}
 							rowWidth={rowSlot.rowWidth}
@@ -200,7 +208,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 					return p.columns.map((columnMetric) => {
 						const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
 						const cellLeft = (isStickyLeft ? p.scrollLeft : 0) +
-							SHEET_ROW_NUMBER_WIDTH +
+							rowHeaderWidth +
 							columnMetric.left;
 
 						return <DataTableGridCell
@@ -266,6 +274,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	prev.resizeGuide?.columnKey === next.resizeGuide?.columnKey &&
 	prev.resizeGuide?.height === next.resizeGuide?.height &&
 	prev.resizeGuide?.left === next.resizeGuide?.left &&
+	prev.rowHeaderWidth === next.rowHeaderWidth &&
 	prev.rowResizeEnabled === next.rowResizeEnabled &&
 	prev.rowResizeGuide?.rowKey === next.rowResizeGuide?.rowKey &&
 	prev.rowResizeGuide?.top === next.rowResizeGuide?.top &&
@@ -278,6 +287,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	prev.selectedCellState?.cellKey === next.selectedCellState?.cellKey &&
 	prev.sheetSurfaceHeight === next.sheetSurfaceHeight &&
 	prev.sheetSurfaceTop === next.sheetSurfaceTop &&
+	prev.showRowNumbers === next.showRowNumbers &&
 	prev.stickyColumnEndLeft === next.stickyColumnEndLeft &&
 	prev.stickyColumnCount === next.stickyColumnCount &&
 	prev.style === next.style

@@ -168,7 +168,7 @@ export async function graphqlRequest(
   }
 
   const operationName = gqlQuery?.definitions?.find((def: any) => def.kind === 'OperationDefinition')?.name?.value;
-  const headers = apiRequestHeaders(getENVVariable('IS_BROWSER') ? getAuthToken() : authToken, ipAddress);
+  const headers = apiRequestHeaders(authToken || (getENVVariable('IS_BROWSER') ? getAuthToken() : null), ipAddress);
 
   // Use this to check queries that are getting double-requested
   // doLog(gqlQuery, 'QUERYING... $0');

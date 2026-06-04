@@ -38,6 +38,7 @@ export type OnErrorGQLFn = (error: ServerErrorObj | null, variables: any) => voi
  */
 
 export interface GraphQLQueryOptions {
+  authToken?: string | null;
   name?: string;
   eagerFragmentKeyMap?: any;
   retryCount?: number;

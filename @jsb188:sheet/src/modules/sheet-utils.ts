@@ -19,6 +19,7 @@ import {
 	type SheetRowHeights,
 	type SheetUIColumn,
 } from '@jsb188/react-web/ui/SheetUI';
+import type { DataTableCellDisplayModel } from './dataTable-cell-editing.tsx';
 
 export const SHEET_CANVAS_INITIAL_ROW_COUNT = 200;
 export const SHEET_CANVAS_MAX_ROW_COUNT = 1000;
@@ -44,6 +45,7 @@ export type SheetCanvasCell = {
 	cell?: SheetCellGQL | null;
 	cellKey: string;
 	columnIndex: number;
+	dataTableDisplay?: DataTableCellDisplayModel | null;
 	displayValue: string;
 	draftValue: string;
 	rowId: string;
@@ -428,6 +430,68 @@ export function mergeSheetCanvasCellsByCoord(current: Map<string, SheetCellGQL>,
 	});
 
 	return changed ? next : current;
+}
+
+/*
+ * Replace cached cells inside one fetched viewport while preserving cached cells outside it.
+ */
+export function replaceSheetCanvasCellsInViewport(
+	current: Map<string, SheetCellGQL>,
+	nextCells: SheetCellGQL[] | null | undefined,
+	viewport: Partial<SheetGridViewportObj> | null | undefined,
+) {
+	if (!viewport) {
+		return mergeSheetCanvasCellsByCoord(current, nextCells);
+	}
+
+	const startRowIndex = Math.max(1, Number(viewport.startRowIndex || 1));
+	const startColumnIndex = Math.max(1, Number(viewport.startColumnIndex || 1));
+	const endRowIndex = startRowIndex + Math.max(1, Number(viewport.rowCount || 1)) - 1;
+	const endColumnIndex = startColumnIndex + Math.max(1, Number(viewport.columnCount || 1)) - 1;
+	const next = new Map<string, SheetCellGQL>();
+
+	current.forEach((cell, coordKey) => {
+		const [rowIndexString, columnIndexString] = coordKey.split(':');
+		const rowIndex = Number(rowIndexString || 0);
+		const columnIndex = Number(columnIndexString || 0);
+		const isInsideViewport = rowIndex >= startRowIndex &&
+			rowIndex <= endRowIndex &&
+			columnIndex >= startColumnIndex &&
+			columnIndex <= endColumnIndex;
+
+		if (isInsideViewport) {
+			return;
+		}
+
+		next.set(coordKey, cell);
+	});
+
+	(nextCells || []).forEach((cell) => {
+		const rowIndex = Number(cell.rowIndex || 0);
+		const columnIndex = Number(cell.columnIndex || 0);
+
+		if (rowIndex > 0 && columnIndex > 0) {
+			const coordKey = getSheetCanvasCoordKey(rowIndex, columnIndex);
+
+			next.set(coordKey, cell);
+		}
+	});
+
+	if (next.size === current.size) {
+		let changed = false;
+
+		next.forEach((cell, coordKey) => {
+			if (current.get(coordKey) !== cell) {
+				changed = true;
+			}
+		});
+
+		if (!changed) {
+			return current;
+		}
+	}
+
+	return next;
 }
 
 /*

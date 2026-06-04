@@ -82,6 +82,14 @@ We're not going to show border on editing HEADER cells because:
   border-color: var(--color-contrast);
 }
 
+.sheet_ui_header_cell.sheet_ui_header_resize_active:hover {
+  background-color: rgb(var(--color-bg)) !important;
+}
+
+.sheet_ui_header_cell.sheet_ui_header_resize_active.bg_alt:hover {
+  background-color: rgb(var(--color-bg-alt)) !important;
+}
+
 .sheet_selection_box {
   z-index: 3;
 }

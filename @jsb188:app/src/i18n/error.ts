@@ -133,11 +133,11 @@ export default {
     20069: '"%{value}" is not a valid AI inbox handle.',
     20070: 'Another organization already uses the AI inbox handle "%{value}".',
     '20071_icon': 'database-warning',
-    20071: 'This Data Table was not found.\nIt may have been deleted.',
+    20071: 'This data table was not found.\nIt may have been deleted.',
     '20072_icon': 'database-warning',
-    20072: 'Data Table design could not be updated.',
+    20072: 'Data table design could not be updated.',
     '20073_icon': 'database-warning',
-    20073: 'This Data Table cell cannot be edited.',
+    20073: 'This data table cell cannot be edited.',
     20074: 'Inbound contacts must have an email address or phone number.',
     20075: 'Table column width settings are invalid.',
     '20076_icon': 'layers-grid-warning',
@@ -146,6 +146,8 @@ export default {
     20077: 'Sheet could not be updated.',
     '20078_icon': 'layers-grid-warning',
     20078: 'This sheet cell cannot be edited.',
+    '20079_icon': 'layers-grid-warning',
+    20079: 'This data table region overlaps an existing data table region.',
 
     // 3x
 

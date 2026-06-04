@@ -2,35 +2,34 @@ import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
 import { type CSSProperties, type ReactNode, type Ref } from 'react';
 import { Icon } from '../svgs/Icon';
-import { SheetSaveButton } from './SheetEditor';
 import {
-	SHEET_COLUMN_MAX_WIDTH,
-	SHEET_COLUMN_MIN_WIDTH,
-	SHEET_COLUMN_WIDTH,
-	SHEET_HEADER_HEIGHT,
-	SHEET_ROW_HEIGHT,
-	SHEET_ROW_MAX_HEIGHT,
-	SHEET_ROW_MIN_HEIGHT,
-	SHEET_ROW_NUMBER_WIDTH,
-	SHEET_STICKY_SPACER_SIZE,
-	SheetCellDisplayValue,
+  SHEET_COLUMN_MAX_WIDTH,
+  SHEET_COLUMN_MIN_WIDTH,
+  SHEET_COLUMN_WIDTH,
+  SHEET_HEADER_HEIGHT,
+  SHEET_ROW_HEIGHT,
+  SHEET_ROW_MAX_HEIGHT,
+  SHEET_ROW_MIN_HEIGHT,
+  SHEET_ROW_NUMBER_WIDTH,
+  SheetCellDisplayValue
 } from './SheetCell';
+import { SheetSaveButton } from './SheetEditor';
 
 export {
-	SHEET_COLUMN_MAX_WIDTH,
-	SHEET_COLUMN_MIN_WIDTH,
-	SHEET_COLUMN_WIDTH,
-	SHEET_HEADER_HEIGHT,
-	SHEET_ROW_HEIGHT,
-	SHEET_ROW_MAX_HEIGHT,
-	SHEET_ROW_MIN_HEIGHT,
-	SHEET_ROW_NUMBER_WIDTH,
-	SHEET_STICKY_SPACER_SIZE,
-	SheetCellDisplayValue,
+  SHEET_COLUMN_MAX_WIDTH,
+  SHEET_COLUMN_MIN_WIDTH,
+  SHEET_COLUMN_WIDTH,
+  SHEET_HEADER_HEIGHT,
+  SHEET_ROW_HEIGHT,
+  SHEET_ROW_MAX_HEIGHT,
+  SHEET_ROW_MIN_HEIGHT,
+  SHEET_ROW_NUMBER_WIDTH,
+  SHEET_STICKY_SPACER_SIZE,
+  SheetCellDisplayValue
 } from './SheetCell';
 export {
-	SheetSaveButton,
-	type SheetSaveButtonProps,
+  SheetSaveButton,
+  type SheetSaveButtonProps
 } from './SheetEditor';
 
 const SHEET_VISIBLE_ROW_RANGE_MULTIPLIER = 1.5;
@@ -67,6 +66,9 @@ export type SheetUIColumn = {
 	key: string;
 	label: string;
 	fieldType: SheetUIFieldType;
+	cellClassName?: string;
+	headerCheckboxEnabled?: boolean;
+	headerChecked?: boolean;
 	headerClassName?: string;
 	headerLayoutClassName?: string;
 	humanFieldType?: SheetUIFieldType | null;
@@ -105,6 +107,7 @@ export type SheetUIEditState = {
 	rowId: string;
 	cellKey: string;
 	draftValue: string;
+	selectAllOnFocus?: boolean;
 	clickSource?: SheetUIEditorClickSource;
 	error?: string | null;
 	disableInlineEditor?: boolean;
@@ -211,6 +214,7 @@ export interface SheetUIProps {
 	selectedHeaderCellKey?: string | null;
 	headerSpacerWidth?: number;
 	headerWidth: number;
+	rowHeaderWidth?: number;
 	resizeGuide?: SheetUIResizeGuide | null;
 	rowResizeEnabled?: boolean;
 	rowResizeGuide?: SheetUIRowResizeGuide | null;
@@ -221,6 +225,7 @@ export interface SheetUIProps {
 	selectedCellState?: SheetUISelectedCellState | null;
 	sheetSurfaceHeight?: number;
 	sheetSurfaceTop?: number;
+	showRowNumbers?: boolean;
 	stickyColumnEndLeft?: number;
 	stickyColumnCount?: number | null;
 	className?: string;
@@ -418,7 +423,7 @@ export function SheetSelectEditor(p: SheetSelectEditorProps) {
 		: new Set([p.editState.draftValue]);
 
 	return <div
-		className='sheet_overlay_editor bg bd_2 bd_lt ft_xs w_f max_h_300'
+		className='sheet_overlay_editor bg shadow_light ft_xs w_f max_h_300'
 		data-sheet-click-source={p.clickSource}
 		data-sheet-select-editor='true'
 	>
@@ -437,7 +442,7 @@ export function SheetSelectEditor(p: SheetSelectEditorProps) {
 
 				return <button
 					key={option.value}
-					className={`h_item w_f px_6 py_5 -my_2 cl_df bg_${getValidSheetOptionColor(option.color)}_fd_hv`}
+					className={`h_item w_f px_8 py_5 -my_2 cl_df bg_${getValidSheetOptionColor(option.color)}_fd_hv`}
 					data-sheet-select-editor-option={option.value}
 					style={{
 						textAlign: 'left',
@@ -465,11 +470,11 @@ export function SheetSelectEditor(p: SheetSelectEditorProps) {
 		{p.fieldType === 'SELECT_OR_TEXT'
 			? <form
         // we need -mb_2 here because of the overlay editor container's padding
-				className='h_item gap_6 p_6 bd_t_2 bd_lt'
+				className='h_item gap_6 px_8 py_6 bd_t_1 bd_lt'
 				data-sheet-select-editor-custom='true'
 			>
 				<input
-					className='f stock ft_xs px_5 py_4 bd_0 bg_alt'
+					className='f stock ft_xs px_5 py_3 bd_0 bg_alt'
 					defaultValue={getSheetSelectEditorCustomInputValue(p.editState.draftValue, p.options)}
 					name='customValue'
 					placeholder='...'
@@ -544,6 +549,7 @@ export function getSheetVisibleRange(params: {
 	rowOffsets?: number[];
 	rowCount: number;
 	rowRangeMultiplier?: number;
+	rowHeaderWidth?: number;
 	scrollLeft: number;
 	scrollTop: number;
 }): SheetVisibleRange {
@@ -556,14 +562,15 @@ export function getSheetVisibleRange(params: {
 		containerWidth,
 		headerHeight = SHEET_HEADER_HEIGHT,
 		rowOffsets,
-		rowCount,
-		rowRangeMultiplier = SHEET_VISIBLE_ROW_RANGE_MULTIPLIER,
-		scrollLeft,
+	rowCount,
+	rowRangeMultiplier = SHEET_VISIBLE_ROW_RANGE_MULTIPLIER,
+	rowHeaderWidth = SHEET_ROW_NUMBER_WIDTH,
+	scrollLeft,
 		scrollTop,
 	} = params;
 
 	const bodyScrollTop = Math.max(0, scrollTop - headerHeight);
-	const bodyScrollLeft = Math.max(0, scrollLeft - SHEET_ROW_NUMBER_WIDTH);
+	const bodyScrollLeft = Math.max(0, scrollLeft - rowHeaderWidth);
 	const bodyScrollRight = Math.max(bodyScrollLeft, bodyScrollLeft + containerWidth - 1);
 	const visibleBodyHeight = Math.max(0, containerHeight - headerHeight);
 	const visibleRowCount = Math.ceil(visibleBodyHeight / SHEET_ROW_HEIGHT);

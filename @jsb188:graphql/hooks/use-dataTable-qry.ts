@@ -1,6 +1,6 @@
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
-import { dataTableRowsQry, dataTablesQry } from '../gql/queries/dataTableQueries.ts';
+import { dataTableCellsForRowsQry, dataTableRowsQry, dataTablesQry } from '../gql/queries/dataTableQueries.ts';
 import type { UseQueryParams } from '../types.d.ts';
 
 /**
@@ -74,6 +74,14 @@ function getDataTableRowsQueryKey(variables: Record<string, unknown>) {
 	return `#dataTableRows:${makeVariablesKey(variables)}`;
 }
 
+/*
+ * Return the query key that belongs to one source-cell hydration variables payload.
+ */
+
+export function getDataTableCellsForRowsQueryKey(variables: Record<string, unknown>) {
+	return `#dataTableCellsForRows:${makeVariablesKey(variables)}`;
+}
+
 /**
  * Fetch dataTables for an organization.
  */
@@ -131,6 +139,37 @@ export function useDataTableRows(
 
 	return {
 		dataTableRows: queryMatchesVariables ? dataTableRows : undefined,
+		...rest,
+	};
+}
+
+/**
+ * Fetch DataTable source cells for a grouped set of row ids.
+ */
+
+export function useDataTableCellsForRows(
+	organizationId?: string | null,
+	requests?: Array<{
+		dataTableId: string;
+		dataTableRowIds: string[];
+	}> | null,
+	params: UseQueryParams = {},
+) {
+	const variables = {
+		organizationId,
+		requests: requests || [],
+	};
+	const { data, ...rest } = useQuery(dataTableCellsForRowsQry, {
+		variables,
+		skip: !organizationId || !requests?.length,
+		...params,
+	});
+	const queryMatchesVariables = rest.queryKey === getDataTableCellsForRowsQueryKey(variables) ||
+		rest.variablesKey === makeVariablesKey(variables);
+	const reactiveCells = useReactiveFragmentMap(queryMatchesVariables ? data?.dataTableCellsForRows || null : null, 'dataTableCellFragment');
+
+	return {
+		dataTableCellsForRows: queryMatchesVariables ? reactiveCells : undefined,
 		...rest,
 	};
 }

@@ -1,5 +1,5 @@
 import { cn } from '@jsb188/app/utils/string.ts';
-import { memo, useSyncExternalStore } from 'react';
+import { memo, useSyncExternalStore, type CSSProperties } from 'react';
 import { Icon } from '../svgs/Icon';
 import type {
 	SheetColumnMetric,
@@ -23,11 +23,11 @@ import type {
 export const SHEET_COLUMN_WIDTH = 160;
 export const SHEET_COLUMN_MIN_WIDTH = 72;
 export const SHEET_COLUMN_MAX_WIDTH = 640;
-export const SHEET_ROW_NUMBER_WIDTH = 44;
+export const SHEET_ROW_NUMBER_WIDTH = 38;
 export const SHEET_ROW_HEIGHT = 32;
 export const SHEET_ROW_MIN_HEIGHT = 22;
 export const SHEET_ROW_MAX_HEIGHT = 240;
-export const SHEET_HEADER_HEIGHT = 32;
+export const SHEET_HEADER_HEIGHT = 28;
 export const SHEET_STICKY_SPACER_SIZE = 4;
 
 /**
@@ -250,8 +250,16 @@ function getSheetDefaultCellClassName(fieldType: SheetUIColumn['fieldType']) {
  * Return the editable hover background class for one header cell.
  */
 
-function getSheetHeaderEditableClassName(fieldType: SheetUIColumn['fieldType']) {
-	return getSheetDefaultCellClassName(fieldType);
+function getSheetHeaderEditableClassName() {
+	return 'bg_alt_hv';
+}
+
+/*
+ * Remove hover utility classes from header class names so edit access owns hover behavior.
+ */
+
+function getSheetHeaderClassNameWithoutHoverUtilities(className?: string | null) {
+	return (className || '').split(/\s+/).filter((classPart) => classPart && !/_hv$/.test(classPart)).join(' ');
 }
 
 /*
@@ -367,6 +375,7 @@ export const SheetHeaderCell = memo((p: {
 	columnReorderOffset?: number;
 	hasColumnReorderTransition?: boolean;
 	isColumnReorderDragging?: boolean;
+	isColumnResizeDragging?: boolean;
 	selectedHeaderCellKey?: string | null;
 }) => {
 	const isEditing = p.headerEditState?.cellKey === p.column.key;
@@ -374,20 +383,21 @@ export const SheetHeaderCell = memo((p: {
 	const isEditable = Boolean(p.headerCellsEditable);
 	const isReorderable = Boolean(p.columnReorderEnabled && !isEditing);
 	const reorderOffset = p.columnReorderOffset || 0;
-	const defaultCellClassName = getSheetDefaultCellClassName(p.column.fieldType);
-	const defaultSelectedCellClassName = getSheetSingleClickedCellClassName(defaultCellClassName);
+	const defaultCellClassName = getSheetHeaderEditableClassName();
+	const defaultSelectedCellClassName = 'bg_alt';
 	const headerLayoutClassName = p.column.headerLayoutClassName || 'h_item';
 
 	return <div
 		className={cn(
-			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt ft_medium cl_md no_wrap z3',
+			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt ft_xs ft_medium cl_md no_wrap z3',
 			headerLayoutClassName,
-			p.column.headerClassName,
+			getSheetHeaderClassNameWithoutHoverUtilities(p.column.headerClassName),
 			isReorderable ? 'cs_default_to_grabing' : '',
-			isEditable ? getSheetHeaderEditableClassName(p.column.fieldType) : '',
+			isEditable ? defaultCellClassName : '',
 			isEditing ? 'active' : 'px_8',
 			isSelected ? `single_clicked ${defaultSelectedCellClassName}` : isEditing ? '' : 'bg',
 			!isEditing ? 'unsel' : '',
+			p.isColumnResizeDragging ? 'sheet_ui_header_resize_active' : '',
 			STICKY_CELL_BG_CSS,
 			// p.isColumnReorderDragging ? 'bg' : '',
 		)}
@@ -395,6 +405,7 @@ export const SheetHeaderCell = memo((p: {
 		data-sheet-header-cell='true'
 		data-sheet-header-editable={isEditable ? 'true' : undefined}
 		data-sheet-header-reorderable={isReorderable ? 'true' : undefined}
+		data-sheet-header-checkbox-enabled={p.column.headerCheckboxEnabled ? 'true' : undefined}
 		style={{
 			height: SHEET_HEADER_HEIGHT,
 			left: p.headerLeft,
@@ -415,12 +426,34 @@ export const SheetHeaderCell = memo((p: {
 				defaultValue={p.headerEditState?.draftValue || ''}
 				type='text'
 			/>
-			: <span className='ellip'>{p.column.label}</span>}
+			: <>
+				{p.column.headerCheckboxEnabled
+					? <input
+						aria-label={p.column.label}
+						checked={Boolean(p.column.headerChecked)}
+						className='no_shrink mr_6'
+						data-cell-key={p.column.key}
+						data-sheet-header-checkbox='true'
+						onChange={() => {}}
+						onClick={(event) => {
+							event.stopPropagation();
+						}}
+						onPointerDown={(event) => {
+							event.stopPropagation();
+						}}
+						readOnly
+						type='checkbox'
+					/>
+					: null}
+				<span className='ellip'>{p.column.label}</span>
+			</>}
 	</div>;
 }, (prev, next) => (
 	prev.column.id === next.column.id &&
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
+	prev.column.headerCheckboxEnabled === next.column.headerCheckboxEnabled &&
+	prev.column.headerChecked === next.column.headerChecked &&
 	prev.column.headerClassName === next.column.headerClassName &&
 	prev.column.headerLayoutClassName === next.column.headerLayoutClassName &&
 	prev.column.humansCannotEdit === next.column.humansCannotEdit &&
@@ -436,7 +469,8 @@ export const SheetHeaderCell = memo((p: {
 	prev.columnWidth === next.columnWidth &&
 	prev.hasColumnReorderTransition === next.hasColumnReorderTransition &&
 	prev.isStickyLeft === next.isStickyLeft &&
-	prev.isColumnReorderDragging === next.isColumnReorderDragging
+	prev.isColumnReorderDragging === next.isColumnReorderDragging &&
+	prev.isColumnResizeDragging === next.isColumnResizeDragging
 ));
 
 SheetHeaderCell.displayName = 'SheetHeaderCell';
@@ -517,7 +551,7 @@ export const SheetColumnReorderDragPreview = memo((p: {
 }) => {
 	return <div
 		className={cn(
-			'sheet_ui_header_cell of abs bd_1 bd_lt h_item px_8 ft_medium cl_md no_wrap bg shadow_line_alt unsel noclick',
+			'sheet_ui_header_cell of abs bd_1 bd_lt h_item px_8 ft_xs ft_medium cl_md no_wrap bg shadow_line_alt unsel noclick',
 		)}
 		data-sheet-column-reorder-drag={p.drag.columnKey}
 		style={{
@@ -547,9 +581,10 @@ export const SheetStickyColumnHeaderSpacer = memo((p: {
 	left: number;
 }) => {
 	return <div
-		className={cn('sheet_ui_header_cell of abs sticky w_4 h_32 z4', STICKY_SPACER_BG_CSS)}
+		className={cn('sheet_ui_header_cell of abs sticky w_4 z4', STICKY_SPACER_BG_CSS)}
 		data-sheet-sticky-column-header-spacer='true'
 		style={{
+			height: SHEET_HEADER_HEIGHT,
 			left: p.left,
 			position: 'sticky',
 			top: 0,
@@ -579,9 +614,15 @@ export const SheetHeaderArea = memo((p: {
 	headerSpacerWidth: number;
 	headerWidth: number;
 	scrollLeft: number;
+	isColumnResizeDragging?: boolean;
 	stickyColumnEndLeft: number;
 	stickyColumnCount?: number | null;
+	rowHeaderWidth?: number;
+	showRowNumbers?: boolean;
 }) => {
+	const rowHeaderWidth = p.rowHeaderWidth ?? SHEET_ROW_NUMBER_WIDTH;
+	const showRowNumbers = p.showRowNumbers !== false;
+
 	return <div
 		className='sticky'
 		data-sheet-sticky-header='true'
@@ -599,7 +640,7 @@ export const SheetHeaderArea = memo((p: {
 				width: p.headerWidth,
 			}}
 		>
-			<SheetCornerCell />
+			{showRowNumbers ? <SheetCornerCell /> : null}
 
 			<SheetStickyColumnHeaderSpacer
 				left={p.stickyColumnEndLeft}
@@ -609,7 +650,7 @@ export const SheetHeaderArea = memo((p: {
 				const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
 				const isColumnReorderDragging = p.columnReorderDrag?.columnKey === columnMetric.column.key;
 				const headerLeft = (isStickyLeft ? p.scrollLeft : 0) +
-					SHEET_ROW_NUMBER_WIDTH +
+					rowHeaderWidth +
 					columnMetric.left;
 
 				return <SheetHeaderCell
@@ -626,6 +667,7 @@ export const SheetHeaderArea = memo((p: {
 					hasColumnReorderTransition={Boolean(p.columnReorderDrag && !isColumnReorderDragging)}
 					isStickyLeft={isStickyLeft}
 					isColumnReorderDragging={isColumnReorderDragging}
+					isColumnResizeDragging={p.isColumnResizeDragging}
 				/>;
 			})}
 
@@ -644,7 +686,7 @@ export const SheetHeaderArea = memo((p: {
 				{p.columns.map((columnMetric) => {
 					const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
 					const handleLeft = (isStickyLeft ? p.scrollLeft : 0) +
-						SHEET_ROW_NUMBER_WIDTH +
+						rowHeaderWidth +
 						columnMetric.left +
 						columnMetric.width -
 						SHEET_COLUMN_RESIZE_HANDLE_WIDTH / 2 -
@@ -697,7 +739,10 @@ export const SheetHeaderArea = memo((p: {
 	prev.selectedHeaderCellKey === next.selectedHeaderCellKey &&
 	prev.headerSpacerWidth === next.headerSpacerWidth &&
 	prev.headerWidth === next.headerWidth &&
+	prev.isColumnResizeDragging === next.isColumnResizeDragging &&
 	prev.scrollLeft === next.scrollLeft &&
+	prev.rowHeaderWidth === next.rowHeaderWidth &&
+	prev.showRowNumbers === next.showRowNumbers &&
 	prev.stickyColumnEndLeft === next.stickyColumnEndLeft &&
 	prev.stickyColumnCount === next.stickyColumnCount
 ));
@@ -793,7 +838,7 @@ export const SheetRowNumberCell = memo((p: {
 
 	return <div
 		className={cn(
-				'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
+				'sheet_ui_row_number of abs sticky h_center ft_xs cl_md no_sel z2',
 				'bd_lt',
 				p.deleted ? '__deleted' : '',
 				STICKY_CELL_BG_CSS,
@@ -954,7 +999,7 @@ export const SheetTopLeftRowNumberSlot = memo((p: {
 	>
 		<div
 		className={cn(
-				'sheet_ui_row_number of abs sticky h_center cl_md no_sel z2',
+				'sheet_ui_row_number of abs sticky h_center ft_xs cl_md no_sel z2',
 				'',
 				STICKY_CELL_BG_CSS,
 			)}
@@ -987,7 +1032,14 @@ export const SheetCellDisplayValue = memo((p: {
 	isCellActive?: boolean;
 	showSelectChevron?: boolean;
 }) => {
-	const valueClassName = p.displayClassName || 'ellip';
+	const valueClassName = p.displayClassName || '';
+	const clippedValueStyle: CSSProperties = {
+		maxWidth: '100%',
+		minWidth: 0,
+		overflow: 'hidden',
+		textOverflow: 'clip',
+		whiteSpace: 'nowrap',
+	};
 	const openProps = p.canOpen
 		? {
 			'data-sheet-cell-open-trigger': 'true',
@@ -1000,15 +1052,17 @@ export const SheetCellDisplayValue = memo((p: {
 		{p.iconName
 			? <span
 				className={cn('h_item ellip', p.fill && 'g_fill', p.canOpen && 'link u', p.className)}
+				style={clippedValueStyle}
 				{...openProps}
 			>
 				<span className='ic_sm mr_5 no_shrink'>
 					<Icon name={p.iconName} />
 				</span>
-				<span className={valueClassName}>{p.displayValue}</span>
+				<span className={valueClassName} style={clippedValueStyle}>{p.displayValue}</span>
 			</span>
 			: <span
 				className={cn(p.fill && 'g_fill', valueClassName, p.canOpen && 'link u', p.className)}
+				style={clippedValueStyle}
 				{...openProps}
 			>{p.displayValue}</span>}
 
@@ -1034,7 +1088,7 @@ export const SheetCellEditor = memo((p: {
 	error?: string | null;
 	rowId: string;
 }) => {
-	const editorClassName = cn('sheet_ui_editor bg stock px_6 ft_xs ft_normal', p.error ? 'error' : '');
+	const editorClassName = cn('sheet_ui_editor bg stock px_8 ft_xs ft_normal', p.error ? 'error' : '');
 	const sharedProps = {
 		autoFocus: true,
 		className: editorClassName,
@@ -1166,6 +1220,7 @@ export const SheetGridCell = memo((p: {
 	const cellClassName = cn(
 		'sheet_ui_cell of abs',
 		borderClassName,
+		p.column.cellClassName,
 		isCellActive ? 'active z4 hv_area' : '',
 		isSingleClicked ? 'single_clicked' : '',
 		isEditable && isSelected && !isEditing ? 'pointer' : '',
@@ -1201,34 +1256,23 @@ export const SheetGridCell = memo((p: {
 		}}
 	>
 		<div
-			className='h_item h_f w_f'
+			className={cn('h_item h_f w_f', cellContentClassName)}
 			style={{
-				backgroundColor: cellStyle.backgroundColor,
+				backgroundColor: showCustomBackgroundSelectedOverlay ? undefined : cellStyle.backgroundColor,
 			}}
 		>
-			<div className={cellContentClassName}>
-				{isInlineEditing
-					? <SheetCellEditor
-						cell={cell}
-						cellKey={p.column.key}
-						column={p.column}
-						draftValue={editState?.draftValue || ''}
-						error={editState?.error}
-						rowId={p.rowId!}
-						/>
-					: showCustomBackgroundSelectedOverlay
-						? <span className='rel z2 h_item f'>
-							<SheetCellDisplayValue
-								canOpen={cell?.canOpen}
-								className={pickerDisplay.className}
-								displayClassName={cell?.displayClassName}
-								displayValue={pickerDisplay.value}
-								iconName={iconName}
-								isCellActive={isCellActive}
-								showSelectChevron={isEditable && isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
-							/>
-						</span>
-						: <SheetCellDisplayValue
+			{isInlineEditing
+				? <SheetCellEditor
+					cell={cell}
+					cellKey={p.column.key}
+					column={p.column}
+					draftValue={editState?.draftValue || ''}
+					error={editState?.error}
+					rowId={p.rowId!}
+					/>
+				: showCustomBackgroundSelectedOverlay
+					? <span className='rel z2 h_item f'>
+						<SheetCellDisplayValue
 							canOpen={cell?.canOpen}
 							className={pickerDisplay.className}
 							displayClassName={cell?.displayClassName}
@@ -1236,8 +1280,17 @@ export const SheetGridCell = memo((p: {
 							iconName={iconName}
 							isCellActive={isCellActive}
 							showSelectChevron={isEditable && isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
-						/>}
-			</div>
+						/>
+					</span>
+					: <SheetCellDisplayValue
+						canOpen={cell?.canOpen}
+						className={pickerDisplay.className}
+						displayClassName={cell?.displayClassName}
+						displayValue={pickerDisplay.value}
+						iconName={iconName}
+						isCellActive={isCellActive}
+						showSelectChevron={isEditable && isSelected && pickerDisplay.hasValue && isSheetChevronCellFieldType(p.column.fieldType)}
+					/>}
 		</div>
 	</div>;
 }, (prev, next) => (
@@ -1248,6 +1301,7 @@ export const SheetGridCell = memo((p: {
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
 	prev.column.fieldType === next.column.fieldType &&
+	prev.column.cellClassName === next.column.cellClassName &&
 	prev.column.humanFieldType === next.column.humanFieldType &&
 	prev.columnIndex === next.columnIndex &&
 	prev.columnWidth === next.columnWidth &&
@@ -1271,11 +1325,13 @@ SheetGridCell.displayName = 'SheetGridCell';
 
 export const SheetPlaceholderRowFillCell = memo((p: {
 	contentWidth?: number;
+	left?: number;
 	rowHeight?: number;
 	rowTop: number;
 	rowWidth: number;
 }) => {
-	const fillWidth = Math.max(0, (p.contentWidth ?? p.rowWidth) - SHEET_ROW_NUMBER_WIDTH);
+	const left = p.left ?? SHEET_ROW_NUMBER_WIDTH;
+	const fillWidth = Math.max(0, (p.contentWidth ?? p.rowWidth) - left);
 
 	return <div
 		className={cn('sheet_ui_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_6 cl_df bg_zinc_fd_hv noclick', CELL_BG_CSS)}
@@ -1283,13 +1339,14 @@ export const SheetPlaceholderRowFillCell = memo((p: {
 		data-sheet-placeholder-row-fill-cell='true'
 		style={{
 			height: p.rowHeight ?? SHEET_ROW_HEIGHT,
-			left: SHEET_ROW_NUMBER_WIDTH,
+			left,
 			top: p.rowTop,
 			width: fillWidth,
 		}}
 	/>;
 }, (prev, next) => (
 	prev.contentWidth === next.contentWidth &&
+	prev.left === next.left &&
 	prev.rowHeight === next.rowHeight &&
 	prev.rowTop === next.rowTop &&
 	prev.rowWidth === next.rowWidth

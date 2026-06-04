@@ -485,7 +485,7 @@ export function DataTableInboundContactEditor(p: DataTableInboundContactEditorPr
 
 	return <form
 		aria-busy={disabled}
-		className='bg bd_2 bd_lt r_2 v_stretch gap_5 sheet_overlay_editor lh_2'
+		className='bg shadow_light r_2 v_stretch gap_5 sheet_overlay_editor lh_2'
 		data-sheet-click-source={p.clickSource}
 		data-sheet-inbound-contact-editor='true'
 		onSubmit={(e) => {

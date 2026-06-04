@@ -96,6 +96,23 @@ export const ModalContentContainer = forwardRef<HTMLDivElement, ModalContentCont
 
 ModalContentContainer.displayName = 'ModalContentContainer';
 
+/*
+ * Render the standard scrollable modal screen content area.
+ */
+export const ModalContentArea = forwardRef<HTMLDivElement, ReactDivElement>((p, ref) => {
+  const { className, ...other } = p;
+
+  return (
+    <div
+      ref={ref}
+      className={cn('scr_area f_stretch max_h_extend_bottom min_h_350', className)}
+      {...other}
+    />
+  );
+});
+
+ModalContentArea.displayName = 'ModalContentArea';
+
 /**
  * Modal error message notice
  */
@@ -654,7 +671,7 @@ export function ModalToolbarTitle(p: {
   >
     <ModalToolbarBreadcrumbs
       breadcrumbs={breadcrumbs}
-      className={cn('h_item shift_down ml_4 trans_op spd_2 unsel', didScroll ? 'op_100' : 'op_0')}
+      className={cn('h_item shift_down ml_4 trans_op spd_2', didScroll ? 'op_100' : 'op_0 unsel')}
     />
 
 

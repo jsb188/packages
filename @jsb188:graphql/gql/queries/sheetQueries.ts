@@ -53,10 +53,6 @@ query sheetGrid (
     ranges {
       ...sheetRangeFragment
     }
-
-    regions {
-      ...sheetRegionFragment
-    }
   }
 }
 

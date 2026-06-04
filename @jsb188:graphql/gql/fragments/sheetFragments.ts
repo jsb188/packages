@@ -101,12 +101,12 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
   type
   startRowIndex
   startColumnIndex
+  sourceViewId
   active
 
   source {
     type
     dataTableId
-    viewId
   }
 
   columns {
@@ -142,5 +142,9 @@ export const sheetGridFragment = `fragment sheetGridFragment on SheetGrid {
   pageInfo {
     hasMoreRows
     lastContentRowIndex
+  }
+
+  regions {
+    ...sheetRegionFragment
   }
 }`;

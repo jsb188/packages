@@ -795,7 +795,7 @@ export function useQuery(
   query: any,
   options?: GraphQLQueryOptions,
 ): GraphQLQueryResult {
-  const { onCompleted, onError, openModalPopUp, variables, cacheMap, skip, eagerFragmentKeyMap, doTest } = options || {};
+  const { authToken, onCompleted, onError, openModalPopUp, variables, cacheMap, skip, eagerFragmentKeyMap, doTest } = options || {};
   const variablesKey = makeVariablesKey(variables);
   const connectedToServer = useConnectedToServerValue();
   const screenIsFocused = useScreenIsFocusedValue();
@@ -879,6 +879,7 @@ export function useQuery(
       query,
       qryVariables,
       {
+        authToken: authToken || undefined,
         openModalPopUp: retryCount >= triedCount ? openModalPopUp : null,
         cacheMap,
         onCompleted: (data: any | null, error: ServerErrorObj | null) => {

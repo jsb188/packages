@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/main.ts",
     "./DataTable": "./src/modules/DataTable.tsx",
+    "./TableDesigner": "./src/modules/TableDesigner.tsx",
     "./modules/dataTable-interaction-state": "./src/modules/dataTable-interaction-state.ts",
     "./modules/SheetContextMenu": "./src/modules/SheetContextMenu.tsx",
     "./modules/grid-cell-render": "./src/modules/grid-cell-render.ts",

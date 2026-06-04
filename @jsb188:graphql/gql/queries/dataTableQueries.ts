@@ -43,3 +43,19 @@ query dataTableRows (
 ${dataTableRowFragment}
 ${dataTableCellFragment}
 `;
+
+export const dataTableCellsForRowsQry = gql`
+query dataTableCellsForRows (
+  $organizationId: GenericID!
+  $requests: [DataTableCellsForRowsRequestInput!]!
+) {
+  dataTableCellsForRows (
+    organizationId: $organizationId
+    requests: $requests
+  ) {
+    ...dataTableCellFragment
+  }
+}
+
+${dataTableCellFragment}
+`;

@@ -1,6 +1,3 @@
-import i18n from '@jsb188/app/i18n/index.ts';
-import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
-import { formatCurrency } from '@jsb188/app/utils/number.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { useEditDataTableCells, useEditDataTableDesign } from '@jsb188/graphql/hooks/use-dataTable-mtn';
 import { useReactiveDataTableRows, useDataTableRows } from '@jsb188/graphql/hooks/use-dataTable-qry';
@@ -11,22 +8,15 @@ import type {
 	DataTableDesignGQL,
 	DataTableDesignViewColumnGQL,
 	DataTableDesignViewGQL,
-	DataTableFieldTypeGQL,
 	DataTableGQL,
 	DataTableRowGQL,
 } from '@jsb188/mday/types/dataTable.d.ts';
 import {
-	formatDataTableWeekDateRange,
 	getOrderedDataTableDesignViewColumns,
 	getOrderedDataTableDesignViews,
-	isDataTableDateLikeFieldType,
-	isDataTableNumberLikeFieldType,
-	isDataTableWeekFieldType,
 	mapDataTableDesignViewColumnToCell,
 	moveVisibleDataTableColumnKeyInOrder,
-	normalizeDataTableDateLikeValue,
 } from '@jsb188/mday/utils/dataTable.ts';
-import { Calendar, type CalendarSelectedObj } from '@jsb188/react-web/modules/Calendar';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
 import {
@@ -36,7 +26,6 @@ import {
 	getSheetMinimumRowCount,
 	getSheetMultiSelectEditorValueSet,
 	getSheetVisibleRange,
-	getValidSheetOptionColor,
 	SHEET_COLUMN_WIDTH,
 	SHEET_HEADER_HEIGHT,
 	SHEET_ROW_HEIGHT,
@@ -44,9 +33,7 @@ import {
 	SHEET_STICKY_SPACER_SIZE,
 	type SheetColumnMetric,
 	type SheetColumnWidths,
-	SheetSelectEditor,
 	type SheetUICell,
-	type SheetUIColumn,
 	type SheetUIColumnReorderDisplacements,
 	type SheetUIColumnReorderDrag,
 	type SheetUIColumnReorderGuide,
@@ -61,7 +48,6 @@ import { DataTableUI } from '@jsb188/react-web/ui/DataTableUI';
 import { copyTextToClipboard, useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import { useKeyDown, useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useAtom } from 'jotai';
-import { DateTime } from 'luxon';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
 import { type DataTableArrowNavigationDirection, type DataTableContextMenuTarget, useDataTableContextMenu } from './DataTable-ContextMenu.tsx';
@@ -117,6 +103,13 @@ import {
 } from './dataTable-shortcuts.ts';
 import { addGridKeyboardEventListener, handleGridKeyboardEvent } from '@jsb188/sheet/modules/grid-keyboard';
 import {
+	dataTableDesignPatchHasUndoableChanges,
+	getDataTableDesignHistoryBeforePatch,
+	useDataTableUndoRedo,
+	type DataTableCellHistoryChange,
+	type DataTableUndoRedoEntry,
+} from './dataTable-history.ts';
+import {
 	getClosestGridElement,
 	getGridKeyboardElements,
 	isGridShortcutBlockedByActiveInput,
@@ -128,12 +121,51 @@ import {
 } from '@jsb188/sheet/modules/grid-selection';
 import { sendCellSaveBeacon } from './cell-save-beacon.ts';
 import { groupCellSaveItemsByTarget, sendGroupedCellSaveItems, useDebouncedCellSaveBatch } from './use-debounced-cell-save-batch.ts';
+import {
+	DATA_TABLE_DATE_EDITOR_WIDTH,
+	DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH,
+	DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
+	DataTableDateEditor as SharedDataTableDateEditor,
+	DataTableLocalEditorContainer as SharedDataTableLocalEditorContainer,
+	DataTableReadOnlyTag as SharedDataTableReadOnlyTag,
+	DataTableSelectEditor,
+	canEditDataTableRuntimeCell,
+	canOpenDataTableCellLink,
+	getDataTableCellClassNameFromModel,
+	getDataTableCellDisplayClassNameFromModel,
+	getDataTableCellDisplayModel,
+	getDataTableCellSerializedValue,
+	getDataTableDesignCellHeaderLabel,
+	getDataTableLocalEditorPosition as sharedGetDataTableLocalEditorPosition,
+	getDataTableOpenLinkIconName,
+	getDataTableRuntimeCellKey,
+	getDataTableRuntimeColumnKey,
+	getDataTableSelectedCellTagPosition as sharedGetDataTableSelectedCellTagPosition,
+	getDataTableSheetUIColumn,
+	getDataTableTranslatedText,
+	getSheetCellDisplayValue,
+	getSheetEditorDraftValue,
+	getSheetEditorFieldType,
+	hasDataTableCellRelatedId,
+	isDataTableDateEditorFieldType,
+	isDataTableExternalLinkTextValue,
+	isDataTableInboundContactRelatedTable,
+	isDataTableLocalEditorFieldType,
+	isDataTableReferenceCell,
+	isSheetSelectEditorFieldType,
+	parseDataTableRawValue,
+	parseSheetEditorValue,
+	type DataTableCellLookup,
+	type DataTableRuntimeDesignCell,
+} from './dataTable-cell-editing.tsx';
+
+export { parseSheetEditorValue } from './dataTable-cell-editing.tsx';
 
 /**
  * Dev code
  */
 
-const __DISABLE_EDIT_STATE_RESET__ = globalThis?.location?.hostname === 'localhost' && globalThis?.location?.search.includes('disable_sheet_edit_state_reset=true');
+const __DISABLE_EDIT_STATE_RESET__ = globalThis?.location?.hostname === 'localhost' && globalThis?.location?.search.includes('dev=1');
 const __USE_NATIVE_CONTEXT_MENU_WITH_ALT__ = (globalThis?.location?.href || '').indexOf('localhost') >= 0;
 
 /**
@@ -152,17 +184,6 @@ export interface DataTableProps {
 	setFloatingMessage?: SetFloatingMessage;
 	timeZone?: string | null;
 }
-
-type DataTableParsedEditorValue = {
-	value: string | null;
-	error?: string;
-};
-
-type DataTableCellLookup = {
-	cell?: DataTableCellGQL | null;
-	designCell: DataTableRuntimeDesignCell;
-	row: DataTableRowGQL;
-};
 
 type DataTableOpenCellParams = {
 	cell?: DataTableCellGQL | null;
@@ -194,13 +215,6 @@ type DataTableRuntimeState = {
 	startColumnReorder: (columnKey: string, clientX: number) => void;
 	timeZone?: string | null;
 };
-
-type DataTableRuntimeDesignCell = DataTableDesignCellGQL & {
-	runtimeKey?: string;
-	viewSource?: DataTableDesignViewColumnGQL['source'] | null;
-};
-
-type SheetEditorFieldType = DataTableFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT';
 
 type DataTableResizeState = {
 	columnKey: string;
@@ -240,14 +254,6 @@ type DataTableCellDragSelectionState = {
 	};
 	pointerId: number;
 	started: boolean;
-};
-
-type DataTableLocalEditorPosition = {
-	isStickyLeft: boolean;
-	left: number;
-	rowWidth: number;
-	top: number;
-	width: number;
 };
 
 type DataTableSelectionBoxPosition = GridSelectionBoxPosition;
@@ -310,19 +316,6 @@ const SHEET_MOCK_ROW_COUNT = 5;
 const SHEET_MOCK_CELL_TEXT = '... ... ...';
 const SHEET_MOCK_ROW_OPACITY_CLASSES = ['', 'op_80', 'op_60', 'op_40', 'op_20'];
 const SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
-const SHEET_SELECT_EDITOR_MIN_WIDTH = 140;
-const SHEET_SELECT_EDITOR_MAX_WIDTH = 400;
-const SHEET_DATE_EDITOR_WIDTH = 280;
-const SHEET_INBOUND_CONTACT_EDITOR_MIN_WIDTH = 320;
-const SHEET_LOCAL_EDITOR_LEFT_OFFSET = -2;
-const SHEET_LOCAL_EDITOR_TOP_OFFSET = -1;
-const SHEET_LOCAL_EDITOR_WIDTH_OFFSET = 3;
-const SHEET_LOCAL_EDITOR_Z_INDEX = 32;
-const SHEET_STICKY_LOCAL_EDITOR_Z_INDEX = 43;
-const SHEET_READ_ONLY_TAG_HEIGHT = 18;
-const SHEET_READ_ONLY_TAG_TOP_OFFSET = 4;
-const SHEET_READ_ONLY_TAG_Z_INDEX = 33;
-const SHEET_DATE_KEY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const DATA_TABLE_LOCAL_EDITOR_SELECTOR = '[data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
 const DATA_TABLE_GRID_EDITOR_SELECTOR = '[data-sheet-editor="true"], [data-sheet-header-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
 
@@ -338,26 +331,6 @@ export function getOrderedDataTableDesignCells(dataTable: DataTableGQL): DataTab
 	const remainingCells = cells.filter((cell) => !cell.hidden && !orderedKeys.has(cell.key));
 
 	return orderedCells.concat(remainingCells);
-}
-
-/*
- * Return the source master cell key that one runtime column should read and write.
- */
-
-function getDataTableRuntimeCellKey(designCell: DataTableRuntimeDesignCell) {
-	if (designCell.viewSource?.type === 'MASTER_CELL' && designCell.viewSource.cellKey) {
-		return designCell.viewSource.cellKey;
-	}
-
-	return designCell.key;
-}
-
-/*
- * Return the UI/runtime identity for one column, which can differ from the stored cell key.
- */
-
-function getDataTableRuntimeColumnKey(designCell: Pick<DataTableRuntimeDesignCell, 'key' | 'runtimeKey'>) {
-	return designCell.runtimeKey || designCell.key;
 }
 
 /*
@@ -688,14 +661,6 @@ function getDataTableColumnReorderHeaderDisplacements(params: {
 }
 
 /*
- * Return the human-facing header label for one dataTable design cell.
- */
-
-function getDataTableDesignCellHeaderLabel(designCell: DataTableDesignCellGQL) {
-	return designCell.humanLabel || designCell.label || designCell.key;
-}
-
-/*
  * Convert a header editor draft into the stored human label patch value.
  */
 
@@ -704,131 +669,6 @@ function getDataTableHeaderHumanLabelPatchValue(designCell: DataTableDesignCellG
 	const fallbackLabel = designCell.label || designCell.key;
 
 	return value && value !== fallbackLabel ? value : null;
-}
-
-/*
- * Return the field type that should drive human-facing edit behavior.
- */
-
-function getSheetEditorFieldType(designCell: Pick<DataTableDesignCellGQL, 'fieldType' | 'humanFieldType'>) {
-	const fieldType = designCell.fieldType as SheetEditorFieldType;
-
-	if (fieldType === 'ID_OR_TEXT') {
-		return designCell.humanFieldType;
-	}
-
-	if (fieldType === 'ID' && designCell.humanFieldType === 'SELECT_OR_TEXT') {
-		return designCell.humanFieldType;
-	}
-
-	return designCell.fieldType;
-}
-
-/*
- * Return whether one runtime cell is available for direct human edits.
- */
-
-function canEditDataTableRuntimeCell(params: { activeView?: DataTableDesignViewGQL | null; design: DataTableDesignGQL; designCell: DataTableDesignCellGQL; disabled?: boolean }) {
-	return !params.disabled && !params.design.humansCannotEdit && !params.activeView?.humansCannotEdit && !params.designCell.humansCannotEdit;
-}
-
-/*
- * Convert a GraphQL design cell into an app-agnostic UI column.
- */
-
-function getSheetUIColumn(designCell: DataTableRuntimeDesignCell): SheetUIColumn {
-	const columnKey = getDataTableRuntimeColumnKey(designCell);
-
-	return {
-		id: columnKey,
-		key: columnKey,
-		label: getDataTableDesignCellHeaderLabel(designCell),
-		fieldType: getSheetEditorFieldType(designCell) as SheetUIFieldType,
-		humanFieldType: designCell.humanFieldType as SheetUIFieldType,
-		options: designCell.options || [],
-		openLink: designCell.openLink,
-		humansCannotEdit: designCell.humansCannotEdit,
-	};
-}
-
-/*
- * Parse one persisted dataTable cell string into a displayable JavaScript value.
- */
-
-function parseDataTableRawValue(value?: unknown | null) {
-	if (value === undefined || value === null || value === '') {
-		return null;
-	}
-
-	if (typeof value !== 'string') {
-		return value;
-	}
-
-	try {
-		return JSON.parse(value);
-	} catch {
-		return value;
-	}
-}
-
-/*
- * Convert any dataTable value into the string shown inside a grid cell.
- */
-
-function stringifyDataTableDisplayValue(value: unknown) {
-	if (value === undefined || value === null) {
-		return '';
-	}
-
-	if (typeof value === 'string') {
-		return value;
-	}
-
-	if (typeof value === 'number' || typeof value === 'boolean') {
-		return String(value);
-	}
-
-	return JSON.stringify(value);
-}
-
-/*
- * Return the persisted cell value for a given field type.
- */
-
-function getDataTableCellSerializedValue(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
-	if (optimisticValue !== undefined) {
-		return optimisticValue;
-	}
-
-	if (!cell) {
-		return null;
-	}
-
-	if (isDataTableNumberLikeFieldType(designCell.fieldType) && typeof cell.numberValue === 'number' && Number.isFinite(cell.numberValue)) {
-		return String(cell.numberValue);
-	}
-
-	if (designCell.fieldType === 'BOOLEAN' && cell.booleanValue !== undefined && cell.booleanValue !== null) {
-		return String(cell.booleanValue);
-	}
-
-	if (isDataTableDateLikeFieldType(designCell.fieldType) && cell.dateValue) {
-		return String(cell.dateValue).split('T')[0];
-	}
-
-	if (designCell.fieldType === 'DATETIME' && cell.datetimeValue) {
-		return String(cell.datetimeValue);
-	}
-
-	return cell.value ?? cell.textValue ?? null;
-}
-
-/*
- * Return whether one cell displays a live value from another dataTable cell.
- */
-
-function isDataTableReferenceCell(cell: DataTableCellGQL | null | undefined) {
-	return cell?.referenceStatus === 'ACTIVE' || cell?.referenceStatus === 'DELETED';
 }
 
 /*
@@ -895,370 +735,6 @@ function getDataTableComputedFallbackCell(row: DataTableRowGQL, rowCellMap: Map<
 
 function getDataTableCellForRuntimeColumn(row: DataTableRowGQL, rowCellMap: Map<string, DataTableCellGQL> | null | undefined, designCell: DataTableRuntimeDesignCell) {
 	return rowCellMap?.get(getDataTableRuntimeCellKey(designCell)) || getDataTableComputedFallbackCell(row, rowCellMap, designCell);
-}
-
-/*
- * Find the label for a select value from one design cell.
- */
-
-function getDataTableOptionLabel(designCell: DataTableDesignCellGQL, value: string) {
-	return designCell.options?.find((option) => option.value === value)?.label || value;
-}
-
-/*
- * Check whether one dataTable field type should display select option styling.
- */
-
-function isDataTableSelectDisplayFieldType(humanFieldType: DataTableFieldTypeGQL) {
-	return humanFieldType === 'SELECT' || humanFieldType === 'SELECT_OR_TEXT';
-}
-
-/*
- * Return the background color class for one select-style dataTable cell value.
- */
-
-function getDataTableSelectDisplayColorClassName(designCell: DataTableDesignCellGQL, value: string) {
-	const option = designCell.options?.find((item) => item.value === value);
-	return `bg_${getValidSheetOptionColor(option?.color)}_md`;
-}
-
-/*
- * Return the hover background class for one select-style dataTable cell with a matched option color.
- */
-
-function getDataTableSelectCellClassName(designCell: DataTableDesignCellGQL, value: string) {
-	const option = designCell.options?.find((item) => item.value === value);
-	return `bg_${getValidSheetOptionColor(option?.color)}_fd_hv`;
-}
-
-/*
- * Return whether a value is a calendar date key that must not shift by timezone.
- */
-
-function isDataTableDateKeyValue(value: unknown): value is string {
-	return typeof value === 'string' && SHEET_DATE_KEY_REGEX.test(value);
-}
-
-/*
- * Apply the dataTable display timezone to one DateTime when the timezone is valid.
- */
-
-function getDataTableDateTimeInDisplayZone(dateTime: DateTime, timeZone?: string | null) {
-	if (!timeZone) {
-		return dateTime;
-	}
-
-	const zonedDateTime = dateTime.setZone(timeZone);
-	return zonedDateTime.isValid ? zonedDateTime : dateTime;
-}
-
-/*
- * Format one readable date value without applying timezone shifts to date keys.
- */
-
-function getReadableDataTableDateDisplayValue(value: string | number | Date, timeZone?: string | null) {
-	try {
-		return getReadableCalDate(value instanceof Date ? value : String(value), isDataTableDateKeyValue(value) ? null : timeZone);
-	} catch {
-		return null;
-	}
-}
-
-/*
- * Parse one dataTable date-like display value into a Luxon DateTime.
- */
-
-function getDataTableDateTimeFromDisplayValue(value: unknown, timeZone?: string | null) {
-	if (isDataTableDateKeyValue(value)) {
-		return DateTime.fromISO(value);
-	}
-
-	if (value instanceof Date) {
-		return getDataTableDateTimeInDisplayZone(DateTime.fromJSDate(value), timeZone);
-	}
-
-	if (typeof value === 'number') {
-		return getDataTableDateTimeInDisplayZone(DateTime.fromMillis(value), timeZone);
-	}
-
-	if (typeof value === 'string') {
-		const dateTime = DateTime.fromISO(value, timeZone ? { zone: timeZone } : undefined);
-		if (dateTime.isValid) {
-			return dateTime;
-		}
-
-		return getDataTableDateTimeInDisplayZone(DateTime.fromISO(value), timeZone);
-	}
-
-	return null;
-}
-
-/*
- * Format one date-like dataTable value with a Luxon format string.
- */
-
-function getFormattedDataTableDateDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
-	if (!format) {
-		return null;
-	}
-
-	const dateTime = getDataTableDateTimeFromDisplayValue(value, timeZone);
-	if (!dateTime?.isValid) {
-		return null;
-	}
-
-	return dateTime.toFormat(format);
-}
-
-/*
- * Format one dataTable DATE value for display in the grid.
- */
-
-function getDataTableDateDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
-	if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
-		return '';
-	}
-
-	const formattedValue = getFormattedDataTableDateDisplayValue(value, format, timeZone);
-	if (formattedValue) {
-		return formattedValue;
-	}
-
-	return getReadableDataTableDateDisplayValue(value, timeZone) || stringifyDataTableDisplayValue(value);
-}
-
-/*
- * Format one dataTable DATETIME value for display in the grid.
- */
-
-function getDataTableDateTimeDisplayValue(value: unknown, format?: string | null, timeZone?: string | null) {
-	if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
-		return '';
-	}
-
-	const formattedValue = getFormattedDataTableDateDisplayValue(value, format, timeZone);
-	if (formattedValue) {
-		return formattedValue;
-	}
-
-	const dateTime = getDataTableDateTimeFromDisplayValue(value, timeZone);
-	if (dateTime?.isValid) {
-		return dateTime.toLocaleString(DateTime.DATETIME_MED);
-	}
-
-	return stringifyDataTableDisplayValue(value);
-}
-
-/*
- * Format one dataTable week value for display in the grid.
- */
-
-function getDataTableWeekDisplayValue(value: unknown, fieldType: DataTableFieldTypeGQL) {
-	if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
-		return '';
-	}
-
-	return formatDataTableWeekDateRange(value instanceof Date ? value : String(value), fieldType) || stringifyDataTableDisplayValue(value);
-}
-
-/*
- * Convert one cell and design column into the display string shown in the grid.
- */
-
-function getSheetCellDisplayValue(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null, timeZone?: string | null) {
-	if (cell?.referenceStatus === 'DELETED') {
-		return getDataTableTranslatedText('dataTable.reference_deleted', 'Deleted reference');
-	}
-
-	const rawValue = parseDataTableRawValue(getDataTableCellSerializedValue(cell, designCell, optimisticValue));
-
-	if (designCell.humanFieldType === 'DATE') {
-		return getDataTableDateDisplayValue(rawValue, designCell.format, timeZone);
-	}
-
-	if (designCell.humanFieldType === 'DATETIME') {
-		return getDataTableDateTimeDisplayValue(rawValue, designCell.format, timeZone);
-	}
-
-	if (isDataTableWeekFieldType(designCell.humanFieldType)) {
-		return getDataTableWeekDisplayValue(rawValue, designCell.humanFieldType);
-	}
-
-	if (designCell.humanFieldType === 'PRICE' && typeof rawValue !== 'undefined' && rawValue !== null) {
-		return formatCurrency(rawValue as string | number);
-	}
-
-	if ((designCell.humanFieldType === 'SELECT' || designCell.humanFieldType === 'SELECT_OR_TEXT') && typeof rawValue === 'string') {
-		return getDataTableOptionLabel(designCell, rawValue);
-	}
-
-	if (designCell.humanFieldType === 'MULTI_SELECT') {
-		const values = Array.isArray(rawValue)
-			? rawValue
-			: typeof rawValue === 'string'
-				? rawValue
-						.split(',')
-						.map((value) => value.trim())
-						.filter(Boolean)
-				: [];
-
-		return values.map((value) => getDataTableOptionLabel(designCell, String(value))).join(', ');
-	}
-
-	return stringifyDataTableDisplayValue(rawValue);
-}
-
-/*
- * Return the display class for one cell value shown in the grid.
- */
-
-function getDataTableCellDisplayClassName(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
-	if (!isDataTableSelectDisplayFieldType(designCell.humanFieldType)) {
-		return undefined;
-	}
-
-	const rawValue = parseDataTableRawValue(getDataTableCellSerializedValue(cell, designCell, optimisticValue));
-	if (typeof rawValue !== 'string' || !rawValue) {
-		return undefined;
-	}
-
-	return ['ellip', 'px_5', 'py_2', 'r_4', getDataTableSelectDisplayColorClassName(designCell, rawValue)].join(' ');
-}
-
-/*
- * Return the container class for one cell value shown in the grid.
- */
-
-function getDataTableCellClassName(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
-	if (!isDataTableSelectDisplayFieldType(designCell.humanFieldType)) {
-		return undefined;
-	}
-
-	const rawValue = parseDataTableRawValue(getDataTableCellSerializedValue(cell, designCell, optimisticValue));
-	if (typeof rawValue !== 'string' || !rawValue) {
-		return undefined;
-	}
-
-	return getDataTableSelectCellClassName(designCell, rawValue);
-}
-
-/*
- * Convert one cell value into an editable draft string.
- */
-
-function getSheetEditorDraftValue(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
-	const serializedValue = getDataTableCellSerializedValue(cell, designCell, optimisticValue);
-	const rawValue = parseDataTableRawValue(serializedValue);
-	const fieldType = getSheetEditorFieldType(designCell);
-
-	if (fieldType === 'MULTI_SELECT' && Array.isArray(rawValue)) {
-		return rawValue.map((value) => String(value)).join(', ');
-	}
-
-	if (fieldType === 'DATETIME' && typeof rawValue === 'string') {
-		return rawValue.slice(0, 16);
-	}
-
-	return stringifyDataTableDisplayValue(rawValue);
-}
-
-/*
- * Return a compact key for design options that affect rendered cell text.
- */
-
-function getDataTableDesignOptionsStateKey(designCell: DataTableDesignCellGQL) {
-	return (designCell.options || []).map((option) => [option.label, option.value, option.color || ''].join('\u0001')).join('\u0002');
-}
-
-/*
- * Return whether one dataTable text value points to an external HTTP URL.
- */
-
-function isDataTableExternalLinkTextValue(value: unknown): value is string {
-	return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
-}
-
-/*
- * Return whether one field type should use document-link styling when a related record exists.
- */
-
-function isDataTableDocumentLinkFieldType(fieldType?: DataTableFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT' | null) {
-	return fieldType === 'ID' || fieldType === 'ID_OR_TEXT';
-}
-
-/*
- * Return whether one cell has a usable related record target.
- */
-
-function hasDataTableCellRelatedId(cell?: DataTableCellGQL | null) {
-	return cell?.relatedId !== null && cell?.relatedId !== undefined && String(cell.relatedId).trim() !== '';
-}
-
-/*
- * Return whether a related table name points to inbound contacts.
- */
-
-function isDataTableInboundContactRelatedTable(relatedTable?: string | null) {
-	return relatedTable === 'inbound_contact' || relatedTable === 'inbound_contacts';
-}
-
-/*
- * Return whether one dataTable cell has enough data to open from the grid.
- */
-
-function canOpenDataTableCellLink(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL) {
-	if (!designCell.openLink) {
-		return false;
-	}
-
-	return isDataTableExternalLinkTextValue(cell?.textValue) || (hasDataTableCellRelatedId(cell) && isDataTableDocumentLinkFieldType(designCell.fieldType as DataTableFieldTypeGQL | 'ID_OR_TEXT'));
-}
-
-/*
- * Return the derived open-link icon for one dataTable cell when no explicit icon is set.
- */
-
-function getDataTableOpenLinkIconName(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL) {
-	if (!canOpenDataTableCellLink(cell, designCell)) {
-		return null;
-	}
-
-	if (isDataTableExternalLinkTextValue(cell?.textValue)) {
-		return 'external-link';
-	}
-
-	if (hasDataTableCellRelatedId(cell) && isDataTableDocumentLinkFieldType(designCell.fieldType as DataTableFieldTypeGQL | 'ID_OR_TEXT')) {
-		return 'notes-paper-text';
-	}
-
-	return null;
-}
-
-/*
- * Return a stable comparison key for one rendered UI cell.
- */
-
-function getSheetUICellSignature(p: {
-	canEdit: boolean;
-	canOpen: boolean;
-	designCell: DataTableDesignCellGQL;
-	iconName?: string | null;
-	referenceStatus?: DataTableCellGQL['referenceStatus'] | null;
-	serializedValue: string | null;
-	timeZone?: string | null;
-}) {
-	return [
-		p.serializedValue ?? '',
-		p.iconName ?? '',
-		p.referenceStatus ?? '',
-		p.canEdit ? '1' : '0',
-		p.canOpen ? '1' : '0',
-		p.designCell.fieldType,
-		p.designCell.humanFieldType,
-		p.designCell.format ?? '',
-		p.timeZone ?? '',
-		getDataTableDesignOptionsStateKey(p.designCell),
-	].join('\u0000');
 }
 
 /*
@@ -1338,337 +814,6 @@ function getDataTableMockUICell(cellKey: string, rowIndex: number): SheetUICell 
 		displayValue: SHEET_MOCK_CELL_TEXT,
 		displayClassName: ['mock active bl min_w_50_pc', getDataTableMockRowOpacityClass(rowIndex)].filter(Boolean).join(' '),
 		draftValue: '',
-	};
-}
-
-/*
- * Parse the current editor draft into the serialized value stored by GraphQL.
- */
-
-function isValidDataTableDateInputValue(value: string) {
-	const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-	if (!match) {
-		return false;
-	}
-
-	const year = Number(match[1]);
-	const month = Number(match[2]);
-	const day = Number(match[3]);
-	const date = new Date(Date.UTC(year, month - 1, day));
-
-	return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-}
-
-/*
- * Return whether one editor datetime value can be parsed safely.
- */
-
-function isValidDataTableDateTimeInputValue(value: string) {
-	const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/);
-	if (!match || !isValidDataTableDateInputValue(`${match[1]}-${match[2]}-${match[3]}`)) {
-		return false;
-	}
-
-	const hour = Number(match[4]);
-	const minute = Number(match[5]);
-	const second = match[6] === undefined ? 0 : Number(match[6]);
-
-	return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 && second >= 0 && second <= 59;
-}
-
-/*
- * Return whether one editor value matches a saved dataTable option.
- */
-
-function isSheetEditorOptionValue(designCell: DataTableDesignCellGQL, value: unknown) {
-	return (designCell.options || []).some((option) => String(option.value) === String(value));
-}
-
-/*
- * Parse the current editor draft into the serialized value stored by GraphQL.
- */
-
-export function parseSheetEditorValue(designCell: DataTableDesignCellGQL, draftValue: string): DataTableParsedEditorValue {
-	const fieldType = getSheetEditorFieldType(designCell);
-	const value = draftValue.trim();
-
-	if (!value) {
-		return { value: null };
-	}
-
-	if (isDataTableNumberLikeFieldType(fieldType)) {
-		const numberValue = Number(value);
-
-		if (!Number.isFinite(numberValue)) {
-			return {
-				error: 'Invalid number',
-				value: null,
-			};
-		}
-
-		return { value };
-	}
-
-	if (fieldType === 'BOOLEAN') {
-		if (value !== 'true' && value !== 'false') {
-			return {
-				error: 'Invalid boolean',
-				value: null,
-			};
-		}
-
-		return { value };
-	}
-
-	if (isDataTableDateLikeFieldType(fieldType)) {
-		if (!isValidDataTableDateInputValue(value)) {
-			return {
-				error: 'Invalid date',
-				value: null,
-			};
-		}
-
-		return { value: normalizeDataTableDateLikeValue(value, fieldType) };
-	}
-
-	if (fieldType === 'DATETIME') {
-		if (!isValidDataTableDateTimeInputValue(value)) {
-			return {
-				error: 'Invalid datetime',
-				value: null,
-			};
-		}
-
-		return { value };
-	}
-
-	if (fieldType === 'SELECT' && designCell.options?.length && !isSheetEditorOptionValue(designCell, value)) {
-		return {
-			error: 'Invalid option',
-			value: null,
-		};
-	}
-
-	if (fieldType === 'MULTI_SELECT') {
-		let values: string[];
-
-		if (value.startsWith('[')) {
-			try {
-				const parsedValue = JSON.parse(value);
-
-				if (!Array.isArray(parsedValue)) {
-					return {
-						error: 'Invalid list',
-						value: null,
-					};
-				}
-
-				values = parsedValue.map((item) => String(item));
-			} catch {
-				return {
-					error: 'Invalid list',
-					value: null,
-				};
-			}
-		} else {
-			values = value
-				.split(',')
-				.map((item) => item.trim())
-				.filter(Boolean);
-		}
-
-		if (designCell.options?.length) {
-			const invalidValues = values.filter((item) => !isSheetEditorOptionValue(designCell, item));
-			if (invalidValues.length) {
-				return {
-					error: 'Invalid option',
-					value: null,
-				};
-			}
-		}
-
-		return { value: JSON.stringify(values) };
-	}
-
-	if (fieldType === 'JSON') {
-		try {
-			JSON.parse(value);
-			return { value };
-		} catch {
-			return {
-				error: 'Invalid JSON',
-				value: null,
-			};
-		}
-	}
-
-	return { value: draftValue };
-}
-
-/*
- * Return whether one field type uses the dataTable-owned select-style editor.
- */
-
-function isSheetSelectEditorFieldType(fieldType?: DataTableFieldTypeGQL | SheetUIFieldType | null) {
-	return fieldType === 'SELECT' || fieldType === 'SELECT_OR_TEXT' || fieldType === 'MULTI_SELECT' || fieldType === 'BOOLEAN';
-}
-
-/*
- * Return whether one field type uses the dataTable-owned date or date-time editor.
- */
-
-function isDataTableDateEditorFieldType(fieldType?: DataTableFieldTypeGQL | SheetUIFieldType | null) {
-	return fieldType === 'DATE' || fieldType === 'WEEK_OF_MON' || fieldType === 'WEEK_OF_SUN' || fieldType === 'DATETIME';
-}
-
-/*
- * Return whether one field type uses any dataTable-owned absolute editor.
- */
-
-function isDataTableLocalEditorFieldType(fieldType?: DataTableFieldTypeGQL | SheetUIFieldType | null) {
-	return isSheetSelectEditorFieldType(fieldType) || isDataTableDateEditorFieldType(fieldType);
-}
-
-/*
- * Return translated UI text when translations are loaded, with a stable fallback for tests.
- */
-
-function getDataTableTranslatedText(key: string, fallback: string) {
-	return i18n.has(key) ? i18n.t(key) : fallback;
-}
-
-/*
- * Return default boolean options when the dataTable design does not provide them.
- */
-
-function getDataTableBooleanFallbackOptions() {
-	return [
-		{
-			color: null,
-			label: getDataTableTranslatedText('form.yes', 'Yes'),
-			value: 'true',
-		},
-		{
-			color: null,
-			label: getDataTableTranslatedText('form.no', 'No'),
-			value: 'false',
-		},
-	];
-}
-
-/*
- * Return the option list shown by the dataTable-owned select-style editor.
- */
-
-function getSheetSelectEditorOptions(designCell: DataTableDesignCellGQL) {
-	if (getSheetEditorFieldType(designCell) === 'BOOLEAN' && !designCell.options?.length) {
-		return getDataTableBooleanFallbackOptions();
-	}
-
-	return designCell.options || [];
-}
-
-/*
- * Format one calendar selection as the serialized dataTable date value.
- */
-
-function getDataTableCalendarDateValue(value: CalendarSelectedObj) {
-	const year = String(value.year).padStart(4, '0');
-	const month = String(value.month).padStart(2, '0');
-	const day = String(value.day).padStart(2, '0');
-
-	return `${year}-${month}-${day}`;
-}
-
-/*
- * Return the date portion from a date or date-time editor draft.
- */
-
-function getDataTableDateEditorDateValue(draftValue: string) {
-	const dateValue = draftValue.trim().split('T')[0] || '';
-
-	return isValidDataTableDateInputValue(dateValue) ? dateValue : '';
-}
-
-/*
- * Return the time portion from a date-time editor draft.
- */
-
-function getDataTableDateTimeEditorTimeValue(draftValue: string) {
-	const match = draftValue.trim().match(/T(\d{2}:\d{2})/);
-
-	return match?.[1] || '00:00';
-}
-
-/*
- * Return a valid serialized date-time draft from date and time editor parts.
- */
-
-function getDataTableDateTimeEditorDraftValue(dateValue: string, timeValue: string) {
-	const normalizedDate = isValidDataTableDateInputValue(dateValue) ? dateValue : '';
-	const normalizedTime = /^\d{2}:\d{2}$/.test(timeValue) ? timeValue : '00:00';
-
-	return normalizedDate ? `${normalizedDate}T${normalizedTime}` : '';
-}
-
-/*
- * Calculate the stable dataTable-canvas position for a dataTable-local editor.
- */
-
-function getDataTableLocalEditorPosition(params: {
-	columnMetric?: SheetColumnMetric;
-	hasPlaceholderTail: boolean;
-	rowIndex: number;
-	rowWidth: number;
-	stickyColumnCount: number;
-	stickyHeaderHeight: number;
-	viewportHeight: number;
-	visualRowCount: number;
-	width?: number;
-}): DataTableLocalEditorPosition | null {
-	if (!params.columnMetric || params.rowIndex < 0) {
-		return null;
-	}
-
-	const isStickyLeft = params.columnMetric.columnIndex < params.stickyColumnCount;
-	const rowHeight = getDataTableVisualRowHeight(params.rowIndex, params.visualRowCount, params.viewportHeight, params.stickyHeaderHeight, params.hasPlaceholderTail);
-	const left = SHEET_ROW_NUMBER_WIDTH + params.columnMetric.left + (isStickyLeft ? 0 : SHEET_STICKY_SPACER_SIZE) + SHEET_LOCAL_EDITOR_LEFT_OFFSET;
-	const width = params.width ?? Math.min(Math.max(SHEET_SELECT_EDITOR_MAX_WIDTH, params.columnMetric.width), Math.max(SHEET_SELECT_EDITOR_MIN_WIDTH, params.columnMetric.width));
-
-	return {
-		isStickyLeft,
-		left,
-		rowWidth: params.rowWidth,
-		top: params.stickyHeaderHeight + params.rowIndex * SHEET_ROW_HEIGHT + rowHeight + SHEET_LOCAL_EDITOR_TOP_OFFSET,
-		width: width + SHEET_LOCAL_EDITOR_WIDTH_OFFSET,
-	};
-}
-
-/*
- * Return the canvas position for a compact tag anchored above a selected dataTable cell.
- */
-
-function getDataTableSelectedCellTagPosition(params: {
-	columnMetric?: SheetColumnMetric;
-	rowIndex: number;
-	rowWidth: number;
-	stickyColumnCount: number;
-	stickyHeaderHeight: number;
-}): DataTableLocalEditorPosition | null {
-	if (!params.columnMetric || params.rowIndex < 0) {
-		return null;
-	}
-
-	const isStickyLeft = params.columnMetric.columnIndex < params.stickyColumnCount;
-	const cellTop = params.stickyHeaderHeight + params.rowIndex * SHEET_ROW_HEIGHT;
-	const left = SHEET_ROW_NUMBER_WIDTH + params.columnMetric.left + (isStickyLeft ? 0 : SHEET_STICKY_SPACER_SIZE);
-
-	return {
-		isStickyLeft,
-		left,
-		rowWidth: params.rowWidth,
-		top: cellTop - SHEET_READ_ONLY_TAG_HEIGHT - SHEET_READ_ONLY_TAG_TOP_OFFSET,
-		width: params.columnMetric.width,
 	};
 }
 
@@ -1959,196 +1104,6 @@ function isDataTableInboundContactIdLookup(lookup: DataTableCellLookup) {
 }
 
 /*
- * Anchor a dataTable-local editor to stable dataTable-canvas coordinates.
- */
-
-function DataTableLocalEditorContainer(p: { children: ReactNode; position: DataTableLocalEditorPosition }) {
-	const editorTop = p.position.top;
-
-	if (p.position.isStickyLeft) {
-		return (
-			<div
-				className="abs"
-				data-sheet-local-editor-anchor="true"
-				style={{
-					left: 0,
-					top: editorTop,
-					width: p.position.rowWidth,
-					zIndex: SHEET_STICKY_LOCAL_EDITOR_Z_INDEX,
-				}}
-			>
-				<div
-					className="sticky"
-					style={{
-						left: p.position.left,
-						position: 'sticky',
-						width: p.position.width,
-						zIndex: SHEET_STICKY_LOCAL_EDITOR_Z_INDEX,
-					}}
-				>
-					{p.children}
-				</div>
-			</div>
-		);
-	}
-
-	return (
-		<div
-			className="abs"
-			data-sheet-local-editor-anchor="true"
-			style={{
-				left: p.position.left,
-				top: editorTop,
-				width: p.position.width,
-				zIndex: SHEET_LOCAL_EDITOR_Z_INDEX,
-			}}
-		>
-			{p.children}
-		</div>
-	);
-}
-
-/*
- * Render the read-only tag above a selected cell while preserving sticky-column positioning.
- */
-
-function DataTableReadOnlyTag(p: { position: DataTableLocalEditorPosition }) {
-	const tag = (
-		<div
-			className="abs noclick nowrap px_5 py_4 ft_tn ft_medium lh_1 bg_contrast"
-			data-sheet-read-only-cell-tag="true"
-			style={{
-				left: -2,
-				top: -1,
-				width: 'max-content',
-				zIndex: SHEET_READ_ONLY_TAG_Z_INDEX,
-			}}
-		>
-			{i18n.t('form.not_editable')}
-		</div>
-	);
-
-	if (p.position.isStickyLeft) {
-		return (
-			<div
-				className="abs"
-				data-sheet-read-only-cell-tag-anchor="true"
-				style={{
-					left: 0,
-					top: p.position.top,
-					width: p.position.rowWidth,
-					zIndex: SHEET_READ_ONLY_TAG_Z_INDEX,
-				}}
-			>
-				<div
-					className="sticky"
-					style={{
-						left: p.position.left,
-						position: 'sticky',
-						width: p.position.width,
-						zIndex: SHEET_READ_ONLY_TAG_Z_INDEX,
-					}}
-				>
-					{tag}
-				</div>
-			</div>
-		);
-	}
-
-	return (
-		<div
-			className="abs"
-			data-sheet-read-only-cell-tag-anchor="true"
-			style={{
-				left: p.position.left,
-				top: p.position.top,
-				width: p.position.width,
-				zIndex: SHEET_READ_ONLY_TAG_Z_INDEX,
-			}}
-		>
-			{tag}
-		</div>
-	);
-}
-
-/*
- * Render the dataTable-owned calendar editor for DATE and DATETIME cells.
- */
-
-function DataTableDateEditor(p: {
-	clickSource?: SheetUIEditorClickSource;
-	editState: SheetUIEditState;
-	lookup: DataTableCellLookup;
-	onDateValue: (lookup: DataTableCellLookup, draftValue: string) => void;
-	onDateTimeSave: (lookup: DataTableCellLookup, draftValue: string) => void;
-}) {
-	const initialDateValue = getDataTableDateEditorDateValue(p.editState.draftValue);
-	const initialTimeValue = getDataTableDateTimeEditorTimeValue(p.editState.draftValue);
-	const [dateValue, setDateValue] = useState(initialDateValue);
-	const [timeValue, setTimeValue] = useState(initialTimeValue);
-	const isDateTime = getSheetEditorFieldType(p.lookup.designCell) === 'DATETIME';
-	const calendarValue = dateValue || null;
-
-	return (
-		<div
-			className="bg bd_1 bd_lt shadow_line_alt r_4 ft_xs"
-			data-sheet-click-source={p.clickSource}
-			data-sheet-date-editor="true"
-			style={{
-				width: '100%',
-			}}
-		>
-			<Calendar
-				className="p_8"
-				hideNextMonthDays
-				initialCalendarViewDate={calendarValue || new Date()}
-				name={`sheet_date_editor_${p.lookup.row.id}_${p.lookup.designCell.key}`}
-				rowPaddingClassName="py_1"
-				value={calendarValue}
-				weekdayRowPaddingClassName="py_4"
-				onChange={(nextValue) => {
-					if (!nextValue) {
-						return;
-					}
-
-					const nextDateValue = getDataTableCalendarDateValue(nextValue);
-					if (isDateTime) {
-						setDateValue(nextDateValue);
-						return;
-					}
-
-					p.onDateValue(p.lookup, nextDateValue);
-				}}
-			/>
-
-			{isDateTime ? (
-				<form
-					className="h_item gap_6 px_8 py_8 bd_t_1 bd_lt"
-					data-sheet-date-time-editor-form="true"
-					onSubmit={(event) => {
-						event.preventDefault();
-						p.onDateTimeSave(p.lookup, getDataTableDateTimeEditorDraftValue(dateValue, timeValue));
-					}}
-				>
-					<input
-						className="f h_28 bg_alt stock px_6 ft_xs"
-						data-sheet-date-time-editor-time="true"
-						onChange={(event) => {
-							setTimeValue(event.currentTarget.value);
-						}}
-						type="time"
-						value={timeValue}
-					/>
-					<button className="h_28 px_8 bg_primary cl_white ft_xs" type="submit">
-						{getDataTableTranslatedText('form.save', 'Save')}
-					</button>
-				</form>
-			) : null}
-		</div>
-	);
-}
-
-/*
  * Return the external URL stored in one open-link dataTable cell.
  */
 
@@ -2207,7 +1162,7 @@ function openDataTableCellLink(params: DataTableOpenCellLinkParams) {
 	}
 
 	setFloatingMessage?.({
-		text: i18n.t('dataTable.unsupported_link_msg'),
+		text: getDataTableTranslatedText('dataTable.unsupported_link_msg', 'This cell cannot be opened yet.'),
 		type: 'NOTICE',
 	});
 }
@@ -2304,6 +1259,7 @@ function DataTableContent(p: DataTableContentProps) {
 	const [optimisticValues, setOptimisticValues] = useAtom(p.stateAtoms.optimisticValuesAtom);
 	const [resizingColumnKey, setResizingColumnKey] = useAtom(p.stateAtoms.resizingColumnKeyAtom);
 	const [columnWidthDrafts, setColumnWidthDrafts] = useAtom(p.stateAtoms.columnWidthDraftsAtom);
+	const [resizeGuideWidth, setResizeGuideWidth] = useState<number | null>(null);
 	const interactionStateRef = useRef<DataTableInteractionState<DataTableCellLookup>>(interactionState);
 	const [selectedViewIdState, setSelectedViewId] = useAtom(p.stateAtoms.selectedViewIdAtom);
 	const [designStateValue, setDesignState] = useAtom(p.stateAtoms.designStateAtom);
@@ -2311,6 +1267,16 @@ function DataTableContent(p: DataTableContentProps) {
 	const { editDataTableCells } = useEditDataTableCells();
 	const { editDataTableDesign } = useEditDataTableDesign();
 	const [keyDown, setKeyDown] = useKeyDown();
+	const {
+		finishCellHistoryBatch: finishDataTableCellHistoryBatch,
+		isApplyingHistory: isApplyingDataTableHistory,
+		pushUndoEntry: pushDataTableUndoEntry,
+		recordCellHistoryChange: recordDataTableCellHistoryChange,
+		runApplyingHistory: runApplyingDataTableHistory,
+		startCellHistoryBatch: startDataTableCellHistoryBatch,
+		takeRedoEntry: takeDataTableRedoEntry,
+		takeUndoEntry: takeDataTableUndoEntry,
+	} = useDataTableUndoRedo();
 
 	interactionStateRef.current = interactionState;
 	const selectedViewId = selectedViewIdState === undefined ? getValidDefaultDataTableViewId(dataTable.design) : selectedViewIdState;
@@ -2440,7 +1406,7 @@ function DataTableContent(p: DataTableContentProps) {
 		return columns.map(getDataTableRuntimeColumnKey);
 	}, [columns]);
 	const uiColumns = useMemo(() => {
-		return columns.map(getSheetUIColumn);
+		return columns.map(getDataTableSheetUIColumn);
 	}, [columns]);
 	const savedColumnWidths = useMemo(() => {
 		return getDataTableDesignColumnWidths(serverColumns);
@@ -2785,6 +1751,15 @@ function DataTableContent(p: DataTableContentProps) {
 		async (lookup: DataTableCellLookup, value: string | null) => {
 			const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 			const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
+			const currentRuntime = runtimeRef.current;
+			const before = getDataTableCellSerializedValue(lookup.cell, lookup.designCell, currentRuntime?.optimisticValues[optimisticKey]);
+
+			recordDataTableCellHistoryChange({
+				after: value,
+				before,
+				lookup,
+			});
+
 			const saveVersion = (cellSaveVersionRef.current[optimisticKey] || 0) + 1;
 			cellSaveVersionRef.current[optimisticKey] = saveVersion;
 
@@ -2808,7 +1783,7 @@ function DataTableContent(p: DataTableContentProps) {
 				viewId: activeView?.id || null,
 			});
 		},
-		[activeView, dataTableId, organizationId, queueDataTableCellSave],
+		[activeView, dataTableId, organizationId, queueDataTableCellSave, recordDataTableCellHistoryChange],
 	);
 	const fetchMoreRows = useCallback(async () => {
 		const pagination = paginationRef.current;
@@ -2884,11 +1859,83 @@ function DataTableContent(p: DataTableContentProps) {
 
 	const queueDataTableDesignSave = useCallback(
 		(patch: DataTableDesignPatchInput) => {
+			if (!isApplyingDataTableHistory() && dataTableDesignPatchHasUndoableChanges(patch)) {
+				pushDataTableUndoEntry({
+					design: {
+						after: patch,
+						before: getDataTableDesignHistoryBeforePatch(effectiveDesign, patch),
+					},
+				});
+			}
+
 			pendingDesignPatchRef.current = mergeDataTableDesignPatch(pendingDesignPatchRef.current, patch);
 			drainDataTableDesignSave();
 		},
-		[drainDataTableDesignSave],
+		[drainDataTableDesignSave, effectiveDesign, isApplyingDataTableHistory, pushDataTableUndoEntry],
 	);
+
+	const applyDataTableCellHistoryChanges = useCallback(async (changes: DataTableCellHistoryChange[], direction: 'after' | 'before') => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime) {
+			return;
+		}
+
+		for (const change of changes) {
+			const runtimeKey = getDataTableRuntimeColumnKey(change.lookup.designCell);
+			const lookup = getDataTableCellLookup(runtime, change.lookup.row.id, runtimeKey);
+
+			if (
+				!lookup ||
+				!canWriteDataTableShortcutCell({
+					activeView,
+					design: effectiveDesign,
+					disabled: runtime.disabled,
+					lookup,
+				})
+			) {
+				continue;
+			}
+
+			await saveCellValue(lookup, change[direction]);
+		}
+	}, [activeView, effectiveDesign, saveCellValue]);
+
+	const applyDataTableDesignHistoryPatch = useCallback((patch: DataTableDesignPatchInput) => {
+		dispatchDesignState({
+			patch,
+			type: 'local_patch_queued',
+		});
+		queueDataTableDesignSave(patch);
+	}, [dispatchDesignState, queueDataTableDesignSave]);
+
+	const applyDataTableHistoryEntry = useCallback(async (entry: DataTableUndoRedoEntry, direction: 'after' | 'before') => {
+		await runApplyingDataTableHistory(async () => {
+			if (entry.cells?.length) {
+				await applyDataTableCellHistoryChanges(entry.cells, direction);
+			}
+
+			if (entry.design) {
+				applyDataTableDesignHistoryPatch(entry.design[direction]);
+			}
+		});
+	}, [applyDataTableCellHistoryChanges, applyDataTableDesignHistoryPatch, runApplyingDataTableHistory]);
+
+	const undoDataTableHistory = useCallback(async () => {
+		const entry = takeDataTableUndoEntry();
+
+		if (entry) {
+			await applyDataTableHistoryEntry(entry, 'before');
+		}
+	}, [applyDataTableHistoryEntry, takeDataTableUndoEntry]);
+
+	const redoDataTableHistory = useCallback(async () => {
+		const entry = takeDataTableRedoEntry();
+
+		if (entry) {
+			await applyDataTableHistoryEntry(entry, 'after');
+		}
+	}, [applyDataTableHistoryEntry, takeDataTableRedoEntry]);
 
 	const commitHeaderEditorElement = useCallback(
 		(editorElement: HTMLElement) => {
@@ -2970,6 +2017,7 @@ function DataTableContent(p: DataTableContentProps) {
 				startWidth: metric.width,
 			};
 			setResizingColumnKey(columnKey);
+			setResizeGuideWidth(metric.width);
 
 			const finishResize = (clientX?: number) => {
 				const resizeState = resizeStateRef.current;
@@ -3024,6 +2072,19 @@ function DataTableContent(p: DataTableContentProps) {
 				resizeCleanupRef.current?.();
 				resizeCleanupRef.current = null;
 				setResizingColumnKey(null);
+				setResizeGuideWidth(null);
+			};
+			const cancelResize = () => {
+				if (resizeFrameRef.current !== null) {
+					cancelAnimationFrame(resizeFrameRef.current);
+					resizeFrameRef.current = null;
+				}
+
+				resizeStateRef.current = null;
+				resizeCleanupRef.current?.();
+				resizeCleanupRef.current = null;
+				setResizingColumnKey(null);
+				setResizeGuideWidth(null);
 			};
 			const onPointerMove = (event: PointerEvent) => {
 				if (event.buttons !== 1) {
@@ -3045,24 +2106,7 @@ function DataTableContent(p: DataTableContentProps) {
 
 				resizeFrameRef.current = requestAnimationFrame(() => {
 					resizeFrameRef.current = null;
-					setColumnWidthDrafts((currentDrafts) => ({
-						...currentDrafts,
-						[resizeState.columnKey]: nextWidth,
-					}));
-
-					if (resizeState.columnKey === resizeState.designCellKey) {
-						dispatchDesignState({
-							patch: {
-								cells: [
-									{
-										key: resizeState.designCellKey,
-										width: nextWidth,
-									},
-								],
-							},
-							type: 'local_patch_queued',
-						});
-					}
+					setResizeGuideWidth(nextWidth);
 				});
 			};
 
@@ -3072,16 +2116,24 @@ function DataTableContent(p: DataTableContentProps) {
 			const onContextMenu = () => {
 				finishResize();
 			};
+			const onKeyDown = (event: KeyboardEvent) => {
+				if (event.key === 'Escape') {
+					event.preventDefault();
+					cancelResize();
+				}
+			};
 
 			window.addEventListener('pointermove', onPointerMove);
 			window.addEventListener('pointerup', onPointerUp);
 			window.addEventListener('pointercancel', onPointerUp);
 			window.addEventListener('contextmenu', onContextMenu, true);
+			window.addEventListener('keydown', onKeyDown);
 			resizeCleanupRef.current = () => {
 				window.removeEventListener('pointermove', onPointerMove);
 				window.removeEventListener('pointerup', onPointerUp);
 				window.removeEventListener('pointercancel', onPointerUp);
 				window.removeEventListener('contextmenu', onContextMenu, true);
+				window.removeEventListener('keydown', onKeyDown);
 			};
 		},
 		[queueDataTableDesignSave, dataTableId],
@@ -3286,7 +2338,7 @@ function DataTableContent(p: DataTableContentProps) {
 		[queueDataTableDesignSave, scrollElement.node, scrollState.scrollLeft, stickyColumnCount],
 	);
 	const commitEditorElement = useCallback(
-		async (editorElement: HTMLElement) => {
+		async (editorElement: HTMLElement, options?: { dismissAfterCommit?: boolean }) => {
 			if (committingEditorRef.current) {
 				return;
 			}
@@ -3331,8 +2383,9 @@ function DataTableContent(p: DataTableContentProps) {
 
 			const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
 			const currentValue = getDataTableCellSerializedValue(lookup.cell, lookup.designCell, runtime.optimisticValues[optimisticKey]);
+			const dismissAfterCommit = options?.dismissAfterCommit !== false;
 
-			if (!__DISABLE_EDIT_STATE_RESET__) {
+			if (dismissAfterCommit && !__DISABLE_EDIT_STATE_RESET__) {
 				dismissCellEditorToSelectedCell(editStateToRestore);
 			}
 
@@ -3803,23 +2856,30 @@ function DataTableContent(p: DataTableContentProps) {
 				selection,
 			});
 
-			for (const target of pasteTargets) {
-				const lookup = getDataTableCellLookup(runtime, target.rowId, target.cellKey);
+			startDataTableCellHistoryBatch();
 
-				if (!lookup) {
-					summary.skipped += 1;
-					continue;
+			try {
+				for (const target of pasteTargets) {
+					const lookup = getDataTableCellLookup(runtime, target.rowId, target.cellKey);
+
+					if (!lookup) {
+						summary.skipped += 1;
+						continue;
+					}
+
+					await saveDataTableShortcutCellValue(runtime, lookup, target.value, summary);
 				}
-
-				await saveDataTableShortcutCellValue(runtime, lookup, target.value, summary);
+			} finally {
+				finishDataTableCellHistoryBatch();
 			}
+
 
 			setFloatingMessage?.({
 				text: getDataTableShortcutSummaryText('paste', summary),
 				type: summary.failed ? 'WARNING' : 'NOTICE',
 			});
 		},
-		[saveDataTableShortcutCellValue, setFloatingMessage],
+		[finishDataTableCellHistoryBatch, saveDataTableShortcutCellValue, setFloatingMessage, startDataTableCellHistoryBatch],
 	);
 
 	/*
@@ -3847,23 +2907,30 @@ function DataTableContent(p: DataTableContentProps) {
 				selection,
 			});
 
-			for (const selectedCell of selectedCells) {
-				const lookup = getDataTableCellLookup(runtime, selectedCell.rowId, selectedCell.cellKey);
+			startDataTableCellHistoryBatch();
 
-				if (!lookup) {
-					summary.skipped += 1;
-					continue;
+			try {
+				for (const selectedCell of selectedCells) {
+					const lookup = getDataTableCellLookup(runtime, selectedCell.rowId, selectedCell.cellKey);
+
+					if (!lookup) {
+						summary.skipped += 1;
+						continue;
+					}
+
+					await saveDataTableShortcutCellValue(runtime, lookup, '', summary);
 				}
-
-				await saveDataTableShortcutCellValue(runtime, lookup, '', summary);
+			} finally {
+				finishDataTableCellHistoryBatch();
 			}
+
 
 			setFloatingMessage?.({
 				text: getDataTableShortcutSummaryText('clear', summary),
 				type: summary.failed ? 'WARNING' : 'NOTICE',
 			});
 		},
-		[saveDataTableShortcutCellValue, setFloatingMessage],
+		[finishDataTableCellHistoryBatch, saveDataTableShortcutCellValue, setFloatingMessage, startDataTableCellHistoryBatch],
 	);
 
 	/*
@@ -3935,6 +3002,7 @@ function DataTableContent(p: DataTableContentProps) {
 						clearInboundContactEditor: true,
 					});
 				},
+				onDismissContextMenu: closeDataTableContextMenu,
 				onDismissEditor: dismissCellEditorToSelectedCell,
 				onDismissHeaderEditor: () => {
 					dispatchInteractionState({
@@ -3963,8 +3031,10 @@ function DataTableContent(p: DataTableContentProps) {
 					});
 				},
 				onPaste: pasteSelectedDataTableCells,
+				onRedo: redoDataTableHistory,
 				onSelectAll: selectAllDataTableCells,
 				onTab: handleDataTableTabKeyNavigation,
+				onUndo: undoDataTableHistory,
 				readClipboardText: readDataTableClipboardText,
 				stopImmediatePropagation: true,
 			});
@@ -3977,6 +3047,7 @@ function DataTableContent(p: DataTableContentProps) {
 		};
 	}, [
 		clearSelectedDataTableCells,
+		closeDataTableContextMenu,
 		commitEditorElement,
 		commitHeaderEditorElement,
 		copySelectedDataTableCells,
@@ -3987,7 +3058,9 @@ function DataTableContent(p: DataTableContentProps) {
 		keyDown.modal,
 		openSelectedDataTableCellEditor,
 		pasteSelectedDataTableCells,
+		redoDataTableHistory,
 		setKeyDown,
+		undoDataTableHistory,
 	]);
 
 	useEffect(() => {
@@ -4035,6 +3108,13 @@ function DataTableContent(p: DataTableContentProps) {
 
 			if (localEditorElement || headerEditorElement) {
 				return;
+			}
+
+			const activeEditorElement = scrollNode.querySelector('[data-sheet-editor="true"]') as HTMLElement | null;
+			if (activeEditorElement && activeEditorElement !== editorElement) {
+				void commitEditorElement(activeEditorElement, {
+					dismissAfterCommit: false,
+				});
 			}
 
 			if (!runtime) {
@@ -4344,6 +3424,7 @@ function DataTableContent(p: DataTableContentProps) {
 					resizeCleanupRef.current();
 					resizeCleanupRef.current = null;
 					setResizingColumnKey(null);
+					setResizeGuideWidth(null);
 				}
 			}
 
@@ -4395,6 +3476,8 @@ function DataTableContent(p: DataTableContentProps) {
 	}, [
 		activeView,
 		closeDataTableContextMenu,
+		commitEditorElement,
+		commitHeaderEditorElement,
 		effectiveDesign,
 		getDataTableBodyCellStateFromElement,
 		openDataTableContextMenu,
@@ -4413,6 +3496,7 @@ function DataTableContent(p: DataTableContentProps) {
 
 			if (resizeFrameRef.current !== null) {
 				cancelAnimationFrame(resizeFrameRef.current);
+				resizeFrameRef.current = null;
 			}
 
 			if (columnReorderFrameRef.current !== null) {
@@ -4560,7 +3644,6 @@ function DataTableContent(p: DataTableContentProps) {
 					const cell = getDataTableCellForRuntimeColumn(row, rowCellMap, designCell);
 					const optimisticKey = getSheetCellKey(row.id, runtimeKey);
 					const optimisticValue = optimisticValues[optimisticKey];
-					const serializedValue = getDataTableCellSerializedValue(cell, designCell, optimisticValue);
 					const canEdit =
 						canEditDataTableRuntimeCell({
 							activeView,
@@ -4568,17 +3651,16 @@ function DataTableContent(p: DataTableContentProps) {
 							designCell,
 							disabled: effectiveDisabled || rowDeleted,
 						}) && !isDataTableReferenceCell(cell);
-					const canOpen = !rowDeleted && canOpenDataTableCellLink(cell, designCell);
-					const iconName = (cell && 'iconName' in cell ? cell.iconName : null) || designCell.iconName || getDataTableOpenLinkIconName(cell, designCell);
-					const signature = getSheetUICellSignature({
+					const displayModel = getDataTableCellDisplayModel({
 						canEdit,
-						canOpen,
+						cell,
 						designCell,
-						iconName,
-						referenceStatus: cell?.referenceStatus,
-						serializedValue,
+						iconName: (cell && 'iconName' in cell ? cell.iconName : null) || designCell.iconName || getDataTableOpenLinkIconName(cell, designCell),
+						optimisticValue,
+						rowDeleted,
 						timeZone,
 					});
+					const signature = displayModel.signature;
 					const cachedCell = cellUICacheRef.current.get(optimisticKey);
 
 					if (cachedCell?.signature === signature) {
@@ -4595,19 +3677,15 @@ function DataTableContent(p: DataTableContentProps) {
 						return;
 					}
 
-					const displayValue = getSheetCellDisplayValue(cell, designCell, optimisticValue, timeZone);
-					const cellClassName = getDataTableCellClassName(cell, designCell, optimisticValue);
-					const displayClassName = getDataTableCellDisplayClassName(cell, designCell, optimisticValue);
-					const draftValue = getSheetEditorDraftValue(cell, designCell, optimisticValue);
 					const uiCell: SheetUICell = {
 						cellKey: runtimeKey,
-						displayValue,
-						draftValue,
-						iconName,
+						displayValue: displayModel.text,
+						draftValue: displayModel.draftValue,
+						iconName: displayModel.iconName,
 						canEdit,
-						canOpen,
-						cellClassName,
-						displayClassName,
+						canOpen: displayModel.canOpen,
+						cellClassName: getDataTableCellClassNameFromModel(displayModel),
+						displayClassName: getDataTableCellDisplayClassNameFromModel(displayModel),
 					};
 
 					cellUICacheRef.current.set(optimisticKey, {
@@ -4806,7 +3884,7 @@ function DataTableContent(p: DataTableContentProps) {
 			return null;
 		}
 
-		return getDataTableLocalEditorPosition({
+		return sharedGetDataTableLocalEditorPosition({
 			columnMetric: columnMetricsByKey.get(getDataTableRuntimeColumnKey(activeSelectEditorLookup.designCell)),
 			hasPlaceholderTail,
 			rowIndex: rowIndexById.get(activeSelectEditorLookup.row.id) ?? -1,
@@ -4835,7 +3913,7 @@ function DataTableContent(p: DataTableContentProps) {
 			return null;
 		}
 
-		return getDataTableLocalEditorPosition({
+		return sharedGetDataTableLocalEditorPosition({
 			columnMetric: columnMetricsByKey.get(getDataTableRuntimeColumnKey(activeDateEditorLookup.designCell)),
 			hasPlaceholderTail,
 			rowIndex: rowIndexById.get(activeDateEditorLookup.row.id) ?? -1,
@@ -4844,7 +3922,7 @@ function DataTableContent(p: DataTableContentProps) {
 			stickyHeaderHeight,
 			viewportHeight,
 			visualRowCount,
-			width: SHEET_DATE_EDITOR_WIDTH,
+			width: DATA_TABLE_DATE_EDITOR_WIDTH,
 		});
 	}, [
 		activeDateEditorLookup,
@@ -4867,7 +3945,7 @@ function DataTableContent(p: DataTableContentProps) {
 		const { lookup } = inboundContactEditorState;
 		const columnMetric = columnMetricsByKey.get(getDataTableRuntimeColumnKey(lookup.designCell));
 
-		return getDataTableLocalEditorPosition({
+		return sharedGetDataTableLocalEditorPosition({
 			columnMetric,
 			hasPlaceholderTail,
 			rowIndex: rowIndexById.get(lookup.row.id) ?? -1,
@@ -4876,7 +3954,7 @@ function DataTableContent(p: DataTableContentProps) {
 			stickyHeaderHeight,
 			viewportHeight,
 			visualRowCount,
-			width: Math.max(columnMetric?.width || 0, SHEET_INBOUND_CONTACT_EDITOR_MIN_WIDTH) - SHEET_LOCAL_EDITOR_WIDTH_OFFSET,
+			width: Math.max(columnMetric?.width || 0, DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH) - DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
 		});
 	}, [
 		columnMetricsByKey,
@@ -4905,7 +3983,7 @@ function DataTableContent(p: DataTableContentProps) {
 			return null;
 		}
 
-		return getDataTableSelectedCellTagPosition({
+		return sharedGetDataTableSelectedCellTagPosition({
 			columnMetric: columnMetricsByKey.get(getDataTableRuntimeColumnKey(selectedCellLookup.designCell)),
 			rowIndex: rowIndexById.get(selectedCellLookup.row.id) ?? -1,
 			rowWidth: Math.max(totalWidth, viewportWidth),
@@ -4991,9 +4069,9 @@ function DataTableContent(p: DataTableContentProps) {
 			columnKey: highlightedResizeColumnKey,
 			height: dataTableSurfaceHeight,
 			left:
-				(isStickyLeft ? scrollState.scrollLeft : 0) + SHEET_ROW_NUMBER_WIDTH + metric.left + (metric.columnIndex < stickyColumnCount ? 0 : SHEET_STICKY_SPACER_SIZE) + metric.width,
+				(isStickyLeft ? scrollState.scrollLeft : 0) + SHEET_ROW_NUMBER_WIDTH + metric.left + (metric.columnIndex < stickyColumnCount ? 0 : SHEET_STICKY_SPACER_SIZE) + (resizeGuideWidth ?? metric.width),
 		};
-	}, [columnMetricsByKey, columnReorderVisualState, highlightedResizeColumnKey, scrollState.scrollLeft, stickyColumnCount, dataTableSurfaceHeight]);
+	}, [columnMetricsByKey, columnReorderVisualState, highlightedResizeColumnKey, resizeGuideWidth, scrollState.scrollLeft, stickyColumnCount, dataTableSurfaceHeight]);
 	const columnReorderGuide = useMemo<SheetUIColumnReorderGuide | null>(() => {
 		if (!columnReorderVisualState) {
 			return null;
@@ -5050,44 +4128,23 @@ function DataTableContent(p: DataTableContentProps) {
 					width: selectedRangeBoxPosition.width,
 				}}
 			/> : null}
-			{selectedReadOnlyCellPosition ? <DataTableReadOnlyTag position={selectedReadOnlyCellPosition} /> : null}
+			{selectedReadOnlyCellPosition ? <SharedDataTableReadOnlyTag position={selectedReadOnlyCellPosition} /> : null}
 			{activeSelectEditorLookup && editState && selectEditorPosition ? (
-				<DataTableLocalEditorContainer position={selectEditorPosition}>
-					<div
-						onClick={(event) => {
-							const optionElement = getClosestGridElement(event.target, '[data-sheet-select-editor-option]');
-							const value = optionElement?.getAttribute('data-sheet-select-editor-option');
-
-							if (value === undefined || value === null) {
-								return;
-							}
-
-							handleSelectEditorOptionValue(activeSelectEditorLookup, value);
-						}}
-						onSubmit={(event) => {
-							event.preventDefault();
-
-							if (!(event.target instanceof HTMLFormElement) || !event.target.matches('[data-sheet-select-editor-custom]')) {
-								return;
-							}
-
-							const formData = new FormData(event.target);
-							handleSelectEditorCustomTextSave(activeSelectEditorLookup, String(formData.get('customValue') || ''));
-						}}
-					>
-						<SheetSelectEditor
+				<SharedDataTableLocalEditorContainer position={selectEditorPosition}>
+					<DataTableSelectEditor
 							clickSource={editState.clickSource}
 							key={`${editState.rowId}:${editState.cellKey}`}
 							editState={editState}
 							fieldType={getSheetEditorFieldType(activeSelectEditorLookup.designCell) as SheetUIFieldType}
-							options={getSheetSelectEditorOptions(activeSelectEditorLookup.designCell)}
-						/>
-					</div>
-				</DataTableLocalEditorContainer>
+						lookup={activeSelectEditorLookup}
+						onCustomTextSave={handleSelectEditorCustomTextSave}
+						onOptionValue={handleSelectEditorOptionValue}
+					/>
+				</SharedDataTableLocalEditorContainer>
 			) : null}
 			{activeDateEditorLookup && editState && dateEditorPosition ? (
-				<DataTableLocalEditorContainer position={dateEditorPosition}>
-					<DataTableDateEditor
+				<SharedDataTableLocalEditorContainer position={dateEditorPosition}>
+					<SharedDataTableDateEditor
 						clickSource={editState.clickSource}
 						key={`${editState.rowId}:${editState.cellKey}`}
 						editState={editState}
@@ -5095,10 +4152,10 @@ function DataTableContent(p: DataTableContentProps) {
 						onDateTimeSave={handleDateEditorDateTimeSave}
 						onDateValue={handleDateEditorDateValue}
 					/>
-				</DataTableLocalEditorContainer>
+				</SharedDataTableLocalEditorContainer>
 			) : null}
 			{inboundContactEditorState && inboundContactEditorPosition ? (
-				<DataTableLocalEditorContainer position={inboundContactEditorPosition}>
+				<SharedDataTableLocalEditorContainer position={inboundContactEditorPosition}>
 					<DataTableInboundContactEditor
 						clickSource={inboundContactEditorState.clickSource}
 						displayValue={inboundContactEditorState.displayValue}
@@ -5111,7 +4168,7 @@ function DataTableContent(p: DataTableContentProps) {
 						openModalPopUp={openModalPopUp}
 						organizationId={organizationId}
 					/>
-				</DataTableLocalEditorContainer>
+				</SharedDataTableLocalEditorContainer>
 			) : null}
 		</>
 	);

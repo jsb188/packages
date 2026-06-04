@@ -49,6 +49,22 @@ function isPlainObject(value: any): value is Record<string, any> {
 }
 
 /*
+ * Return non-hidden master dataTable design cells in their saved order.
+ */
+
+export function getOrderedDataTableDesignCells(design: DataTableDesignObj | null | undefined) {
+	const cells = Array.isArray(design?.cells) ? design.cells : [];
+	const cellsByKey = new Map(cells.map((cell) => [cell.key, cell]));
+	const orderedCells = (design?.cellsOrder || [])
+		.map((key) => cellsByKey.get(key))
+		.filter((cell) => cell && !cell.hidden) as DataTableDesignCellObj[];
+	const orderedKeys = new Set(orderedCells.map((cell) => cell.key));
+	const remainingCells = cells.filter((cell) => !cell.hidden && !orderedKeys.has(cell.key));
+
+	return orderedCells.concat(remainingCells);
+}
+
+/*
  * Return whether one dataTable view column reads from a master dataTable cell.
  */
 

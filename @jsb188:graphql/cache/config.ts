@@ -16,19 +16,25 @@ export const RULES = {
   __limit: 100000, // 12000: approximately 7.725 MB; calculated at 644.666666668 bytes for 30 objects
   // __limit: 50, // 12000: approximately 7.725 MB; calculated at 644.666666668 bytes for 30 objects
 
+  // All fragments are cached,
+  // but if you want to skip some, add it here
+  accountAuthFragment: false,
+
   // List of queries that should be cached
   // NOTE: Fragments are always cached
   aiChat: true,
-  aiChats: true,
   aiChatMessages: true,
+  aiChats: true,
   alerts: true,
   chat: true,
   chatsList: true,
   childOrganizations: true,
-  eventsList: true,
+  dataTableCellsForRows: true,
+  dataTableRows: true,
+  dataTables: true,
   eventAttendanceList: true,
+  eventsList: true,
   integrationConnection: true,
-  parentOrganization: true,
   logEntry: true,
   logEntries: true,
   logEntriesForReport: true,
@@ -37,24 +43,19 @@ export const RULES = {
   organizationMembers: true,
   organizationRelationship: true,
   organizationSites: true,
+  parentOrganization: true,
   platformProducts: true,
   report: true,
   reportGroups: true,
   reports: true,
   reportSubmissions: true,
-  dataTables: true,
-  dataTableRows: true,
-  sheets: true,
+  searchUsers: true,
   sheet: true,
   sheetGrid: true,
-  searchUsers: true,
+  sheets: true,
   updateNote: true,
   userIdToChatId: true,
   workflows: true,
-
-  // All fragments are cached,
-  // but if you want to skip some, add it here
-  accountAuthFragment: false,
 } as {
   __limit: number;
   [key: string]: boolean | number;
@@ -62,6 +63,4 @@ export const RULES = {
 
 export const PARTIALS_MAP = {
   // Partial fragments are supported if you map them to its original fragment name
-  chatPartial: 'chatFragment',
-  chatStatusPartial: 'chatFragment',
 } as Record<string, string>;

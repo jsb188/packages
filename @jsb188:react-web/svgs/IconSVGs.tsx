@@ -1048,35 +1048,67 @@ export const CropInfoBiotech1 = <svg xmlns="http://www.w3.org/2000/svg" classNam
 </svg>
 
 export const Database2 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-database-2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-<path d="M3.5,6.55016888c0,2.0987754,3.80557963,3.80016848,8.5,3.80016848s8.5-1.70139308,8.5-3.80016848-3.80557963-3.80016888-8.5-3.80016888S3.5,4.45139348,3.5,6.55016888Z"/>
-<path d="M3.5,6.55016888v5.69940891c0,2.09853742,3.80573347,3.80016888,8.5,3.80016888,4.69426617,0,8.5-1.70078664,8.5-3.80016888v-5.69940891"/>
-<path d="M3.5,12.24957779v5.70025333c0,2.09853822,3.80573347,3.80016888,8.5,3.80016888,4.69426617,0,8.5-1.70163066,8.5-3.80016888v-5.70025333"/>
+<path d="M3.25,6.77516219c0,2.0159295,3.91750848,3.65016241,8.75,3.65016241,4.83249103,0,8.75-1.63423291,8.75-3.65016195s-3.91750897-3.65016241-8.75-3.65016241S3.25,4.75923315,3.25,6.77516219Z"/>
+<path d="M3.25,6.77516219v5.47443293c0,2.01570049,3.91766702,3.65016241,8.75,3.65016241,4.83233396,0,8.75-1.63365032,8.75-3.65016241v-5.47443247"/>
+<path d="M3.25,12.24959421v5.47524362c0,2.01570049,3.91766702,3.65016241,8.75,3.65016241,4.83233396,0,8.75-1.63446192,8.75-3.65016241v-5.47524362"/>
 </svg>;
 
 export const Database2Color = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-database-2-color">
-<path fill="#b2b2b2" d="M2.5 5.5v13c0 2.21 4.254 4 9.5 4s9.5 -1.79 9.5 -4v-13h-19Z" strokeWidth="1"/>
-<path fill="#e3e3e3" d="M12 5.5H2.5v13c0 2.21 4.254 4 9.5 4v-17Z" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M2.5 5.5v13c0 2.21 4.254 4 9.5 4s9.5 -1.79 9.5 -4v-13" strokeWidth="1"/>
-<path fill="#808080" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.001 9.501c5.247 0 9.5 -1.79 9.5 -4s-4.253 -4 -9.5 -4 -9.5 1.79 -9.5 4 4.253 4 9.5 4Z" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21.5 9.5c0 2.21 -4.254 4 -9.5 4s-9.5 -1.79 -9.5 -4" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21.5 14c0 2.21 -4.254 4 -9.5 4s-9.5 -1.79 -9.5 -4" strokeWidth="1"/>
+<path fill="#e3e3e3" d="M2.5,5.5v13c0,2.20999908,4.25400019,4,9.5,4,5.24600029,0,9.5-1.79000092,9.5-4V5.5H2.5Z" strokeWidth="1"/>
+<path fill="#fff" d="M12,5.5H2.5v13c0,2.20999908,4.25400019,4,9.5,4V5.5Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M2.5,5.5v13c0,2.20999908,4.25400019,4,9.5,4,5.24600029,0,9.5-1.79000092,9.5-4V5.5" strokeWidth="1"/>
+<path fill="#b2b2b2" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.0010004,9.5010004c5.24700069,0,9.49999905-1.78999996,9.49999905-4S17.24799919,1.5010004,12.00099945,1.5010004,2.50099945,3.29100037,2.50099945,5.5010004s4.25299978,4,9.50000095,4Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21.5,9.5c0,2.21000004-4.25399971,4-9.5,4s-9.5-1.78999996-9.5-4" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21.5,14c0,2.20999908-4.25399971,4-9.5,4s-9.5-1.79000092-9.5-4" strokeWidth="1"/>
+</svg>;
+
+export const DatabaseSheetSync = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-database-sheet-sync" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M23.5,2.5v7.5c0,1.10000038-1.79100037,2-4,2s-4-.89999962-4-2V2.5"/>
+<path d="M6,10.24899983v-2.24900007c-.00055218-2.07106781,1.67793226-3.75044775,3.7489996-3.75099993h1.7510004"/>
+<path d="M8,8.25000024l-2,2-2-2"/>
+<path d="M10,2.74999976l1.5,1.5-1.5,1.5"/>
+<path d="M19.5,4.50099993c2.20999908,0,4-.89499998,4-2s-1.79000092-2-4-2-4,.89499998-4,2,1.79000092,2,4,2Z"/>
+<path d="M15.5,7.5c0,1.10000038,1.79100037,2,4,2s4-.89999962,4-2"/>
+<path d="M15.5,5c0,1.0999999,1.79100037,2,4,2s4-.9000001,4-2"/>
+<path d="M1.88184193,13.82385876h12.78758783s1.38244193-.00004498,1.38244193,1.38239694v6.91230237s0,1.38244193-1.38244193,1.38244193H1.88184193s-1.38244193,0-1.38244193-1.38244193v-6.91230237s0-1.38239694,1.38244193-1.38239694Z"/>
+<path d="M.4994,18.66245326h15.55247168"/>
+<path d="M5.68355723,13.82390651v9.67709349"/>
+<path d="M10.86771445,13.82390651v9.67709349"/>
+<path d="M2.40025765,16.24940087h1.38244193"/>
+<path d="M2.40025765,21.08794762h1.38244193"/>
+</svg>;
+
+export const DatabaseSyncColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-database-sync-color">
+<path fill="#e3e3e3" d="M.625,4.62099981v13.00000048c0,2.21000099,4.25400019,4,9.5,4,5.24600029,0,9.5-1.78999901,9.5-4V4.62100029s-19,0-19-.00000048Z" strokeWidth="1"/>
+<path fill="#fff" d="M10.125,4.62099981H.625v13.00000048c0,2.21000099,4.25400019,4,9.5,4V4.62099981Z" strokeWidth="1"/>
+<path fill="#b2b2b2" d="M10.125,8.62100029c5.24699974,0,9.5-1.78999996,9.5-4,0-2.20900011-4.25300026-4-9.5-4S.625,2.41200018.625,4.62100029c0,2.21000004,4.25299978,4,9.5,4Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10.125,8.62199974c5.24699974,0,9.5-1.78999996,9.5-4,0-2.20900011-4.25300026-4-9.5-4S.625,2.41299963.625,4.62199974c0,2.21000004,4.25299978,4,9.5,4Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10.125,12.62100029c-5.24599981,0-9.5-1.78999996-9.5-4" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.125,17.10000038c-4.77600002-.20999908-8.5-1.90999985-8.5-3.97900009" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.125,21.60000038c-4.77600002-.20999908-8.5-1.90999985-8.5-3.97900009V4.62100029" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.625,4.62200022v4.99999952" strokeWidth="1"/>
+<path fill="#66e1ff" d="M17.37400055,21.87199974c2.48528099,0,4.5-2.01471901,4.5-4.5s-2.01471901-4.5-4.5-4.5-4.5,2.01471901-4.5,4.5,2.01471901,4.5,4.5,4.5Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14.875,18.37199974h-3.5v3.5" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M22.79199982,19.60499954c-.99340248,2.91257858-4.15982437,4.46837997-7.07240391,3.47497749-2.06117821-.70301247-3.52388287-2.54241943-3.74459648-4.70897675" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.875,16.37199974h3.5v-3.5" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M11.95800018,15.14000034c.9930191-2.91270924,4.15923691-4.46892643,7.0719471-3.47590733,2.06072807.70255661,3.52349663,2.54101372,3.74505424,4.70690727" strokeWidth="1"/>
 </svg>;
 
 export const DatabaseWarningColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-database-warning-color">
-<path fill="#b2b2b2" d="M0.5 4.5v13c0 2.21 4.254 4 9.5 4s9.5 -1.79 9.5 -4v-13H0.5Z" strokeWidth="1"/>
-<path fill="#e3e3e3" d="M10 4.5H0.5v13c0 2.21 4.254 4 9.5 4v-17Z" strokeWidth="1"/>
-<path fill="#808080" d="M10 8.5c5.247 0 9.5 -1.79 9.5 -4s-4.253 -4 -9.5 -4S0.5 2.29 0.5 4.5s4.253 4 9.5 4Z" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10 8.501c5.247 0 9.5 -1.79 9.5 -4s-4.253 -4 -9.5 -4 -9.5 1.79 -9.5 4 4.253 4 9.5 4Z" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.388 12.378C6.109 13.022 0.5 11.038 0.5 8.5" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10 17C4.754 17 0.5 15.211 0.5 13" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8.737 21.465C4.088 21.206 0.5 19.53 0.5 17.5v-13" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.5 4.501v5.5" strokeWidth="1"/>
-<path fill="#ffef5e" d="M18.338 12.5a0.95 0.95 0 0 0 -1.676 0l-5.056 9.634a0.923 0.923 0 0 0 0.376 1.244c0.141 0.078 0.3 0.12 0.462 0.12h10.112a0.949 0.949 0 0 0 0.807 -0.449 0.924 0.924 0 0 0 0.031 -0.914L18.338 12.5Z" strokeWidth="1"/>
-<path fill="#fff9bf" d="M17.5 12a0.945 0.945 0 0 0 -0.838 0.5l-5.056 9.634a0.923 0.923 0 0 0 0.376 1.244c0.141 0.078 0.3 0.12 0.462 0.119H17.5V12Z" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18.338 12.5a0.95 0.95 0 0 0 -1.676 0l-5.056 9.634a0.923 0.923 0 0 0 0.376 1.244c0.141 0.078 0.3 0.12 0.462 0.12h10.112a0.949 0.949 0 0 0 0.807 -0.449 0.924 0.924 0 0 0 0.031 -0.914L18.338 12.5Z" strokeWidth="1"/>
-<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5 18.501v-3" strokeWidth="1"/>
-<path stroke="#191919" d="M17.5 21a0.25 0.25 0 1 1 0 -0.5" strokeWidth="1"/>
-<path stroke="#191919" d="M17.5 21a0.25 0.25 0 1 0 0 -0.5" strokeWidth="1"/>
+<path fill="#e3e3e3" d="M.5,4.5v13c0,2.20999908,4.25400019,4,9.5,4,5.24600029,0,9.5-1.79000092,9.5-4V4.5H.5Z" strokeWidth="1"/>
+<path fill="#fff" d="M10,4.5H.5v13c0,2.20999908,4.25400019,4,9.5,4V4.5Z" strokeWidth="1"/>
+<path fill="#b2b2b2" d="M10,8.5c5.24699974,0,9.5-1.78999996,9.5-4S15.24699974.5,10,.5.5,2.28999996.5,4.5s4.25299978,4,9.5,4Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10,8.5010004c5.24699974,0,9.5-1.78999996,9.5-4S15.24699974.5010004,10,.5010004.5,2.29100037.5,4.5010004s4.25299978,4,9.5,4Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.38799953,12.37800026c-6.27899933.64400005-11.88799953-1.34000015-11.88799953-3.87800026" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10,17c-5.24599981,0-9.5-1.78899956-9.5-4" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8.73700047,21.46500015c-4.64900064-.25900078-8.23700047-1.93499947-8.23700047-3.96500015V4.5" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.5,4.50099993v5.49999952" strokeWidth="1"/>
+<path fill="#ffef5e" d="M18.33799934,12.5c-.24714661-.46281433-.82268524-.63764858-1.28549957-.39050102-.16596413.08862591-.30187416.2245369-.39050102.39050102l-5.05599976,9.63399887c-.23729706.44758606-.06948662,1.00278473.3760004,1.24399948.14099979.07799911.30000019.12000084.46199989.12000084h10.11200047c.3285923.00013924.63387299-.16971397.80699921-.4489994.17094994-.27783394.18273354-.62522125.03100014-.91399956l-5.05599976-9.63500023Z" strokeWidth="1"/>
+<path fill="#fff9bf" d="M17.5,12c-.35043335-.00160503-.67298126.19084644-.83799934.5l-5.05599976,9.63399887c-.23729706.44758606-.06948662,1.00278473.3760004,1.24399948.14099979.07799911.30000019.12000084.46199989.11899948h5.0559988v-11.49699783Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18.33799934,12.5c-.24714661-.46281433-.82268524-.63764858-1.28549957-.39050102-.16596413.08862591-.30187416.2245369-.39050102.39050102l-5.05599976,9.63399887c-.23729706.44758606-.06948662,1.00278473.3760004,1.24399948.14099979.07799911.30000019.12000084.46199989.12000084h10.11200047c.3285923.00013924.63387299-.16971397.80699921-.4489994.17094994-.27783394.18273354-.62522125.03100014-.91399956l-5.05599976-9.63500023Z" strokeWidth="1"/>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.5,18.50099945v-3" strokeWidth="1"/>
+<path stroke="#191919" d="M17.5,21c-.13807106,0-.25-.11192894-.25-.25s.11192894-.25.25-.25" strokeWidth="1"/>
+<path stroke="#191919" d="M17.5,21c.13807106,0,.25-.11192894.25-.25s-.11192894-.25-.25-.25" strokeWidth="1"/>
 </svg>;
 
 export const DeliveryTruck4 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-delivery-truck-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
@@ -1870,6 +1902,29 @@ export const Language = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 
 <path d="M5 9c0 2.144 2.952 3.908 6.7 4" />
 <path d="M12 20l4 -9l4 9" />
 <path d="M19.1 18h-6.2" />
+</svg>;
+
+export const LayersGridSubtract = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-layers-grid-subtract" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M8.25 18.75h-4.5a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4.5" />
+<path d="m6.75 0.75 0 18" />
+<path d="m12.75 0.75 0 9" />
+<path d="m18.75 6.75 -18 0" />
+<path d="m9.75 12.75 -9 0" />
+<path d="M11.25 17.25a6 6 0 1 0 12 0 6 6 0 1 0 -12 0Z" />
+<path d="m14.25 17.25 6 0" />
+</svg>;
+
+export const LayersGridSubtractColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-0.5 -0.5 24 24" className="icon icon-layers-grid-subtract-color">
+<path fill="#ffffff" d="M16.09724 0.46184h-12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 0 -1.8399999999999999 1.8399999999999999v12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 0 1.8399999999999999 1.8399999999999999h12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 0 1.8399999999999999 -1.8399999999999999v-12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 0 -1.8399999999999999 -1.8399999999999999Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.658159999999999 17.011719999999997h-6.4399999999999995a1.8399999999999999 1.8399999999999999 0 0 1 -1.8399999999999999 -1.8399999999999999V2.3018399999999994a1.8399999999999999 1.8399999999999999 0 0 1 1.8399999999999999 -1.8399999999999999h12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 1 1.8399999999999999 1.8399999999999999v6.4399999999999995" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M1.37724 5.981839999999999h16.56" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M1.37724 11.49264h9.2" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.418159999999999 0.46184v9.2" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.897239999999999 0.46184v16.55264" strokeWidth="1"></path>
+<path fill="#ff808c" d="M17.017239999999997 21.62184a5.52 5.52 0 1 0 0 -11.04 5.52 5.52 0 0 0 0 11.04Z" strokeWidth="1"></path>
+<path fill="#ffbfc5" d="M17.017239999999997 10.58184a5.5154 5.5154 0 0 0 -3.62664 9.6738l7.7804400000000005 -7.781359999999999a5.5016 5.5016 0 0 0 -4.1537999999999995 -1.89244Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.017239999999997 21.62184a5.52 5.52 0 1 0 0 -11.04 5.52 5.52 0 0 0 0 11.04Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.77724 16.10184h-5.52" strokeWidth="1"></path>
 </svg>;
 
 export const LayersGridWarningColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-0.5 -0.5 24 24" className="icon icon-layers-grid-warning-color">

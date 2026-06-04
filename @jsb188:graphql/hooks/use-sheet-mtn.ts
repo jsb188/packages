@@ -139,7 +139,7 @@ export function useDeleteSheetRange(params: UseMutationParams = {}, openModalPop
 }
 
 /*
- * Create or update one Data Table-backed sheet region.
+ * Create or update one data table-backed sheet region.
  */
 
 export function useUpsertSheetDataTableRegion(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {

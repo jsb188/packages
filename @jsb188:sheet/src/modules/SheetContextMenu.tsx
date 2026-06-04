@@ -10,6 +10,8 @@ const SHEET_CONTEXT_MENU_ID = 'sheet-context-menu';
 const SHEET_CONTEXT_MENU_ACTIONS = {
 	copyCellValue: 'COPY_CELL_VALUE',
 	editCell: 'EDIT_CELL',
+	populateFromDataTable: 'POPULATE_FROM_DATA_TABLE',
+	removeCellsFromDataTable: 'REMOVE_CELLS_FROM_DATA_TABLE',
 } as const;
 
 const SHEET_CONTEXT_MENU_FORMAT_NAMES = {
@@ -33,6 +35,9 @@ export type SheetContextMenuCellTarget = {
 
 export type SheetContextMenuTarget = {
 	canEdit: boolean;
+	canPopulateFromDataTable?: boolean;
+	canRemoveCellsFromDataTable?: boolean;
+	dataTableRegionId?: string | null;
 	cells: SheetContextMenuCellTarget[];
 	cellKey: string;
 	displayValue: string;
@@ -44,6 +49,8 @@ export type SheetContextMenuTarget = {
 type UseSheetContextMenuParams = {
 	onEditCell: (target: SheetContextMenuTarget) => void;
 	onFormatCells: (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => void;
+	onPopulateFromDataTable?: (target: SheetContextMenuTarget) => void;
+	onRemoveCellsFromDataTable?: (target: SheetContextMenuTarget) => void;
 };
 
 /*
@@ -57,7 +64,13 @@ function copySheetContextMenuCellValue(target: SheetContextMenuTarget) {
  * Build the PopOver list options for one Sheet context-menu target.
  */
 function getSheetContextMenuOptions(target: SheetContextMenuTarget): POListIfaceItem[] {
-	return [{
+	const options: POListIfaceItem[] = [{
+		__type: 'LIST_ITEM',
+		disabled: !target.canPopulateFromDataTable,
+		iconName: COMMON_ICON_NAMES.data_table,
+		text: i18n.t('sheet.create_portal_to_data_table'),
+		value: SHEET_CONTEXT_MENU_ACTIONS.populateFromDataTable,
+	}, {
 		__type: 'LIST_ITEM',
 		disabled: !target.canEdit,
 		iconName: COMMON_ICON_NAMES.edit_note,
@@ -96,6 +109,23 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget): POListIface
 		text: i18n.t('sheet.copy_cell_value'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.copyCellValue,
 	}];
+
+	if (target.dataTableRegionId) {
+		options.push({
+			__type: 'BREAK',
+		}, {
+			__type: 'LIST_SUBTITLE',
+			text: i18n.t('sheet.data_table'),
+		}, {
+			__type: 'LIST_ITEM',
+			disabled: !target.canRemoveCellsFromDataTable,
+			iconName: COMMON_ICON_NAMES.delete,
+			text: i18n.t('sheet.remove_portal_to_data_table'),
+			value: SHEET_CONTEXT_MENU_ACTIONS.removeCellsFromDataTable,
+		});
+	}
+
+	return options;
 }
 
 /*
@@ -105,6 +135,8 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 	const {
 		onEditCell,
 		onFormatCells,
+		onPopulateFromDataTable,
+		onRemoveCellsFromDataTable,
 	} = p;
 	const {
 		activeTargetRef,
@@ -147,13 +179,24 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 				}
 				closePopOver();
 				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.populateFromDataTable:
+				if (target.canPopulateFromDataTable) {
+					onPopulateFromDataTable?.(target);
+				}
+				closePopOver();
+				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.removeCellsFromDataTable:
+				if (target.canRemoveCellsFromDataTable && target.dataTableRegionId) {
+					onRemoveCellsFromDataTable?.(target);
+				}
+				closePopOver();
+				break;
 			default:
 		}
-	}, [activeTargetRef, closePopOver, onEditCell, onFormatCells, popOver?.globalState]);
+	}, [activeTargetRef, closePopOver, onEditCell, onFormatCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, popOver?.globalState]);
 
 	return {
 		closeSheetContextMenu,
 		openSheetContextMenu,
 	};
 }
-

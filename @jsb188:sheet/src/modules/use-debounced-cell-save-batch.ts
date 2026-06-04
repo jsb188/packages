@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-export const CELL_SAVE_BATCH_DELAY_MS = 2500;
+export const CELL_SAVE_BATCH_DELAY_MS = 3000;
 
 type CellSaveTargetId = string | number | bigint | null | undefined;
 

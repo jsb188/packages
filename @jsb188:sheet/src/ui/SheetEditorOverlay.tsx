@@ -27,9 +27,9 @@ export type SheetEditorOverlayProps = {
 function getSheetEditorOverlayStyle(p: SheetEditorOverlayProps): CSSProperties {
 	return {
 		height: p.position.height,
-		left: p.scrollLeft + p.position.left,
+		left: p.scrollLeft + p.position.left + 1,
 		position: 'absolute',
-		top: p.scrollTop + p.position.top,
+		top: p.scrollTop + p.position.top + 1,
 		width: p.position.width,
 		zIndex: 43,
 	};
@@ -75,12 +75,19 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 			return;
 		}
 
+		const shouldSelectAll = p.editState.selectAllOnFocus !== false;
+
 		editor.focus();
-		editor.select?.();
-	}, [p.editState.cellKey, p.editState.rowId]);
+		if (shouldSelectAll) {
+			editor.select?.();
+		} else if (editor.setSelectionRange) {
+			const valueLength = editor.value.length;
+			editor.setSelectionRange(valueLength, valueLength);
+		}
+	}, [p.editState.cellKey, p.editState.rowId, p.editState.selectAllOnFocus]);
 
 	return <div
-		className={cn('sheet_overlay_editor', p.cellClassName)}
+		className={cn('sheet_overlay_editor shadow_light', p.cellClassName)}
 		data-sheet-editor-overlay='true'
 		style={getSheetEditorOverlayStyle(p)}
 	>
@@ -97,6 +104,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	prev.column.key === next.column.key &&
 	prev.editState.cellKey === next.editState.cellKey &&
 	prev.editState.draftValue === next.editState.draftValue &&
+	prev.editState.selectAllOnFocus === next.editState.selectAllOnFocus &&
 	prev.editState.error === next.editState.error &&
 	prev.editState.rowId === next.editState.rowId &&
 	prev.position.height === next.position.height &&

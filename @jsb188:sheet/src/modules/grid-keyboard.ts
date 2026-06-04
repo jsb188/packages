@@ -17,6 +17,7 @@ export type GridKeyboardHandlers = {
 	onClear?: () => Promise<void> | void;
 	onCopy?: () => void;
 	onDismissActiveEditor?: () => void;
+	onDismissContextMenu?: () => boolean;
 	onDismissEditor?: () => void;
 	onDismissHeaderEditor?: () => void;
 	onDismissLocalEditor?: () => void;
@@ -28,9 +29,11 @@ export type GridKeyboardHandlers = {
 	onKeyFinish?: () => void;
 	onKeyStart?: (input: { metaKey: boolean; pressed: string }) => void;
 	onPaste?: (clipboardText: string) => Promise<void> | void;
+	onRedo?: () => Promise<void> | void;
 	onSelectAll?: () => void;
 	onTab?: (direction: GridTabDirection) => void;
 	onTextInput?: (pressed: string) => void;
+	onUndo?: () => Promise<void> | void;
 	stopImmediatePropagation?: boolean;
 };
 
@@ -86,6 +89,30 @@ function finishGridKeyboardEvent(handlers: GridKeyboardHandlers) {
 }
 
 /*
+ * Return whether a keyboard event should run grid-level undo.
+ */
+
+function isGridUndoShortcut(event: KeyboardEvent, metaKey: boolean) {
+	return metaKey && !event.shiftKey && event.key.toLowerCase() === 'z';
+}
+
+/*
+ * Return whether a keyboard event should run grid-level redo.
+ */
+
+function isGridRedoShortcut(event: KeyboardEvent, metaKey: boolean) {
+	return metaKey && event.shiftKey && event.key.toLowerCase() === 'z';
+}
+
+/*
+ * Return whether an active editor should keep native editor shortcuts in control.
+ */
+
+function hasGridActiveEditorShortcut(elements: GridKeyboardElements, handlers: GridKeyboardHandlers) {
+	return Boolean(elements.editorElement || elements.headerEditorElement || elements.localEditorElement || handlers.hasActiveEditState);
+}
+
+/*
  * Route one keyboard event through shared grid shortcut behavior.
  */
 
@@ -97,21 +124,31 @@ export function handleGridKeyboardEvent(
 	const arrowDirection = getGridShortcutArrowDirection(event.key);
 	const metaKey = event.metaKey || event.ctrlKey;
 	const stopImmediatePropagation = handlers.stopImmediatePropagation;
-	const hasEditorShortcut = Boolean(elements.editorElement || elements.headerEditorElement || elements.localEditorElement || handlers.hasActiveEditState);
+	const hasEditorShortcut = hasGridActiveEditorShortcut(elements, handlers);
+	const undoShortcut = isGridUndoShortcut(event, metaKey);
+	const redoShortcut = isGridRedoShortcut(event, metaKey);
 	const shortcutKey = Boolean(
 		(arrowDirection && handlers.onArrow) ||
 		(event.key === 'Enter' && (hasEditorShortcut || handlers.onEnter)) ||
-		(event.key === 'Escape' && (hasEditorShortcut || handlers.onEscapeSelection)) ||
+		(event.key === 'Escape' && (hasEditorShortcut || handlers.onEscapeSelection || handlers.onDismissContextMenu)) ||
 		(event.key === 'Tab' && (hasEditorShortcut || handlers.onTab)) ||
 		((event.key === 'Delete' || event.key === 'Backspace') && handlers.onClear) ||
 		(handlers.isTextInputKey && handlers.onTextInput) ||
 		(metaKey && event.key.toLowerCase() === 'a' && handlers.onSelectAll) ||
 		(metaKey && event.key.toLowerCase() === 'c' && handlers.onCopy) ||
-		(metaKey && event.key.toLowerCase() === 'v' && handlers.onPaste)
+		(metaKey && event.key.toLowerCase() === 'v' && handlers.onPaste) ||
+		(!hasEditorShortcut && undoShortcut && handlers.onUndo) ||
+		(!hasEditorShortcut && redoShortcut && handlers.onRedo)
 	);
 
 	if (!shortcutKey || handlers.blocked) {
 		return false;
+	}
+
+	if (event.key === 'Escape' && handlers.onDismissContextMenu?.()) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		finishGridKeyboardEvent(handlers);
+		return true;
 	}
 
 	handlers.onKeyStart?.({
@@ -227,6 +264,24 @@ export function handleGridKeyboardEvent(
 		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		void (async () => {
 			await handlers.onPaste?.(handlers.readClipboardText ? await handlers.readClipboardText() : '');
+			finishGridKeyboardEvent(handlers);
+		})();
+		return true;
+	}
+
+	if (undoShortcut) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		void (async () => {
+			await handlers.onUndo?.();
+			finishGridKeyboardEvent(handlers);
+		})();
+		return true;
+	}
+
+	if (redoShortcut) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		void (async () => {
+			await handlers.onRedo?.();
 			finishGridKeyboardEvent(handlers);
 		})();
 		return true;

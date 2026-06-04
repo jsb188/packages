@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { Children, isValidElement, memo, type ReactNode } from 'react';
 // import type { ReactSpanElement } from '../types/dom';
 import * as IconSVGs from './IconSVGs';
 
@@ -39,6 +39,8 @@ const ICON_MAP = Object.entries(IconSVGs).reduce((acc, [key, IconComponent]) => 
   return acc;
 }, {} as Record<string, React.ReactNode>);
 
+const ICON_PATH_DATA_MAP = new Map<string, string[]>();
+
 /**
  * Types
  */
@@ -52,6 +54,12 @@ interface SpecialIconProps extends IconProps {
   name: string;
   cornerIconName?: string;
 }
+
+type IconPathProps = {
+  children?: ReactNode;
+  d?: unknown;
+  stroke?: unknown;
+};
 
 /**
  * Brand icons
@@ -169,6 +177,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   general_workflow: 'workflow-teamwork-cog-hand',
   data_table: 'database-2',
   sheet: 'workflow-data-table-2',
+  sheet_data_table_populate: 'database-sync',
   not_found_sheet: 'layers-grid-warning',
   not_found_data_table: 'database-warning',
 
@@ -354,6 +363,47 @@ export const Icon = memo((p: IconProps & {
 });
 
 Icon.displayName = 'Icon';
+
+/*
+ * Add drawable SVG path data from one React icon node into a flat path list.
+ */
+function addIconSVGPathDataFromNode(node: ReactNode, pathData: string[]) {
+  Children.forEach(node, (child) => {
+    if (!isValidElement<IconPathProps>(child)) {
+      return;
+    }
+
+    if (typeof child.props.d === 'string' && child.props.stroke !== 'none') {
+      pathData.push(child.props.d);
+    }
+
+    if (child.props.children) {
+      addIconSVGPathDataFromNode(child.props.children, pathData);
+    }
+  });
+}
+
+/*
+ * Return SVG path data for an icon name using IconSVGs as the source of truth.
+ */
+export function getIconSVGPathData(name: string, backupName?: string) {
+  const iconKey = ICON_MAP[name] ? name : backupName || '';
+  const cachedPathData = ICON_PATH_DATA_MAP.get(iconKey);
+  if (cachedPathData) {
+    return cachedPathData;
+  }
+
+  const IconComponent = ICON_MAP[iconKey];
+  const pathData: string[] = [];
+
+  if (IconComponent) {
+    addIconSVGPathDataFromNode(IconComponent, pathData);
+  }
+
+  ICON_PATH_DATA_MAP.set(iconKey, pathData);
+
+  return pathData;
+}
 
 /**
  * Icon representing each file type

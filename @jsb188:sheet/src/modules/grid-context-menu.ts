@@ -95,11 +95,12 @@ export function useGridContextMenu<Target extends GridContextMenuTargetBase>(par
 		const target = activeTargetRef.current;
 
 		if (!target || popOver?.id !== getGridContextMenuPopOverId(contextMenuId, target)) {
-			return;
+			return false;
 		}
 
 		activeTargetRef.current = null;
 		closePopOver();
+		return true;
 	}, [closePopOver, contextMenuId, popOver?.id]);
 
 	return {

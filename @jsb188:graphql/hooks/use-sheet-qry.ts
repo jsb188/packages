@@ -107,11 +107,20 @@ export function useReactiveSheetFragment(sheetId: string, currentData?: any, que
  */
 
 export function useReactiveSheetGridFragment(sheetGridId: string, currentData?: any, queryCount?: number) {
-	return useReactiveFragment(
+	const reactiveSheetGrid = useReactiveFragment(
 		currentData,
 		sheetGridId ? [`$sheetGridFragment:${sheetGridId}`] : [],
 		queryCount,
 	);
+
+	if (!currentData || !reactiveSheetGrid) {
+		return reactiveSheetGrid;
+	}
+
+	return {
+		...currentData,
+		regions: reactiveSheetGrid.regions ?? currentData.regions,
+	};
 }
 
 /*
