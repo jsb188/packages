@@ -980,7 +980,7 @@ export function useQuery(
         (triggerTime && triggerTime !== qryValues.lastRefreshTriggerTime) ||
         updatedCount !== qryValues.lastUpdatedCount ||
         variablesKey !== qryValuesVariablesKey ||
-        !checkDataCompleteness(qryValues.data, query)
+        (!qryValues.error && !checkDataCompleteness(qryValues.data, query))
       )
     ) {
       const cachedResult = fetchCachedData(query, variablesKey, updateObservers);
@@ -1011,10 +1011,10 @@ export function useQuery(
   // Refetch when the app reconnects and has no data
 
   const withoutData = qryValues.data === null;
-  const reconnectedWithoutData = !skip && withoutData && !qryValues.loading && connectedToServer;
+  const reconnectedWithoutData = !skip && !qryValues.error && withoutData && !qryValues.loading && connectedToServer;
 
   useEffect(() => {
-    if (connectedToServer && screenIsFocused && !skip) {
+    if (connectedToServer && screenIsFocused && !skip && !qryValues.error) {
       const now = Date.now();
 
       let timeDiff, timeThresh;

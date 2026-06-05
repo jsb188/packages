@@ -20,8 +20,6 @@ import type {
 	DataTableCellGQL,
 	DataTableDesignCellGQL,
 	DataTableDesignGQL,
-	DataTableDesignViewColumnGQL,
-	DataTableDesignViewGQL,
 	DataTableFieldTypeGQL,
 	DataTableGQL,
 	DataTableRowGQL,
@@ -62,7 +60,6 @@ export type DataTableParsedEditorValue = {
 
 export type DataTableRuntimeDesignCell = DataTableDesignCellGQL & {
 	runtimeKey?: string;
-	viewSource?: DataTableDesignViewColumnGQL['source'] | null;
 };
 
 export type DataTableCellLookup = {
@@ -112,10 +109,6 @@ export function getDataTableTranslatedText(key: string, fallback: string) {
  * Return the source master cell key that one runtime column should read and write.
  */
 export function getDataTableRuntimeCellKey(designCell: DataTableRuntimeDesignCell) {
-	if (designCell.viewSource?.type === 'MASTER_CELL' && designCell.viewSource.cellKey) {
-		return designCell.viewSource.cellKey;
-	}
-
 	return designCell.key;
 }
 
@@ -153,8 +146,8 @@ export function getSheetEditorFieldType(designCell: Pick<DataTableDesignCellGQL,
 /*
  * Return whether one runtime cell is available for direct human edits.
  */
-export function canEditDataTableRuntimeCell(params: { activeView?: DataTableDesignViewGQL | null; design: DataTableDesignGQL; designCell: DataTableDesignCellGQL; disabled?: boolean }) {
-	return !params.disabled && !params.design.humansCannotEdit && !params.activeView?.humansCannotEdit && !params.designCell.humansCannotEdit;
+export function canEditDataTableRuntimeCell(params: { design: DataTableDesignGQL; designCell: DataTableDesignCellGQL; disabled?: boolean }) {
+	return !params.disabled && !params.design.humansCannotEdit && !params.designCell.humansCannotEdit;
 }
 
 /*
@@ -430,7 +423,7 @@ export function getDataTableWeekDisplayValue(value: unknown, fieldType: DataTabl
  */
 export function getSheetCellDisplayValue(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null, timeZone?: string | null) {
 	if (cell?.referenceStatus === 'DELETED') {
-		return getDataTableTranslatedText('dataTable.reference_deleted', 'Deleted reference');
+		return getDataTableTranslatedText('sheet.reference_deleted', 'Deleted reference');
 	}
 
 	const rawValue = parseDataTableRawValue(getDataTableCellSerializedValue(cell, designCell, optimisticValue));
@@ -1101,7 +1094,7 @@ export function handleDataTableRelatedDocumentCellEdit(lookup: DataTableCellLook
 	switch (lookup.cell.relatedTable) {
 		case 'logs':
 			setFloatingMessage?.({
-				text: getDataTableTranslatedText('dataTable.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
+				text: getDataTableTranslatedText('sheet.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
 				type: 'NOTICE',
 			});
 			return true;
@@ -1109,7 +1102,7 @@ export function handleDataTableRelatedDocumentCellEdit(lookup: DataTableCellLook
 		case 'inbound_contacts':
 		default:
 			setFloatingMessage?.({
-				text: getDataTableTranslatedText('dataTable.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
+				text: getDataTableTranslatedText('sheet.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
 				type: 'NOTICE',
 			});
 			return true;

@@ -30,7 +30,6 @@ export type DataTableContextMenuTarget<Lookup = unknown> = {
 	rowId: string;
 	rowNumber?: number | null;
 	dataTableId: string;
-	viewId?: string | null;
 };
 
 type UseDataTableContextMenuParams<Lookup> = {
@@ -56,18 +55,18 @@ function getDataTableContextMenuOptions(target: DataTableContextMenuTarget): POL
 		__type: 'LIST_ITEM',
 		disabled: !target.canEdit,
 		iconName: COMMON_ICON_NAMES.edit_note,
-		text: i18n.t('dataTable.context_menu_edit_cell'),
+		text: i18n.t('sheet.context_menu_edit_cell'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.editCell,
 	}, {
 		__type: 'LIST_ITEM',
 		disabled: !target.canOpen,
 		iconName: 'external-link',
-		text: i18n.t('dataTable.context_menu_open_cell'),
+		text: i18n.t('sheet.context_menu_open_cell'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.openCell,
 	}, {
 		__type: 'LIST_ITEM',
 		iconName: COMMON_ICON_NAMES.copy,
-		text: i18n.t('dataTable.context_menu_copy_cell_value'),
+		text: i18n.t('sheet.context_menu_copy_cell_value'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.copyCellValue,
 	}];
 
@@ -78,7 +77,7 @@ function getDataTableContextMenuOptions(target: DataTableContextMenuTarget): POL
 			__type: 'LIST_ITEM',
 			className: 'cl_err',
 			iconName: COMMON_ICON_NAMES.delete,
-			text: i18n.t('dataTable.delete_row'),
+			text: i18n.t('sheet.delete_row'),
 			value: SHEET_CONTEXT_MENU_ACTIONS.deleteRow,
 		});
 	}
@@ -103,7 +102,6 @@ function openDataTableDeleteRowPopUp<Lookup>(
 			rowNumber: target.rowNumber,
 			dataTableId: target.dataTableId,
 			dataTableRowId: target.rowId,
-			viewId: target.viewId || null,
 		},
 	});
 }

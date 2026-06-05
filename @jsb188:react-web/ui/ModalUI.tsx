@@ -195,9 +195,11 @@ export function ModalHeader(p: Partial<ModalHeaderProps>) {
  * Modal; simple content with big icon and title
  */
 
-interface ModalSimpleContentProps {
+export function ModalSimpleContent(p: {
   title?: string;
+  titleClassName?: string;
   message?: string;
+  messageClassName?: string;
   iconName: string;
   iconClassName?: string;
   className?: string;
@@ -205,10 +207,9 @@ interface ModalSimpleContentProps {
   buttonText?: string;
   buttonTo?: string;
   onSubmit?: () => void;
-}
-
-export function ModalSimpleContent(p: ModalSimpleContentProps) {
-  const { title, message, iconName, iconClassName, className, children, buttonText, buttonTo, onSubmit } = p;
+  FooterComponent?: React.ReactNode;
+}) {
+  const { title, message, iconName, iconClassName, titleClassName, messageClassName, className, children, buttonText, buttonTo, onSubmit, FooterComponent } = p;
 
   return <div className={cn('v_center a_c', className ?? 'py_md px_df')}>
     <span className={iconClassName ?? 'ic_xxxl cl_secondary'}>
@@ -216,7 +217,7 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
     </span>
 
     {title &&
-    <h1 className='ft_sm ft_normal ls_2 mt_sm'>
+    <h1 className={cn('ft_normal ls_2 mt_sm', titleClassName ?? 'ft_sm')}>
       {title}
     </h1>}
 
@@ -224,7 +225,7 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
       {children}
 
       {message && (
-        <Markdown as='p'>
+        <Markdown as='p' className={messageClassName}>
           {message}
         </Markdown>
       )}
@@ -239,6 +240,8 @@ export function ModalSimpleContent(p: ModalSimpleContentProps) {
     >
       {buttonText}
     </FullWidthButton>}
+
+    {FooterComponent}
   </div>;
 }
 

@@ -237,7 +237,7 @@ export const TableHeaderCell = memo((p: HTMLAttributes<HTMLDivElement> & TableCe
   const { addHorizontalPadding, children, className, columnIndex, iconClassName: _iconClassName, iconName, innerClassName, isLastColumn, mock, placeholderText: _placeholderText, removeLeftPadding, removeRightPadding, showColumnDivider, showRowDivider: _showRowDivider, sticky, style, text, ...rest } = p;
 
   return <div
-    className={cn('p_n table_grid_cell table_grid_item bd_t_1 bd_b_2 bd_lt', sticky ? 'table_grid_sticky_header_cell' : '', showColumnDivider ? 'bd_l_1' : '')}
+    className={cn('p_n table_grid_cell table_grid_item bd_t_1 bd_b_1 bd_lt', sticky ? 'table_grid_sticky_header_cell' : '', showColumnDivider ? 'bd_l_1' : '')}
     role='columnheader'
     style={{
       fontWeight: 'inherit',

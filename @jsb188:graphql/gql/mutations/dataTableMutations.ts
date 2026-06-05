@@ -1,14 +1,32 @@
 import { gql } from 'graphql-tag';
 import { dataTableCellFragment, dataTableFragment, dataTableRowFragment } from '../fragments/dataTableFragments.ts';
 
+export const createDataTableMtn = gql`
+mutation createDataTable (
+  $organizationId: GenericID!
+  $title: String!
+  $name: String
+  $description: String
+) {
+  createDataTable (
+    organizationId: $organizationId
+    title: $title
+    name: $name
+    description: $description
+  ) {
+    ...dataTableFragment
+  }
+}
+
+${dataTableFragment}
+`;
+
 export const editDataTableCellMtn = gql`
 mutation editDataTableCell (
   $organizationId: GenericID!
   $dataTableId: GenericID!
   $dataTableRowId: GenericID!
   $cellKey: String!
-  $viewId: String
-  $viewCellKey: String
   $value: String
   $reference: DataTableCellReferenceInput
 ) {
@@ -17,8 +35,6 @@ mutation editDataTableCell (
     dataTableId: $dataTableId
     dataTableRowId: $dataTableRowId
     cellKey: $cellKey
-    viewId: $viewId
-    viewCellKey: $viewCellKey
     value: $value
     reference: $reference
   ) {

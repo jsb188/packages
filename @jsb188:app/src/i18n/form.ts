@@ -267,6 +267,7 @@ export default {
     show_document_guidelines: 'Show document guidelines',
     hide_document_guidelines: 'Hide document guidelines',
     advanced: 'Advanced',
+    get_started: 'Get started',
     start: 'Start',
     started: 'Started',
     end: 'End',

@@ -359,20 +359,40 @@ fieldset input[type="radio"] {
   background-color: rgba(0,0,0,.1);
 }
 
-a.btn.subtle, a.btn.outline {
+.btn.bg {
+  background-color: rgb(var(--color-bg));
+}
+
+a.btn.subtle, a.btn.bg, a.btn.outline {
   color: inherit;
 }
 
 .btn.subtle:disabled, .btn.subtle.disabled {
-  color: var(--color-text-medium);
+  background-color: rgba(0,0,0,.064);
+  /* color: var(--color-text-medium); */
+  color: rgba(0,0,0,.275);
+}
+
+.btn.bg:disabled, .btn.bg.disabled {
+  background-color: rgb(var(--color-bg-fade));
+  /* color: var(--color-text-medium); */
+  color: rgba(0,0,0,.275);
 }
 
 .btn.subtle:not(:disabled):not(.disabled):hover, .btn.cl_err:not(:disabled):not(.disabled):hover {
   background-color: rgba(0,0,0,.2);
 }
 
+.btn.bg:not(:disabled):not(.disabled):hover {
+  background-color: rgb(var(--color-bg-alt)) !important;
+}
+
 .btn.subtle:not(:disabled):not(.disabled):active, .btn.cl_err:not(:disabled):not(.disabled):active {
   background-color: rgba(0,0,0,.25);
+}
+
+.btn.bg:not(:disabled):not(.disabled):active {
+  background-color: rgb(var(--color-bg-active)) !important;
 }
 
 /* Outline */

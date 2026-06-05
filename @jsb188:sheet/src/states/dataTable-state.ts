@@ -27,10 +27,6 @@ export type DataTableDesignPatchInput = {
 		width?: number | null;
 	}>;
 	cellsOrder?: string[];
-	views?: Array<{
-		id: string;
-		columnsOrder?: string[] | null;
-	}>;
 };
 
 type DataTableDesignCellPatchInput = NonNullable<DataTableDesignPatchInput['cells']>[number];
@@ -100,7 +96,6 @@ export function createDataTableStateAtoms() {
 		optimisticValuesAtom: atom<DataTableOptimisticCellValues>({}),
 		resizingColumnKeyAtom: atom<string | null>(null),
 		rowsStateAtom: atom<DataTableRowsState | null>(null),
-		selectedViewIdAtom: atom<string | null | undefined>(undefined),
 	};
 }
 
@@ -124,8 +119,8 @@ export function getInitialDataTableRowsState(sourceKey: string): DataTableRowsSt
  * Return the identity for the current dataTable row source.
  */
 
-export function getDataTableRowsSourceKey(dataTableId: string, viewId?: string | null) {
-	return `${dataTableId}:${viewId || 'master'}`;
+export function getDataTableRowsSourceKey(dataTableId: string) {
+	return dataTableId;
 }
 
 /*
@@ -281,14 +276,6 @@ function areDataTableDesignCellsOrdersEqual(a?: string[] | null, b?: string[] | 
 }
 
 /*
- * Return whether two optional ordered dataTable view key lists are identical.
- */
-
-function areDataTableDesignViewOrdersEqual(a?: string[] | null, b?: string[] | null) {
-	return areDataTableDesignCellsOrdersEqual(a, b);
-}
-
-/*
  * Merge two sparse dataTable design patches while keeping the newest cell patch per key.
  */
 
@@ -317,20 +304,6 @@ export function mergeDataTableDesignPatch(
 		mergedPatch.cellsOrder = nextPatch.cellsOrder.slice(0);
 	}
 
-	if (nextPatch.views) {
-		const viewsById = new Map((mergedPatch.views || []).map((view) => [view.id, view]));
-
-		nextPatch.views.forEach((view) => {
-			viewsById.set(view.id, {
-				...viewsById.get(view.id),
-				...view,
-				columnsOrder: view.columnsOrder ? view.columnsOrder.slice(0) : view.columnsOrder,
-			});
-		});
-
-		mergedPatch.views = Array.from(viewsById.values());
-	}
-
 	return mergedPatch;
 }
 
@@ -347,8 +320,6 @@ export function mergeDataTableDesignWithPatch(
 	}
 
 	let cells = serverDesign.cells;
-	let views = serverDesign.views;
-
 	if (localPatch.cells?.length) {
 		const patchCellsByKey = new Map(localPatch.cells.map((cell) => [cell.key, cell]));
 		const patchedKeys = new Set<string>();
@@ -369,28 +340,10 @@ export function mergeDataTableDesignWithPatch(
 		});
 	}
 
-	if (localPatch.views?.length && views?.length) {
-		const patchViewsById = new Map(localPatch.views.map((view) => [view.id, view]));
-
-		views = views.map((view) => {
-			const patchView = patchViewsById.get(view.id);
-
-			if (!patchView) {
-				return view;
-			}
-
-			return {
-				...view,
-				columnsOrder: patchView.columnsOrder || view.columnsOrder,
-			};
-		});
-	}
-
 	return {
 		...serverDesign,
 		cells,
 		cellsOrder: localPatch.cellsOrder || serverDesign.cellsOrder,
-		views,
 	};
 }
 
@@ -452,19 +405,6 @@ function removeConfirmedDataTableDesignPatchValues(
 			cellsOrder: localPatch.cellsOrder,
 		});
 	}
-
-	localPatch.views?.forEach((patchView) => {
-		const serverView = serverDesign.views?.find((view) => view.id === patchView.id);
-
-		if (patchView.columnsOrder && !areDataTableDesignViewOrdersEqual(patchView.columnsOrder, serverView?.columnsOrder)) {
-			nextPatch = mergeDataTableDesignPatch(nextPatch, {
-				views: [{
-					id: patchView.id,
-					columnsOrder: patchView.columnsOrder,
-				}],
-			});
-		}
-	});
 
 	return nextPatch;
 }

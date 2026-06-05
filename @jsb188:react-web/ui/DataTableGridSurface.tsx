@@ -102,6 +102,8 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 					columnCount={p.columnCount}
 					columns={p.columns}
 					headerCellsEditable={p.headerCellsEditable}
+					headerCursorClassName={p.headerCursorClassName}
+					headerTooltipClosesWhilePointerDown={p.headerTooltipClosesWhilePointerDown}
 					headerEditState={p.headerEditState}
 					selectedHeaderCellKey={p.selectedHeaderCellKey}
 					headerSpacerWidth={p.headerSpacerWidth ?? p.headerWidth}
@@ -261,6 +263,8 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	prev.editState?.disableInlineEditor === next.editState?.disableInlineEditor &&
 	prev.editState?.error === next.editState?.error &&
 	prev.headerCellsEditable === next.headerCellsEditable &&
+	prev.headerCursorClassName === next.headerCursorClassName &&
+	prev.headerTooltipClosesWhilePointerDown === next.headerTooltipClosesWhilePointerDown &&
 	prev.headerContent === next.headerContent &&
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&

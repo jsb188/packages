@@ -42,6 +42,7 @@
     "./ui/SheetUI": "./ui/SheetUI.tsx",
     "./ui/TableUI": "./ui/TableUI.tsx",
     "./ui/TableListUI": "./ui/TableListUI.tsx",
+    "./ui/TileUI": "./ui/TileUI.tsx",
     "./ui/TopNavUI": "./ui/TopNavUI.tsx",
     "./utils/dom": "./utils/dom.ts",
     "./utils/ipAddress": "./utils/ipAddress.ts",

@@ -234,16 +234,16 @@ ToolbarItems.displayName = 'ToolbarItems';
 const AppToolbar = memo((p: {
   breadcrumbs?: BreadcrumbItemObj[] | null;
   options?: ToolbarItemObj[] | null;
-  shadowStyle?: string;
+  shadowClassName?: string;
 }) => {
-  // const { shadowStyle = 'shadow_line_alt' } = p;
-  const { options, shadowStyle = 'shadow_bg_drop_lg' } = p;
+  // const { shadowClassName = 'shadow_line_alt' } = p;
+  const { options, shadowClassName = 'shadow_bg_drop_lg' } = p;
   const outletContext = useOutletContext<AppToolbarOutletContext | null>();
   const breadcrumbs = p.breadcrumbs || LOADING_BREADCRUMBS;
   const lastIx = breadcrumbs.length - 1;
   const showOpenSidebarButton = outletContext?.open === false && !!outletContext.setOpen;
 
-  return <div className={cn('bg rel z4', shadowStyle)}>
+  return <div className={cn('bg rel z4', shadowClassName)}>
     <div className={cn('h_toolbar h_item no_shrink', COMMON_CLASSNAMES.contentXPadding)}>
       {showOpenSidebarButton && (
         <TooltipButton

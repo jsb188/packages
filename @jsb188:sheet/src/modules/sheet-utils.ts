@@ -328,7 +328,7 @@ export function getSheetCanvasCellDisplayValue(cell?: SheetCellGQL | null) {
 		return '';
 	}
 
-	if (cell.rawInput !== null && cell.rawInput !== undefined) {
+	if (!cell.formula && cell.rawInput !== null && cell.rawInput !== undefined) {
 		return String(cell.rawInput);
 	}
 
@@ -363,6 +363,10 @@ export function getSheetCanvasCellDisplayValue(cell?: SheetCellGQL | null) {
  * Return the editable draft string for one sheet cell.
  */
 export function getSheetCanvasCellDraftValue(cell?: SheetCellGQL | null) {
+	if (cell?.formula?.text) {
+		return cell.formula.text;
+	}
+
 	return getSheetCanvasCellDisplayValue(cell);
 }
 

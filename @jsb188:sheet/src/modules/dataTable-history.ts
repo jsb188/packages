@@ -51,29 +51,12 @@ export function getDataTableDesignCellHistoryBeforePatch(design: DataTableDesign
 }
 
 /*
- * Return the inverse patch for one design-view patch using the current design.
- */
-export function getDataTableDesignViewHistoryBeforePatch(design: DataTableDesignGQL, patchView: NonNullable<DataTableDesignPatchInput['views']>[number]) {
-	const currentView = design.views?.find((view) => view.id === patchView.id);
-	const beforeView: NonNullable<DataTableDesignPatchInput['views']>[number] = {
-		id: patchView.id,
-	};
-
-	if ('columnsOrder' in patchView) {
-		beforeView.columnsOrder = currentView?.columnsOrder || null;
-	}
-
-	return beforeView;
-}
-
-/*
  * Return the patch that restores the current design before one local design patch.
  */
 export function getDataTableDesignHistoryBeforePatch(design: DataTableDesignGQL, patch: DataTableDesignPatchInput): DataTableDesignPatchInput {
 	return {
 		cells: patch.cells?.map((cell) => getDataTableDesignCellHistoryBeforePatch(design, cell)),
 		cellsOrder: patch.cellsOrder ? design.cellsOrder || [] : undefined,
-		views: patch.views?.map((view) => getDataTableDesignViewHistoryBeforePatch(design, view)),
 	};
 }
 
@@ -81,7 +64,7 @@ export function getDataTableDesignHistoryBeforePatch(design: DataTableDesignGQL,
  * Return whether one design patch contains at least one supported undoable edit.
  */
 export function dataTableDesignPatchHasUndoableChanges(patch: DataTableDesignPatchInput) {
-	return Boolean(patch.cells?.length || patch.cellsOrder || patch.views?.length);
+	return Boolean(patch.cells?.length || patch.cellsOrder);
 }
 
 /*

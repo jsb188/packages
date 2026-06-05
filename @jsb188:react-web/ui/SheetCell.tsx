@@ -1,5 +1,6 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, useSyncExternalStore, type CSSProperties } from 'react';
+import { TooltipButton } from '../modules/PopOver';
 import { Icon } from '../svgs/Icon';
 import type {
 	SheetColumnMetric,
@@ -377,6 +378,8 @@ export const SheetHeaderCell = memo((p: {
 	isColumnReorderDragging?: boolean;
 	isColumnResizeDragging?: boolean;
 	selectedHeaderCellKey?: string | null;
+	cursorClassName?: string;
+	tooltipClosesWhilePointerDown?: boolean;
 }) => {
 	const isEditing = p.headerEditState?.cellKey === p.column.key;
 	const isSelected = !isEditing && p.selectedHeaderCellKey === p.column.key;
@@ -387,12 +390,34 @@ export const SheetHeaderCell = memo((p: {
 	const defaultSelectedCellClassName = 'bg_alt';
 	const headerLayoutClassName = p.column.headerLayoutClassName || 'h_item';
 
+	const displayContent = <>
+		{p.column.headerCheckboxEnabled
+			? <input
+				aria-label={p.column.label}
+				checked={Boolean(p.column.headerChecked)}
+				className='no_shrink mr_6'
+				data-cell-key={p.column.key}
+				data-sheet-header-checkbox='true'
+				onChange={() => {}}
+				onClick={(event) => {
+					event.stopPropagation();
+				}}
+				onPointerDown={(event) => {
+					event.stopPropagation();
+				}}
+				readOnly
+				type='checkbox'
+			/>
+			: null}
+		<span className='ellip'>{p.column.label}</span>
+	</>;
+
 	return <div
 		className={cn(
 			'sheet_ui_header_cell of abs bd_r_1 bd_b_1 bd_lt ft_xs ft_medium cl_md no_wrap z3',
 			headerLayoutClassName,
 			getSheetHeaderClassNameWithoutHoverUtilities(p.column.headerClassName),
-			isReorderable ? 'cs_default_to_grabing' : '',
+			isReorderable ? (p.cursorClassName ?? 'cs_default_to_grabing') : '',
 			isEditable ? defaultCellClassName : '',
 			isEditing ? 'active' : 'px_8',
 			isSelected ? `single_clicked ${defaultSelectedCellClassName}` : isEditing ? '' : 'bg',
@@ -426,27 +451,17 @@ export const SheetHeaderCell = memo((p: {
 				defaultValue={p.headerEditState?.draftValue || ''}
 				type='text'
 			/>
-			: <>
-				{p.column.headerCheckboxEnabled
-					? <input
-						aria-label={p.column.label}
-						checked={Boolean(p.column.headerChecked)}
-						className='no_shrink mr_6'
-						data-cell-key={p.column.key}
-						data-sheet-header-checkbox='true'
-						onChange={() => {}}
-						onClick={(event) => {
-							event.stopPropagation();
-						}}
-						onPointerDown={(event) => {
-							event.stopPropagation();
-						}}
-						readOnly
-						type='checkbox'
-					/>
-					: null}
-				<span className='ellip'>{p.column.label}</span>
-			</>}
+			: p.column.headerTooltipMessage
+				? <TooltipButton
+					as='div'
+					className='h_item min_w_0 w_f h_f'
+					closeWhilePointerDown={p.tooltipClosesWhilePointerDown}
+					message={p.column.headerTooltipMessage}
+					position='top'
+				>
+					{displayContent}
+				</TooltipButton>
+				: displayContent}
 	</div>;
 }, (prev, next) => (
 	prev.column.id === next.column.id &&
@@ -456,11 +471,14 @@ export const SheetHeaderCell = memo((p: {
 	prev.column.headerChecked === next.column.headerChecked &&
 	prev.column.headerClassName === next.column.headerClassName &&
 	prev.column.headerLayoutClassName === next.column.headerLayoutClassName &&
+	prev.column.headerTooltipMessage === next.column.headerTooltipMessage &&
 	prev.column.humansCannotEdit === next.column.humansCannotEdit &&
 	prev.columnIndex === next.columnIndex &&
 	prev.columnReorderEnabled === next.columnReorderEnabled &&
 	prev.columnReorderOffset === next.columnReorderOffset &&
+	prev.cursorClassName === next.cursorClassName &&
 	prev.headerCellsEditable === next.headerCellsEditable &&
+	prev.tooltipClosesWhilePointerDown === next.tooltipClosesWhilePointerDown &&
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
 	prev.headerEditState?.error === next.headerEditState?.error &&
@@ -609,6 +627,8 @@ export const SheetHeaderArea = memo((p: {
 	columnCount: number;
 	columns: SheetColumnMetric[];
 	headerCellsEditable?: boolean;
+	headerCursorClassName?: string;
+	headerTooltipClosesWhilePointerDown?: boolean;
 	headerEditState?: SheetUIHeaderEditState | null;
 	selectedHeaderCellKey?: string | null;
 	headerSpacerWidth: number;
@@ -660,6 +680,8 @@ export const SheetHeaderArea = memo((p: {
 					columnReorderEnabled={p.columnReorderEnabled}
 					columnReorderOffset={p.columnReorderDisplacements?.[columnMetric.column.key] || 0}
 					headerCellsEditable={p.headerCellsEditable}
+					cursorClassName={p.headerCursorClassName}
+					tooltipClosesWhilePointerDown={p.headerTooltipClosesWhilePointerDown}
 					headerEditState={p.headerEditState}
 					selectedHeaderCellKey={p.selectedHeaderCellKey}
 					headerLeft={headerLeft}
@@ -733,6 +755,8 @@ export const SheetHeaderArea = memo((p: {
 	prev.columnCount === next.columnCount &&
 	prev.columns === next.columns &&
 	prev.headerCellsEditable === next.headerCellsEditable &&
+	prev.headerCursorClassName === next.headerCursorClassName &&
+	prev.headerTooltipClosesWhilePointerDown === next.headerTooltipClosesWhilePointerDown &&
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
 	prev.headerEditState?.error === next.headerEditState?.error &&
@@ -1232,6 +1256,7 @@ export const SheetGridCell = memo((p: {
 	);
 	const cellContentClassName = cn(
 		'fs h_item cl_df',
+		cell?.contentClassName,
 		editableContentClassName,
 		selectedReadOnlyContentClassName,
 		showCustomBackgroundSelectedOverlay ? 'bg_main_fd' : '',

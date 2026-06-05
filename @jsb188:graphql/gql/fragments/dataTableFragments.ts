@@ -11,8 +11,6 @@ export const dataTableFragment = `fragment dataTableFragment on DataTable {
     id
     instructions
     cellsOrder
-    viewsOrder
-    defaultViewId
     humansCannotEdit
     stickyTop
     stickyLeft
@@ -44,128 +42,6 @@ export const dataTableFragment = `fragment dataTableFragment on DataTable {
         color
       }
     }
-
-    views {
-      id
-      name
-      layout
-      iconName
-      color
-      description
-      columnsOrder
-      stickyTop
-      stickyLeft
-      humansCannotEdit
-
-      rowModel {
-        type
-
-        dimensions {
-          key
-          label
-
-          source {
-            type
-            cellKey
-            formulaKey
-            dimensionKey
-            table
-            path
-            sourceCellKey
-            sourceCellKeys
-            operation
-          }
-        }
-
-        generator {
-          keyPrefix
-
-          dateSeries {
-            key
-            label
-            sourceCellKey
-            grain
-            weekStart
-
-            range {
-              type
-              start
-              end
-            }
-          }
-
-          dimensions {
-            key
-            label
-
-            source {
-              type
-              cellKey
-
-              values {
-                value
-                label
-              }
-            }
-          }
-
-          measures {
-            key
-            label
-            operation
-            sourceCellKey
-          }
-        }
-      }
-
-      columns {
-        key
-        label
-        humanLabel
-        iconName
-        fieldType
-        humanFieldType
-        openLink
-        humansCannotEdit
-        width
-
-        source {
-          type
-          cellKey
-          formulaKey
-          dimensionKey
-          table
-          path
-          sourceCellKey
-          sourceCellKeys
-          operation
-        }
-
-        options {
-          label
-          value
-          color
-        }
-      }
-
-      filters {
-        id
-        columnKey
-        operator
-        value
-        enabled
-      }
-
-      sorts {
-        columnKey
-        direction
-      }
-
-      groups {
-        columnKey
-        direction
-      }
-    }
   }
 
   createdAt
@@ -179,8 +55,6 @@ export const dataTableRowFragment = `fragment dataTableRowFragment on DataTableR
   dataTableId
 
   identifier
-  viewId
-  viewRowKey
   position
   metadata
 }`;

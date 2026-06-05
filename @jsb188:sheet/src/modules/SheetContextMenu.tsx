@@ -68,7 +68,7 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget): POListIface
 		__type: 'LIST_ITEM',
 		disabled: !target.canPopulateFromDataTable,
 		iconName: COMMON_ICON_NAMES.data_table,
-		text: i18n.t('sheet.create_portal_to_data_table'),
+		text: i18n.t('sheet.insert_rows_from_data_table'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.populateFromDataTable,
 	}, {
 		__type: 'LIST_ITEM',
@@ -120,7 +120,7 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget): POListIface
 			__type: 'LIST_ITEM',
 			disabled: !target.canRemoveCellsFromDataTable,
 			iconName: COMMON_ICON_NAMES.delete,
-			text: i18n.t('sheet.remove_portal_to_data_table'),
+			text: i18n.t('sheet.remove_view'),
 			value: SHEET_CONTEXT_MENU_ACTIONS.removeCellsFromDataTable,
 		});
 	}

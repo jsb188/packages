@@ -23,14 +23,12 @@ query dataTableRows (
   $organizationId: GenericID!
   $cursor: Cursor
   $limit: Int!
-  $filter: DataTableRowsFilterInput
 ) {
   dataTableRows (
     dataTableId: $dataTableId
     organizationId: $organizationId
     cursor: $cursor
     limit: $limit
-    filter: $filter
   ) {
     ...dataTableRowFragment
 

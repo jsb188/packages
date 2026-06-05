@@ -7,6 +7,8 @@ import type {
 export type SheetCellSourceTypeEnum = typeof SHEET_CELL_SOURCE_TYPE_ENUMS[number];
 export type SheetRegionTypeEnum = typeof SHEET_REGION_TYPE_ENUMS[number];
 export type SheetRegionConflictPolicyEnum = typeof SHEET_REGION_CONFLICT_POLICY_ENUMS[number];
+export type SheetFormulaReferenceKind = 'SHEET_CELL' | 'DATA_TABLE_CELL';
+export type SheetRegionColumnKind = 'DATA_TABLE_CELL' | 'FORMULA';
 
 export type SheetCellValue =
 	| string
@@ -51,13 +53,28 @@ export interface SheetDesignObj {
 	metadata?: Record<string, any>;
 }
 
-export interface SheetFormulaObj {
-	version: number;
-	kind: string;
+export interface SheetFormulaReferenceObj {
+	kind: SheetFormulaReferenceKind;
 	text: string;
+	rowIndex?: number | null;
+	columnIndex?: number | null;
+	columnLabel?: string | null;
 	dataTableName?: string | null;
 	rowIdentifier?: string | null;
 	cellKey?: string | null;
+}
+
+export interface SheetFormulaErrorObj {
+	code: string;
+	message: string;
+}
+
+export interface SheetFormulaObj {
+	version: number;
+	engine: string;
+	text: string;
+	references?: SheetFormulaReferenceObj[];
+	error?: SheetFormulaErrorObj | null;
 }
 
 export interface SheetData {
@@ -126,9 +143,11 @@ export interface SheetRegionSourceObj {
 }
 
 export interface SheetRegionColumnObj {
-	sourceCellKey: string;
+	kind?: SheetRegionColumnKind | null;
+	sourceCellKey?: string | null;
 	label?: string | null;
 	width?: number | null;
+	formulaText?: string | null;
 }
 
 export interface SheetRegionOptionsObj {
@@ -277,7 +296,6 @@ export interface SheetRegionGQL {
 	type?: SheetRegionTypeEnum | null;
 	startRowIndex?: number | null;
 	startColumnIndex?: number | null;
-	sourceViewId?: string | null;
 	source?: SheetRegionSourceObj | null;
 	columns?: SheetRegionColumnObj[];
 	options?: SheetRegionOptionsObj | null;

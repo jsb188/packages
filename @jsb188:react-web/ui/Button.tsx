@@ -556,7 +556,7 @@ export function Pill(p: Partial<{
   target?: string;
   title: string;
   children: any;
-  preset?: 'outline_lg'; // This overrides size
+  preset?: 'primary_lg' | 'bg_lg'; // This overrides size
   size?: ButtonSize | null;
   className: string;
   colorClassName?: string;
@@ -568,10 +568,14 @@ export function Pill(p: Partial<{
 
   let size: ButtonSize | null, presetClassNames: string | undefined, colorClassName: string | undefined;
   switch (preset) {
-    case 'outline_lg':
+    case 'primary_lg':
       // presetClassNames = 'bd_main_bd bg_alt_hv bd_9 ls_5';
       presetClassNames = 'bg_primary ls_5 shadow';
       size = 'lg';
+      break;
+    case 'bg_lg':
+      presetClassNames = 'bg bg_alt_hv cl_secondary ls_5 shadow_soft';
+      size = 'md';
       break;
     default:
       size = p.size || 'df';

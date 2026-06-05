@@ -116,6 +116,11 @@ a.bg_link:not(:disabled):active, button.bg_link:not(:disabled):active, .link.bg_
   background-color: rgb(var(--color-bg-active)) !important;
 }
 
+.bg_fade_hv:hover,
+a.bg_fade_hv:not(:disabled):hover, button.bg_fade_hv:not(:disabled):hover, .link.bg_fade_hv:not(:disabled):hover {
+  background-color: rgb(var(--color-bg-fade)) !important;
+}
+
 .bg_strong_fd, .bg_strong_hv:hover {
   background-color: rgb(var(--color-bg-strong)) !important;
 }
@@ -241,11 +246,6 @@ p:last-child {
   margin-bottom: 0;
 }
 
-.tfd, .tfd_p p:last-child {
-  /* Use this to fix minor visual typography issues */
-  margin-bottom: .1em;
-}
-
 .img_auto {
   display: block;
   width: 100%;
@@ -348,6 +348,7 @@ p:last-child {
 .f { flex: 1; }
 .fs { flex: 1; align-self: stretch; }
 .fc { flex: 1; align-self: center; }
+.ap_1 { aspect-ratio: 1; }
 
 .f_stretch { align-self: stretch; }
 .f_wrap { flex-wrap: wrap; }
@@ -606,14 +607,14 @@ button.bg_contrast:not([disabled="true"]):not(.disabled):hover, a.bg_contrast:no
 .pill.bg_active[role="button"]:not(:disabled):hover, .pill.bg_alt[role="button"]:not(:disabled):hover, .pill.bg[role="button"]:not(:disabled):hover,
 a.pill.bg_active:not(:disabled):hover, a.pill.bg_alt:not(:disabled):hover, a.pill.bg:not(:disabled):hover,
 button.pill.bg_active:not(:disabled):hover, button.pill.bg_alt:not(:disabled):hover, button.pill.bg:not(:disabled):hover {
-  color: var(--color-text) !important;
-  background-color: rgb(var(--color-bg-medium)) !important;
+  color: var(--color-text);
+  background-color: rgb(var(--color-bg-medium));
 }
 
 .pill.bg_active[role="button"]:not(:disabled):active, .pill.bg_alt[role="button"]:not(:disabled):active, .pill.bg[role="button"]:not(:disabled):active,
 a.pill.bg_active:not(:disabled):active, a.pill.bg_alt:not(:disabled):active, a.pill.bg:not(:disabled):active,
 button.pill.bg_active:not(:disabled):active, button.pill.bg_alt:not(:disabled):active, button.pill.bg:not(:disabled):active {
-  background-color: rgb(var(--color-bg-medium)) !important;
+  background-color: rgb(var(--color-bg-medium));
 }
 
 .bg_disabled {

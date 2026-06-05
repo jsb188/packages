@@ -115,9 +115,6 @@ export function useDataTableRows(
 	organizationId?: string | null,
 	cursor?: string | null,
 	limit: number = SHEET_ROWS_LIMIT,
-	filter?: {
-		viewId?: string | null;
-	} | null,
 	params: UseQueryParams = {},
 ) {
 	const variables = {
@@ -125,7 +122,6 @@ export function useDataTableRows(
 		organizationId,
 		cursor,
 		limit,
-		filter,
 	};
 	const { data, ...rest } = useQuery(dataTableRowsQry, {
 		variables,

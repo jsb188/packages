@@ -57,22 +57,6 @@ export function AppLayout(p: ReactDivElement & {
           {children}
         </AppContentArea>
         : children}
-
-        {/* <main
-          // ref={contentAreaRef}
-          id={DOM_IDS.mainBodyScrollArea}
-          className={cn('app_scr h_f rel', AsideComponent ? 'w_app_side landscape:mr_n' : '', contentFlexClassName ?? 'v_top')}
-        >
-          {AsideComponent
-          ? <div className='cw lg h_f'>
-            {children}
-
-            <aside className='hidden landscape:bl w_f responsive px_lg pb_lg'>
-              {AsideComponent}
-            </aside>
-          </div>
-          : children}
-        </main> */}
       </div>
     </div>
   </div>;
@@ -476,7 +460,7 @@ export function getErrorMessageContent(p: ErrorMessageContentProps): ErrorMessag
     titleIconName = COMMON_ICON_NAMES.login_related;
     iconSizeClassName = 'ft_xxl';
   } else {
-    titleIconName = iconName || 'alert-circle';
+    titleIconName = iconName || COMMON_ICON_NAMES.default_page_error;
     iconSizeClassName = 'ft_lg';
 
     const isNetworkError = ['network_error', 'app_error'].includes(errorCode!);
@@ -497,7 +481,7 @@ export function getErrorMessageContent(p: ErrorMessageContentProps): ErrorMessag
       }
     }
 
-    if (titleIconName === 'alert-circle' && /\baccess\b/.test(message)) {
+    if ([COMMON_ICON_NAMES.default_page_error, 'alert-circle'].includes(titleIconName) && /\baccess\b/.test(message)) {
       titleIconName = 'lock-circle';
     }
   }
@@ -545,7 +529,7 @@ export function ErrorMessage(p: ErrorMessageProps) {
       titleClassName = 'ft_df';
       messageClassName = 'ft_md';
       buttonClassName = 'cl_df';
-      buttonPreset = 'outline_lg' as const;
+      buttonPreset = 'primary_lg' as const;
       buttonSize = null;
   }
 
@@ -572,7 +556,8 @@ export function ErrorMessage(p: ErrorMessageProps) {
         <Icon
           tryColor
           name={titleIconName}
-          backupName='alert-circle'
+          backupName={COMMON_ICON_NAMES.default_page_error}
+          // backupName='alert-circle'
         />
       </span>
       <h1 className={cn('ft_normal ls_2', titleClassName)}>

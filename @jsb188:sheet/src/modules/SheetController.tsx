@@ -153,7 +153,7 @@ const SHEET_CANVAS_TEXT_EDITOR_SELECTOR = '[data-sheet-editor="true"]';
 const SHEET_CANVAS_GRID_EDITOR_SELECTOR = '[data-sheet-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
 const SHEET_DEV_PARAM = 'dev';
 
-export type SheetPopulateDataTableRequest = {
+export type SheetInsertViewTableRequest = {
 	boundedRows: boolean;
 	maxColumns: number;
 	maxRows: number;
@@ -209,15 +209,13 @@ type SheetControllerProps = {
 	hasMoreRows: boolean;
 	loadedRowCount: number;
 	onFetchMoreRows: () => Promise<void> | void;
-	onPopulateFromDataTable?: (request: SheetPopulateDataTableRequest) => void;
+	onPopulateFromDataTable?: (request: SheetInsertViewTableRequest) => void;
 	onRemoveDataTableRegion?: (regionId: string) => Promise<unknown> | unknown;
 	onSaveDataTableCells: (params: {
 		cells: Array<{
 			cellKey: string;
 			dataTableRowId: string;
 			value: string | null;
-			viewCellKey?: string | null;
-			viewId?: string | null;
 		}>;
 		dataTableId: string;
 	}) => Promise<unknown> | unknown;
@@ -473,7 +471,6 @@ function getSheetDataTableCellEditTarget(params: {
 		id: sourceRowId,
 		organizationId: dataTable.organizationId || sheetCell.organizationId || '',
 		dataTableId,
-		viewId: region.sourceViewId || null,
 		cells: [sourceCell],
 	} as DataTableRowGQL;
 
@@ -1033,7 +1030,7 @@ function getSheetCanvasContextMenuTarget(params: {
 /*
  * Return the data table populate request represented by a Sheet context-menu target.
  */
-function getSheetPopulateDataTableRequest(target: SheetContextMenuTarget, design: SheetDesignObj): SheetPopulateDataTableRequest | null {
+function getSheetInsertViewTableRequest(target: SheetContextMenuTarget, design: SheetDesignObj): SheetInsertViewTableRequest | null {
 	let startRowIndex = Number.POSITIVE_INFINITY;
 	let startColumnIndex = Number.POSITIVE_INFINITY;
 	let endRowIndex = 0;
@@ -1708,14 +1705,12 @@ export function SheetController(p: SheetControllerProps) {
 		for (const [dataTableId, groupChanges] of groupedChanges) {
 			await p.onSaveDataTableCells({
 				dataTableId,
-				cells: groupChanges.map((change) => ({
-					cellKey: change.target.sourceCellKey,
-					dataTableRowId: change.target.sourceRowId,
-					value: change[direction],
-					viewCellKey: change.target.region.sourceViewId ? change.target.sourceCellKey : null,
-					viewId: change.target.region.sourceViewId || null,
-				})),
-			});
+					cells: groupChanges.map((change) => ({
+						cellKey: change.target.sourceCellKey,
+						dataTableRowId: change.target.sourceRowId,
+						value: change[direction],
+					})),
+				});
 		}
 	}, [p.onSaveDataTableCells]);
 
@@ -2364,7 +2359,7 @@ export function SheetController(p: SheetControllerProps) {
 	}, [applySheetCellInputs, pushSheetUndoEntry]);
 
 	const handleSheetContextMenuPopulateDataTable = useCallback((target: SheetContextMenuTarget) => {
-		const request = getSheetPopulateDataTableRequest(target, p.design);
+		const request = getSheetInsertViewTableRequest(target, p.design);
 
 		if (request) {
 			p.onPopulateFromDataTable?.(request);

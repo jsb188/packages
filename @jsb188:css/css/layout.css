@@ -277,6 +277,6 @@ body.p_auth {
     background-color: rgb(var(--color-bg));
     border-top: solid 1px rgb(var(--color-bg-active));
     border-left: solid 1px rgb(var(--color-bg-active));
-    box-shadow: 0 0 10px rgb(0,0,0,.15) inset;
+    box-shadow: 0 0 10px rgb(0,0,0,.125) inset;
   }
 }

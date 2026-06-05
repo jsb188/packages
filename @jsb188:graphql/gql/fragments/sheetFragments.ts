@@ -53,11 +53,22 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   datetimeValue
   formula {
     version
-    kind
+    engine
     text
-    dataTableName
-    rowIdentifier
-    cellKey
+    references {
+      kind
+      text
+      rowIndex
+      columnIndex
+      columnLabel
+      dataTableName
+      rowIdentifier
+      cellKey
+    }
+    error {
+      code
+      message
+    }
   }
   style
   format
@@ -101,7 +112,6 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
   type
   startRowIndex
   startColumnIndex
-  sourceViewId
   active
 
   source {
@@ -110,9 +120,11 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
   }
 
   columns {
+    kind
     sourceCellKey
     label
     width
+    formulaText
   }
 
   options {

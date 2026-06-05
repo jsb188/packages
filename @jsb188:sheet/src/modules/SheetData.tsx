@@ -18,7 +18,7 @@ import {
   SheetController,
   type SheetCellEditInput,
   type SheetDesignPatchInput,
-  type SheetPopulateDataTableRequest,
+  type SheetInsertViewTableRequest,
 } from './SheetController.tsx';
 import {
   getSheetCanvasCellsByCoord,
@@ -360,13 +360,11 @@ function SheetDataContent(p: SheetDataContentProps) {
 	}, [editSheetCells, organizationId, sheetId]);
 
 	const saveDataTableCells = useCallback((params: {
-		cells: Array<{
-			cellKey: string;
-			dataTableRowId: string;
-			value: string | null;
-			viewCellKey?: string | null;
-			viewId?: string | null;
-		}>;
+			cells: Array<{
+				cellKey: string;
+				dataTableRowId: string;
+				value: string | null;
+			}>;
 		dataTableId: string;
 	}) => {
 		return editDataTableCells({
@@ -410,13 +408,13 @@ function SheetDataContent(p: SheetDataContentProps) {
 	/*
 	 * Open the app modal that creates a data table-backed region for this Sheet.
 	 */
-	const openPopulateFromDataTableModal = useCallback((request: SheetPopulateDataTableRequest) => {
+	const openPopulateFromDataTableModal = useCallback((request: SheetInsertViewTableRequest) => {
 		if (!organizationId || !sheetId) {
 			return;
 		}
 
 		openModalScreen({
-			name: 'SHEET_POPULATE_DATA_TABLE',
+			name: 'SHEET_INSERT_VIEW',
 			props: {
 				...request,
 				organizationId,

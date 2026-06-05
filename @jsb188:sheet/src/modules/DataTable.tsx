@@ -1,163 +1,155 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import { useEditDataTableCells, useEditDataTableDesign } from '@jsb188/graphql/hooks/use-dataTable-mtn';
-import { useReactiveDataTableRows, useDataTableRows } from '@jsb188/graphql/hooks/use-dataTable-qry';
+import { useDataTableRows, useReactiveDataTableRows } from '@jsb188/graphql/hooks/use-dataTable-qry';
 import { DATA_TABLE_HUMAN_LABEL_MAX_LENGTH } from '@jsb188/mday/constants/dataTable.ts';
 import type {
-	DataTableCellGQL,
-	DataTableDesignCellGQL,
-	DataTableDesignGQL,
-	DataTableDesignViewColumnGQL,
-	DataTableDesignViewGQL,
-	DataTableGQL,
-	DataTableRowGQL,
+  DataTableCellGQL,
+  DataTableDesignCellGQL,
+  DataTableDesignGQL,
+  DataTableGQL,
+  DataTableRowGQL,
 } from '@jsb188/mday/types/dataTable.d.ts';
 import {
-	getOrderedDataTableDesignViewColumns,
-	getOrderedDataTableDesignViews,
-	mapDataTableDesignViewColumnToCell,
-	moveVisibleDataTableColumnKeyInOrder,
+  moveVisibleDataTableColumnKeyInOrder,
 } from '@jsb188/mday/utils/dataTable.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
-import {
-	clampSheetColumnWidth,
-	getSheetCellKey,
-	getSheetColumnMetrics,
-	getSheetMinimumRowCount,
-	getSheetMultiSelectEditorValueSet,
-	getSheetVisibleRange,
-	SHEET_COLUMN_WIDTH,
-	SHEET_HEADER_HEIGHT,
-	SHEET_ROW_HEIGHT,
-	SHEET_ROW_NUMBER_WIDTH,
-	SHEET_STICKY_SPACER_SIZE,
-	type SheetColumnMetric,
-	type SheetColumnWidths,
-	type SheetUICell,
-	type SheetUIColumnReorderDisplacements,
-	type SheetUIColumnReorderDrag,
-	type SheetUIColumnReorderGuide,
-	type SheetUIEditorClickSource,
-	type SheetUIEditState,
-	type SheetUIFieldType,
-	type SheetUIResizeGuide,
-	type SheetUIRowSlot,
-	type SheetUISelectedCellState,
-} from '@jsb188/react-web/ui/SheetUI';
 import { DataTableUI } from '@jsb188/react-web/ui/DataTableUI';
+import {
+  clampSheetColumnWidth,
+  getSheetCellKey,
+  getSheetColumnMetrics,
+  getSheetMinimumRowCount,
+  getSheetMultiSelectEditorValueSet,
+  getSheetVisibleRange,
+  SHEET_COLUMN_WIDTH,
+  SHEET_HEADER_HEIGHT,
+  SHEET_ROW_HEIGHT,
+  SHEET_ROW_NUMBER_WIDTH,
+  SHEET_STICKY_SPACER_SIZE,
+  type SheetColumnMetric,
+  type SheetColumnWidths,
+  type SheetUICell,
+  type SheetUIColumnReorderDisplacements,
+  type SheetUIColumnReorderDrag,
+  type SheetUIColumnReorderGuide,
+  type SheetUIEditorClickSource,
+  type SheetUIEditState,
+  type SheetUIFieldType,
+  type SheetUIResizeGuide,
+  type SheetUIRowSlot,
+  type SheetUISelectedCellState,
+} from '@jsb188/react-web/ui/SheetUI';
 import { copyTextToClipboard, useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import { useKeyDown, useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
-import { useAtom } from 'jotai';
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
-import { type DataTableArrowNavigationDirection, type DataTableContextMenuTarget, useDataTableContextMenu } from './DataTable-ContextMenu.tsx';
-import { dismissGridContextMenuOnPointerDown } from '@jsb188/sheet/modules/grid-context-menu';
 import {
-	getActiveEditState,
-	getActiveHeaderEditState,
-	getDismissedLocalEditorCell,
-	getOpenLocalEditorState,
-	getSelectedCellState,
-	getSelectedCellSelection,
-	getSelectedHeaderCellKey,
-	getDataTableSelectedCellStateFromEditState,
-	dataTableInteractionReducer,
-	type DataTableInteractionAction,
-	type DataTableInteractionCellSelection,
-	type DataTableInteractionState,
-} from './dataTable-interaction-state.ts';
-import {
-	getGridCellRenderSnapshot,
-	getGridInteractionRenderKeys,
+  getGridCellRenderSnapshot,
+  getGridInteractionRenderKeys,
 } from '@jsb188/sheet/modules/grid-cell-render';
+import { dismissGridContextMenuOnPointerDown } from '@jsb188/sheet/modules/grid-context-menu';
+import { addGridKeyboardEventListener, handleGridKeyboardEvent } from '@jsb188/sheet/modules/grid-keyboard';
 import { createGridUICellRenderStore } from '@jsb188/sheet/modules/grid-render-store';
 import {
-	createDataTableStateAtoms,
-	getInitialDataTableDesignReducerState,
-	getInitialDataTableRowsState,
-	getDataTableRowsSourceKey,
-	mergeDataTableDesignPatch,
-	mergeDataTableDesignWithPatch,
-	mergeDataTableRowsState,
-	dataTableCellValueReducer,
-	type DataTableDesignPatchInput,
-	dataTableDesignReducer,
-	type DataTableRowsState,
-	useFloatingMessageForDataTableRowsReset,
-	type DataTableColumnReorderVisualState,
-	type DataTableDesignReducerAction,
-	type DataTableCellValueReducerAction,
-	type DataTableStateAtoms,
-} from '../states/dataTable-state.ts';
-import {
-	getDataTableArrowNavigationScrollState,
-	getDataTableArrowNavigationSelection,
-	type DataTableArrowNavigationRuntime,
-} from './dataTable-viewport.ts';
-import {
-	getDataTableNextActiveSelectedCell,
-	getDataTableOrderedSelectedCells,
-	getDataTablePasteTargets,
-	getDataTableRangeSelection,
-	parseDataTableClipboardText,
-} from './dataTable-shortcuts.ts';
-import { addGridKeyboardEventListener, handleGridKeyboardEvent } from '@jsb188/sheet/modules/grid-keyboard';
-import {
-	dataTableDesignPatchHasUndoableChanges,
-	getDataTableDesignHistoryBeforePatch,
-	useDataTableUndoRedo,
-	type DataTableCellHistoryChange,
-	type DataTableUndoRedoEntry,
-} from './dataTable-history.ts';
-import {
-	getClosestGridElement,
-	getGridKeyboardElements,
-	isGridShortcutBlockedByActiveInput,
-	useGridElementSize,
+  getClosestGridElement,
+  getGridKeyboardElements,
+  isGridShortcutBlockedByActiveInput,
+  useGridElementSize,
 } from '@jsb188/sheet/modules/grid-runtime';
 import {
-	getGridSelectionBoxPosition,
-	type GridSelectionBoxPosition,
+  getGridSelectionBoxPosition,
+  type GridSelectionBoxPosition,
 } from '@jsb188/sheet/modules/grid-selection';
-import { sendCellSaveBeacon } from './cell-save-beacon.ts';
-import { groupCellSaveItemsByTarget, sendGroupedCellSaveItems, useDebouncedCellSaveBatch } from './use-debounced-cell-save-batch.ts';
+import { useAtom } from 'jotai';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-	DATA_TABLE_DATE_EDITOR_WIDTH,
-	DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH,
-	DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
-	DataTableDateEditor as SharedDataTableDateEditor,
-	DataTableLocalEditorContainer as SharedDataTableLocalEditorContainer,
-	DataTableReadOnlyTag as SharedDataTableReadOnlyTag,
-	DataTableSelectEditor,
-	canEditDataTableRuntimeCell,
-	canOpenDataTableCellLink,
-	getDataTableCellClassNameFromModel,
-	getDataTableCellDisplayClassNameFromModel,
-	getDataTableCellDisplayModel,
-	getDataTableCellSerializedValue,
-	getDataTableDesignCellHeaderLabel,
-	getDataTableLocalEditorPosition as sharedGetDataTableLocalEditorPosition,
-	getDataTableOpenLinkIconName,
-	getDataTableRuntimeCellKey,
-	getDataTableRuntimeColumnKey,
-	getDataTableSelectedCellTagPosition as sharedGetDataTableSelectedCellTagPosition,
-	getDataTableSheetUIColumn,
-	getDataTableTranslatedText,
-	getSheetCellDisplayValue,
-	getSheetEditorDraftValue,
-	getSheetEditorFieldType,
-	hasDataTableCellRelatedId,
-	isDataTableDateEditorFieldType,
-	isDataTableExternalLinkTextValue,
-	isDataTableInboundContactRelatedTable,
-	isDataTableLocalEditorFieldType,
-	isDataTableReferenceCell,
-	isSheetSelectEditorFieldType,
-	parseDataTableRawValue,
-	parseSheetEditorValue,
-	type DataTableCellLookup,
-	type DataTableRuntimeDesignCell,
+  createDataTableStateAtoms,
+  dataTableCellValueReducer,
+  dataTableDesignReducer,
+  getDataTableRowsSourceKey,
+  getInitialDataTableDesignReducerState,
+  getInitialDataTableRowsState,
+  mergeDataTableDesignPatch,
+  mergeDataTableDesignWithPatch,
+  mergeDataTableRowsState,
+  useFloatingMessageForDataTableRowsReset,
+  type DataTableCellValueReducerAction,
+  type DataTableDesignPatchInput,
+  type DataTableDesignReducerAction,
+  type DataTableRowsState,
+  type DataTableStateAtoms
+} from '../states/dataTable-state.ts';
+import { sendCellSaveBeacon } from './cell-save-beacon.ts';
+import {
+  canEditDataTableRuntimeCell,
+  canOpenDataTableCellLink,
+  DATA_TABLE_DATE_EDITOR_WIDTH,
+  DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH,
+  DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
+  DataTableSelectEditor,
+  getDataTableCellClassNameFromModel,
+  getDataTableCellDisplayClassNameFromModel,
+  getDataTableCellDisplayModel,
+  getDataTableCellSerializedValue,
+  getDataTableDesignCellHeaderLabel,
+  getDataTableOpenLinkIconName,
+  getDataTableRuntimeCellKey,
+  getDataTableRuntimeColumnKey,
+  getDataTableSheetUIColumn,
+  getDataTableTranslatedText,
+  getSheetCellDisplayValue,
+  getSheetEditorDraftValue,
+  getSheetEditorFieldType,
+  hasDataTableCellRelatedId,
+  isDataTableDateEditorFieldType,
+  isDataTableExternalLinkTextValue,
+  isDataTableInboundContactRelatedTable,
+  isDataTableLocalEditorFieldType,
+  isDataTableReferenceCell,
+  isSheetSelectEditorFieldType,
+  parseSheetEditorValue,
+  DataTableDateEditor as SharedDataTableDateEditor,
+  DataTableLocalEditorContainer as SharedDataTableLocalEditorContainer,
+  DataTableReadOnlyTag as SharedDataTableReadOnlyTag,
+  getDataTableLocalEditorPosition as sharedGetDataTableLocalEditorPosition,
+  getDataTableSelectedCellTagPosition as sharedGetDataTableSelectedCellTagPosition,
+  type DataTableCellLookup,
+  type DataTableRuntimeDesignCell,
 } from './dataTable-cell-editing.tsx';
+import { useDataTableContextMenu, type DataTableArrowNavigationDirection, type DataTableContextMenuTarget } from './DataTable-ContextMenu.tsx';
+import {
+  dataTableDesignPatchHasUndoableChanges,
+  getDataTableDesignHistoryBeforePatch,
+  useDataTableUndoRedo,
+  type DataTableCellHistoryChange,
+  type DataTableUndoRedoEntry,
+} from './dataTable-history.ts';
+import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
+import {
+  dataTableInteractionReducer,
+  getActiveEditState,
+  getActiveHeaderEditState,
+  getDataTableSelectedCellStateFromEditState,
+  getDismissedLocalEditorCell,
+  getOpenLocalEditorState,
+  getSelectedCellSelection,
+  getSelectedCellState,
+  getSelectedHeaderCellKey,
+  type DataTableInteractionAction,
+  type DataTableInteractionCellSelection,
+  type DataTableInteractionState,
+} from './dataTable-interaction-state.ts';
+import {
+  getDataTableNextActiveSelectedCell,
+  getDataTableOrderedSelectedCells,
+  getDataTablePasteTargets,
+  getDataTableRangeSelection,
+  parseDataTableClipboardText,
+} from './dataTable-shortcuts.ts';
+import {
+  getDataTableArrowNavigationScrollState,
+  getDataTableArrowNavigationSelection,
+  type DataTableArrowNavigationRuntime,
+} from './dataTable-viewport.ts';
+import { groupCellSaveItemsByTarget, sendGroupedCellSaveItems, useDebouncedCellSaveBatch } from './use-debounced-cell-save-batch.ts';
 
 export { parseSheetEditorValue } from './dataTable-cell-editing.tsx';
 
@@ -225,7 +217,6 @@ type DataTableResizeState = {
 };
 
 type DataTableColumnReorderRuntime = {
-	activeViewId: string | null;
 	allColumnKeys: string[];
 	metrics: SheetColumnMetric[];
 	savedOrder?: string[] | null;
@@ -278,8 +269,6 @@ type DataTablePendingCellSave = {
 	runtimeKey: string;
 	saveVersion: number;
 	value: string | null;
-	viewCellKey?: string | null;
-	viewId?: string | null;
 };
 
 type DataTableDesignMutationRuntime = {
@@ -292,13 +281,6 @@ type DataTableDesignMutationRuntime = {
 	}) => Promise<unknown> | unknown;
 	organizationId: string;
 	dataTableId: string;
-};
-
-type DataTableTab = {
-	id: string | null;
-	iconName?: string | null;
-	name: string;
-	view?: DataTableDesignViewGQL | null;
 };
 
 type DataTableContextMenuCellTarget = DataTableContextMenuTarget<DataTableCellLookup>;
@@ -364,74 +346,6 @@ function getDataTableRuntimeDesignCellsWithUniqueKeys(cells: DataTableRuntimeDes
 }
 
 /*
- * Return ordered view tabs, with the virtual master dataTable first.
- */
-
-function getDataTableTabs(dataTable: DataTableGQL, views: DataTableDesignViewGQL[]): DataTableTab[] {
-	const masterTab: DataTableTab = {
-		id: null,
-		iconName: 'database-2',
-		name: 'Data',
-		view: null,
-	};
-
-	return [masterTab].concat(
-		views.map((view) => ({
-			id: view.id,
-			name: view.name,
-			view,
-		})),
-	);
-}
-
-/*
- * Return the saved view matching a selected view id.
- */
-
-function getSelectedDataTableView(views: DataTableDesignViewGQL[], selectedViewId: string | null) {
-	return selectedViewId ? views.find((view) => view.id === selectedViewId) || null : null;
-}
-
-/*
- * Return the saved default view id when it still points at a valid view.
- */
-
-function getValidDefaultDataTableViewId(design: DataTableDesignGQL | null | undefined) {
-	const defaultViewId = design?.defaultViewId || null;
-	if (!defaultViewId) {
-		return null;
-	}
-
-	return getOrderedDataTableDesignViews(design as any).some((view) => view.id === defaultViewId) ? defaultViewId : null;
-}
-
-/*
- * Return whether one view column should be visible in the dataTable grid.
- */
-
-function isDataTableViewColumnVisible(column: DataTableDesignViewColumnGQL, masterCellsByKey: Map<string, DataTableDesignCellGQL>) {
-	if (column.source?.type !== 'MASTER_CELL' || !column.source.cellKey) {
-		return true;
-	}
-
-	return !masterCellsByKey.get(column.source.cellKey)?.hidden;
-}
-
-/*
- * Convert saved view columns into runtime grid columns backed by master dataTable cells.
- */
-
-function getDataTableViewRuntimeCells(view: DataTableDesignViewGQL, masterCells: DataTableDesignCellGQL[]): DataTableRuntimeDesignCell[] {
-	const masterCellsByKey = new Map(masterCells.map((cell) => [cell.key, cell]));
-
-	return getOrderedDataTableDesignViewColumns(view as any)
-		.filter((column) => isDataTableViewColumnVisible(column as DataTableDesignViewColumnGQL, masterCellsByKey))
-		.map((column) => {
-			return mapDataTableDesignViewColumnToCell(column as any, masterCellsByKey as any) as DataTableRuntimeDesignCell;
-		});
-}
-
-/*
  * Return persisted column widths from ordered dataTable design cells.
  */
 
@@ -456,30 +370,11 @@ function getAllDataTableDesignCellKeys(design: DataTableDesignGQL | null | undef
 }
 
 /*
- * Return every column key stored on a dataTable view, including currently hidden columns.
+ * Return the current reorder persistence target for the dataTable.
  */
 
-function getAllDataTableDesignViewColumnKeys(view: DataTableDesignViewGQL | null | undefined) {
-	return (view?.columns || []).map((column) => column.key).filter(Boolean);
-}
-
-/*
- * Return the current reorder persistence target for the active dataTable tab.
- */
-
-function getDataTableColumnReorderRuntime(params: { activeView?: DataTableDesignViewGQL | null; columnMetrics: SheetColumnMetric[]; design: DataTableDesignGQL; visibleColumnKeys: string[] }) {
-	if (params.activeView) {
-		return {
-			activeViewId: params.activeView.id,
-			allColumnKeys: getAllDataTableDesignViewColumnKeys(params.activeView),
-			metrics: params.columnMetrics,
-			savedOrder: params.activeView.columnsOrder,
-			visibleColumnKeys: params.visibleColumnKeys,
-		} satisfies DataTableColumnReorderRuntime;
-	}
-
+function getDataTableColumnReorderRuntime(params: { columnMetrics: SheetColumnMetric[]; design: DataTableDesignGQL; visibleColumnKeys: string[] }) {
 	return {
-		activeViewId: null,
 		allColumnKeys: getAllDataTableDesignCellKeys(params.design),
 		metrics: params.columnMetrics,
 		savedOrder: params.design.cellsOrder,
@@ -680,61 +575,11 @@ function getDataTableCellForDesign(row: DataTableRowGQL, designCell: DataTableRu
 }
 
 /*
- * Return one dataTable cell's numeric value for client-side computed view fallback.
+ * Find the server cell for one runtime design column.
  */
 
-function getDataTableCellNumericValue(cell: DataTableCellGQL | null | undefined) {
-	if (!cell) {
-		return 0;
-	}
-
-	if (typeof cell.numberValue === 'number' && Number.isFinite(cell.numberValue)) {
-		return cell.numberValue;
-	}
-
-	const rawValue = parseDataTableRawValue(cell.value ?? cell.textValue ?? null);
-	const numberValue = Number(rawValue);
-
-	return Number.isFinite(numberValue) ? numberValue : 0;
-}
-
-/*
- * Build a read-only computed cell when the server row is missing its synthetic computed cell.
- */
-
-function getDataTableComputedFallbackCell(row: DataTableRowGQL, rowCellMap: Map<string, DataTableCellGQL> | null | undefined, designCell: DataTableRuntimeDesignCell) {
-	if (designCell.viewSource?.type !== 'COMPUTED' || designCell.viewSource.operation !== 'SUM') {
-		return null;
-	}
-
-	const value = (designCell.viewSource.sourceCellKeys || []).reduce((sum, cellKey) => {
-		return sum + getDataTableCellNumericValue(rowCellMap?.get(cellKey));
-	}, 0);
-
-	return {
-		id: `synthetic:${row.id}:${designCell.key}`,
-		dataTableId: row.dataTableId,
-		dataTableRowId: row.id,
-		cellKey: designCell.key,
-		value: String(value),
-		textValue: String(value),
-		numberValue: value,
-		booleanValue: null,
-		dateValue: null,
-		datetimeValue: null,
-		reference: null,
-		referenceStatus: null,
-		createdAt: '',
-		updatedAt: '',
-	} satisfies DataTableCellGQL;
-}
-
-/*
- * Find the server cell for one design column or build a computed view fallback.
- */
-
-function getDataTableCellForRuntimeColumn(row: DataTableRowGQL, rowCellMap: Map<string, DataTableCellGQL> | null | undefined, designCell: DataTableRuntimeDesignCell) {
-	return rowCellMap?.get(getDataTableRuntimeCellKey(designCell)) || getDataTableComputedFallbackCell(row, rowCellMap, designCell);
+function getDataTableCellForRuntimeColumn(rowCellMap: Map<string, DataTableCellGQL> | null | undefined, designCell: DataTableRuntimeDesignCell) {
+	return rowCellMap?.get(getDataTableRuntimeCellKey(designCell)) || null;
 }
 
 /*
@@ -905,19 +750,17 @@ function isDataTableRelatedDocumentEditBlocked(lookup: DataTableCellLookup) {
  */
 
 function canWriteDataTableShortcutCell(params: {
-	activeView?: DataTableDesignViewGQL | null;
 	design: DataTableDesignGQL;
 	disabled?: boolean;
 	lookup: DataTableCellLookup;
 }) {
-	const { activeView, design, disabled, lookup } = params;
+	const { design, disabled, lookup } = params;
 
 	return Boolean(
 		!lookup.row.__deleted &&
 		!isDataTableReferenceCell(lookup.cell) &&
 		!isDataTableRelatedDocumentEditBlocked(lookup) &&
 		canEditDataTableRuntimeCell({
-			activeView,
 			design,
 			designCell: lookup.designCell,
 			disabled,
@@ -977,7 +820,7 @@ function getDataTableSelectionClipboardText(params: {
  */
 
 function getDataTableShortcutSummaryText(action: 'clear' | 'paste', summary: DataTableShortcutMutationSummary) {
-	const key = action === 'paste' ? 'dataTable.shortcut_paste_summary' : 'dataTable.shortcut_clear_summary';
+	const key = action === 'paste' ? 'sheet.shortcut_paste_summary' : 'sheet.shortcut_clear_summary';
 	const fallback = action === 'paste'
 		? 'Pasted %{savedCount} cells, skipped %{skippedCount}, failed %{failedCount}.'
 		: 'Cleared %{savedCount} cells, skipped %{skippedCount}, failed %{failedCount}.';
@@ -997,17 +840,15 @@ function getDataTableContextMenuCellTarget(
 	runtime: DataTableRuntimeState,
 	lookup: DataTableCellLookup,
 	rowIndex: number,
-	activeView: DataTableDesignViewGQL | null,
 	design: DataTableDesignGQL,
 ): DataTableContextMenuCellTarget {
 	const runtimeKey = getDataTableRuntimeColumnKey(lookup.designCell);
 	const optimisticKey = getSheetCellKey(lookup.row.id, runtimeKey);
 
 	return {
-		canDeleteRow: !lookup.row.__deleted && !runtime.disabled && !design.humansCannotEdit && !activeView?.humansCannotEdit && !lookup.row.viewId,
+		canDeleteRow: !lookup.row.__deleted && !runtime.disabled && !design.humansCannotEdit,
 		canEdit:
 			canEditDataTableRuntimeCell({
-				activeView,
 				design,
 				designCell: lookup.designCell,
 				disabled: runtime.disabled || lookup.row.__deleted,
@@ -1020,7 +861,6 @@ function getDataTableContextMenuCellTarget(
 		rowId: lookup.row.id,
 		rowNumber: rowIndex >= 0 ? rowIndex + 1 : null,
 		dataTableId: runtime.dataTable.id,
-		viewId: lookup.row.viewId,
 	};
 }
 
@@ -1080,7 +920,7 @@ function handleDataTableRelatedDocumentCellEdit(lookup: DataTableCellLookup, set
 	switch (lookup.cell.relatedTable) {
 		case 'logs':
 			setFloatingMessage?.({
-				text: getDataTableTranslatedText('dataTable.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
+				text: getDataTableTranslatedText('sheet.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
 				type: 'NOTICE',
 			});
 			return true;
@@ -1088,7 +928,7 @@ function handleDataTableRelatedDocumentCellEdit(lookup: DataTableCellLookup, set
 		case 'inbound_contacts':
 		default:
 			setFloatingMessage?.({
-				text: getDataTableTranslatedText('dataTable.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
+				text: getDataTableTranslatedText('sheet.editing_temporarily_disabled_msg', 'Editing this cell is temporarily disabled.'),
 				type: 'NOTICE',
 			});
 			return true;
@@ -1162,7 +1002,7 @@ function openDataTableCellLink(params: DataTableOpenCellLinkParams) {
 	}
 
 	setFloatingMessage?.({
-		text: getDataTableTranslatedText('dataTable.unsupported_link_msg', 'This cell cannot be opened yet.'),
+		text: getDataTableTranslatedText('sheet.unsupported_link_msg', 'This cell cannot be opened yet.'),
 		type: 'NOTICE',
 	});
 }
@@ -1261,7 +1101,6 @@ function DataTableContent(p: DataTableContentProps) {
 	const [columnWidthDrafts, setColumnWidthDrafts] = useAtom(p.stateAtoms.columnWidthDraftsAtom);
 	const [resizeGuideWidth, setResizeGuideWidth] = useState<number | null>(null);
 	const interactionStateRef = useRef<DataTableInteractionState<DataTableCellLookup>>(interactionState);
-	const [selectedViewIdState, setSelectedViewId] = useAtom(p.stateAtoms.selectedViewIdAtom);
 	const [designStateValue, setDesignState] = useAtom(p.stateAtoms.designStateAtom);
 	const [scrollState, setScrollState] = useAtom(p.stateAtoms.scrollStateAtom);
 	const { editDataTableCells } = useEditDataTableCells();
@@ -1279,7 +1118,6 @@ function DataTableContent(p: DataTableContentProps) {
 	} = useDataTableUndoRedo();
 
 	interactionStateRef.current = interactionState;
-	const selectedViewId = selectedViewIdState === undefined ? getValidDefaultDataTableViewId(dataTable.design) : selectedViewIdState;
 	const fallbackDesignState = useMemo(() => {
 		return getInitialDataTableDesignReducerState(dataTableId, dataTable.design);
 	}, [dataTable.design, dataTableId]);
@@ -1353,21 +1191,12 @@ function DataTableContent(p: DataTableContentProps) {
 			design: effectiveDesign,
 		};
 	}, [effectiveDesign, dataTable]);
-	const dataTableViews = useMemo(() => {
-		return getOrderedDataTableDesignViews(effectiveDesign as any) as DataTableDesignViewGQL[];
-	}, [effectiveDesign]);
-	const activeView = useMemo(() => {
-		return getSelectedDataTableView(dataTableViews, selectedViewId);
-	}, [selectedViewId, dataTableViews]);
-	const dataTableRowsFilter = useMemo(() => {
-		return activeView ? { viewId: activeView.id } : null;
-	}, [activeView]);
 	const dataTableRowsQueryParams = useMemo(() => {
 		return { openModalPopUp };
 	}, [openModalPopUp]);
 	const rowSourceKey = useMemo(() => {
-		return getDataTableRowsSourceKey(dataTableId, activeView?.id || null);
-	}, [activeView?.id, dataTableId]);
+		return getDataTableRowsSourceKey(dataTableId);
+	}, [dataTableId]);
 	const [rowStateValue, setRowStateValue] = useAtom(p.stateAtoms.rowsStateAtom);
 	const fallbackRowState = useMemo(() => {
 		return getInitialDataTableRowsState(rowSourceKey);
@@ -1380,16 +1209,12 @@ function DataTableContent(p: DataTableContentProps) {
 			return typeof update === 'function' ? update(baseState) : update;
 		});
 	}, [rowSourceKey, setRowStateValue]);
-	const { dataTableRows, fetchMore, resetOnlyTime, variables: dataTableRowsVariables } = useDataTableRows(dataTableId, organizationId, null, limit, dataTableRowsFilter, dataTableRowsQueryParams);
+	const { dataTableRows, fetchMore, resetOnlyTime, variables: dataTableRowsVariables } = useDataTableRows(dataTableId, organizationId, null, limit, dataTableRowsQueryParams);
 	useFloatingMessageForDataTableRowsReset(resetOnlyTime, setFloatingMessage);
 	const isDataTableRowsDataCurrent =
 		String(dataTableRowsVariables?.dataTableId || '') === String(dataTableId || '') &&
-		String(dataTableRowsVariables?.organizationId || '') === String(organizationId || '') &&
-		(dataTableRowsVariables?.filter?.viewId || null) === (dataTableRowsFilter?.viewId || null);
+		String(dataTableRowsVariables?.organizationId || '') === String(organizationId || '');
 	const isDataTableRowsReady = Array.isArray(dataTableRows) && isDataTableRowsDataCurrent;
-	const masterDesignCells = useMemo(() => {
-		return effectiveSheet.design?.cells || [];
-	}, [effectiveSheet.design?.cells]);
 	const masterColumns = useMemo(() => {
 		return getOrderedDataTableDesignCells(effectiveSheet);
 	}, [effectiveSheet]);
@@ -1400,8 +1225,8 @@ function DataTableContent(p: DataTableContentProps) {
 		});
 	}, [designState.serverDesign, designState.dataTableId, dataTable, dataTable.design, dataTableId]);
 	const columns = useMemo(() => {
-		return getDataTableRuntimeDesignCellsWithUniqueKeys(activeView ? getDataTableViewRuntimeCells(activeView, masterDesignCells) : masterColumns);
-	}, [activeView, masterColumns, masterDesignCells]);
+		return getDataTableRuntimeDesignCellsWithUniqueKeys(masterColumns);
+	}, [masterColumns]);
 	const columnKeys = useMemo(() => {
 		return columns.map(getDataTableRuntimeColumnKey);
 	}, [columns]);
@@ -1422,7 +1247,7 @@ function DataTableContent(p: DataTableContentProps) {
 	const columnMetricsData = useMemo(() => {
 		return getSheetColumnMetrics(uiColumns, mergedColumnWidths);
 	}, [mergedColumnWidths, uiColumns]);
-	const stickyColumnCount = activeView?.stickyLeft ?? effectiveDesign.stickyLeft ?? 0;
+	const stickyColumnCount = effectiveDesign.stickyLeft ?? 0;
 	const columnReorderMetrics = useMemo(() => {
 		return columnMetricsData.metrics.map((metric) => {
 			if (metric.columnIndex < stickyColumnCount) {
@@ -1443,7 +1268,6 @@ function DataTableContent(p: DataTableContentProps) {
 	}, [columns]);
 
 	columnReorderRuntimeRef.current = getDataTableColumnReorderRuntime({
-		activeView,
 		columnMetrics: columnReorderMetrics,
 		design: effectiveDesign,
 		visibleColumnKeys: columnKeys,
@@ -1513,16 +1337,6 @@ function DataTableContent(p: DataTableContentProps) {
 		},
 		[restoreSingleClickedCellFromEditState],
 	);
-
-	useIsomorphicLayoutEffect(() => {
-		setSelectedViewId(getValidDefaultDataTableViewId(dataTable.design));
-	}, [dataTableId]);
-
-	useEffect(() => {
-		if (selectedViewId && !dataTableViews.some((view) => view.id === selectedViewId)) {
-			setSelectedViewId(getValidDefaultDataTableViewId(effectiveDesign));
-		}
-	}, [effectiveDesign, selectedViewId, dataTableViews]);
 
 	useEffect(() => {
 		dispatchDesignState({
@@ -1687,8 +1501,6 @@ function DataTableContent(p: DataTableContentProps) {
 					cells: group.items.map((item) => ({
 						dataTableRowId: item.lookup.row.id,
 						cellKey: item.cellKey,
-						viewKey: item.viewId || null,
-						viewCellKey: item.viewCellKey || null,
 						value: item.value,
 					})),
 					organizationId: group.organizationId || null,
@@ -1716,8 +1528,6 @@ function DataTableContent(p: DataTableContentProps) {
 						cells: group.items.map((item) => ({
 							dataTableRowId: item.lookup.row.id,
 							cellKey: item.cellKey,
-							viewId: item.viewId || null,
-							viewCellKey: item.viewCellKey || null,
 							value: item.value,
 						})),
 					},
@@ -1779,11 +1589,9 @@ function DataTableContent(p: DataTableContentProps) {
 				runtimeKey,
 				saveVersion,
 				value,
-				viewCellKey: activeView ? lookup.designCell.key : null,
-				viewId: activeView?.id || null,
 			});
 		},
-		[activeView, dataTableId, organizationId, queueDataTableCellSave, recordDataTableCellHistoryChange],
+		[dataTableId, organizationId, queueDataTableCellSave, recordDataTableCellHistoryChange],
 	);
 	const fetchMoreRows = useCallback(async () => {
 		const pagination = paginationRef.current;
@@ -1801,7 +1609,6 @@ function DataTableContent(p: DataTableContentProps) {
 					organizationId,
 					cursor: pagination.lastCursor,
 					limit,
-					filter: dataTableRowsFilter,
 				},
 			});
 			const nextRows = result?.data?.dataTableRows || result?.dataTableRows || [];
@@ -1812,7 +1619,7 @@ function DataTableContent(p: DataTableContentProps) {
 		} finally {
 			fetchingMoreRef.current = false;
 		}
-	}, [fetchMore, limit, organizationId, rowSourceKey, dataTableId, dataTableRowsFilter]);
+	}, [fetchMore, limit, organizationId, rowSourceKey, dataTableId]);
 
 	const drainDataTableDesignSave = useCallback(() => {
 		if (designSaveInFlightRef.current || !pendingDesignPatchRef.current) {
@@ -1888,7 +1695,6 @@ function DataTableContent(p: DataTableContentProps) {
 			if (
 				!lookup ||
 				!canWriteDataTableShortcutCell({
-					activeView,
 					design: effectiveDesign,
 					disabled: runtime.disabled,
 					lookup,
@@ -1899,7 +1705,7 @@ function DataTableContent(p: DataTableContentProps) {
 
 			await saveCellValue(lookup, change[direction]);
 		}
-	}, [activeView, effectiveDesign, saveCellValue]);
+	}, [effectiveDesign, saveCellValue]);
 
 	const applyDataTableDesignHistoryPatch = useCallback((patch: DataTableDesignPatchInput) => {
 		dispatchDesignState({
@@ -2249,18 +2055,9 @@ function DataTableContent(p: DataTableContentProps) {
 							toVisibleIndex,
 							visibleColumnKeys: reorderRuntime.visibleColumnKeys,
 						});
-						const patch: DataTableDesignPatchInput = reorderRuntime.activeViewId
-							? {
-									views: [
-										{
-											id: reorderRuntime.activeViewId,
-											columnsOrder: nextOrder,
-										},
-									],
-								}
-							: {
-									cellsOrder: nextOrder,
-								};
+						const patch: DataTableDesignPatchInput = {
+							cellsOrder: nextOrder,
+						};
 
 						dispatchDesignState({
 							patch,
@@ -2446,7 +2243,7 @@ function DataTableContent(p: DataTableContentProps) {
 	runtimeRef.current = {
 		columnMetricsByKey,
 		designCellsByKey,
-		designEditable: !activeView,
+		designEditable: true,
 		disabled: effectiveDisabled,
 		editState,
 		optimisticValues,
@@ -2764,8 +2561,8 @@ function DataTableContent(p: DataTableContentProps) {
 			return;
 		}
 
-		handleDataTableContextMenuEditCell(getDataTableContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, activeView, effectiveDesign));
-	}, [activeView, effectiveDesign, handleDataTableContextMenuEditCell, rowIndexById]);
+		handleDataTableContextMenuEditCell(getDataTableContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, effectiveDesign));
+	}, [effectiveDesign, handleDataTableContextMenuEditCell, rowIndexById]);
 
 	/*
 	 * Copy the active dataTable selection to the system clipboard as TSV text.
@@ -2795,7 +2592,6 @@ function DataTableContent(p: DataTableContentProps) {
 	const saveDataTableShortcutCellValue = useCallback(
 		async (runtime: DataTableRuntimeState, lookup: DataTableCellLookup, draftValue: string, summary: DataTableShortcutMutationSummary) => {
 			if (!canWriteDataTableShortcutCell({
-				activeView,
 				design: effectiveDesign,
 				disabled: runtime.disabled,
 				lookup,
@@ -2826,7 +2622,7 @@ function DataTableContent(p: DataTableContentProps) {
 				summary.failed += 1;
 			}
 		},
-		[activeView, effectiveDesign],
+		[effectiveDesign],
 	);
 
 	/*
@@ -3448,7 +3244,7 @@ function DataTableContent(p: DataTableContentProps) {
 				cell: nextSingleClickedCell,
 				type: 'cell_selected',
 			});
-			openDataTableContextMenu(event, getDataTableContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, activeView, effectiveDesign));
+			openDataTableContextMenu(event, getDataTableContextMenuCellTarget(runtime, lookup, rowIndexById.get(lookup.row.id) ?? -1, effectiveDesign));
 		};
 
 		scrollNode.addEventListener('scroll', onScroll, { passive: true });
@@ -3474,7 +3270,6 @@ function DataTableContent(p: DataTableContentProps) {
 			}
 		};
 	}, [
-		activeView,
 		closeDataTableContextMenu,
 		commitEditorElement,
 		commitHeaderEditorElement,
@@ -3641,12 +3436,11 @@ function DataTableContent(p: DataTableContentProps) {
 					}
 
 					const runtimeKey = getDataTableRuntimeColumnKey(designCell);
-					const cell = getDataTableCellForRuntimeColumn(row, rowCellMap, designCell);
+					const cell = getDataTableCellForRuntimeColumn(rowCellMap, designCell);
 					const optimisticKey = getSheetCellKey(row.id, runtimeKey);
 					const optimisticValue = optimisticValues[optimisticKey];
 					const canEdit =
 						canEditDataTableRuntimeCell({
-							activeView,
 							design: effectiveDesign,
 							designCell,
 							disabled: effectiveDisabled || rowDeleted,
@@ -3726,7 +3520,6 @@ function DataTableContent(p: DataTableContentProps) {
 
 		return visibleRowSlots;
 	}, [
-		activeView?.humansCannotEdit,
 		designCellsByKey,
 		effectiveDisabled,
 		hasPlaceholderTail,
@@ -3973,7 +3766,6 @@ function DataTableContent(p: DataTableContentProps) {
 			!selectedCellLookup ||
 			effectiveDisabled ||
 			(canEditDataTableRuntimeCell({
-				activeView,
 				design: effectiveDesign,
 				designCell: selectedCellLookup.designCell,
 				disabled: effectiveDisabled,
@@ -3990,7 +3782,7 @@ function DataTableContent(p: DataTableContentProps) {
 			stickyColumnCount,
 			stickyHeaderHeight,
 		});
-	}, [activeView, columnMetricsByKey, effectiveDesign, effectiveDisabled, rowIndexById, selectedCellLookup, stickyColumnCount, stickyHeaderHeight, totalWidth, viewportWidth]);
+	}, [columnMetricsByKey, effectiveDesign, effectiveDisabled, rowIndexById, selectedCellLookup, stickyColumnCount, stickyHeaderHeight, totalWidth, viewportWidth]);
 	const selectedRangeBoxPosition = useMemo(() => {
 		return getDataTableSelectionBoxPosition({
 			columnMetrics: columnMetricsData.metrics,
@@ -4115,7 +3907,6 @@ function DataTableContent(p: DataTableContentProps) {
 		});
 	}, [columnKeys, columnReorderMetrics, columnReorderVisualState, scrollState.scrollLeft, stickyColumnCount]);
 
-	const dataTableTabs = getDataTableTabs(dataTable, dataTableViews);
 	const dataTableLocalEditorOverlay = (
 		<>
 			{selectedRangeBoxPosition ? <div
@@ -4186,7 +3977,7 @@ function DataTableContent(p: DataTableContentProps) {
 			columnCount={uiColumns.length}
 			columns={visibleColumns}
 			editState={undefined}
-			headerCellsEditable={!activeView && !effectiveDisabled}
+			headerCellsEditable={!effectiveDisabled}
 			headerContent={children}
 			headerEditState={headerEditState}
 			selectedHeaderCellKey={selectedHeaderCellKey}
@@ -4207,35 +3998,10 @@ function DataTableContent(p: DataTableContentProps) {
 	);
 
 	return (
-		<div className={cn('v_stretch h_f w_f rel bg', className)} data-sheet-with-views="true">
+		<div className={cn('v_stretch h_f w_f rel bg', className)}>
 			<div ref={dataTableGridContainerRef} className="f h_0 rel" data-sheet-grid-container="true">
 				{dataTableGrid}
 			</div>
-
-			<nav className="no_shrink h_45 h_bottom gap_6 bd_t_1 bd_lt bg_alt px_8 z5" data-sheet-view-tabs="true">
-				{dataTableTabs.map((tab) => {
-					const selected = tab.id === selectedViewId;
-
-					return (
-						<button
-							key={tab.id || 'master'}
-							className={cn('h_36 px_10 ft_xs bg_hv cl_md h_item gap_7', selected ? 'bg cl_df shadow_line_alt' : '')}
-							data-sheet-view-tab={tab.id || 'master'}
-							onClick={() => {
-								setSelectedViewId(tab.id);
-							}}
-							type="button"
-						>
-							{tab.iconName ? (
-								<span className="ic_sm shift_up no_shrink">
-									<Icon name={tab.iconName} />
-								</span>
-							) : null}
-							{tab.name}
-						</button>
-					);
-				})}
-			</nav>
 		</div>
 	);
 }

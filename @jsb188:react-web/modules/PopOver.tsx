@@ -457,6 +457,7 @@ type TooltipButtonProps = {
   rightIconName?: string;
   tooltipClassName?: string;
   fontClassName?: string;
+  closeWhilePointerDown?: boolean;
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -472,17 +473,19 @@ type TooltipButtonProps = {
  */
 
 export const TooltipButton = memo((p: TooltipButtonProps) => {
-  const { leftIconName, rightIconName, disabled, children, title, message, __html, messageAfterClick, position, absolute, offsetX, offsetY, onClick, as, tooltipClassName, fontClassName, ...rest } = p;
+  const { leftIconName, rightIconName, disabled, children, title, message, __html, messageAfterClick, position, absolute, offsetX, offsetY, onClick, as, tooltipClassName, fontClassName, closeWhilePointerDown, ...rest } = p;
   const Element = as || 'button';
   const tooltipDisabled = disabled || (!message && !__html);
   const { tooltip, openTooltip, closeTooltip, updateTooltip } = useTooltip();
 
   const unique = useRef<string>(getTimeBasedUnique());
   const el = useRef<HTMLDivElement>(null);
+  const isHoverRef = useRef(false);
+  const isPointerDownRef = useRef(false);
   const hasTooltip = !!tooltip && tooltip.id === unique.current;
 
-  const onOpenTooltip = (e: React.MouseEvent) => {
-    if (e.isTrusted && !tooltipDisabled && unique.current !== tooltip?.id) {
+  const onOpenTooltip = (e: React.SyntheticEvent) => {
+    if (e.isTrusted && !tooltipDisabled && !isPointerDownRef.current && unique.current !== tooltip?.id) {
       // Can't use this because e.target sometimes returns inner element, which causes incorrect positioning
       // const rect = e.target.getBoundingClientRect();
       const rect = el.current!.getBoundingClientRect();
@@ -514,7 +517,7 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
     }
   };
 
-  const onCloseTooltip = (e: React.MouseEvent) => {
+  const onCloseTooltip = (e: React.SyntheticEvent) => {
     if (e.isTrusted && !tooltipDisabled) {
       closeTooltip(unique.current);
     }
@@ -524,6 +527,14 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
     disabled: Element === 'button' ? tooltipDisabled : undefined,
     'aria-disabled': Element !== 'button' ? tooltipDisabled : undefined,
     onClick: (e: React.MouseEvent) => {
+      if (closeWhilePointerDown) {
+        if (onClick) {
+          onClick(e);
+        }
+
+        return;
+      }
+
       if (hasTooltip) {
         if (messageAfterClick) {
           unique.current = getTimeBasedUnique();
@@ -543,13 +554,32 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
       }
     },
     onMouseEnter: (e: React.MouseEvent) => {
+      isHoverRef.current = true;
       onOpenTooltip(e);
     },
     onMouseLeave: (e: React.MouseEvent) => {
+      isHoverRef.current = false;
       if (e.isTrusted && !tooltipDisabled) {
         closeTooltip(unique.current);
       }
-    }
+    },
+    onPointerDown: (e: React.PointerEvent) => {
+      if (closeWhilePointerDown && e.isTrusted && !tooltipDisabled) {
+        isPointerDownRef.current = true;
+        closeTooltip(unique.current);
+      }
+    },
+    onPointerUp: (e: React.PointerEvent) => {
+      if (closeWhilePointerDown && e.isTrusted && !tooltipDisabled) {
+        isPointerDownRef.current = false;
+        if (isHoverRef.current) {
+          onOpenTooltip(e);
+        }
+      }
+    },
+    onPointerCancel: () => {
+      isPointerDownRef.current = false;
+    },
   };
 
   useEffect(() => {

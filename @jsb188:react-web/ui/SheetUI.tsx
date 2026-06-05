@@ -71,6 +71,7 @@ export type SheetUIColumn = {
 	headerChecked?: boolean;
 	headerClassName?: string;
 	headerLayoutClassName?: string;
+	headerTooltipMessage?: string;
 	humanFieldType?: SheetUIFieldType | null;
 	options?: SheetUIOption[];
 	openLink?: boolean | null;
@@ -86,6 +87,7 @@ export type SheetUICell = {
 	canOpen?: boolean;
 	cellClassName?: string;
 	cellStyle?: Pick<CSSProperties, 'backgroundColor' | 'color'>;
+	contentClassName?: string;
 	displayClassName?: string;
 };
 
@@ -209,6 +211,8 @@ export interface SheetUIProps {
 	columns: SheetColumnMetric[];
 	editState?: SheetUIEditState | null;
 	headerCellsEditable?: boolean;
+	headerCursorClassName?: string;
+	headerTooltipClosesWhilePointerDown?: boolean;
 	headerContent?: ReactNode;
 	headerEditState?: SheetUIHeaderEditState | null;
 	selectedHeaderCellKey?: string | null;
