@@ -1,6 +1,6 @@
 import type { DataTableDesignGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import { useCallback, useRef } from 'react';
-import type { DataTableDesignPatchInput } from '../states/dataTable-state.ts';
+import type { DataTableDesignPatchInput } from '../libs/dataTable-state.ts';
 import type { DataTableCellLookup } from './dataTable-cell-editing.tsx';
 import {
 	createGridUndoRedoStack,

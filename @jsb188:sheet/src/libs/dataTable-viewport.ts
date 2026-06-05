@@ -7,7 +7,7 @@ import {
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
 import type { DataTableArrowNavigationDirection } from './DataTable-ContextMenu.tsx';
-import { getGridArrowNavigationSelection } from '@jsb188/sheet/modules/grid-selection';
+import { getGridArrowNavigationSelection } from '@jsb188/sheet/libs/grid-selection';
 
 export type DataTableArrowNavigationRuntime = {
 	columnMetrics: SheetColumnMetric[];

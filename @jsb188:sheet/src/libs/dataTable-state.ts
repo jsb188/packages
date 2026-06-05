@@ -8,7 +8,7 @@ import {
 	getInitialDataTableInteractionState,
 	type DataTableInteractionAction,
 	type DataTableInteractionState,
-} from '../modules/dataTable-interaction-state.ts';
+} from '../libs/dataTable-interaction-state.ts';
 import { createGridStateAtoms, createReducerDispatchAtom } from './grid-state.tsx';
 
 export type DataTableRowsState = {

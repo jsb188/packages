@@ -215,6 +215,11 @@ body.p_auth {
   overflow-x: scroll;
 }
 
+.app_scr.hide_y {
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
 @media (--gte-mobile-portrait) {
   .app_scr {
     -webkit-overflow-scrolling: touch;

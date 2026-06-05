@@ -57,21 +57,18 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	const sheetSurfaceHeight = p.sheetSurfaceHeight ?? p.canvasHeight;
 	const sheetSurfaceTop = p.sheetSurfaceTop ?? 0;
 	const showRowNumbers = p.showRowNumbers !== false;
+	const hideStickyColumnSpacer = p.hideStickyColumnSpacer === true;
 	const rowHeaderWidth = p.rowHeaderWidth ?? (showRowNumbers ? SHEET_ROW_NUMBER_WIDTH : 0);
 	const stickyColumnEndLeft = p.stickyColumnEndLeft ?? rowHeaderWidth;
-	const headerContentWidth = p.headerSpacerWidth ?? p.headerWidth;
 
 	return <div
 		id={p.id}
-		className={cn('v_stretch h_f w_f rel bg', p.className)}
+		className={cn('v_stretch h_f w_f max_w_f rel bg', p.className)}
 		style={p.style}
 	>
 		{p.headerContent
 			? <div
 				className='no_shrink bd_b_1 bd_lt'
-				style={{
-					width: headerContentWidth,
-				}}
 				data-sheet-header-content='true'
 			>
 				{p.headerContent}
@@ -80,10 +77,14 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 
 		<div
 			ref={p.scrollRef}
-			className='sheet_ui_scroll app_scr of_x f w_f rel bg_fade ft_xs'
+			className={cn('sheet_ui_scroll app_scr of_x w_f rel bg_fade ft_xs', p.scrollFill !== false && 'f', p.scrollClassName)}
 			data-sheet-scroll-viewport='true'
 			style={{
+				maxWidth: '100%',
+				minWidth: 0,
 				overflowAnchor: 'none',
+				width: '100%',
+				...p.scrollStyle,
 			}}
 		>
 			<div
@@ -105,6 +106,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 					headerCursorClassName={p.headerCursorClassName}
 					headerTooltipClosesWhilePointerDown={p.headerTooltipClosesWhilePointerDown}
 					headerEditState={p.headerEditState}
+					hideStickyColumnSpacer={hideStickyColumnSpacer}
 					selectedHeaderCellKey={p.selectedHeaderCellKey}
 					headerSpacerWidth={p.headerSpacerWidth ?? p.headerWidth}
 					headerWidth={p.headerWidth}
@@ -181,7 +183,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 					/>;
 				}) : null}
 
-				{p.rows.map((rowSlot) => {
+				{!hideStickyColumnSpacer ? p.rows.map((rowSlot) => {
 					return <DataTableStickyColumnSpacerSlot
 						key={`${rowSlot.rowKey}:sticky-column-spacer`}
 						left={stickyColumnEndLeft}
@@ -191,7 +193,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 						rowTop={rowSlot.rowTop}
 						rowWidth={rowSlot.rowWidth}
 					/>;
-				})}
+				}) : null}
 
 				{p.rows.map((rowSlot) => {
 					const isPlaceholderRow = isSheetPlaceholderRowSlot(rowSlot);
@@ -200,6 +202,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 						return <DataTablePlaceholderRowFillCell
 							key={`${rowSlot.rowKey}:placeholder-row-fill`}
 							contentWidth={p.headerSpacerWidth}
+							hideBottomBorder={rowSlot.hideBottomBorder}
 							left={rowHeaderWidth}
 							rowHeight={rowSlot.rowHeight}
 							rowTop={rowSlot.rowTop}
@@ -222,6 +225,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 							columnIndex={columnMetric.columnIndex}
 							columnWidth={columnMetric.width}
 							editState={p.editState}
+							hideBottomBorder={rowSlot.hideBottomBorder}
 							isPlaceholderRow={isPlaceholderRow}
 							isStickyLeft={isStickyLeft}
 							rowDeleted={rowSlot.deleted}
@@ -269,6 +273,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
 	prev.headerEditState?.error === next.headerEditState?.error &&
+	prev.hideStickyColumnSpacer === next.hideStickyColumnSpacer &&
 	prev.selectedHeaderCellKey === next.selectedHeaderCellKey &&
 	prev.headerSpacerWidth === next.headerSpacerWidth &&
 	prev.headerWidth === next.headerWidth &&
@@ -284,8 +289,11 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	prev.rowResizeGuide?.top === next.rowResizeGuide?.top &&
 	prev.rowResizeGuide?.width === next.rowResizeGuide?.width &&
 	prev.rows === next.rows &&
+	prev.scrollClassName === next.scrollClassName &&
+	prev.scrollFill === next.scrollFill &&
 	prev.scrollLeft === next.scrollLeft &&
 	prev.scrollRef === next.scrollRef &&
+	prev.scrollStyle === next.scrollStyle &&
 	prev.selectedCellKeyMap === next.selectedCellKeyMap &&
 	prev.selectedCellState?.rowId === next.selectedCellState?.rowId &&
 	prev.selectedCellState?.cellKey === next.selectedCellState?.cellKey &&

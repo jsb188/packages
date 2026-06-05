@@ -17,6 +17,7 @@ export default {
     cancel: 'Cancel',
     continue: 'Continue',
     continue_editing: 'Continue editing',
+    customize: 'Customize',
     class: 'Class',
     classification: 'Classification',
     overview: 'Overview',

@@ -3,7 +3,7 @@ import type {
 	SheetUIColumn,
 	SheetUIEditState,
 } from '@jsb188/react-web/ui/SheetUI';
-import { memo, type CSSProperties, useCallback, useEffect, useRef } from 'react';
+import { memo, type ChangeEvent, type CSSProperties, useCallback, useEffect, useRef } from 'react';
 
 export type SheetEditorOverlayPosition = {
 	height: number;
@@ -13,9 +13,11 @@ export type SheetEditorOverlayPosition = {
 };
 
 export type SheetEditorOverlayProps = {
+	autoFocus?: boolean;
 	cellClassName?: string;
 	column: SheetUIColumn;
 	editState: SheetUIEditState;
+	onDraftValue: (draftValue: string) => void;
 	position: SheetEditorOverlayPosition;
 	scrollLeft: number;
 	scrollTop: number;
@@ -50,6 +52,13 @@ function getSheetEditorInputType(fieldType: SheetUIColumn['fieldType']) {
 }
 
 /*
+ * Return whether one inline editor supports caret range APIs.
+ */
+function canSetSheetEditorSelectionRange(editor: HTMLInputElement | HTMLTextAreaElement) {
+	return !(editor instanceof HTMLInputElement && editor.type === 'number');
+}
+
+/*
  * Render the DOM editor placed over one active canvas cell.
  */
 export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
@@ -57,6 +66,9 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	const setEditorRef = useCallback((node: HTMLInputElement | HTMLTextAreaElement | null) => {
 		editorRef.current = node;
 	}, []);
+	const handleChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+		p.onDraftValue(event.currentTarget.value);
+	}, [p.onDraftValue]);
 	const editorClassName = cn('sheet_ui_editor bg stock px_6 ft_xs ft_normal', p.editState.error ? 'error' : '');
 	const sharedProps = {
 		className: editorClassName,
@@ -64,11 +76,16 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 		'data-field-type': p.column.fieldType,
 		'data-row-id': p.editState.rowId,
 		'data-sheet-editor': 'true',
-		defaultValue: p.editState.draftValue,
+		onChange: handleChange,
 		ref: setEditorRef,
+		value: p.editState.draftValue,
 	};
 
 	useEffect(() => {
+		if (p.autoFocus === false) {
+			return;
+		}
+
 		const editor = editorRef.current;
 
 		if (!editor) {
@@ -78,13 +95,17 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 		const shouldSelectAll = p.editState.selectAllOnFocus !== false;
 
 		editor.focus();
+		if (!canSetSheetEditorSelectionRange(editor)) {
+			return;
+		}
+
 		if (shouldSelectAll) {
-			editor.select?.();
-		} else if (editor.setSelectionRange) {
+			editor.select();
+		} else if (editor.setSelectionRange && canSetSheetEditorSelectionRange(editor)) {
 			const valueLength = editor.value.length;
 			editor.setSelectionRange(valueLength, valueLength);
 		}
-	}, [p.editState.cellKey, p.editState.rowId, p.editState.selectAllOnFocus]);
+	}, [p.autoFocus, p.editState.cellKey, p.editState.rowId, p.editState.selectAllOnFocus]);
 
 	return <div
 		className={cn('sheet_overlay_editor shadow_light', p.cellClassName)}
@@ -100,6 +121,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	</div>;
 }, (prev, next) => (
 	prev.cellClassName === next.cellClassName &&
+	prev.autoFocus === next.autoFocus &&
 	prev.column.fieldType === next.column.fieldType &&
 	prev.column.key === next.column.key &&
 	prev.editState.cellKey === next.editState.cellKey &&
@@ -107,6 +129,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	prev.editState.selectAllOnFocus === next.editState.selectAllOnFocus &&
 	prev.editState.error === next.editState.error &&
 	prev.editState.rowId === next.editState.rowId &&
+	prev.onDraftValue === next.onDraftValue &&
 	prev.position.height === next.position.height &&
 	prev.position.left === next.position.left &&
 	prev.position.top === next.position.top &&

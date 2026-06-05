@@ -4,7 +4,7 @@ import { type OpenModalPopUpFn } from '@jsb188/react/states';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { useEffect } from 'react';
-import { getGridContextMenuPopOverId, useGridContextMenu } from '@jsb188/sheet/modules/grid-context-menu';
+import { getGridContextMenuPopOverId, useGridContextMenu } from '@jsb188/sheet/libs/grid-context-menu';
 
 export const SHEET_CONTEXT_MENU_ID = 'dataTable-context-menu';
 export const SHEET_DELETE_ROW_POPUP_PRESET = 'DELETE_SHEET_ROW';

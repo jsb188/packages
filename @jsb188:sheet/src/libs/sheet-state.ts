@@ -2,7 +2,7 @@ import type { SheetGridViewportVariables } from '@jsb188/graphql/hooks/use-sheet
 import type { SheetCellGQL } from '@jsb188/mday/types/sheet.d.ts';
 import { atom } from 'jotai';
 import type { SheetCanvasResizeState, SheetCanvasRowResizeState } from '../modules/SheetController.tsx';
-import type { SheetLoadedGridState } from '../modules/sheet-utils.ts';
+import type { SheetLoadedGridState } from '../libs/sheet-utils.ts';
 import { createGridStateAtoms } from './grid-state.tsx';
 
 export type SheetHeaderSelectionState =

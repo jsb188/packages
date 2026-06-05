@@ -44,20 +44,20 @@ import { useKeyDown, useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react
 import {
   getGridCellRenderSnapshot,
   getGridInteractionRenderKeys,
-} from '@jsb188/sheet/modules/grid-cell-render';
-import { dismissGridContextMenuOnPointerDown } from '@jsb188/sheet/modules/grid-context-menu';
-import { addGridKeyboardEventListener, handleGridKeyboardEvent } from '@jsb188/sheet/modules/grid-keyboard';
-import { createGridUICellRenderStore } from '@jsb188/sheet/modules/grid-render-store';
+} from '@jsb188/sheet/libs/grid-cell-render';
+import { dismissGridContextMenuOnPointerDown } from '@jsb188/sheet/libs/grid-context-menu';
+import { addGridKeyboardEventListener, handleGridKeyboardEvent } from '@jsb188/sheet/libs/grid-keyboard';
+import { createGridUICellRenderStore } from '@jsb188/sheet/libs/grid-render-store';
 import {
   getClosestGridElement,
   getGridKeyboardElements,
   isGridShortcutBlockedByActiveInput,
   useGridElementSize,
-} from '@jsb188/sheet/modules/grid-runtime';
+} from '@jsb188/sheet/libs/grid-runtime';
 import {
   getGridSelectionBoxPosition,
   type GridSelectionBoxPosition,
-} from '@jsb188/sheet/modules/grid-selection';
+} from '@jsb188/sheet/libs/grid-selection';
 import { useAtom } from 'jotai';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
@@ -76,15 +76,14 @@ import {
   type DataTableDesignReducerAction,
   type DataTableRowsState,
   type DataTableStateAtoms
-} from '../states/dataTable-state.ts';
-import { sendCellSaveBeacon } from './cell-save-beacon.ts';
+} from '../libs/dataTable-state.ts';
+import { sendCellSaveBeacon } from '../libs/cell-save-beacon.ts';
 import {
   canEditDataTableRuntimeCell,
   canOpenDataTableCellLink,
   DATA_TABLE_DATE_EDITOR_WIDTH,
   DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH,
   DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
-  DataTableSelectEditor,
   getDataTableCellClassNameFromModel,
   getDataTableCellDisplayClassNameFromModel,
   getDataTableCellDisplayModel,
@@ -106,22 +105,25 @@ import {
   isDataTableReferenceCell,
   isSheetSelectEditorFieldType,
   parseSheetEditorValue,
-  DataTableDateEditor as SharedDataTableDateEditor,
-  DataTableLocalEditorContainer as SharedDataTableLocalEditorContainer,
-  DataTableReadOnlyTag as SharedDataTableReadOnlyTag,
   getDataTableLocalEditorPosition as sharedGetDataTableLocalEditorPosition,
   getDataTableSelectedCellTagPosition as sharedGetDataTableSelectedCellTagPosition,
   type DataTableCellLookup,
   type DataTableRuntimeDesignCell,
-} from './dataTable-cell-editing.tsx';
-import { useDataTableContextMenu, type DataTableArrowNavigationDirection, type DataTableContextMenuTarget } from './DataTable-ContextMenu.tsx';
+} from '../libs/dataTable-cell-editing.tsx';
+import {
+	DataTableDateEditor as SharedDataTableDateEditor,
+	DataTableLocalEditorContainer as SharedDataTableLocalEditorContainer,
+	DataTableReadOnlyTag as SharedDataTableReadOnlyTag,
+	DataTableSelectEditor,
+} from './DataTableCellEditors.tsx';
+import { useDataTableContextMenu, type DataTableArrowNavigationDirection, type DataTableContextMenuTarget } from '../libs/DataTable-ContextMenu.tsx';
 import {
   dataTableDesignPatchHasUndoableChanges,
   getDataTableDesignHistoryBeforePatch,
   useDataTableUndoRedo,
   type DataTableCellHistoryChange,
   type DataTableUndoRedoEntry,
-} from './dataTable-history.ts';
+} from '../libs/dataTable-history.ts';
 import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
 import {
   dataTableInteractionReducer,
@@ -136,22 +138,22 @@ import {
   type DataTableInteractionAction,
   type DataTableInteractionCellSelection,
   type DataTableInteractionState,
-} from './dataTable-interaction-state.ts';
+} from '../libs/dataTable-interaction-state.ts';
 import {
   getDataTableNextActiveSelectedCell,
   getDataTableOrderedSelectedCells,
   getDataTablePasteTargets,
   getDataTableRangeSelection,
   parseDataTableClipboardText,
-} from './dataTable-shortcuts.ts';
+} from '../libs/dataTable-shortcuts.ts';
 import {
   getDataTableArrowNavigationScrollState,
   getDataTableArrowNavigationSelection,
   type DataTableArrowNavigationRuntime,
-} from './dataTable-viewport.ts';
-import { groupCellSaveItemsByTarget, sendGroupedCellSaveItems, useDebouncedCellSaveBatch } from './use-debounced-cell-save-batch.ts';
+} from '../libs/dataTable-viewport.ts';
+import { groupCellSaveItemsByTarget, sendGroupedCellSaveItems, useDebouncedCellSaveBatch } from '../libs/use-debounced-cell-save-batch.ts';
 
-export { parseSheetEditorValue } from './dataTable-cell-editing.tsx';
+export { parseSheetEditorValue } from '../libs/dataTable-cell-editing.tsx';
 
 /**
  * Dev code

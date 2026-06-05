@@ -950,6 +950,16 @@ export const CoinFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 <path d="M17 3.34a10 10 0 1 1 -15 8.66l.005 -.324a10 10 0 0 1 14.995 -8.336zm-5 2.66a1 1 0 0 0 -1 1a3 3 0 1 0 0 6v2a1.024 1.024 0 0 1 -.866 -.398l-.068 -.101a1 1 0 0 0 -1.732 .998a3 3 0 0 0 2.505 1.5h.161a1 1 0 0 0 .883 .994l.117 .007a1 1 0 0 0 1 -1l.176 -.005a3 3 0 0 0 -.176 -5.995v-2c.358 -.012 .671 .14 .866 .398l.068 .101a1 1 0 0 0 1.732 -.998a3 3 0 0 0 -2.505 -1.501h-.161a1 1 0 0 0 -1 -1zm1 7a1 1 0 0 1 0 2v-2zm-2 -4v2a1 1 0 0 1 0 -2z" />
 </svg>;
 
+export const ColorPaletteSample = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-color-palette-sample" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M7.5 0.75H3c-0.82843 0 -1.5 0.67157 -1.5 1.5v19.5c0 0.8284 0.67157 1.5 1.5 1.5h4.5c0.82843 0 1.5 -0.6716 1.5 -1.5V2.25c0 -0.82843 -0.67157 -1.5 -1.5 -1.5Z" />
+<path d="m11.76 0.859985 4.16 1.720005c0.1868 0.07545 0.3565 0.18751 0.4993 0.32958 0.1428 0.14206 0.2557 0.31126 0.3321 0.49763 0.0765 0.18636 0.1148 0.38613 0.1128 0.58755 -0.0019 0.20141 -0.0442 0.40039 -0.1242 0.58524L9 21.75" />
+<path d="m19.08 5.78998 3 3.33c0.1327 0.14572 0.2354 0.31617 0.3022 0.50161 0.0669 0.18544 0.0965 0.38221 0.0872 0.57911 -0.0093 0.1969 -0.0573 0.39 -0.1413 0.5683 -0.0839 0.1784 -0.2022 0.3384 -0.3481 0.471L8.82001 22.45" />
+<path d="M1.5 7.25H9" />
+<path d="M1.5 13.75H9" />
+<path d="M5.18356 20.255c-0.2071 0 -0.375 -0.1679 -0.375 -0.375s0.1679 -0.375 0.375 -0.375" />
+<path d="M5.18356 20.255c0.20711 0 0.375 -0.1679 0.375 -0.375s-0.16789 -0.375 -0.375 -0.375" />
+</svg>;
+
 export const CommonFileTextCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-common-file-text-check" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M11.25 17.25a6 6 0 1 0 12 0 6 6 0 1 0 -12 0Z" />
 <path d="m19.924 15.506 -2.905 3.873a0.752 0.752 0 0 1 -1.131 0.081l-1.5 -1.5" />
@@ -1951,6 +1961,12 @@ export const LayersGridWarningColor = <svg xmlns="http://www.w3.org/2000/svg" fi
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.017699999999998 17.012916v-2.76" strokeWidth="1"></path>
 <path stroke="#191919" d="M17.019631999999998 19.312915999999998c-0.127052 0 -0.22999999999999998 -0.102948 -0.22999999999999998 -0.22999999999999998s0.102948 -0.22999999999999998 0.22999999999999998 -0.22999999999999998" strokeWidth="1"></path>
 <path stroke="#191919" d="M17.019631999999998 19.312915999999998c0.12696 0 0.22999999999999998 -0.102948 0.22999999999999998 -0.22999999999999998s-0.10303999999999999 -0.22999999999999998 -0.22999999999999998 -0.22999999999999998" strokeWidth="1"></path>
+</svg>;
+
+export const LayerStyle = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-layer-style" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M13.3641 2.05444c-3.47423 0 -5.47158 1.65015 -6.16646 6.68745 -0.69489 5.03731 -0.83995 6.02551 -1.2742 8.97841 -0.43425 2.9529 -2.51537 4.2251 -4.31895 4.2251" />
+<path d="M3.80762 8.30762h7.55618" />
+<path d="m15.0126 8.30762 5.7321 11.29048m-8.5113 0L22.3948 8.30762" />
 </svg>;
 
 export const LayoutColumns = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-layout-columns" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -3880,6 +3896,12 @@ export const TemperatureControlWarehouse1 = <svg xmlns="http://www.w3.org/2000/s
 <path d="M15.75 12.25V9.55003c0 -0.2 -0.2 -0.40001 -0.4 -0.40001H4.14999c-0.2 0 -0.39999 0.20001 -0.39999 0.40001V18.75" strokeWidth="1.5" />
 <path d="M7.75 12.75h4" strokeWidth="1.5" />
 <path d="M7.75 15.75h4" strokeWidth="1.5" />
+</svg>;
+
+export const TextFormat1 = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-text-format-1" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeWidth="1.5">
+<path d="M15.1765 12.0539c0 -2.08463 1.6875 -3.77216 3.7721 -3.77216s3.7722 1.68753 3.7722 3.77216v7.7428" />
+<path d="M22.6215 13.0464c-1.0919 0.8934 -2.4817 1.3897 -3.8714 1.3897h-0.4963c-1.6876 0 -3.0773 1.1912 -3.0773 2.6802s1.3897 2.6803 3.0773 2.6803c0 0 3.0772 -0.0001 4.3677 -2.6803" />
+<path d="M1.25635 19.7965 5.68348 6.51512c0.22696 -0.68087 0.86414 -1.14012 1.58184 -1.14012v0c0.7177 0 1.35488 0.45925 1.58183 1.14012L13.2743 19.7965M2.85874 14.9894h8.81316" />
 </svg>;
 
 export const ThumbUp = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-thumb-up" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

@@ -250,15 +250,17 @@ export function Button(p: NormalButtonProps) {
       fallbackElement='button'
     >
       {!leftIconName ? null : (
-        <span className={leftIconClassName || 'mr_3'}>
+        <span className={leftIconClassName || 'mr_4'}>
           <Icon name={leftIconName} />
         </span>
       )}
 
-      {text}
+      <span className='shift_half_down'>
+        {text}
+      </span>
 
       {!rightIconName ? null : (
-        <span className={rightIconClassName || 'ml_3'}>
+        <span className={rightIconClassName || 'ml_4'}>
           <Icon name={rightIconName} />
         </span>
       )}

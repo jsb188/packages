@@ -1,3 +1,4 @@
+import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { SHEET_DATA_TABLE_REGION_MAX_ROWS } from '@jsb188/mday/constants/sheet.ts';
 import type {
@@ -39,18 +40,20 @@ import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { useKeyDown, useOpenModalPopUp } from '@jsb188/react/states';
 import { useAtom } from 'jotai';
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
-import { SheetCanvasSurface } from '../ui/SheetCanvasSurface.tsx';
-import { SheetEditorOverlay, type SheetEditorOverlayPosition } from '../ui/SheetEditorOverlay.tsx';
-import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuTarget } from './SheetContextMenu.tsx';
-import { parseGridClipboardText } from './grid-clipboard.ts';
+import { SheetCanvasSurface } from './SheetCanvasSurface.tsx';
+import { SheetColorPicker } from './SheetColorPicker.tsx';
+import { SheetEditorOverlay, type SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
+import { SheetFormulaInput } from './SheetFormulaInput.tsx';
+import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuFormatName, type SheetContextMenuTarget } from '../libs/SheetContextMenu.tsx';
+import { parseGridClipboardText } from '../libs/grid-clipboard.ts';
 import {
   dismissGridContextMenuOnPointerDown,
-} from './grid-context-menu.ts';
+} from '../libs/grid-context-menu.ts';
 import {
   addGridKeyboardEventListener,
   handleGridKeyboardEvent,
   type GridArrowDirection,
-} from './grid-keyboard.ts';
+} from '../libs/grid-keyboard.ts';
 import {
 	getOptimisticSheetCellFromEditInput,
 	getSheetCellSnapshotEditInput,
@@ -64,19 +67,19 @@ import {
 	type SheetDataTableCellHistoryChange,
 	type SheetDesignPatchInput,
 	type SheetUndoRedoEntry,
-} from './sheet-history.ts';
+} from '../libs/sheet-history.ts';
 import {
   getGridKeyboardElements,
   isGridShortcutBlockedByActiveInput,
   isGridTextInputKey,
   useGridElementSize,
-} from './grid-runtime.ts';
+} from '../libs/grid-runtime.ts';
 import {
   getSheetCanvasColumnDisplayLeft,
   getSheetCanvasColumnDisplayRight,
   getSheetCanvasRowDisplayBottom,
   getSheetCanvasRowDisplayTop,
-} from './sheet-canvas-geometry.ts';
+} from '../libs/sheet-canvas-geometry.ts';
 import {
   gridSelectedCellKeyMapHasMultipleCells,
   getGridArrowNavigationSelection,
@@ -87,7 +90,7 @@ import {
   getGridSelectionAnchorCell,
   getNextActiveGridSelectedCell,
   getOrderedGridSelectedCells,
-} from './grid-selection.ts';
+} from '../libs/grid-selection.ts';
 import {
   getSheetCanvasCell,
   getSheetCanvasCellDisplayValue,
@@ -109,19 +112,16 @@ import {
   SHEET_CANVAS_INITIAL_ROW_COUNT,
   type SheetCanvasCell,
   type SheetCanvasColumn,
-} from './sheet-utils.ts';
+} from '../libs/sheet-utils.ts';
 import {
 	type SheetStateAtoms,
-} from '../states/sheet-state.ts';
+} from '../libs/sheet-state.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
 import {
 	DATA_TABLE_DATE_EDITOR_WIDTH,
 	DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH,
 	DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
-	DataTableDateEditor,
-	DataTableLocalEditorContainer,
-	DataTableSelectEditor,
 	canEditDataTableRuntimeCell,
 	getDataTableCellDisplayModel,
 	getDataTableCellSerializedValue,
@@ -130,6 +130,7 @@ import {
 	getSheetEditorDraftValue,
 	getSheetEditorElementValue as getDataTableEditorElementValue,
 	getSheetEditorFieldType,
+	hasDataTableCellRelatedId,
 	handleDataTableRelatedDocumentCellEdit,
 	isDataTableDateEditorFieldType,
 	isDataTableInboundContactIdLookup,
@@ -140,9 +141,14 @@ import {
 	type DataTableCellLookup,
 	type DataTableLocalEditorPosition,
 	type DataTableRuntimeDesignCell,
-} from './dataTable-cell-editing.tsx';
+} from '../libs/dataTable-cell-editing.tsx';
+import {
+	DataTableDateEditor,
+	DataTableLocalEditorContainer,
+	DataTableSelectEditor,
+} from './DataTableCellEditors.tsx';
 
-export type { SheetCellEditInput, SheetDesignPatchInput } from './sheet-history.ts';
+export type { SheetCellEditInput, SheetDesignPatchInput } from '../libs/sheet-history.ts';
 
 const SHEET_CANVAS_ROW_RIGHT_PADDING = 64;
 const SHEET_CANVAS_COLUMN_RESIZE_HANDLE_WIDTH = 7;
@@ -151,6 +157,7 @@ const SHEET_CANVAS_ROW_RESIZE_HANDLE_HEIGHT = 6;
 const SHEET_CANVAS_APP_SCROLLBAR_SIZE = 19;
 const SHEET_CANVAS_TEXT_EDITOR_SELECTOR = '[data-sheet-editor="true"]';
 const SHEET_CANVAS_GRID_EDITOR_SELECTOR = '[data-sheet-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
+const SHEET_COLOR_PICKER_SELECTOR = '[data-sheet-color-picker="true"]';
 const SHEET_DEV_PARAM = 'dev';
 
 export type SheetInsertViewTableRequest = {
@@ -289,6 +296,11 @@ type SheetCanvasDragSelectionState =
 			started: boolean;
 			type: 'ROW_HEADER';
 		};
+
+type SheetColorPickerState = {
+	formatName: SheetContextMenuFormatName;
+	target: SheetContextMenuTarget;
+};
 
 /*
  * Return the value currently stored in one DOM sheet editor.
@@ -511,6 +523,33 @@ function canEditSheetDataTableCellTarget(target: SheetDataTableCellEditTarget, d
 }
 
 /*
+ * Return whether a DataTable-backed Sheet cell should be blocked from formula-input editing as a related-document cell.
+ */
+function isSheetDataTableRelatedDocumentFormulaEditBlocked(target: SheetDataTableCellEditTarget) {
+	const fieldType = target.lookup.designCell.humanFieldType || target.lookup.designCell.fieldType;
+
+	return fieldType === 'ID' &&
+		Boolean(target.lookup.cell?.relatedTable) &&
+		hasDataTableCellRelatedId(target.lookup.cell);
+}
+
+/*
+ * Return whether one Sheet edit target can start direct text editing from the formula input.
+ */
+function canStartSheetFormulaInputEditTarget(target: SheetDataTableCellEditTarget | null, disabled?: boolean) {
+	if (!target) {
+		return !disabled;
+	}
+
+	const fieldType = getSheetEditorFieldType(target.lookup.designCell);
+
+	return canEditSheetDataTableCellTarget(target, disabled) &&
+		!isDataTableLocalEditorFieldType(fieldType) &&
+		!isDataTableInboundContactIdLookup(target.lookup) &&
+		!isSheetDataTableRelatedDocumentFormulaEditBlocked(target);
+}
+
+/*
  * Return a Sheet edit state for a DataTable-backed Sheet cell.
  */
 function getSheetDataTableEditState(target: SheetDataTableCellEditTarget, optimisticValue?: string | null, clickSource?: SheetUIEditorClickSource) {
@@ -548,6 +587,13 @@ function getSheetDataTableLocalEditorPosition(params: {
 		top: params.scrollTop + params.editorPosition.top + params.editorPosition.height + 1,
 		width: width + DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET - 2,
 	} satisfies DataTableLocalEditorPosition;
+}
+
+/*
+ * Return the display label for one Sheet color picker format.
+ */
+function getSheetColorPickerFormatLabel(formatName: SheetContextMenuFormatName) {
+	return i18n.t(formatName === 'textColor' ? 'sheet.text_color' : 'sheet.fill_color');
 }
 
 /*
@@ -1094,7 +1140,10 @@ export function SheetController(p: SheetControllerProps) {
 	const [resizeState, setResizeState] = useAtom(p.stateAtoms.resizeStateAtom);
 	const [rowResizeState, setRowResizeState] = useAtom(p.stateAtoms.rowResizeStateAtom);
 	const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
+	const [formulaInputFocused, setFormulaInputFocused] = useState(false);
+	const [colorPickerState, setColorPickerState] = useState<SheetColorPickerState | null>(null);
 	const dragSelectionRef = useRef<SheetCanvasDragSelectionState | null>(null);
+	const colorPickerPointerDownInsideRef = useRef(false);
 	const fetchingMoreRef = useRef(false);
 	const designRef = useRef(p.design);
 	const onUpdateSheetDesignRef = useRef(p.onUpdateSheetDesign);
@@ -1296,6 +1345,24 @@ export function SheetController(p: SheetControllerProps) {
 			stickyColumnCount,
 		});
 	}, [columnMetricsByKey, editState, rowMetricsByKey, scrollState.scrollLeft, scrollState.scrollTop, stickyColumnCount]);
+	const colorPickerEditorPosition = useMemo(() => {
+		if (!colorPickerState) {
+			return null;
+		}
+
+		return getSheetCanvasEditorPosition({
+			columnMetricsByKey,
+			editState: {
+				cellKey: colorPickerState.target.cellKey,
+				draftValue: '',
+				rowId: colorPickerState.target.rowId,
+			},
+			rowMetricsByKey,
+			scrollLeft: scrollState.scrollLeft,
+			scrollTop: scrollState.scrollTop,
+			stickyColumnCount,
+		});
+	}, [colorPickerState, columnMetricsByKey, rowMetricsByKey, scrollState.scrollLeft, scrollState.scrollTop, stickyColumnCount]);
 	const activeDataTableEditTarget = useMemo(() => {
 		if (!editState) {
 			return null;
@@ -1348,6 +1415,94 @@ export function SheetController(p: SheetControllerProps) {
 				}
 			: columnMetricsByKey.get(editState.cellKey)?.column || null
 		: null;
+	const formulaInputState = useMemo(() => {
+		if (editState && activeEditorColumn) {
+			return {
+				column: activeEditorColumn,
+				error: editState.error || null,
+				value: editState.draftValue,
+			};
+		}
+
+		if (!selectedCellState) {
+			return {
+				column: null,
+				error: null,
+				value: '',
+			};
+		}
+
+		const rowIndex = getSheetCanvasRowIndexFromId(selectedCellState.rowId);
+		const columnIndex = getSheetCanvasColumnIndexFromKey(selectedCellState.cellKey);
+		const column = columnMetricsByKey.get(selectedCellState.cellKey)?.column || null;
+
+		if (!rowIndex || !columnIndex) {
+			return {
+				column,
+				error: null,
+				value: '',
+			};
+		}
+
+		const dataTableTarget = getSheetDataTableCellEditTarget({
+			columnIndex,
+			dataTablesById,
+			designCellsByDataTableId,
+			effectiveCellsByCoord,
+			regionsById,
+			rowIndex,
+			sourceCellsByTargetKey,
+		});
+
+		if (dataTableTarget) {
+			return {
+				column: {
+					...getDataTableSheetUIColumn(dataTableTarget.lookup.designCell),
+					id: selectedCellState.cellKey,
+					key: selectedCellState.cellKey,
+				},
+				error: null,
+				value: getSheetEditorDraftValue(dataTableTarget.lookup.cell, dataTableTarget.lookup.designCell),
+			};
+		}
+
+		const sourceCell = effectiveCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex));
+
+		return {
+			column,
+			error: null,
+			value: getSheetCanvasCellDraftValue(sourceCell),
+		};
+	}, [activeEditorColumn, columnMetricsByKey, dataTablesById, designCellsByDataTableId, editState, effectiveCellsByCoord, regionsById, selectedCellState, sourceCellsByTargetKey]);
+	const formulaInputCanStartEdit = useMemo(() => {
+		if (!selectedCellState) {
+			return false;
+		}
+
+		if (editState) {
+			return Boolean(activeEditorColumn && !editState.disableInlineEditor && !activeDataTableLocalEditorPosition);
+		}
+
+		const rowIndex = getSheetCanvasRowIndexFromId(selectedCellState.rowId);
+		const columnIndex = getSheetCanvasColumnIndexFromKey(selectedCellState.cellKey);
+
+		if (!rowIndex || !columnIndex) {
+			return false;
+		}
+
+		const dataTableTarget = getSheetDataTableCellEditTarget({
+			columnIndex,
+			dataTablesById,
+			designCellsByDataTableId,
+			effectiveCellsByCoord,
+			regionsById,
+			rowIndex,
+			sourceCellsByTargetKey,
+		});
+
+		return canStartSheetFormulaInputEditTarget(dataTableTarget, p.disabled);
+	}, [activeDataTableLocalEditorPosition, activeEditorColumn, dataTablesById, designCellsByDataTableId, editState, effectiveCellsByCoord, p.disabled, regionsById, selectedCellState, sourceCellsByTargetKey]);
+	const formulaInputCanEdit = Boolean(editState && activeEditorColumn && !editState.disableInlineEditor && !activeDataTableLocalEditorPosition);
 	const selectedDataTableReadOnlyCellPosition = useMemo(() => {
 		if (!selectedCellState || editState) {
 			return null;
@@ -2307,6 +2462,20 @@ export function SheetController(p: SheetControllerProps) {
 		});
 	}, [openSheetCellEditor]);
 
+	/*
+	 * Open the in-sheet color picker for one Sheet context-menu format action.
+	 */
+	const handleSheetContextMenuCustomizeCells = useCallback((target: SheetContextMenuTarget, formatName: SheetContextMenuFormatName) => {
+		if (!target.canEdit) {
+			return;
+		}
+
+		setColorPickerState({
+			formatName,
+			target,
+		});
+	}, []);
+
 	const handleSheetContextMenuFormatCells = useCallback(async (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => {
 		const runtime = runtimeRef.current;
 		const sheetCellChanges: SheetCellHistoryChange[] = [];
@@ -2374,14 +2543,45 @@ export function SheetController(p: SheetControllerProps) {
 		await p.onRemoveDataTableRegion?.(target.dataTableRegionId);
 	}, [p.onRemoveDataTableRegion]);
 
+	/*
+	 * Paste clipboard text through the same Sheet mutation path used by keyboard shortcuts.
+	 */
+	const handleSheetContextMenuPasteCells = useCallback(async (_target: SheetContextMenuTarget, clipboardText: string) => {
+		await pasteSelectedSheetCells(clipboardText);
+	}, [pasteSelectedSheetCells]);
+
+	/*
+	 * Apply the custom Sheet color picker value to the active color format target.
+	 */
+	const handleSheetColorPickerValue = useCallback((value: string) => {
+		if (!colorPickerState) {
+			return;
+		}
+
+		void handleSheetContextMenuFormatCells(colorPickerState.target, {
+			name: colorPickerState.formatName,
+			value,
+		});
+	}, [colorPickerState, handleSheetContextMenuFormatCells]);
+
+	/*
+	 * Close the active in-sheet color picker.
+	 */
+	const closeSheetColorPicker = useCallback(() => {
+		setColorPickerState(null);
+	}, []);
+
 	const {
 		closeSheetContextMenu,
 		openSheetContextMenu,
 	} = useSheetContextMenu({
+		onCustomizeCells: handleSheetContextMenuCustomizeCells,
 		onEditCell: handleSheetContextMenuEditCell,
 		onFormatCells: handleSheetContextMenuFormatCells,
+		onPasteCells: handleSheetContextMenuPasteCells,
 		onPopulateFromDataTable: handleSheetContextMenuPopulateDataTable,
 		onRemoveCellsFromDataTable: handleSheetContextMenuRemoveDataTableRegion,
+		readClipboardText: readSheetClipboardText,
 	});
 
 	useEffect(() => {
@@ -2640,10 +2840,33 @@ export function SheetController(p: SheetControllerProps) {
 		};
 	}, [rowResizeState?.rowKey]);
 
+	/*
+	 * Dismiss the color picker from the sheet's centralized pointer capture path.
+	 */
+	const handlePointerDownCapture = useCallback((event: PointerEvent<HTMLDivElement>) => {
+		const target = event.target instanceof Element ? event.target : null;
+		const colorPickerElement = target?.closest(SHEET_COLOR_PICKER_SELECTOR);
+
+		colorPickerPointerDownInsideRef.current = Boolean(colorPickerElement);
+
+		if (!colorPickerElement && colorPickerState) {
+			closeSheetColorPicker();
+		}
+	}, [closeSheetColorPicker, colorPickerState]);
+
 	const handlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
 		dismissGridContextMenuOnPointerDown(event.nativeEvent, closeSheetContextMenu);
 
-		if (p.disabled || event.button !== 0 || event.target instanceof Element && event.target.closest(SHEET_CANVAS_GRID_EDITOR_SELECTOR)) {
+		const target = event.target instanceof Element ? event.target : null;
+		const startedInsideColorPicker = colorPickerPointerDownInsideRef.current || Boolean(target?.closest(SHEET_COLOR_PICKER_SELECTOR));
+
+		colorPickerPointerDownInsideRef.current = false;
+
+		if (startedInsideColorPicker) {
+			return;
+		}
+
+		if (p.disabled || event.button !== 0 || target?.closest(SHEET_CANVAS_GRID_EDITOR_SELECTOR)) {
 			return;
 		}
 
@@ -3010,25 +3233,87 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+		const nextEditorElement = event.relatedTarget instanceof HTMLElement && event.relatedTarget.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
 
-		if (editorElement) {
+		if (editorElement && !nextEditorElement) {
 			void commitEditorElement(editorElement);
 		}
 	}, [commitEditorElement, keepEditModeForDev]);
 
-	const handleInput = useCallback((event: FormEvent<HTMLDivElement>) => {
-		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+	/*
+	 * Commit formula input edits only when focus leaves both Sheet text editors.
+	 */
+	const handleFormulaInputBlur = useCallback((event: FocusEvent<HTMLInputElement>) => {
+		setFormulaInputFocused(false);
 
-		if (!editorElement || !editState?.error) {
+		if (keepEditModeForDev) {
 			return;
 		}
 
-		setEditState({
-			cellKey: editorElement.dataset.cellKey || editState.cellKey,
-			draftValue: getSheetEditorElementValue(editorElement),
-			rowId: editorElement.dataset.rowId || editState.rowId,
+		const nextEditorElement = event.relatedTarget instanceof HTMLElement && event.relatedTarget.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+
+		if (!nextEditorElement) {
+			void commitEditorElement(event.currentTarget);
+		}
+	}, [commitEditorElement, keepEditModeForDev]);
+
+	/*
+	 * Start regular-cell edit mode from the formula input without moving focus into the cell overlay.
+	 */
+	const handleFormulaInputFocus = useCallback(() => {
+		setFormulaInputFocused(true);
+
+		if (!formulaInputCanStartEdit || editState || !selectedCellState) {
+			return;
+		}
+
+		openSheetCellEditor(selectedCellState, undefined, false);
+	}, [editState, formulaInputCanStartEdit, openSheetCellEditor, selectedCellState]);
+
+	/*
+	 * Store the active formula input draft so the canvas cell can redraw while users type.
+	 */
+	const updateSheetEditorDraftValue = useCallback((draftValue: string, cellKey?: string | null, rowId?: string | null) => {
+		setEditState((current) => {
+			if (!current) {
+				return current;
+			}
+
+			const nextCellKey = cellKey || current.cellKey;
+			const nextRowId = rowId || current.rowId;
+
+			if (
+				current.cellKey === nextCellKey &&
+				current.rowId === nextRowId &&
+				current.draftValue === draftValue &&
+				!current.error
+			) {
+				return current;
+			}
+
+			return {
+				...current,
+				cellKey: nextCellKey,
+				draftValue,
+				error: null,
+				rowId: nextRowId,
+			};
 		});
-	}, [editState]);
+	}, []);
+
+	const handleInput = useCallback((event: FormEvent<HTMLDivElement>) => {
+		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+
+		if (!editorElement) {
+			return;
+		}
+
+		updateSheetEditorDraftValue(
+			getSheetEditorElementValue(editorElement),
+			editorElement.dataset.cellKey,
+			editorElement.dataset.rowId,
+		);
+	}, [updateSheetEditorDraftValue]);
 
 	const saveDataTableLocalEditorDraftValue = useCallback(async (target: SheetDataTableCellEditTarget, draftValue: string, closeAfterSave: boolean) => {
 		const parsedValue = parseSheetEditorValue(target.lookup.designCell, draftValue);
@@ -3114,11 +3399,25 @@ export function SheetController(p: SheetControllerProps) {
 		void saveDataTableLocalEditorDraftValue(target, draftValue, true);
 	}, [activeDataTableEditTarget, saveDataTableLocalEditorDraftValue]);
 
+	const formulaContent = <SheetFormulaInput
+		canEdit={formulaInputCanStartEdit}
+		column={formulaInputState.column}
+		editState={formulaInputCanEdit ? editState : null}
+		error={formulaInputState.error}
+		onBlur={handleFormulaInputBlur}
+		onDraftValue={updateSheetEditorDraftValue}
+		onEditStart={handleFormulaInputFocus}
+		readOnly={!formulaInputCanStartEdit}
+		value={formulaInputCanEdit ? editState?.draftValue || '' : formulaInputState.value}
+	/>;
+
 	const overlayContent = <>
-		{activeEditorColumn && editState && editorPosition && !activeDataTableLocalEditorPosition
+		{activeEditorColumn && editState && editorPosition && !editState.disableInlineEditor && !activeDataTableLocalEditorPosition
 			? <SheetEditorOverlay
 				column={activeEditorColumn}
+				autoFocus={!formulaInputFocused}
 				editState={editState}
+				onDraftValue={updateSheetEditorDraftValue}
 				position={editorPosition}
 				scrollLeft={scrollState.scrollLeft}
 				scrollTop={scrollState.scrollTop}
@@ -3165,6 +3464,18 @@ export function SheetController(p: SheetControllerProps) {
 				/>
 			</DataTableLocalEditorContainer>
 			: null}
+		{colorPickerState && colorPickerEditorPosition
+			? <SheetColorPicker
+				key={`${colorPickerState.target.rowId}:${colorPickerState.target.cellKey}:${colorPickerState.formatName}`}
+				label={getSheetColorPickerFormatLabel(colorPickerState.formatName)}
+				onClose={closeSheetColorPicker}
+				onColorValue={handleSheetColorPickerValue}
+				position={colorPickerEditorPosition}
+				scrollLeft={scrollState.scrollLeft}
+				scrollTop={scrollState.scrollTop}
+				value={colorPickerState.formatName === 'textColor' ? colorPickerState.target.textColor : colorPickerState.target.fillColor}
+			/>
+			: null}
 	</>;
 
 	return <SheetCanvasSurface
@@ -3174,6 +3485,7 @@ export function SheetController(p: SheetControllerProps) {
 		className={cn(p.className)}
 		columns={columnMetricsData.metrics}
 		editState={editState}
+		formulaContent={formulaContent}
 		headerContent={p.children}
 		headerSelection={headerSelection}
 		onContextMenu={handleContextMenu}
@@ -3181,6 +3493,7 @@ export function SheetController(p: SheetControllerProps) {
 		onFocusOut={handleFocusOut}
 		onInput={handleInput}
 		onPointerDown={handlePointerDown}
+		onPointerDownCapture={handlePointerDownCapture}
 		onPointerLeave={handlePointerLeave}
 		onPointerMove={handlePointerMove}
 		overlayContent={overlayContent}

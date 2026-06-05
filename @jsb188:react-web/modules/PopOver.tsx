@@ -458,6 +458,7 @@ type TooltipButtonProps = {
   tooltipClassName?: string;
   fontClassName?: string;
   closeWhilePointerDown?: boolean;
+  showDelayMs?: number;
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -473,25 +474,56 @@ type TooltipButtonProps = {
  */
 
 export const TooltipButton = memo((p: TooltipButtonProps) => {
-  const { leftIconName, rightIconName, disabled, children, title, message, __html, messageAfterClick, position, absolute, offsetX, offsetY, onClick, as, tooltipClassName, fontClassName, closeWhilePointerDown, ...rest } = p;
+  const { leftIconName, rightIconName, disabled, children, title, message, __html, messageAfterClick, position, absolute, offsetX, offsetY, onClick, as, tooltipClassName, fontClassName, closeWhilePointerDown, showDelayMs, ...rest } = p;
   const Element = as || 'button';
   const tooltipDisabled = disabled || (!message && !__html);
   const { tooltip, openTooltip, closeTooltip, updateTooltip } = useTooltip();
 
-  const unique = useRef<string>(getTimeBasedUnique());
-  const el = useRef<HTMLDivElement>(null);
-  const isHoverRef = useRef(false);
-  const isPointerDownRef = useRef(false);
-  const hasTooltip = !!tooltip && tooltip.id === unique.current;
+  const tooltipButtonRef = useRef<{
+    el: HTMLDivElement | null;
+    isHover: boolean;
+    isPointerDown: boolean;
+    showDelayTimeout: ReturnType<typeof setTimeout> | null;
+    unique: string;
+  }>({
+    el: null,
+    isHover: false,
+    isPointerDown: false,
+    showDelayTimeout: null,
+    unique: getTimeBasedUnique(),
+  });
+  const hasTooltip = !!tooltip && tooltip.id === tooltipButtonRef.current.unique;
 
+  /*
+   * Store the rendered tooltip button element used for tooltip positioning.
+   */
+  const handleTooltipButtonRef = (el: HTMLDivElement | null) => {
+    tooltipButtonRef.current.el = el;
+  };
+
+  /*
+   * Clear any pending delayed tooltip open for this button.
+   */
+  const clearShowTooltipTimeout = () => {
+    if (tooltipButtonRef.current.showDelayTimeout) {
+      clearTimeout(tooltipButtonRef.current.showDelayTimeout);
+      tooltipButtonRef.current.showDelayTimeout = null;
+    }
+  };
+
+  /*
+   * Open the tooltip from the current button rectangle.
+   */
   const onOpenTooltip = (e: React.SyntheticEvent) => {
-    if (e.isTrusted && !tooltipDisabled && !isPointerDownRef.current && unique.current !== tooltip?.id) {
+    const state = tooltipButtonRef.current;
+
+    if (e.isTrusted && !tooltipDisabled && !state.isPointerDown && state.unique !== tooltip?.id) {
       // Can't use this because e.target sometimes returns inner element, which causes incorrect positioning
       // const rect = e.target.getBoundingClientRect();
-      const rect = el.current!.getBoundingClientRect();
+      const rect = state.el!.getBoundingClientRect();
 
       openTooltip({
-        id: unique.current,
+        id: state.unique,
         title,
         message,
         __html,
@@ -517,9 +549,33 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
     }
   };
 
+  /*
+   * Open the tooltip immediately or after the configured hover delay.
+   */
+  const onOpenTooltipWithDelay = (e: React.SyntheticEvent) => {
+    clearShowTooltipTimeout();
+
+    if (!showDelayMs || showDelayMs <= 0) {
+      onOpenTooltip(e);
+      return;
+    }
+
+    tooltipButtonRef.current.showDelayTimeout = setTimeout(() => {
+      tooltipButtonRef.current.showDelayTimeout = null;
+
+      if (tooltipButtonRef.current.isHover) {
+        onOpenTooltip(e);
+      }
+    }, showDelayMs);
+  };
+
+  /*
+   * Close this button's tooltip and cancel any pending delayed open.
+   */
   const onCloseTooltip = (e: React.SyntheticEvent) => {
     if (e.isTrusted && !tooltipDisabled) {
-      closeTooltip(unique.current);
+      clearShowTooltipTimeout();
+      closeTooltip(tooltipButtonRef.current.unique);
     }
   };
 
@@ -537,9 +593,9 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
 
       if (hasTooltip) {
         if (messageAfterClick) {
-          unique.current = getTimeBasedUnique();
+          tooltipButtonRef.current.unique = getTimeBasedUnique();
           updateTooltip({
-            id: unique.current,
+            id: tooltipButtonRef.current.unique,
             message: messageAfterClick,
           });
         } else {
@@ -554,31 +610,33 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
       }
     },
     onMouseEnter: (e: React.MouseEvent) => {
-      isHoverRef.current = true;
-      onOpenTooltip(e);
+      tooltipButtonRef.current.isHover = true;
+      onOpenTooltipWithDelay(e);
     },
     onMouseLeave: (e: React.MouseEvent) => {
-      isHoverRef.current = false;
+      tooltipButtonRef.current.isHover = false;
       if (e.isTrusted && !tooltipDisabled) {
-        closeTooltip(unique.current);
+        clearShowTooltipTimeout();
+        closeTooltip(tooltipButtonRef.current.unique);
       }
     },
     onPointerDown: (e: React.PointerEvent) => {
       if (closeWhilePointerDown && e.isTrusted && !tooltipDisabled) {
-        isPointerDownRef.current = true;
-        closeTooltip(unique.current);
+        tooltipButtonRef.current.isPointerDown = true;
+        clearShowTooltipTimeout();
+        closeTooltip(tooltipButtonRef.current.unique);
       }
     },
     onPointerUp: (e: React.PointerEvent) => {
       if (closeWhilePointerDown && e.isTrusted && !tooltipDisabled) {
-        isPointerDownRef.current = false;
-        if (isHoverRef.current) {
-          onOpenTooltip(e);
+        tooltipButtonRef.current.isPointerDown = false;
+        if (tooltipButtonRef.current.isHover) {
+          onOpenTooltipWithDelay(e);
         }
       }
     },
     onPointerCancel: () => {
-      isPointerDownRef.current = false;
+      tooltipButtonRef.current.isPointerDown = false;
     },
   };
 
@@ -587,18 +645,20 @@ export const TooltipButton = memo((p: TooltipButtonProps) => {
     // Do NOT do it
     // if (hasTooltip) {
     return () => {
-      closeTooltip(unique.current);
+      clearShowTooltipTimeout();
+      closeTooltip(tooltipButtonRef.current.unique);
     };
   }, []);
 
   useEffect(() => {
     if (disabled && hasTooltip) {
-      closeTooltip(unique.current);
+      clearShowTooltipTimeout();
+      closeTooltip(tooltipButtonRef.current.unique);
     }
   }, [disabled]);
 
   return (
-    <Element {...props} {...rest} ref={el}>
+    <Element {...props} {...rest} ref={handleTooltipButtonRef}>
       {children}
     </Element>
   );

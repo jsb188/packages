@@ -141,6 +141,11 @@ h1.ft_xxl, h2.ft_xxl, h3.ft_xxl, h4.ft_xxl, h5.ft_xxl, h6.ft_xxl, .ft_heading_xx
 .ic_df .ic_special { width: 20px; height: 20px; }
 .ic_sm .ic_special { width: 14px; height: 14px; }
 
+.shift_half_up { transform: translateY(-.5px); }
+.shift_half_down { transform: translateY(.5px); }
+.shift_half_left { transform: translateX(-.5px); }
+.shift_half_right { transform: translateX(.5px); }
+
 .shift_up { transform: translateY(-1px); }
 .shift_down { transform: translateY(1px); }
 .shift_left { transform: translateX(-1px); }

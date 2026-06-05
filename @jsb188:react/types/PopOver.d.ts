@@ -1,5 +1,5 @@
 import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
-import type { CSSProperties, ElementType } from 'react';
+import type { CSSProperties, ElementType, ReactNode } from 'react';
 
 /**
  * Utility types
@@ -108,6 +108,8 @@ export interface POListItemPickerObj extends Omit<POActionListItemBase, '__type'
 export interface POListColorsObj extends POItemBase {
   __type: 'LIST_COLORS';
   name?: string;
+  label?: ReactNode;
+  onClickCustomize?: POListItemClickFn;
   colors?: readonly string[];
   selectedValue?: string | null;
   className?: string;

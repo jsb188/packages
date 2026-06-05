@@ -8,7 +8,7 @@ import {
 	getSelectedCellState,
 	getSelectedHeaderCellKey,
 	dataTableInteractionReducer,
-} from '../src/modules/dataTable-interaction-state';
+} from '../src/libs/dataTable-interaction-state';
 
 describe('dataTableInteractionReducer', () => {
 	it('selects cells and replaces previous selections', () => {

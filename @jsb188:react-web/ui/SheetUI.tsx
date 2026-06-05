@@ -67,6 +67,8 @@ export type SheetUIColumn = {
 	label: string;
 	fieldType: SheetUIFieldType;
 	cellClassName?: string;
+	disableReorder?: boolean;
+	disableResize?: boolean;
 	headerCheckboxEnabled?: boolean;
 	headerChecked?: boolean;
 	headerClassName?: string;
@@ -99,6 +101,7 @@ export type SheetUIRowSlot = {
 	rowKey: string;
 	rowNumber?: number | null;
 	rowHeight?: number;
+	hideBottomBorder?: boolean;
 	rowTop: number;
 	rowWidth: number;
 };
@@ -223,12 +226,16 @@ export interface SheetUIProps {
 	rowResizeEnabled?: boolean;
 	rowResizeGuide?: SheetUIRowResizeGuide | null;
 	rows: SheetUIRowSlot[];
+	scrollClassName?: string;
+	scrollFill?: boolean;
 	scrollLeft: number;
 	scrollRef?: Ref<HTMLDivElement>;
+	scrollStyle?: CSSProperties;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
 	sheetSurfaceHeight?: number;
 	sheetSurfaceTop?: number;
+	hideStickyColumnSpacer?: boolean;
 	showRowNumbers?: boolean;
 	stickyColumnEndLeft?: number;
 	stickyColumnCount?: number | null;

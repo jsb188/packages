@@ -384,7 +384,7 @@ export const SheetHeaderCell = memo((p: {
 	const isEditing = p.headerEditState?.cellKey === p.column.key;
 	const isSelected = !isEditing && p.selectedHeaderCellKey === p.column.key;
 	const isEditable = Boolean(p.headerCellsEditable);
-	const isReorderable = Boolean(p.columnReorderEnabled && !isEditing);
+	const isReorderable = Boolean(p.columnReorderEnabled && !p.column.disableReorder && !isEditing);
 	const reorderOffset = p.columnReorderOffset || 0;
 	const defaultCellClassName = getSheetHeaderEditableClassName();
 	const defaultSelectedCellClassName = 'bg_alt';
@@ -473,6 +473,7 @@ export const SheetHeaderCell = memo((p: {
 	prev.column.headerLayoutClassName === next.column.headerLayoutClassName &&
 	prev.column.headerTooltipMessage === next.column.headerTooltipMessage &&
 	prev.column.humansCannotEdit === next.column.humansCannotEdit &&
+	prev.column.disableReorder === next.column.disableReorder &&
 	prev.columnIndex === next.columnIndex &&
 	prev.columnReorderEnabled === next.columnReorderEnabled &&
 	prev.columnReorderOffset === next.columnReorderOffset &&
@@ -525,6 +526,7 @@ export const SheetColumnResizeHandle = memo((p: {
 	prev.column.id === next.column.id &&
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
+	prev.column.disableResize === next.column.disableResize &&
 	prev.columnIndex === next.columnIndex &&
 	prev.columnWidth === next.columnWidth &&
 	prev.disabled === next.disabled &&
@@ -637,11 +639,13 @@ export const SheetHeaderArea = memo((p: {
 	isColumnResizeDragging?: boolean;
 	stickyColumnEndLeft: number;
 	stickyColumnCount?: number | null;
+	hideStickyColumnSpacer?: boolean;
 	rowHeaderWidth?: number;
 	showRowNumbers?: boolean;
 }) => {
 	const rowHeaderWidth = p.rowHeaderWidth ?? SHEET_ROW_NUMBER_WIDTH;
 	const showRowNumbers = p.showRowNumbers !== false;
+	const showStickyColumnSpacer = !p.hideStickyColumnSpacer;
 
 	return <div
 		className='sticky'
@@ -662,9 +666,11 @@ export const SheetHeaderArea = memo((p: {
 		>
 			{showRowNumbers ? <SheetCornerCell /> : null}
 
-			<SheetStickyColumnHeaderSpacer
-				left={p.stickyColumnEndLeft}
-			/>
+			{showStickyColumnSpacer
+				? <SheetStickyColumnHeaderSpacer
+					left={p.stickyColumnEndLeft}
+				/>
+				: null}
 
 			{p.columns.map((columnMetric) => {
 				const isStickyLeft = isSheetColumnSticky(columnMetric.columnIndex, p.stickyColumnCount);
@@ -719,7 +725,7 @@ export const SheetHeaderArea = memo((p: {
 						column={columnMetric.column}
 						columnIndex={columnMetric.columnIndex}
 						columnWidth={columnMetric.width}
-						disabled={Boolean(p.columnReorderDrag)}
+						disabled={Boolean(p.columnReorderDrag || columnMetric.column.disableResize)}
 						handleLeft={handleLeft}
 					/>;
 				})}
@@ -760,6 +766,7 @@ export const SheetHeaderArea = memo((p: {
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
 	prev.headerEditState?.error === next.headerEditState?.error &&
+	prev.hideStickyColumnSpacer === next.hideStickyColumnSpacer &&
 	prev.selectedHeaderCellKey === next.selectedHeaderCellKey &&
 	prev.headerSpacerWidth === next.headerSpacerWidth &&
 	prev.headerWidth === next.headerWidth &&
@@ -1190,6 +1197,7 @@ export const SheetGridCell = memo((p: {
 	columnIndex: number;
 	columnWidth: number;
 	editState?: SheetUIEditState | null;
+	hideBottomBorder?: boolean;
 	isPlaceholderRow?: boolean;
 	isStickyLeft: boolean;
 	rowHeight?: number;
@@ -1236,7 +1244,7 @@ export const SheetGridCell = memo((p: {
 		: '';
 	const borderClassName = p.isPlaceholderRow
 		? ''
-    : 'bd_r_1 bd_b_1 bd_lt';
+		: cn('bd_r_1 bd_lt', !p.hideBottomBorder && 'bd_b_1');
 		// : isSelected
 		// 	? 'bd_r_1bd_b_1'
 		// 	: 'bd_r_1 bd_b_1 bd_lt';
@@ -1328,6 +1336,7 @@ export const SheetGridCell = memo((p: {
 	prev.column.fieldType === next.column.fieldType &&
 	prev.column.cellClassName === next.column.cellClassName &&
 	prev.column.humanFieldType === next.column.humanFieldType &&
+	prev.hideBottomBorder === next.hideBottomBorder &&
 	prev.columnIndex === next.columnIndex &&
 	prev.columnWidth === next.columnWidth &&
 	(prev.cellStore ? true : areSheetGridCellEditPropsEqual(prev, next)) &&
@@ -1350,6 +1359,7 @@ SheetGridCell.displayName = 'SheetGridCell';
 
 export const SheetPlaceholderRowFillCell = memo((p: {
 	contentWidth?: number;
+	hideBottomBorder?: boolean;
 	left?: number;
 	rowHeight?: number;
 	rowTop: number;
@@ -1359,7 +1369,7 @@ export const SheetPlaceholderRowFillCell = memo((p: {
 	const fillWidth = Math.max(0, (p.contentWidth ?? p.rowWidth) - left);
 
 	return <div
-		className={cn('sheet_ui_cell of abs bd_r_1 bd_b_1 bd_lt h_item px_6 cl_df bg_zinc_fd_hv noclick', CELL_BG_CSS)}
+		className={cn('sheet_ui_cell of abs bd_r_1 bd_lt h_item px_6 cl_df bg_zinc_fd_hv noclick', !p.hideBottomBorder && 'bd_b_1', CELL_BG_CSS)}
 		data-sheet-cell='true'
 		data-sheet-placeholder-row-fill-cell='true'
 		style={{
@@ -1371,6 +1381,7 @@ export const SheetPlaceholderRowFillCell = memo((p: {
 	/>;
 }, (prev, next) => (
 	prev.contentWidth === next.contentWidth &&
+	prev.hideBottomBorder === next.hideBottomBorder &&
 	prev.left === next.left &&
 	prev.rowHeight === next.rowHeight &&
 	prev.rowTop === next.rowTop &&

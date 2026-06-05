@@ -17,22 +17,22 @@ import {
 } from '@jsb188/react-web/ui/SheetUI';
 import { getIconSVGPathData } from '@jsb188/react-web/svgs/Icon';
 import { memo, useEffect, useRef, type CSSProperties, type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode, type Ref } from 'react';
-import { getGridSelectionBoxPosition } from '../modules/grid-selection.ts';
+import { getGridSelectionBoxPosition } from '../libs/grid-selection.ts';
 import {
   getSheetCanvasColumnDisplayLeft,
   getSheetCanvasGridDisplayRight,
   getSheetCanvasRowDisplayTop,
   sheetCanvasRectIsVisible,
-} from '../modules/sheet-canvas-geometry.ts';
+} from '../libs/sheet-canvas-geometry.ts';
 import {
   getSheetCanvasColumnIndexFromKey,
   getSheetCanvasStyleColor,
   getSheetCanvasRowIndexFromId,
   type SheetCanvasCell,
   type SheetCanvasColumn,
-} from '../modules/sheet-utils.ts';
-import type { DataTableLocalEditorPosition } from '../modules/dataTable-cell-editing.tsx';
-import type { SheetHeaderSelectionState } from '../states/sheet-state.ts';
+} from '../libs/sheet-utils.ts';
+import type { DataTableLocalEditorPosition } from '../libs/dataTable-cell-editing.tsx';
+import type { SheetHeaderSelectionState } from '../libs/sheet-state.ts';
 
 const SHEET_CANVAS_CELL_PADDING_X = 8;
 const SHEET_CANVAS_GRID_LINE_WIDTH = 1;
@@ -93,6 +93,7 @@ export type SheetCanvasSurfaceProps = {
 	className?: string;
 	columns: SheetColumnMetric[];
 	editState?: SheetUIEditState | null;
+	formulaContent?: ReactNode;
 	headerContent?: ReactNode;
 	headerSelection?: SheetHeaderSelectionState | null;
 	onContextMenu?: (event: MouseEvent<HTMLDivElement>) => void;
@@ -100,6 +101,7 @@ export type SheetCanvasSurfaceProps = {
 	onFocusOut?: (event: FocusEvent<HTMLDivElement>) => void;
 	onInput?: (event: FormEvent<HTMLDivElement>) => void;
 	onPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
+	onPointerDownCapture?: (event: PointerEvent<HTMLDivElement>) => void;
 	onPointerLeave?: (event: PointerEvent<HTMLDivElement>) => void;
 	onPointerMove?: (event: PointerEvent<HTMLDivElement>) => void;
 	overlayContent?: ReactNode;
@@ -1342,7 +1344,7 @@ function drawSheetCanvasHeaders(params: {
 		}
 		drawSheetCanvasText({
 			align: 'center',
-			color: headerSelected ? params.theme.headerSelectedText : params.theme.headerText,
+			color: headerSelected ? params.theme.headerSelectedText : bodySelected ? params.theme.bodyText : params.theme.headerText,
 			ctx: params.ctx,
 			fontFamily: params.theme.fontFamilyMedium,
 			fontSize: params.theme.headerFontSize,
@@ -1404,7 +1406,7 @@ function drawSheetCanvasHeaders(params: {
 		}
 		drawSheetCanvasText({
 			align: 'center',
-			color: headerSelected ? params.theme.headerSelectedText : params.theme.headerText,
+			color: headerSelected ? params.theme.headerSelectedText : bodySelected ? params.theme.bodyText : params.theme.headerText,
 			ctx: params.ctx,
 			fontFamily: params.theme.fontFamilyMedium,
 			fontSize: params.theme.headerFontSize,
@@ -1691,9 +1693,6 @@ function drawSheetCanvasGridLines(params: {
 	const bodyBottom = params.viewportHeight;
 	const bodyLeft = SHEET_ROW_NUMBER_WIDTH;
 	const bodyRight = Math.max(bodyLeft, Math.min(params.viewportWidth, params.gridRight));
-	const headerDividerLeft = params.columns.reduce((left, metric) => {
-		return metric.columnIndex < params.stickyColumnCount ? left + metric.width : left;
-	}, SHEET_ROW_NUMBER_WIDTH);
 	const headerDividerRight = bodyRight;
 
 	params.ctx.beginPath();
@@ -1723,7 +1722,7 @@ function drawSheetCanvasGridLines(params: {
 	});
 	addSheetCanvasHorizontalGridLine({
 		ctx: params.ctx,
-		left: headerDividerLeft,
+		left: 0,
 		right: headerDividerRight,
 		seen: fullWidthHorizontalLines,
 		y: SHEET_HEADER_HEIGHT,
@@ -2040,6 +2039,8 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 			</div>
 			: null}
 
+		{p.formulaContent}
+
 		<div
 			ref={p.scrollRef}
 			className='sheet_ui_scroll app_scr of_x f w_f rel bg_fade ft_xs'
@@ -2049,6 +2050,7 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 			onBlur={p.onFocusOut}
 			onInput={p.onInput}
 			onPointerDown={p.onPointerDown}
+			onPointerDownCapture={p.onPointerDownCapture}
 			onPointerLeave={p.onPointerLeave}
 			onPointerMove={p.onPointerMove}
 			style={{
@@ -2097,6 +2099,7 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 	prev.editState?.cellKey === next.editState?.cellKey &&
 	prev.editState?.rowId === next.editState?.rowId &&
 	prev.editState?.draftValue === next.editState?.draftValue &&
+	prev.formulaContent === next.formulaContent &&
 	prev.headerContent === next.headerContent &&
 	sheetCanvasHeaderSelectionsAreEqual(prev.headerSelection, next.headerSelection) &&
 	prev.onContextMenu === next.onContextMenu &&
@@ -2104,6 +2107,7 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 	prev.onFocusOut === next.onFocusOut &&
 	prev.onInput === next.onInput &&
 	prev.onPointerDown === next.onPointerDown &&
+	prev.onPointerDownCapture === next.onPointerDownCapture &&
 	prev.onPointerLeave === next.onPointerLeave &&
 	prev.onPointerMove === next.onPointerMove &&
 	prev.overlayContent === next.overlayContent &&

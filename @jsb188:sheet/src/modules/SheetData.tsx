@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import {
   createSheetStateAtoms,
   type SheetStateAtoms,
-} from '../states/sheet-state.ts';
+} from '../libs/sheet-state.ts';
 import {
   SheetController,
   type SheetCellEditInput,
@@ -30,7 +30,7 @@ import {
   replaceSheetCanvasCellsInViewport,
   SHEET_CANVAS_DEFAULT_VIEWPORT_HEIGHT,
   type SheetLoadedGridState,
-} from './sheet-utils.ts';
+} from '../libs/sheet-utils.ts';
 
 export interface SheetProps {
 	sheet: SheetGQL;

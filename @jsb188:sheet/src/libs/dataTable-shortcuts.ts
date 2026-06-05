@@ -3,13 +3,13 @@ import {
 	type SheetColumnMetric,
 	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
-import { parseGridClipboardText } from '@jsb188/sheet/modules/grid-clipboard';
+import { parseGridClipboardText } from '@jsb188/sheet/libs/grid-clipboard';
 import { type DataTableInteractionCellSelection } from './dataTable-interaction-state.ts';
 import {
 	getGridRangeSelection,
 	getNextActiveGridSelectedCell,
 	getOrderedGridSelectedCells,
-} from '@jsb188/sheet/modules/grid-selection';
+} from '@jsb188/sheet/libs/grid-selection';
 
 /*
  * Return DataTable row ids in their rendered order for shared grid helpers.

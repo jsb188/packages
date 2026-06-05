@@ -229,26 +229,49 @@ const POListColors = memo((p: PONavItemBase & {
   item: POListColorsObj;
 }) => {
   const { item, name, onClickItem, value } = p;
-  const { className, colors, disabled, selectedValue } = item;
+  const { className, colors, disabled, label, onClickCustomize, selectedValue } = item;
   const selectedColor = value ?? selectedValue;
   const displayColors = colors?.length ? colors : DEFAULT_PO_LIST_COLORS;
+  const showHeader = Boolean(label || onClickCustomize);
 
   return <div
-    className={cn('grid gap_4 p_8', className)}
-    style={{ gridTemplateColumns: 'repeat(10, 20px)' }}
+    className={cn('p_8', className)}
   >
-    {displayColors.map((color, i) => {
-      const selected = selectedColor === color;
-      return <button
-        key={`${name}_${color}_${i}`}
-        name={name}
-        disabled={disabled}
-        className={cn('w_20 h_20 r_4 bd_1 bg_alt_hv', selected ? 'bd_bd' : 'bd_lt', disabled && 'op_40')}
-        onClick={() => onClickItem(name, color)}
-        style={{ backgroundColor: color }}
-        type='button'
-      />;
-    })}
+    {showHeader
+      ? <div className='h_spread gap_10 mb_6 ft_xs lh_1'>
+        <span className='cl_md'>{label}</span>
+        {onClickCustomize
+          ? <button
+            className='btn link bg_active lh_1 ft_xs ft_medium px_5 py_3 r_sm'
+            disabled={disabled}
+            onClick={() => {
+              onClickCustomize(name, selectedColor);
+              onClickItem(name, selectedColor, false, true);
+            }}
+            type='button'
+          >
+            {i18n.t('form.customize')}
+          </button>
+          : null}
+      </div>
+      : null}
+    <div
+      className='grid gap_4'
+      style={{ gridTemplateColumns: 'repeat(10, 20px)' }}
+    >
+      {displayColors.map((color, i) => {
+        const selected = selectedColor === color;
+        return <button
+          key={`${name}_${color}_${i}`}
+          name={name}
+          disabled={disabled}
+          className={cn('w_20 h_20 r_4 bd_1 bg_alt_hv', selected ? 'bd_bd' : 'bd_lt', disabled && 'op_40')}
+          onClick={() => onClickItem(name, color)}
+          style={{ backgroundColor: color }}
+          type='button'
+        />;
+      })}
+    </div>
   </div>;
 });
 
