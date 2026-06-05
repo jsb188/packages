@@ -106,7 +106,7 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 	}, {
 		__type: 'LIST_ITEM',
 		disabled: !target.canEdit,
-		iconName: COMMON_ICON_NAMES.copy,
+		iconName: COMMON_ICON_NAMES.paste,
 		text: i18n.t('sheet.paste'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.pasteCellValues,
 	}, {

@@ -1022,6 +1022,16 @@ export const Copy1 = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox
 <path d="M22.50041306,21.60429373c0,.52674661-.42706372.95390494-.95390494.95390494H7.49504935c-.52682257,0-.95390494-.42715833-.95390494-.95390494V7.55278766c0-.52682257.42708237-.95390494.95390494-.95390494h14.05145877c.52684122,0,.95390494.42708237.95390494.95390494v14.05150607Z"/>
 </svg>;
 
+export const CopyPaste = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-copy-paste" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M20.25 8.249v-3a1.5 1.5 0 0 0 -1.5 -1.5h-4" />
+<path d="M6.25 3.749h-4a1.5 1.5 0 0 0 -1.5 1.5v16.5a1.5 1.5 0 0 0 1.5 1.5h6" />
+<path d="M14.421 4.736a0.751 0.751 0 0 1 -0.712 0.513H7.291a0.751 0.751 0 0 1 -0.712 -0.513l-1 -3a0.749 0.749 0 0 1 0.712 -0.987h8.418a0.749 0.749 0 0 1 0.712 0.987Z" />
+<path d="m11.25 11.249 12 0 0 12 -12 0Z" />
+<path d="m14.25 14.249 6 0" />
+<path d="m14.25 17.249 6 0" />
+<path d="m14.25 20.249 2.25 0" />
+</svg>;
+
 export const CreditCard = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-credit-card">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M3 5m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" />

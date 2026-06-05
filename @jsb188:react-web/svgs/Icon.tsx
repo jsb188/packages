@@ -142,6 +142,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   org_info: 'office-building-double',
   site_locations: 'map-marks',
   location: 'pin-location-1',
+  paste: 'copy-paste',
   pensive: 'mood-sad-filled',
   pinned: 'pinned',
   phone: 'phone', // Tabler version
