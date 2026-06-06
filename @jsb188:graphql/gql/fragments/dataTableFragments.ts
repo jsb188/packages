@@ -6,6 +6,7 @@ export const dataTableFragment = `fragment dataTableFragment on DataTable {
   title
   description
   active
+  deletedAt
 
   design {
     id

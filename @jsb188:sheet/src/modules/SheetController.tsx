@@ -158,6 +158,7 @@ const SHEET_CANVAS_APP_SCROLLBAR_SIZE = 19;
 const SHEET_CANVAS_TEXT_EDITOR_SELECTOR = '[data-sheet-editor="true"]';
 const SHEET_CANVAS_GRID_EDITOR_SELECTOR = '[data-sheet-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
 const SHEET_COLOR_PICKER_SELECTOR = '[data-sheet-color-picker="true"]';
+const SHEET_CONTEXT_MENU_OVERLAY_SELECTOR = `${SHEET_CANVAS_GRID_EDITOR_SELECTOR}, ${SHEET_COLOR_PICKER_SELECTOR}`;
 const SHEET_DEV_PARAM = 'dev';
 
 export type SheetInsertViewTableRequest = {
@@ -3186,7 +3187,17 @@ export function SheetController(p: SheetControllerProps) {
 		}
 	}, [openSheetCellEditor, stickyColumnCount]);
 
+	/*
+	 * Open the Sheet cell context menu unless the event belongs to an in-sheet overlay.
+	 */
 	const handleContextMenu = useCallback((event: MouseEvent<HTMLDivElement>) => {
+		const target = event.target instanceof Element ? event.target : null;
+
+		if (target?.closest(SHEET_CONTEXT_MENU_OVERLAY_SELECTOR)) {
+			event.stopPropagation();
+			return;
+		}
+
 		const runtime = runtimeRef.current;
 		const hit = runtime ? getSheetCanvasPointerHit({
 			clientX: event.clientX,
@@ -3402,6 +3413,7 @@ export function SheetController(p: SheetControllerProps) {
 	const formulaContent = <SheetFormulaInput
 		canEdit={formulaInputCanStartEdit}
 		column={formulaInputState.column}
+		dataTables={p.dataTables}
 		editState={formulaInputCanEdit ? editState : null}
 		error={formulaInputState.error}
 		onBlur={handleFormulaInputBlur}

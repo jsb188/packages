@@ -738,6 +738,34 @@ function getDataTableCellLookup(runtime: DataTableRuntimeState, rowId?: string |
 }
 
 /*
+ * Read one cell lookup from memoized DataTable row and design maps.
+ */
+function getDataTableCellLookupFromMaps(params: {
+	cellKey?: string | null;
+	designCellsByKey: Map<string, DataTableRuntimeDesignCell>;
+	rowCellsById: Map<string, Map<string, DataTableCellGQL>>;
+	rowId?: string | null;
+	rowsById: Map<string, DataTableRowGQL>;
+}): DataTableCellLookup | null {
+	if (!params.rowId || !params.cellKey) {
+		return null;
+	}
+
+	const row = params.rowsById.get(params.rowId);
+	const designCell = params.designCellsByKey.get(params.cellKey);
+
+	if (!row || !designCell) {
+		return null;
+	}
+
+	return {
+		cell: params.rowCellsById.get(row.id)?.get(getDataTableRuntimeCellKey(designCell)) || null,
+		designCell,
+		row,
+	};
+}
+
+/*
  * Return whether one lookup targets a related-document cell whose editing is blocked.
  */
 
@@ -1397,56 +1425,43 @@ function DataTableContent(p: DataTableContentProps) {
 			return null;
 		}
 
-		const row = rowsById.get(singleClickedCellState.rowId);
-		const designCell = designCellsByKey.get(singleClickedCellState.cellKey);
-
-		if (!row || !designCell) {
-			return null;
-		}
-
-		return {
-			cell: rowCellsById.get(row.id)?.get(getDataTableRuntimeCellKey(designCell)) || null,
-			designCell,
-			row,
-		};
+		return getDataTableCellLookupFromMaps({
+			cellKey: singleClickedCellState.cellKey,
+			designCellsByKey,
+			rowCellsById,
+			rowId: singleClickedCellState.rowId,
+			rowsById,
+		});
 	}, [designCellsByKey, rowCellsById, rowsById, singleClickedCellState]);
 	const activeDateEditorLookup = useMemo<DataTableCellLookup | null>(() => {
-		const designCell = editState?.cellKey ? designCellsByKey.get(editState.cellKey) : null;
+		const lookup = getDataTableCellLookupFromMaps({
+			cellKey: editState?.cellKey,
+			designCellsByKey,
+			rowCellsById,
+			rowId: editState?.rowId,
+			rowsById,
+		});
 
-		if (!editState || !designCell || !isDataTableDateEditorFieldType(getSheetEditorFieldType(designCell))) {
+		if (!lookup || !isDataTableDateEditorFieldType(getSheetEditorFieldType(lookup.designCell))) {
 			return null;
 		}
 
-		const row = rowsById.get(editState.rowId);
-
-		if (!row) {
-			return null;
-		}
-
-		return {
-			cell: rowCellsById.get(row.id)?.get(getDataTableRuntimeCellKey(designCell)) || null,
-			designCell,
-			row,
-		};
+		return lookup;
 	}, [designCellsByKey, editState, rowCellsById, rowsById]);
 	const activeSelectEditorLookup = useMemo<DataTableCellLookup | null>(() => {
-		const designCell = editState?.cellKey ? designCellsByKey.get(editState.cellKey) : null;
+		const lookup = getDataTableCellLookupFromMaps({
+			cellKey: editState?.cellKey,
+			designCellsByKey,
+			rowCellsById,
+			rowId: editState?.rowId,
+			rowsById,
+		});
 
-		if (!editState || !designCell || !isSheetSelectEditorFieldType(getSheetEditorFieldType(designCell))) {
+		if (!lookup || !isSheetSelectEditorFieldType(getSheetEditorFieldType(lookup.designCell))) {
 			return null;
 		}
 
-		const row = rowsById.get(editState.rowId);
-
-		if (!row) {
-			return null;
-		}
-
-		return {
-			cell: rowCellsById.get(row.id)?.get(getDataTableRuntimeCellKey(designCell)) || null,
-			designCell,
-			row,
-		};
+		return lookup;
 	}, [designCellsByKey, editState, rowCellsById, rowsById]);
 
 	useEffect(() => {

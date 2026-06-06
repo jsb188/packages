@@ -35,7 +35,7 @@ export interface SheetAxisDesignObj {
 }
 
 export interface SheetNamedRangeObj {
-	name: string;
+	name?: string | null;
 	startRowIndex: number;
 	startColumnIndex: number;
 	endRowIndex: number;
@@ -52,6 +52,11 @@ export interface SheetDesignObj {
 	namedRanges?: SheetNamedRangeObj[];
 	metadata?: Record<string, any>;
 }
+
+export type SheetEditorObj = Partial<{
+	textColors: string[];
+	fillColors: string[];
+}>;
 
 export interface SheetFormulaReferenceObj {
 	kind: SheetFormulaReferenceKind;
@@ -87,7 +92,9 @@ export interface SheetData {
 	description?: string | null;
 	position: number;
 	design: SheetDesignObj;
+	editor?: SheetEditorObj | null;
 	active: boolean;
+	deletedAt?: Date | string | null;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -226,7 +233,14 @@ export interface SheetDesignGQL {
 	metadata?: string | null;
 }
 
+export type SheetEditorGQL = Partial<{
+	textColors: string[];
+	fillColors: string[];
+}>;
+
 export interface SheetGQL {
+	__deleted?: boolean;
+
 	id?: string | null;
 	organizationId?: string | null;
 	name?: string | null;
@@ -234,7 +248,9 @@ export interface SheetGQL {
 	description?: string | null;
 	position?: number | null;
 	design?: SheetDesignGQL | null;
+	editor?: SheetEditorGQL | null;
 	active?: boolean | null;
+	deletedAt?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }

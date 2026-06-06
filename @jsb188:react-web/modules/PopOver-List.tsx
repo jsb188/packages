@@ -1,4 +1,6 @@
+import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
+import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
@@ -17,7 +19,15 @@ type POListSubmenuState = {
   top: number;
 };
 
-export const DEFAULT_PO_LIST_COLORS = ['#000000', '#FFFFFF'] as const;
+export const DEFAULT_PO_LIST_COLORS = ['red', 'orange', 'amber', 'yellow', 'emerald', 'teal', 'sky', 'blue', 'purple', 'pink'] as const satisfies readonly ColorEnum[];
+
+/*
+ * Return whether a popover color value is one of the app color enum values.
+ */
+
+function isPOListColorEnum(color: string): color is ColorEnum {
+  return COLORS.includes(color as ColorEnum);
+}
 
 /**
  * Pop over date range picker
@@ -232,6 +242,7 @@ const POListColors = memo((p: PONavItemBase & {
   const { className, colors, disabled, label, onClickCustomize, selectedValue } = item;
   const selectedColor = value ?? selectedValue;
   const displayColors = colors?.length ? colors : DEFAULT_PO_LIST_COLORS;
+  const emptyColorCount = Math.max(0, 10 - displayColors.length);
   const showHeader = Boolean(label || onClickCustomize);
 
   return <div
@@ -242,7 +253,7 @@ const POListColors = memo((p: PONavItemBase & {
         <span className='cl_md'>{label}</span>
         {onClickCustomize
           ? <button
-            className='btn link bg_active lh_1 ft_xs ft_medium px_5 py_3 r_sm'
+            className='btn r_sm cl_bd link lh_1 bg_alt bg_active_hv p_5'
             disabled={disabled}
             onClick={() => {
               onClickCustomize(name, selectedColor);
@@ -257,20 +268,28 @@ const POListColors = memo((p: PONavItemBase & {
       : null}
     <div
       className='grid gap_4'
-      style={{ gridTemplateColumns: 'repeat(10, 20px)' }}
+      style={{ gridTemplateColumns: 'repeat(10, 18px)' }}
     >
       {displayColors.map((color, i) => {
         const selected = selectedColor === color;
+        const colorClassName = isPOListColorEnum(color) ? `bg_${color}` : '';
+
         return <button
           key={`${name}_${color}_${i}`}
           name={name}
           disabled={disabled}
-          className={cn('w_20 h_20 r_4 bd_1 bg_alt_hv', selected ? 'bd_bd' : 'bd_lt', disabled && 'op_40')}
+          className={cn('w_18 h_18 r_4 bd_1 op_60_hv', colorClassName, selected ? 'bd_bd' : 'bd_lt', disabled && 'op_40')}
           onClick={() => onClickItem(name, color)}
-          style={{ backgroundColor: color }}
+          style={colorClassName ? undefined : { backgroundColor: color }}
           type='button'
         />;
       })}
+      {Array.from({ length: emptyColorCount }).map((_, i) => (
+        <span
+          key={`${name}_empty_color_${i}`}
+          className='w_18 h_18 r_4 bd_1 bd_lt'
+        />
+      ))}
     </div>
   </div>;
 });

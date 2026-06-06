@@ -7,6 +7,12 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
   description
   position
   active
+  deletedAt
+
+  editor {
+    textColors
+    fillColors
+  }
 
   design {
     id

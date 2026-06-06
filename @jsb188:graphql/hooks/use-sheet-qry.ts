@@ -1,5 +1,6 @@
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
+import { useMemo } from 'react';
 import { sheetGridQry, sheetQry, sheetsQry } from '../gql/queries/sheetQueries.ts';
 import type { UseQueryParams } from '../types.d.ts';
 
@@ -43,6 +44,21 @@ function mergeReactiveCellsIntoSheetGrid(sheetGrid?: any | null, sheetGridCells?
 }
 
 /*
+ * Add front-end deleted status to inactive or trashed Sheet records.
+ */
+
+function mapSheetDeletedStatus(sheet: any) {
+	if (!sheet || sheet.__deleted || (!sheet.deletedAt && sheet.active !== false)) {
+		return sheet;
+	}
+
+	return {
+		...sheet,
+		__deleted: true,
+	};
+}
+
+/*
  * Fetch sheets for an organization.
  */
 
@@ -59,9 +75,13 @@ export function useSheets(
 		skip: !organizationId,
 		...params,
 	});
+	const sheets = useReactiveFragmentMap(data?.sheets || null, 'sheetFragment');
+	const sheetsWithDeletedStatus = useMemo(() => (
+		sheets?.map(mapSheetDeletedStatus) || sheets
+	), [sheets]);
 
 	return {
-		sheets: data?.sheets,
+		sheets: sheetsWithDeletedStatus,
 		...rest,
 	};
 }
@@ -83,9 +103,10 @@ export function useSheet(
 		skip: !organizationId || !sheetId,
 		...params,
 	});
+	const sheet = useMemo(() => mapSheetDeletedStatus(data?.sheet), [data?.sheet]);
 
 	return {
-		sheet: data?.sheet,
+		sheet,
 		...rest,
 	};
 }
@@ -95,11 +116,14 @@ export function useSheet(
  */
 
 export function useReactiveSheetFragment(sheetId: string, currentData?: any, queryCount?: number) {
-	return useReactiveFragment(
+	const sheet = useReactiveFragment(
 		currentData,
 		[`$sheetFragment:${sheetId}`],
 		queryCount,
 	);
+	const sheetWithDeletedStatus = useMemo(() => mapSheetDeletedStatus(sheet), [sheet]);
+
+	return sheetWithDeletedStatus;
 }
 
 /*

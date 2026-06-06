@@ -10,29 +10,42 @@ const TILE_SECTION_MOCK_TILE_KEYS = ['1', '2', '3', '4'];
  * Render one compact workspace-style tile item.
  */
 export const TileItem = memo((p: {
+  __deleted?: boolean;
+  active?: boolean;
   className?: string;
   description?: React.ReactNode;
   iconName: string;
   title: React.ReactNode;
   to?: To | string;
   onClick?: (e: React.MouseEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }) => {
-  const { className, description, iconName, title, to, onClick } = p;
+  const { __deleted, active, className, description, iconName, title, to, onClick, onContextMenu } = p;
+  const clickable = !__deleted && !!(to || onClick);
+  const activeEnabled = !__deleted && active;
+  const hoverClassName = __deleted ? 'bd_lt' : 'bd_lt bd_primary_hv shadow_primary_hv';
 
   return <SmartLink
-    to={to}
-    onClick={onClick}
+    to={__deleted ? undefined : to}
+    onClick={__deleted ? undefined : onClick}
+    onContextMenu={__deleted ? undefined : onContextMenu}
     buttonElement='div'
     fallbackElement='div'
+    role={clickable && !to ? 'button' : undefined}
     className={cn(
       // 'bg_fade bg_alt_hv r_sm min_w_0 pattern_speckle bg_bf rel bd_1 bd_lt',
-      'bg bg_fade_hv r_sm min_w_0 bd_1 bd_lt bd_primary_hv',
+      '_bg r_sm min_w_0 bd_1',
+      activeEnabled ? 'bd_primary shadow_primary' : hoverClassName,
       'w_275 h_115 h_left gap_sm p_df',
-      (to || onClick) && 'link trans_link',
+      clickable && 'link trans_link',
+      __deleted && '__deleted',
       className,
     )}
   >
-    <span className='h_100_pc bg_fade pattern_dot active_bf shadow_line_alt v_center r_sm ic_md no_shrink rel ap_1'>
+    <span className={cn(
+      'h_100_pc bg_fade pattern_dot active_bf bd_1 bd_lt v_center r_sm ic_md no_shrink rel ap_1',
+      activeEnabled && 'shadow_line_alt',
+    )}>
       <span className='rel'>
         <Icon
           name={iconName}

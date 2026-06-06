@@ -625,17 +625,21 @@ export function getNavigationList(
     navListArr.push(reportsSection);
   }
 
-  if (dataTables) {
+  const activeDataTables = dataTables?.filter((dataTable) => !dataTable.__deleted && dataTable.active !== false);
+
+  if (activeDataTables) {
     const dataTablesSection = {
       text: i18n.t('form.data_tables'),
-      navList: dataTables.map((dataTable) => ({
+      navList: activeDataTables.map((dataTable) => ({
         to: makePathname('/app/d/', dataTable.id),
         text: dataTable.title || dataTable.name,
         iconName: COMMON_ICON_NAMES.data_table,
       })),
     };
 
-    navListArr.push(dataTablesSection);
+    if (dataTablesSection.navList.length) {
+      navListArr.push(dataTablesSection);
+    }
   }
 
   // @ts-ignore

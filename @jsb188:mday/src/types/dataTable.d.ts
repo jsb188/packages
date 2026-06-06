@@ -56,11 +56,12 @@ export interface DataTableData {
 
 	id: number | bigint;
 	organizationId: number | bigint;
-	name: string;
+	name?: string | null;
 	title: string;
 	description?: string | null;
 	design: DataTableDesignObj;
 	active: boolean;
+	deletedAt?: Date | string | null;
 	createdAt: Date;
 	updatedAt: Date;
 }

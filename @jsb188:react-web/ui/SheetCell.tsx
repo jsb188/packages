@@ -42,6 +42,7 @@ const SHEET_ROW_RESIZE_HANDLE_TOP_OFFSET = 1;
 const SHEET_STICKY_LEFT_Z_INDEX = 34;
 const SHEET_STICKY_HEADER_Z_INDEX = 31;
 const SHEET_STICKY_LEFT_HEADER_Z_INDEX = 32;
+const SHEET_STICKY_CORNER_Z_INDEX = 37;
 const SHEET_ACTIVE_HEADER_Z_INDEX = 33;
 const SHEET_COLUMN_RESIZE_HANDLE_Z_INDEX = 34;
 const SHEET_ROW_RESIZE_HANDLE_Z_INDEX = 34;
@@ -353,7 +354,7 @@ export const SheetCornerCell = memo(() => {
 			position: 'sticky',
 			top: 0,
 			width: SHEET_ROW_NUMBER_WIDTH,
-			zIndex: SHEET_STICKY_LEFT_HEADER_Z_INDEX,
+			zIndex: SHEET_STICKY_CORNER_Z_INDEX,
 		}}
 	/>;
 });
@@ -1021,25 +1022,29 @@ export const SheetTopLeftRowNumberSlot = memo((p: {
 	return <div
 		className='abs'
 		data-sheet-row-number-slot='true'
+		data-sheet-top-left-row-number-slot='true'
 		style={{
 			height: rowHeight,
 			left: 0,
 			top: 0,
 			width: p.rowWidth,
+			zIndex: SHEET_STICKY_CORNER_Z_INDEX,
 		}}
 	>
 		<div
-		className={cn(
+			className={cn(
 				'sheet_ui_row_number of abs sticky h_center ft_xs cl_md no_sel z2',
 				'',
 				STICKY_CELL_BG_CSS,
 			)}
+			data-sheet-top-left-corner-cell='true'
 			style={{
 				height: rowHeight,
 				left: 0,
 				position: 'sticky',
+				top: 0,
 				width: SHEET_ROW_NUMBER_WIDTH,
-				zIndex: SHEET_STICKY_LEFT_Z_INDEX,
+				zIndex: SHEET_STICKY_CORNER_Z_INDEX,
 			}}
 		/>
 	</div>;

@@ -3,6 +3,7 @@ import { OpenModalPopUpFn } from '@jsb188/react/states';
 import {
 	clearSheetCellMtn,
 	createSheetMtn,
+	deleteSheetMtn,
 	deleteSheetRangeMtn,
 	deleteSheetRegionMtn,
 	editSheetCellsMtn,
@@ -48,6 +49,27 @@ export function useUpdateSheet(params: UseMutationParams = {}, openModalPopUp?: 
 
 	return {
 		updateSheet,
+		updateObservers,
+		...mtnValues,
+		...mtnHandlers,
+	};
+}
+
+/*
+ * Delete a sheet.
+ */
+
+export function useDeleteSheet(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+	const [deleteSheet, mtnValues, mtnHandlers, updateObservers] = useMutation(
+		deleteSheetMtn,
+		{
+			openModalPopUp,
+			...params,
+		},
+	);
+
+	return {
+		deleteSheet,
 		updateObservers,
 		...mtnValues,
 		...mtnHandlers,

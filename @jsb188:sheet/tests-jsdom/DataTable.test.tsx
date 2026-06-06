@@ -21,7 +21,7 @@ configI18n();
 
 const hookState = vi.hoisted(() => ({
 	editInboundContact: vi.fn(),
-	editDataTableCell: vi.fn(),
+	editDataTableCells: vi.fn(),
 	editDataTableDesign: vi.fn(),
 	fetchMoreRows: vi.fn(),
 	getDataTableRows: null as (() => any[]) | null,
@@ -59,15 +59,14 @@ vi.mock('@jsb188/graphql/hooks/use-dataTable-qry', () => ({
 				organizationId: args[1],
 				cursor: args[2],
 				limit: args[3],
-				filter: args[4],
 			},
 		};
 	},
 }));
 
 vi.mock('@jsb188/graphql/hooks/use-dataTable-mtn', () => ({
-	useEditDataTableCell: () => ({
-		editDataTableCell: hookState.editDataTableCell,
+	useEditDataTableCells: () => ({
+		editDataTableCells: hookState.editDataTableCells,
 	}),
 	useEditDataTableDesign: () => ({
 		editDataTableDesign: hookState.editDataTableDesign,
@@ -219,6 +218,33 @@ async function flushRender() {
 }
 
 /*
+ * Advance the debounced DataTable cell save queue.
+ */
+
+async function flushCellSaves() {
+	await act(async () => {
+		vi.advanceTimersByTime(3000);
+		await Promise.resolve();
+	});
+
+	await flushRender();
+}
+
+/*
+ * Assert the latest batched DataTable cell save payload.
+ */
+
+function expectLastDataTableCellSave(cells: Array<{ cellKey: string; dataTableRowId: string; value: string | null }>) {
+	expect(hookState.editDataTableCells).toHaveBeenLastCalledWith({
+		variables: {
+			organizationId: 'org-1',
+			dataTableId: 'sheet-1',
+			cells,
+		},
+	});
+}
+
+/*
  * Find one rendered calendar day button by visible day number.
  */
 
@@ -309,7 +335,8 @@ beforeEach(() => {
 			id: 'contact-1',
 		},
 	});
-	hookState.editDataTableCell.mockReset().mockResolvedValue({ data: {} });
+	vi.useFakeTimers();
+	hookState.editDataTableCells.mockReset().mockResolvedValue({ editDataTableCells: [] });
 	hookState.editDataTableDesign.mockReset().mockResolvedValue({ data: {} });
 	hookState.fetchMoreRows.mockReset().mockResolvedValue({ data: { dataTableRows: [] } });
 	hookState.childOrganizations = [];
@@ -399,6 +426,7 @@ afterEach(() => {
 
 	vi.restoreAllMocks();
 	vi.unstubAllGlobals();
+	vi.useRealTimers();
 });
 
 describe('Sheet container', () => {
@@ -698,17 +726,18 @@ describe('Sheet container', () => {
 		await flushRender();
 		await pressSheetKey('v', { setFloatingMessage, dataTable: sheet }, { metaKey: true });
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledTimes(1);
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
+		expect(hookState.editDataTableCells).toHaveBeenCalledTimes(1);
+		expect(hookState.editDataTableCells).toHaveBeenCalledWith({
 			variables: {
-				cellKey: 'name',
 				organizationId: 'org-1',
 				dataTableId: 'sheet-1',
-				dataTableRowId: 'row-0',
-				value: 'Beta',
-				viewCellKey: null,
-				viewId: null,
+				cells: [{
+					cellKey: 'name',
+					dataTableRowId: 'row-0',
+					value: 'Beta',
+				}],
 			},
 		});
 		expect(setFloatingMessage).toHaveBeenCalledWith(expect.objectContaining({
@@ -748,10 +777,24 @@ describe('Sheet container', () => {
 		await pressSheetKey('ArrowRight', { setFloatingMessage, dataTable: sheet }, { shiftKey: true });
 		await pressSheetKey('Delete', { setFloatingMessage, dataTable: sheet });
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledTimes(2);
-		expect(hookState.editDataTableCell.mock.calls.map((call) => call[0].variables.cellKey)).toEqual(['name', 'status']);
-		expect(hookState.editDataTableCell.mock.calls.map((call) => call[0].variables.value)).toEqual([null, null]);
+		expect(hookState.editDataTableCells).toHaveBeenCalledTimes(1);
+		expect(hookState.editDataTableCells).toHaveBeenCalledWith({
+			variables: {
+				organizationId: 'org-1',
+				dataTableId: 'sheet-1',
+				cells: [{
+					cellKey: 'name',
+					dataTableRowId: 'row-0',
+					value: null,
+				}, {
+					cellKey: 'status',
+					dataTableRowId: 'row-0',
+					value: null,
+				}],
+			},
+		});
 		expect(setFloatingMessage).toHaveBeenCalledWith(expect.objectContaining({
 			text: 'Cleared 2 cells, skipped 1, failed 0.',
 			type: 'NOTICE',
@@ -1032,285 +1075,6 @@ describe('Sheet container', () => {
 		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="name"]')).not.toBeNull();
 		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="status"]')).toBeNull();
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="status"]')).toBeNull();
-	});
-
-	it('does not render view columns backed by hidden master cells', async () => {
-		const sheet = createDataTable();
-		sheet.design = {
-			...sheet.design,
-			cells: sheet.design.cells.map((cell) => cell.key === 'status'
-				? {
-					...cell,
-					hidden: true,
-				}
-				: cell),
-			views: [{
-				id: 'review',
-				name: 'Review',
-				layout: 'GRID',
-				columns: [{
-					key: 'review_name',
-					label: 'Name',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'MASTER_CELL',
-						cellKey: 'name',
-					},
-				}, {
-					key: 'review_status',
-					label: 'Hidden Status',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'MASTER_CELL',
-						cellKey: 'status',
-					},
-				}],
-				columnsOrder: ['review_name', 'review_status'],
-				filters: [],
-				sorts: [],
-				groups: [],
-			}],
-			viewsOrder: ['review'],
-		};
-		const host = await renderSheet({ dataTable: sheet });
-		const reviewTab = host.querySelector('[data-sheet-view-tab="review"]') as HTMLElement;
-
-		await act(async () => {
-			reviewTab.click();
-			await Promise.resolve();
-		});
-		await flushRender();
-
-		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="review_name"]')).not.toBeNull();
-		expect(host.querySelector('[data-sheet-header-cell="true"][data-cell-key="review_status"]')).toBeNull();
-		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="review_status"]')).toBeNull();
-	});
-
-	it('always renders the data tab for the unfiltered master sheet', async () => {
-		const host = await renderSheet();
-		const dataTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
-		const sheetGridContainer = host.querySelector('[data-sheet-grid-container="true"]') as HTMLElement;
-		const sheetWithViews = host.querySelector('[data-sheet-with-views="true"]') as HTMLElement;
-		const viewTabs = host.querySelector('[data-sheet-view-tabs="true"]') as HTMLElement;
-
-		expect(dataTab).not.toBeNull();
-		expect(dataTab.textContent).toBe('Data');
-		expect(dataTab.querySelector('.icon-database-2')).not.toBeNull();
-		expect(sheetGridContainer.className).toContain('h_0');
-		expect(sheetWithViews.className).not.toContain('pb_40');
-		expect(viewTabs.className).not.toContain('abs_b');
-		expect(viewTabs.className).toContain('no_shrink');
-		expect(viewTabs.className).toContain('h_45');
-		expect(hookState.lastDataTableRowsArgs?.[4]).toBeNull();
-	});
-
-	it('renders saved views as bottom tabs and refetches rows with a view filter', async () => {
-		const sheet = createDataTable();
-		sheet.design = {
-			...sheet.design,
-			views: [{
-				id: 'active_jobs',
-				name: 'Active Jobs',
-				layout: 'GRID',
-				columns: [{
-					key: 'job_name',
-					label: 'Job',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'MASTER_CELL',
-						cellKey: 'name',
-					},
-					width: 220,
-				}],
-				columnsOrder: ['job_name'],
-				filters: [],
-				sorts: [],
-				groups: [],
-			}],
-			viewsOrder: ['active_jobs'],
-		};
-		const host = await renderSheet({ dataTable: sheet });
-		const viewTabs = host.querySelector('[data-sheet-view-tabs="true"]');
-		const dataTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
-		const activeJobsTab = host.querySelector('[data-sheet-view-tab="active_jobs"]') as HTMLElement;
-
-		expect(viewTabs).not.toBeNull();
-		expect(dataTab.textContent).toBe('Data');
-		expect(activeJobsTab.textContent).toBe('Active Jobs');
-		expect(hookState.lastDataTableRowsArgs?.[4]).toBeNull();
-
-		await act(async () => {
-			activeJobsTab.click();
-			await Promise.resolve();
-		});
-		await flushRender();
-		await flushRender();
-
-		expect(hookState.lastDataTableRowsArgs?.[4]).toEqual({
-			viewId: 'active_jobs',
-		});
-		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('Job');
-		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="job_name"]')?.textContent).toBe('Alpha');
-
-		const jobNameCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="job_name"]') as HTMLElement;
-		await act(async () => {
-			jobNameCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-		});
-
-		const input = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
-		await act(async () => {
-			input.value = 'Beta';
-			input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
-			await Promise.resolve();
-		});
-		await flushRender();
-
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
-			variables: {
-				cellKey: 'name',
-				organizationId: 'org-1',
-				dataTableId: 'sheet-1',
-				dataTableRowId: 'row-0',
-				viewCellKey: 'job_name',
-				viewId: 'active_jobs',
-				value: 'Beta',
-			},
-		});
-	});
-
-	it('renders computed and related view cells as read-only columns', async () => {
-		const sheet = createDataTable();
-		sheet.design = {
-			...sheet.design,
-			views: [{
-				id: 'weekly_fulfillment',
-				name: 'Current Week',
-				layout: 'GRID',
-				columns: [{
-					key: 'region',
-					label: 'Region',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'RELATED_RECORD',
-						table: 'logs',
-						path: 'createdAt',
-						sourceCellKey: 'name',
-					},
-				}, {
-					key: 'crates',
-					label: 'Crates',
-					humanFieldType: 'NUMBER',
-					source: {
-						type: 'COMPUTED',
-						operation: 'SUM',
-						sourceCellKeys: ['name', 'status'],
-					},
-				}],
-				columnsOrder: ['region', 'crates'],
-				filters: [],
-				sorts: [],
-				groups: [],
-			}],
-			viewsOrder: ['weekly_fulfillment'],
-		};
-		hookState.dataTableRows = [createRow(0, {
-			region: 'North',
-			crates: '12',
-		})];
-		const host = await renderSheet({ dataTable: sheet });
-		const currentWeekTab = host.querySelector('[data-sheet-view-tab="weekly_fulfillment"]') as HTMLElement;
-
-		await act(async () => {
-			currentWeekTab.click();
-			await Promise.resolve();
-		});
-		await flushRender();
-		await flushRender();
-
-		const regionCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="region"]') as HTMLElement;
-		const cratesCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="crates"]') as HTMLElement;
-
-		expect(regionCell.textContent).toBe('North');
-		expect(cratesCell.textContent).toBe('12');
-		expect(regionCell.dataset.sheetCellEditable).toBeUndefined();
-		expect(cratesCell.dataset.sheetCellEditable).toBeUndefined();
-
-		await act(async () => {
-			cratesCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-		});
-		await flushRender();
-
-		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
-		expect(hookState.editDataTableCell).not.toHaveBeenCalled();
-	});
-
-	it('renders computed view cells from source cells when synthetic cells are missing', async () => {
-		const sheet = createDataTable();
-		sheet.design = {
-			...sheet.design,
-			cells: [
-				createDesignCell('crate_18_lbs', {
-					fieldType: 'NUMBER',
-					humanFieldType: 'NUMBER',
-				}),
-				createDesignCell('crate_10_lbs', {
-					fieldType: 'NUMBER',
-					humanFieldType: 'NUMBER',
-				}),
-				createDesignCell('crate_5_lbs', {
-					fieldType: 'NUMBER',
-					humanFieldType: 'NUMBER',
-				}),
-			],
-			views: [{
-				id: 'markets_today',
-				name: 'Markets (today)',
-				layout: 'GRID',
-				columns: [{
-					key: 'crates',
-					label: 'Crates',
-					fieldType: 'NUMBER',
-					humanFieldType: 'NUMBER',
-					source: {
-						type: 'COMPUTED',
-						operation: 'SUM',
-						sourceCellKeys: ['crate_18_lbs', 'crate_10_lbs', 'crate_5_lbs'],
-					},
-				}],
-				columnsOrder: ['crates'],
-				filters: [],
-				sorts: [],
-				groups: [],
-			}],
-			viewsOrder: ['markets_today'],
-		};
-		const row = createRow(0, {});
-		row.cells = [
-			createCell(row.id, 'crate_18_lbs', '3', {
-				numberValue: 3,
-			}),
-			createCell(row.id, 'crate_10_lbs', '4', {
-				numberValue: 4,
-			}),
-			createCell(row.id, 'crate_5_lbs', '5', {
-				numberValue: 5,
-			}),
-		];
-		hookState.dataTableRows = [row];
-		const host = await renderSheet({ dataTable: sheet });
-		const marketsTodayTab = host.querySelector('[data-sheet-view-tab="markets_today"]') as HTMLElement;
-
-		await act(async () => {
-			marketsTodayTab.click();
-			await Promise.resolve();
-		});
-		await flushRender();
-		await flushRender();
-
-		const cratesCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="crates"]') as HTMLElement;
-
-		expect(cratesCell.textContent).toBe('12');
-		expect(cratesCell.dataset.sheetCellEditable).toBeUndefined();
 	});
 
 	it('renders select-style values as colored pills from sheet design options', async () => {
@@ -1609,70 +1373,6 @@ describe('Sheet container', () => {
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="date"]')?.textContent).toBe('Mon, May 18');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="datetime"]')?.textContent).toBe('May 18, 2:30 PM');
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="related_date"]')?.textContent).toBe('2026 May 18');
-	});
-
-	it('selects a valid saved default view on first render', async () => {
-		const sheet = createDataTable();
-		sheet.design = {
-			...sheet.design,
-			defaultViewId: 'active_jobs',
-			views: [{
-				id: 'active_jobs',
-				name: 'Active Jobs',
-				layout: 'GRID',
-				columns: [{
-					key: 'job_name',
-					label: 'Job',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'MASTER_CELL',
-						cellKey: 'name',
-					},
-				}],
-				columnsOrder: ['job_name'],
-				filters: [],
-				sorts: [],
-				groups: [],
-			}],
-			viewsOrder: ['active_jobs'],
-		};
-		const host = await renderSheet({ dataTable: sheet });
-
-		expect(hookState.lastDataTableRowsArgs?.[4]).toEqual({
-			viewId: 'active_jobs',
-		});
-		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('Job');
-	});
-
-	it('falls back to the database tab when a saved default view is missing', async () => {
-		const sheet = createDataTable();
-		sheet.design = {
-			...sheet.design,
-			defaultViewId: 'missing_view',
-			views: [{
-				id: 'active_jobs',
-				name: 'Active Jobs',
-				layout: 'GRID',
-				columns: [{
-					key: 'job_name',
-					label: 'Job',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'MASTER_CELL',
-						cellKey: 'name',
-					},
-				}],
-				columnsOrder: ['job_name'],
-				filters: [],
-				sorts: [],
-				groups: [],
-			}],
-			viewsOrder: ['active_jobs'],
-		};
-		const host = await renderSheet({ dataTable: sheet });
-
-		expect(hookState.lastDataTableRowsArgs?.[4]).toBeNull();
-		expect(host.querySelector('[data-sheet-header-cell="true"]')?.textContent).toBe('NAME');
 	});
 
 	it('saves header human labels from header edit mode', async () => {
@@ -1999,7 +1699,6 @@ describe('Sheet container', () => {
 		];
 		hookState.dataTableRowsVariables = {
 			cursor: null,
-			filter: null,
 			limit: 200,
 			organizationId: 'org-1',
 			dataTableId: 'previous-sheet',
@@ -2140,7 +1839,6 @@ describe('Sheet container', () => {
 		expect(hookState.fetchMoreRows).toHaveBeenCalledWith({
 			variables: {
 				cursor: 'cursor-29',
-				filter: null,
 				limit: 30,
 				organizationId: 'org-1',
 				dataTableId: 'sheet-1',
@@ -2165,18 +1863,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
-			variables: {
+		expectLastDataTableCellSave([{
 				cellKey: 'name',
-				organizationId: 'org-1',
-				dataTableId: 'sheet-1',
 				dataTableRowId: 'row-0',
-				viewCellKey: null,
-				viewId: null,
 				value: 'Beta',
-			},
-		});
+		}]);
 	});
 
 	it('keeps edited text cells selected after saving a changed value', async () => {
@@ -2218,18 +1911,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
-			variables: {
+		expectLastDataTableCellSave([{
 				cellKey: 'name',
-				organizationId: 'org-1',
-				dataTableId: 'sheet-1',
 				dataTableRowId: 'row-0',
-				viewCellKey: null,
-				viewId: null,
 				value: null,
-			},
-		});
+		}]);
 		expect(host.querySelector('[data-sheet-editor="true"]')).toBeNull();
 		expect(nameCell.className).toContain('single_clicked');
 	});
@@ -2428,18 +2116,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
-			variables: {
+		expectLastDataTableCellSave([{
 				cellKey: 'status',
-				organizationId: 'org-1',
-				dataTableId: 'sheet-1',
 				dataTableRowId: 'row-0',
-				viewCellKey: null,
-				viewId: null,
 				value: 'closed',
-			},
-			});
+		}]);
 			expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
 		});
 
@@ -2575,13 +2258,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'enabled',
-				value: 'true',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'enabled',
+			dataTableRowId: 'row-0',
+			value: 'true',
+		}]);
 		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
 	});
 
@@ -2619,13 +2302,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'tags',
-				value: JSON.stringify(['market', 'prep']),
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'tags',
+			dataTableRowId: 'row-0',
+			value: JSON.stringify(['market', 'prep']),
+		}]);
 		expect(host.querySelector('[data-sheet-select-editor="true"]')).not.toBeNull();
 	});
 
@@ -2664,13 +2347,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'reason',
-				value: 'listed',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'reason',
+			dataTableRowId: 'row-0',
+			value: 'listed',
+		}]);
 
 		await act(async () => {
 			reasonCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
@@ -2686,13 +2369,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'reason',
-				value: 'Typed reason',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'reason',
+			dataTableRowId: 'row-0',
+			value: 'Typed reason',
+		}]);
 		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
 	});
 
@@ -2752,8 +2435,8 @@ describe('Sheet container', () => {
 		hookState.dataTableRows = [createRow(0, {
 			source: '',
 		})];
-		hookState.editDataTableCell.mockResolvedValueOnce({
-			editDataTableCell: createCell('row-0', 'source', 'WEBSITE'),
+		hookState.editDataTableCells.mockResolvedValueOnce({
+			editDataTableCells: [createCell('row-0', 'source', 'WEBSITE')],
 		});
 		const host = await renderSheet({ dataTable: sheet });
 		const sourceCell = host.querySelector('[data-sheet-cell="true"][data-cell-key="source"]') as HTMLElement;
@@ -2772,13 +2455,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'source',
-				value: 'weBSIte',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'source',
+			dataTableRowId: 'row-0',
+			value: 'weBSIte',
+		}]);
 		expect(host.querySelector('[data-sheet-cell="true"][data-cell-key="source"]')?.textContent).toBe('website');
 	});
 
@@ -2831,13 +2514,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'status',
-				value: 'closed',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'status',
+			dataTableRowId: 'row-0',
+			value: 'closed',
+		}]);
 
 		await act(async () => {
 			noteCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
@@ -2885,13 +2568,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'document',
-				value: 'blocked',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'document',
+			dataTableRowId: 'row-0',
+			value: 'blocked',
+		}]);
 	});
 
 	it('uses SELECT_OR_TEXT humanFieldType to choose edit behavior for ID cells', async () => {
@@ -2931,13 +2614,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenLastCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'document',
-				value: 'blocked',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'document',
+			dataTableRowId: 'row-0',
+			value: 'blocked',
+		}]);
 	});
 
 	it('dismisses select-style editors with outside clicks and escape without saving', async () => {
@@ -2987,7 +2670,7 @@ describe('Sheet container', () => {
 
 		expect(host.querySelector('[data-sheet-select-editor="true"]')).toBeNull();
 		expect(statusCell.className).toContain('single_clicked');
-		expect(hookState.editDataTableCell).not.toHaveBeenCalled();
+		expect(hookState.editDataTableCells).not.toHaveBeenCalled();
 	});
 
 	it('opens a sheet-owned date calendar editor and saves the selected date', async () => {
@@ -3025,13 +2708,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'dueDate',
-				value: '2026-02-28',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'dueDate',
+			dataTableRowId: 'row-0',
+			value: '2026-02-28',
+		}]);
 		expect(host.querySelector('[data-sheet-date-editor="true"]')).toBeNull();
 	});
 
@@ -3086,13 +2769,13 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalledWith({
-			variables: expect.objectContaining({
-				cellKey: 'startsAt',
-				value: '2026-05-22T14:45',
-			}),
-		});
+		expectLastDataTableCellSave([{
+			cellKey: 'startsAt',
+			dataTableRowId: 'row-0',
+			value: '2026-05-22T14:45',
+		}]);
 		expect(host.querySelector('[data-sheet-date-editor="true"]')).toBeNull();
 	});
 
@@ -3167,11 +2850,11 @@ describe('Sheet container', () => {
 		await flushRender();
 
 		expect(host.querySelector('[data-sheet-date-editor="true"]')).toBeNull();
-		expect(hookState.editDataTableCell).not.toHaveBeenCalled();
+		expect(hookState.editDataTableCells).not.toHaveBeenCalled();
 	});
 
 	it('keeps date editors open with an error when saving fails', async () => {
-		hookState.editDataTableCell.mockRejectedValueOnce(new Error('Save failed'));
+		hookState.editDataTableCells.mockRejectedValueOnce(new Error('Save failed'));
 		const sheet = createDataTable();
 		sheet.design = {
 			...sheet.design,
@@ -3201,15 +2884,16 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 		await flushRender();
 
-		expect(hookState.editDataTableCell).toHaveBeenCalled();
+		expect(hookState.editDataTableCells).toHaveBeenCalled();
 		expect(host.querySelector('[data-sheet-date-editor="true"]')).not.toBeNull();
 		expect(host.querySelector('[data-sheet-editor="true"]')).not.toBeNull();
 	});
 
 	it('keeps local edited cell values until server data confirms them', async () => {
-		hookState.editDataTableCell.mockImplementationOnce(() => new Promise(() => {}));
+		hookState.editDataTableCells.mockImplementationOnce(() => new Promise(() => {}));
 		const host = await renderSheet();
 		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
 
@@ -3239,7 +2923,7 @@ describe('Sheet container', () => {
 	});
 
 	it('rolls back local edited cell values when the save mutation fails', async () => {
-		hookState.editDataTableCell.mockRejectedValueOnce(new Error('Save failed'));
+		hookState.editDataTableCells.mockRejectedValueOnce(new Error('Save failed'));
 		const host = await renderSheet();
 		const getNameCell = () => host.querySelector('[data-sheet-cell="true"][data-cell-key="name"]') as HTMLElement;
 
@@ -3255,6 +2939,7 @@ describe('Sheet container', () => {
 			await Promise.resolve();
 		});
 		await flushRender();
+		await flushCellSaves();
 		await flushRender();
 
 		const failedInput = host.querySelector('[data-sheet-editor="true"]') as HTMLInputElement;
@@ -4148,125 +3833,6 @@ describe('Sheet container', () => {
 			}));
 			await Promise.resolve();
 		});
-	});
-
-	it('reorders saved view columns without changing the database column order', async () => {
-		const sheet = createDataTable();
-		sheet.design = {
-			...sheet.design,
-			cells: [
-				createDesignCell('name'),
-				createDesignCell('status', {
-					hidden: true,
-				}),
-				createDesignCell('owner'),
-			],
-			cellsOrder: ['name', 'status', 'owner'],
-			views: [{
-				id: 'active_jobs',
-				name: 'Active Jobs',
-				layout: 'GRID',
-				columns: [{
-					key: 'job_name',
-					label: 'Job',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'MASTER_CELL',
-						cellKey: 'name',
-					},
-				}, {
-					key: 'job_status',
-					label: 'Hidden Status',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'MASTER_CELL',
-						cellKey: 'status',
-					},
-				}, {
-					key: 'job_owner',
-					label: 'Owner',
-					humanFieldType: 'TEXT',
-					source: {
-						type: 'MASTER_CELL',
-						cellKey: 'owner',
-					},
-				}],
-				columnsOrder: ['job_name', 'job_status', 'job_owner'],
-				filters: [],
-				sorts: [],
-				groups: [],
-			}],
-			viewsOrder: ['active_jobs'],
-		};
-		hookState.dataTableRows = [createRow(0, {
-			name: 'Alpha',
-			owner: 'Sam',
-			status: 'Hidden',
-		})];
-		const host = await renderSheet({ dataTable: sheet });
-		const activeJobsTab = host.querySelector('[data-sheet-view-tab="active_jobs"]') as HTMLElement;
-
-		await act(async () => {
-			activeJobsTab.click();
-			await Promise.resolve();
-		});
-		await flushRender();
-		await flushRender();
-
-		const jobNameHeader = host.querySelector('[data-sheet-header-cell="true"][data-cell-key="job_name"]') as HTMLElement;
-		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
-			'Job',
-			'Owner',
-		]);
-
-		await act(async () => {
-			jobNameHeader.dispatchEvent(new MouseEvent('pointerdown', {
-				bubbles: true,
-				button: 0,
-				clientX: 60,
-			}));
-			window.dispatchEvent(new MouseEvent('pointermove', {
-				bubbles: true,
-				buttons: 1,
-				clientX: 330,
-			}));
-			window.dispatchEvent(new MouseEvent('pointerup', {
-				bubbles: true,
-				buttons: 0,
-				clientX: 330,
-			}));
-			await Promise.resolve();
-		});
-		await flushRender();
-
-		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
-			'Owner',
-			'Job',
-		]);
-		expect(hookState.editDataTableDesign).toHaveBeenCalledWith({
-			variables: {
-				design: {
-					views: [{
-						id: 'active_jobs',
-						columnsOrder: ['job_owner', 'job_status', 'job_name'],
-					}],
-				},
-				organizationId: 'org-1',
-				dataTableId: 'sheet-1',
-			},
-		});
-
-		const databaseTab = host.querySelector('[data-sheet-view-tab="master"]') as HTMLElement;
-		await act(async () => {
-			databaseTab.click();
-			await Promise.resolve();
-		});
-		await flushRender();
-
-		expect(Array.from(host.querySelectorAll('[data-sheet-header-cell="true"]')).map((cell) => cell.textContent)).toEqual([
-			'NAME',
-			'OWNER',
-		]);
 	});
 
 	it('saves one column width mutation when a resize finishes', async () => {

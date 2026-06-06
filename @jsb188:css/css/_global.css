@@ -384,16 +384,16 @@ img.no_shrink { max-width: none; max-height: none; }
 /* Opacity */
 
 .hv_area:hover .target, .op_100 { opacity: 1; }
-.op_90 { opacity: .9; }
-.op_80 { opacity: .8; }
-.op_70 { opacity: .7; }
-.op_60 { opacity: .6; }
-.op_50 { opacity: .5; }
-.op_40 { opacity: .4; }
-.op_30 { opacity: .3; }
-.op_20 { opacity: .2; }
-.op_10 { opacity: .1; }
-.op_0 { opacity: 0; }
+.op_90, .op_90_hv:hover { opacity: .9; }
+.op_80, .op_80_hv:hover { opacity: .8; }
+.op_70, .op_70_hv:hover { opacity: .7; }
+.op_60, .op_60_hv:hover { opacity: .6; }
+.op_50, .op_50_hv:hover { opacity: .5; }
+.op_40, .op_40_hv:hover { opacity: .4; }
+.op_30, .op_30_hv:hover { opacity: .3; }
+.op_20, .op_20_hv:hover { opacity: .2; }
+.op_10, .op_10_hv:hover { opacity: .1; }
+.op_0, .op_0_hv:hover { opacity: 0; }
 .invis { visibility: hidden; }
 
 /* emphasiszed a.text but inside .bg_primary  */
@@ -564,12 +564,12 @@ button.bg_contrast:not([disabled="true"]):not(.disabled):hover, a.bg_contrast:no
 .cl_black { color: rgb(var(--color-darker-rgb)) !important; }
 .cl_white { color: rgb(var(--color-lighter-rgb)) !important; }
 
-.bg { background-color: rgb(var(--color-bg)); }
-.bg_fade { background-color: rgb(var(--color-bg-fade)); }
-.bg_alt { background-color: rgb(var(--color-bg-alt)); }
-.bg_active { background-color: rgb(var(--color-bg-active)); }
-.bg_medium { background-color: rgb(var(--color-bg-medium)); }
-.bg_strong { background-color: rgb(var(--color-bg-strong)); }
+.bg, ._bg { background-color: rgb(var(--color-bg)); }
+.bg_fade, ._bg_fade { background-color: rgb(var(--color-bg-fade)); }
+.bg_alt, ._bg_alt { background-color: rgb(var(--color-bg-alt)); }
+.bg_active, ._bg_active { background-color: rgb(var(--color-bg-active)); }
+.bg_medium, ._bg_medium { background-color: rgb(var(--color-bg-medium)); }
+.bg_strong, ._bg_strong { background-color: rgb(var(--color-bg-strong)); }
 
 .bg_invis { background-color: rgba(0,0,0,0); }
 .bg_darker_1 { background-color: rgba(var(--color-darker-rgb),.03); }
@@ -870,8 +870,8 @@ a.text.cl_main:before, button.text.cl_main:before, a.text.cl_main:hover:before, 
 .shadow_bg_drop_lg, .shadow_bg_drop_lg_hv:hover { box-shadow: 0 20px 40px rgb(var(--color-bg)); }
 
 /* Shadow - colored lines (use this to immitate a "highlighted border" effect */
-.shadow_primary { box-shadow: 0 0 0 1px rgb(var(--color-primary)); }
-.shadow_err { box-shadow: 0 0 0 1px rgb(var(--color-error)); }
+.shadow_primary, .shadow_primary_hv:hover { box-shadow: 0 0 0 1px rgb(var(--color-primary)); }
+.shadow_err, .shadow_err_hv:hover { box-shadow: 0 0 0 1px rgb(var(--color-error)); }
 
 /* Transitions */
 

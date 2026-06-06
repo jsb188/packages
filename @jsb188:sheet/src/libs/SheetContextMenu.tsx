@@ -95,7 +95,7 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 	const options: POListIfaceItem[] = [{
 		__type: 'LIST_ITEM',
 		disabled: !target.canEdit,
-		iconName: COMMON_ICON_NAMES.edit,
+		iconName: 'pencil-write-3',
 		text: i18n.t('sheet.edit_cell'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.editCell,
 	}, {
@@ -160,29 +160,29 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 	}, {
 		__type: 'LIST_ITEM',
 		disabled: !target.canEdit,
-		iconName: COMMON_ICON_NAMES.plus,
+		iconName: COMMON_ICON_NAMES.row_insert,
 		text: i18n.t('sheet.insert_1_row_above'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.insertRowAbove,
 	}, {
 		__type: 'LIST_ITEM',
 		disabled: !target.canEdit,
-		iconName: COMMON_ICON_NAMES.plus,
+		iconName: COMMON_ICON_NAMES.column_insert,
 		text: i18n.t('sheet.insert_1_column_left'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.insertColumnLeft,
 	}, {
 		__type: 'BREAK',
 	}, {
 		__type: 'LIST_ITEM',
-		className: 'cl_err',
+		className: 'cl_err_hv',
 		disabled: !target.canEdit,
-		iconName: COMMON_ICON_NAMES.delete,
+		iconName: COMMON_ICON_NAMES.delete_row,
 		text: i18n.t('sheet.delete_row'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.deleteRow,
 	}, {
 		__type: 'LIST_ITEM',
-		className: 'cl_err',
+		className: 'cl_err_hv',
 		disabled: !target.canEdit,
-		iconName: COMMON_ICON_NAMES.delete,
+		iconName: COMMON_ICON_NAMES.delete_column,
 		text: i18n.t('sheet.delete_column'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.deleteColumn,
 	}];

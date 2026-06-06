@@ -13,12 +13,20 @@ mutation createDataTable (
     title: $title
     name: $name
     description: $description
-  ) {
-    ...dataTableFragment
-  }
+  )
 }
+`;
 
-${dataTableFragment}
+export const deleteDataTableMtn = gql`
+mutation deleteDataTable (
+  $organizationId: GenericID!
+  $dataTableId: GenericID!
+) {
+  deleteDataTable (
+    organizationId: $organizationId
+    dataTableId: $dataTableId
+  )
+}
 `;
 
 export const editDataTableCellMtn = gql`

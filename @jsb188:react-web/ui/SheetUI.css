@@ -127,3 +127,23 @@ We're not going to show border on editing HEADER cells because:
 .sheet_overlay_editor textarea {
   resize: vertical;
 }
+
+/* Formula input */
+
+.sheet_formula_token {
+  position: relative;
+  z-index: 0;
+}
+
+.sheet_formula_token::before {
+  content: ' ';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 0.08em;
+  bottom: 0.02em;
+  background: var(--sheet-formula-token-highlight);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: -1;
+}

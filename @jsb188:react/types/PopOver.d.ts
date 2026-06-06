@@ -87,6 +87,8 @@ export interface POModalItemObj extends Omit<POActionListItemBase, 'onClick'> {
   useMutationArgs?: POStateValue[];
 }
 
+type POListColorValue = ColorEnum | (string & {});
+
 export interface POListItemPickerOptionObj {
   iconName: string;
   selectedIconName: string;
@@ -110,8 +112,8 @@ export interface POListColorsObj extends POItemBase {
   name?: string;
   label?: ReactNode;
   onClickCustomize?: POListItemClickFn;
-  colors?: readonly string[];
-  selectedValue?: string | null;
+  colors?: readonly POListColorValue[];
+  selectedValue?: POListColorValue | null;
   className?: string;
   disabled?: boolean;
 }

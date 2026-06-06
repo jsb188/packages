@@ -1,5 +1,6 @@
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
+import { useMemo } from 'react';
 import { dataTableCellsForRowsQry, dataTableRowsQry, dataTablesQry } from '../gql/queries/dataTableQueries.ts';
 import type { UseQueryParams } from '../types.d.ts';
 
@@ -82,6 +83,21 @@ export function getDataTableCellsForRowsQueryKey(variables: Record<string, unkno
 	return `#dataTableCellsForRows:${makeVariablesKey(variables)}`;
 }
 
+/*
+ * Add front-end deleted status to deleted or inactive DataTable records.
+ */
+
+function mapDataTableDeletedStatus(dataTable: any) {
+	if (!dataTable || dataTable.__deleted || (!dataTable.deletedAt && dataTable.active !== false)) {
+		return dataTable;
+	}
+
+	return {
+		...dataTable,
+		__deleted: true,
+	};
+}
+
 /**
  * Fetch dataTables for an organization.
  */
@@ -99,9 +115,13 @@ export function useDataTables(
 		skip: !organizationId,
 		...params,
 	});
+	const dataTables = useReactiveFragmentMap(data?.dataTables || null, 'dataTableFragment');
+	const dataTablesWithDeletedStatus = useMemo(() => (
+		dataTables?.map(mapDataTableDeletedStatus) || dataTables
+	), [dataTables]);
 
 	return {
-		dataTables: data?.dataTables,
+		dataTables: dataTablesWithDeletedStatus,
 		...rest,
 	};
 }

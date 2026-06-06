@@ -17,12 +17,8 @@ mutation createSheet (
     description: $description
     position: $position
     design: $design
-  ) {
-    ...sheetFragment
-  }
+  )
 }
-
-${sheetFragment}
 `;
 
 export const updateSheetMtn = gql`
@@ -51,6 +47,18 @@ mutation updateSheet (
 }
 
 ${sheetFragment}
+`;
+
+export const deleteSheetMtn = gql`
+mutation deleteSheet (
+  $organizationId: GenericID!
+  $sheetId: GenericID!
+) {
+  deleteSheet (
+    organizationId: $organizationId
+    sheetId: $sheetId
+  )
+}
 `;
 
 export const editSheetCellsMtn = gql`

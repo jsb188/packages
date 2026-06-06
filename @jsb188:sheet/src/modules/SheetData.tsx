@@ -5,6 +5,7 @@ import { getDataTableCellsForRowsQueryKey, useDataTableCellsForRows } from '@jsb
 import type { SheetGridViewportVariables } from '@jsb188/graphql/hooks/use-sheet-qry';
 import { useSheetGrid } from '@jsb188/graphql/hooks/use-sheet-qry';
 import type { DataTableCellGQL, DataTableGQL } from '@jsb188/mday/types/dataTable.d.ts';
+import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 import type { SheetCellGQL, SheetGQL, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
@@ -40,6 +41,7 @@ export interface SheetProps {
 	className?: string;
 	dataTables?: DataTableGQL[] | null;
 	disabled?: boolean;
+	operation?: OrganizationOperationEnum | null;
 	organizationId?: string | null;
 	previewAuthToken?: string | null;
 	onPreviewReady?: () => void;
@@ -417,11 +419,12 @@ function SheetDataContent(p: SheetDataContentProps) {
 			name: 'SHEET_INSERT_VIEW',
 			props: {
 				...request,
+				operation: p.operation || null,
 				organizationId,
 				sheetId,
 			},
 		});
-	}, [openModalScreen, organizationId, sheetId]);
+	}, [openModalScreen, organizationId, p.operation, sheetId]);
 
 	const cellsByCoord = useMemo(() => {
 		return sheetGrid?.cells?.length && !loadedGridState.cellsByCoord.size

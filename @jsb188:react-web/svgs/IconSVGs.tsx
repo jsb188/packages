@@ -960,6 +960,19 @@ export const ColorPaletteSample = <svg xmlns="http://www.w3.org/2000/svg" fill="
 <path d="M5.18356 20.255c0.20711 0 0.375 -0.1679 0.375 -0.375s-0.16789 -0.375 -0.375 -0.375" />
 </svg>;
 
+export const ColumnDelete = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-column-delete" stroke="currentColor" strokeWidth="1.5">
+<path strokeLinejoin="round" d="M9.02441 21.9966c0 0.5523 -0.44771 1 -1 1l-5.54283 0c-0.55229 0 -1 -0.4477 -1 -1l0 -17.57851c0 -0.55228 0.44771 -1 1 -1l5.54283 0c0.55229 0 1 0.44772 1 1l0 17.57851Z"></path>
+<path strokeLinecap="round" strokeLinejoin="round" d="m15.4173 3.41809 -1.9006 0c-0.5523 0 -1 0.44772 -1 1l0 17.57851c0 0.5523 0.4477 1 1 1l5.5429 0c0.5523 0 1 -0.4477 1 -1l0 -13.00146"></path>
+<path strokeLinecap="round" strokeLinejoin="round" d="m17.6025 1.00342 4.9161 4.91565"></path>
+<path strokeLinecap="round" strokeLinejoin="round" d="m22.5186 1.00342 -4.9161 4.91565"></path>
+</svg>;
+
+export const ColumnInsert = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-column-insert" stroke="currentColor" strokeWidth="1.5">
+<path strokeLinejoin="round" d="M8.63281 22.0076c0 0.5523 -0.44771 1 -1 1l-4.63981 0c-0.55229 0 -1 -0.4477 -1 -1l0 -14.63638c0 -0.55229 0.44771 -1 1 -1l4.63981 0c0.55229 0 1 0.44771 1 1l0 14.63638Z" />
+<path strokeLinejoin="round" d="M22.0078 22.0076c0 0.5523 -0.4477 1 -1 1l-4.6398 0c-0.5523 0 -1 -0.4477 -1 -1l0 -14.63638c0 -0.55229 0.4477 -1 1 -1l4.6398 0c0.5523 0 1 0.44771 1 1l0 14.63638Z" />
+<path strokeLinecap="round" strokeLinejoin="round" d="M8.59766 0.992432 12 4.39502 15.4026 0.992432" />
+</svg>;
+
 export const CommonFileTextCheck = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-common-file-text-check" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M11.25 17.25a6 6 0 1 0 12 0 6 6 0 1 0 -12 0Z" />
 <path d="m19.924 15.506 -2.905 3.873a0.752 0.752 0 0 1 -1.131 0.081l-1.5 -1.5" />
@@ -1080,6 +1093,38 @@ export const Database2Color = <svg xmlns="http://www.w3.org/2000/svg" fill="none
 <path fill="#b2b2b2" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.0010004,9.5010004c5.24700069,0,9.49999905-1.78999996,9.49999905-4S17.24799919,1.5010004,12.00099945,1.5010004,2.50099945,3.29100037,2.50099945,5.5010004s4.25299978,4,9.50000095,4Z" strokeWidth="1"/>
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21.5,9.5c0,2.21000004-4.25399971,4-9.5,4s-9.5-1.78999996-9.5-4" strokeWidth="1"/>
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M21.5,14c0,2.20999908-4.25399971,4-9.5,4s-9.5-1.79000092-9.5-4" strokeWidth="1"/>
+</svg>;
+
+export const DatabaseAddColor = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-database-add-color">
+<path fill="#e3e3e3" d="M.5,4.5v13c0,2.20999908,4.25400019,4,9.5,4,5.24600029,0,9.5-1.79000092,9.5-4V4.5H.5Z"/>
+<path fill="#fff" d="M10,4.5H.5v13c0,2.20999908,4.25400019,4,9.5,4V4.5Z"/>
+<path fill="#b2b2b2" d="M10,8.5c5.24670029,0,9.5-1.79086018,9.5-4S15.24670029.5,10,.5C4.75329018.5.5,2.29085994.5,4.5c0,2.20913982,4.25329018,4,9.5,4Z"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10,8.50098038c5.24670029,0,9.5-1.79086018,9.5-4S15.24670029.50097698,10,.50097698C4.75329018.50097698.5,2.29184008.5,4.5009799c0,2.2091403,4.25329018,4.00000048,9.5,4.00000048Z"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10,12.5c-5.24599981,0-9.5-1.78999996-9.5-4"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8.5,16.95000076c-4.53299999-.3030014-8-1.95000076-8-3.95000076"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9,21.47900009c-4.77600002-.21000099-8.5-1.9109993-8.5-3.97900009V4.5"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.5,4.5009799v4.50000048"/>
+<path fill="#78eb7b" d="M17.5,23.50099945c3.31369972,0,6-2.68630028,6-6s-2.68630028-6-6-6-6,2.68630028-6,6,2.68630028,6,6,6Z"/>
+<path fill="#c9f7ca" d="M21.74300003,13.25800037c-.5571003-.55720043-1.21859932-.99919987-1.94650078-1.30080032-.72800064-.30150032-1.50819969-.45680046-2.29610062-.45680046-1.59140015-.00010014-3.11759949.63189983-4.24289989,1.75710011s-1.75759983,2.65130043-1.75769997,4.24270058c0,.78790092.1552,1.56819916.45660019,2.2961998.30150032.72789955.74349976,1.38940048,1.30060005,1.94659996l8.48600101-8.48499966Z"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.49699974,23.50099945c3.31369972,0,6-2.68630028,6-6s-2.68630028-6-6-6-6,2.68630028-6,6,2.68630028,6,6,6Z"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.49699974,14.5010004v5.99999905"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M20.49699974,17.50099945h-6"/>
+</svg>;
+
+export const DatabaseRemoveColor = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-database-remove-color">
+<path fill="#e3e3e3" d="M.5,4.5v13c0,2.20999908,4.25400019,4,9.5,4,5.24600029,0,9.5-1.79000092,9.5-4V4.5H.5Z" strokeWidth="1"/>
+<path fill="#fff" d="M10,4.5H.5v13c0,2.20999908,4.25400019,4,9.5,4V4.5Z" strokeWidth="1"/>
+<path fill="#b2b2b2" d="M10,8.5c5.24699974,0,9.5-1.78999996,9.5-4S15.24699974.5,10,.5.5,2.28999996.5,4.5s4.25299978,4,9.5,4Z" strokeWidth="1"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.5,4.52600002c0,2.20499992-4.25399971,4-9.5,4S.5,6.73099995.5,4.52600002,4.75400019.5,10,.5c5.24600029,0,9.5,1.81500006,9.5,4.02600002Z" strokeWidth="1"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M10,12.52600002c-5.24599981,0-9.5-1.79500008-9.5-4" strokeWidth="1"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8.5,16.97500038c-4.53299999-.29999924-8-1.95800018-8-3.9489994" strokeWidth="1"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9,21.5c-4.77600002-.20700073-8.5-1.90800095-8.5-3.97400093V4.5" strokeWidth="1"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.5,4.50099993v4.49999952" strokeWidth="1"/>
+<path fill="#ff808c" d="M17.5,23.50099945c3.31370926,0,6-2.68629074,6-6,0-3.31370831-2.68629074-6-6-6-3.31370831,0-6,2.68629169-6,6,0,3.31370926,2.68629169,6,6,6Z" strokeWidth="1"/>
+<path fill="#ffccd1" d="M21.74300003,13.25800037c-2.34306717-2.34334373-6.14215565-2.34356785-8.48549938-.00049973-2.34334469,2.34306717-2.3435688,6.14215565-.00050068,8.48549938l8.48600006-8.48499966Z" strokeWidth="1"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.49600029,23.50099945c3.31370926,0,6-2.68629074,6-6,0-3.31370831-2.68629074-6-6-6-3.31370831,0-6,2.68629169-6,6,0,3.31370926,2.68629169,6,6,6Z" strokeWidth="1"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.61700058,15.38000011l-4.24200058,4.24199963" strokeWidth="1"/>
+<path fill="none" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.61700058,19.62199974l-4.24200058-4.24200058" strokeWidth="1"/>
 </svg>;
 
 export const DatabaseSheetSync = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-database-sheet-sync" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
@@ -1943,6 +1988,34 @@ export const LayersGridSubtract = <svg viewBox="0 0 24 24" xmlns="http://www.w3.
 <path d="m9.75 12.75 -9 0" />
 <path d="M11.25 17.25a6 6 0 1 0 12 0 6 6 0 1 0 -12 0Z" />
 <path d="m14.25 17.25 6 0" />
+</svg>;
+
+export const LayersGridAddColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-0.5 -0.5 24 24" className="icon icon-layers-grid-add-color">
+<path fill="#ffffff" d="M16.097699999999996 0.46213347999999993H3.2176815999999997c-1.0162044 0 -1.8399999999999999 0.8237965199999999 -1.8399999999999999 1.84000092V15.182116c0 1.016232 0.8237955999999999 1.8399999999999999 1.8399999999999999 1.8399999999999999H16.097699999999996c1.016232 0 1.8399999999999999 -0.823768 1.8399999999999999 -1.8399999999999999V2.3021344c0 -1.0162044 -0.823768 -1.84000092 -1.8399999999999999 -1.84000092Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.6577 17.022116H3.2176815999999997c-0.4879955999999999 0 -0.9560087999999999 -0.193844 -1.3010731999999998 -0.538936 -0.3450644 -0.345 -0.5389268 -0.813004 -0.5389268 -1.3010639999999998V2.3021344c0 -0.4879955999999999 0.1938624 -0.9560087999999999 0.5389268 -1.3010731999999998 0.3450644 -0.34507084 0.8130776 -0.5389277199999999 1.3010731999999998 -0.5389277199999999H16.097699999999996c0.48796799999999996 0 0.9559719999999998 0.19385688 1.3010639999999998 0.5389277199999999 0.34509199999999995 0.3450644 0.538936 0.8130776 0.538936 1.3010731999999998v6.4399999999999995" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M1.3776815999999998 5.9821344H17.937699999999996" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M1.3776815999999998 11.502116H10.5777" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.4177 0.46213347999999993V9.662116" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.897681599999999 0.46213347999999993V17.014756" strokeWidth="1"></path>
+<path fill="#78eb7b" d="M17.017699999999998 21.622116c1.091764 0 2.1589639999999997 -0.323748 3.066728 -0.930304 0.9077639999999999 -0.606556 1.615244 -1.468596 2.033108 -2.4772839999999996 0.417772 -1.008596 0.527068 -2.118484 0.314088 -3.189272 -0.21298 -1.0707879999999999 -0.73876 -2.05436 -1.5107319999999997 -2.826332 -0.7719719999999999 -0.7719719999999999 -1.7555439999999998 -1.297752 -2.826332 -1.5107319999999997 -1.0707879999999999 -0.21298 -2.1806759999999996 -0.10368399999999998 -3.189272 0.314088 -1.008688 0.41786399999999996 -1.8707279999999997 1.125344 -2.4772839999999996 2.033108 -0.606556 0.9077639999999999 -0.930304 1.974964 -0.930304 3.066728 0 1.4639959999999999 0.5815319999999999 2.8680079999999997 1.616716 3.9032839999999998 1.0352759999999999 1.0351839999999999 2.439288 1.616716 3.9032839999999998 1.616716Z" strokeWidth="1"></path>
+<path fill="#c9f7ca" d="M17.017699999999998 10.582116c-1.123504 -0.0009199999999999999 -2.220512 0.34131999999999996 -3.144192 0.980904s-1.629964 1.54606 -2.02446 2.597988c-0.39449599999999996 1.051928 -0.45825199999999994 2.1993519999999998 -0.182896 3.28854 0.27544799999999997 1.0891879999999998 0.8768519999999999 2.068344 1.7239879999999999 2.8063679999999995l7.781359999999999 -7.781359999999999c-0.5165799999999999 -0.5944119999999999 -1.154784 -1.0708799999999998 -1.8713719999999998 -1.3973879999999999 -0.716588 -0.32650799999999996 -1.4949999999999999 -0.49532799999999994 -2.282428 -0.495052Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.017699999999998 21.622116c1.091764 0 2.1589639999999997 -0.323748 3.066728 -0.930304 0.9077639999999999 -0.606556 1.615244 -1.468596 2.033108 -2.4772839999999996 0.417772 -1.008596 0.527068 -2.118484 0.314088 -3.189272 -0.21298 -1.0707879999999999 -0.73876 -2.05436 -1.5107319999999997 -2.826332 -0.7719719999999999 -0.7719719999999999 -1.7555439999999998 -1.297752 -2.826332 -1.5107319999999997 -1.0707879999999999 -0.21298 -2.1806759999999996 -0.10368399999999998 -3.189272 0.314088 -1.008688 0.41786399999999996 -1.8707279999999997 1.125344 -2.4772839999999996 2.033108 -0.606556 0.9077639999999999 -0.930304 1.974964 -0.930304 3.066728 0 1.4639959999999999 0.5815319999999999 2.8680079999999997 1.616716 3.9032839999999998 1.0352759999999999 1.0351839999999999 2.439288 1.616716 3.9032839999999998 1.616716Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.017699999999998 13.342115999999999v5.52" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M19.777699999999996 16.102116h-5.52" strokeWidth="1"></path>
+</svg>;
+
+export const LayersGridRemoveColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-0.5 -0.5 24 24" className="icon icon-layers-grid-remove-color">
+<path fill="#ffffff" d="M16.099999999999998 0.47103999999999996h-12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 0 -1.8399999999999999 1.8399999999999999v12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 0 1.8399999999999999 1.8399999999999999h12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 0 1.8399999999999999 -1.8399999999999999v-12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 0 -1.8399999999999999 -1.8399999999999999Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.658159999999999 17.02644h-6.4399999999999995a1.8399999999999999 1.8399999999999999 0 0 1 -1.8399999999999999 -1.8399999999999999V2.3110399999999998a1.8399999999999999 1.8399999999999999 0 0 1 1.8399999999999999 -1.8399999999999999h12.879999999999999a1.8399999999999999 1.8399999999999999 0 0 1 1.8399999999999999 1.8399999999999999v6.4399999999999995" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M1.37724 5.991039999999999h16.56" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M1.37724 11.50184h9.2" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M12.418159999999999 0.47103999999999996v9.2" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M6.897239999999999 0.47103999999999996v16.5508" strokeWidth="1"></path>
+<path fill="#ff808c" d="M17.017239999999997 21.62184a5.52 5.52 0 1 0 0 -11.04 5.52 5.52 0 0 0 0 11.04Z" strokeWidth="1"></path>
+<path fill="#ffbfc5" d="M17.017239999999997 10.58184a5.52 5.52 0 0 0 -3.62664 9.674719999999999l7.7804400000000005 -7.781359999999999a5.4988399999999995 5.4988399999999995 0 0 0 -4.1537999999999995 -1.8933599999999997Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M17.017239999999997 21.62184a5.52 5.52 0 1 0 0 -11.04 5.52 5.52 0 0 0 0 11.04Z" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m18.969479999999997 14.14224 -3.90264 3.90264" strokeWidth="1"></path>
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="m18.969479999999997 18.04488 -3.90264 -3.90264" strokeWidth="1"></path>
 </svg>;
 
 export const LayersGridSubtractColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-0.5 -0.5 24 24" className="icon icon-layers-grid-subtract-color">
@@ -2996,6 +3069,19 @@ export const RewardStars4 = <svg xmlns="http://www.w3.org/2000/svg" strokeWidth=
 <path d="M7 7 4 4" />
 <path d="m7 17 -3 3" />
 <path d="m17 17 3 3" />
+</svg>;
+
+export const RowDelete = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-row-delete" stroke="currentColor" strokeWidth="1.5">
+<path strokeLinejoin="round" d="M2.00391 14.9766c-0.55229 0 -1 0.4477 -1 1l0 5.5428c0 0.5523 0.44771 1 1 1l17.57849 0c0.5523 0 1 -0.4477 1 -1l0 -5.5428c0 -0.5523 -0.4477 -1 -1 -1l-17.57849 0Z"></path>
+<path strokeLinecap="round" strokeLinejoin="round" d="m20.5824 8.58363 0 1.90057c0 0.5523 -0.4477 1 -1 1l-17.57849 0c-0.55229 0 -1 -0.4477 -1 -1l0 -5.54279c0 -0.55229 0.44771 -1 1 -1l13.00149 0"></path>
+<path strokeLinecap="round" strokeLinejoin="round" d="m22.9961 6.39844 -4.9157 -4.91602"></path>
+<path strokeLinecap="round" strokeLinejoin="round" d="m22.9961 1.48047 -4.9157 4.91601"></path>
+</svg>;
+
+export const RowInsert = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-row-insert" stroke="currentColor" strokeWidth="1.5">
+<path strokeLinejoin="round" d="M22.0078 15.3676c0.5523 0 1 0.4477 1 1l0 4.6398c0 0.5523 -0.4477 1 -1 1l-14.63634 0c-0.55228 0 -1 -0.4477 -1 -1l0 -4.6398c0 -0.5523 0.44772 -1 1 -1l14.63634 0Z" />
+<path strokeLinejoin="round" d="M22.0078 1.99255c0.5523 0 1 0.44772 1 1l0 4.63982c0 0.55228 -0.4477 1 -1 1l-14.63634 0c-0.55228 0 -1 -0.44772 -1 -1l0 -4.63982c0 -0.55228 0.44772 -1 1 -1l14.63634 0Z" />
+<path strokeLinecap="round" strokeLinejoin="round" d="m0.992188 15.4028 3.402592 -3.4023L0.992187 8.5979" />
 </svg>;
 
 export const SeasoningChilli = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-vegetable-jalapeno" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

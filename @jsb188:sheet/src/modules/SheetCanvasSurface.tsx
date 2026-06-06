@@ -64,6 +64,7 @@ type SheetCanvasTheme = {
 	solid: string;
 	selectionFill: string;
 	selectPillBackgrounds: Record<string, string>;
+	styleColors: Record<string, string>;
 	tagFontSize: string;
 	tagLineHeightPx: number;
 };
@@ -180,6 +181,11 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 	const active = getSheetCanvasCSSColor(styles, '--color-primary', '#2563eb');
 	const fontSize = getSheetCanvasCSSValue(styles, '--text-xsmall', '0.875rem');
 	const tagFontSize = getSheetCanvasCSSValue(styles, '--text-xxsmall', '0.75rem');
+	const styleColors = COLORS.reduce<Record<string, string>>((result, colorName) => {
+		result[colorName] = getSheetCanvasCSSColor(styles, `--color-${colorName}-default`, '#111827');
+
+		return result;
+	}, {});
 	const selectPillBackgrounds = COLORS.reduce<Record<string, string>>((result, colorName) => {
 		const cssVarName = `--color-${colorName}-medium`;
 		const color = getSheetCanvasCSSColor(styles, cssVarName, '#e5e7eb');
@@ -212,9 +218,17 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 		solid: getSheetCanvasCSSColor(styles, '--color-solid', '#ffffff'),
 		selectionFill: active,
 		selectPillBackgrounds,
+		styleColors,
 		tagFontSize,
 		tagLineHeightPx: getSheetCanvasCSSLengthPx(tagFontSize, rootFontSizePx, 12) * 1.1,
 	};
+}
+
+/*
+ * Resolve saved app color names into canvas-safe theme colors.
+ */
+function getSheetCanvasResolvedStyleColor(theme: SheetCanvasTheme, color?: string | null) {
+	return color ? theme.styleColors[color] || color : null;
 }
 
 /*
@@ -983,10 +997,10 @@ function drawSheetCanvasCell(params: {
 	y: number;
 }) {
 	const backgroundColor = params.cell?.style
-		? getSheetCanvasStyleColor(params.cell.style, ['backgroundColor', 'fillColor'])
+		? getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(params.cell.style, ['backgroundColor', 'fillColor']))
 		: null;
 	const textColor = params.cell?.style
-		? getSheetCanvasStyleColor(params.cell.style, ['color', 'textColor'])
+		? getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(params.cell.style, ['color', 'textColor']))
 		: null;
 
 	if (backgroundColor) {
