@@ -1,11 +1,13 @@
 import { cn } from '@jsb188/app/utils/string.ts';
-import { memo, useMemo, useState, type Dispatch, type MouseEvent, type ReactNode, type SetStateAction } from 'react';
 import {
   TreeListGroupUI,
   TreeListRootUI,
   TreeListRowUI,
   type TreeListLineageState,
 } from '@jsb188/react-web/ui/TreeListUI';
+import { memo, useCallback, useMemo, useState, type Dispatch, type MouseEvent, type ReactNode, type SetStateAction } from 'react';
+
+const ROOT_TREE_LIST_LINEAGE: TreeListLineageState[] = [];
 
 /**
  * Types
@@ -31,7 +33,7 @@ export type TreeListProps = {
   items: TreeListItem[];
   selectedItemId?: string;
   onClickItem?: (item: TreeListItem, e: MouseEvent<HTMLDivElement>) => void;
-  onToggleItem?: (item: TreeListItem, expanded: boolean, e: MouseEvent<HTMLButtonElement>) => void;
+  onToggleItem?: (item: TreeListItem, expanded: boolean, e: MouseEvent<HTMLElement>) => void;
 };
 
 export type TreeListNodeProps = {
@@ -66,7 +68,7 @@ function getTreeListExpandedItemIdSet(itemIds?: string[]) {
  * Return the next expanded id list after toggling one item.
  */
 function getNextTreeListExpandedItemIds(itemIds: string[], itemId: string, expanded: boolean) {
-  const nextItemIdSet = getTreeListExpandedItemIdSet(itemIds);
+  const nextItemIdSet = new Set(itemIds);
 
   if (expanded) {
     nextItemIdSet.add(itemId);
@@ -92,6 +94,32 @@ function isTreeListItemSelected(item: TreeListItem, selectedItemId?: string) {
 }
 
 /*
+ * Return the lineage state for the row currently being rendered.
+ */
+function getTreeListRowLineage(p: {
+  depth: number;
+  isLast: boolean;
+  lineage: TreeListLineageState[];
+}) {
+  const { depth, isLast, lineage } = p;
+
+  return depth ? [...lineage, { isLast }] : ROOT_TREE_LIST_LINEAGE;
+}
+
+/*
+ * Return whether this node should attach a row click handler.
+ */
+function canClickTreeListItem(p: {
+  disableExpandCollapse?: boolean;
+  expandable: boolean;
+  onClickItem?: TreeListProps['onClickItem'];
+}) {
+  const { disableExpandCollapse, expandable, onClickItem } = p;
+
+  return !!onClickItem || (expandable && !disableExpandCollapse);
+}
+
+/*
  * Render one tree item and recursively render its expanded children.
  */
 export const TreeListNode = memo((p: TreeListNodeProps) => {
@@ -111,12 +139,20 @@ export const TreeListNode = memo((p: TreeListNodeProps) => {
   const children = item.items || [];
   const expandable = isTreeListItemExpandable(item);
   const expanded = expandedItemIdSet.has(item.id);
-  const rowLineage = depth ? [...lineage, { isLast }] : [];
+  const hasChildren = !!children.length;
+  const rowLineage = useMemo(() => (
+    getTreeListRowLineage({ depth, isLast, lineage })
+  ), [depth, isLast, lineage]);
+  const clickable = canClickTreeListItem({
+    disableExpandCollapse,
+    expandable,
+    onClickItem,
+  });
 
   /*
    * Toggle this item's expansion state in controlled or uncontrolled mode.
    */
-  const onToggle = (e: MouseEvent<HTMLButtonElement>) => {
+  const onToggle = useCallback((e: MouseEvent<HTMLElement>) => {
     if (disableExpandCollapse) {
       return;
     }
@@ -130,14 +166,18 @@ export const TreeListNode = memo((p: TreeListNodeProps) => {
     }
 
     onToggleItem?.(item, nextExpanded, e);
-  };
+  }, [controlledExpansion, disableExpandCollapse, expanded, item, onToggleItem, setLocalExpandedItemIds]);
 
   /*
-   * Notify callers when a row is selected or activated.
+   * Notify callers when a row is selected or activated and toggle expandable rows.
    */
-  const onClick = (e: MouseEvent<HTMLDivElement>) => {
+  const onClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    if (expandable) {
+      onToggle(e);
+    }
+
     onClickItem?.(item, e);
-  };
+  }, [expandable, item, onClickItem, onToggle]);
 
   return <>
     <TreeListRowUI
@@ -147,19 +187,19 @@ export const TreeListNode = memo((p: TreeListNodeProps) => {
       disableExpandCollapse={disableExpandCollapse}
       expanded={expanded}
       expandable={expandable}
-      hasItems={!!children.length}
+      hasItems={hasChildren}
       iconClassName={item.iconClassName}
       iconName={item.iconName}
       label={item.label}
       labelClassName={item.labelClassName}
       lineage={rowLineage}
       selected={isTreeListItemSelected(item, selectedItemId)}
-      onClick={onClickItem ? onClick : undefined}
+      onClick={clickable ? onClick : undefined}
       onToggle={onToggle}
     />
 
-    {expanded && !!children.length && (
-      <TreeListGroupUI>
+    {expanded && hasChildren && (
+      <TreeListGroupUI className='mb_6 gap_1'>
         {children.map((childItem, i) => (
           <TreeListNode
             key={childItem.id}
@@ -170,8 +210,8 @@ export const TreeListNode = memo((p: TreeListNodeProps) => {
             item={childItem}
             lineage={rowLineage}
             selectedItemId={selectedItemId}
-            setLocalExpandedItemIds={setLocalExpandedItemIds}
             isLast={i === children.length - 1}
+            setLocalExpandedItemIds={setLocalExpandedItemIds}
             onClickItem={onClickItem}
             onToggleItem={onToggleItem}
           />
@@ -197,7 +237,7 @@ export const TreeList = memo((p: TreeListProps) => {
     onClickItem,
     onToggleItem,
   } = p;
-  const controlledExpansion = !!expandedItemIds;
+  const controlledExpansion = Array.isArray(expandedItemIds);
   const [localExpandedItemIds, setLocalExpandedItemIds] = useState(() => (
     getUniqueTreeListItemIds(defaultExpandedItemIds)
   ));
@@ -215,10 +255,10 @@ export const TreeList = memo((p: TreeListProps) => {
         disableExpandCollapse={disableExpandCollapse}
         expandedItemIdSet={expandedItemIdSet}
         item={item}
-        lineage={[]}
+        lineage={ROOT_TREE_LIST_LINEAGE}
         selectedItemId={selectedItemId}
-        setLocalExpandedItemIds={setLocalExpandedItemIds}
         isLast={i === items.length - 1}
+        setLocalExpandedItemIds={setLocalExpandedItemIds}
         onClickItem={onClickItem}
         onToggleItem={onToggleItem}
       />

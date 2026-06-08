@@ -454,18 +454,18 @@ function getDataTableColumnReorderTargetIndex(params: {
 }
 
 /*
- * Convert a raw insertion slot into the visible-key index used after removing the dragged key.
+ * Convert a raw insertion slot into the visible-key target index after removing the dragged key.
  */
 
 function getDataTableColumnReorderMoveIndex(visibleColumnKeys: string[], fromKey: string, toVisibleIndex: number) {
 	const fromIndex = visibleColumnKeys.indexOf(fromKey);
-	const boundedIndex = Math.max(0, Math.min(toVisibleIndex, visibleColumnKeys.length));
+	const boundedIndex = Math.max(0, Math.min(toVisibleIndex, visibleColumnKeys.length - 1));
 
 	if (fromIndex < 0) {
 		return boundedIndex;
 	}
 
-	return boundedIndex > fromIndex ? boundedIndex - 1 : boundedIndex;
+	return boundedIndex;
 }
 
 /*
@@ -3140,6 +3140,11 @@ function DataTableContent(p: DataTableContentProps) {
 				if (event.button !== 0) {
 					return;
 				}
+
+				columnReorderStateRef.current = null;
+				columnReorderCleanupRef.current?.();
+				columnReorderCleanupRef.current = null;
+				setColumnReorderVisualState(null);
 
 				const columnKey = handleElement.dataset.sheetColumnResizeHandle;
 

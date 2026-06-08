@@ -2,7 +2,7 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { getGridContextMenuPopOverId, useGridContextMenu } from './grid-context-menu.ts';
 
 const SHEET_CONTEXT_MENU_ID = 'sheet-context-menu';
@@ -26,6 +26,12 @@ const SHEET_CONTEXT_MENU_FORMAT_NAMES = {
 } as const;
 
 export type SheetContextMenuAction = typeof SHEET_CONTEXT_MENU_ACTIONS[keyof typeof SHEET_CONTEXT_MENU_ACTIONS];
+
+export type SheetContextMenuStructureAction =
+	| typeof SHEET_CONTEXT_MENU_ACTIONS.deleteColumn
+	| typeof SHEET_CONTEXT_MENU_ACTIONS.deleteRow
+	| typeof SHEET_CONTEXT_MENU_ACTIONS.insertColumnLeft
+	| typeof SHEET_CONTEXT_MENU_ACTIONS.insertRowAbove;
 
 export type SheetContextMenuFormatName = typeof SHEET_CONTEXT_MENU_FORMAT_NAMES[keyof typeof SHEET_CONTEXT_MENU_FORMAT_NAMES];
 
@@ -55,6 +61,7 @@ export type SheetContextMenuTarget = {
 type UseSheetContextMenuParams = {
 	onEditCell: (target: SheetContextMenuTarget) => void;
 	onCustomizeCells?: (target: SheetContextMenuTarget, formatName: SheetContextMenuFormatName) => void;
+	onEditStructure?: (target: SheetContextMenuTarget, action: SheetContextMenuStructureAction) => void;
 	onFormatCells: (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => void;
 	onPasteCells?: (target: SheetContextMenuTarget, clipboardText: string) => void | Promise<void>;
 	onPopulateFromDataTable?: (target: SheetContextMenuTarget) => void;
@@ -86,6 +93,55 @@ async function pasteSheetContextMenuCellValues(
 	if (clipboardText) {
 		await onPasteCells?.(target, clipboardText);
 	}
+}
+
+/*
+ * Build the format submenu options for one Sheet context-menu target.
+ */
+function getSheetContextMenuFormatOptions(target: SheetContextMenuTarget, params?: GetSheetContextMenuOptionsParams): POListIfaceItem[] {
+	return [{
+		__type: 'LIST_COLORS',
+		label: i18n.t('sheet.text_color'),
+		name: SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor,
+		onClickCustomize: () => {
+			params?.onCustomizeCells?.(target, SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor);
+		},
+		selectedValue: target.textColor || null,
+	}, {
+		__type: 'LIST_COLORS',
+		label: i18n.t('sheet.fill_color'),
+		name: SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor,
+		onClickCustomize: () => {
+			params?.onCustomizeCells?.(target, SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor);
+		},
+		selectedValue: target.fillColor || null,
+	}];
+}
+
+/*
+ * Build the data-table region actions for one Sheet context-menu target.
+ */
+function getSheetContextMenuDataTableOptions(target: SheetContextMenuTarget): POListIfaceItem[] {
+	const options: POListIfaceItem[] = [{
+		__type: 'LIST_ITEM',
+		disabled: !target.canPopulateFromDataTable,
+		iconName: COMMON_ICON_NAMES.insert_from_data_table,
+		text: i18n.t('sheet.insert_from_data_table'),
+		value: SHEET_CONTEXT_MENU_ACTIONS.populateFromDataTable,
+	}];
+
+	if (target.dataTableRegionId) {
+		options.push({
+			__type: 'LIST_ITEM',
+			className: 'cl_err_hv',
+			disabled: !target.canRemoveCellsFromDataTable,
+			iconName: COMMON_ICON_NAMES.delete,
+			text: i18n.t('sheet.remove_view'),
+			value: SHEET_CONTEXT_MENU_ACTIONS.removeCellsFromDataTable,
+		});
+	}
+
+	return options;
 }
 
 /*
@@ -121,23 +177,7 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 				[SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor]: target.fillColor || null,
 				[SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor]: target.textColor || null,
 			},
-			options: [{
-				__type: 'LIST_COLORS',
-				label: i18n.t('sheet.text_color'),
-				name: SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor,
-				onClickCustomize: () => {
-					params?.onCustomizeCells?.(target, SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor);
-				},
-				selectedValue: target.textColor || null,
-			}, {
-				__type: 'LIST_COLORS',
-				label: i18n.t('sheet.fill_color'),
-				name: SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor,
-				onClickCustomize: () => {
-					params?.onCustomizeCells?.(target, SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor);
-				},
-				selectedValue: target.fillColor || null,
-			}],
+			options: getSheetContextMenuFormatOptions(target, params),
 		},
 		text: i18n.t('sheet.format_cells'),
 		value: true,
@@ -149,13 +189,7 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 		value: SHEET_CONTEXT_MENU_ACTIONS.formatValue,
 	}, {
 		__type: 'BREAK',
-	}, {
-		__type: 'LIST_ITEM',
-		disabled: !target.canPopulateFromDataTable,
-		iconName: COMMON_ICON_NAMES.insert_from_data_table,
-		text: i18n.t('sheet.insert_from_data_table'),
-		value: SHEET_CONTEXT_MENU_ACTIONS.populateFromDataTable,
-	}, {
+	}, ...getSheetContextMenuDataTableOptions(target), {
 		__type: 'BREAK',
 	}, {
 		__type: 'LIST_ITEM',
@@ -191,18 +225,37 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 }
 
 /*
+ * Return a stable key for one context-menu item event.
+ */
+function getSheetContextMenuEventKey(
+	id: string | null | undefined,
+	action: string | null | undefined,
+	name: string | null | undefined,
+	value: unknown,
+) {
+	return JSON.stringify({
+		action: action || '',
+		id: id || '',
+		name: name || '',
+		value,
+	});
+}
+
+/*
  * Own the Sheet context-menu PopOver actions.
  */
 export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 	const {
 		onEditCell,
 		onCustomizeCells,
+		onEditStructure,
 		onFormatCells,
 		onPasteCells,
 		onPopulateFromDataTable,
 		readClipboardText,
 		onRemoveCellsFromDataTable,
 	} = p;
+	const handledEventKeyRef = useRef<string>('');
 
 	/*
 	 * Build Sheet context-menu options with hook-owned customize callbacks attached.
@@ -216,12 +269,20 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		activeTargetRef,
 		closeContextMenu: closeSheetContextMenu,
 		closePopOver,
-		openContextMenu: openSheetContextMenu,
+		openContextMenu,
 		popOver,
 	} = useGridContextMenu({
 		contextMenuId: SHEET_CONTEXT_MENU_ID,
 		getOptions: getContextMenuOptions,
 	});
+
+	/*
+	 * Open the context menu and clear the previous item-consumption guard.
+	 */
+	const openSheetContextMenu = useCallback((event: MouseEvent, target: SheetContextMenuTarget) => {
+		handledEventKeyRef.current = '';
+		openContextMenu(event, target);
+	}, [openContextMenu]);
 
 	useEffect(() => {
 		const { action, id, name, value } = popOver?.globalState || {};
@@ -230,6 +291,13 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		if (!target || id !== getGridContextMenuPopOverId(SHEET_CONTEXT_MENU_ID, target) || action !== 'ITEM') {
 			return;
 		}
+
+		const eventKey = getSheetContextMenuEventKey(id, action, name, value);
+		if (handledEventKeyRef.current === eventKey) {
+			return;
+		}
+
+		handledEventKeyRef.current = eventKey;
 
 		if (name === SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor || name === SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor) {
 			if (target.canEdit && typeof value === 'string') {
@@ -267,9 +335,14 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 				break;
 			case SHEET_CONTEXT_MENU_ACTIONS.deleteColumn:
 			case SHEET_CONTEXT_MENU_ACTIONS.deleteRow:
-			case SHEET_CONTEXT_MENU_ACTIONS.formatValue:
 			case SHEET_CONTEXT_MENU_ACTIONS.insertColumnLeft:
 			case SHEET_CONTEXT_MENU_ACTIONS.insertRowAbove:
+				if (target.canEdit) {
+					onEditStructure?.(target, value as SheetContextMenuStructureAction);
+				}
+				closePopOver();
+				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.formatValue:
 				closePopOver();
 				break;
 			case SHEET_CONTEXT_MENU_ACTIONS.removeCellsFromDataTable:
@@ -280,7 +353,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 				break;
 			default:
 		}
-	}, [activeTargetRef, closePopOver, onEditCell, onFormatCells, onPasteCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, popOver?.globalState, readClipboardText]);
+	}, [activeTargetRef, closePopOver, onEditCell, onEditStructure, onFormatCells, onPasteCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, popOver?.globalState, readClipboardText]);
 
 	return {
 		closeSheetContextMenu,

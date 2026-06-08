@@ -380,6 +380,7 @@ export const SheetHeaderCell = memo((p: {
 	isColumnResizeDragging?: boolean;
 	selectedHeaderCellKey?: string | null;
 	cursorClassName?: string;
+	tooltipDisabled?: boolean;
 	tooltipClosesWhilePointerDown?: boolean;
 }) => {
 	const isEditing = p.headerEditState?.cellKey === p.column.key;
@@ -390,28 +391,71 @@ export const SheetHeaderCell = memo((p: {
 	const defaultCellClassName = getSheetHeaderEditableClassName();
 	const defaultSelectedCellClassName = 'bg_alt';
 	const headerLayoutClassName = p.column.headerLayoutClassName || 'h_item';
+	const tooltipDisabled = Boolean(p.tooltipDisabled);
+
+	const checkboxContent = p.column.headerCheckboxEnabled
+		? <input
+			aria-label={p.column.label}
+			checked={Boolean(p.column.headerChecked)}
+			className='no_shrink mr_6'
+			data-cell-key={p.column.key}
+			data-sheet-header-checkbox='true'
+			onChange={() => {}}
+			onClick={(event) => {
+				event.stopPropagation();
+			}}
+			onPointerDown={(event) => {
+				event.stopPropagation();
+			}}
+			readOnly
+			type='checkbox'
+		/>
+		: null;
+
+	const checkboxTooltipContent = checkboxContent && p.column.headerCheckboxTooltipMessage
+		? <TooltipButton
+			as='div'
+			className='h_item no_shrink'
+			closeWhilePointerDown={p.tooltipClosesWhilePointerDown}
+			disabled={tooltipDisabled}
+			message={p.column.headerCheckboxTooltipMessage}
+			position='top'
+		>
+			{checkboxContent}
+		</TooltipButton>
+		: checkboxContent;
+
+	const labelContent = <span className='ellip'>{p.column.label}</span>;
 
 	const displayContent = <>
-		{p.column.headerCheckboxEnabled
-			? <input
-				aria-label={p.column.label}
-				checked={Boolean(p.column.headerChecked)}
-				className='no_shrink mr_6'
-				data-cell-key={p.column.key}
-				data-sheet-header-checkbox='true'
-				onChange={() => {}}
-				onClick={(event) => {
-					event.stopPropagation();
-				}}
-				onPointerDown={(event) => {
-					event.stopPropagation();
-				}}
-				readOnly
-				type='checkbox'
-			/>
-			: null}
-		<span className='ellip'>{p.column.label}</span>
+		{checkboxTooltipContent}
+		{labelContent}
 	</>;
+
+	const headerTooltipContent = p.column.headerCheckboxTooltipMessage && checkboxContent
+		? <>
+			{checkboxTooltipContent}
+			<TooltipButton
+				as='div'
+				className='h_item min_w_0 w_f h_f'
+				closeWhilePointerDown={p.tooltipClosesWhilePointerDown}
+				disabled={tooltipDisabled}
+				message={p.column.headerTooltipMessage}
+				position='top'
+			>
+				{labelContent}
+			</TooltipButton>
+		</>
+		: <TooltipButton
+			as='div'
+			className='h_item min_w_0 w_f h_f'
+			closeWhilePointerDown={p.tooltipClosesWhilePointerDown}
+			disabled={tooltipDisabled}
+			message={p.column.headerTooltipMessage}
+			position='top'
+		>
+			{displayContent}
+		</TooltipButton>;
 
 	return <div
 		className={cn(
@@ -453,15 +497,7 @@ export const SheetHeaderCell = memo((p: {
 				type='text'
 			/>
 			: p.column.headerTooltipMessage
-				? <TooltipButton
-					as='div'
-					className='h_item min_w_0 w_f h_f'
-					closeWhilePointerDown={p.tooltipClosesWhilePointerDown}
-					message={p.column.headerTooltipMessage}
-					position='top'
-				>
-					{displayContent}
-				</TooltipButton>
+				? headerTooltipContent
 				: displayContent}
 	</div>;
 }, (prev, next) => (
@@ -469,6 +505,7 @@ export const SheetHeaderCell = memo((p: {
 	prev.column.key === next.column.key &&
 	prev.column.label === next.column.label &&
 	prev.column.headerCheckboxEnabled === next.column.headerCheckboxEnabled &&
+	prev.column.headerCheckboxTooltipMessage === next.column.headerCheckboxTooltipMessage &&
 	prev.column.headerChecked === next.column.headerChecked &&
 	prev.column.headerClassName === next.column.headerClassName &&
 	prev.column.headerLayoutClassName === next.column.headerLayoutClassName &&
@@ -480,6 +517,7 @@ export const SheetHeaderCell = memo((p: {
 	prev.columnReorderOffset === next.columnReorderOffset &&
 	prev.cursorClassName === next.cursorClassName &&
 	prev.headerCellsEditable === next.headerCellsEditable &&
+	prev.tooltipDisabled === next.tooltipDisabled &&
 	prev.tooltipClosesWhilePointerDown === next.tooltipClosesWhilePointerDown &&
 	prev.headerEditState?.cellKey === next.headerEditState?.cellKey &&
 	prev.headerEditState?.draftValue === next.headerEditState?.draftValue &&
@@ -688,6 +726,7 @@ export const SheetHeaderArea = memo((p: {
 					columnReorderOffset={p.columnReorderDisplacements?.[columnMetric.column.key] || 0}
 					headerCellsEditable={p.headerCellsEditable}
 					cursorClassName={p.headerCursorClassName}
+					tooltipDisabled={Boolean(p.columnReorderDrag)}
 					tooltipClosesWhilePointerDown={p.headerTooltipClosesWhilePointerDown}
 					headerEditState={p.headerEditState}
 					selectedHeaderCellKey={p.selectedHeaderCellKey}
@@ -741,13 +780,9 @@ export const SheetHeaderArea = memo((p: {
 				: null}
 		</div>
 
-			<div
-				className={cn('h_4', STICKY_SPACER_BG_CSS)}
-				data-sheet-sticky-header-spacer='true'
-				style={{
-					width: p.headerSpacerWidth,
-				}}
-			/>
+      <div className='h_4 bd_r_1 bd_lt bg' data-sheet-sticky-header-spacer='true' style={{ width: p.headerSpacerWidth }}>
+        <div className={cn('h_4', STICKY_SPACER_BG_CSS)} />
+      </div>
 		</div>;
 	}, (prev, next) => (
 	prev.columnReorderDrag?.columnKey === next.columnReorderDrag?.columnKey &&
@@ -1020,7 +1055,7 @@ export const SheetTopLeftRowNumberSlot = memo((p: {
 	const rowHeight = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE;
 
 	return <div
-		className='abs'
+		className='abs noclick'
 		data-sheet-row-number-slot='true'
 		data-sheet-top-left-row-number-slot='true'
 		style={{

@@ -317,6 +317,7 @@ export function useWatchQuery(
 
 /**
  * Hook for reactive fragment data
+ * This function will return the cached data if it exists, even if the `data` param is null.
  */
 
 export function useReactiveFragment(

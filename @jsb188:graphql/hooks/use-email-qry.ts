@@ -1,6 +1,5 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import type { InboundEmailsSortEnum } from '@jsb188/mday/types/email.d.ts';
-import { loadFragment } from '../cache/index.ts';
 import { inboundEmailQry, inboundEmailsQry } from '../gql/queries/emailQueries.ts';
 import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
@@ -40,23 +39,19 @@ export function useInboundEmail(
   },
   params: UseQueryParams = {},
 ) {
-  const cachedInboundEmail = variables.inboundEmailId
-    ? loadFragment(`$inboundEmailFragment:${variables.inboundEmailId}`)
-    : null;
+  const cachedInboundEmail = useReactiveInboundEmailFragment(
+    variables.inboundEmailId || '',
+    null,
+  );
   const shouldFetchInboundEmail = !!variables.organizationId && !!variables.inboundEmailId && !cachedInboundEmail && !params.skip;
   const { data, ...rest } = useQuery(inboundEmailQry, {
     ...params,
     variables,
     skip: !shouldFetchInboundEmail,
   });
-  const inboundEmail = useReactiveInboundEmailFragment(
-    variables.inboundEmailId || '',
-    data?.inboundEmail || cachedInboundEmail,
-    rest.updatedCount,
-  );
 
   return {
-    inboundEmail,
+    inboundEmail: cachedInboundEmail || data?.inboundEmail,
     initialLoading: shouldFetchInboundEmail && !data,
     ...rest
   };

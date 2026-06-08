@@ -1,16 +1,16 @@
 import { useEditDataTableCells } from '@jsb188/graphql/hooks/use-dataTable-mtn';
-import { useEditSheetCells, useUpdateSheet } from '@jsb188/graphql/hooks/use-sheet-mtn';
+import { useEditSheetCells, useEditSheetStructure, useUpdateSheet } from '@jsb188/graphql/hooks/use-sheet-mtn';
 import { loadQuery } from '@jsb188/graphql/cache';
 import { getDataTableCellsForRowsQueryKey, useDataTableCellsForRows } from '@jsb188/graphql/hooks/use-dataTable-qry';
 import type { SheetGridViewportVariables } from '@jsb188/graphql/hooks/use-sheet-qry';
-import { useSheetGrid } from '@jsb188/graphql/hooks/use-sheet-qry';
+import { useReactiveSheetCells, useReactiveSheetFormulaReferences, useSheetFormulaReferences, useSheetGrid } from '@jsb188/graphql/hooks/use-sheet-qry';
 import type { DataTableCellGQL, DataTableGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
-import type { SheetCellGQL, SheetGQL, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { SheetCellGQL, SheetDesignObj, SheetGQL, SheetRangeGQL, SheetRegionGQL, SheetStructureOperationEnum } from '@jsb188/mday/types/sheet.d.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useAtom } from 'jotai';
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   createSheetStateAtoms,
   type SheetStateAtoms,
@@ -32,6 +32,26 @@ import {
   SHEET_CANVAS_DEFAULT_VIEWPORT_HEIGHT,
   type SheetLoadedGridState,
 } from '../libs/sheet-utils.ts';
+import {
+  applySheetStructureEditToCellsByCoord,
+  applySheetStructureEditToRanges,
+  getSheetStructureDesignAfterEdit,
+  getSheetStructureProtectedBounds,
+} from '../libs/sheet-structure-edit.ts';
+import {
+	getSheetLoadedGridStateAfterStructureEdit,
+	sheetGridCellsMatchPendingStructure,
+	sheetGridRangesMatchPendingStructure,
+	sheetStructureDesignMatchesServerDesign,
+	waitForSheetStructureOptimisticPaint,
+	type SheetPendingStructureGridState,
+} from '../libs/sheet-structure-optimistic.ts';
+import {
+	getSheetFormulaReferenceCellsByCoord,
+	getSheetFormulaReferencesById,
+	getSheetFormulaReferencesFromCells,
+	getSheetFormulaReferencesNeedingServerResolution,
+} from '../libs/sheet-formula-evaluation.ts';
 
 export interface SheetProps {
 	sheet: SheetGQL;
@@ -167,6 +187,25 @@ function getCachedSheetDataTableSourceCells(
 }
 
 /*
+ * Return a cell coordinate map with override cells applied.
+ */
+function mergeSheetCellCoordMaps(
+	baseCellsByCoord: Map<string, SheetCellGQL>,
+	overrideCellsByCoord?: Map<string, SheetCellGQL> | null,
+) {
+	if (!overrideCellsByCoord?.size) {
+		return baseCellsByCoord;
+	}
+
+	const next = new Map(baseCellsByCoord);
+	overrideCellsByCoord.forEach((cell, coordKey) => {
+		next.set(coordKey, cell);
+	});
+
+	return next;
+}
+
+/*
  * Render one Sheet inside an isolated local grid state store.
  */
 export function Sheet(p: SheetProps) {
@@ -190,16 +229,19 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const sheetId = p.sheet.id || '';
 	const organizationId = p.organizationId || p.sheet.organizationId || '';
 
-	const design = useMemo(() => {
+	const serverDesign = useMemo(() => {
 		return getSheetCanvasDesign(p.sheet.design);
 	}, [p.sheet.design]);
+	const [optimisticStructureDesign, setOptimisticStructureDesign] = useState<SheetDesignObj | null>(null);
+	const [optimisticRanges, setOptimisticRanges] = useState<SheetRangeGQL[] | null>(null);
+	const design = optimisticStructureDesign || serverDesign;
 	const initialRowCount = useMemo(() => {
 		return getSheetCanvasInitialRowCount(
 			globalThis.window?.innerHeight || SHEET_CANVAS_DEFAULT_VIEWPORT_HEIGHT,
-			design.grid.rowCount,
+			serverDesign.grid.rowCount,
 		);
-	}, [design.grid.rowCount]);
-	const initialColumnCount = Math.min(100, design.grid.columnCount);
+	}, [serverDesign.grid.rowCount]);
+	const initialColumnCount = Math.min(100, serverDesign.grid.columnCount);
 	const initialGridViewport = useMemo(() => {
 		return getSheetCanvasGridViewport({
 			columnCount: initialColumnCount,
@@ -211,6 +253,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 	}, [initialRowCount]);
 	const [gridViewportValue, setGridViewportValue] = useAtom(p.stateAtoms.gridViewportAtom);
 	const [loadedGridStateValue, setLoadedGridStateValue] = useAtom(p.stateAtoms.loadedGridStateAtom);
+	const [optimisticCellsByCoord, setOptimisticCellsByCoord] = useAtom(p.stateAtoms.optimisticCellsByCoordAtom);
 	const gridViewport = gridViewportValue || initialGridViewport;
 	const loadedGridState = loadedGridStateValue || initialLoadedGridState;
 	const setGridViewport = useCallback((update: SheetGridViewportVariables | ((currentState: SheetGridViewportVariables) => SheetGridViewportVariables)) => {
@@ -231,9 +274,14 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const fetchingMoreRef = useRef(false);
 	const { editDataTableCells } = useEditDataTableCells();
 	const { editSheetCells } = useEditSheetCells();
+	const { editSheetStructure } = useEditSheetStructure();
 	const { updateSheet } = useUpdateSheet();
 	const openModalPopUp = useOpenModalPopUp();
 	const openModalScreen = useOpenModalScreen();
+	const [sheetStructureGridMergePaused, setSheetStructureGridMergePaused] = useState(false);
+	const sheetStructureGridRefetchStartedRef = useRef(false);
+	const pendingSheetStructureGridRef = useRef<SheetPendingStructureGridState | null>(null);
+	const loadedGridSheetIdRef = useRef(sheetId);
 	const {
 		loading: sheetGridLoading,
 		sheetGrid,
@@ -242,8 +290,10 @@ function SheetDataContent(p: SheetDataContentProps) {
 	});
 
 	useEffect(() => {
+		const sheetChanged = loadedGridSheetIdRef.current !== sheetId;
+		loadedGridSheetIdRef.current = sheetId;
 		const nextViewport = getSheetCanvasGridViewport({
-			columnCount: Math.min(100, design.grid.columnCount),
+			columnCount: Math.min(100, serverDesign.grid.columnCount),
 			rowCount: initialRowCount,
 		});
 
@@ -251,17 +301,65 @@ function SheetDataContent(p: SheetDataContentProps) {
 			return sheetViewportVariablesAreEqual(currentViewport, nextViewport) ? currentViewport : nextViewport;
 		});
 		setLoadedGridState((currentState) => {
-			return sheetLoadedGridStateMatchesInitial(currentState, initialRowCount)
+			return !sheetChanged || sheetLoadedGridStateMatchesInitial(currentState, initialRowCount)
 				? currentState
 				: getInitialSheetLoadedGridState(initialRowCount);
 		});
-	}, [design.grid.columnCount, initialRowCount, sheetId]);
+	}, [serverDesign.grid.columnCount, initialRowCount, sheetId]);
 
 	useEffect(() => {
 		if (!sheetGridLoading) {
 			fetchingMoreRef.current = false;
 		}
 	}, [sheetGridLoading]);
+
+	useEffect(() => {
+		if (!sheetStructureGridMergePaused) {
+			return;
+		}
+
+		if (sheetGridLoading) {
+			sheetStructureGridRefetchStartedRef.current = true;
+			return;
+		}
+
+		if (!sheetStructureGridRefetchStartedRef.current || !sheetGrid) {
+			return;
+		}
+
+		const pendingGrid = pendingSheetStructureGridRef.current;
+		if (
+			pendingGrid &&
+			(
+				!sheetGridCellsMatchPendingStructure(sheetGrid, pendingGrid) ||
+				!sheetGridRangesMatchPendingStructure(sheetGrid, pendingGrid)
+			)
+		) {
+			return;
+		}
+
+		pendingSheetStructureGridRef.current = null;
+		sheetStructureGridRefetchStartedRef.current = false;
+		setSheetStructureGridMergePaused(false);
+		setOptimisticRanges(null);
+		if (sheetStructureDesignMatchesServerDesign(serverDesign, pendingGrid?.design || optimisticStructureDesign)) {
+			setOptimisticStructureDesign(null);
+		}
+	}, [optimisticStructureDesign, serverDesign, sheetGrid, sheetGridLoading, sheetStructureGridMergePaused]);
+
+	useEffect(() => {
+		pendingSheetStructureGridRef.current = null;
+		sheetStructureGridRefetchStartedRef.current = false;
+		setSheetStructureGridMergePaused(false);
+		setOptimisticRanges(null);
+		setOptimisticStructureDesign(null);
+	}, [sheetId]);
+
+	useEffect(() => {
+		if (sheetStructureDesignMatchesServerDesign(serverDesign, optimisticStructureDesign)) {
+			setOptimisticStructureDesign(null);
+		}
+	}, [optimisticStructureDesign, serverDesign]);
 
 	useEffect(() => {
 		if (sheetGridLoading || !sheetGrid || !p.onPreviewReady) {
@@ -278,7 +376,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 	}, [p.onPreviewReady, sheetGrid, sheetGridLoading]);
 
 	useEffect(() => {
-		if (!sheetGrid) {
+		if (!sheetGrid || sheetStructureGridMergePaused) {
 			return;
 		}
 
@@ -317,7 +415,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 				loadedRowCount,
 			};
 		});
-	}, [design.grid.rowCount, gridViewport.rowCount, initialRowCount, sheetGrid]);
+	}, [design.grid.rowCount, gridViewport.rowCount, initialRowCount, sheetGrid, sheetStructureGridMergePaused]);
 
 	const requestViewport = useCallback((viewport: SheetViewportRequest) => {
 		setGridViewport((currentViewport) => {
@@ -431,6 +529,53 @@ function SheetDataContent(p: SheetDataContentProps) {
 			? getSheetCanvasCellsByCoord(sheetGrid.cells as SheetCellGQL[])
 			: loadedGridState.cellsByCoord;
 	}, [loadedGridState.cellsByCoord, sheetGrid?.cells]);
+	const formulaBaseCellsByCoord = useMemo(() => {
+		return mergeSheetCellCoordMaps(cellsByCoord, optimisticCellsByCoord);
+	}, [cellsByCoord, optimisticCellsByCoord]);
+	const baseFormulaReferences = useMemo(() => {
+		return getSheetFormulaReferencesFromCells(formulaBaseCellsByCoord);
+	}, [formulaBaseCellsByCoord]);
+	const reactiveBaseFormulaReferences = useReactiveSheetFormulaReferences(baseFormulaReferences);
+	const baseFormulaDependencyCellsByCoord = useMemo(() => {
+		return getSheetFormulaReferenceCellsByCoord(reactiveBaseFormulaReferences || baseFormulaReferences);
+	}, [baseFormulaReferences, reactiveBaseFormulaReferences]);
+	const formulaCellsWithBaseDependenciesByCoord = useMemo(() => {
+		return mergeSheetCellCoordMaps(formulaBaseCellsByCoord, baseFormulaDependencyCellsByCoord);
+	}, [baseFormulaDependencyCellsByCoord, formulaBaseCellsByCoord]);
+	const formulaReferences = useMemo(() => {
+		return getSheetFormulaReferencesFromCells(formulaCellsWithBaseDependenciesByCoord);
+	}, [formulaCellsWithBaseDependenciesByCoord]);
+	const reactiveFormulaReferences = useReactiveSheetFormulaReferences(formulaReferences);
+	const formulaReferenceSource = reactiveFormulaReferences || formulaReferences;
+	const formulaReferencesById = useMemo(() => {
+		return getSheetFormulaReferencesById(formulaReferenceSource);
+	}, [formulaReferenceSource]);
+	const formulaDependencyCells = useMemo(() => {
+		return Array.from(getSheetFormulaReferenceCellsByCoord(formulaReferenceSource).values());
+	}, [formulaReferenceSource]);
+	const reactiveFormulaDependencyCells = useReactiveSheetCells(formulaDependencyCells) as SheetCellGQL[] | null;
+	const formulaDependencyCellsByCoord = useMemo(() => {
+		return getSheetCanvasCellsByCoord(reactiveFormulaDependencyCells || formulaDependencyCells);
+	}, [formulaDependencyCells, reactiveFormulaDependencyCells]);
+	const formulaResolutionCellsByCoord = useMemo(() => {
+		return mergeSheetCellCoordMaps(formulaBaseCellsByCoord, formulaDependencyCellsByCoord);
+	}, [formulaBaseCellsByCoord, formulaDependencyCellsByCoord]);
+	const formulaReferencesToResolve = useMemo(() => {
+		return getSheetFormulaReferencesNeedingServerResolution({
+			cellsByCoord: formulaResolutionCellsByCoord,
+			references: formulaReferenceSource,
+			referencesById: formulaReferencesById,
+		});
+	}, [formulaReferenceSource, formulaReferencesById, formulaResolutionCellsByCoord]);
+	useSheetFormulaReferences(
+		sheetId,
+		organizationId,
+		formulaReferencesToResolve,
+		{
+			authToken: p.previewAuthToken || null,
+			skip: !formulaReferencesToResolve.length,
+		},
+	);
 	const dataTableSourceCellRequests = useMemo(() => {
 		return getSheetDataTableSourceCellRequests(cellsByCoord, sheetGrid?.regions);
 	}, [cellsByCoord, sheetGrid?.regions]);
@@ -447,6 +592,86 @@ function SheetDataContent(p: SheetDataContentProps) {
 		},
 	);
 	const sourceDataTableCells = cachedDataTableSourceCells || dataTableCellsForRows || [];
+	const sheetRanges = useMemo(() => {
+		return optimisticRanges || sheetGrid?.ranges || [];
+	}, [optimisticRanges, sheetGrid?.ranges]);
+	const sheetRegions = useMemo(() => {
+		return sheetGrid?.regions || [];
+	}, [sheetGrid?.regions]);
+
+	/*
+	 * Save one row or column structure edit after applying the matching local projection.
+	 */
+	const editSheetGridStructure = useCallback(async (operation: SheetStructureOperationEnum, index: number) => {
+		const bounds = getSheetStructureProtectedBounds(sheetRegions);
+		const nextDesign = getSheetStructureDesignAfterEdit(design, operation, index, bounds);
+		const nextRanges = applySheetStructureEditToRanges(sheetRanges, operation, index, bounds);
+		const previousLoadedGridState = loadedGridState;
+		const previousOptimisticCellsByCoord = optimisticCellsByCoord;
+		const previousOptimisticRanges = optimisticRanges;
+		const previousOptimisticStructureDesign = optimisticStructureDesign;
+		const nextLoadedGridState = getSheetLoadedGridStateAfterStructureEdit({
+			bounds,
+			currentState: previousLoadedGridState,
+			fallbackCellsByCoord: cellsByCoord,
+			nextDesign,
+			operation,
+			targetIndex: index,
+		});
+
+		sheetStructureGridRefetchStartedRef.current = false;
+		pendingSheetStructureGridRef.current = {
+			cellsByCoord: nextLoadedGridState.cellsByCoord,
+			design: nextDesign,
+			ranges: nextRanges,
+		};
+		setSheetStructureGridMergePaused(true);
+		setOptimisticStructureDesign(nextDesign);
+		setOptimisticRanges(nextRanges);
+		setLoadedGridState(nextLoadedGridState);
+		setOptimisticCellsByCoord((currentState) => applySheetStructureEditToCellsByCoord(
+			currentState,
+			operation,
+			index,
+			bounds,
+		));
+
+		try {
+			await waitForSheetStructureOptimisticPaint();
+
+			return await editSheetStructure({
+				variables: {
+					index,
+					operation,
+					organizationId,
+					sheetId,
+				},
+			});
+		} catch (error) {
+			pendingSheetStructureGridRef.current = null;
+			sheetStructureGridRefetchStartedRef.current = false;
+			setSheetStructureGridMergePaused(false);
+			setLoadedGridState(previousLoadedGridState);
+			setOptimisticCellsByCoord(previousOptimisticCellsByCoord);
+			setOptimisticRanges(previousOptimisticRanges);
+			setOptimisticStructureDesign(previousOptimisticStructureDesign);
+			throw error;
+		}
+	}, [
+		cellsByCoord,
+		design,
+		editSheetStructure,
+		loadedGridState,
+		optimisticCellsByCoord,
+		optimisticRanges,
+		optimisticStructureDesign,
+		organizationId,
+		setLoadedGridState,
+		setOptimisticCellsByCoord,
+		sheetId,
+		sheetRanges,
+		sheetRegions,
+	]);
 
 	return <SheetController
 		bufferColumns={p.bufferColumns}
@@ -458,17 +683,20 @@ function SheetDataContent(p: SheetDataContentProps) {
 		dataTables={p.dataTables}
 		design={design}
 		disabled={p.disabled}
+		formulaDependencyCellsByCoord={formulaDependencyCellsByCoord}
+		formulaReferencesById={formulaReferencesById}
 		hasMoreRows={loadedGridState.hasMoreRows}
 		loadedRowCount={loadedGridState.loadedRowCount}
 		onFetchMoreRows={fetchMoreRows}
 		onPopulateFromDataTable={openPopulateFromDataTableModal}
 		onRemoveDataTableRegion={removeDataTableRegion}
+		onEditSheetStructure={editSheetGridStructure}
 		onSaveDataTableCells={saveDataTableCells}
 		onSaveCells={saveCells}
 		onUpdateSheetDesign={updateSheetDesign}
 		onViewportRequest={requestViewport}
-		ranges={sheetGrid?.ranges || []}
-		regions={sheetGrid?.regions || []}
+		ranges={sheetRanges}
+		regions={sheetRegions}
 		setFloatingMessage={p.setFloatingMessage}
 		sourceDataTableCells={sourceDataTableCells}
 		stateAtoms={p.stateAtoms}

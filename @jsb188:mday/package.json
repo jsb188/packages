@@ -35,6 +35,7 @@
     "./utils/organization.ts": "./src/utils/organization.ts",
     "./utils/report.ts": "./src/utils/report.ts",
     "./utils/dataTable.ts": "./src/utils/dataTable.ts",
+    "./utils/documentName.ts": "./src/utils/documentName.ts",
     "./utils/sheet.ts": "./src/utils/sheet.ts",
     "./utils/table-route.ts": "./src/utils/table-route.ts",
     "./utils/square.ts": "./src/utils/square.ts",

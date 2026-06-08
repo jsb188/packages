@@ -84,6 +84,11 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app',
     text: 'app.home',
   },
+  '/app/workspace': {
+    to: '/app/workspace',
+    text: 'app.workspace',
+    iconName: COMMON_ICON_NAMES.workspace,
+  },
   '/app/c/': {
     to: '/app/c/',
     text: 'app.route_ai_chat',
@@ -102,11 +107,6 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app/workflows',
     text: 'form.ai_workflows',
     iconName: COMMON_ICON_NAMES.ai_workflow,
-  },
-  '/app/workspace': {
-    to: '/app/workspace',
-    text: 'app.workspace',
-    iconName: COMMON_ICON_NAMES.sheet,
   },
   '/app/s/': {
     to: '/app/s/',
@@ -529,7 +529,6 @@ export function getNavigationList(
   operation: OrganizationOperationEnum | null,
   orgFeatures?: (OrganizationFeatureEnum | string)[], // This array contains available report groups also
   reportGroups?: ReportGroupGQL[] | null,
-  dataTables?: DataTableGQL[] | null,
   checkACLClient?: CheckACLClientFn | null,
   sidebar?: OrganizationSidebarGroupObj[] | null,
 ): NavigationItem[] {
@@ -625,28 +624,12 @@ export function getNavigationList(
     navListArr.push(reportsSection);
   }
 
-  const activeDataTables = dataTables?.filter((dataTable) => !dataTable.__deleted && dataTable.active !== false);
-
-  if (activeDataTables) {
-    const dataTablesSection = {
-      text: i18n.t('form.data_tables'),
-      navList: activeDataTables.map((dataTable) => ({
-        to: makePathname('/app/d/', dataTable.id),
-        text: dataTable.title || dataTable.name,
-        iconName: COMMON_ICON_NAMES.data_table,
-      })),
-    };
-
-    if (dataTablesSection.navList.length) {
-      navListArr.push(dataTablesSection);
-    }
-  }
-
   // @ts-ignore
   navListArr = [{
     ...ROUTES_DICT['/app'],
     iconName: COMMON_ICON_NAMES[operation!] || 'home',
   },
+    ROUTES_DICT['/app/workspace'],
     breakItem,
   // @ts-ignore
   ].concat(navListArr).concat([{
@@ -654,7 +637,6 @@ export function getNavigationList(
     initialExpanded: true,
     navList: [
       ROUTES_DICT['/app/workflows'],
-      // ROUTES_DICT['/app/workspace'],
       // ROUTES_DICT['/app/emails'],
       ROUTES_DICT['/app/logs']
     ]

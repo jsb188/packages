@@ -7,6 +7,7 @@ import {
 	deleteSheetRangeMtn,
 	deleteSheetRegionMtn,
 	editSheetCellsMtn,
+	editSheetStructureMtn,
 	updateSheetMtn,
 	upsertSheetDataTableRegionMtn,
 	upsertSheetRangeMtn,
@@ -112,6 +113,27 @@ export function useClearSheetCell(params: UseMutationParams = {}, openModalPopUp
 
 	return {
 		clearSheetCell,
+		updateObservers,
+		...mtnValues,
+		...mtnHandlers,
+	};
+}
+
+/*
+ * Insert or delete a sheet row or column.
+ */
+
+export function useEditSheetStructure(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
+	const [editSheetStructure, mtnValues, mtnHandlers, updateObservers] = useMutation(
+		editSheetStructureMtn,
+		{
+			openModalPopUp,
+			...params,
+		},
+	);
+
+	return {
+		editSheetStructure,
 		updateObservers,
 		...mtnValues,
 		...mtnHandlers,

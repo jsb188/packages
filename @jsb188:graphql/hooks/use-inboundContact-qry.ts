@@ -1,6 +1,5 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import type { InboundContactsSortEnum } from '@jsb188/mday/types/inboundContact.d.ts';
-import { loadFragment } from '../cache/index.ts';
 import { inboundContactQry, inboundContactsQry } from '../gql/queries/inboundContactQueries.ts';
 import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
@@ -21,23 +20,19 @@ export function useInboundContact(
   },
   params: UseQueryParams = {},
 ) {
-  const cachedInboundContact = variables.inboundContactId
-    ? loadFragment(`$inboundContactFragment:${variables.inboundContactId}`)
-    : null;
+  const cachedInboundContact = useReactiveInboundContactFragment(
+    variables.inboundContactId || '',
+    null,
+  );
   const shouldFetchInboundContact = !!variables.organizationId && !!variables.inboundContactId && !cachedInboundContact && !params.skip;
   const { data, ...rest } = useQuery(inboundContactQry, {
     ...params,
     variables,
     skip: !shouldFetchInboundContact,
   });
-  const inboundContact = useReactiveInboundContactFragment(
-    variables.inboundContactId || '',
-    data?.inboundContact || cachedInboundContact,
-    rest.updatedCount,
-  );
 
   return {
-    inboundContact,
+    inboundContact: cachedInboundContact || data?.inboundContact,
     initialLoading: shouldFetchInboundContact && !data,
     ...rest
   };

@@ -77,6 +77,10 @@ export const SheetColorPicker = memo((p: SheetColorPickerProps) => {
 	 * Begin dragging the picker from its handle.
 	 */
 	const handleDragStart = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+		if (event.button !== 0) {
+			return;
+		}
+
 		event.preventDefault();
 		dragStateRef.current = {
 			startClientX: event.clientX,
@@ -143,14 +147,17 @@ export const SheetColorPicker = memo((p: SheetColorPickerProps) => {
 			dragStateRef.current = null;
 			globalThis.window?.removeEventListener('pointermove', handlePointerMove);
 			globalThis.window?.removeEventListener('pointerup', handlePointerUp);
+			globalThis.window?.removeEventListener('pointercancel', handlePointerUp);
 		};
 
 		globalThis.window?.addEventListener('pointermove', handlePointerMove);
 		globalThis.window?.addEventListener('pointerup', handlePointerUp);
+		globalThis.window?.addEventListener('pointercancel', handlePointerUp);
 
 		return () => {
 			globalThis.window?.removeEventListener('pointermove', handlePointerMove);
 			globalThis.window?.removeEventListener('pointerup', handlePointerUp);
+			globalThis.window?.removeEventListener('pointercancel', handlePointerUp);
 		};
 	}, [dragVersion]);
 

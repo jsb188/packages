@@ -250,10 +250,12 @@ const POListColors = memo((p: PONavItemBase & {
   >
     {showHeader
       ? <div className='h_spread gap_10 mb_6 ft_xs lh_1'>
-        <span className='cl_md'>{label}</span>
+        <span className='ft_medium'>
+          {label}
+        </span>
         {onClickCustomize
           ? <button
-            className='btn r_sm cl_bd link lh_1 bg_alt bg_active_hv p_5'
+            className='btn cl_lt link lh_1 u ft_xs'
             disabled={disabled}
             onClick={() => {
               onClickCustomize(name, selectedColor);

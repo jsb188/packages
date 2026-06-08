@@ -31,6 +31,7 @@
     "./libs/sheet-canvas-geometry": "./src/libs/sheet-canvas-geometry.ts",
     "./libs/sheet-history": "./src/libs/sheet-history.ts",
     "./libs/sheet-state": "./src/libs/sheet-state.ts",
+    "./libs/sheet-structure-edit": "./src/libs/sheet-structure-edit.ts",
     "./libs/sheet-utils": "./src/libs/sheet-utils.ts",
     "./libs/use-debounced-cell-save-batch": "./src/libs/use-debounced-cell-save-batch.ts"
   },

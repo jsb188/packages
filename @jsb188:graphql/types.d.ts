@@ -70,7 +70,7 @@ export type UseMutationParamsExtra = Partial<{
  */
 
 export type PaginationArgs = Partial<{
-	cursor: [number | null, number | null];
+	cursor: [number | null, number | null, string?] | string | null;
 	after: boolean;
 	limit: number;
 	doNotThrowError: boolean;

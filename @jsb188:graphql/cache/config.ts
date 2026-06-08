@@ -51,6 +51,7 @@ export const RULES = {
   reportSubmissions: true,
   searchUsers: true,
   sheet: true,
+  sheetFormulaReferences: true,
   sheetGrid: true,
   sheets: true,
   updateNote: true,

@@ -48,6 +48,7 @@ export type SheetCanvasCell = {
 	dataTableDisplay?: DataTableCellDisplayModel | null;
 	displayValue: string;
 	draftValue: string;
+	formulaLoading: boolean;
 	rowId: string;
 	rowIndex: number;
 	style: SheetCanvasCellStyle;
@@ -388,6 +389,7 @@ export function getSheetCanvasCell(params: {
 		columnIndex: params.columnIndex,
 		displayValue: getSheetCanvasCellDisplayValue(params.cell),
 		draftValue: getSheetCanvasCellDraftValue(params.cell),
+		formulaLoading: Boolean((params.cell as SheetCellGQL & { __formulaLoading?: boolean } | null | undefined)?.__formulaLoading),
 		rowId: params.rowId,
 		rowIndex: params.rowIndex,
 		style: getSheetCanvasResolvedStyle(params),

@@ -99,6 +99,26 @@ mutation clearSheetCell (
 ${sheetCellFragment}
 `;
 
+export const editSheetStructureMtn = gql`
+mutation editSheetStructure (
+  $organizationId: GenericID!
+  $sheetId: GenericID!
+  $operation: SheetStructureOperation!
+  $index: Int!
+) {
+  editSheetStructure (
+    organizationId: $organizationId
+    sheetId: $sheetId
+    operation: $operation
+    index: $index
+  ) {
+    ...sheetFragment
+  }
+}
+
+${sheetFragment}
+`;
+
 export const upsertSheetRangeMtn = gql`
 mutation upsertSheetRange (
   $organizationId: GenericID!

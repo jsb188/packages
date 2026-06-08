@@ -233,7 +233,7 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
     {/* <div className='h_item px_12 py_2 ic_df lh_3'> */}
     <div className='h_item px_11 pt_3 pb_2 ic_df lh_2'>
       {iconName && <div className={SIDEBAR_AVATAR_CLASSNAME}>
-        <Icon name={iconName} />
+        <Icon name={iconName} tryColor />
       </div>}
 
       <div className='f ellip'>

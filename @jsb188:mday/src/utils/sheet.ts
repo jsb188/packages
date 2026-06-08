@@ -4,8 +4,10 @@ import {
 	SHEET_DEFAULT_ROW_COUNT,
 	SHEET_REGION_CONFLICT_POLICY_ENUMS,
 	SHEET_REGION_TYPE_ENUMS,
+	SHEET_STRUCTURE_OPERATION_ENUMS,
 	SHEET_VIEWPORT_MAX_COLUMNS,
 	SHEET_VIEWPORT_MAX_ROWS,
+	WORKSPACE_ITEM_LIST_LIMIT,
 } from '../constants/sheet.ts';
 import type {
 	SheetAxisDesignObj,
@@ -15,7 +17,43 @@ import type {
 	SheetRangeData,
 	SheetRegionConflictPolicyEnum,
 	SheetRegionTypeEnum,
+	SheetStructureOperationEnum,
 } from '../types/sheet.d.ts';
+
+/*
+ * Return a normalized title value for cursor pagination across workspace items.
+ */
+export function getWorkspaceItemTitleCursorValue(item: {
+	name?: string | null;
+	title?: string | null;
+}) {
+	return String(item.title || item.name || '').trim().toLowerCase();
+}
+
+/*
+ * Encode a workspace item title cursor value for GraphQL's colon-delimited Cursor scalar.
+ */
+export function encodeWorkspaceItemTitleCursorValue(value: string | null | undefined) {
+	return encodeURIComponent(String(value || ''));
+}
+
+/*
+ * Decode a workspace item title cursor value from GraphQL's colon-delimited Cursor scalar.
+ */
+export function decodeWorkspaceItemTitleCursorValue(value: string | null | undefined) {
+	try {
+		return decodeURIComponent(String(value || ''));
+	} catch {
+		return String(value || '');
+	}
+}
+
+/*
+ * Return a safe page size for workspace item list pagination.
+ */
+export function getWorkspaceItemListLimit(limit?: number | null) {
+	return Math.min(WORKSPACE_ITEM_LIST_LIMIT, Math.max(0, Math.floor(Number(limit) || WORKSPACE_ITEM_LIST_LIMIT)));
+}
 
 export type SheetFormulaOperatorTerm<Operator extends string> = {
 	expression: string;
@@ -26,6 +64,20 @@ export type SheetFormulaCellReference = {
 	columnIndex: number;
 	columnLabel: string;
 	rowIndex: number;
+};
+
+export type SheetProtectedAxisSpan = {
+	endIndex: number;
+	startIndex: number;
+};
+
+export type SheetFormulaRangeReference = {
+	endColumnIndex: number;
+	endColumnLabel: string;
+	endRowIndex: number;
+	startColumnIndex: number;
+	startColumnLabel: string;
+	startRowIndex: number;
 };
 
 export type SheetFormulaCall = {
@@ -41,10 +93,80 @@ export type SheetFormulaDataTableCall = {
 	text: string;
 };
 
+export type SheetFormulaASTNode =
+	| {
+		kind: 'BOOLEAN_LITERAL';
+		text: string;
+		value: boolean;
+	}
+	| {
+		kind: 'CELL_REFERENCE';
+		reference: SheetFormulaCellReference;
+		text: string;
+	}
+	| {
+		args: SheetFormulaASTNode[];
+		kind: 'FUNCTION_CALL';
+		name: string;
+		text: string;
+	}
+	| {
+		kind: 'NUMBER_LITERAL';
+		text: string;
+		value: number;
+	}
+	| {
+		kind: 'RANGE_REFERENCE';
+		reference: SheetFormulaRangeReference;
+		text: string;
+	}
+	| {
+		kind: 'STRING_LITERAL';
+		text: string;
+		value: string;
+	}
+	| {
+		kind: 'BINARY_EXPRESSION';
+		left: SheetFormulaASTNode;
+		operator: SheetFormulaBinaryOperator;
+		right: SheetFormulaASTNode;
+		text: string;
+	}
+	| {
+		kind: 'UNARY_EXPRESSION';
+		operator: '+' | '-';
+		text: string;
+		value: SheetFormulaASTNode;
+	};
+
+export type SheetFormulaBinaryOperator =
+	| '!='
+	| '*'
+	| '+'
+	| '-'
+	| '/'
+	| '<'
+	| '<='
+	| '<>'
+	| '='
+	| '>'
+	| '>=';
+
+type SheetFormulaParserState = {
+	index: number;
+	value: string;
+};
+
 export type SheetFormulaReferenceToken =
 	| SheetFormulaCellReference & {
 		endIndex: number;
 		kind: 'SHEET_CELL';
+		startIndex: number;
+		text: string;
+	}
+	| SheetFormulaRangeReference & {
+		endIndex: number;
+		kind: 'SHEET_RANGE';
 		startIndex: number;
 		text: string;
 	}
@@ -344,6 +466,431 @@ export function parseSheetFormulaNumberLiteral(value: string) {
 }
 
 /*
+ * Return the current parser offset after any whitespace.
+ */
+function skipSheetFormulaParserWhitespace(state: SheetFormulaParserState) {
+	while (/\s/.test(state.value[state.index] || '')) {
+		state.index += 1;
+	}
+}
+
+/*
+ * Return source text covered by one parser span.
+ */
+function getSheetFormulaParserSpanText(state: SheetFormulaParserState, startIndex: number) {
+	return state.value.slice(startIndex, state.index).trim();
+}
+
+/*
+ * Return whether the parser has consumed the full formula expression.
+ */
+function isSheetFormulaParserAtEnd(state: SheetFormulaParserState) {
+	skipSheetFormulaParserWhitespace(state);
+	return state.index >= state.value.length;
+}
+
+/*
+ * Return a parsed function or identifier name at the current parser position.
+ */
+function parseSheetFormulaIdentifierName(state: SheetFormulaParserState) {
+	const match = state.value.slice(state.index).match(/^@?[A-Za-z_][A-Za-z0-9_]*/);
+	if (!match) {
+		return null;
+	}
+
+	state.index += match[0].length;
+	return match[0];
+}
+
+/*
+ * Return a parsed cell reference at the current parser position.
+ */
+function parseSheetFormulaCellReferenceAtState(state: SheetFormulaParserState) {
+	const match = state.value.slice(state.index).match(/^([A-Za-z]+[1-9]\d*)/);
+	if (!match) {
+		return null;
+	}
+
+	const nextChar = state.value[state.index + match[1].length];
+	if (isSheetFormulaIdentifierChar(nextChar)) {
+		return null;
+	}
+
+	const reference = parseSheetFormulaCellReference(match[1]);
+	if (!reference) {
+		return null;
+	}
+
+	state.index += match[1].length;
+	return {
+		reference,
+		text: match[1],
+	};
+}
+
+/*
+ * Return a range reference with ordered corners.
+ */
+function buildSheetFormulaRangeReference(
+	start: SheetFormulaCellReference,
+	end: SheetFormulaCellReference,
+): SheetFormulaRangeReference {
+	const startColumnIndex = Math.min(start.columnIndex, end.columnIndex);
+	const endColumnIndex = Math.max(start.columnIndex, end.columnIndex);
+	const startRowIndex = Math.min(start.rowIndex, end.rowIndex);
+	const endRowIndex = Math.max(start.rowIndex, end.rowIndex);
+
+	return {
+		endColumnIndex,
+		endColumnLabel: start.columnIndex <= end.columnIndex ? end.columnLabel : start.columnLabel,
+		endRowIndex,
+		startColumnIndex,
+		startColumnLabel: start.columnIndex <= end.columnIndex ? start.columnLabel : end.columnLabel,
+		startRowIndex,
+	};
+}
+
+/*
+ * Return a parsed range reference from a complete formula expression.
+ */
+export function parseSheetFormulaRangeReference(value: string): SheetFormulaRangeReference | null {
+	const state = {
+		index: 0,
+		value: value.trim(),
+	};
+	const start = parseSheetFormulaCellReferenceAtState(state);
+	if (!start) {
+		return null;
+	}
+
+	skipSheetFormulaParserWhitespace(state);
+	if (state.value[state.index] !== ':') {
+		return null;
+	}
+
+	state.index += 1;
+	skipSheetFormulaParserWhitespace(state);
+	const end = parseSheetFormulaCellReferenceAtState(state);
+	if (!end || !isSheetFormulaParserAtEnd(state)) {
+		return null;
+	}
+
+	return buildSheetFormulaRangeReference(start.reference, end.reference);
+}
+
+/*
+ * Return a parsed string literal node at the current parser position.
+ */
+function parseSheetFormulaStringNode(state: SheetFormulaParserState): SheetFormulaASTNode | null {
+	if (state.value[state.index] !== '"') {
+		return null;
+	}
+
+	const startIndex = state.index;
+	const endIndex = getSheetFormulaStringEndIndex(state.value, state.index);
+	const text = state.value.slice(startIndex, endIndex);
+	const value = parseSheetFormulaStringLiteral(text);
+	if (value === null) {
+		return null;
+	}
+
+	state.index = endIndex;
+	return {
+		kind: 'STRING_LITERAL',
+		text,
+		value,
+	};
+}
+
+/*
+ * Return a parsed number literal node at the current parser position.
+ */
+function parseSheetFormulaNumberNode(state: SheetFormulaParserState): SheetFormulaASTNode | null {
+	const match = state.value.slice(state.index).match(/^(?:\d+(?:\.\d+)?|\.\d+)/);
+	if (!match) {
+		return null;
+	}
+
+	const nextChar = state.value[state.index + match[0].length];
+	if (isSheetFormulaIdentifierChar(nextChar)) {
+		return null;
+	}
+
+	state.index += match[0].length;
+	return {
+		kind: 'NUMBER_LITERAL',
+		text: match[0],
+		value: Number(match[0]),
+	};
+}
+
+/*
+ * Return a parsed comma-separated function argument list.
+ */
+function parseSheetFormulaFunctionArguments(state: SheetFormulaParserState) {
+	const args: SheetFormulaASTNode[] = [];
+	skipSheetFormulaParserWhitespace(state);
+	if (state.value[state.index] === ')') {
+		state.index += 1;
+		return args;
+	}
+
+	while (state.index < state.value.length) {
+		const arg = parseSheetFormulaComparisonExpression(state);
+		if (!arg) {
+			return null;
+		}
+
+		args.push(arg);
+		skipSheetFormulaParserWhitespace(state);
+		const char = state.value[state.index];
+
+		if (char === ')') {
+			state.index += 1;
+			return args;
+		}
+
+		if (char !== ',') {
+			return null;
+		}
+
+		state.index += 1;
+	}
+
+	return null;
+}
+
+/*
+ * Return a parsed function call node for one already-read function name.
+ */
+function parseSheetFormulaFunctionCallNode(
+	state: SheetFormulaParserState,
+	name: string,
+	startIndex: number,
+): SheetFormulaASTNode | null {
+	state.index += 1;
+	const args = parseSheetFormulaFunctionArguments(state);
+	if (!args) {
+		return null;
+	}
+
+	return {
+		args,
+		kind: 'FUNCTION_CALL',
+		name,
+		text: state.value.slice(startIndex, state.index).trim(),
+	};
+}
+
+/*
+ * Return a parsed cell or range reference node at the current parser position.
+ */
+function parseSheetFormulaReferenceNode(state: SheetFormulaParserState): SheetFormulaASTNode | null {
+	const startIndex = state.index;
+	const start = parseSheetFormulaCellReferenceAtState(state);
+	if (!start) {
+		return null;
+	}
+
+	skipSheetFormulaParserWhitespace(state);
+	if (state.value[state.index] !== ':') {
+		return {
+			kind: 'CELL_REFERENCE',
+			reference: start.reference,
+			text: start.text,
+		};
+	}
+
+	state.index += 1;
+	skipSheetFormulaParserWhitespace(state);
+	const end = parseSheetFormulaCellReferenceAtState(state);
+	if (!end) {
+		return null;
+	}
+
+	return {
+		kind: 'RANGE_REFERENCE',
+		reference: buildSheetFormulaRangeReference(start.reference, end.reference),
+		text: state.value.slice(startIndex, state.index).trim(),
+	};
+}
+
+/*
+ * Return a parsed identifier-backed node such as a boolean, function call, or reference.
+ */
+function parseSheetFormulaIdentifierNode(state: SheetFormulaParserState): SheetFormulaASTNode | null {
+	const startIndex = state.index;
+	const reference = parseSheetFormulaReferenceNode(state);
+	if (reference) {
+		return reference;
+	}
+
+	state.index = startIndex;
+	const name = parseSheetFormulaIdentifierName(state);
+	if (!name) {
+		return null;
+	}
+
+	skipSheetFormulaParserWhitespace(state);
+	if (state.value[state.index] === '(') {
+		return parseSheetFormulaFunctionCallNode(state, name, startIndex);
+	}
+
+	if (/^(?:true|false)$/i.test(name)) {
+		return {
+			kind: 'BOOLEAN_LITERAL',
+			text: name,
+			value: /^true$/i.test(name),
+		};
+	}
+
+	return null;
+}
+
+/*
+ * Return a parsed grouped or atomic formula expression.
+ */
+function parseSheetFormulaPrimaryExpression(state: SheetFormulaParserState): SheetFormulaASTNode | null {
+	skipSheetFormulaParserWhitespace(state);
+	const startIndex = state.index;
+
+	if (state.value[state.index] === '(') {
+		state.index += 1;
+		const node = parseSheetFormulaComparisonExpression(state);
+		skipSheetFormulaParserWhitespace(state);
+		if (!node || state.value[state.index] !== ')') {
+			return null;
+		}
+
+		state.index += 1;
+		return {
+			...node,
+			text: state.value.slice(startIndex, state.index).trim(),
+		};
+	}
+
+	return parseSheetFormulaStringNode(state) ||
+		parseSheetFormulaNumberNode(state) ||
+		parseSheetFormulaIdentifierNode(state);
+}
+
+/*
+ * Return a parsed unary formula expression.
+ */
+function parseSheetFormulaUnaryExpression(state: SheetFormulaParserState): SheetFormulaASTNode | null {
+	skipSheetFormulaParserWhitespace(state);
+	const startIndex = state.index;
+	const operator = state.value[state.index];
+	if (operator === '+' || operator === '-') {
+		state.index += 1;
+		const value = parseSheetFormulaUnaryExpression(state);
+		if (!value) {
+			return null;
+		}
+
+		return {
+			kind: 'UNARY_EXPRESSION',
+			operator,
+			text: state.value.slice(startIndex, state.index).trim(),
+			value,
+		};
+	}
+
+	return parseSheetFormulaPrimaryExpression(state);
+}
+
+/*
+ * Return a parsed left-associative binary expression for the provided operators.
+ */
+function parseSheetFormulaBinaryExpression(
+	state: SheetFormulaParserState,
+	parseOperand: (state: SheetFormulaParserState) => SheetFormulaASTNode | null,
+	operators: readonly SheetFormulaBinaryOperator[],
+) {
+	let left = parseOperand(state);
+	if (!left) {
+		return null;
+	}
+
+	while (state.index < state.value.length) {
+		skipSheetFormulaParserWhitespace(state);
+		const operator = operators.find((candidate) => state.value.slice(state.index).startsWith(candidate));
+		if (!operator) {
+			break;
+		}
+
+		const startIndex = state.index;
+		state.index += operator.length;
+		const right = parseOperand(state);
+		if (!right) {
+			state.index = startIndex;
+			return null;
+		}
+
+		left = {
+			kind: 'BINARY_EXPRESSION',
+			left,
+			operator,
+			right,
+			text: `${left.text}${operator}${right.text}`,
+		};
+	}
+
+	return left;
+}
+
+/*
+ * Return a parsed multiplicative formula expression.
+ */
+function parseSheetFormulaMultiplicativeExpressionNode(state: SheetFormulaParserState) {
+	return parseSheetFormulaBinaryExpression(
+		state,
+		parseSheetFormulaUnaryExpression,
+		['*', '/'] as const,
+	);
+}
+
+/*
+ * Return a parsed additive formula expression.
+ */
+function parseSheetFormulaAdditiveExpressionNode(state: SheetFormulaParserState) {
+	return parseSheetFormulaBinaryExpression(
+		state,
+		parseSheetFormulaMultiplicativeExpressionNode,
+		['+', '-'] as const,
+	);
+}
+
+/*
+ * Return a parsed comparison formula expression.
+ */
+function parseSheetFormulaComparisonExpression(state: SheetFormulaParserState): SheetFormulaASTNode | null {
+	return parseSheetFormulaBinaryExpression(
+		state,
+		parseSheetFormulaAdditiveExpressionNode,
+		['<=', '>=', '<>', '!=', '=', '<', '>'] as const,
+	);
+}
+
+/*
+ * Parse one full formula expression into an AST node.
+ */
+export function parseSheetFormulaExpression(value: string): SheetFormulaASTNode | null {
+	const state = {
+		index: 0,
+		value: value.trim(),
+	};
+	const node = parseSheetFormulaComparisonExpression(state);
+
+	return node && isSheetFormulaParserAtEnd(state)
+		? {
+			...node,
+			text: getSheetFormulaParserSpanText(state, 0),
+		}
+		: null;
+}
+
+/*
  * Return a one-based column index from a spreadsheet-style column label.
  */
 export function getSheetFormulaColumnIndex(columnLabel: string) {
@@ -482,6 +1029,34 @@ function getSheetFormulaCellReferenceTokenAtIndex(value: string, startIndex: num
 }
 
 /*
+ * Return a sheet range reference token at one formula text index, when one starts there.
+ */
+function getSheetFormulaRangeReferenceTokenAtIndex(value: string, startIndex: number): SheetFormulaReferenceToken | null {
+	const match = value.slice(startIndex).match(/^([A-Za-z]+[1-9]\d*)\s*:\s*([A-Za-z]+[1-9]\d*)/);
+	if (!match) {
+		return null;
+	}
+
+	const endIndex = startIndex + match[0].length;
+	if (isSheetFormulaIdentifierChar(value[endIndex])) {
+		return null;
+	}
+
+	const rangeReference = parseSheetFormulaRangeReference(match[0]);
+	if (!rangeReference) {
+		return null;
+	}
+
+	return {
+		...rangeReference,
+		endIndex,
+		kind: 'SHEET_RANGE',
+		startIndex,
+		text: match[0],
+	};
+}
+
+/*
  * Return reference tokens from formula text for live client highlighting.
  */
 export function tokenizeSheetFormulaReferences(value: string): SheetFormulaReferenceToken[] {
@@ -505,6 +1080,13 @@ export function tokenizeSheetFormulaReferences(value: string): SheetFormulaRefer
 		if (dataTableToken) {
 			tokens.push(dataTableToken);
 			index = dataTableToken.endIndex;
+			continue;
+		}
+
+		const rangeToken = getSheetFormulaRangeReferenceTokenAtIndex(value, index);
+		if (rangeToken) {
+			tokens.push(rangeToken);
+			index = rangeToken.endIndex;
 			continue;
 		}
 
@@ -608,6 +1190,14 @@ export function isSheetRegionConflictPolicy(value: unknown): value is SheetRegio
 }
 
 /*
+ * Return whether one value is a known sheet structure edit operation.
+ */
+
+export function isSheetStructureOperation(value: unknown): value is SheetStructureOperationEnum {
+	return SHEET_STRUCTURE_OPERATION_ENUMS.includes(value as SheetStructureOperationEnum);
+}
+
+/*
  * Return a shallow merged JSON object, ignoring non-object values.
  */
 
@@ -638,6 +1228,87 @@ export function getSheetColumnDesignKey(columnIndex: number) {
 
 export function getSheetRowDesignKey(rowIndex: number) {
 	return String(Math.max(1, Math.floor(Number(rowIndex) || 1)));
+}
+
+/*
+ * Return whether one axis index falls inside a protected region span.
+ */
+
+function isSheetAxisIndexInProtectedSpan(index: number, spans: SheetProtectedAxisSpan[]) {
+	return spans.some((span) => index >= span.startIndex && index <= span.endIndex);
+}
+
+/*
+ * Return whether a protected region span blocks shifting an axis index backward.
+ */
+
+function doesSheetProtectedSpanBlockBackwardShift(targetIndex: number, sourceIndex: number, spans: SheetProtectedAxisSpan[]) {
+	return spans.some((span) => span.endIndex >= targetIndex && span.startIndex <= sourceIndex - 1);
+}
+
+/*
+ * Return the new axis design index for one structure edit.
+ */
+
+function getSheetShiftedAxisDesignIndex(
+	index: number,
+	operation: SheetStructureOperationEnum,
+	targetIndex: number,
+	protectedSpans: SheetProtectedAxisSpan[],
+) {
+	if (isSheetAxisIndexInProtectedSpan(index, protectedSpans)) {
+		return index;
+	}
+
+	if (operation === 'INSERT_ROW_ABOVE' || operation === 'INSERT_COLUMN_LEFT') {
+		const nextIndex = index >= targetIndex ? index + 1 : index;
+		return isSheetAxisIndexInProtectedSpan(nextIndex, protectedSpans) ? index : nextIndex;
+	}
+
+	if (index === targetIndex) {
+		return null;
+	}
+
+	if (index > targetIndex) {
+		const nextIndex = index - 1;
+		return isSheetAxisIndexInProtectedSpan(nextIndex, protectedSpans) ||
+				doesSheetProtectedSpanBlockBackwardShift(targetIndex, index, protectedSpans)
+			? index
+			: nextIndex;
+	}
+
+	return index;
+}
+
+/*
+ * Shift saved row or column design entries for one sheet structure edit.
+ */
+
+export function shiftSheetAxisDesignForStructureEdit(
+	axisDesign: Record<string, SheetAxisDesignObj> | null | undefined,
+	operation: SheetStructureOperationEnum,
+	targetIndex: number,
+	protectedSpans: SheetProtectedAxisSpan[] = [],
+) {
+	const nextDesign: Record<string, SheetAxisDesignObj> = {};
+	const normalizedTargetIndex = Math.max(1, Math.floor(Number(targetIndex) || 1));
+
+	Object.entries(axisDesign || {}).forEach(([key, design]) => {
+		const index = Math.floor(Number(key || 0));
+		if (!Number.isFinite(index) || index < 1) {
+			nextDesign[key] = design;
+			return;
+		}
+
+		const nextIndex = getSheetShiftedAxisDesignIndex(index, operation, normalizedTargetIndex, protectedSpans);
+		if (!nextIndex) {
+			return;
+		}
+
+		nextDesign[String(nextIndex)] = design;
+	});
+
+	return nextDesign;
 }
 
 /*

@@ -1028,7 +1028,11 @@ function drawSheetCanvasCell(params: {
 		params.ctx.restore();
 	}
 
+	const contentOpacity = params.cell?.formulaLoading ? 0.5 : 1;
+
 	if (params.cell?.dataTableDisplay) {
+		params.ctx.save();
+		params.ctx.globalAlpha *= contentOpacity;
 		drawSheetCanvasDataTableDisplay({
 			cell: params.cell,
 			color: textColor || params.theme.bodyText,
@@ -1039,9 +1043,12 @@ function drawSheetCanvasCell(params: {
 			x: params.x,
 			y: params.y,
 		});
+		params.ctx.restore();
 		return;
 	}
 
+	params.ctx.save();
+	params.ctx.globalAlpha *= contentOpacity;
 	drawSheetCanvasText({
 		color: textColor || params.theme.bodyText,
 		ctx: params.ctx,
@@ -1053,6 +1060,7 @@ function drawSheetCanvasCell(params: {
 		x: params.x,
 		y: params.y,
 	});
+	params.ctx.restore();
 }
 
 /*

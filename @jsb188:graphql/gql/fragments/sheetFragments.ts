@@ -1,5 +1,6 @@
 export const sheetFragment = `fragment sheetFragment on Sheet {
   id
+  cursor
   organizationId
 
   name
@@ -43,6 +44,33 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
   updatedAt
 }`;
 
+export const sheetFormulaReferenceFragment = `fragment sheetFormulaReferenceFragment on SheetFormulaReference {
+  id
+  kind
+  text
+  status
+  rowIndex
+  columnIndex
+  columnLabel
+  startRowIndex
+  startColumnIndex
+  endRowIndex
+  endColumnIndex
+  dataTableName
+  rowIdentifier
+  cellKey
+  value
+  textValue
+  numberValue
+  booleanValue
+  dateValue
+  datetimeValue
+  error {
+    code
+    message
+  }
+}`;
+
 export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   id
   organizationId
@@ -62,14 +90,30 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
     engine
     text
     references {
+      id
       kind
       text
+      status
       rowIndex
       columnIndex
       columnLabel
+      startRowIndex
+      startColumnIndex
+      endRowIndex
+      endColumnIndex
       dataTableName
       rowIdentifier
       cellKey
+      value
+      textValue
+      numberValue
+      booleanValue
+      dateValue
+      datetimeValue
+      error {
+        code
+        message
+      }
     }
     error {
       code
@@ -128,8 +172,6 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
   columns {
     kind
     sourceCellKey
-    label
-    width
     formulaText
   }
 

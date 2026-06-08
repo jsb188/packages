@@ -88,7 +88,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 			}}
 		>
 			<div
-				className='sheet_ui_canvas w_f h_f rel bg_fade'
+				className={cn('sheet_ui_canvas w_f h_f rel', p.canvasClassName || 'bg_fade')}
 				data-cell-count={p.cellCount}
 				style={{
 					height: p.canvasHeight,
@@ -246,6 +246,7 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	</div>;
 }, (prev, next) => (
 	prev.canvasHeight === next.canvasHeight &&
+	prev.canvasClassName === next.canvasClassName &&
 	prev.canvasWidth === next.canvasWidth &&
 	prev.cellCount === next.cellCount &&
 	prev.cellStore === next.cellStore &&

@@ -1,14 +1,29 @@
 import { gql } from 'graphql-tag';
-import { sheetCellFragment, sheetFragment, sheetGridFragment, sheetRangeFragment, sheetRegionFragment } from '../fragments/sheetFragments.ts';
+import {
+	sheetCellFragment,
+	sheetFormulaReferenceFragment,
+	sheetFragment,
+	sheetGridFragment,
+	sheetRangeFragment,
+	sheetRegionFragment,
+} from '../fragments/sheetFragments.ts';
 
 export const sheetsQry = gql`
 query sheets (
   $organizationId: GenericID!
-  $active: Boolean
+  $filter: SheetsFilter
+  $sort: WorkspaceItemSort
+  $cursor: Cursor
+  $after: Boolean!
+  $limit: Int!
 ) {
   sheets (
     organizationId: $organizationId
-    active: $active
+    filter: $filter
+    sort: $sort
+    cursor: $cursor
+    after: $after
+    limit: $limit
   ) {
     ...sheetFragment
   }
@@ -48,6 +63,12 @@ query sheetGrid (
 
     cells {
       ...sheetCellFragment
+
+      formula {
+        references {
+          ...sheetFormulaReferenceFragment
+        }
+      }
     }
 
     ranges {
@@ -58,6 +79,36 @@ query sheetGrid (
 
 ${sheetGridFragment}
 ${sheetCellFragment}
+${sheetFormulaReferenceFragment}
 ${sheetRangeFragment}
 ${sheetRegionFragment}
+`;
+
+export const sheetFormulaReferencesQry = gql`
+query sheetFormulaReferences (
+  $organizationId: GenericID!
+  $sheetId: GenericID!
+  $references: [SheetFormulaReferenceInput!]!
+) {
+  sheetFormulaReferences (
+    organizationId: $organizationId
+    sheetId: $sheetId
+    references: $references
+  ) {
+    ...sheetFormulaReferenceFragment
+
+    cells {
+      ...sheetCellFragment
+
+      formula {
+        references {
+          ...sheetFormulaReferenceFragment
+        }
+      }
+    }
+  }
+}
+
+${sheetFormulaReferenceFragment}
+${sheetCellFragment}
 `;

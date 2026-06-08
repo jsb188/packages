@@ -1,5 +1,6 @@
 export const dataTableFragment = `fragment dataTableFragment on DataTable {
   id
+  cursor
   organizationId
 
   name

@@ -70,6 +70,7 @@ export type SheetUIColumn = {
 	disableReorder?: boolean;
 	disableResize?: boolean;
 	headerCheckboxEnabled?: boolean;
+	headerCheckboxTooltipMessage?: string;
 	headerChecked?: boolean;
 	headerClassName?: string;
 	headerLayoutClassName?: string;
@@ -203,6 +204,7 @@ export interface SheetSelectEditorProps {
 
 export interface SheetUIProps {
 	canvasHeight: number;
+	canvasClassName?: string;
 	canvasWidth: number;
 	cellCount: number;
 	cellStore?: SheetUICellRenderStore;

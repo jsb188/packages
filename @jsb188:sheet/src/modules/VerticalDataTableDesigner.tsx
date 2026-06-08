@@ -40,10 +40,8 @@ import {
 	getDataTableRuntimeCellKey,
 	getDataTableRuntimeColumnKey,
 	getDataTableSheetUIColumn,
-	getSheetEditorDraftValue,
 	type DataTableRuntimeDesignCell,
 } from '../libs/dataTable-cell-editing.tsx';
-import { SheetFormulaInput } from './SheetFormulaInput.tsx';
 import {
 	forwardRef,
 	useCallback,
@@ -139,26 +137,7 @@ const VERTICAL_DATA_TABLE_DESIGNER_ROW_RIGHT_PADDING = 64;
 const VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH = 0;
 const VERTICAL_DATA_TABLE_DESIGNER_STICKY_COLUMN_COUNT = 0;
 const VERTICAL_DATA_TABLE_DESIGNER_COLUMN_GAP_WIDTH = 0;
-const VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN_ID = 'vertical-data-table-designer-lead-column';
-const VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN_WIDTH = 60;
 const VERTICAL_DATA_TABLE_DESIGNER_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
-const VERTICAL_DATA_TABLE_DESIGNER_TALL_BROWSER_HEIGHT = 900;
-
-const VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN: SheetUIColumn = {
-	id: VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN_ID,
-	key: VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN_ID,
-	label: '',
-	fieldType: 'TEXT',
-	cellClassName: 'noclick',
-	disableReorder: true,
-	disableResize: true,
-	headerClassName: 'noclick',
-};
-
-type VerticalDataTableDesignerFormulaInputState = {
-	column: SheetUIColumn | null;
-	value: string;
-};
 
 type VerticalDataTableDesignerRowLayout = {
 	hideBottomBorder: boolean;
@@ -171,52 +150,24 @@ type VerticalDataTableDesignerVisibleUICell = {
 	runtimeKey: string;
 };
 
-type VerticalDataTableDesignerPreviewConfig = {
-	dataRowCount: number;
-	height: number;
-	opacityStep: number;
-	totalRowCount: number;
-};
-
 /*
- * Return translated VerticalDataTableDesigner text when translations are loaded.
+ * Return how many preview rows fit inside the measured VerticalDataTableDesigner viewport.
  */
-function getVerticalDataTableDesignerTranslatedText(key: string, fallback: string) {
-	return i18n.has(key) ? i18n.t(key) : fallback;
-}
-
-/*
- * Return the fixed VerticalDataTableDesigner preview row counts based on initial browser height.
- */
-function getVerticalDataTableDesignerPreviewConfig(): VerticalDataTableDesignerPreviewConfig {
-	const isTallBrowser = typeof window !== 'undefined' && window.innerHeight >= VERTICAL_DATA_TABLE_DESIGNER_TALL_BROWSER_HEIGHT;
-	const totalRowCount = isTallBrowser ? 10 : 6;
-	const height = totalRowCount * SHEET_ROW_HEIGHT + 70;
-
-	return isTallBrowser
-		? {
-				dataRowCount: 9,
-				height,
-				opacityStep: 10,
-				totalRowCount,
-			}
-		: {
-				dataRowCount: 5,
-				height,
-				opacityStep: 20,
-				totalRowCount,
-			};
+function getVerticalDataTableDesignerVisualRowCount(viewportHeight: number, stickyHeaderHeight: number) {
+	return Math.max(1, Math.floor((viewportHeight - stickyHeaderHeight) / SHEET_ROW_HEIGHT));
 }
 
 /*
  * Return the opacity utility class for one VerticalDataTableDesigner preview row's content.
  */
-function getVerticalDataTableDesignerPreviewRowContentClassName(rowIndex: number, previewConfig: VerticalDataTableDesignerPreviewConfig) {
-	if (rowIndex >= previewConfig.totalRowCount - 1) {
+function getVerticalDataTableDesignerPreviewRowContentClassName(rowIndex: number, visualRowCount: number) {
+	if (rowIndex >= visualRowCount - 1) {
 		return 'op_0';
 	}
 
-	return `op_${Math.max(0, 90 - rowIndex * previewConfig.opacityStep)}`;
+	const opacity = 90 - Math.round((rowIndex * 90) / Math.max(1, visualRowCount - 1));
+
+	return `op_${Math.max(0, Math.round(opacity / 10) * 10)}`;
 }
 
 /*
@@ -409,39 +360,13 @@ function getVerticalDataTableDesignerUIColumns(columns: VerticalDataTableDesigne
 			...getDataTableSheetUIColumn(runtimeColumn),
 			label: valueColumn.headerValue,
 			headerCheckboxEnabled: true,
+			headerCheckboxTooltipMessage: i18n.t('sheet.include_this_column_'),
 			headerChecked: valueColumn.checked,
 			headerClassName: cn('cs_grab', !valueColumn.checked ? 'op_40' : ''),
-			headerTooltipMessage: getVerticalDataTableDesignerTranslatedText('sheet.insert_rows_from_data_table_rearrange', 'Click and drag to rearrange'),
+			headerTooltipMessage: i18n.t('sheet.insert_rows_from_data_table_rearrange'),
 			cellClassName: cn(!valueColumn.checked ? 'op_40' : ''),
 		};
 	}).filter(Boolean) as ReturnType<typeof getDataTableSheetUIColumn>[];
-}
-
-/*
- * Return SheetUI columns with the inert left preview gutter column prepended.
- */
-function getVerticalDataTableDesignerUIColumnsWithLeadColumn(columns: VerticalDataTableDesignerRuntimeColumn[], value: VerticalDataTableDesignerValue) {
-	return [
-		VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN,
-		...getVerticalDataTableDesignerUIColumns(columns, value),
-	];
-}
-
-/*
- * Return column widths with the fixed left preview gutter width included.
- */
-function getVerticalDataTableDesignerColumnWidthsWithLeadColumn(value: VerticalDataTableDesignerValue) {
-	return {
-		...getVerticalDataTableDesignerColumnWidths(value),
-		[VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN_ID]: VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN_WIDTH,
-	};
-}
-
-/*
- * Return whether a SheetUI column key belongs to the inert left preview gutter.
- */
-function isVerticalDataTableDesignerLeadColumnKey(columnKey: string) {
-	return columnKey === VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN_ID;
 }
 
 /*
@@ -464,12 +389,10 @@ function getVerticalDataTableDesignerColumnOffsetsWithGap(offsets: number[]) {
 }
 
 /*
- * Return the reorderable columns, excluding the inert left preview gutter.
+ * Return the reorderable columns adjusted for the designer's horizontal column gap.
  */
 function getVerticalDataTableDesignerReorderColumnMetrics(metrics: SheetColumnMetric[]) {
-	return metrics
-		.filter((metric) => !isVerticalDataTableDesignerLeadColumnKey(metric.column.key))
-		.map(getVerticalDataTableDesignerGapAdjustedColumnMetric);
+	return metrics.map(getVerticalDataTableDesignerGapAdjustedColumnMetric);
 }
 
 /*
@@ -506,38 +429,6 @@ function getVerticalDataTableDesignerEmptyUICell(cellKey: string, contentClassNa
 		contentClassName,
 		displayValue: '',
 		draftValue: '',
-	};
-}
-
-/*
- * Return the formula input display state for the currently selected preview cell.
- */
-function getVerticalDataTableDesignerFormulaInputState(params: {
-	designCellsByKey: Map<string, VerticalDataTableDesignerRuntimeColumn>;
-	rowCellsById: Map<string, Map<string, DataTableCellGQL>>;
-	selectedCellState: SheetUISelectedCellState | null;
-}): VerticalDataTableDesignerFormulaInputState {
-	if (!params.selectedCellState) {
-		return {
-			column: null,
-			value: '',
-		};
-	}
-
-	const designCell = params.designCellsByKey.get(params.selectedCellState.cellKey);
-	if (!designCell) {
-		return {
-			column: null,
-			value: '',
-		};
-	}
-
-	const rowCellMap = params.rowCellsById.get(params.selectedCellState.rowId);
-	const cell = getVerticalDataTableDesignerCellForRuntimeColumn(rowCellMap, designCell);
-
-	return {
-		column: getDataTableSheetUIColumn(designCell),
-		value: getSheetEditorDraftValue(cell, designCell),
 	};
 }
 
@@ -619,7 +510,7 @@ function getVerticalDataTableDesignerVisibleRows(params: {
 	timeZone?: string | null;
 	visibleColumns: SheetColumnMetric[];
 	visibleRange: ReturnType<typeof getSheetVisibleRange>;
-	previewConfig: VerticalDataTableDesignerPreviewConfig;
+	visualRowCount: number;
 }): SheetUIRowSlot[] {
 	const visibleRowSlots: SheetUIRowSlot[] = [];
 
@@ -627,12 +518,12 @@ function getVerticalDataTableDesignerVisibleRows(params: {
 		const row = params.renderedRows[rowIndex];
 		const rowCellMap = row ? params.rowCellsById.get(row.id) : null;
 		const cellsByKey: Record<string, SheetUICell | undefined> = {};
-		const contentClassName = getVerticalDataTableDesignerPreviewRowContentClassName(rowIndex, params.previewConfig);
+		const contentClassName = getVerticalDataTableDesignerPreviewRowContentClassName(rowIndex, params.visualRowCount);
 		const rowLayout = getVerticalDataTableDesignerRowLayout({
 			canvasHeight: params.canvasHeight,
 			rowIndex,
 			stickyHeaderHeight: params.stickyHeaderHeight,
-			visualRowCount: params.previewConfig.totalRowCount,
+			visualRowCount: params.visualRowCount,
 		});
 
 		params.visibleColumns.forEach((columnMetric) => {
@@ -740,17 +631,17 @@ function getVerticalDataTableDesignerColumnReorderTargetIndex(params: {
 }
 
 /*
- * Convert a raw insertion slot into an index after removing the dragged column.
+ * Convert a raw insertion slot into the target index used after removing the dragged column.
  */
 function getVerticalDataTableDesignerColumnReorderMoveIndex(visibleColumnKeys: string[], fromKey: string, toVisibleIndex: number) {
 	const fromIndex = visibleColumnKeys.indexOf(fromKey);
-	const boundedIndex = Math.max(0, Math.min(toVisibleIndex, visibleColumnKeys.length));
+	const boundedIndex = Math.max(0, Math.min(toVisibleIndex, visibleColumnKeys.length - 1));
 
 	if (fromIndex < 0) {
 		return boundedIndex;
 	}
 
-	return boundedIndex > fromIndex ? boundedIndex - 1 : boundedIndex;
+	return boundedIndex;
 }
 
 /*
@@ -805,7 +696,7 @@ function getVerticalDataTableDesignerColumnReorderHeaderDisplacements(params: {
 		return null;
 	}
 
-	const toIndex = Math.max(0, Math.min(params.toVisibleIndex, params.visibleColumnKeys.length - 1));
+	const toIndex = getVerticalDataTableDesignerColumnReorderMoveIndex(params.visibleColumnKeys, params.columnKey, params.toVisibleIndex);
 	if (fromIndex === toIndex) {
 		return null;
 	}
@@ -821,7 +712,7 @@ function getVerticalDataTableDesignerColumnReorderHeaderDisplacements(params: {
 
 	const currentLefts = new Map(params.metrics.map((metric) => [metric.column.key, getVerticalDataTableDesignerColumnMetricHeaderLeft(metric, params.scrollLeft)]));
 	const displacements: SheetUIColumnReorderDisplacements = {};
-	let nextLeft = VERTICAL_DATA_TABLE_DESIGNER_LEAD_COLUMN_WIDTH;
+	let nextLeft = 0;
 
 	projectedOrder.forEach((columnKey) => {
 		const metric = metricsByKey.get(columnKey);
@@ -963,11 +854,6 @@ function cancelVerticalDataTableDesignerFrame(frameRef: MutableRefObject<number 
 }
 
 /*
- * Ignore formula edits in the read-only VerticalDataTableDesigner preview.
- */
-function ignoreVerticalDataTableDesignerFormulaDraftValue() {}
-
-/*
  * Render a local-state DataTable-style designer surface for arranging columns.
  */
 export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHandle, VerticalDataTableDesignerProps>((p, ref) => {
@@ -992,7 +878,6 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 	const columnReorderFrameRef = useRef<number | null>(null);
 	const columnReorderCleanupRef = useRef<(() => void) | null>(null);
 	const currentValueRef = useRef<VerticalDataTableDesignerValue>({ columns: [] });
-	const previewConfigRef = useRef(getVerticalDataTableDesignerPreviewConfig());
 	const suppressNextHeaderClickRef = useRef(false);
 	const runtimeColumns = useMemo(() => {
 		return getVerticalDataTableDesignerRuntimeColumns(dataTable.design);
@@ -1091,10 +976,10 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 	}, []);
 
 	const uiColumns = useMemo(() => {
-		return getVerticalDataTableDesignerUIColumnsWithLeadColumn(runtimeColumns, effectiveValue);
+		return getVerticalDataTableDesignerUIColumns(runtimeColumns, effectiveValue);
 	}, [effectiveValue, runtimeColumns]);
 	const columnWidths = useMemo(() => {
-		return getVerticalDataTableDesignerColumnWidthsWithLeadColumn(effectiveValue);
+		return getVerticalDataTableDesignerColumnWidths(effectiveValue);
 	}, [effectiveValue]);
 	const columnMetricsData = useMemo(() => {
 		return getSheetColumnMetrics(uiColumns, columnWidths);
@@ -1112,22 +997,15 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 		return getVerticalDataTableDesignerRuntimeColumnsByKey(runtimeColumns);
 	}, [runtimeColumns]);
 	const renderedRows = useMemo(() => {
-		return (Array.isArray(previewRows) ? previewRows : []).slice(0, previewConfigRef.current.dataRowCount);
+		return Array.isArray(previewRows) ? previewRows : [];
 	}, [previewRows]);
 	const rowCellsById = useMemo(() => {
 		return getVerticalDataTableDesignerRowCellsById(renderedRows);
 	}, [renderedRows]);
-	const formulaInputState = useMemo(() => {
-		return getVerticalDataTableDesignerFormulaInputState({
-			designCellsByKey,
-			rowCellsById,
-			selectedCellState,
-		});
-	}, [designCellsByKey, rowCellsById, selectedCellState]);
 	const stickyHeaderHeight = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE;
 	const viewportHeight = scrollElement.size.height || stickyHeaderHeight + SHEET_ROW_HEIGHT * 20;
 	const viewportWidth = scrollElement.size.width || 5 * SHEET_COLUMN_WIDTH;
-	const visualRowCount = previewConfigRef.current.totalRowCount;
+	const visualRowCount = getVerticalDataTableDesignerVisualRowCount(viewportHeight, stickyHeaderHeight);
 	const visualRowsHeight = visualRowCount * SHEET_ROW_HEIGHT;
 	const totalWidth = VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH + columnMetricsData.totalWidth + VERTICAL_DATA_TABLE_DESIGNER_COLUMN_GAP_WIDTH + VERTICAL_DATA_TABLE_DESIGNER_ROW_RIGHT_PADDING;
 	const rowContentWidth = VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH + columnMetricsData.totalWidth + VERTICAL_DATA_TABLE_DESIGNER_COLUMN_GAP_WIDTH;
@@ -1187,7 +1065,7 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			timeZone,
 			visibleColumns,
 			visibleRange,
-			previewConfig: previewConfigRef.current,
+			visualRowCount,
 		});
 	}, [
 		designCellsByKey,
@@ -1200,6 +1078,7 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 		viewportWidth,
 		visibleColumns,
 		visibleRange,
+		visualRowCount,
 	]);
 
 	columnReorderRuntimeRef.current = {
@@ -1479,7 +1358,7 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 		const cellElement = getVerticalDataTableDesignerClosestElement(event.target, '[data-sheet-cell="true"]');
 		const cellKey = cellElement?.dataset.cellKey;
 		const rowId = cellElement?.dataset.rowId;
-		if (cellKey && rowId && !isVerticalDataTableDesignerLeadColumnKey(cellKey)) {
+		if (cellKey && rowId) {
 			setSelectedCellState({
 				cellKey,
 				rowId,
@@ -1561,19 +1440,13 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 	}, [columnReorderVisualState, scrollState.scrollLeft, visibleColumnKeys]);
 
 	return <div
-		className={cn('v_stretch w_f max_w_f rel bg no_shrink', className)}
+		className={cn('v_stretch h_f w_f max_w_f rel bg no_shrink', className)}
 		data-table-designer='true'
 		onClickCapture={onClickCapture}
 		onPointerDownCapture={onPointerDownCapture}
 	>
-		<SheetFormulaInput
-			column={formulaInputState.column}
-			onDraftValue={ignoreVerticalDataTableDesignerFormulaDraftValue}
-			readOnly
-			value={formulaInputState.value}
-		/>
-
 		<DataTableUI
+			canvasClassName='bg pattern_stripes active_bf'
 			canvasHeight={canvasHeight}
 			canvasWidth={Math.max(totalWidth, viewportWidth)}
 			cellCount={visualRowCount * uiColumns.length}
@@ -1594,12 +1467,14 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			resizeGuide={resizeGuide}
 			rowHeaderWidth={VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH}
 			rows={visibleRows}
-			scrollClassName='hide_y bd_t_1 bd_lt'
+			scrollClassName='hide_y'
+			// NOTE: You will need to put .bd_t_1.bd_lt here if you want to bring back the formula bar for this module.
+			// scrollClassName='hide_y bd_t_1 bd_lt'
 			scrollFill={false}
 			scrollLeft={scrollState.scrollLeft}
 			scrollRef={scrollElement.ref}
 			scrollStyle={{
-				height: previewConfigRef.current.height,
+				height: '100%',
 			}}
 			selectedCellKeyMap={null}
 			selectedCellState={selectedCellState}

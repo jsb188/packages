@@ -356,4 +356,22 @@
 
 /* Animation utility config classes */
 
+/* Fade data after a short loading grace period. */
+.anim_data_loading {
+  animation-name: keyframes_data_loading;
+  animation-duration: 0.01s;
+  animation-delay: .75s;
+  animation-fill-mode: both;
+}
+
+.anim_data_loading.delay_1 { animation-delay: 0s; }
+.anim_data_loading.delay_2 { animation-delay: .5s; }
+.anim_data_loading.delay_3 { animation-delay: 1.5s; }
+.anim_data_loading.delay_4 { animation-delay: 3s; }
+
+@keyframes keyframes_data_loading {
+  from { opacity: 1; }
+  to { opacity: .5; }
+}
+
 .reverse { animation-direction: reverse; }

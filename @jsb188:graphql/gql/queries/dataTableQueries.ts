@@ -4,11 +4,35 @@ import { dataTableCellFragment, dataTableFragment, dataTableRowFragment } from '
 export const dataTablesQry = gql`
 query dataTables (
   $organizationId: GenericID!
-  $active: Boolean
+  $filter: DataTablesFilter
+  $sort: WorkspaceItemSort
+  $cursor: Cursor
+  $after: Boolean!
+  $limit: Int!
 ) {
   dataTables (
     organizationId: $organizationId
-    active: $active
+    filter: $filter
+    sort: $sort
+    cursor: $cursor
+    after: $after
+    limit: $limit
+  ) {
+    ...dataTableFragment
+  }
+}
+
+${dataTableFragment}
+`;
+
+export const dataTableQry = gql`
+query dataTable (
+  $organizationId: GenericID!
+  $dataTableId: GenericID!
+) {
+  dataTable (
+    organizationId: $organizationId
+    dataTableId: $dataTableId
   ) {
     ...dataTableFragment
   }

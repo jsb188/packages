@@ -1,10 +1,10 @@
+import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { memo, type HTMLAttributes, type MouseEvent, type ReactNode } from 'react';
-import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
+import { Icon } from '../svgs/Icon';
 
 const TREE_LIST_INDENT_WIDTH = 24;
 const TREE_LIST_GUIDE_OFFSET = 10;
-const TREE_LIST_LEAF_INDENT_REDUCTION = 12;
 
 /**
  * Types
@@ -29,7 +29,7 @@ export type TreeListRowUIProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'
   lineage: TreeListLineageState[];
   selected?: boolean;
   onClick?: (e: MouseEvent<HTMLDivElement>) => void;
-  onToggle?: (e: MouseEvent<HTMLButtonElement>) => void;
+  onToggle?: (e: MouseEvent<HTMLElement>) => void;
 };
 
 /*
@@ -40,12 +40,38 @@ export function getTreeListFolderIconName(p: {
   hasItems?: boolean;
 }) {
   const { expanded, hasItems } = p;
+  return !expanded ? 'folder' : hasItems ? 'folder-open' : 'folder-dash';
+}
 
-  if (!expanded) {
-    return 'folder';
-  }
+/*
+ * Return the right-side chevron icon for an expandable tree row.
+ */
+export function getTreeListChevronIconName(p: {
+  expanded?: boolean;
+}) {
+  return p.expanded ? 'chevron-down' : 'chevron-right';
+}
 
-  return hasItems ? 'folder-open' : 'folder-empty';
+/*
+ * Return the visible icon for one tree row.
+ */
+export function getTreeListDisplayIconName(p: {
+  expandable?: boolean;
+  expanded?: boolean;
+  hasItems?: boolean;
+  iconName?: string;
+}) {
+  const { expandable, expanded, hasItems, iconName } = p;
+  return iconName || (expandable ? getTreeListFolderIconName({ expanded, hasItems }) : undefined);
+}
+
+/*
+ * Return the translated accessibility label for a tree toggle button.
+ */
+function getTreeListToggleAriaLabel(p: {
+  expanded?: boolean;
+}) {
+  return i18n.t(p.expanded ? 'form.collapse_tree_item' : 'form.expand_tree_item');
 }
 
 /*
@@ -83,7 +109,7 @@ export const TreeListGroupUI = memo((p: HTMLAttributes<HTMLDivElement>) => {
 TreeListGroupUI.displayName = 'TreeListGroupUI';
 
 /*
- * Render the vertical and horizontal branch guide lines for one row.
+ * Render vertical guide lines for nested rows without branch turns.
  */
 export const TreeListIndentGuideUI = memo((p: {
   lineage: TreeListLineageState[];
@@ -97,40 +123,47 @@ export const TreeListIndentGuideUI = memo((p: {
   return <>
     {lineage.map((lineageItem, i) => {
       const isCurrentDepth = i === lineage.length - 1;
-      const left = (i * TREE_LIST_INDENT_WIDTH) + TREE_LIST_GUIDE_OFFSET;
 
       if (!isCurrentDepth && lineageItem.isLast) {
         return null;
       }
 
-      return <span key={i}>
-        <span
-          aria-hidden='true'
-          className='abs bd_l_1 bd_lt'
-          style={{
-            bottom: isCurrentDepth && lineageItem.isLast ? '50%' : 0,
-            left,
-            top: 0,
-          }}
-        />
-
-        {isCurrentDepth && (
-          <span
-            aria-hidden='true'
-            className='abs bd_t_1 bd_lt'
-            style={{
-              left,
-              top: '50%',
-              width: TREE_LIST_INDENT_WIDTH,
-            }}
-          />
-        )}
-      </span>;
+      return <span
+        key={i}
+        aria-hidden='true'
+        className='abs bd_l_2 bd_active'
+        style={{
+          bottom: isCurrentDepth && lineageItem.isLast ? '50%' : 0,
+          left: (i * TREE_LIST_INDENT_WIDTH) + TREE_LIST_GUIDE_OFFSET,
+          top: 0,
+        }}
+      />;
     })}
   </>;
 });
 
 TreeListIndentGuideUI.displayName = 'TreeListIndentGuideUI';
+
+/*
+ * Render the horizontal leaf branch guide in the same slot used by expandable controls.
+ */
+export const TreeListLeafControlGuideUI = memo(() => (
+  <span
+    aria-hidden='true'
+    className='rel w_20 f_stretch no_shrink'
+  >
+    <span
+      className='abs bd_t_2 bd_active'
+      style={{
+        left: TREE_LIST_GUIDE_OFFSET,
+        top: '50%',
+        width: 10,
+      }}
+    />
+  </span>
+));
+
+TreeListLeafControlGuideUI.displayName = 'TreeListLeafControlGuideUI';
 
 /*
  * Render a single tree row with optional toggle, icon, selection state, and label.
@@ -155,15 +188,16 @@ export const TreeListRowUI = memo((p: TreeListRowUIProps) => {
     ...rest
   } = p;
   const canToggle = !!expandable && !disableExpandCollapse && !disabled;
-  const displayIconName = iconName || (expandable ? getTreeListFolderIconName({ expanded, hasItems }) : undefined);
-  const paddingLeft = Math.max(
-    0,
-    (depth * TREE_LIST_INDENT_WIDTH) - (expandable ? 0 : TREE_LIST_LEAF_INDENT_REDUCTION),
-  );
+  const displayIconName = getTreeListDisplayIconName({ expandable, expanded, hasItems, iconName });
+  const iconSizeClassName = 'w_26';
+  const iconToneClassName = selected ? 'cl_primary' : 'cl_md';
+  const hasLeafControlGuide = !expandable && !!lineage.length;
+  const canActivateRow = !disabled && (onClick || canToggle);
 
   /*
    * Keep toggle clicks from also selecting or opening the row.
    */
+
   const onClickToggle = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -180,11 +214,8 @@ export const TreeListRowUI = memo((p: TreeListRowUIProps) => {
     aria-level={depth + 1}
     aria-selected={selected || undefined}
     tabIndex={disabled ? -1 : 0}
-    onClick={disabled ? undefined : onClick}
     className={cn(
-      'rel w_f min_w_0 min_h_30 h_item r_xs lh_1',
-      selected ? 'bg_primary_fd cl_primary' : 'bg_primary_fd_hv',
-      !disabled && (onClick || canToggle) ? 'link' : '',
+      'rel w_f min_w_0 h_28 h_item lh_1 a_l',
       disabled ? 'disabled' : '',
       className,
     )}
@@ -192,41 +223,68 @@ export const TreeListRowUI = memo((p: TreeListRowUIProps) => {
   >
     <TreeListIndentGuideUI lineage={lineage} />
 
+    {hasLeafControlGuide && (
+      <TreeListLeafControlGuideUI />
+    )}
+
     <div
-      className='h_item min_w_0 py_3 pr_8'
-      style={{ paddingLeft }}
+      role='button'
+      onClick={disabled ? undefined : onClick}
+      className={cn(
+        'h_item f min_w_0 py_3 pl_4 pr_6 r_sm h_28',
+        selected ? 'bg_alt' : 'bg_alt_hv',
+        canActivateRow ? 'link' : '',
+      )}
     >
       {expandable ? (
         <button
           type='button'
-          aria-label={expanded ? 'Collapse tree item' : 'Expand tree item'}
+          aria-label={getTreeListToggleAriaLabel({ expanded })}
           aria-expanded={!!expanded}
           disabled={disableExpandCollapse || disabled}
           className={cn(
-            'h_center w_20 h_20 p_n no_shrink ic_xs cl_md',
-            canToggle ? 'link' : 'disabled',
+            'h_center pb_3 no_shrink',
+            iconSizeClassName,
+            iconToneClassName,
+            // canToggle ? 'link' : 'disabled',
+            iconClassName,
           )}
           onClick={onClickToggle}
         >
-          <Icon name={expanded ? COMMON_ICON_NAMES.expanded_chevron : COMMON_ICON_NAMES.link_chevron} />
+          {displayIconName && <Icon name={displayIconName} tryColor />}
         </button>
-      ) : (
+      ) : !hasLeafControlGuide ? (
         <span
           aria-hidden='true'
-          className='w_20 h_20 no_shrink'
+          className={cn(iconSizeClassName, 'no_shrink')}
           style={{ display: 'inline-block' }}
         />
-      )}
+      ) : null}
 
-      {displayIconName && (
-        <span className={cn('w_24 h_center no_shrink ic_sm', selected ? 'cl_primary' : 'cl_md', iconClassName)}>
-          <Icon name={displayIconName} />
+      {displayIconName && !expandable && (
+        <span className={cn('h_center no_shrink', iconToneClassName, iconSizeClassName, canActivateRow ? 'link' : '', iconClassName)}>
+          <Icon name={displayIconName} tryColor />
         </span>
       )}
 
-      <span className={cn('ellip shift_down min_w_0', displayIconName ? 'ml_4' : '', selected ? 'ft_semibold' : '', labelClassName)}>
+      <span
+        className={cn(
+          'ellip shift_down min_w_0 f',
+          displayIconName ? 'ml_6' : '',
+          labelClassName
+        )}
+      >
         {label}
       </span>
+
+      {expandable && (
+        <span
+          aria-hidden='true'
+          className={cn('h_center no_shrink ic_sm ml_6', iconToneClassName)}
+        >
+          <Icon name={getTreeListChevronIconName({ expanded })} />
+        </span>
+      )}
     </div>
   </div>;
 });

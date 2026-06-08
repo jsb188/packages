@@ -1,14 +1,23 @@
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
+import { WORKSPACE_ITEM_LIST_LIMIT } from '@jsb188/mday/constants/sheet.ts';
+import type { DataTablesFilterArgs } from '@jsb188/mday/types/dataTable.d.ts';
+import type { WorkspaceItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
 import { useMemo } from 'react';
-import { dataTableCellsForRowsQry, dataTableRowsQry, dataTablesQry } from '../gql/queries/dataTableQueries.ts';
-import type { UseQueryParams } from '../types.d.ts';
+import { dataTableCellsForRowsQry, dataTableQry, dataTableRowsQry, dataTablesQry } from '../gql/queries/dataTableQueries.ts';
+import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
 /**
  * Constants
  */
 
 const SHEET_ROWS_LIMIT = 200;
+
+export type DataTablesVariables = PaginationArgs & {
+	filter?: DataTablesFilterArgs | null;
+	organizationId?: string | null;
+	sort?: WorkspaceItemSortEnum | null;
+};
 
 /*
  * Return all dataTable cell records nested under the provided dataTable rows.
@@ -98,21 +107,54 @@ function mapDataTableDeletedStatus(dataTable: any) {
 	};
 }
 
+/*
+ * Return whether one useDataTables input is the paginated variables object.
+ */
+function isDataTablesVariables(value: string | null | undefined | DataTablesVariables): value is DataTablesVariables {
+	return !!value && typeof value === 'object';
+}
+
+/*
+ * Return GraphQL variables for the paginated dataTables query.
+ */
+function getDataTablesQueryVariables(
+	organizationIdOrVariables?: string | null | DataTablesVariables,
+	active?: boolean | null,
+): DataTablesVariables {
+	if (isDataTablesVariables(organizationIdOrVariables)) {
+		return {
+			...organizationIdOrVariables,
+			after: organizationIdOrVariables.after ?? true,
+			cursor: organizationIdOrVariables.cursor ?? null,
+			filter: organizationIdOrVariables.filter ?? null,
+			limit: organizationIdOrVariables.limit ?? WORKSPACE_ITEM_LIST_LIMIT,
+			sort: organizationIdOrVariables.sort || 'UPDATED_AT_DESC',
+		};
+	}
+
+	return {
+		organizationId: organizationIdOrVariables,
+		after: true,
+		cursor: null,
+		filter: { active },
+		limit: WORKSPACE_ITEM_LIST_LIMIT,
+		sort: 'UPDATED_AT_DESC',
+	};
+}
+
 /**
  * Fetch dataTables for an organization.
  */
 
 export function useDataTables(
-	organizationId?: string | null,
+	organizationId?: string | null | DataTablesVariables,
 	active?: boolean | null,
 	params: UseQueryParams = {},
 ) {
+	const variables = getDataTablesQueryVariables(organizationId, active);
 	const { data, ...rest } = useQuery(dataTablesQry, {
-		variables: {
-			organizationId,
-			active,
-		},
-		skip: !organizationId,
+		variables,
+		skip: !variables.organizationId,
 		...params,
 	});
 	const dataTables = useReactiveFragmentMap(data?.dataTables || null, 'dataTableFragment');
@@ -122,6 +164,32 @@ export function useDataTables(
 
 	return {
 		dataTables: dataTablesWithDeletedStatus,
+		...rest,
+	};
+}
+
+/*
+ * Fetch one dataTable by id.
+ */
+
+export function useDataTable(
+	dataTableId?: string | null,
+	organizationId?: string | null,
+	params: UseQueryParams = {},
+) {
+	const cachedDataTable = useReactiveDataTableFragment(dataTableId || '', null);
+	const { data, ...rest } = useQuery(dataTableQry, {
+		variables: {
+			organizationId,
+			dataTableId,
+		},
+		...params,
+		skip: !organizationId || !dataTableId || !!cachedDataTable || !!params.skip,
+	});
+	const dataTable = useMemo(() => mapDataTableDeletedStatus(data?.dataTable), [data?.dataTable]);
+
+	return {
+		dataTable: cachedDataTable || dataTable,
 		...rest,
 	};
 }
@@ -195,11 +263,14 @@ export function useDataTableCellsForRows(
  */
 
 export function useReactiveDataTableFragment(dataTableId: string, currentData?: any, queryCount?: number) {
-	return useReactiveFragment(
+	const dataTable = useReactiveFragment(
 		currentData,
 		[`$dataTableFragment:${dataTableId}`],
 		queryCount,
 	);
+	const dataTableWithDeletedStatus = useMemo(() => mapDataTableDeletedStatus(dataTable), [dataTable]);
+
+	return dataTableWithDeletedStatus;
 }
 
 /**

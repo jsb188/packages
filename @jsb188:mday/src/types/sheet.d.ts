@@ -2,13 +2,22 @@ import type {
 	SHEET_CELL_SOURCE_TYPE_ENUMS,
 	SHEET_REGION_CONFLICT_POLICY_ENUMS,
 	SHEET_REGION_TYPE_ENUMS,
+	SHEET_STRUCTURE_OPERATION_ENUMS,
+	WORKSPACE_ITEM_SORT_ENUMS,
 } from '../constants/sheet.ts';
 
 export type SheetCellSourceTypeEnum = typeof SHEET_CELL_SOURCE_TYPE_ENUMS[number];
 export type SheetRegionTypeEnum = typeof SHEET_REGION_TYPE_ENUMS[number];
 export type SheetRegionConflictPolicyEnum = typeof SHEET_REGION_CONFLICT_POLICY_ENUMS[number];
-export type SheetFormulaReferenceKind = 'SHEET_CELL' | 'DATA_TABLE_CELL';
+export type SheetStructureOperationEnum = typeof SHEET_STRUCTURE_OPERATION_ENUMS[number];
+export type WorkspaceItemSortEnum = typeof WORKSPACE_ITEM_SORT_ENUMS[number];
+export type SheetFormulaReferenceKind = 'SHEET_CELL' | 'SHEET_RANGE' | 'DATA_TABLE_CELL';
+export type SheetFormulaReferenceStatusEnum = 'READY' | 'LOADING' | 'ERROR' | 'NOT_FOUND';
 export type SheetRegionColumnKind = 'DATA_TABLE_CELL' | 'FORMULA';
+
+export interface SheetsFilterArgs {
+	active?: boolean | null;
+}
 
 export type SheetCellValue =
 	| string
@@ -59,14 +68,28 @@ export type SheetEditorObj = Partial<{
 }>;
 
 export interface SheetFormulaReferenceObj {
+	id?: string | null;
 	kind: SheetFormulaReferenceKind;
 	text: string;
+	status?: SheetFormulaReferenceStatusEnum | null;
 	rowIndex?: number | null;
 	columnIndex?: number | null;
 	columnLabel?: string | null;
+	startRowIndex?: number | null;
+	startColumnIndex?: number | null;
+	endRowIndex?: number | null;
+	endColumnIndex?: number | null;
 	dataTableName?: string | null;
 	rowIdentifier?: string | null;
 	cellKey?: string | null;
+	value?: SheetCellValue;
+	textValue?: string | null;
+	numberValue?: number | null;
+	booleanValue?: boolean | null;
+	dateValue?: Date | string | null;
+	datetimeValue?: Date | string | null;
+	error?: SheetFormulaErrorObj | null;
+	cells?: SheetCellData[] | SheetCellGQL[] | null;
 }
 
 export interface SheetFormulaErrorObj {
@@ -152,8 +175,6 @@ export interface SheetRegionSourceObj {
 export interface SheetRegionColumnObj {
 	kind?: SheetRegionColumnKind | null;
 	sourceCellKey?: string | null;
-	label?: string | null;
-	width?: number | null;
 	formulaText?: string | null;
 }
 
@@ -242,6 +263,7 @@ export interface SheetGQL {
 	__deleted?: boolean;
 
 	id?: string | null;
+	cursor?: string | null;
 	organizationId?: string | null;
 	name?: string | null;
 	title?: string | null;

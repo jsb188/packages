@@ -9,8 +9,10 @@ import type {
 import type {
   SheetCellGQL,
   SheetDesignObj,
+  SheetFormulaReferenceObj,
   SheetRangeGQL,
   SheetRegionGQL,
+  SheetStructureOperationEnum,
 } from '@jsb188/mday/types/sheet.d.ts';
 import {
   clampSheetColumnWidth,
@@ -44,16 +46,24 @@ import { SheetCanvasSurface } from './SheetCanvasSurface.tsx';
 import { SheetColorPicker } from './SheetColorPicker.tsx';
 import { SheetEditorOverlay, type SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
 import { SheetFormulaInput } from './SheetFormulaInput.tsx';
-import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuFormatName, type SheetContextMenuTarget } from '../libs/SheetContextMenu.tsx';
+import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuFormatName, type SheetContextMenuStructureAction, type SheetContextMenuTarget } from '../libs/SheetContextMenu.tsx';
 import { parseGridClipboardText } from '../libs/grid-clipboard.ts';
 import {
-  dismissGridContextMenuOnPointerDown,
+	dismissGridContextMenuOnPointerDown,
 } from '../libs/grid-context-menu.ts';
+import { getClientCalculatedSheetFormulaCell, sheetCellCanClientCalculateFormula } from '../libs/sheet-formula-evaluation.ts';
 import {
   addGridKeyboardEventListener,
   handleGridKeyboardEvent,
   type GridArrowDirection,
 } from '../libs/grid-keyboard.ts';
+import {
+	getSheetEventElementTarget,
+	isSheetColorPickerEventTarget,
+	isSheetContextMenuOverlayEventTarget,
+	SHEET_GRID_EDITOR_SELECTOR,
+	SHEET_TEXT_EDITOR_SELECTOR,
+} from '../libs/sheet-overlay-targets.ts';
 import {
 	getOptimisticSheetCellFromEditInput,
 	getSheetCellSnapshotEditInput,
@@ -155,10 +165,6 @@ const SHEET_CANVAS_COLUMN_RESIZE_HANDLE_WIDTH = 7;
 const SHEET_CANVAS_ROW_RESIZE_HANDLE_HEIGHT = 6;
 // This must match the .app_scr::-webkit-scrollbar width/height in packages/@jsb188:css/css/layout.css.
 const SHEET_CANVAS_APP_SCROLLBAR_SIZE = 19;
-const SHEET_CANVAS_TEXT_EDITOR_SELECTOR = '[data-sheet-editor="true"]';
-const SHEET_CANVAS_GRID_EDITOR_SELECTOR = '[data-sheet-editor="true"], [data-sheet-select-editor="true"], [data-sheet-date-editor="true"], [data-sheet-inbound-contact-editor="true"]';
-const SHEET_COLOR_PICKER_SELECTOR = '[data-sheet-color-picker="true"]';
-const SHEET_CONTEXT_MENU_OVERLAY_SELECTOR = `${SHEET_CANVAS_GRID_EDITOR_SELECTOR}, ${SHEET_COLOR_PICKER_SELECTOR}`;
 const SHEET_DEV_PARAM = 'dev';
 
 export type SheetInsertViewTableRequest = {
@@ -214,9 +220,12 @@ type SheetControllerProps = {
 	dataTables?: DataTableGQL[] | null;
 	design: SheetDesignObj;
 	disabled?: boolean;
+	formulaDependencyCellsByCoord?: Map<string, SheetCellGQL> | null;
+	formulaReferencesById?: Map<string, SheetFormulaReferenceObj> | null;
 	hasMoreRows: boolean;
 	loadedRowCount: number;
 	onFetchMoreRows: () => Promise<void> | void;
+	onEditSheetStructure?: (operation: SheetStructureOperationEnum, index: number) => Promise<unknown> | unknown;
 	onPopulateFromDataTable?: (request: SheetInsertViewTableRequest) => void;
 	onRemoveDataTableRegion?: (regionId: string) => Promise<unknown> | unknown;
 	onSaveDataTableCells: (params: {
@@ -1042,6 +1051,7 @@ function getSheetCanvasContextMenuTarget(params: {
 	canRemoveCellsFromDataTable: boolean;
 	cell: SheetCanvasHitCell;
 	cellLookup: Map<string, SheetCanvasCell>;
+	disabled?: boolean;
 	regions?: SheetRegionGQL[] | null;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
@@ -1061,7 +1071,7 @@ function getSheetCanvasContextMenuTarget(params: {
 		}];
 
 	return {
-		canEdit: true,
+		canEdit: !params.disabled,
 		canPopulateFromDataTable: params.canPopulateFromDataTable,
 		canRemoveCellsFromDataTable: params.canRemoveCellsFromDataTable,
 		cells: selectedCells,
@@ -1123,6 +1133,32 @@ function getSheetInsertViewTableRequest(target: SheetContextMenuTarget, design: 
 }
 
 /*
+ * Return the GraphQL structure edit represented by one context-menu action.
+ */
+function getSheetStructureOperationFromContextMenuAction(action: SheetContextMenuStructureAction): SheetStructureOperationEnum {
+	switch (action) {
+		case 'DELETE_COLUMN':
+			return 'DELETE_COLUMN';
+		case 'DELETE_ROW':
+			return 'DELETE_ROW';
+		case 'INSERT_COLUMN_LEFT':
+			return 'INSERT_COLUMN_LEFT';
+		case 'INSERT_ROW_ABOVE':
+		default:
+			return 'INSERT_ROW_ABOVE';
+	}
+}
+
+/*
+ * Return the row or column index affected by one context-menu structure action.
+ */
+function getSheetStructureIndexFromContextMenuTarget(target: SheetContextMenuTarget, action: SheetContextMenuStructureAction) {
+	return action === 'DELETE_COLUMN' || action === 'INSERT_COLUMN_LEFT'
+		? getSheetCanvasColumnIndexFromKey(target.cellKey)
+		: getSheetCanvasRowIndexFromId(target.rowId);
+}
+
+/*
  * Render the stateful canvas Sheet controller.
  */
 export function SheetController(p: SheetControllerProps) {
@@ -1159,6 +1195,7 @@ export function SheetController(p: SheetControllerProps) {
 		takeUndoEntry: takeSheetUndoEntry,
 	} = useSheetUndoRedo();
 	const runtimeRef = useRef<{
+		calculatedCellsByCoord: Map<string, SheetCellGQL>;
 		cellLookup: Map<string, SheetCanvasCell>;
 		columnMetrics: SheetColumnMetric[];
 		columnMetricsByKey: Map<string, SheetColumnMetric>;
@@ -1236,6 +1273,37 @@ export function SheetController(p: SheetControllerProps) {
 
 		return next;
 	}, [optimisticCellsByCoord, p.cellsByCoord]);
+	const formulaCalculationCellsByCoord = useMemo(() => {
+		if (!p.formulaDependencyCellsByCoord?.size) {
+			return effectiveCellsByCoord;
+		}
+
+		const next = new Map(p.formulaDependencyCellsByCoord);
+		effectiveCellsByCoord.forEach((cell, key) => {
+			next.set(key, cell);
+		});
+
+		return next;
+	}, [effectiveCellsByCoord, p.formulaDependencyCellsByCoord]);
+	const calculatedCellsByCoord = useMemo(() => {
+		const next = new Map<string, SheetCellGQL>();
+
+		effectiveCellsByCoord.forEach((cell, key) => {
+			if (!sheetCellCanClientCalculateFormula(cell)) {
+				next.set(key, cell);
+				return;
+			}
+
+			next.set(key, getClientCalculatedSheetFormulaCell({
+				cell,
+				cellsByCoord: formulaCalculationCellsByCoord,
+				referencesById: p.formulaReferencesById,
+				timeZone: p.timeZone,
+			}));
+		});
+
+		return next;
+	}, [effectiveCellsByCoord, formulaCalculationCellsByCoord, p.formulaReferencesById, p.timeZone]);
 	const dataTablesById = useMemo(() => {
 		return getSheetDataTablesById(p.dataTables);
 	}, [p.dataTables]);
@@ -1263,7 +1331,8 @@ export function SheetController(p: SheetControllerProps) {
 			visibleColumns.forEach((columnMetric) => {
 				const canvasColumn = columnMetric.column as SheetCanvasColumn;
 				const columnIndex = canvasColumn.sheetColumnIndex;
-				const cell = effectiveCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex)) || null;
+				const coordKey = getSheetCanvasCoordKey(rowIndex, columnIndex);
+				const cell = calculatedCellsByCoord.get(coordKey) || effectiveCellsByCoord.get(coordKey) || null;
 				const hasCell = Boolean(cell);
 				const hasFormatting = isSheetCanvasFormattedEmptyCell({
 					cell,
@@ -1325,7 +1394,7 @@ export function SheetController(p: SheetControllerProps) {
 		});
 
 		return cells;
-	}, [columnMetricsData.metrics, dataTablesById, designCellsByDataTableId, effectiveCellsByCoord, optimisticDataTableValues, p.design, p.disabled, p.ranges, p.timeZone, regionsById, rowMetricsData.metrics, sourceCellsByTargetKey, visibleRange.columnEnd, visibleRange.columnStart, visibleRange.rowEnd, visibleRange.rowStart]);
+	}, [calculatedCellsByCoord, columnMetricsData.metrics, dataTablesById, designCellsByDataTableId, effectiveCellsByCoord, optimisticDataTableValues, p.design, p.disabled, p.ranges, p.timeZone, regionsById, rowMetricsData.metrics, sourceCellsByTargetKey, visibleRange.columnEnd, visibleRange.columnStart, visibleRange.rowEnd, visibleRange.rowStart]);
 	const columnMetricsByKey = useMemo(() => {
 		return new Map(columnMetricsData.metrics.map((metric) => {
 			const canvasColumn = metric.column as SheetCanvasColumn;
@@ -1583,6 +1652,7 @@ export function SheetController(p: SheetControllerProps) {
 
 	useEffect(() => {
 		runtimeRef.current = {
+			calculatedCellsByCoord,
 			cellLookup,
 			columnMetrics: columnMetricsData.metrics,
 			columnMetricsByKey,
@@ -2172,7 +2242,7 @@ export function SheetController(p: SheetControllerProps) {
 			const rowIndex = getSheetCanvasRowIndexFromId(cell.rowId);
 			const columnIndex = getSheetCanvasColumnIndexFromKey(cell.cellKey);
 			const sourceCell = rowIndex && columnIndex
-				? runtime.effectiveCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex))
+				? runtime.calculatedCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex))
 				: null;
 
 			rowValues.push(getSheetCanvasCellDisplayValue(sourceCell));
@@ -2282,7 +2352,7 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		const usedRange = getSheetCanvasUsedRange({
-			cellsByCoord: runtime.effectiveCellsByCoord,
+			cellsByCoord: runtime.calculatedCellsByCoord,
 			columns: runtime.columnMetrics,
 			design: p.design,
 			loadedRowCount: rowCount,
@@ -2545,6 +2615,19 @@ export function SheetController(p: SheetControllerProps) {
 	}, [p.onRemoveDataTableRegion]);
 
 	/*
+	 * Run one row or column structure edit from the Sheet context menu.
+	 */
+	const handleSheetContextMenuEditStructure = useCallback(async (target: SheetContextMenuTarget, action: SheetContextMenuStructureAction) => {
+		const index = getSheetStructureIndexFromContextMenuTarget(target, action);
+
+		if (!index || !p.onEditSheetStructure) {
+			return;
+		}
+
+		await p.onEditSheetStructure(getSheetStructureOperationFromContextMenuAction(action), index);
+	}, [p.onEditSheetStructure]);
+
+	/*
 	 * Paste clipboard text through the same Sheet mutation path used by keyboard shortcuts.
 	 */
 	const handleSheetContextMenuPasteCells = useCallback(async (_target: SheetContextMenuTarget, clipboardText: string) => {
@@ -2578,6 +2661,7 @@ export function SheetController(p: SheetControllerProps) {
 	} = useSheetContextMenu({
 		onCustomizeCells: handleSheetContextMenuCustomizeCells,
 		onEditCell: handleSheetContextMenuEditCell,
+		onEditStructure: handleSheetContextMenuEditStructure,
 		onFormatCells: handleSheetContextMenuFormatCells,
 		onPasteCells: handleSheetContextMenuPasteCells,
 		onPopulateFromDataTable: handleSheetContextMenuPopulateDataTable,
@@ -2588,11 +2672,11 @@ export function SheetController(p: SheetControllerProps) {
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
 			const elements = getGridKeyboardElements(event, {
-				editorSelector: SHEET_CANVAS_GRID_EDITOR_SELECTOR,
+				editorSelector: SHEET_GRID_EDITOR_SELECTOR,
 			});
 
 			handleGridKeyboardEvent(event, elements, {
-				blocked: keyDown.alert || keyDown.modal || isGridShortcutBlockedByActiveInput(SHEET_CANVAS_GRID_EDITOR_SELECTOR),
+				blocked: keyDown.alert || keyDown.modal || isGridShortcutBlockedByActiveInput(SHEET_GRID_EDITOR_SELECTOR),
 				hasActiveCell: Boolean(selectedCellState || runtimeRef.current?.rowIds.length),
 				hasActiveEditState: Boolean(editState),
 				isTextInputKey: isGridTextInputKey(event),
@@ -2845,12 +2929,11 @@ export function SheetController(p: SheetControllerProps) {
 	 * Dismiss the color picker from the sheet's centralized pointer capture path.
 	 */
 	const handlePointerDownCapture = useCallback((event: PointerEvent<HTMLDivElement>) => {
-		const target = event.target instanceof Element ? event.target : null;
-		const colorPickerElement = target?.closest(SHEET_COLOR_PICKER_SELECTOR);
+		const insideColorPicker = isSheetColorPickerEventTarget(event.target);
 
-		colorPickerPointerDownInsideRef.current = Boolean(colorPickerElement);
+		colorPickerPointerDownInsideRef.current = insideColorPicker;
 
-		if (!colorPickerElement && colorPickerState) {
+		if (!insideColorPicker && colorPickerState) {
 			closeSheetColorPicker();
 		}
 	}, [closeSheetColorPicker, colorPickerState]);
@@ -2858,8 +2941,8 @@ export function SheetController(p: SheetControllerProps) {
 	const handlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
 		dismissGridContextMenuOnPointerDown(event.nativeEvent, closeSheetContextMenu);
 
-		const target = event.target instanceof Element ? event.target : null;
-		const startedInsideColorPicker = colorPickerPointerDownInsideRef.current || Boolean(target?.closest(SHEET_COLOR_PICKER_SELECTOR));
+		const target = getSheetEventElementTarget(event.target);
+		const startedInsideColorPicker = colorPickerPointerDownInsideRef.current || isSheetColorPickerEventTarget(event.target);
 
 		colorPickerPointerDownInsideRef.current = false;
 
@@ -2867,7 +2950,7 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		if (p.disabled || event.button !== 0 || target?.closest(SHEET_CANVAS_GRID_EDITOR_SELECTOR)) {
+		if (p.disabled || event.button !== 0 || target?.closest(SHEET_GRID_EDITOR_SELECTOR)) {
 			return;
 		}
 
@@ -2879,7 +2962,7 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		const activeEditorElement = event.currentTarget.querySelector(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+		const activeEditorElement = event.currentTarget.querySelector(SHEET_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
 		if (activeEditorElement) {
 			void commitEditorElement(activeEditorElement, {
 				selectAfterCommit: false,
@@ -3191,9 +3274,7 @@ export function SheetController(p: SheetControllerProps) {
 	 * Open the Sheet cell context menu unless the event belongs to an in-sheet overlay.
 	 */
 	const handleContextMenu = useCallback((event: MouseEvent<HTMLDivElement>) => {
-		const target = event.target instanceof Element ? event.target : null;
-
-		if (target?.closest(SHEET_CONTEXT_MENU_OVERLAY_SELECTOR)) {
+		if (isSheetContextMenuOverlayEventTarget(event.target)) {
 			event.stopPropagation();
 			return;
 		}
@@ -3232,6 +3313,7 @@ export function SheetController(p: SheetControllerProps) {
 			canRemoveCellsFromDataTable: Boolean(p.onRemoveDataTableRegion) && !p.disabled,
 			cell: hit.cell,
 			cellLookup,
+			disabled: p.disabled,
 			regions: p.regions,
 			selectedCellKeyMap: nextSelectedCellKeyMap,
 			selectedCellState: nextCell,
@@ -3243,8 +3325,8 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
-		const nextEditorElement = event.relatedTarget instanceof HTMLElement && event.relatedTarget.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+		const nextEditorElement = event.relatedTarget instanceof HTMLElement && event.relatedTarget.closest(SHEET_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
 
 		if (editorElement && !nextEditorElement) {
 			void commitEditorElement(editorElement);
@@ -3261,7 +3343,7 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		const nextEditorElement = event.relatedTarget instanceof HTMLElement && event.relatedTarget.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+		const nextEditorElement = event.relatedTarget instanceof HTMLElement && event.relatedTarget.closest(SHEET_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
 
 		if (!nextEditorElement) {
 			void commitEditorElement(event.currentTarget);
@@ -3313,7 +3395,7 @@ export function SheetController(p: SheetControllerProps) {
 	}, []);
 
 	const handleInput = useCallback((event: FormEvent<HTMLDivElement>) => {
-		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_CANVAS_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
+		const editorElement = event.target instanceof HTMLElement && event.target.closest(SHEET_TEXT_EDITOR_SELECTOR) as HTMLElement | null;
 
 		if (!editorElement) {
 			return;

@@ -6,6 +6,10 @@ export type DataTableFieldTypeGQL = DataTableFieldTypeEnum;
 
 export type DataTableCellReferenceStatus = 'NONE' | 'ACTIVE' | 'DELETED';
 
+export interface DataTablesFilterArgs {
+	active?: boolean | null;
+}
+
 export type DataTableRecordValue =
 	| string
 	| number
@@ -150,6 +154,7 @@ export interface DataTableGQL {
 	__deleted?: boolean;
 
 	id: string;
+	cursor?: string | null;
 	organizationId: string;
 
 	name: string;
@@ -157,6 +162,7 @@ export interface DataTableGQL {
 	description?: string | null;
 	design: DataTableDesignGQL;
 	active: boolean;
+	deletedAt?: string | null;
 
 	createdAt: string;
 	updatedAt: string;

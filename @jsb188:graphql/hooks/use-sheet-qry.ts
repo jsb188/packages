@@ -1,8 +1,10 @@
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
+import { WORKSPACE_ITEM_LIST_LIMIT } from '@jsb188/mday/constants/sheet.ts';
+import type { SheetsFilterArgs, SheetFormulaReferenceObj, WorkspaceItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
 import { useMemo } from 'react';
-import { sheetGridQry, sheetQry, sheetsQry } from '../gql/queries/sheetQueries.ts';
-import type { UseQueryParams } from '../types.d.ts';
+import { sheetFormulaReferencesQry, sheetGridQry, sheetQry, sheetsQry } from '../gql/queries/sheetQueries.ts';
+import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
 export type SheetGridViewportVariables = {
 	startRowIndex: number;
@@ -11,12 +13,72 @@ export type SheetGridViewportVariables = {
 	columnCount: number;
 };
 
+export type SheetsVariables = PaginationArgs & {
+	filter?: SheetsFilterArgs | null;
+	organizationId?: string | null;
+	sort?: WorkspaceItemSortEnum | null;
+};
+
+export type SheetFormulaReferenceInputVariables = Pick<
+	SheetFormulaReferenceObj,
+	| 'cellKey'
+	| 'columnIndex'
+	| 'columnLabel'
+	| 'dataTableName'
+	| 'endColumnIndex'
+	| 'endRowIndex'
+	| 'id'
+	| 'kind'
+	| 'rowIdentifier'
+	| 'rowIndex'
+	| 'startColumnIndex'
+	| 'startRowIndex'
+	| 'text'
+>;
+
 /*
  * Return the query key that belongs to one sheet grid variables key.
  */
 
 function getSheetGridQueryKey(variablesKey: string) {
 	return `#sheetGrid:${variablesKey}`;
+}
+
+/*
+ * Return a formula reference cache key for one reference id.
+ */
+export function getSheetFormulaReferenceFragmentKey(referenceId: string) {
+	return `$sheetFormulaReferenceFragment:${referenceId}`;
+}
+
+/*
+ * Return GraphQL-safe input fields for one formula dependency reference.
+ */
+function getSheetFormulaReferenceInput(reference: SheetFormulaReferenceObj): SheetFormulaReferenceInputVariables {
+	return {
+		cellKey: reference.cellKey || null,
+		columnIndex: reference.columnIndex ?? null,
+		columnLabel: reference.columnLabel || null,
+		dataTableName: reference.dataTableName || null,
+		endColumnIndex: reference.endColumnIndex ?? null,
+		endRowIndex: reference.endRowIndex ?? null,
+		id: reference.id || null,
+		kind: reference.kind,
+		rowIdentifier: reference.rowIdentifier ?? null,
+		rowIndex: reference.rowIndex ?? null,
+		startColumnIndex: reference.startColumnIndex ?? null,
+		startRowIndex: reference.startRowIndex ?? null,
+		text: reference.text,
+	};
+}
+
+/*
+ * Return GraphQL-safe input fields for formula dependency references.
+ */
+function getSheetFormulaReferenceInputs(references?: SheetFormulaReferenceObj[] | null) {
+	return (references || [])
+		.filter((reference) => reference?.id && reference.kind && reference.text)
+		.map(getSheetFormulaReferenceInput);
 }
 
 /*
@@ -59,20 +121,53 @@ function mapSheetDeletedStatus(sheet: any) {
 }
 
 /*
+ * Return whether one useSheets input is the paginated variables object.
+ */
+function isSheetsVariables(value: string | null | undefined | SheetsVariables): value is SheetsVariables {
+	return !!value && typeof value === 'object';
+}
+
+/*
+ * Return GraphQL variables for the paginated sheets query.
+ */
+function getSheetsQueryVariables(
+	organizationIdOrVariables?: string | null | SheetsVariables,
+	active?: boolean | null,
+): SheetsVariables {
+	if (isSheetsVariables(organizationIdOrVariables)) {
+		return {
+			...organizationIdOrVariables,
+			after: organizationIdOrVariables.after ?? true,
+			cursor: organizationIdOrVariables.cursor ?? null,
+			filter: organizationIdOrVariables.filter ?? null,
+			limit: organizationIdOrVariables.limit ?? WORKSPACE_ITEM_LIST_LIMIT,
+			sort: organizationIdOrVariables.sort || 'UPDATED_AT_DESC',
+		};
+	}
+
+	return {
+		organizationId: organizationIdOrVariables,
+		after: true,
+		cursor: null,
+		filter: { active },
+		limit: WORKSPACE_ITEM_LIST_LIMIT,
+		sort: 'UPDATED_AT_DESC',
+	};
+}
+
+/*
  * Fetch sheets for an organization.
  */
 
 export function useSheets(
-	organizationId?: string | null,
+	organizationId?: string | null | SheetsVariables,
 	active?: boolean | null,
 	params: UseQueryParams = {},
 ) {
+	const variables = getSheetsQueryVariables(organizationId, active);
 	const { data, ...rest } = useQuery(sheetsQry, {
-		variables: {
-			organizationId,
-			active,
-		},
-		skip: !organizationId,
+		variables,
+		skip: !variables.organizationId,
 		...params,
 	});
 	const sheets = useReactiveFragmentMap(data?.sheets || null, 'sheetFragment');
@@ -95,18 +190,19 @@ export function useSheet(
 	organizationId?: string | null,
 	params: UseQueryParams = {},
 ) {
+	const cachedSheet = useReactiveSheetFragment(sheetId || '', null);
 	const { data, ...rest } = useQuery(sheetQry, {
 		variables: {
 			organizationId,
 			sheetId,
 		},
-		skip: !organizationId || !sheetId,
 		...params,
+		skip: !organizationId || !sheetId || !!cachedSheet || !!params.skip,
 	});
 	const sheet = useMemo(() => mapSheetDeletedStatus(data?.sheet), [data?.sheet]);
 
 	return {
-		sheet,
+		sheet: cachedSheet || sheet,
 		...rest,
 	};
 }
@@ -155,6 +251,47 @@ export function useReactiveSheetGridCells(sheetGrid?: any | null) {
 	const reactiveCells = useReactiveFragmentMap(sheetGrid?.cells || null, 'sheetCellFragment');
 
 	return mergeReactiveCellsIntoSheetGrid(sheetGrid, reactiveCells);
+}
+
+/*
+ * Get reactive SheetCell fragments.
+ */
+export function useReactiveSheetCells(cells?: any[] | null) {
+	return useReactiveFragmentMap(cells || null, 'sheetCellFragment');
+}
+
+/*
+ * Get reactive Sheet formula reference fragments.
+ */
+export function useReactiveSheetFormulaReferences(references?: SheetFormulaReferenceObj[] | null) {
+	return useReactiveFragmentMap(references || null, 'sheetFormulaReferenceFragment') as SheetFormulaReferenceObj[] | null;
+}
+
+/*
+ * Fetch formula dependency references that were incomplete in the sheetGrid response.
+ */
+export function useSheetFormulaReferences(
+	sheetId?: string | null,
+	organizationId?: string | null,
+	references?: SheetFormulaReferenceObj[] | null,
+	params: UseQueryParams = {},
+) {
+	const referenceInputs = useMemo(() => getSheetFormulaReferenceInputs(references), [references]);
+	const { data, ...rest } = useQuery(sheetFormulaReferencesQry, {
+		variables: {
+			organizationId,
+			sheetId,
+			references: referenceInputs,
+		},
+		...params,
+		skip: !organizationId || !sheetId || !referenceInputs.length || !!params.skip,
+	});
+	const sheetFormulaReferences = useReactiveSheetFormulaReferences(data?.sheetFormulaReferences || null);
+
+	return {
+		sheetFormulaReferences,
+		...rest,
+	};
 }
 
 /*

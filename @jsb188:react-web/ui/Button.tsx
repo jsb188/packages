@@ -225,8 +225,10 @@ interface NormalButtonProps {
   size?: ButtonSizeEnum;
   leftIconClassName?: string;
   leftIconName?: string | null;
+  leftIconTryColor?: boolean;
   rightIconClassName?: string;
   rightIconName?: string | null;
+  rightIconTryColor?: boolean;
   className?: string;
   disabled?: boolean;
   to?: string;
@@ -234,7 +236,7 @@ interface NormalButtonProps {
 }
 
 export function Button(p: NormalButtonProps) {
-  const { to, size, preset, text, disabled, className, onClick, leftIconName, rightIconName, leftIconClassName, rightIconClassName } = p;
+  const { to, size, preset, text, disabled, className, onClick, leftIconName, rightIconName, leftIconClassName, rightIconClassName, leftIconTryColor, rightIconTryColor } = p;
   return (
     <SmartLink
       className={cn(
@@ -251,7 +253,7 @@ export function Button(p: NormalButtonProps) {
     >
       {!leftIconName ? null : (
         <span className={leftIconClassName || 'mr_4'}>
-          <Icon name={leftIconName} />
+          <Icon name={leftIconName} tryColor={leftIconTryColor} />
         </span>
       )}
 
@@ -261,7 +263,7 @@ export function Button(p: NormalButtonProps) {
 
       {!rightIconName ? null : (
         <span className={rightIconClassName || 'ml_4'}>
-          <Icon name={rightIconName} />
+          <Icon name={rightIconName} tryColor={rightIconTryColor} />
         </span>
       )}
     </SmartLink>

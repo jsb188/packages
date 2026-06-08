@@ -13,6 +13,19 @@ export const SHEET_REGION_CONFLICT_POLICY_ENUMS = [
 	'OVERWRITE',
 ] as const;
 
+export const SHEET_STRUCTURE_OPERATION_ENUMS = [
+	'INSERT_ROW_ABOVE',
+	'INSERT_COLUMN_LEFT',
+	'DELETE_ROW',
+	'DELETE_COLUMN',
+] as const;
+
+export const WORKSPACE_ITEM_SORT_ENUMS = [
+	'UPDATED_AT_DESC',
+	'TITLE_ASC',
+] as const;
+
+export const WORKSPACE_ITEM_LIST_LIMIT = 1000;
 export const SHEET_DATA_TABLE_REGION_MAX_ROWS = 1000;
 export const SHEET_DEFAULT_ROW_COUNT = 1000;
 export const SHEET_DEFAULT_COLUMN_COUNT = 26;
@@ -20,3 +33,8 @@ export const SHEET_VIEWPORT_MAX_ROWS = 400;
 export const SHEET_VIEWPORT_MAX_COLUMNS = 100;
 export const SHEET_DEFAULT_COLUMN_WIDTH = 160;
 export const SHEET_DEFAULT_ROW_HEIGHT = 28;
+
+export const BUILT_IN_DATA_TABLE_NAMES = [
+  'organizations',
+  'orgs',
+];
