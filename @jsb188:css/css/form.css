@@ -355,7 +355,7 @@ fieldset input[type="radio"] {
 
 /* Opaque preset */
 
-.btn.subtle, .btn.cl_err {
+.btn.subtle {
   background-color: rgba(0,0,0,.1);
 }
 
@@ -379,7 +379,7 @@ a.btn.subtle, a.btn.bg, a.btn.outline {
   color: rgba(0,0,0,.275);
 }
 
-.btn.subtle:not(:disabled):not(.disabled):hover, .btn.cl_err:not(:disabled):not(.disabled):hover {
+.btn.subtle:not(:disabled):not(.disabled):hover {
   background-color: rgba(0,0,0,.2);
 }
 
@@ -387,7 +387,7 @@ a.btn.subtle, a.btn.bg, a.btn.outline {
   background-color: rgb(var(--color-bg-alt)) !important;
 }
 
-.btn.subtle:not(:disabled):not(.disabled):active, .btn.cl_err:not(:disabled):not(.disabled):active {
+.btn.subtle:not(:disabled):not(.disabled):active {
   background-color: rgba(0,0,0,.25);
 }
 

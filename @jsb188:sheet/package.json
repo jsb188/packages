@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/main.ts",
     "./DataTable": "./src/modules/DataTable.tsx",
+    "./SheetRegionFiltersInput": "./src/modules/SheetRegionFiltersInput.tsx",
     "./VerticalDataTableDesigner": "./src/modules/VerticalDataTableDesigner.tsx",
     "./libs/DataTable-ContextMenu": "./src/libs/DataTable-ContextMenu.tsx",
     "./libs/SheetContextMenu": "./src/libs/SheetContextMenu.tsx",
@@ -30,6 +31,8 @@
     "./libs/grid-viewport": "./src/libs/grid-viewport.ts",
     "./libs/sheet-canvas-geometry": "./src/libs/sheet-canvas-geometry.ts",
     "./libs/sheet-history": "./src/libs/sheet-history.ts",
+    "./libs/sheet-region-filter-query": "./src/libs/sheet-region-filter-query.ts",
+    "./libs/sheet-region-sort-query": "./src/libs/sheet-region-sort-query.ts",
     "./libs/sheet-state": "./src/libs/sheet-state.ts",
     "./libs/sheet-structure-edit": "./src/libs/sheet-structure-edit.ts",
     "./libs/sheet-utils": "./src/libs/sheet-utils.ts",

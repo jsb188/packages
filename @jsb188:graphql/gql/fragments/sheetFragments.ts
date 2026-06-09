@@ -20,7 +20,23 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
     version
     columns
     rows
-    defaultCellStyle
+    defaultCellStyle {
+      fontSize
+      textColor
+      fillColor
+      borderTopWidth
+      borderTopColor
+      borderTopStyle
+      borderRightWidth
+      borderRightColor
+      borderRightStyle
+      borderBottomWidth
+      borderBottomColor
+      borderBottomStyle
+      borderLeftWidth
+      borderLeftColor
+      borderLeftStyle
+    }
     defaultCellFormat
     metadata
 
@@ -120,7 +136,23 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
       message
     }
   }
-  style
+  style {
+    fontSize
+    textColor
+    fillColor
+    borderTopWidth
+    borderTopColor
+    borderTopStyle
+    borderRightWidth
+    borderRightColor
+    borderRightStyle
+    borderBottomWidth
+    borderBottomColor
+    borderBottomStyle
+    borderLeftWidth
+    borderLeftColor
+    borderLeftStyle
+  }
   format
   note
   sourceType
@@ -145,7 +177,23 @@ export const sheetRangeFragment = `fragment sheetRangeFragment on SheetRange {
   endRowIndex
   endColumnIndex
   position
-  style
+  style {
+    fontSize
+    textColor
+    fillColor
+    borderTopWidth
+    borderTopColor
+    borderTopStyle
+    borderRightWidth
+    borderRightColor
+    borderRightStyle
+    borderBottomWidth
+    borderBottomColor
+    borderBottomStyle
+    borderLeftWidth
+    borderLeftColor
+    borderLeftStyle
+  }
   format
   metadata
   active
@@ -167,6 +215,49 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
   source {
     type
     dataTableId
+    filter {
+      combinator
+      conditions {
+        cellKey
+        operator
+        textValue
+        textValues
+        numberValue
+        booleanValue
+        dateValue
+        datetimeValue
+      }
+      groups {
+        combinator
+        conditions {
+          cellKey
+          operator
+          textValue
+          textValues
+          numberValue
+          booleanValue
+          dateValue
+          datetimeValue
+        }
+        groups {
+          combinator
+          conditions {
+            cellKey
+            operator
+            textValue
+            textValues
+            numberValue
+            booleanValue
+            dateValue
+            datetimeValue
+          }
+        }
+      }
+    }
+    sort {
+      cellKey
+      direction
+    }
   }
 
   columns {

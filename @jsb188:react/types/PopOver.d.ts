@@ -88,6 +88,17 @@ export interface POModalItemObj extends Omit<POActionListItemBase, 'onClick'> {
 }
 
 type POListColorValue = ColorEnum | (string & {});
+export type POListBorderStyleValue =
+  | 'outlineAllCells'
+  | 'outlineInnerCells'
+  | 'outlineInnerVertical'
+  | 'outlineInnerHorizontal'
+  | 'outlineAllSides'
+  | 'outlineLeft'
+  | 'outlineTop'
+  | 'outlineRight'
+  | 'outlineBottom'
+  | 'outlineNone';
 
 export interface POListItemPickerOptionObj {
   iconName: string;
@@ -114,6 +125,16 @@ export interface POListColorsObj extends POItemBase {
   onClickCustomize?: POListItemClickFn;
   colors?: readonly POListColorValue[];
   selectedValue?: POListColorValue | null;
+  className?: string;
+  disabled?: boolean;
+}
+
+export interface POListBorderStylesObj extends POItemBase {
+  __type: 'LIST_BORDER_STYLES';
+  name?: string;
+  label?: ReactNode;
+  onClickCustomize?: POListItemClickFn;
+  selectedValue?: POListBorderStyleValue | null;
   className?: string;
   disabled?: boolean;
 }
@@ -174,6 +195,7 @@ export type POListIfaceItem =
   | POCheckListItemObj
   | POListItemPickerObj
   | POListColorsObj
+  | POListBorderStylesObj
   | POListSubmenuItemObj
   | POModalItemObj
   | PODatePickerObj

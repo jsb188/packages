@@ -1,6 +1,6 @@
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
-import { WORKSPACE_ITEM_LIST_LIMIT } from '@jsb188/mday/constants/sheet.ts';
-import type { SheetsFilterArgs, SheetFormulaReferenceObj, WorkspaceItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
+import { GRID_ITEM_LIST_LIMIT } from '@jsb188/mday/constants/sheet.ts';
+import type { SheetsFilterArgs, SheetFormulaReferenceObj, GridItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
 import { useMemo } from 'react';
 import { sheetFormulaReferencesQry, sheetGridQry, sheetQry, sheetsQry } from '../gql/queries/sheetQueries.ts';
@@ -16,7 +16,7 @@ export type SheetGridViewportVariables = {
 export type SheetsVariables = PaginationArgs & {
 	filter?: SheetsFilterArgs | null;
 	organizationId?: string | null;
-	sort?: WorkspaceItemSortEnum | null;
+	sort?: GridItemSortEnum | null;
 };
 
 export type SheetFormulaReferenceInputVariables = Pick<
@@ -140,7 +140,7 @@ function getSheetsQueryVariables(
 			after: organizationIdOrVariables.after ?? true,
 			cursor: organizationIdOrVariables.cursor ?? null,
 			filter: organizationIdOrVariables.filter ?? null,
-			limit: organizationIdOrVariables.limit ?? WORKSPACE_ITEM_LIST_LIMIT,
+			limit: organizationIdOrVariables.limit ?? GRID_ITEM_LIST_LIMIT,
 			sort: organizationIdOrVariables.sort || 'UPDATED_AT_DESC',
 		};
 	}
@@ -150,7 +150,7 @@ function getSheetsQueryVariables(
 		after: true,
 		cursor: null,
 		filter: { active },
-		limit: WORKSPACE_ITEM_LIST_LIMIT,
+		limit: GRID_ITEM_LIST_LIMIT,
 		sort: 'UPDATED_AT_DESC',
 	};
 }

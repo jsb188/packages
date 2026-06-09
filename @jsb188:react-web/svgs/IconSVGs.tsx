@@ -580,6 +580,226 @@ export const Cards = <svg xmlns="http://www.w3.org/2000/svg" className="icon ico
 <path d="M20 6c.264 .112 .52 .217 .768 .315a1 1 0 0 1 .53 1.311l-2.298 5.374" stroke="currentColor" />
 </svg>;
 
+export const CellBorderBottom = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M21,1.5c.82842636,0,1.5.67157364,1.5,1.5"/>
+<path d="M1.50000024,3c0-.82842636.67157292-1.5,1.5-1.5"/>
+<path d="M22.5,21c0,.82842708-.67157364,1.5-1.5,1.5H3c-.82842708,0-1.5-.67157292-1.5-1.5"/>
+<path d="M1.50000024,18v-1.5"/>
+<path d="M1.50000024,13.5v-3"/>
+<path d="M1.50000024,7.5v-1.5"/>
+<path d="M22.5,18v-1.5"/>
+<path d="M22.5,13.5v-3"/>
+<path d="M22.5,7.5v-1.5"/>
+<path d="M6.00000048,1.5h1.5"/>
+<path d="M10.5,1.5h3"/>
+<path d="M16.5,1.5h1.5"/>
+<path d="M12,22.5v-1.5"/>
+<path d="M12,18v-1.5"/>
+<path d="M12,13.5v-3"/>
+<path d="M12,7.5v-1.5"/>
+<path d="M12,3v-1.5"/>
+<path d="M1.50000024,12h1.5"/>
+<path d="M6.00000048,12h1.5"/>
+<path d="M16.5,12h1.5"/>
+<path d="M21,12h1.5"/>
+<path d="M10.5,12h3"/>
+</svg>;
+
+export const CellBorderCenter = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-center" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M22.5,20.99999988c0,.82842636-.67157364,1.5-1.5,1.5"/>
+<path d="M21,1.50000012c.82842636,0,1.5.67157292,1.5,1.5"/>
+<path d="M1.5,3.00000012c0-.82842708.67157292-1.5,1.5-1.5"/>
+<path d="M3,22.49999988c-.82842708,0-1.5-.67157364-1.5-1.5"/>
+<path d="M6,1.50000012h1.5"/>
+<path d="M10.5,1.50000012h3"/>
+<path d="M16.5,1.50000012h1.5"/>
+<path d="M6,22.49999988h1.5"/>
+<path d="M10.5,22.49999988h3"/>
+<path d="M16.5,22.49999988h1.5"/>
+<path d="M1.5,6.00000036v1.5"/>
+<path d="M1.5,10.49999988v3"/>
+<path d="M1.5,16.49999988v1.5"/>
+<path d="M22.5,6.00000036v1.5"/>
+<path d="M22.5,10.49999988v3"/>
+<path d="M22.5,16.49999988v1.5"/>
+<path d="M1.5,11.99999988h21"/>
+<path d="M12,1.50000012v1.5"/>
+<path d="M12,6.00000036v1.5"/>
+<path d="M12,16.49999988v1.5"/>
+<path d="M12,20.99999988v1.5"/>
+<path d="M12,10.49999988v3"/>
+</svg>;
+
+export const CellBorderFrame = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-frame" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M1.5,1.50000012h21v20.99999976H1.5V1.50000012Z"/>
+<path d="M1.5,11.99999988h1.5"/>
+<path d="M6,11.99999988h1.5"/>
+<path d="M10.5,11.99999988h3"/>
+<path d="M16.5,11.99999988h1.5"/>
+<path d="M21,11.99999988h1.5"/>
+<path d="M12,1.50000012v1.5"/>
+<path d="M12,6.00000036v1.5"/>
+<path d="M12,16.49999988v1.5"/>
+<path d="M12,20.99999988v1.5"/>
+<path d="M12,10.49999988v3"/>
+</svg>;
+
+export const CellBorderFull = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="m1.5 1.499 21 0 0 21 -21 0Z"/>
+<path d="m12 1.499 0 21"/>
+<path d="m1.5 11.999 21 0"/>
+</svg>;
+
+export const CellBorderHorizontalVertical = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-horizontal-vertical" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M22.5,20.99999988c0,.82842636-.67157364,1.5-1.5,1.5"/>
+<path d="M21,1.50000012c.82842636,0,1.5.67157292,1.5,1.5"/>
+<path d="M1.5,3.00000012c0-.82842708.67157292-1.5,1.5-1.5"/>
+<path d="M3,22.49999988c-.82842708,0-1.5-.67157364-1.5-1.5"/>
+<path d="M6,1.50000012h1.5"/>
+<path d="M10.5,1.50000012h3"/>
+<path d="M16.5,1.50000012h1.5"/>
+<path d="M6,22.49999988h1.5"/>
+<path d="M10.5,22.49999988h3"/>
+<path d="M16.5,22.49999988h1.5"/>
+<path d="M1.5,6.00000036v1.5"/>
+<path d="M1.5,10.49999988v3"/>
+<path d="M1.5,16.49999988v1.5"/>
+<path d="M22.5,6.00000036v1.5"/>
+<path d="M22.5,10.49999988v3"/>
+<path d="M22.5,16.49999988v1.5"/>
+<path d="M1.5,11.99999988h21"/>
+<path d="M12,1.50000012v20.99999976"/>
+</svg>;
+
+export const CellBorderLeft = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M22.5,21c0,.82842636-.67157364,1.5-1.5,1.5"/>
+<path d="M21,1.50000024c.82842636,0,1.5.67157292,1.5,1.5"/>
+<path d="M3,22.5c-.82842708,0-1.5-.67157364-1.5-1.5V3c0-.82842708.67157292-1.5,1.5-1.5"/>
+<path d="M6,1.50000024h1.5"/>
+<path d="M10.5,1.50000024h3"/>
+<path d="M16.5,1.50000024h1.5"/>
+<path d="M6,22.5h1.5"/>
+<path d="M10.5,22.5h3"/>
+<path d="M16.5,22.5h1.5"/>
+<path d="M22.5,6.00000048v1.5"/>
+<path d="M22.5,10.5v3"/>
+<path d="M22.5,16.5v1.5"/>
+<path d="M1.5,12h1.5"/>
+<path d="M6,12h1.5"/>
+<path d="M10.5,12h3"/>
+<path d="M16.5,12h1.5"/>
+<path d="M21,12h1.5"/>
+<path d="M12,1.50000024v1.5"/>
+<path d="M12,6.00000048v1.5"/>
+<path d="M12,16.5v1.5"/>
+<path d="M12,21v1.5"/>
+<path d="M12,10.5v3"/>
+</svg>;
+
+export const CellBorderMiddle = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M3.00000012,22.5c-.82842636,0-1.5-.67157364-1.5-1.5"/>
+<path d="M22.49999988,21c0,.82842636-.67157292,1.5-1.5,1.5"/>
+<path d="M20.99999988,1.5c.82842708,0,1.5.67157292,1.5,1.5"/>
+<path d="M1.50000012,3c0-.82842708.67157364-1.5,1.5-1.5"/>
+<path d="M22.49999988,6v1.5"/>
+<path d="M22.49999988,10.5v3"/>
+<path d="M22.49999988,16.5v1.5"/>
+<path d="M1.50000012,6v1.5"/>
+<path d="M1.50000012,10.5v3"/>
+<path d="M1.50000012,16.5v1.5"/>
+<path d="M17.99999964,1.5h-1.5"/>
+<path d="M13.50000012,1.5h-3"/>
+<path d="M7.50000012,1.5h-1.5"/>
+<path d="M17.99999964,22.5h-1.5"/>
+<path d="M13.50000012,22.5h-3"/>
+<path d="M7.50000012,22.5h-1.5"/>
+<path d="M12.00000012,1.5v21"/>
+<path d="M22.49999988,12h-1.5"/>
+<path d="M17.99999964,12h-1.5"/>
+<path d="M7.50000012,12h-1.5"/>
+<path d="M3.00000012,12h-1.5"/>
+<path d="M13.50000012,12h-3"/>
+</svg>;
+
+export const CellBorderNone = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M22.5,20.99999988c0,.82842636-.67157364,1.5-1.5,1.5"/>
+<path d="M21,1.50000012c.82842636,0,1.5.67157292,1.5,1.5"/>
+<path d="M1.5,3.00000012c0-.82842708.67157292-1.5,1.5-1.5"/>
+<path d="M3,22.49999988c-.82842708,0-1.5-.67157364-1.5-1.5"/>
+<path d="M6,1.50000012h1.5"/>
+<path d="M10.5,1.50000012h3"/>
+<path d="M16.5,1.50000012h1.5"/>
+<path d="M6,22.49999988h1.5"/>
+<path d="M10.5,22.49999988h3"/>
+<path d="M16.5,22.49999988h1.5"/>
+<path d="M1.5,6.00000036v1.5"/>
+<path d="M1.5,10.49999988v3"/>
+<path d="M1.5,16.49999988v1.5"/>
+<path d="M22.5,6.00000036v1.5"/>
+<path d="M22.5,10.49999988v3"/>
+<path d="M22.5,16.49999988v1.5"/>
+<path d="M12,10.49999988v3"/>
+<path d="M1.5,11.99999988h1.5"/>
+<path d="M6,11.99999988h1.5"/>
+<path d="M10.5,11.99999988h3"/>
+<path d="M16.5,11.99999988h1.5"/>
+<path d="M21,11.99999988h1.5"/>
+<path d="M12,1.50000012v1.5"/>
+<path d="M12,6.00000036v1.5"/>
+<path d="M12,16.49999988v1.5"/>
+<path d="M12,20.99999988v1.5"/>
+</svg>;
+
+export const CellBorderRight = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M1.5,3c0-.82842636.67157364-1.5,1.5-1.5"/>
+<path d="M3,22.49999976c-.82842636,0-1.5-.67157292-1.5-1.5"/>
+<path d="M21,1.5c.82842708,0,1.5.67157364,1.5,1.5v18c0,.82842708-.67157292,1.5-1.5,1.5"/>
+<path d="M18,22.49999976h-1.5"/>
+<path d="M13.5,22.49999976h-3"/>
+<path d="M7.5,22.49999976h-1.5"/>
+<path d="M18,1.5h-1.5"/>
+<path d="M13.5,1.5h-3"/>
+<path d="M7.5,1.5h-1.5"/>
+<path d="M1.5,17.99999952v-1.5"/>
+<path d="M1.5,13.5v-3"/>
+<path d="M1.5,7.5v-1.5"/>
+<path d="M22.5,12h-1.5"/>
+<path d="M18,12h-1.5"/>
+<path d="M13.5,12h-3"/>
+<path d="M7.5,12h-1.5"/>
+<path d="M3,12h-1.5"/>
+<path d="M12,22.49999976v-1.5"/>
+<path d="M12,17.99999952v-1.5"/>
+<path d="M12,7.5v-1.5"/>
+<path d="M12,3v-1.5"/>
+<path d="M12,13.5v-3"/>
+</svg>;
+
+export const CellBorderUp = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M3,22.5c-.82842636,0-1.5-.67157364-1.5-1.5"/>
+<path d="M22.49999976,21c0,.82842636-.67157292,1.5-1.5,1.5"/>
+<path d="M1.5,3c0-.82842708.67157364-1.5,1.5-1.5h18c.82842708,0,1.5.67157292,1.5,1.5"/>
+<path d="M22.49999976,6v1.5"/>
+<path d="M22.49999976,10.5v3"/>
+<path d="M22.49999976,16.5v1.5"/>
+<path d="M1.5,6v1.5"/>
+<path d="M1.5,10.5v3"/>
+<path d="M1.5,16.5v1.5"/>
+<path d="M17.99999952,22.5h-1.5"/>
+<path d="M13.5,22.5h-3"/>
+<path d="M7.5,22.5h-1.5"/>
+<path d="M12,1.5v1.5"/>
+<path d="M12,6v1.5"/>
+<path d="M12,10.5v3"/>
+<path d="M12,16.5v1.5"/>
+<path d="M12,21v1.5"/>
+<path d="M22.49999976,12h-1.5"/>
+<path d="M17.99999952,12h-1.5"/>
+<path d="M7.5,12h-1.5"/>
+<path d="M3,12h-1.5"/>
+<path d="M13.5,12h-3"/>
+</svg>;
+
 export const ContactUsEmail = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-contact-us-email" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="m1.5 12.277 8.419 6.14c0.1321 0.0965 0.2914 0.1485 0.455 0.1485 0.1636 0 0.3229 -0.052 0.455 -0.1485l3.5 -2.547"/>
 <path d="m7.693 16.791 -5.891 5.891"/>
@@ -1336,6 +1556,11 @@ export const ExclamationCircle = <svg xmlns="http://www.w3.org/2000/svg" classNa
 <path stroke="currentColor" d="M3,12c0,4.97056198,4.02943707,9,9,9,4.97056198,0,9-4.02943802,9-9,0-4.97056293-4.02943802-9-9-9C7.02943707,3,3,7.02943707,3,12"/>
 <path stroke="currentColor" strokeWidth="2.5" d="M12,7.75v4.31046129"/>
 <path stroke="currentColor" strokeWidth="2.5" d="M12,16.24499989v.01000023"/>
+</svg>;
+
+export const ExclamationCircleFilled = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="icon icon-exclamation-circle-filled">
+<path fill="none" d="M0,0h24v24H0V0Z"/>
+<path d="M17,3.33999991c4.78292656,2.76142383,6.42167854,8.87732816,3.66025352,13.66025376-2.76142311,4.78292656-8.87732697,6.42167854-13.66025352,3.66025352-3.09408927-1.78637314-5.00009072-5.08776093-5-8.6605072l.00500011-.32400036C2.18399954,6.15605354,6.80390787,1.82636106,12.32385349,2.0053606c1.64478874.05333662,3.25099373.51177049,4.67614651,1.3346386M12,15.26337984c-.82063019,0-1.48588121.66525102-1.48588121,1.48588121v.01485774c0,.82062878.66525102,1.48588121,1.48588121,1.48588121s1.48588121-.66525244,1.48588121-1.48588121v-.01485915c0-.82063019-.66525102-1.48588121-1.48588121-1.48588121M12,5.4862015c-.82063019,0-1.48588121.61868931-1.48588121,1.38188262v5.52753047c0,.76319331.66525102,1.38188262,1.48588121,1.38188262s1.48588121-.61868931,1.48588121-1.38188262v-5.52753047c0-.76319331-.66525102-1.38188262-1.48588121-1.38188262"/>
 </svg>;
 
 export const ExternalLink = <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-external-link">

@@ -1,5 +1,6 @@
 import type { LabelAndValue } from '@jsb188/app/types/other.d.ts';
 import type { BuildSingleTextLine } from '@jsb188/app/utils/string.ts';
+import type { DataTableData, DataTableGQL } from '../types/dataTable.d.ts';
 import type { LogTypeEnum } from '../types/log.d.ts';
 import type { OrganizationData, OrganizationFeatureEnum } from '../types/organization.d.ts';
 import type { WORKFLOW_RUN_STATUS_ENUMS } from '@jsb188/app/constants/agent.ts';
@@ -43,6 +44,7 @@ export interface WorkflowData {
 	organizationId: number | bigint;
 	org?: OrganizationData; // Included if query joined with organization table
 	reportId: number | bigint | null;
+	dataTables?: Array<Pick<DataTableData, 'id' | 'name' | 'title' | 'description' | 'deletedAt'>>;
 
 	logType: LogTypeEnum;
 	feature?: OrganizationFeatureEnum;
@@ -156,6 +158,7 @@ export interface WorkflowGQL {
 	id: string;
 	organizationId: string;
 	reportId: string | null;
+	dataTables?: Array<Pick<DataTableGQL, 'id' | 'name' | 'title' | 'description' | 'deletedAt'>>;
 
 	logType: LogTypeEnum;
 	feature: OrganizationFeatureEnum | null;

@@ -27,6 +27,7 @@ import {
 import {
   getSheetCanvasColumnIndexFromKey,
   getSheetCanvasStyleColor,
+  getSheetCanvasStyleFontSize,
   getSheetCanvasRowIndexFromId,
   type SheetCanvasCell,
   type SheetCanvasColumn,
@@ -41,6 +42,7 @@ const SHEET_CANVAS_READ_ONLY_TAG_PADDING_Y = 4;
 const SHEET_CANVAS_SELECTION_ALPHA = 0.09;
 const SHEET_CANVAS_DATA_TABLE_ICON_PATH_CACHE = new Map<string, Path2D[]>();
 const SHEET_CANVAS_TEXT_LINE_GAP = 2;
+const SHEET_CANVAS_BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 
 type SheetCanvasTheme = {
 	active: string;
@@ -50,7 +52,6 @@ type SheetCanvasTheme = {
 	main: string;
 	fontFamily: string;
 	fontFamilyMedium: string;
-	fontFamilySemibold: string;
 	headerFontSize: string;
 	fontSize: string;
 	fontLineHeightPx: number;
@@ -85,6 +86,16 @@ type SheetCanvasColumnRect = SheetCanvasRect & {
 
 type SheetCanvasRowRect = SheetCanvasRect & {
 	metric: SheetRowMetric;
+};
+
+type SheetCanvasCellBorderSide = typeof SHEET_CANVAS_BORDER_SIDES[number];
+
+type SheetCanvasCellBorderLine = {
+	orientation: 'horizontal' | 'vertical';
+	x1: number;
+	x2: number;
+	y1: number;
+	y2: number;
 };
 
 export type SheetCanvasSurfaceProps = {
@@ -203,7 +214,6 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 		contrast: getSheetCanvasCSSColor(styles, '--color-contrast', active),
 		fontFamily: getSheetCanvasCSSValue(styles, '--font-sans', 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
 		fontFamilyMedium: getSheetCanvasCSSValue(styles, '--font-sans-medium', 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
-		fontFamilySemibold: getSheetCanvasCSSValue(styles, '--font-sans-semibold', 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
 		headerFontSize: getSheetCanvasCSSValue(styles, '--text-xxsmall', '0.8125rem'),
 		fontLineHeightPx: getSheetCanvasCSSLengthPx(fontSize, rootFontSizePx, 14) * 1.4,
 		fontSize,
@@ -232,6 +242,68 @@ function getSheetCanvasResolvedStyleColor(theme: SheetCanvasTheme, color?: strin
 }
 
 /*
+ * Return a supported border width for one styled Sheet cell side.
+ */
+function getSheetCanvasCellBorderWidth(style: SheetCanvasCell['style'] | null | undefined, side: typeof SHEET_CANVAS_BORDER_SIDES[number]) {
+	const width = Math.round(Number(style?.[`border${side}Width` as keyof SheetCanvasCell['style']]));
+
+	return Number.isFinite(width) && width >= 1 && width <= 4 ? width : null;
+}
+
+/*
+ * Return the border style used to draw one Sheet cell side.
+ */
+function getSheetCanvasCellBorderStyle(style: SheetCanvasCell['style'] | null | undefined, side: typeof SHEET_CANVAS_BORDER_SIDES[number]) {
+	const value = style?.[`border${side}Style` as keyof SheetCanvasCell['style']];
+
+	return value === 'dashed' || value === 'dotted' || value === 'double' ? value : 'solid';
+}
+
+/*
+ * Return the border color used to draw one Sheet cell side.
+ */
+function getSheetCanvasCellBorderColor(style: SheetCanvasCell['style'] | null | undefined, side: typeof SHEET_CANVAS_BORDER_SIDES[number], theme: SheetCanvasTheme) {
+	const value = style?.[`border${side}Color` as keyof SheetCanvasCell['style']];
+
+	return getSheetCanvasResolvedStyleColor(theme, typeof value === 'string' ? value : null) || theme.bodyText;
+}
+
+/*
+ * Apply the line dash pattern needed for one Sheet border style.
+ */
+function setSheetCanvasBorderLineDash(ctx: CanvasRenderingContext2D, style: string, width: number) {
+	if (style === 'dashed') {
+		ctx.setLineDash([Math.max(4, width * 4), Math.max(3, width * 3)]);
+		return;
+	}
+
+	if (style === 'dotted') {
+		ctx.setLineDash([1, Math.max(2, width * 2)]);
+		return;
+	}
+
+	ctx.setLineDash([]);
+}
+
+/*
+ * Return the canvas font-size declaration for one styled Sheet cell.
+ */
+function getSheetCanvasCellFontSize(style: SheetCanvasCell['style'] | null | undefined, theme: SheetCanvasTheme) {
+	const fontSize = getSheetCanvasStyleFontSize(style);
+
+	return fontSize ? `${fontSize}px` : theme.fontSize;
+}
+
+/*
+ * Return the line height that matches one styled Sheet cell font size.
+ */
+function getSheetCanvasCellLineHeightPx(style: SheetCanvasCell['style'] | null | undefined, theme: SheetCanvasTheme) {
+	const fontSize = getSheetCanvasStyleFontSize(style);
+
+	return fontSize ? fontSize * 1.4 : theme.fontLineHeightPx;
+}
+
+/*
  * Draw a sheet cell fill rectangle without painting over divider lines.
  */
 function drawSheetCanvasCellFillRect(params: {
@@ -254,6 +326,192 @@ function drawSheetCanvasCellFillRect(params: {
 
 	params.ctx.fillStyle = params.color;
 	params.ctx.fillRect(left, top, width, height);
+}
+
+/*
+ * Stroke one straight Sheet cell border line.
+ */
+function strokeSheetCanvasCellBorderLine(params: {
+	ctx: CanvasRenderingContext2D;
+	x1: number;
+	x2: number;
+	y1: number;
+	y2: number;
+}) {
+	params.ctx.beginPath();
+	params.ctx.moveTo(params.x1, params.y1);
+	params.ctx.lineTo(params.x2, params.y2);
+	params.ctx.stroke();
+}
+
+/*
+ * Return the crisp canvas coordinate used by Sheet divider lines.
+ */
+function getSheetCanvasDividerStrokeCoordinate(value: number) {
+	return Math.round(value) + 0.5;
+}
+
+/*
+ * Return the divider-aligned stroke line for one Sheet cell border side.
+ */
+function getSheetCanvasCellBorderLine(params: {
+	height: number;
+	left: number;
+	side: SheetCanvasCellBorderSide;
+	top: number;
+	width: number;
+}): SheetCanvasCellBorderLine {
+	const left = getSheetCanvasDividerStrokeCoordinate(params.left);
+	const right = getSheetCanvasDividerStrokeCoordinate(params.left + params.width);
+	const top = getSheetCanvasDividerStrokeCoordinate(params.top);
+	const bottom = getSheetCanvasDividerStrokeCoordinate(params.top + params.height);
+
+	if (params.side === 'Top') {
+		return { orientation: 'horizontal', x1: left, x2: right, y1: top, y2: top };
+	}
+
+	if (params.side === 'Right') {
+		return { orientation: 'vertical', x1: right, x2: right, y1: top, y2: bottom };
+	}
+
+	if (params.side === 'Bottom') {
+		return { orientation: 'horizontal', x1: left, x2: right, y1: bottom, y2: bottom };
+	}
+
+	return { orientation: 'vertical', x1: left, x2: left, y1: top, y2: bottom };
+}
+
+/*
+ * Return a stable key for one Sheet cell border line shared by neighboring cells.
+ */
+function getSheetCanvasCellBorderLineKey(line: SheetCanvasCellBorderLine) {
+	return [
+		line.orientation,
+		Math.round(line.x1 * 2),
+		Math.round(line.y1 * 2),
+		Math.round(line.x2 * 2),
+		Math.round(line.y2 * 2),
+	].join(':');
+}
+
+/*
+ * Draw one regular Sheet cell border side.
+ */
+function drawSheetCanvasCellSimpleBorderSide(params: {
+	ctx: CanvasRenderingContext2D;
+	height: number;
+	left: number;
+	side: SheetCanvasCellBorderSide;
+	style: string;
+	top: number;
+	width: number;
+}) {
+	const line = getSheetCanvasCellBorderLine(params);
+
+	setSheetCanvasBorderLineDash(params.ctx, params.style, params.ctx.lineWidth);
+	strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1, x2: line.x2, y1: line.y1, y2: line.y2 });
+}
+
+/*
+ * Draw one double-line Sheet cell border side.
+ */
+function drawSheetCanvasCellDoubleBorderSide(params: {
+	ctx: CanvasRenderingContext2D;
+	height: number;
+	left: number;
+	side: SheetCanvasCellBorderSide;
+	top: number;
+	width: number;
+}) {
+	const line = getSheetCanvasCellBorderLine(params);
+	const innerOffset = 2;
+
+	params.ctx.setLineDash([]);
+	params.ctx.lineWidth = 1;
+
+	if (params.side === 'Top') {
+		strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1, x2: line.x2, y1: line.y1, y2: line.y2 });
+		strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1, x2: line.x2, y1: line.y1 + innerOffset, y2: line.y2 + innerOffset });
+	} else if (params.side === 'Right') {
+		strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1, x2: line.x2, y1: line.y1, y2: line.y2 });
+		strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1 - innerOffset, x2: line.x2 - innerOffset, y1: line.y1, y2: line.y2 });
+	} else if (params.side === 'Bottom') {
+		strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1, x2: line.x2, y1: line.y1, y2: line.y2 });
+		strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1, x2: line.x2, y1: line.y1 - innerOffset, y2: line.y2 - innerOffset });
+	} else {
+		strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1, x2: line.x2, y1: line.y1, y2: line.y2 });
+		strokeSheetCanvasCellBorderLine({ ctx: params.ctx, x1: line.x1 + innerOffset, x2: line.x2 + innerOffset, y1: line.y1, y2: line.y2 });
+	}
+}
+
+/*
+ * Draw all configured border sides for one Sheet canvas cell.
+ */
+function drawSheetCanvasCellBorders(params: {
+	cell?: SheetCanvasCell | null;
+	ctx: CanvasRenderingContext2D;
+	height: number;
+	renderedBorderLineKeys: Set<string>;
+	theme: SheetCanvasTheme;
+	width: number;
+	x: number;
+	y: number;
+}) {
+	const style = params.cell?.style;
+	if (!style) {
+		return;
+	}
+
+	params.ctx.save();
+	SHEET_CANVAS_BORDER_SIDES.forEach((side) => {
+		const borderWidth = getSheetCanvasCellBorderWidth(style, side);
+		if (!borderWidth) {
+			return;
+		}
+
+		const borderLine = getSheetCanvasCellBorderLine({
+			height: params.height,
+			left: params.x,
+			side,
+			top: params.y,
+			width: params.width,
+		});
+		const borderLineKey = getSheetCanvasCellBorderLineKey(borderLine);
+
+		if (params.renderedBorderLineKeys.has(borderLineKey)) {
+			return;
+		}
+
+		params.renderedBorderLineKeys.add(borderLineKey);
+
+		const borderStyle = getSheetCanvasCellBorderStyle(style, side);
+		params.ctx.strokeStyle = getSheetCanvasCellBorderColor(style, side, params.theme);
+		params.ctx.lineCap = borderStyle === 'dotted' ? 'round' : 'butt';
+		params.ctx.lineWidth = borderWidth;
+
+		if (borderStyle === 'double') {
+			drawSheetCanvasCellDoubleBorderSide({
+				ctx: params.ctx,
+				height: params.height,
+				left: params.x,
+				side,
+				top: params.y,
+				width: params.width,
+			});
+			return;
+		}
+
+		drawSheetCanvasCellSimpleBorderSide({
+			ctx: params.ctx,
+			height: params.height,
+			left: params.x,
+			side,
+			style: borderStyle,
+			top: params.y,
+			width: params.width,
+		});
+	});
+	params.ctx.restore();
 }
 
 /*
@@ -362,8 +620,10 @@ function drawSheetCanvasText(params: {
 	fontFamily?: string;
 	fontSize?: string;
 	height: number;
+	lineHeight?: number;
 	text: string;
 	theme: SheetCanvasTheme;
+	underline?: boolean;
 	width: number;
 	wrap?: boolean;
 	x: number;
@@ -391,9 +651,10 @@ function drawSheetCanvasText(params: {
 			color: params.color,
 			ctx: params.ctx,
 			height: params.height,
-			lineHeight: params.theme.fontLineHeightPx,
+			lineHeight: params.lineHeight || params.theme.fontLineHeightPx,
 			maxWidth: Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2),
 			text: params.text,
+			underline: params.underline,
 			x: textX,
 			y: params.y,
 		});
@@ -403,6 +664,19 @@ function drawSheetCanvasText(params: {
 			textX,
 			params.y + params.height / 2,
 		);
+
+		if (params.underline) {
+			const textWidth = Math.min(params.ctx.measureText(params.text).width, Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2));
+			const underlineLeft = params.align === 'center' ? textX - textWidth / 2 : textX;
+			const underlineY = Math.round(params.y + params.height / 2 + (params.lineHeight || params.theme.fontLineHeightPx) / 2 - 2) + 0.5;
+
+			params.ctx.beginPath();
+			params.ctx.strokeStyle = params.color;
+			params.ctx.lineWidth = 1;
+			params.ctx.moveTo(underlineLeft, underlineY);
+			params.ctx.lineTo(underlineLeft + textWidth, underlineY);
+			params.ctx.stroke();
+		}
 	}
 	params.ctx.restore();
 }
@@ -533,7 +807,10 @@ function getSheetCanvasDataTableIconPaths(name: string) {
 function drawSheetCanvasDataTableText(params: {
 	color: string;
 	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
 	height: number;
+	lineHeight?: number;
 	maxWidth: number;
 	text: string;
 	theme: SheetCanvasTheme;
@@ -550,7 +827,7 @@ function drawSheetCanvasDataTableText(params: {
 	params.ctx.rect(params.x, params.y, params.maxWidth, params.height);
 	params.ctx.clip();
 	params.ctx.fillStyle = params.color;
-	params.ctx.font = `${params.theme.fontSize} ${params.theme.fontFamily}`;
+	params.ctx.font = `${params.fontSize || params.theme.fontSize} ${params.fontFamily || params.theme.fontFamily}`;
 	params.ctx.textAlign = 'left';
 	params.ctx.textBaseline = 'middle';
 
@@ -558,7 +835,7 @@ function drawSheetCanvasDataTableText(params: {
 		color: params.color,
 		ctx: params.ctx,
 		height: params.height,
-		lineHeight: params.theme.fontLineHeightPx,
+		lineHeight: params.lineHeight || params.theme.fontLineHeightPx,
 		maxWidth: params.maxWidth,
 		text: params.text,
 		underline: params.underline,
@@ -585,8 +862,12 @@ function drawSheetCanvasDataTableDisplay(params: {
 	cell: SheetCanvasCell;
 	color: string;
 	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
 	height: number;
+	lineHeight?: number;
 	theme: SheetCanvasTheme;
+	underline?: boolean;
 	width: number;
 	x: number;
 	y: number;
@@ -605,10 +886,11 @@ function drawSheetCanvasDataTableDisplay(params: {
 
 	if (model.kind === 'selectPill') {
 		params.ctx.save();
-		params.ctx.font = `${params.theme.fontSize} ${params.theme.fontFamily}`;
+		params.ctx.font = `${params.fontSize || params.theme.fontSize} ${params.fontFamily || params.theme.fontFamily}`;
 
 		const metrics = params.ctx.measureText(model.text);
-		const pillHeight = Math.min(clipHeight, Math.max(0, params.theme.fontLineHeightPx + model.pillPaddingY * 2));
+		const lineHeight = params.lineHeight || params.theme.fontLineHeightPx;
+		const pillHeight = Math.min(clipHeight, Math.max(0, lineHeight + model.pillPaddingY * 2));
 		const pillWidth = Math.min(Math.max(0, contentRight - contentX), Math.ceil(metrics.width) + model.pillPaddingX * 2);
 		const pillY = params.y + (params.height - pillHeight) / 2;
 
@@ -626,6 +908,17 @@ function drawSheetCanvasDataTableDisplay(params: {
 		params.ctx.textAlign = 'left';
 		params.ctx.textBaseline = 'middle';
 		params.ctx.fillText(model.text, contentX + model.pillPaddingX, pillY + pillHeight / 2);
+		if (params.underline) {
+			const textWidth = Math.min(metrics.width, Math.max(0, pillWidth - model.pillPaddingX * 2));
+			const underlineY = Math.round(pillY + pillHeight / 2 + lineHeight / 2 - 2) + 0.5;
+
+			params.ctx.beginPath();
+			params.ctx.strokeStyle = params.color;
+			params.ctx.lineWidth = 1;
+			params.ctx.moveTo(contentX + model.pillPaddingX, underlineY);
+			params.ctx.lineTo(contentX + model.pillPaddingX + textWidth, underlineY);
+			params.ctx.stroke();
+		}
 		params.ctx.restore();
 		return;
 	}
@@ -654,11 +947,14 @@ function drawSheetCanvasDataTableDisplay(params: {
 	drawSheetCanvasDataTableText({
 		color: params.color,
 		ctx: params.ctx,
+		fontFamily: params.fontFamily,
+		fontSize: params.fontSize,
 		height: clipHeight,
+		lineHeight: params.lineHeight,
 		maxWidth: Math.max(0, contentRight - textX),
 		text: model.text,
 		theme: params.theme,
-		underline: model.canOpen,
+		underline: params.underline || model.canOpen,
 		x: textX,
 		y: clipY,
 	});
@@ -997,11 +1293,14 @@ function drawSheetCanvasCell(params: {
 	y: number;
 }) {
 	const backgroundColor = params.cell?.style
-		? getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(params.cell.style, ['backgroundColor', 'fillColor']))
+		? getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(params.cell.style, 'fillColor'))
 		: null;
 	const textColor = params.cell?.style
-		? getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(params.cell.style, ['color', 'textColor']))
+		? getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(params.cell.style, 'textColor'))
 		: null;
+	const fontSize = getSheetCanvasCellFontSize(params.cell?.style, params.theme);
+	const lineHeight = getSheetCanvasCellLineHeightPx(params.cell?.style, params.theme);
+	const fontFamily = params.theme.fontFamily;
 
 	if (backgroundColor) {
 		drawSheetCanvasCellFillRect({
@@ -1037,7 +1336,10 @@ function drawSheetCanvasCell(params: {
 			cell: params.cell,
 			color: textColor || params.theme.bodyText,
 			ctx: params.ctx,
+			fontFamily,
+			fontSize,
 			height: params.height,
+			lineHeight,
 			theme: params.theme,
 			width: params.width,
 			x: params.x,
@@ -1052,7 +1354,10 @@ function drawSheetCanvasCell(params: {
 	drawSheetCanvasText({
 		color: textColor || params.theme.bodyText,
 		ctx: params.ctx,
+		fontFamily,
+		fontSize,
 		height: params.height,
+		lineHeight,
 		text: params.cell?.displayValue || '',
 		theme: params.theme,
 		width: params.width,
@@ -1147,6 +1452,41 @@ function drawSheetCanvasBodyCells(params: {
 	});
 
 	return activeCellRect;
+}
+
+/*
+ * Draw configured Sheet cell borders above the default grid lines.
+ */
+function drawSheetCanvasBodyCellBorders(params: {
+	cellLookup: Map<string, SheetCanvasCell>;
+	columnRects: SheetCanvasColumnRect[];
+	ctx: CanvasRenderingContext2D;
+	rowRects: SheetCanvasRowRect[];
+	theme: SheetCanvasTheme;
+}) {
+	const renderedBorderLineKeys = new Set<string>();
+
+	params.rowRects.forEach((rowRect) => {
+		params.columnRects.forEach((columnRect) => {
+			const renderKey = getSheetCellKey(rowRect.metric.rowKey, columnRect.cellKey);
+			const cell = params.cellLookup.get(renderKey);
+
+			if (!cell?.style) {
+				return;
+			}
+
+			drawSheetCanvasCellBorders({
+				cell,
+				ctx: params.ctx,
+				height: rowRect.height,
+				renderedBorderLineKeys,
+				theme: params.theme,
+				width: columnRect.width,
+				x: columnRect.left,
+				y: rowRect.top,
+			});
+		});
+	});
 }
 
 /*
@@ -1986,6 +2326,13 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		theme,
 		viewportHeight,
 		viewportWidth,
+	});
+	drawSheetCanvasBodyCellBorders({
+		cellLookup: p.cellLookup,
+		columnRects: visibleColumnRects,
+		ctx,
+		rowRects: visibleRowRects,
+		theme,
 	});
 
 	if (activeCellRect) {

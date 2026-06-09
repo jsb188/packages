@@ -35,7 +35,6 @@ import {
 	getDataTableCellClassNameFromModel,
 	getDataTableCellDisplayClassNameFromModel,
 	getDataTableCellDisplayModel,
-	getDataTableDesignCellHeaderLabel,
 	getDataTableOpenLinkIconName,
 	getDataTableRuntimeCellKey,
 	getDataTableRuntimeColumnKey,
@@ -52,6 +51,7 @@ import {
 	useState,
 	type MutableRefObject,
 	type PointerEvent as ReactPointerEvent,
+	type ReactNode,
 } from 'react';
 
 /**
@@ -78,6 +78,7 @@ export type VerticalDataTableDesignerHandle = {
 
 export type VerticalDataTableDesignerProps = {
 	dataTable: DataTableGQL;
+	children?: ReactNode;
 	rows?: DataTableRowGQL[] | null;
 	value?: VerticalDataTableDesignerValue;
 	defaultValue?: Partial<VerticalDataTableDesignerValue>;
@@ -135,6 +136,7 @@ const VERTICAL_DATA_TABLE_DESIGNER_BUFFER_COLUMNS = 3;
 const VERTICAL_DATA_TABLE_DESIGNER_BUFFER_ROWS = 8;
 const VERTICAL_DATA_TABLE_DESIGNER_ROW_RIGHT_PADDING = 64;
 const VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH = 0;
+const VERTICAL_DATA_TABLE_DESIGNER_CONTENT_HEADER_HEIGHT = 80;
 const VERTICAL_DATA_TABLE_DESIGNER_STICKY_COLUMN_COUNT = 0;
 const VERTICAL_DATA_TABLE_DESIGNER_COLUMN_GAP_WIDTH = 0;
 const VERTICAL_DATA_TABLE_DESIGNER_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
@@ -219,6 +221,13 @@ function getVerticalDataTableDesignerRuntimeColumns(design: DataTableDesignGQL) 
 }
 
 /*
+ * Return the source column name shown in VerticalDataTableDesigner headers.
+ */
+function getVerticalDataTableDesignerColumnHeaderName(column: VerticalDataTableDesignerRuntimeColumn) {
+	return String((column as VerticalDataTableDesignerRuntimeColumn & { name?: string | null }).name || '').trim() || column.key;
+}
+
+/*
  * Return default VerticalDataTableDesigner column output for one runtime column.
  */
 function getVerticalDataTableDesignerDefaultValueColumn(column: VerticalDataTableDesignerRuntimeColumn): VerticalDataTableDesignerValueColumn {
@@ -227,7 +236,7 @@ function getVerticalDataTableDesignerDefaultValueColumn(column: VerticalDataTabl
 		designKey: column.key,
 		sourceCellKey: column.sourceCellKey || getDataTableRuntimeCellKey(column),
 		checked: true,
-		headerValue: getDataTableDesignCellHeaderLabel(column),
+		headerValue: getVerticalDataTableDesignerColumnHeaderName(column),
 		width: getVerticalDataTableDesignerValueColumnWidth(column.width),
 	};
 }
@@ -860,6 +869,7 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 	const {
 		bufferColumns = VERTICAL_DATA_TABLE_DESIGNER_BUFFER_COLUMNS,
 		bufferRows = VERTICAL_DATA_TABLE_DESIGNER_BUFFER_ROWS,
+		children,
 		className,
 		dataTable,
 		defaultValue,
@@ -1459,6 +1469,7 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			columns={visibleColumns}
 			editState={undefined}
 			headerCellsEditable={false}
+			headerContent={children}
 			headerCursorClassName='cs_grab'
 			headerTooltipClosesWhilePointerDown
 			headerEditState={null}
@@ -1474,7 +1485,7 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			scrollLeft={scrollState.scrollLeft}
 			scrollRef={scrollElement.ref}
 			scrollStyle={{
-				height: '100%',
+				height: children ? `calc(100% - ${VERTICAL_DATA_TABLE_DESIGNER_CONTENT_HEADER_HEIGHT}px)` : '100%',
 			}}
 			selectedCellKeyMap={null}
 			selectedCellState={selectedCellState}

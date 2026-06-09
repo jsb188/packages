@@ -5,7 +5,7 @@ export const dataTablesQry = gql`
 query dataTables (
   $organizationId: GenericID!
   $filter: DataTablesFilter
-  $sort: WorkspaceItemSort
+  $sort: GridItemSort
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!

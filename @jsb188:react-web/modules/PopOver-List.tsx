@@ -4,11 +4,12 @@ import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { useOnClickOutside } from '@jsb188/react-web/utils/dom';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
-import type { POCheckListIface, POCheckListIfaceItem, POCheckListItemObj, PODatePickerObj, PODateRangeObj, POLabelsAndValuesIface, POListColorsObj, POListIface, POListIfaceItem, POListItemObj, POListItemPickerObj, POListSubmenuItemObj, POModalItemObj, PopOverHandlerProps, POStateValue } from '@jsb188/react/types/PopOver.d';
+import type { POCheckListIface, POCheckListIfaceItem, POCheckListItemObj, PODatePickerObj, PODateRangeObj, POLabelsAndValuesIface, POListBorderStylesObj, POListBorderStyleValue, POListColorsObj, POListIface, POListIfaceItem, POListItemObj, POListItemPickerObj, POListSubmenuItemObj, POModalItemObj, PopOverHandlerProps, POStateValue } from '@jsb188/react/types/PopOver.d';
 import { type CSSProperties, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityDots } from '../ui/Loading';
 import type { PONavItemBase } from '../ui/PopOverUI';
 import { POLabelsAndValues, POListBreak, POListItem, POListItemCopy, POListItemPicker, POListSubtitle, PONavAvatarItem, PopOverListContainer, PopOverListFooterButton, POText } from '../ui/PopOverUI';
+import { Icon } from '../svgs/Icon';
 import type { CalendarSelectedObj, OnChangeCalendarDayFn } from './Calendar';
 import { Calendar, CalendarDateRange, getCalendarSelector } from './Calendar';
 
@@ -19,7 +20,55 @@ type POListSubmenuState = {
   top: number;
 };
 
-export const DEFAULT_PO_LIST_COLORS = ['red', 'orange', 'amber', 'yellow', 'emerald', 'teal', 'sky', 'blue', 'purple', 'pink'] as const satisfies readonly ColorEnum[];
+export const DEFAULT_PO_LIST_COLORS = [
+  '#131313', // This is exact hex of var(--color-text);
+  '#FFFFFF', // This is exact hex of var(--color-bg);
+  'red',
+  // 'orange',
+  'amber',
+  'yellow',
+  'emerald',
+  'teal',
+  'sky',
+  'blue',
+  'purple',
+  // 'pink'
+] as const satisfies readonly ColorEnum[];
+
+const DEFAULT_PO_LIST_BORDER_STYLES = [{
+  iconName: 'cell-border-full',
+  value: 'outlineAllCells',
+}, {
+  iconName: 'cell-border-horizontal-vertical',
+  value: 'outlineInnerCells',
+}, {
+  iconName: 'cell-border-middle',
+  value: 'outlineInnerVertical',
+}, {
+  iconName: 'cell-border-center',
+  value: 'outlineInnerHorizontal',
+}, {
+  iconName: 'cell-border-frame',
+  value: 'outlineAllSides',
+}, {
+  iconName: 'cell-border-left',
+  value: 'outlineLeft',
+}, {
+  iconName: 'cell-border-up',
+  value: 'outlineTop',
+}, {
+  iconName: 'cell-border-right',
+  value: 'outlineRight',
+}, {
+  iconName: 'cell-border-bottom',
+  value: 'outlineBottom',
+}, {
+  iconName: 'cell-border-none',
+  value: 'outlineNone',
+}] as const satisfies readonly {
+  iconName: string;
+  value: POListBorderStyleValue;
+}[];
 
 /*
  * Return whether a popover color value is one of the app color enum values.
@@ -27,6 +76,36 @@ export const DEFAULT_PO_LIST_COLORS = ['red', 'orange', 'amber', 'yellow', 'emer
 
 function isPOListColorEnum(color: string): color is ColorEnum {
   return COLORS.includes(color as ColorEnum);
+}
+
+/*
+ * Return the accessible label for one border-style preset button.
+ */
+function getPOListBorderStyleLabel(value: POListBorderStyleValue) {
+  switch (value) {
+    case 'outlineAllCells':
+      return i18n.t('sheet.border_outline_all_cells');
+    case 'outlineInnerCells':
+      return i18n.t('sheet.border_outline_inner_cells');
+    case 'outlineInnerVertical':
+      return i18n.t('sheet.border_outline_inner_vertical');
+    case 'outlineInnerHorizontal':
+      return i18n.t('sheet.border_outline_inner_horizontal');
+    case 'outlineAllSides':
+      return i18n.t('sheet.border_outline_all_sides');
+    case 'outlineLeft':
+      return i18n.t('sheet.border_outline_left');
+    case 'outlineTop':
+      return i18n.t('sheet.border_outline_top');
+    case 'outlineRight':
+      return i18n.t('sheet.border_outline_right');
+    case 'outlineBottom':
+      return i18n.t('sheet.border_outline_bottom');
+    case 'outlineNone':
+      return i18n.t('sheet.border_outline_none');
+    default:
+      return '';
+  }
 }
 
 /**
@@ -269,7 +348,7 @@ const POListColors = memo((p: PONavItemBase & {
       </div>
       : null}
     <div
-      className='grid gap_4'
+      className='grid gap_3'
       style={{ gridTemplateColumns: 'repeat(10, 18px)' }}
     >
       {displayColors.map((color, i) => {
@@ -297,6 +376,68 @@ const POListColors = memo((p: PONavItemBase & {
 });
 
 POListColors.displayName = 'POListColors';
+
+/*
+ * Render one PO_LIST border-style grid item.
+ */
+const POListBorderStyles = memo((p: PONavItemBase & {
+  name: string;
+  value?: POListBorderStyleValue | null;
+  item: POListBorderStylesObj;
+}) => {
+  const { item, name, onClickItem, value } = p;
+  const { className, disabled, label, onClickCustomize, selectedValue } = item;
+  const selectedBorderStyle = value ?? selectedValue;
+  const showHeader = Boolean(label || onClickCustomize);
+
+  return <div
+    className={cn('p_8', className)}
+  >
+    {showHeader
+      ? <div className='h_spread gap_10 mb_6 ft_xs lh_1'>
+        <span className='ft_medium'>
+          {label}
+        </span>
+        {onClickCustomize
+          ? <button
+            className='btn cl_lt link lh_1 u ft_xs'
+            disabled={disabled}
+            onClick={() => {
+              onClickCustomize(name, selectedBorderStyle);
+              onClickItem(name, selectedBorderStyle, false, true);
+            }}
+            type='button'
+          >
+            {i18n.t('form.customize')}
+          </button>
+          : null}
+      </div>
+      : null}
+    <div
+      className='grid gapy_n gapx_12'
+      style={{ gridTemplateColumns: 'repeat(5, 32px)' }}
+    >
+      {DEFAULT_PO_LIST_BORDER_STYLES.map((option) => {
+        const labelText = getPOListBorderStyleLabel(option.value);
+
+        return <button
+          key={`${name}_${option.value}`}
+          aria-label={labelText}
+          className={cn('w_32 h_32 r_4 h_center bg bg_alt_hv cl_df', disabled && 'op_40')}
+          disabled={disabled}
+          name={name}
+          onClick={() => onClickItem(name, option.value)}
+          title={labelText}
+          type='button'
+        >
+          <Icon name={option.iconName} />
+        </button>;
+      })}
+    </div>
+  </div>;
+});
+
+POListBorderStyles.displayName = 'POListBorderStyles';
 
 /*
  * Return the stable form name for one PO_LIST option item.
@@ -476,6 +617,8 @@ export function PONavItemIface(p: PONavItemBase & {
       return <POListItemPickerWithData {...other} item={item} />;
     case 'LIST_COLORS':
       return <POListColors {...other} item={item} />;
+    case 'LIST_BORDER_STYLES':
+      return <POListBorderStyles {...other} item={item} />;
     case 'LIST_SUBMENU_ITEM':
       return <POListSubmenuItem
         {...other}

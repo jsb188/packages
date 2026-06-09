@@ -1,6 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { SHEET_DATA_TABLE_REGION_MAX_ROWS } from '@jsb188/mday/constants/sheet.ts';
+import { normalizeSheetCellStyle } from '@jsb188/mday/utils/sheet.ts';
 import type {
   DataTableCellGQL,
   DataTableGQL,
@@ -65,6 +66,12 @@ import {
 	SHEET_TEXT_EDITOR_SELECTOR,
 } from '../libs/sheet-overlay-targets.ts';
 import {
+	applySheetBorderColorToEnabledSides,
+	applySheetBorderPresetStyleToCell,
+	getSheetBorderStyleCellCoords,
+	isSheetBorderStylePresetValue,
+} from '../libs/sheet-border-styles.ts';
+import {
 	getOptimisticSheetCellFromEditInput,
 	getSheetCellSnapshotEditInput,
 	getSheetClearEditInput,
@@ -120,6 +127,7 @@ import {
   parseSheetJSONObject,
   SHEET_CANVAS_FETCH_BUFFER_ROWS,
   SHEET_CANVAS_INITIAL_ROW_COUNT,
+  sheetCanvasStyleHasContent,
   type SheetCanvasCell,
   type SheetCanvasColumn,
 } from '../libs/sheet-utils.ts';
@@ -168,9 +176,6 @@ const SHEET_CANVAS_APP_SCROLLBAR_SIZE = 19;
 const SHEET_DEV_PARAM = 'dev';
 
 export type SheetInsertViewTableRequest = {
-	boundedRows: boolean;
-	maxColumns: number;
-	maxRows: number;
 	startColumnIndex: number;
 	startRowIndex: number;
 };
@@ -603,6 +608,10 @@ function getSheetDataTableLocalEditorPosition(params: {
  * Return the display label for one Sheet color picker format.
  */
 function getSheetColorPickerFormatLabel(formatName: SheetContextMenuFormatName) {
+	if (formatName === 'borderStyle') {
+		return i18n.t('sheet.border_styles');
+	}
+
 	return i18n.t(formatName === 'textColor' ? 'sheet.text_color' : 'sheet.fill_color');
 }
 
@@ -727,8 +736,7 @@ function getSheetCanvasUsedRange(params: {
 	});
 
 	params.ranges.forEach((range) => {
-		const style = parseSheetJSONObject(range.style, {});
-		const hasStyle = Boolean(getSheetCanvasStyleColor(style, ['backgroundColor', 'fillColor', 'color', 'textColor']));
+		const hasStyle = sheetCanvasStyleHasContent(range.style);
 
 		if (!hasStyle) {
 			return;
@@ -740,7 +748,7 @@ function getSheetCanvasUsedRange(params: {
 
 	const lastColumnIndex = (params.columns.at(-1)?.column as SheetCanvasColumn | undefined)?.sheetColumnIndex || 0;
 
-	if (getSheetCanvasStyleColor(params.design.defaultCellStyle || {}, ['backgroundColor', 'fillColor', 'color', 'textColor'])) {
+	if (sheetCanvasStyleHasContent(params.design.defaultCellStyle || {})) {
 		maxRowIndex = Math.max(maxRowIndex, params.loadedRowCount);
 		maxColumnIndex = Math.max(maxColumnIndex, lastColumnIndex);
 	}
@@ -749,7 +757,7 @@ function getSheetCanvasUsedRange(params: {
 		const canvasColumn = metric.column as SheetCanvasColumn;
 		const columnStyle = parseSheetJSONObject(params.design.columns?.[String(canvasColumn.sheetColumnIndex)]?.style, {});
 
-		if (getSheetCanvasStyleColor(columnStyle, ['backgroundColor', 'fillColor', 'color', 'textColor'])) {
+		if (sheetCanvasStyleHasContent(columnStyle)) {
 			maxRowIndex = Math.max(maxRowIndex, params.loadedRowCount);
 			maxColumnIndex = Math.max(maxColumnIndex, canvasColumn.sheetColumnIndex);
 		}
@@ -759,7 +767,7 @@ function getSheetCanvasUsedRange(params: {
 		const rowIndex = Math.max(0, Math.floor(Number(rowKey)));
 		const rowStyle = parseSheetJSONObject(rowDesign?.style, {});
 
-		if (rowIndex > 0 && rowIndex <= params.loadedRowCount && getSheetCanvasStyleColor(rowStyle, ['backgroundColor', 'fillColor', 'color', 'textColor'])) {
+		if (rowIndex > 0 && rowIndex <= params.loadedRowCount && sheetCanvasStyleHasContent(rowStyle)) {
 			maxRowIndex = Math.max(maxRowIndex, rowIndex);
 			maxColumnIndex = Math.max(maxColumnIndex, lastColumnIndex);
 		}
@@ -1078,20 +1086,18 @@ function getSheetCanvasContextMenuTarget(params: {
 		cellKey: params.cell.cellKey,
 		dataTableRegionId: dataTableRegion?.id ? String(dataTableRegion.id) : null,
 		displayValue: targetCell?.displayValue || '',
-		fillColor: targetCell?.style ? getSheetCanvasStyleColor(targetCell.style, ['backgroundColor', 'fillColor']) : null,
+		fillColor: targetCell?.style ? getSheetCanvasStyleColor(targetCell.style, 'fillColor') : null,
 		rowId: params.cell.rowId,
-		textColor: targetCell?.style ? getSheetCanvasStyleColor(targetCell.style, ['color', 'textColor']) : null,
+		textColor: targetCell?.style ? getSheetCanvasStyleColor(targetCell.style, 'textColor') : null,
 	} satisfies SheetContextMenuTarget;
 }
 
 /*
  * Return the data table populate request represented by a Sheet context-menu target.
  */
-function getSheetInsertViewTableRequest(target: SheetContextMenuTarget, design: SheetDesignObj): SheetInsertViewTableRequest | null {
+function getSheetInsertViewTableRequest(target: SheetContextMenuTarget): SheetInsertViewTableRequest | null {
 	let startRowIndex = Number.POSITIVE_INFINITY;
 	let startColumnIndex = Number.POSITIVE_INFINITY;
-	let endRowIndex = 0;
-	let endColumnIndex = 0;
 
 	target.cells.forEach((cell) => {
 		const rowIndex = getSheetCanvasRowIndexFromId(cell.rowId);
@@ -1103,30 +1109,13 @@ function getSheetInsertViewTableRequest(target: SheetContextMenuTarget, design: 
 
 		startRowIndex = Math.min(startRowIndex, rowIndex);
 		startColumnIndex = Math.min(startColumnIndex, columnIndex);
-		endRowIndex = Math.max(endRowIndex, rowIndex);
-		endColumnIndex = Math.max(endColumnIndex, columnIndex);
 	});
 
 	if (!Number.isFinite(startRowIndex) || !Number.isFinite(startColumnIndex)) {
 		return null;
 	}
 
-	const boundedRows = target.cells.length > 1;
-	const maxRows = boundedRows
-		? Math.min(SHEET_DATA_TABLE_REGION_MAX_ROWS, endRowIndex - startRowIndex + 1)
-		: Math.min(SHEET_DATA_TABLE_REGION_MAX_ROWS, Math.max(1, design.grid.rowCount - startRowIndex + 1));
-	const maxColumns = boundedRows
-		? endColumnIndex - startColumnIndex + 1
-		: Math.max(1, design.grid.columnCount - startColumnIndex + 1);
-
-	if (maxRows < 1 || maxColumns < 1) {
-		return null;
-	}
-
 	return {
-		boundedRows,
-		maxColumns,
-		maxRows,
 		startColumnIndex,
 		startRowIndex,
 	};
@@ -2550,31 +2539,53 @@ export function SheetController(p: SheetControllerProps) {
 	const handleSheetContextMenuFormatCells = useCallback(async (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => {
 		const runtime = runtimeRef.current;
 		const sheetCellChanges: SheetCellHistoryChange[] = [];
+		const formatName = format.name;
+		const borderPreset = formatName === 'borderStyle' && isSheetBorderStylePresetValue(format.value)
+			? format.value
+			: null;
+		const borderColor = formatName === 'borderStyle' && typeof format.borderColor === 'string'
+			? format.borderColor
+			: null;
 
-		if (!runtime) {
+		if (!runtime || !formatName) {
 			return;
 		}
 
-		target.cells.forEach((cellTarget) => {
-			const rowIndex = getSheetCanvasRowIndexFromId(cellTarget.rowId);
-			const columnIndex = getSheetCanvasColumnIndexFromKey(cellTarget.cellKey);
+		if (formatName === 'borderStyle' && !borderPreset && borderColor === null) {
+			return;
+		}
 
-			if (!rowIndex || !columnIndex) {
-				return;
+		const cellCoords = getSheetBorderStyleCellCoords(target.cells);
+		const selectedCellCoordKeys = new Set(cellCoords.map((cellCoord) => cellCoord.coordKey));
+
+		cellCoords.forEach((cellCoord) => {
+			const { columnIndex, coordKey, rowIndex } = cellCoord;
+			const currentCell = runtime.effectiveCellsByCoord.get(coordKey);
+			const currentStyle = parseSheetJSONObject(currentCell?.style, {}) as Record<string, unknown>;
+			const nextStyle = { ...currentStyle };
+
+			if (formatName === 'borderStyle') {
+				if (borderPreset) {
+					applySheetBorderPresetStyleToCell({
+						cell: cellCoord,
+						preset: borderPreset,
+						selectedCellCoordKeys,
+						style: nextStyle,
+					});
+				} else if (borderColor !== null) {
+					applySheetBorderColorToEnabledSides(nextStyle, borderColor);
+				}
+			} else if (format.value === null || format.value === undefined) {
+				delete nextStyle[formatName];
+			} else {
+				nextStyle[formatName] = format.value;
 			}
 
-			const coordKey = getSheetCanvasCoordKey(rowIndex, columnIndex);
-			const currentCell = runtime.effectiveCellsByCoord.get(coordKey);
-			const currentStyle = parseSheetJSONObject(currentCell?.style, {});
-			const nextStyle = {
-				...currentStyle,
-				[format.name]: format.value,
-			};
 			const after = {
 				cell: {
 					columnIndex,
 					rowIndex,
-					style: JSON.stringify(nextStyle),
+					style: normalizeSheetCellStyle(nextStyle),
 				},
 			};
 			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, currentCell);
@@ -2599,12 +2610,12 @@ export function SheetController(p: SheetControllerProps) {
 	}, [applySheetCellInputs, pushSheetUndoEntry]);
 
 	const handleSheetContextMenuPopulateDataTable = useCallback((target: SheetContextMenuTarget) => {
-		const request = getSheetInsertViewTableRequest(target, p.design);
+		const request = getSheetInsertViewTableRequest(target);
 
 		if (request) {
 			p.onPopulateFromDataTable?.(request);
 		}
-	}, [p.design, p.onPopulateFromDataTable]);
+	}, [p.onPopulateFromDataTable]);
 
 	const handleSheetContextMenuRemoveDataTableRegion = useCallback(async (target: SheetContextMenuTarget) => {
 		if (!target.dataTableRegionId) {
@@ -2643,8 +2654,9 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		void handleSheetContextMenuFormatCells(colorPickerState.target, {
+			borderColor: colorPickerState.formatName === 'borderStyle' ? value : undefined,
 			name: colorPickerState.formatName,
-			value,
+			value: colorPickerState.formatName === 'borderStyle' ? undefined : value,
 		});
 	}, [colorPickerState, handleSheetContextMenuFormatCells]);
 
@@ -2652,8 +2664,13 @@ export function SheetController(p: SheetControllerProps) {
 	 * Close the active in-sheet color picker.
 	 */
 	const closeSheetColorPicker = useCallback(() => {
+		if (!colorPickerState) {
+			return false;
+		}
+
 		setColorPickerState(null);
-	}, []);
+		return true;
+	}, [colorPickerState]);
 
 	const {
 		closeSheetContextMenu,
@@ -2668,6 +2685,13 @@ export function SheetController(p: SheetControllerProps) {
 		onRemoveCellsFromDataTable: handleSheetContextMenuRemoveDataTableRegion,
 		readClipboardText: readSheetClipboardText,
 	});
+
+	/*
+	 * Close the topmost dismissible Sheet overlay from keyboard shortcuts.
+	 */
+	const dismissSheetKeyboardOverlay = useCallback(() => {
+		return closeSheetColorPicker() || closeSheetContextMenu();
+	}, [closeSheetColorPicker, closeSheetContextMenu]);
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
@@ -2686,7 +2710,7 @@ export function SheetController(p: SheetControllerProps) {
 				onDismissActiveEditor: () => {
 					setEditState(null);
 				},
-				onDismissContextMenu: closeSheetContextMenu,
+				onDismissContextMenu: dismissSheetKeyboardOverlay,
 				onDismissEditor: () => {
 					setEditState(null);
 				},
@@ -2719,7 +2743,7 @@ export function SheetController(p: SheetControllerProps) {
 		};
 	}, [
 		clearSelectedSheetCells,
-		closeSheetContextMenu,
+		dismissSheetKeyboardOverlay,
 		commitEditorElement,
 		copySelectedSheetCells,
 		editState,
@@ -3567,7 +3591,11 @@ export function SheetController(p: SheetControllerProps) {
 				position={colorPickerEditorPosition}
 				scrollLeft={scrollState.scrollLeft}
 				scrollTop={scrollState.scrollTop}
-				value={colorPickerState.formatName === 'textColor' ? colorPickerState.target.textColor : colorPickerState.target.fillColor}
+				value={colorPickerState.formatName === 'textColor'
+					? colorPickerState.target.textColor
+					: colorPickerState.formatName === 'fillColor'
+						? colorPickerState.target.fillColor
+						: null}
 			/>
 			: null}
 	</>;

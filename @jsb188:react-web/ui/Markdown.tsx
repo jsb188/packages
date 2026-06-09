@@ -12,31 +12,41 @@ import type { ReactSpanElement } from '../types/dom.d';
  * Regex pattern for all presets
  */
 
-const PRESET_REGEX = {
-  // message: /\*([^*]+)\*|_(.*?)_/g
-  // article: /^#+([^#]+) |\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gmi,
-  // article: /^#.*|\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gmi,
-  // content_description: /\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:|\[+([^[\]]+)\]+/gi, // More regex needs to be added for this
-  // message: /\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gi, // I'm not sure what the difference is between "message" and "chat"
-  // chat: /\*+([^*]+)\*+|_+([^_]+)_+|:([^: ])+:/gi,
+const INLINE_STYLE_MARKDOWN_REGEX_SOURCE = [
+  '\\*{1,2}_{1,3}[^*_\\n]+_{1,3}\\*{1,2}',
+  '\\b_{1,3}\\*{1,2}[^*_\\n]+\\*{1,2}_{1,3}\\b',
+  '\\*{1,2}[^*\\n]+\\*{1,2}',
+  '\\b_{1,3}[^_\\n]+_{1,3}\\b',
+].join('|');
 
-  // article: /^#.*|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gmi,
-  article: /^#.*|\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:|\[(.*?)##(.*?)\]/gmi,
-  label: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|\[(.*?)##(.*?)\]/gmi,
-  content_description: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|\[+([^[\]\n]+)\]+/gi, // More regex needs to be added for this
-  message: /\[hl\]([\s\S]*?)\[\/hl\]|\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|^[-•] .+$|:([^:\n ])+:/gmi,
+const PRESET_REGEX = {
+  article: new RegExp(`^#.*|\\[hl\\]([\\s\\S]*?)\\[\\/hl\\]|${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|^[-•] .+$|:([^:\\n ])+:|\\[(.*?)##(.*?)\\]`, 'gmi'),
+  label: new RegExp(`${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|\\[(.*?)##(.*?)\\]`, 'gmi'),
+  content_description: new RegExp(`\\[hl\\]([\\s\\S]*?)\\[\\/hl\\]|${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|^[-•] .+$|\\[+([^\\[\\]\\n]+)\\]+`, 'gi'), // More regex needs to be added for this
+  message: new RegExp(`\\[hl\\]([\\s\\S]*?)\\[\\/hl\\]|${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|^[-•] .+$|:([^:\\n ])+:`, 'gmi'),
 
   // NOTE: Next time you do mobile, check if this regex works in mobile
   // I added ":emoji_style:" tags to the regex
-  prompt: /\*+([^*\n]+)\*+|\b_+([^_\n]+)_+\b|:([^:\n ])+:/gi,
+  prompt: new RegExp(`${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|:([^:\\n ])+:`, 'gi'),
 } as Record<string, RegExp>;
 
 type MarkdownPreset = keyof typeof PRESET_REGEX;
+type ParsedMarkdownText = [
+  text: string | ParsedMarkdownPart[],
+  className?: string | null,
+  as?: React.ElementType | null,
+  blockAs?: React.ElementType,
+  isBlock?: boolean,
+];
+type ParsedMarkdownPart = ParsedMarkdownText | React.ReactNode;
+type ParsedMarkdownParagraph = string | ParsedMarkdownPart[];
 
 const TAG_REGEX = /{{(.*?)}}|%{(.*?)}/gmi;
 const HIGHLIGHT_TAG_REGEX = /^\[hl\]([\s\S]*?)\[\/hl\]$/i;
 const SPAN_MARKUP_REGEX = /^\[(.*?)##(.*?)\]$/;
-const INLINE_MARKDOWN_TRIGGER_REGEX = /(\[hl\][\s\S]*?\[\/hl\]|\*\*[^*\n]+\*\*|\*[^*\n]+\*|\b_[^_\n]+_\b|:([^:\n ])+:|\[(.*?)##(.*?)\])/;
+const INLINE_MARKDOWN_TRIGGER_REGEX = new RegExp(`(\\[hl\\][\\s\\S]*?\\[\\/hl\\]|${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|:([^:\\n ])+:|\\[(.*?)##(.*?)\\])`);
+const STAR_STYLE_DELIMITERS = ['**', '*'] as const;
+const UNDERSCORE_STYLE_DELIMITERS = ['___', '__', '_'] as const;
 const HEADING_DOM_MAP = {
   '#': 'h1',
   '##': 'h2',
@@ -172,7 +182,7 @@ const parseMarkdownParagraph = (
   codeUriMap?: Map<string, string>,
   MappedCodeComponent?: RenderMappedCodeFn,
   as?: React.ElementType,
-): any => {
+): ParsedMarkdownParagraph => {
   const presetRegex = PRESET_REGEX[preset];
   if (!presetRegex) {
     return text;
@@ -180,7 +190,7 @@ const parseMarkdownParagraph = (
 
   const regex = new RegExp(presetRegex.source, presetRegex.flags);
 
-  const arr = [];
+  const arr: ParsedMarkdownPart[] = [];
   let match;
   let strPos = 0;
   regex.lastIndex = 0;
@@ -361,7 +371,7 @@ const getListEl = (
   codeUriMap?: Map<string, string>,
   MappedCodeComponent?: RenderMappedCodeFn,
   as?: React.ElementType,
-): any => {
+): ParsedMarkdownText => {
   const listText = matchedStr.substring(2);
 
   return [
@@ -383,31 +393,89 @@ const getListEl = (
 };
 
 /**
- * Parse asterisk markdown tokens.
+ * Identify italic and underline styles represented by underscore delimiters.
  */
 
-const getAsteriskEl = (matchedStr: string) => {
-  // Keep this exact edge case for backwards compatibility.
-  if (matchedStr === '****') {
-    return [matchedStr];
+const getUnderscoreStyles = (delimiter: string) => {
+  return {
+    italic: delimiter.length === 1 || delimiter.length === 3,
+    underline: delimiter.length >= 2,
+  };
+};
+
+/**
+ * Build a markdown style token when the delimiter pair matches.
+ */
+
+const getDelimitedStyleEl = (
+  matchedStr: string,
+  openingDelimiter: string,
+  closingDelimiter: string,
+): ParsedMarkdownText | null => {
+  if (!matchedStr.startsWith(openingDelimiter) || !matchedStr.endsWith(closingDelimiter)) {
+    return null;
   }
 
-  if (
-    matchedStr.startsWith('**') &&
-    matchedStr.endsWith('**') &&
-    matchedStr.length > 4
-  ) {
-    return [
-      matchedStr.substring(2, matchedStr.length - 2),
-      'ft_semibold',
-      'span'
-    ];
-  }
+  const text = matchedStr.substring(openingDelimiter.length, matchedStr.length - closingDelimiter.length);
+  const underscoreDelimiter = openingDelimiter.match(/_+/)?.[0] || '';
+  const hasBold = openingDelimiter.includes('*');
+  const underscoreStyles = getUnderscoreStyles(underscoreDelimiter);
+  const className = cn(
+    hasBold && 'ft_semibold',
+    underscoreStyles.underline && 'u',
+  );
 
   return [
-    matchedStr.substring(1, matchedStr.length - 1),
-    'ft_medium cl_primary'
+    text,
+    className || null,
+    underscoreStyles.italic ? 'i' : 'span',
   ];
+};
+
+/**
+ * Parse star and underscore markdown style tokens.
+ */
+
+const getStyleMarkdownEl = (matchedStr: string) => {
+  for (const starDelimiter of STAR_STYLE_DELIMITERS) {
+    for (const underscoreDelimiter of UNDERSCORE_STYLE_DELIMITERS) {
+      const starThenUnderscoreEl = getDelimitedStyleEl(
+        matchedStr,
+        starDelimiter + underscoreDelimiter,
+        underscoreDelimiter + starDelimiter,
+      );
+
+      if (starThenUnderscoreEl) {
+        return starThenUnderscoreEl;
+      }
+
+      const underscoreThenStarEl = getDelimitedStyleEl(
+        matchedStr,
+        underscoreDelimiter + starDelimiter,
+        starDelimiter + underscoreDelimiter,
+      );
+
+      if (underscoreThenStarEl) {
+        return underscoreThenStarEl;
+      }
+    }
+  }
+
+  for (const starDelimiter of STAR_STYLE_DELIMITERS) {
+    const starEl = getDelimitedStyleEl(matchedStr, starDelimiter, starDelimiter);
+    if (starEl) {
+      return starEl;
+    }
+  }
+
+  for (const underscoreDelimiter of UNDERSCORE_STYLE_DELIMITERS) {
+    const underscoreEl = getDelimitedStyleEl(matchedStr, underscoreDelimiter, underscoreDelimiter);
+    if (underscoreEl) {
+      return underscoreEl;
+    }
+  }
+
+  return [matchedStr] as ParsedMarkdownText;
 };
 
 /**
@@ -479,7 +547,7 @@ const getMarkdownEl = (
   codeUriMap?: Map<string, string>,
   MappedCodeComponent?: RenderMappedCodeFn,
   as?: React.ElementType,
-): any => {
+): ParsedMarkdownPart => {
 
   const letter = matchedStr[0];
   switch (letter) {
@@ -501,11 +569,8 @@ const getMarkdownEl = (
         as,
       );
     case '*':
-      return getAsteriskEl(matchedStr);
-    case '_': {
-      const str2 = matchedStr.substring(1, matchedStr.length - 1);
-      return [str2, null, 'i'];
-    }
+    case '_':
+      return getStyleMarkdownEl(matchedStr);
     case ':': {
       const codeOrEmojiEl = getCodeOrEmojiEl(matchedStr, fullText, codeUriMap, MappedCodeComponent);
       if (codeOrEmojiEl) {
@@ -526,14 +591,14 @@ const getMarkdownEl = (
  */
 
 const renderMarkdownParts = (
-  mds: any[],
+  mds: ParsedMarkdownPart[],
   noWrap: boolean | undefined,
   NewLineElement: React.ElementType,
   isBlockedMD = false,
 ) => {
   const lastMdPos = mds.length - 1;
 
-  return mds.map((md: string[] | React.ReactNode, i: number) => {
+  return mds.map((md: ParsedMarkdownPart, i: number) => {
     if (!Array.isArray(md)) {
       return <Fragment key={i}>
         {md}
@@ -574,7 +639,7 @@ const renderMarkdownParts = (
  */
 
 const isListParagraph = (mds: any) => {
-  return Array.isArray(mds) && mds[0]?.[1] === 'ul_li' && mds[0]?.[4];
+  return Array.isArray(mds) && Array.isArray(mds[0]) && mds[0]?.[1] === 'ul_li' && mds[0]?.[4];
 };
 
 /**
@@ -631,31 +696,6 @@ function MarkdownText(p: MarkdownTextProps) {
         </span>
       );
     }
-
-    // const frontBR = /^(?:\r\n|\r|\n)/.test(children) ? <br /> : null;
-    // const endBR = /(?:\r\n|\r|\n)$/.test(children) ? <br /> : null;
-
-    // // Do URL's here
-
-    // if (El) {
-    //   return <El className={className}>
-    //     {frontBR}
-    //     {children}
-    //     {endBR}
-    //   </El>;
-    // } else if (className) {
-    //   return <span className={className}>
-    //     {frontBR}
-    //     {children}
-    //     {endBR}
-    //   </span>;
-    // } else if (frontBR || endBR) {
-    //   return <>
-    //     {frontBR}
-    //     {children}
-    //     {endBR}
-    //   </>;
-    // }
   }
 
   // Everything must be wrapped in <span> because..

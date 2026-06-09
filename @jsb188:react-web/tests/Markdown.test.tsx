@@ -67,6 +67,18 @@ describe('Markdown', () => {
     expect(html).toContain('italic');
   });
 
+  it('renders star and underscore style combinations', () => {
+    expect(renderMarkdown('**Bold**')).toContain('class="ft_semibold"');
+    expect(renderMarkdown('*Bold*')).toContain('class="ft_semibold"');
+    expect(renderMarkdown('_Italic_')).toContain('<i>');
+    expect(renderMarkdown('__Underline__')).toContain('class="u"');
+    expect(renderMarkdown('___Underline italic___')).toContain('class="u"');
+    expect(renderMarkdown('___Underline italic___')).toContain('<i class="u">');
+    expect(renderMarkdown('_*Bold italic*_')).toContain('<i class="ft_semibold">');
+    expect(renderMarkdown('*_Bold italic_*')).toContain('<i class="ft_semibold">');
+    expect(renderMarkdown('**___Bold underline italic___**')).toContain('<i class="ft_semibold u">');
+  });
+
   it('renders article headings as standalone heading blocks', () => {
     const html = renderMarkdown('# Heading line\nBody paragraph', {
       as: 'section',

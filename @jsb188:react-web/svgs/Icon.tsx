@@ -189,7 +189,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   data_table: 'database-2',
   delete_data_table: 'database-remove',
   delete_sheet: 'layers-grid-remove',
-  workspace: 'calendar-2',
+  grids: 'calendar-2',
   sheet: 'workflow-data-table-2',
   sheet_data_table_populate: 'database-sync',
   not_found_sheet: 'layers-grid-warning',

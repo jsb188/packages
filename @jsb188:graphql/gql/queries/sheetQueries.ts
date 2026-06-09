@@ -12,7 +12,7 @@ export const sheetsQry = gql`
 query sheets (
   $organizationId: GenericID!
   $filter: SheetsFilter
-  $sort: WorkspaceItemSort
+  $sort: GridItemSort
   $cursor: Cursor
   $after: Boolean!
   $limit: Int!

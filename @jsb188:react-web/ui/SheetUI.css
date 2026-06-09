@@ -147,3 +147,11 @@ We're not going to show border on editing HEADER cells because:
   pointer-events: none;
   z-index: -1;
 }
+
+/* Regions filter input nav */
+
+.sheet_regions_filter_nav {
+  position: absolute;
+  top: -40px;
+  left: 0;
+}

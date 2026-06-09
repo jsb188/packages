@@ -1,16 +1,22 @@
 import type {
 	SHEET_CELL_SOURCE_TYPE_ENUMS,
 	SHEET_REGION_CONFLICT_POLICY_ENUMS,
+	SHEET_REGION_SOURCE_FILTER_COMBINATOR_ENUMS,
+	SHEET_REGION_SOURCE_FILTER_OPERATOR_ENUMS,
+	SHEET_REGION_SOURCE_SORT_DIRECTION_ENUMS,
 	SHEET_REGION_TYPE_ENUMS,
 	SHEET_STRUCTURE_OPERATION_ENUMS,
-	WORKSPACE_ITEM_SORT_ENUMS,
+	GRID_ITEM_SORT_ENUMS,
 } from '../constants/sheet.ts';
 
 export type SheetCellSourceTypeEnum = typeof SHEET_CELL_SOURCE_TYPE_ENUMS[number];
 export type SheetRegionTypeEnum = typeof SHEET_REGION_TYPE_ENUMS[number];
 export type SheetRegionConflictPolicyEnum = typeof SHEET_REGION_CONFLICT_POLICY_ENUMS[number];
+export type SheetRegionSourceFilterCombinatorEnum = typeof SHEET_REGION_SOURCE_FILTER_COMBINATOR_ENUMS[number];
+export type SheetRegionSourceFilterOperatorEnum = typeof SHEET_REGION_SOURCE_FILTER_OPERATOR_ENUMS[number];
+export type SheetRegionSourceSortDirectionEnum = typeof SHEET_REGION_SOURCE_SORT_DIRECTION_ENUMS[number];
 export type SheetStructureOperationEnum = typeof SHEET_STRUCTURE_OPERATION_ENUMS[number];
-export type WorkspaceItemSortEnum = typeof WORKSPACE_ITEM_SORT_ENUMS[number];
+export type GridItemSortEnum = typeof GRID_ITEM_SORT_ENUMS[number];
 export type SheetFormulaReferenceKind = 'SHEET_CELL' | 'SHEET_RANGE' | 'DATA_TABLE_CELL';
 export type SheetFormulaReferenceStatusEnum = 'READY' | 'LOADING' | 'ERROR' | 'NOT_FOUND';
 export type SheetRegionColumnKind = 'DATA_TABLE_CELL' | 'FORMULA';
@@ -27,6 +33,26 @@ export type SheetCellValue =
 	| Record<string, any>
 	| any[];
 
+export type SheetCellBorderStyleValue = 'solid' | 'dashed' | 'dotted' | 'double';
+
+export interface SheetCellStyleObj {
+	fontSize?: number | null;
+	textColor?: string | null;
+	fillColor?: string | null;
+	borderTopWidth?: number | null;
+	borderTopColor?: string | null;
+	borderTopStyle?: SheetCellBorderStyleValue | null;
+	borderRightWidth?: number | null;
+	borderRightColor?: string | null;
+	borderRightStyle?: SheetCellBorderStyleValue | null;
+	borderBottomWidth?: number | null;
+	borderBottomColor?: string | null;
+	borderBottomStyle?: SheetCellBorderStyleValue | null;
+	borderLeftWidth?: number | null;
+	borderLeftColor?: string | null;
+	borderLeftStyle?: SheetCellBorderStyleValue | null;
+}
+
 export interface SheetGridDesignObj {
 	rowCount: number;
 	columnCount: number;
@@ -38,7 +64,7 @@ export interface SheetAxisDesignObj {
 	width?: number | null;
 	height?: number | null;
 	hidden?: boolean | null;
-	style?: Record<string, any> | null;
+	style?: SheetCellStyleObj | null;
 	format?: Record<string, any> | null;
 	metadata?: Record<string, any> | null;
 }
@@ -56,7 +82,7 @@ export interface SheetDesignObj {
 	grid: SheetGridDesignObj;
 	columns?: Record<string, SheetAxisDesignObj>;
 	rows?: Record<string, SheetAxisDesignObj>;
-	defaultCellStyle?: Record<string, any>;
+	defaultCellStyle?: SheetCellStyleObj;
 	defaultCellFormat?: Record<string, any>;
 	namedRanges?: SheetNamedRangeObj[];
 	metadata?: Record<string, any>;
@@ -138,7 +164,7 @@ export interface SheetCellData {
 	dateValue?: Date | string | null;
 	datetimeValue?: Date | string | null;
 	formula?: SheetFormulaObj | null;
-	style?: Record<string, any> | null;
+	style?: SheetCellStyleObj | null;
 	format?: Record<string, any> | null;
 	note?: string | null;
 	sourceType: SheetCellSourceTypeEnum;
@@ -159,7 +185,7 @@ export interface SheetRangeData {
 	endRowIndex: number;
 	endColumnIndex: number;
 	position: number;
-	style?: Record<string, any> | null;
+	style?: SheetCellStyleObj | null;
 	format?: Record<string, any> | null;
 	metadata?: Record<string, any> | null;
 	active: boolean;
@@ -170,6 +196,30 @@ export interface SheetRangeData {
 export interface SheetRegionSourceObj {
 	type: 'DATA_TABLE';
 	dataTableId: number | bigint | string;
+	filter?: SheetRegionSourceFilterGroupObj | null;
+	sort?: SheetRegionSourceSortObj[] | null;
+}
+
+export interface SheetRegionSourceFilterGroupObj {
+	combinator: SheetRegionSourceFilterCombinatorEnum;
+	conditions?: SheetRegionSourceFilterConditionObj[] | null;
+	groups?: SheetRegionSourceFilterGroupObj[] | null;
+}
+
+export interface SheetRegionSourceFilterConditionObj {
+	cellKey: string;
+	operator: SheetRegionSourceFilterOperatorEnum;
+	textValue?: string | null;
+	textValues?: string[] | null;
+	numberValue?: number | null;
+	booleanValue?: boolean | null;
+	dateValue?: string | null;
+	datetimeValue?: string | Date | null;
+}
+
+export interface SheetRegionSourceSortObj {
+	cellKey: string;
+	direction: SheetRegionSourceSortDirectionEnum;
 }
 
 export interface SheetRegionColumnObj {
@@ -248,7 +298,7 @@ export interface SheetDesignGQL {
 	grid?: SheetGridDesignGQL | null;
 	columns?: string | null;
 	rows?: string | null;
-	defaultCellStyle?: string | null;
+	defaultCellStyle?: SheetCellStyleObj | null;
 	defaultCellFormat?: string | null;
 	namedRanges?: SheetNamedRangeObj[];
 	metadata?: string | null;
@@ -291,7 +341,7 @@ export interface SheetCellGQL {
 	dateValue?: string | null;
 	datetimeValue?: string | null;
 	formula?: SheetFormulaObj | null;
-	style?: string | null;
+	style?: SheetCellStyleObj | null;
 	format?: string | null;
 	note?: string | null;
 	sourceType?: SheetCellSourceTypeEnum | null;
@@ -319,7 +369,7 @@ export interface SheetRangeGQL {
 	endRowIndex?: number | null;
 	endColumnIndex?: number | null;
 	position?: number | null;
-	style?: string | null;
+	style?: SheetCellStyleObj | null;
 	format?: string | null;
 	metadata?: string | null;
 	active?: boolean | null;

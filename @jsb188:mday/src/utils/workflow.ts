@@ -30,6 +30,28 @@ export function getWorkflowShortLabel(workflow: Pick<WorkflowGQL, 'logType' | 'f
 }
 
 /**
+ * Check whether a workflow has an active trigger target.
+ */
+
+export function hasWorkflowActiveTarget(
+	workflow: Pick<WorkflowGQL, 'logType' | 'reportId' | 'nextAt'>,
+) {
+	return !!workflow.nextAt ||
+		!!workflow.logType ||
+		!!workflow.reportId;
+}
+
+/**
+ * Check whether a workflow should display as active.
+ */
+
+export function isWorkflowActive(
+	workflow: Pick<WorkflowGQL, 'active' | 'logType' | 'reportId' | 'nextAt'>,
+) {
+	return !!workflow.active && hasWorkflowActiveTarget(workflow);
+}
+
+/**
  * Replace workflow template values in text using {{key}} placeholders
  */
 

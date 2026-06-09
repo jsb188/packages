@@ -1,8 +1,8 @@
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
-import { WORKSPACE_ITEM_LIST_LIMIT } from '@jsb188/mday/constants/sheet.ts';
+import { GRID_ITEM_LIST_LIMIT } from '@jsb188/mday/constants/sheet.ts';
 import type { DataTablesFilterArgs } from '@jsb188/mday/types/dataTable.d.ts';
-import type { WorkspaceItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
+import type { GridItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
 import { useMemo } from 'react';
 import { dataTableCellsForRowsQry, dataTableQry, dataTableRowsQry, dataTablesQry } from '../gql/queries/dataTableQueries.ts';
 import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
@@ -16,7 +16,7 @@ const SHEET_ROWS_LIMIT = 200;
 export type DataTablesVariables = PaginationArgs & {
 	filter?: DataTablesFilterArgs | null;
 	organizationId?: string | null;
-	sort?: WorkspaceItemSortEnum | null;
+	sort?: GridItemSortEnum | null;
 };
 
 /*
@@ -127,7 +127,7 @@ function getDataTablesQueryVariables(
 			after: organizationIdOrVariables.after ?? true,
 			cursor: organizationIdOrVariables.cursor ?? null,
 			filter: organizationIdOrVariables.filter ?? null,
-			limit: organizationIdOrVariables.limit ?? WORKSPACE_ITEM_LIST_LIMIT,
+			limit: organizationIdOrVariables.limit ?? GRID_ITEM_LIST_LIMIT,
 			sort: organizationIdOrVariables.sort || 'UPDATED_AT_DESC',
 		};
 	}
@@ -137,7 +137,7 @@ function getDataTablesQueryVariables(
 		after: true,
 		cursor: null,
 		filter: { active },
-		limit: WORKSPACE_ITEM_LIST_LIMIT,
+		limit: GRID_ITEM_LIST_LIMIT,
 		sort: 'UPDATED_AT_DESC',
 	};
 }

@@ -1,8 +1,9 @@
-import { normalizeSheetDesign, mergeSheetJSONObjects, getSheetColumnDesignKey, getSheetRowDesignKey, isSheetCellInRange } from '@jsb188/mday/utils/sheet.ts';
+import { normalizeSheetCellStyle, normalizeSheetDesign, mergeSheetJSONObjects, getSheetColumnDesignKey, getSheetRowDesignKey, isSheetCellInRange } from '@jsb188/mday/utils/sheet.ts';
 import { SHEET_DEFAULT_COLUMN_COUNT } from '@jsb188/mday/constants/sheet.ts';
 import type {
 	SheetAxisDesignObj,
 	SheetCellGQL,
+	SheetCellStyleObj,
 	SheetDesignGQL,
 	SheetDesignObj,
 	SheetGridPageInfoGQL,
@@ -34,12 +35,7 @@ export type SheetCanvasColumn = SheetUIColumn & {
 	sheetColumnIndex: number;
 };
 
-export type SheetCanvasCellStyle = {
-	backgroundColor?: string | null;
-	color?: string | null;
-	fillColor?: string | null;
-	textColor?: string | null;
-};
+export type SheetCanvasCellStyle = SheetCellStyleObj;
 
 export type SheetCanvasCell = {
 	cell?: SheetCellGQL | null;
@@ -100,7 +96,7 @@ export function getSheetCanvasDesign(design?: SheetDesignGQL | null): SheetDesig
 		: undefined;
 	const normalized = normalizeSheetDesign({
 		defaultCellFormat: parseSheetJSONObject(design?.defaultCellFormat, {}),
-		defaultCellStyle: parseSheetJSONObject(design?.defaultCellStyle, {}),
+		defaultCellStyle: normalizeSheetCellStyle(design?.defaultCellStyle),
 		grid,
 		metadata: parseSheetJSONObject(design?.metadata, {}),
 		namedRanges: design?.namedRanges || [],
@@ -249,22 +245,37 @@ export function getSheetCanvasColumnIndexFromKey(cellKey?: string | null) {
  * Return true when a parsed style object contains visible formatting.
  */
 export function sheetCanvasStyleHasContent(style?: SheetCanvasCellStyle | null) {
-	return Boolean(style?.backgroundColor || style?.fillColor || style?.color || style?.textColor);
+	return Boolean(
+		style?.fontSize ||
+		style?.fillColor ||
+		style?.textColor ||
+		style?.borderTopWidth ||
+		style?.borderRightWidth ||
+		style?.borderBottomWidth ||
+		style?.borderLeftWidth,
+	);
 }
 
 /*
  * Return the display color saved for one style property.
  */
-export function getSheetCanvasStyleColor(style: SheetCanvasCellStyle, names: string[]) {
-	for (const name of names) {
-		const value = style[name as keyof SheetCanvasCellStyle];
+export function getSheetCanvasStyleColor(style: SheetCanvasCellStyle, name: keyof Pick<SheetCanvasCellStyle, 'fillColor' | 'textColor'>) {
+	const value = style[name];
 
-		if (typeof value === 'string' && value.trim()) {
-			return value;
-		}
+	if (typeof value === 'string' && value.trim()) {
+		return value;
 	}
 
 	return null;
+}
+
+/*
+ * Return the positive font size saved on a resolved Sheet style object.
+ */
+export function getSheetCanvasStyleFontSize(style?: SheetCanvasCellStyle | null) {
+	const fontSize = Number(style?.fontSize);
+
+	return Number.isFinite(fontSize) && fontSize > 0 ? fontSize : null;
 }
 
 /*
@@ -300,11 +311,11 @@ export function getSheetCanvasResolvedStyle(params: {
 	const matchingRanges = getSheetCanvasMatchingRanges(params.ranges, params.rowIndex, params.columnIndex);
 
 	return mergeSheetJSONObjects(
-		params.design.defaultCellStyle,
-		columnDesign.style,
-		rowDesign.style,
-		...matchingRanges.map((range) => parseSheetJSONObject(range.style, {})),
-		parseSheetJSONObject(params.cell?.style, {}),
+		normalizeSheetCellStyle(params.design.defaultCellStyle),
+		normalizeSheetCellStyle(columnDesign.style),
+		normalizeSheetCellStyle(rowDesign.style),
+		...matchingRanges.map((range) => normalizeSheetCellStyle(range.style)),
+		normalizeSheetCellStyle(params.cell?.style),
 	) as SheetCanvasCellStyle;
 }
 

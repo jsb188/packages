@@ -50,6 +50,14 @@ export const dataTableFragment = `fragment dataTableFragment on DataTable {
   updatedAt
 }`;
 
+export const dataTablePartialFragment = `fragment dataTablePartialFragment on DataTable {
+  id
+  name
+  title
+  description
+  deletedAt
+}`;
+
 export const dataTableRowFragment = `fragment dataTableRowFragment on DataTableRow {
   id
   cursor

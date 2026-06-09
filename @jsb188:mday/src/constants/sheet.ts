@@ -13,6 +13,32 @@ export const SHEET_REGION_CONFLICT_POLICY_ENUMS = [
 	'OVERWRITE',
 ] as const;
 
+export const SHEET_REGION_SOURCE_FILTER_COMBINATOR_ENUMS = [
+	'AND',
+	'OR',
+] as const;
+
+export const SHEET_REGION_SOURCE_FILTER_OPERATOR_ENUMS = [
+	'CONTAINS',
+	'EQUALS',
+	'IN',
+	'IS_EMPTY',
+	'GT',
+	'GTE',
+	'LT',
+	'LTE',
+	'BEFORE',
+	'AFTER',
+	'ON_OR_BEFORE',
+	'ON_OR_AFTER',
+	'CONTAINS_ANY',
+] as const;
+
+export const SHEET_REGION_SOURCE_SORT_DIRECTION_ENUMS = [
+	'ASC',
+	'DESC',
+] as const;
+
 export const SHEET_STRUCTURE_OPERATION_ENUMS = [
 	'INSERT_ROW_ABOVE',
 	'INSERT_COLUMN_LEFT',
@@ -20,12 +46,12 @@ export const SHEET_STRUCTURE_OPERATION_ENUMS = [
 	'DELETE_COLUMN',
 ] as const;
 
-export const WORKSPACE_ITEM_SORT_ENUMS = [
+export const GRID_ITEM_SORT_ENUMS = [
 	'UPDATED_AT_DESC',
 	'TITLE_ASC',
 ] as const;
 
-export const WORKSPACE_ITEM_LIST_LIMIT = 1000;
+export const GRID_ITEM_LIST_LIMIT = 1000;
 export const SHEET_DATA_TABLE_REGION_MAX_ROWS = 1000;
 export const SHEET_DEFAULT_ROW_COUNT = 1000;
 export const SHEET_DEFAULT_COLUMN_COUNT = 26;

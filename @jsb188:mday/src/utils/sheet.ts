@@ -7,10 +7,12 @@ import {
 	SHEET_STRUCTURE_OPERATION_ENUMS,
 	SHEET_VIEWPORT_MAX_COLUMNS,
 	SHEET_VIEWPORT_MAX_ROWS,
-	WORKSPACE_ITEM_LIST_LIMIT,
+	GRID_ITEM_LIST_LIMIT,
 } from '../constants/sheet.ts';
 import type {
 	SheetAxisDesignObj,
+	SheetCellBorderStyleValue,
+	SheetCellStyleObj,
 	SheetCellSourceTypeEnum,
 	SheetDesignObj,
 	SheetGridViewportObj,
@@ -21,9 +23,9 @@ import type {
 } from '../types/sheet.d.ts';
 
 /*
- * Return a normalized title value for cursor pagination across workspace items.
+ * Return a normalized title value for cursor pagination across grid items.
  */
-export function getWorkspaceItemTitleCursorValue(item: {
+export function getGridItemTitleCursorValue(item: {
 	name?: string | null;
 	title?: string | null;
 }) {
@@ -31,16 +33,16 @@ export function getWorkspaceItemTitleCursorValue(item: {
 }
 
 /*
- * Encode a workspace item title cursor value for GraphQL's colon-delimited Cursor scalar.
+ * Encode a grid item title cursor value for GraphQL's colon-delimited Cursor scalar.
  */
-export function encodeWorkspaceItemTitleCursorValue(value: string | null | undefined) {
+export function encodeGridItemTitleCursorValue(value: string | null | undefined) {
 	return encodeURIComponent(String(value || ''));
 }
 
 /*
- * Decode a workspace item title cursor value from GraphQL's colon-delimited Cursor scalar.
+ * Decode a grid item title cursor value from GraphQL's colon-delimited Cursor scalar.
  */
-export function decodeWorkspaceItemTitleCursorValue(value: string | null | undefined) {
+export function decodeGridItemTitleCursorValue(value: string | null | undefined) {
 	try {
 		return decodeURIComponent(String(value || ''));
 	} catch {
@@ -49,10 +51,10 @@ export function decodeWorkspaceItemTitleCursorValue(value: string | null | undef
 }
 
 /*
- * Return a safe page size for workspace item list pagination.
+ * Return a safe page size for grid item list pagination.
  */
-export function getWorkspaceItemListLimit(limit?: number | null) {
-	return Math.min(WORKSPACE_ITEM_LIST_LIMIT, Math.max(0, Math.floor(Number(limit) || WORKSPACE_ITEM_LIST_LIMIT)));
+export function getGridItemListLimit(limit?: number | null) {
+	return Math.min(GRID_ITEM_LIST_LIMIT, Math.max(0, Math.floor(Number(limit) || GRID_ITEM_LIST_LIMIT)));
 }
 
 export type SheetFormulaOperatorTerm<Operator extends string> = {
@@ -175,6 +177,144 @@ export type SheetFormulaReferenceToken =
 		kind: 'DATA_TABLE_CELL';
 		startIndex: number;
 	};
+
+const SHEET_CELL_BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
+const SHEET_CELL_BORDER_STYLE_VALUES = ['solid', 'dashed', 'dotted', 'double'] as const;
+
+/*
+ * Return a plain object from flexible saved Sheet style input.
+ */
+function getSheetCellStyleObject(value?: unknown): Record<string, any> {
+	if (!value) {
+		return {};
+	}
+
+	if (typeof value === 'object' && !Array.isArray(value)) {
+		return value as Record<string, any>;
+	}
+
+	if (typeof value !== 'string') {
+		return {};
+	}
+
+	try {
+		const parsed = JSON.parse(value);
+
+		return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+	} catch {
+		return {};
+	}
+}
+
+/*
+ * Return a positive rounded integer value when a style number is usable.
+ */
+function normalizeSheetCellStylePositiveInteger(value: unknown) {
+	const numberValue = Math.round(Number(value));
+
+	return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : null;
+}
+
+/*
+ * Return a supported cell border width or null when the side should be disabled.
+ */
+function normalizeSheetCellBorderWidth(value: unknown) {
+	const width = normalizeSheetCellStylePositiveInteger(value);
+
+	return width && width >= 1 && width <= 4 ? width : null;
+}
+
+/*
+ * Return a supported cell border style or null when the style should be dropped.
+ */
+function normalizeSheetCellBorderStyle(value: unknown): SheetCellBorderStyleValue | null {
+	return SHEET_CELL_BORDER_STYLE_VALUES.includes(value as SheetCellBorderStyleValue)
+		? value as SheetCellBorderStyleValue
+		: null;
+}
+
+/*
+ * Return a non-empty style color string or null when the color should be dropped.
+ */
+function normalizeSheetCellStyleColor(value: unknown) {
+	return typeof value === 'string' && value.trim() ? value : null;
+}
+
+/*
+ * Add normalized border fields for one side into a Sheet style result object.
+ */
+function addNormalizedSheetCellBorderSideStyle(
+	result: SheetCellStyleObj,
+	source: Record<string, any>,
+	side: typeof SHEET_CELL_BORDER_SIDES[number],
+) {
+	const widthKey = `border${side}Width` as keyof SheetCellStyleObj;
+	const colorKey = `border${side}Color` as keyof SheetCellStyleObj;
+	const styleKey = `border${side}Style` as keyof SheetCellStyleObj;
+	const width = normalizeSheetCellBorderWidth(source[widthKey]);
+
+	if (!width) {
+		return;
+	}
+
+	const color = normalizeSheetCellStyleColor(source[colorKey]);
+	const style = normalizeSheetCellBorderStyle(source[styleKey]);
+	const mutableResult = result as Record<string, any>;
+
+	mutableResult[widthKey] = width;
+
+	if (color) {
+		mutableResult[colorKey] = color;
+	}
+
+	if (style) {
+		mutableResult[styleKey] = style;
+	}
+}
+
+/*
+ * Return the only style fields Sheets currently supports for cells and ranges.
+ */
+export function normalizeSheetCellStyle(style?: Partial<SheetCellStyleObj> | Record<string, any> | string | null): SheetCellStyleObj {
+	const source = getSheetCellStyleObject(style);
+	const fontSize = normalizeSheetCellStylePositiveInteger(source.fontSize);
+	const normalized: SheetCellStyleObj = {};
+
+	if (fontSize) {
+		normalized.fontSize = fontSize;
+	}
+
+	const textColor = normalizeSheetCellStyleColor(source.textColor);
+	if (textColor) {
+		normalized.textColor = textColor;
+	}
+
+	const fillColor = normalizeSheetCellStyleColor(source.fillColor);
+	if (fillColor) {
+		normalized.fillColor = fillColor;
+	}
+
+	SHEET_CELL_BORDER_SIDES.forEach((side) => addNormalizedSheetCellBorderSideStyle(normalized, source, side));
+
+	return normalized;
+}
+
+/*
+ * Return axis design values with supported cell style fields normalized.
+ */
+function normalizeSheetAxisDesignMap(map?: Record<string, SheetAxisDesignObj> | null) {
+	return Object.fromEntries(Object.entries(map || {}).map(([key, value]) => {
+		const { style: _style, ...axisDesign } = value || {};
+		const style = normalizeSheetCellStyle(_style);
+
+		return [
+			key,
+			Object.keys(style).length
+				? { ...axisDesign, style }
+				: axisDesign,
+		];
+	}));
+}
 
 /*
  * Return whether one text input should be treated as a sheet formula.
@@ -1143,9 +1283,9 @@ export function normalizeSheetDesign(design?: Partial<SheetDesignObj> | null): S
 			frozenRows: Math.max(0, Math.floor(Number(grid.frozenRows || 0))),
 			frozenColumns: Math.max(0, Math.floor(Number(grid.frozenColumns || 0))),
 		},
-		columns: design?.columns || {},
-		rows: design?.rows || {},
-		defaultCellStyle: design?.defaultCellStyle || {},
+		columns: normalizeSheetAxisDesignMap(design?.columns),
+		rows: normalizeSheetAxisDesignMap(design?.rows),
+		defaultCellStyle: normalizeSheetCellStyle(design?.defaultCellStyle),
 		defaultCellFormat: design?.defaultCellFormat || {},
 		namedRanges: Array.isArray(design?.namedRanges) ? design.namedRanges : [],
 		metadata: design?.metadata || {},

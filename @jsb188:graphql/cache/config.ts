@@ -64,4 +64,5 @@ export const RULES = {
 
 export const PARTIALS_MAP = {
   // Partial fragments are supported if you map them to its original fragment name
+  dataTablePartialFragment: 'dataTableFragment',
 } as Record<string, string>;

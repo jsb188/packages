@@ -31,7 +31,7 @@ type ValidRoutePath =
   | '/app/c/'
   | '/app/workflows-test'
   | '/app/workflows'
-  | '/app/workspace'
+  | '/app/grids'
   | '/app/s/'
   | '/app/emails'
   | '/app/logs'
@@ -84,10 +84,10 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app',
     text: 'app.home',
   },
-  '/app/workspace': {
-    to: '/app/workspace',
-    text: 'app.workspace',
-    iconName: COMMON_ICON_NAMES.workspace,
+  '/app/grids': {
+    to: '/app/grids',
+    text: 'app.grids',
+    iconName: COMMON_ICON_NAMES.grids,
   },
   '/app/c/': {
     to: '/app/c/',
@@ -629,7 +629,7 @@ export function getNavigationList(
     ...ROUTES_DICT['/app'],
     iconName: COMMON_ICON_NAMES[operation!] || 'home',
   },
-    ROUTES_DICT['/app/workspace'],
+    ROUTES_DICT['/app/grids'],
     breakItem,
   // @ts-ignore
   ].concat(navListArr).concat([{

@@ -77,7 +77,7 @@ export const TableSectionTitle = memo((p: TableSectionTitleProps) => {
 
   return <div className={cn('table_grid_element rel of pattern_texture active_bf bd_t_1 bd_lt px_20 pt_30 pb_10', marginClassName ?? '', className)} id={domId}>
     {/* <h4 className='ft_normal ft_tn p_n m_n cl_lt rel'> */}
-    <div className='ft_medium ft_xl ls_4 rel'>
+    <div className='ft_normal ft_xl ls_4 rel'>
       {text}
     </div>
   </div>;

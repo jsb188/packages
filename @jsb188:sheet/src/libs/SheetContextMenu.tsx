@@ -4,6 +4,10 @@ import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { useCallback, useEffect, useRef } from 'react';
 import { getGridContextMenuPopOverId, useGridContextMenu } from './grid-context-menu.ts';
+import {
+	isSheetBorderStylePresetValue,
+	type SheetBorderStylePresetValue,
+} from './sheet-border-styles.ts';
 
 const SHEET_CONTEXT_MENU_ID = 'sheet-context-menu';
 
@@ -21,6 +25,7 @@ const SHEET_CONTEXT_MENU_ACTIONS = {
 } as const;
 
 const SHEET_CONTEXT_MENU_FORMAT_NAMES = {
+	borderStyle: 'borderStyle',
 	fillColor: 'fillColor',
 	textColor: 'textColor',
 } as const;
@@ -36,8 +41,9 @@ export type SheetContextMenuStructureAction =
 export type SheetContextMenuFormatName = typeof SHEET_CONTEXT_MENU_FORMAT_NAMES[keyof typeof SHEET_CONTEXT_MENU_FORMAT_NAMES];
 
 export type SheetContextMenuFormat = {
-	name: SheetContextMenuFormatName;
-	value: string;
+	borderColor?: string | null;
+	name?: SheetContextMenuFormatName;
+	value?: SheetBorderStylePresetValue | string | null;
 };
 
 export type SheetContextMenuCellTarget = {
@@ -72,6 +78,11 @@ type UseSheetContextMenuParams = {
 type GetSheetContextMenuOptionsParams = {
 	onCustomizeCells?: (target: SheetContextMenuTarget, formatName: SheetContextMenuFormatName) => void;
 };
+
+const SHEET_CONTEXT_MENU_COLOR_FORMAT_NAMES = [
+	SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor,
+	SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor,
+];
 
 /*
  * Copy one Sheet context-menu target's display value to the clipboard.
@@ -115,6 +126,14 @@ function getSheetContextMenuFormatOptions(target: SheetContextMenuTarget, params
 			params?.onCustomizeCells?.(target, SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor);
 		},
 		selectedValue: target.fillColor || null,
+	}, {
+		__type: 'LIST_BORDER_STYLES',
+		label: i18n.t('sheet.border_styles'),
+		name: SHEET_CONTEXT_MENU_FORMAT_NAMES.borderStyle,
+		onClickCustomize: () => {
+			params?.onCustomizeCells?.(target, SHEET_CONTEXT_MENU_FORMAT_NAMES.borderStyle);
+		},
+		selectedValue: null,
 	}];
 }
 
@@ -174,6 +193,7 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 		submenu: {
 			className: 'min_w_220',
 			initialState: {
+				[SHEET_CONTEXT_MENU_FORMAT_NAMES.borderStyle]: null,
 				[SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor]: target.fillColor || null,
 				[SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor]: target.textColor || null,
 			},
@@ -299,10 +319,21 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 
 		handledEventKeyRef.current = eventKey;
 
-		if (name === SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor || name === SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor) {
+		if (SHEET_CONTEXT_MENU_COLOR_FORMAT_NAMES.includes(name as typeof SHEET_CONTEXT_MENU_COLOR_FORMAT_NAMES[number])) {
 			if (target.canEdit && typeof value === 'string') {
 				onFormatCells(target, {
-					name,
+					name: name as SheetContextMenuFormatName,
+					value,
+				});
+			}
+			closePopOver();
+			return;
+		}
+
+		if (name === SHEET_CONTEXT_MENU_FORMAT_NAMES.borderStyle) {
+			if (target.canEdit && isSheetBorderStylePresetValue(value)) {
+				onFormatCells(target, {
+					name: SHEET_CONTEXT_MENU_FORMAT_NAMES.borderStyle,
 					value,
 				});
 			}

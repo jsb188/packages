@@ -254,28 +254,30 @@ export const POListItemPicker = memo((p: PONavItemBase & {
   allowEdit?: boolean;
 }) => {
   const { name, item, onClickItem } = p;
-  const { label, options, selectedValue } = item;
+  const { className, label, options, selectedValue } = item;
+  const activeValue = p.value ?? selectedValue;
 
-  return <>
+  return <div className={className}>
     <div className='ft_xs pt_4 px_8 ft_medium cl_lt'>
       {label}
     </div>
 
     <div className='h_item px_4 pb_4 gap_2'>
       {options.map((opt, i) => {
-        const selected = selectedValue === opt.value;
+        const selected = activeValue === opt.value;
+
         return <button
           key={`${name}_${String(opt.value)}_${i}`}
           name={name}
           // saving={saving && selected}
-          onClick={!selected ? () => onClickItem(name, opt.value, false) : undefined}
-          className={cn('p_4 r_xs v_center bg_alt_hv ic_xs bd_1', opt.className, selected ? 'bd_bd' : 'bd_invis')}
+          onClick={selected ? undefined : () => onClickItem(name, opt.value, false)}
+          className={cn('p_4 r_xs v_center bg_alt_hv ic_xs', opt.className, selected ? 'bd_1 bd_bd' : 'bd_1 bd_invis')}
         >
-          <Icon name={selected && opt.selectedIconName ? opt.selectedIconName : opt.iconName} />
+          <Icon name={selected ? opt.selectedIconName : opt.iconName} />
         </button>;
       })}
     </div>
-  </>;
+  </div>;
 });
 
 POListItemPicker.displayName = 'POListItemPicker';
