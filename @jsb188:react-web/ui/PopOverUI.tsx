@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import type { ClosePopOverFn, POListItemObj, POListItemPickerObj, PONavAvatarItemObj, PONListSubtitleObj, POStateValue, POTextObj, TooltipProps } from '@jsb188/react/types/PopOver.d';
-import { forwardRef, memo, useEffect, useRef, useState } from 'react';
+import { forwardRef, memo, type ReactNode, useEffect, useRef, useState } from 'react';
 import { Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom.d';
 import { copyTextToClipboard, useOnClickOutside } from '../utils/dom';
@@ -21,22 +21,35 @@ export interface PONavItemBase {
   disabled?: boolean;
 }
 
+const DEFAULT_TOOLTIP_MAX_WIDTH = 225;
+const SMALL_TOOLTIP_MAX_WIDTH = 150;
+const TOOLTIP_HORIZONTAL_PADDING = 22;
+const TOOLTIP_AVERAGE_LETTER_WIDTH = 7.5;
+
+/**
+ * Return the estimated rendered width for the longest tooltip text line.
+ */
+function getEstimatedTooltipTextWidth(message: string): number {
+  const lines = message.split(/\r?\n/);
+  const longestLineLength = lines.reduce((max, line) => Math.max(max, line.trim().length), 0);
+
+  return longestLineLength * TOOLTIP_AVERAGE_LETTER_WIDTH + TOOLTIP_HORIZONTAL_PADDING;
+}
+
 /**
  * Calculate tooltip width
  * NOTE: Keep this value in sync with CSS
  */
-
 export function guessTooltipSize(message: string): {
   name: 'default' | 'small';
   assumedWidth: number;
 } {
-  const assumedLetterWidth = 14;
-  const len = message.length;
-  const assumedWidth = (len + 2) * assumedLetterWidth; // +2 for padding and extra buffer
+  const estimatedWidth = getEstimatedTooltipTextWidth(message);
+  const isSmall = estimatedWidth <= SMALL_TOOLTIP_MAX_WIDTH;
 
   return {
-    name: assumedWidth > 150 ? 'default' : 'small',
-    assumedWidth: assumedWidth > 150 ? 250 : 150,
+    name: isSmall ? 'small' : 'default',
+    assumedWidth: isSmall ? SMALL_TOOLTIP_MAX_WIDTH : DEFAULT_TOOLTIP_MAX_WIDTH,
   };
 }
 
@@ -52,7 +65,7 @@ export const TooltipText = memo((p: TooltipProps) => {
     <div
       // key={title + ':' + message}
       className={cn(
-        'tooltip bg_contrast r_sm',
+        'tooltip bg_contrast r_xs',
         fontClassName ?? 'ft_xs lh_3',
         tooltipClassName && /\bmax_w_/.test(tooltipClassName) && 'w_override',
         tooltipClassName
@@ -257,7 +270,7 @@ export const POListItemPicker = memo((p: PONavItemBase & {
   const { className, label, options, selectedValue } = item;
   const activeValue = p.value ?? selectedValue;
 
-  return <div className={className}>
+  return <div className={className || undefined}>
     <div className='ft_xs pt_4 px_8 ft_medium cl_lt'>
       {label}
     </div>
@@ -281,6 +294,42 @@ export const POListItemPicker = memo((p: PONavItemBase & {
 });
 
 POListItemPicker.displayName = 'POListItemPicker';
+
+interface POListItemHeaderProps {
+  label?: ReactNode;
+  buttonText?: ReactNode;
+  buttonDisabled?: boolean;
+  onClickButton?: () => void;
+}
+
+/**
+ * Render a popover list item header with an optional action button.
+ */
+export const POListItemHeader = memo((p: POListItemHeaderProps) => {
+  const { label, buttonText, buttonDisabled, onClickButton } = p;
+
+  if (!label && !onClickButton) {
+    return null;
+  }
+
+  return <div className='h_spread gap_10 mb_6 ft_xs lh_1'>
+    <span className='ft_medium'>
+      {label}
+    </span>
+    {onClickButton
+      ? <button
+        className='btn cl_lt link lh_1 u ft_xs'
+        disabled={buttonDisabled}
+        onClick={onClickButton}
+        type='button'
+      >
+        {buttonText ?? i18n.t('form.customize')}
+      </button>
+      : null}
+  </div>;
+});
+
+POListItemHeader.displayName = 'POListItemHeader';
 
 /**
  * Pop over option item for copy function

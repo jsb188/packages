@@ -49,7 +49,7 @@ class PopOver {
       ...prev,
       name: nextName,
       variables,
-    };
+    } as PopOverProps;
   }
 
   close(prev: PopOverProps | null): PopOverProps | null {
@@ -175,7 +175,7 @@ function composeClosePopOverFn(
   };
 }
 
-function composeUpdatePopOverFn( setPopOver: (value: PopOverProps | null) => void): UpdatePopOverFn {
+function composeUpdatePopOverFn( setPopOver: SetPopOverAtomFn): UpdatePopOverFn {
   return (data: UpdatePopOverParams) => {
     setPopOver((prev: PopOverProps | null) => {
       const nextPopOverState = popOverClass.update(data, prev);
@@ -188,7 +188,7 @@ function composeUpdatePopOverFn( setPopOver: (value: PopOverProps | null) => voi
   };
 }
 
-function composeSetPopOverState( setPopOver: (value: PopOverProps | null) => void): SetPopOverStateFn {
+function composeSetPopOverState( setPopOver: SetPopOverAtomFn): SetPopOverStateFn {
   return (data: PopOverGlobalStateParams | null) => {
     setPopOver((prev: PopOverProps | null) => {
       const nextPopOverState = popOverClass.setGlobalState(data, prev);

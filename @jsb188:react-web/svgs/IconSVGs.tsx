@@ -2313,7 +2313,8 @@ export const LayersGridWarningColor = <svg xmlns="http://www.w3.org/2000/svg" fi
 <path stroke="#191919" d="M17.019631999999998 19.312915999999998c0.12696 0 0.22999999999999998 -0.102948 0.22999999999999998 -0.22999999999999998s-0.10303999999999999 -0.22999999999999998 -0.22999999999999998 -0.22999999999999998" strokeWidth="1"></path>
 </svg>;
 
-export const LayerStyle = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-layer-style" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+// This icon is special, and has a 2px stroke-width, compared to other icons which have 1.5px
+export const LayerStyle = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-layer-style" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
 <path d="M13.3641 2.05444c-3.47423 0 -5.47158 1.65015 -6.16646 6.68745 -0.69489 5.03731 -0.83995 6.02551 -1.2742 8.97841 -0.43425 2.9529 -2.51537 4.2251 -4.31895 4.2251" />
 <path d="M3.80762 8.30762h7.55618" />
 <path d="m15.0126 8.30762 5.7321 11.29048m-8.5113 0L22.3948 8.30762" />
@@ -2797,6 +2798,12 @@ export const MultipleNeutralCircleColor = <svg xmlns="http://www.w3.org/2000/svg
 <path fill="#ffdda1" d="M18 14.5c1.6569 0 3 -1.3431 3 -3 0 -1.65685 -1.3431 -3 -3 -3s-3 1.34315 -3 3c0 1.6569 1.3431 3 3 3Z" strokeWidth="1"/>
 <path fill="#ffdda1" d="M18 10.4c0.6274 0.0013 1.2386 0.2 1.7468 0.568 0.5083 0.3679 0.8879 0.8864 1.0852 1.482 0.1075 -0.3054 0.1643 -0.6263 0.168 -0.95 0 -0.7956 -0.3161 -1.55871 -0.8787 -2.12132C19.5587 8.81607 18.7956 8.5 18 8.5c-0.7956 0 -1.5587 0.31607 -2.1213 0.87868C15.3161 9.94129 15 10.7044 15 11.5c0.0037 0.3237 0.0605 0.6446 0.168 0.95 0.1973 -0.5956 0.5769 -1.1141 1.0852 -1.482 0.5082 -0.368 1.1194 -0.5667 1.7468 -0.568Z" strokeWidth="1"/>
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18 14.5c1.6569 0 3 -1.3431 3 -3 0 -1.65685 -1.3431 -3 -3 -3s-3 1.34315 -3 3c0 1.6569 1.3431 3 3 3Z" strokeWidth="1"/>
+</svg>;
+
+export const NavigationMenu = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-navigation-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="m2.25 18.003 19.5 0" />
+<path d="m2.25 12.003 19.5 0" />
+<path d="m2.25 6.003 19.5 0" />
 </svg>;
 
 export const News = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-news" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -4035,6 +4042,12 @@ export const SingleNeutralPhoneBookColor = <svg xmlns="http://www.w3.org/2000/sv
 
 export const Share3 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-share-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M13 4v4c-6.575 1.028 -9.02 6.788 -10 12c-.037 .206 5.384 -5.962 10 -6v4l8 -7l-8 -7z" stroke="currentColor" />
+</svg>;
+
+export const ShareExternalLink1 = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-share-external-link-1" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M10.11045825,13.68662721L22.625,1.375"/>
+<path d="M22.625,8.41085444V1.37500045h-7.15116659"/>
+<path d="M12.48056534,6.04432303H3.0946588c-.43197447,0-.7821588.35018433-.7821588.7821588v14.07885936c0,.43197402.35018445.7821588.7821588.7821588h14.07886025c.43197402,0,.7821588-.35018478.7821588-.7821588v-9.38590654"/>
 </svg>;
 
 export const ShipmentInTransit = <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="icon icon-shipment-in-transit" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">

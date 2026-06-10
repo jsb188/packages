@@ -127,6 +127,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   insert_from_data_table: 'calendar-2',
   invoice: 'accounting-invoice-dollar',
   link_chevron: 'chevron-right',
+  link_external: 'share-external-link-1',
   expanded_chevron: 'chevron-down',
   livestock: 'livestock-cow-body',
   livestock_life_cycle: 'monitor-heart-beat',

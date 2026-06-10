@@ -1,9 +1,13 @@
 import { DEFAULT_TIMEZONE, isValidTimeZone } from '@jsb188/app/utils/timeZone.ts';
 import {
+	getSheetFormulaDataTableQueryConditionKey,
 	getSheetFormulaExpression,
+	getSheetFormulaSyntaxErrorMessage,
 	isSheetFormulaText,
 	parseSheetFormulaExpression,
 	type SheetFormulaASTNode,
+	type SheetFormulaDateTimeShorthandName,
+	type SheetFormulaDataTableQueryOperator,
 } from '@jsb188/mday/utils/sheet.ts';
 import type { SheetCellGQL, SheetFormulaReferenceObj } from '@jsb188/mday/types/sheet.d.ts';
 import { DateTime } from 'luxon';
@@ -16,6 +20,7 @@ type SheetFormulaRangeValue = {
 
 type SheetFormulaEvaluationResult = {
 	error?: SheetCellGQL['formula'] extends { error?: infer T } ? T : unknown;
+	keyValue?: unknown;
 	loading?: boolean;
 	value: unknown;
 };
@@ -81,6 +86,36 @@ function getSheetFormulaDateTimeValue(value: unknown, timeZone: string) {
 	}
 
 	return null;
+}
+
+/*
+ * Return the current value represented by one formula date/time shorthand.
+ */
+function getSheetFormulaDateTimeShorthandValue(
+	name: SheetFormulaDateTimeShorthandName,
+	now: Date,
+	timeZone: string,
+) {
+	const dateTime = DateTime.fromJSDate(now, { zone: timeZone });
+
+	return name === 'CURRENT_DATE'
+		? dateTime.toFormat('yyyy-MM-dd')
+		: dateTime.toISO();
+}
+
+/*
+ * Return a stable freshness-key value for one formula date/time shorthand.
+ */
+function getSheetFormulaDateTimeShorthandKeyValue(
+	name: SheetFormulaDateTimeShorthandName,
+	now: Date,
+	timeZone: string,
+) {
+	const dateTime = DateTime.fromJSDate(now, { zone: timeZone });
+
+	return name === 'CURRENT_DATE'
+		? dateTime.toFormat('yyyy-MM-dd')
+		: dateTime.toFormat("yyyy-MM-dd'T'HH:mm");
 }
 
 /*
@@ -325,7 +360,113 @@ function getSheetFormulaDataTableRowIdentifierState(params: {
 	}
 
 	return {
-		rowIdentifier: getSheetFormulaStringValue(getSheetFormulaCellScalarValue(targetCell)),
+		rowIdentifier: getSheetFormulaStringValue(targetCell
+			? getSheetFormulaCellScalarValue(targetCell)
+			: getSheetFormulaReferenceScalarValue(reference || ({} as SheetFormulaReferenceObj))),
+		status: 'READY' as const,
+	};
+}
+
+/*
+ * Return one supported scalar value for a data table query condition.
+ */
+function getSheetFormulaDataTableQueryConditionValueState(params: {
+	cell: SheetCellGQL;
+	cellsByCoord: Map<string, SheetCellGQL>;
+	node: SheetFormulaASTNode;
+	now: Date;
+	referencesById?: Map<string, SheetFormulaReferenceObj> | null;
+	timeZone: string;
+}) {
+	if (params.node.kind === 'STRING_LITERAL' || params.node.kind === 'NUMBER_LITERAL' || params.node.kind === 'BOOLEAN_LITERAL') {
+		return {
+			status: 'READY' as const,
+			value: params.node.value,
+		};
+	}
+
+	if (params.node.kind === 'DATE_TIME_SHORTHAND') {
+		return {
+			keyValue: getSheetFormulaDateTimeShorthandKeyValue(params.node.name, params.now, params.timeZone),
+			status: 'READY' as const,
+			value: getSheetFormulaDateTimeShorthandValue(params.node.name, params.now, params.timeZone),
+		};
+	}
+
+	if (params.node.kind !== 'CELL_REFERENCE') {
+		return {
+			error: getSheetFormulaEvaluationError('INVALID_FORMULA', 'Data table query conditions must use literal values or sheet cell references.'),
+			status: 'ERROR' as const,
+		};
+	}
+
+	const reference = findSheetFormulaCellReference(params.cell, params.node, params.referencesById);
+	if (reference?.status === 'LOADING') {
+		return {
+			status: 'LOADING' as const,
+		};
+	}
+
+	if (reference?.status === 'ERROR') {
+		return {
+			error: getSheetFormulaEvaluationError(reference.error?.code || 'INVALID_FORMULA', reference.error?.message || 'Formula dependency is invalid.'),
+			status: 'ERROR' as const,
+		};
+	}
+
+	const coordKey = getSheetCanvasCoordKey(params.node.reference.rowIndex, params.node.reference.columnIndex);
+	const targetCell = params.cellsByCoord.get(coordKey);
+	if (sheetCellCanClientCalculateFormula(targetCell)) {
+		return {
+			error: getSheetFormulaEvaluationError('INVALID_FORMULA', 'Formula references cannot use another formula cell as a dependency.'),
+			status: 'ERROR' as const,
+		};
+	}
+
+	return {
+		status: 'READY' as const,
+		value: targetCell
+			? getSheetFormulaCellScalarValue(targetCell)
+			: getSheetFormulaReferenceScalarValue(reference || ({} as SheetFormulaReferenceObj)),
+	};
+}
+
+/*
+ * Return the current query-condition value signature for a data table query node.
+ */
+function getSheetFormulaDataTableQueryConditionKeyState(params: {
+	cell: SheetCellGQL;
+	cellsByCoord: Map<string, SheetCellGQL>;
+	node: Extract<SheetFormulaASTNode, { kind: 'DATA_TABLE_QUERY' }>;
+	now: Date;
+	referencesById?: Map<string, SheetFormulaReferenceObj> | null;
+	timeZone: string;
+}) {
+	const values: Array<{ cellKey: string; keyValue?: unknown; operator: SheetFormulaDataTableQueryOperator; value: unknown }> = [];
+
+	for (const condition of params.node.query.conditions) {
+		const valueState = getSheetFormulaDataTableQueryConditionValueState({
+			cell: params.cell,
+			cellsByCoord: params.cellsByCoord,
+			node: condition.valueNode,
+			now: params.now,
+			referencesById: params.referencesById,
+			timeZone: params.timeZone,
+		});
+		if (valueState.status !== 'READY') {
+			return valueState;
+		}
+
+		values.push({
+			cellKey: condition.cellKey,
+			keyValue: valueState.keyValue,
+			operator: condition.operator,
+			value: valueState.value,
+		});
+	}
+
+	return {
+		conditionKey: getSheetFormulaDataTableQueryConditionKey(values),
 		status: 'READY' as const,
 	};
 }
@@ -335,11 +476,15 @@ function getSheetFormulaDataTableRowIdentifierState(params: {
  */
 export function getSheetFormulaReferencesNeedingServerResolution(params: {
 	cellsByCoord: Map<string, SheetCellGQL>;
+	now?: Date | null;
 	references?: SheetFormulaReferenceObj[] | null;
 	referencesById?: Map<string, SheetFormulaReferenceObj> | null;
+	timeZone?: string | null;
 }) {
 	const referencesById = params.referencesById || getSheetFormulaReferencesById(params.references);
 	const referencesToResolve = new Map<string, SheetFormulaReferenceObj>();
+	const now = params.now || new Date();
+	const timeZone = isValidTimeZone(params.timeZone) ? params.timeZone || DEFAULT_TIMEZONE : DEFAULT_TIMEZONE;
 
 	(params.references || []).forEach((reference) => {
 		if (!reference?.id) {
@@ -357,6 +502,45 @@ export function getSheetFormulaReferencesNeedingServerResolution(params: {
 			Array.isArray(resolvedReference.cells)
 		) {
 			referencesToResolve.set(reference.id, resolvedReference);
+			return;
+		}
+
+		if (resolvedReference.kind === 'DATA_TABLE_QUERY_CELL') {
+			const node = resolvedReference.text ? parseSheetFormulaExpression(resolvedReference.text) : null;
+			if (node?.kind !== 'DATA_TABLE_QUERY') {
+				return;
+			}
+
+			const queryState = getSheetFormulaDataTableQueryConditionKeyState({
+				cell: {
+					formula: {
+						engine: 'client',
+						references: params.references || [],
+						text: `=${resolvedReference.text}`,
+						version: 0,
+					},
+				},
+				cellsByCoord: params.cellsByCoord,
+				node,
+				now,
+				referencesById,
+				timeZone,
+			});
+			if (queryState.status !== 'READY') {
+				referencesToResolve.set(reference.id, {
+					...resolvedReference,
+					status: 'LOADING',
+				});
+				return;
+			}
+
+			if (queryState.conditionKey !== (resolvedReference.rowIdentifier || '')) {
+				referencesToResolve.set(reference.id, {
+					...resolvedReference,
+					rowIdentifier: queryState.conditionKey,
+					status: 'LOADING',
+				});
+			}
 			return;
 		}
 
@@ -451,6 +635,30 @@ function findSheetFormulaDataTableReference(
 	return getSheetFormulaCellReferences(cell, referencesById).find((reference) => {
 		return reference.kind === 'DATA_TABLE_CELL' && reference.text === node.text;
 	});
+}
+
+/*
+ * Return the runtime formula reference matching one data table query node.
+ */
+function findSheetFormulaDataTableQueryReference(
+	cell: SheetCellGQL,
+	node: Extract<SheetFormulaASTNode, { kind: 'DATA_TABLE_QUERY' }>,
+	referencesById?: Map<string, SheetFormulaReferenceObj> | null,
+) {
+	return getSheetFormulaCellReferences(cell, referencesById).find((reference) => {
+		return reference.kind === 'DATA_TABLE_QUERY_CELL' && reference.text === node.text;
+	});
+}
+
+/*
+ * Return the scalar result value from one resolved server formula reference.
+ */
+function getSheetFormulaReferenceScalarValue(reference: SheetFormulaReferenceObj) {
+	return reference.numberValue !== null && reference.numberValue !== undefined
+		? reference.numberValue
+		: reference.booleanValue !== null && reference.booleanValue !== undefined
+		? reference.booleanValue
+		: reference.dateValue || reference.datetimeValue || reference.textValue || reference.value || null;
 }
 
 /*
@@ -763,6 +971,13 @@ function evaluateSheetFormulaNode(params: {
 		};
 	}
 
+	if (params.node.kind === 'DATE_TIME_SHORTHAND') {
+		return {
+			keyValue: getSheetFormulaDateTimeShorthandKeyValue(params.node.name, params.now, params.timeZone),
+			value: getSheetFormulaDateTimeShorthandValue(params.node.name, params.now, params.timeZone),
+		};
+	}
+
 	if (params.node.kind === 'CELL_REFERENCE') {
 		const reference = findSheetFormulaCellReference(params.cell, params.node, params.referencesById);
 		if (reference?.status === 'LOADING') {
@@ -851,6 +1066,54 @@ function evaluateSheetFormulaNode(params: {
 		};
 	}
 
+	if (params.node.kind === 'DATA_TABLE_QUERY') {
+		const dataTableReference = findSheetFormulaDataTableQueryReference(params.cell, params.node, params.referencesById);
+		const queryState = getSheetFormulaDataTableQueryConditionKeyState({
+			cell: params.cell,
+			cellsByCoord: params.cellsByCoord,
+			node: params.node,
+			now: params.now,
+			referencesById: params.referencesById,
+			timeZone: params.timeZone,
+		});
+		if (queryState.status === 'LOADING') {
+			return {
+				loading: true,
+				value: null,
+			};
+		}
+
+		if (queryState.status === 'ERROR') {
+			return getSheetFormulaErrorResult(queryState.error?.code || 'INVALID_FORMULA', queryState.error?.message || 'Formula dependency is invalid.');
+		}
+
+		if (!dataTableReference || queryState.conditionKey !== (dataTableReference.rowIdentifier || '')) {
+			return {
+				loading: true,
+				value: null,
+			};
+		}
+
+		if (dataTableReference.status === 'LOADING') {
+			return {
+				loading: true,
+				value: null,
+			};
+		}
+
+		if (dataTableReference.status === 'NOT_FOUND') {
+			return getSheetFormulaErrorResult('NOT_FOUND', dataTableReference.error?.message || 'Formula data table query could not be resolved.');
+		}
+
+		if (dataTableReference.status === 'ERROR') {
+			return getSheetFormulaErrorResult(dataTableReference.error?.code || 'INVALID_FORMULA', dataTableReference.error?.message || 'Formula dependency is invalid.');
+		}
+
+		return {
+			value: getSheetFormulaReferenceScalarValue(dataTableReference),
+		};
+	}
+
 	if (params.node.kind === 'FUNCTION_CALL') {
 		const dataTableReference = findSheetFormulaDataTableReference(params.cell, params.node, params.referencesById);
 		if (dataTableReference) {
@@ -894,11 +1157,7 @@ function evaluateSheetFormulaNode(params: {
 			}
 
 			return {
-				value: dataTableReference.numberValue !== null && dataTableReference.numberValue !== undefined
-					? dataTableReference.numberValue
-					: dataTableReference.booleanValue !== null && dataTableReference.booleanValue !== undefined
-					? dataTableReference.booleanValue
-					: dataTableReference.dateValue || dataTableReference.datetimeValue || dataTableReference.textValue || dataTableReference.value || null,
+				value: getSheetFormulaReferenceScalarValue(dataTableReference),
 			};
 		}
 
@@ -995,7 +1254,7 @@ function evaluateSheetCellFormulaValue(params: {
 			stack: params.stack,
 			timeZone: params.timeZone,
 		})
-		: getSheetFormulaErrorResult('INVALID_FORMULA', 'Formula syntax is not supported.');
+		: getSheetFormulaErrorResult('INVALID_FORMULA', getSheetFormulaSyntaxErrorMessage(getSheetFormulaExpression(formulaText)));
 }
 
 /*

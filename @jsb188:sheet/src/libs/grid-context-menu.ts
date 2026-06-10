@@ -63,6 +63,7 @@ export function useGridContextMenu<Target extends GridContextMenuTargetBase>(par
 		activeTargetRef.current = target;
 		openPopOver({
 			animationClassName: 'anim_dropdown_top_right on_mount spd_0',
+			dismissOnExternalScroll: true,
 			doNotFixToBottom: true,
 			id: getGridContextMenuPopOverId(contextMenuId, target),
 			name: 'PO_LIST',

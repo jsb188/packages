@@ -6,7 +6,6 @@ import {
 	type ChangeEventHandler,
 	type FocusEventHandler,
 	type MouseEventHandler,
-	type ReactNode,
 	type RefCallback,
 	type SyntheticEvent,
 } from 'react';
@@ -18,6 +17,9 @@ import type {
 	SheetRegionSortQueryHighlightChunk,
 	SheetRegionSortQueryPart,
 } from '../libs/sheet-region-sort-query.ts';
+import { SHEET_TEXT_INPUT_LAYOUT_STYLE } from '../libs/sheet-text-input-style.ts';
+import { SheetSemanticInputOverlay } from './SheetSemanticInputOverlay.tsx';
+import type { SheetSemanticInputTipPosition } from '../libs/sheet-semantic-input.ts';
 
 export type SheetRegionFiltersInputMode = 'filter' | 'sort' | 'limit';
 
@@ -31,10 +33,7 @@ export type SheetRegionFiltersInputUITab = {
 	mode: SheetRegionFiltersInputMode;
 };
 
-export type SheetRegionFiltersInputUITipPosition = {
-	left: number;
-	top: number;
-};
+export type SheetRegionFiltersInputUITipPosition = SheetSemanticInputTipPosition;
 
 export type SheetRegionFiltersInputUIProps = {
 	activeMode: SheetRegionFiltersInputMode;
@@ -62,15 +61,8 @@ export type SheetRegionFiltersInputUIProps = {
 };
 
 const SHEET_REGION_FILTER_INPUT_PADDING = '0 8px';
-const SHEET_REGION_FILTER_TEXT_LAYOUT_STYLE: CSSProperties = {
-	fontFeatureSettings: '"liga" 0, "clig" 0, "calt" 0',
-	fontKerning: 'none',
-	fontVariantLigatures: 'none',
-	letterSpacing: 0,
-	textRendering: 'geometricPrecision',
-};
 const SHEET_REGION_FILTER_MIRROR_STYLE: CSSProperties = {
-	...SHEET_REGION_FILTER_TEXT_LAYOUT_STYLE,
+	...SHEET_TEXT_INPUT_LAYOUT_STYLE,
 	border: '1px solid transparent',
 	boxSizing: 'border-box',
 	color: 'rgb(var(--color-default))',
@@ -84,7 +76,7 @@ const SHEET_REGION_FILTER_MIRROR_STYLE: CSSProperties = {
 	zIndex: 1,
 };
 const SHEET_REGION_FILTER_INPUT_STYLE: CSSProperties = {
-	...SHEET_REGION_FILTER_TEXT_LAYOUT_STYLE,
+	...SHEET_TEXT_INPUT_LAYOUT_STYLE,
 	position: 'relative',
 	width: '100%',
 	zIndex: 2,
@@ -107,17 +99,6 @@ const SHEET_REGION_FILTER_PART_HIGHLIGHTS: Record<SheetRegionFiltersInputHighlig
 };
 
 /*
- * Return inline styles for the horizontally shifted filter query mirror content.
- */
-function getSheetRegionFilterMirrorContentStyle(scrollLeft: number): CSSProperties {
-	return {
-		display: 'inline-block',
-		minWidth: '100%',
-		transform: `translateX(${-scrollLeft}px)`,
-	};
-}
-
-/*
  * Return inline styles for one highlighted filter query part.
  */
 function getSheetRegionFilterHighlightStyle(part: SheetRegionFiltersInputHighlightPart): CSSProperties {
@@ -135,36 +116,6 @@ function getSheetRegionFilterHighlightStyle(part: SheetRegionFiltersInputHighlig
  */
 function getSheetRegionFilterInputStyle(hasHighlights: boolean): CSSProperties {
 	return hasHighlights ? SHEET_REGION_FILTER_HIGHLIGHT_INPUT_STYLE : SHEET_REGION_FILTER_INPUT_STYLE;
-}
-
-/*
- * Render mirrored filter query text with highlighted semantic spans.
- */
-function renderSheetRegionFilterHighlightedText(chunks: SheetRegionFiltersInputHighlightChunk[]) {
-	const children: ReactNode[] = [];
-
-	chunks.forEach((chunk, index) => {
-		if (chunk.kind === 'text') {
-			children.push(
-				<span key={`text_${chunk.startIndex}_${chunk.endIndex}_${index}`}>
-					{chunk.text}
-				</span>,
-			);
-			return;
-		}
-
-		children.push(
-			<span
-				data-sheet-region-filter-part-index={chunk.partIndex}
-				key={`part_${chunk.partIndex}_${chunk.startIndex}_${chunk.endIndex}`}
-				style={getSheetRegionFilterHighlightStyle(chunk.part)}
-			>
-				{chunk.text}
-			</span>,
-		);
-	});
-
-	return children;
 }
 
 /*
@@ -218,30 +169,11 @@ function getSheetRegionFilterTipDescription(part: SheetRegionFiltersInputHighlig
 /*
  * Render the small tip popover for one active highlighted query part.
  */
-function renderSheetRegionFilterTip(part?: SheetRegionFiltersInputHighlightPart | null, position?: SheetRegionFiltersInputUITipPosition | null) {
-	if (!part || !position) {
-		return null;
-	}
-
-	return (
-		<div
-			className='abs z9 bg bd_1 shadow r_sm ft_xs px_10 py_10 pb_12 max_w_250'
-			data-sheet-region-filter-tip='true'
-			onMouseDown={(event) => event.preventDefault()}
-			style={{
-				left: position.left,
-				pointerEvents: 'auto',
-				top: position.top,
-			}}
-		>
-			<div className='ft_medium mb_3'>
-				{getSheetRegionFilterTipTitle(part)}
-			</div>
-			<div className='cl_md'>
-				{getSheetRegionFilterTipDescription(part)}
-			</div>
-		</div>
-	);
+function getSheetRegionFilterPartGuide(part: SheetRegionFiltersInputHighlightPart) {
+	return {
+		description: getSheetRegionFilterTipDescription(part),
+		title: getSheetRegionFilterTipTitle(part),
+	};
 }
 
 /*
@@ -309,15 +241,15 @@ export const SheetRegionFiltersInputUI = memo((p: SheetRegionFiltersInputUIProps
 						onMouseMove={p.onInputMouseMove}
 					>
 						{hasHighlights ? (
-							<span
-								aria-hidden='true'
-								data-sheet-region-filter-highlight='true'
-								style={SHEET_REGION_FILTER_MIRROR_STYLE}
-							>
-								<span style={getSheetRegionFilterMirrorContentStyle(p.inputScrollLeft || 0)}>
-									{renderSheetRegionFilterHighlightedText(highlightChunks)}
-								</span>
-							</span>
+							<SheetSemanticInputOverlay<SheetRegionFiltersInputHighlightPart>
+								activePart={p.activeHighlightPart}
+								chunks={highlightChunks}
+								getPartGuide={getSheetRegionFilterPartGuide}
+								getPartHighlightStyle={getSheetRegionFilterHighlightStyle}
+								inputScrollLeft={p.inputScrollLeft}
+								mirrorStyle={SHEET_REGION_FILTER_MIRROR_STYLE}
+								tipPosition={p.tipPosition}
+							/>
 						) : null}
 						<input
 							className='h_36 px_8 bg bd_1 bd_lt r_xs cl_df f'
@@ -337,7 +269,6 @@ export const SheetRegionFiltersInputUI = memo((p: SheetRegionFiltersInputUIProps
 							onScroll={p.onInputActivity}
 							onSelect={p.onInputActivity}
 						/>
-						{renderSheetRegionFilterTip(p.activeHighlightPart, p.tipPosition)}
 					</span>
 				</label>
 			</div>

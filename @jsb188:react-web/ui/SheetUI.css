@@ -75,7 +75,7 @@ We're not going to show border on editing HEADER cells because:
   bottom: -1px;
   border: 1px solid var(--color-contrast);
   pointer-events: none;
-  z-index: 1;
+  z-index: 31;
 }
 
 .sheet_ui_cell.not_editable::before {

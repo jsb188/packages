@@ -1,8 +1,11 @@
 import {
+	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATION_COLUMNS,
+	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
 	SHEET_CELL_SOURCE_TYPE_ENUMS,
 	SHEET_DEFAULT_COLUMN_COUNT,
 	SHEET_DEFAULT_ROW_COUNT,
 	SHEET_REGION_CONFLICT_POLICY_ENUMS,
+	SHEET_REGION_SOURCE_TYPE_ENUMS,
 	SHEET_REGION_TYPE_ENUMS,
 	SHEET_STRUCTURE_OPERATION_ENUMS,
 	SHEET_VIEWPORT_MAX_COLUMNS,
@@ -18,6 +21,8 @@ import type {
 	SheetGridViewportObj,
 	SheetRangeData,
 	SheetRegionConflictPolicyEnum,
+	SheetRegionSourceTypeEnum,
+	SheetCustomRegionSourceColumnObj,
 	SheetRegionTypeEnum,
 	SheetStructureOperationEnum,
 } from '../types/sheet.d.ts';
@@ -95,6 +100,39 @@ export type SheetFormulaDataTableCall = {
 	text: string;
 };
 
+export type SheetFormulaDataTableQueryOperator =
+	| '!='
+	| '<'
+	| '<='
+	| '<>'
+	| '='
+	| '>'
+	| '>=';
+
+export type SheetFormulaDateTimeShorthandName =
+	| 'CURRENT_DATE'
+	| 'CURRENT_DATETIME';
+
+export type SheetFormulaDataTableQueryCondition = {
+	cellKey: string;
+	operator: SheetFormulaDataTableQueryOperator;
+	text: string;
+	valueExpression: string;
+	valueNode: SheetFormulaASTNode;
+};
+
+export type SheetFormulaDataTableQueryCall = {
+	cellKey: string;
+	conditions: SheetFormulaDataTableQueryCondition[];
+	dataTableName: string;
+	text: string;
+};
+
+export type SheetFormulaSyntaxIssue = {
+	message: string;
+	text?: string | null;
+};
+
 export type SheetFormulaASTNode =
 	| {
 		kind: 'BOOLEAN_LITERAL';
@@ -110,6 +148,16 @@ export type SheetFormulaASTNode =
 		args: SheetFormulaASTNode[];
 		kind: 'FUNCTION_CALL';
 		name: string;
+		text: string;
+	}
+	| {
+		kind: 'DATA_TABLE_QUERY';
+		query: SheetFormulaDataTableQueryCall;
+		text: string;
+	}
+	| {
+		kind: 'DATE_TIME_SHORTHAND';
+		name: SheetFormulaDateTimeShorthandName;
 		text: string;
 	}
 	| {
@@ -176,10 +224,26 @@ export type SheetFormulaReferenceToken =
 		endIndex: number;
 		kind: 'DATA_TABLE_CELL';
 		startIndex: number;
+	}
+	| SheetFormulaDataTableQueryCall & {
+		endIndex: number;
+		kind: 'DATA_TABLE_QUERY_CELL';
+		startIndex: number;
 	};
 
 const SHEET_CELL_BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 const SHEET_CELL_BORDER_STYLE_VALUES = ['solid', 'dashed', 'dotted', 'double'] as const;
+const SHEET_FORMULA_STRING_QUOTE_CHARS = ['"', "'", '`'] as const;
+const SHEET_FORMULA_BARE_DATA_TABLE_CELL_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const SHEET_FORMULA_BARE_STRING_VALUE_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+const SHEET_FORMULA_ISO_DATE_VALUE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:[T ][0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?:Z|[+-][0-9]{2}:[0-9]{2})?)?$/;
+
+/*
+ * Return whether one character starts a supported formula string literal.
+ */
+function isSheetFormulaStringQuoteChar(char?: string): char is typeof SHEET_FORMULA_STRING_QUOTE_CHARS[number] {
+	return SHEET_FORMULA_STRING_QUOTE_CHARS.includes(char as typeof SHEET_FORMULA_STRING_QUOTE_CHARS[number]);
+}
 
 /*
  * Return a plain object from flexible saved Sheet style input.
@@ -349,6 +413,11 @@ function isSheetFormulaIdentifierChar(char?: string) {
  * Return the index after a quoted string literal in formula text.
  */
 function getSheetFormulaStringEndIndex(value: string, startIndex: number) {
+	const quoteChar = value[startIndex];
+	if (!isSheetFormulaStringQuoteChar(quoteChar)) {
+		return startIndex;
+	}
+
 	let escaped = false;
 
 	for (let index = startIndex + 1; index < value.length; index += 1) {
@@ -364,7 +433,7 @@ function getSheetFormulaStringEndIndex(value: string, startIndex: number) {
 			continue;
 		}
 
-		if (char === '"') {
+		if (char === quoteChar) {
 			return index + 1;
 		}
 	}
@@ -382,7 +451,7 @@ function getSheetFormulaCallEndIndex(value: string, openParenIndex: number) {
 	while (index < value.length) {
 		const char = value[index];
 
-		if (char === '"') {
+		if (isSheetFormulaStringQuoteChar(char)) {
 			index = getSheetFormulaStringEndIndex(value, index);
 			continue;
 		}
@@ -414,7 +483,7 @@ export function splitSheetFormulaTopLevel(value: string, separator: string) {
 	const parts: string[] = [];
 	let current = '';
 	let depth = 0;
-	let quoted = false;
+	let quoteChar: string | null = null;
 	let escaped = false;
 
 	for (let index = 0; index < value.length; index += 1) {
@@ -426,33 +495,102 @@ export function splitSheetFormulaTopLevel(value: string, separator: string) {
 			continue;
 		}
 
-		if (char === '\\' && quoted) {
+		if (char === '\\' && quoteChar) {
 			current += char;
 			escaped = true;
 			continue;
 		}
 
-		if (char === '"') {
-			quoted = !quoted;
+		if (quoteChar ? char === quoteChar : isSheetFormulaStringQuoteChar(char)) {
+			quoteChar = quoteChar ? null : char;
 			current += char;
 			continue;
 		}
 
-		if (!quoted && char === '(') {
+		if (!quoteChar && char === '(') {
 			depth += 1;
 			current += char;
 			continue;
 		}
 
-		if (!quoted && char === ')') {
+		if (!quoteChar && char === ')') {
 			depth = Math.max(0, depth - 1);
 			current += char;
 			continue;
 		}
 
-		if (!quoted && depth === 0 && char === separator) {
+		if (!quoteChar && depth === 0 && char === separator) {
 			parts.push(current.trim());
 			current = '';
+			continue;
+		}
+
+		current += char;
+	}
+
+	parts.push(current.trim());
+	return parts;
+}
+
+/*
+ * Return whether a keyword starts at one index with non-identifier boundaries.
+ */
+function isSheetFormulaTopLevelKeywordAtIndex(value: string, index: number, keyword: string) {
+	const previousChar = value[index - 1];
+	const nextChar = value[index + keyword.length];
+
+	return value.slice(index, index + keyword.length).toLowerCase() === keyword.toLowerCase() &&
+		!isSheetFormulaIdentifierChar(previousChar) &&
+		!isSheetFormulaIdentifierChar(nextChar);
+}
+
+/*
+ * Split a formula string on one top-level keyword while respecting strings and calls.
+ */
+function splitSheetFormulaTopLevelKeyword(value: string, keyword: string) {
+	const parts: string[] = [];
+	let current = '';
+	let depth = 0;
+	let quoteChar: string | null = null;
+	let escaped = false;
+
+	for (let index = 0; index < value.length; index += 1) {
+		const char = value[index];
+
+		if (escaped) {
+			current += char;
+			escaped = false;
+			continue;
+		}
+
+		if (char === '\\' && quoteChar) {
+			current += char;
+			escaped = true;
+			continue;
+		}
+
+		if (quoteChar ? char === quoteChar : isSheetFormulaStringQuoteChar(char)) {
+			quoteChar = quoteChar ? null : char;
+			current += char;
+			continue;
+		}
+
+		if (!quoteChar && char === '(') {
+			depth += 1;
+			current += char;
+			continue;
+		}
+
+		if (!quoteChar && char === ')') {
+			depth = Math.max(0, depth - 1);
+			current += char;
+			continue;
+		}
+
+		if (!quoteChar && depth === 0 && isSheetFormulaTopLevelKeywordAtIndex(value, index, keyword)) {
+			parts.push(current.trim());
+			current = '';
+			index += keyword.length - 1;
 			continue;
 		}
 
@@ -475,7 +613,7 @@ function parseSheetFormulaOperatorTerms<Operator extends string>(params: {
 	const operatorSet = new Set<string>(params.operators);
 	let current = '';
 	let depth = 0;
-	let quoted = false;
+	let quoteChar: string | null = null;
 	let escaped = false;
 	let operator = params.defaultOperator;
 
@@ -488,25 +626,25 @@ function parseSheetFormulaOperatorTerms<Operator extends string>(params: {
 			continue;
 		}
 
-		if (char === '\\' && quoted) {
+		if (char === '\\' && quoteChar) {
 			current += char;
 			escaped = true;
 			continue;
 		}
 
-		if (char === '"') {
-			quoted = !quoted;
+		if (quoteChar ? char === quoteChar : isSheetFormulaStringQuoteChar(char)) {
+			quoteChar = quoteChar ? null : char;
 			current += char;
 			continue;
 		}
 
-		if (!quoted && char === '(') {
+		if (!quoteChar && char === '(') {
 			depth += 1;
 			current += char;
 			continue;
 		}
 
-		if (!quoted && char === ')') {
+		if (!quoteChar && char === ')') {
 			if (depth <= 0) {
 				return null;
 			}
@@ -516,7 +654,7 @@ function parseSheetFormulaOperatorTerms<Operator extends string>(params: {
 			continue;
 		}
 
-		if (!quoted && depth === 0 && operatorSet.has(char)) {
+		if (!quoteChar && depth === 0 && operatorSet.has(char)) {
 			const expression = current.trim();
 			const previousChar = current.trimEnd().slice(-1);
 
@@ -541,7 +679,7 @@ function parseSheetFormulaOperatorTerms<Operator extends string>(params: {
 		current += char;
 	}
 
-	if (quoted || depth !== 0) {
+	if (quoteChar || depth !== 0) {
 		return null;
 	}
 
@@ -581,20 +719,65 @@ export function parseSheetFormulaMultiplicativeTerms(value: string) {
 }
 
 /*
- * Parse a double-quoted formula string literal.
+ * Return a decoded escape sequence for a flexible formula string literal.
+ */
+function getSheetFormulaStringEscapeValue(char: string) {
+	switch (char) {
+		case 'n':
+			return '\n';
+		case 'r':
+			return '\r';
+		case 't':
+			return '\t';
+		default:
+			return char;
+	}
+}
+
+/*
+ * Parse a formula string literal quoted with double quotes, single quotes, or backticks.
  */
 export function parseSheetFormulaStringLiteral(value: string) {
 	const trimmed = value.trim();
-	if (!/^"(?:[^"\\]|\\.)*"$/.test(trimmed)) {
+	const quoteChar = trimmed[0];
+	if (!isSheetFormulaStringQuoteChar(quoteChar) || trimmed[trimmed.length - 1] !== quoteChar) {
 		return null;
 	}
 
-	try {
-		const parsed = JSON.parse(trimmed);
-		return typeof parsed === 'string' ? parsed : null;
-	} catch {
-		return null;
+	if (quoteChar === '"') {
+		try {
+			const parsed = JSON.parse(trimmed);
+			return typeof parsed === 'string' ? parsed : null;
+		} catch {
+			return null;
+		}
 	}
+
+	let escaped = false;
+	let result = '';
+
+	for (let index = 1; index < trimmed.length - 1; index += 1) {
+		const char = trimmed[index];
+
+		if (escaped) {
+			result += getSheetFormulaStringEscapeValue(char);
+			escaped = false;
+			continue;
+		}
+
+		if (char === '\\') {
+			escaped = true;
+			continue;
+		}
+
+		if (char === quoteChar) {
+			return null;
+		}
+
+		result += char;
+	}
+
+	return escaped ? null : result;
 }
 
 /*
@@ -722,7 +905,7 @@ export function parseSheetFormulaRangeReference(value: string): SheetFormulaRang
  * Return a parsed string literal node at the current parser position.
  */
 function parseSheetFormulaStringNode(state: SheetFormulaParserState): SheetFormulaASTNode | null {
-	if (state.value[state.index] !== '"') {
+	if (!isSheetFormulaStringQuoteChar(state.value[state.index])) {
 		return null;
 	}
 
@@ -801,6 +984,47 @@ function parseSheetFormulaFunctionArguments(state: SheetFormulaParserState) {
 }
 
 /*
+ * Return a parsed data table lookup function node with a normalized field-key argument.
+ */
+function parseSheetFormulaDataTableFunctionCallNode(
+	state: SheetFormulaParserState,
+	name: string,
+	startIndex: number,
+): Extract<SheetFormulaASTNode, { kind: 'FUNCTION_CALL' }> | null {
+	if (!name.startsWith('@')) {
+		return null;
+	}
+
+	const endIndex = getSheetFormulaCallEndIndex(state.value, state.index);
+	if (!endIndex) {
+		return null;
+	}
+
+	const text = state.value.slice(startIndex, endIndex).trim();
+	const dataTableCall = parseSheetFormulaDataTableCall(text);
+	const call = dataTableCall ? parseSheetFormulaCall(text) : null;
+	const rowIdentifierNode = dataTableCall ? parseSheetFormulaExpression(dataTableCall.rowIdentifierExpression) : null;
+	if (!dataTableCall || !call || !rowIdentifierNode) {
+		return null;
+	}
+
+	state.index = endIndex;
+	return {
+		args: [
+			rowIdentifierNode,
+			{
+				kind: 'STRING_LITERAL',
+				text: call.args[1].trim(),
+				value: dataTableCall.cellKey,
+			},
+		],
+		kind: 'FUNCTION_CALL',
+		name,
+		text,
+	};
+}
+
+/*
  * Return a parsed function call node for one already-read function name.
  */
 function parseSheetFormulaFunctionCallNode(
@@ -873,7 +1097,8 @@ function parseSheetFormulaIdentifierNode(state: SheetFormulaParserState): SheetF
 
 	skipSheetFormulaParserWhitespace(state);
 	if (state.value[state.index] === '(') {
-		return parseSheetFormulaFunctionCallNode(state, name, startIndex);
+		return parseSheetFormulaDataTableFunctionCallNode(state, name, startIndex) ||
+			parseSheetFormulaFunctionCallNode(state, name, startIndex);
 	}
 
 	if (/^(?:true|false)$/i.test(name)) {
@@ -1016,6 +1241,15 @@ function parseSheetFormulaComparisonExpression(state: SheetFormulaParserState): 
  * Parse one full formula expression into an AST node.
  */
 export function parseSheetFormulaExpression(value: string): SheetFormulaASTNode | null {
+	const dataTableQuery = parseSheetFormulaDataTableQueryCall(value);
+	if (dataTableQuery) {
+		return {
+			kind: 'DATA_TABLE_QUERY',
+			query: dataTableQuery,
+			text: dataTableQuery.text,
+		};
+	}
+
 	const state = {
 		index: 0,
 		value: value.trim(),
@@ -1083,6 +1317,23 @@ export function parseSheetFormulaCall(value: string, functionName?: string | nul
 }
 
 /*
+ * Parse a data table field key expression, keeping cell-like values as cell references.
+ */
+function parseSheetFormulaDataTableCellKeyExpression(value: string) {
+	const trimmed = value.trim();
+	const stringLiteral = parseSheetFormulaStringLiteral(trimmed);
+	if (stringLiteral !== null) {
+		return stringLiteral;
+	}
+
+	if (!SHEET_FORMULA_BARE_DATA_TABLE_CELL_KEY_PATTERN.test(trimmed) || parseSheetFormulaCellReference(trimmed)) {
+		return null;
+	}
+
+	return trimmed;
+}
+
+/*
  * Parse a data table formula call such as @organizations("row", "category") or organizations("row", "category").
  */
 export function parseSheetFormulaDataTableCall(value: string): SheetFormulaDataTableCall | null {
@@ -1096,7 +1347,7 @@ export function parseSheetFormulaDataTableCall(value: string): SheetFormulaDataT
 		return null;
 	}
 
-	const cellKey = parseSheetFormulaStringLiteral(call.args[1]);
+	const cellKey = parseSheetFormulaDataTableCellKeyExpression(call.args[1]);
 	if (!cellKey) {
 		return null;
 	}
@@ -1106,6 +1357,391 @@ export function parseSheetFormulaDataTableCall(value: string): SheetFormulaDataT
 		dataTableName,
 		rowIdentifierExpression: call.args[0],
 		text: call.text,
+	};
+}
+
+/*
+ * Return the canonical formula date/time shorthand name for a bare or called identifier.
+ */
+function normalizeSheetFormulaDateTimeShorthandName(value: string): SheetFormulaDateTimeShorthandName | null {
+	const normalized = value.trim().toUpperCase();
+
+	if (normalized === 'TODAY' || normalized === 'CURRENT_DATE') {
+		return 'CURRENT_DATE';
+	}
+
+	if (normalized === 'NOW' || normalized === 'CURRENT_DATETIME') {
+		return 'CURRENT_DATETIME';
+	}
+
+	return null;
+}
+
+/*
+ * Parse a supported query date/time shorthand such as TODAY or NOW().
+ */
+export function parseSheetFormulaDateTimeShorthand(value: string): Extract<SheetFormulaASTNode, { kind: 'DATE_TIME_SHORTHAND' }> | null {
+	const trimmed = value.trim();
+	const call = parseSheetFormulaCall(trimmed);
+	const isEmptyCall = call ? call.args.length === 0 || (call.args.length === 1 && call.args[0].trim() === '') : false;
+	const shorthandName = call
+		? isEmptyCall ? normalizeSheetFormulaDateTimeShorthandName(call.name) : null
+		: normalizeSheetFormulaDateTimeShorthandName(trimmed);
+
+	return shorthandName
+		? {
+			kind: 'DATE_TIME_SHORTHAND',
+			name: shorthandName,
+			text: trimmed,
+		}
+		: null;
+}
+
+/*
+ * Parse a query condition's left-side dataTable cell key.
+ */
+function parseSheetFormulaDataTableQueryConditionCellKey(value: string) {
+	const trimmed = value.trimStart();
+	const offset = value.length - trimmed.length;
+
+	if (isSheetFormulaStringQuoteChar(trimmed[0])) {
+		const endIndex = getSheetFormulaStringEndIndex(trimmed, 0);
+		const text = trimmed.slice(0, endIndex);
+		const cellKey = parseSheetFormulaStringLiteral(text);
+		return cellKey
+			? {
+				cellKey,
+				endIndex: offset + endIndex,
+			}
+			: null;
+	}
+
+	const match = trimmed.match(/^[A-Za-z_][A-Za-z0-9_]*/);
+	return match
+		? {
+			cellKey: match[0],
+			endIndex: offset + match[0].length,
+		}
+		: null;
+}
+
+/*
+ * Parse a query condition value using the flexible data-table query grammar.
+ */
+function parseSheetFormulaDataTableQueryValueExpression(value: string): SheetFormulaASTNode | null {
+	const trimmed = value.trim();
+	if (!trimmed) {
+		return null;
+	}
+
+	const shorthandNode = parseSheetFormulaDateTimeShorthand(trimmed);
+	if (shorthandNode) {
+		return shorthandNode;
+	}
+
+	if (SHEET_FORMULA_ISO_DATE_VALUE_PATTERN.test(trimmed)) {
+		return {
+			kind: 'STRING_LITERAL',
+			text: trimmed,
+			value: trimmed,
+		};
+	}
+
+	const expressionNode = parseSheetFormulaExpression(trimmed);
+	if (expressionNode) {
+		return expressionNode;
+	}
+
+	if (SHEET_FORMULA_BARE_STRING_VALUE_PATTERN.test(trimmed) && !parseSheetFormulaCellReference(trimmed)) {
+		return {
+			kind: 'STRING_LITERAL',
+			text: trimmed,
+			value: trimmed,
+		};
+	}
+
+	return null;
+}
+
+/*
+ * Parse one dataTable query WHERE condition.
+ */
+function parseSheetFormulaDataTableQueryCondition(value: string): SheetFormulaDataTableQueryCondition | null {
+	const cellKey = parseSheetFormulaDataTableQueryConditionCellKey(value);
+	if (!cellKey) {
+		return null;
+	}
+
+	const rest = value.slice(cellKey.endIndex).trimStart();
+	const operatorMatch = rest.match(/^(<=|>=|<>|!=|=|<|>)/);
+	if (!operatorMatch) {
+		return null;
+	}
+
+	const operator = operatorMatch[1] as SheetFormulaDataTableQueryOperator;
+	const valueExpression = rest.slice(operator.length).trim();
+	const valueNode = valueExpression ? parseSheetFormulaDataTableQueryValueExpression(valueExpression) : null;
+	if (
+		!valueNode ||
+		(
+			valueNode.kind !== 'STRING_LITERAL' &&
+			valueNode.kind !== 'NUMBER_LITERAL' &&
+			valueNode.kind !== 'BOOLEAN_LITERAL' &&
+			valueNode.kind !== 'CELL_REFERENCE' &&
+			valueNode.kind !== 'DATE_TIME_SHORTHAND'
+		)
+	) {
+		return null;
+	}
+
+	return {
+		cellKey: cellKey.cellKey,
+		operator,
+		text: value.trim(),
+		valueExpression,
+		valueNode,
+	};
+}
+
+/*
+ * Return a readable formula syntax issue for one invalid query condition.
+ */
+function getSheetFormulaDataTableQueryConditionSyntaxIssue(value: string): SheetFormulaSyntaxIssue | null {
+	const trimmed = value.trim();
+	if (!trimmed) {
+		return null;
+	}
+
+	const cellKey = parseSheetFormulaDataTableQueryConditionCellKey(value);
+	if (!cellKey) {
+		return {
+			message: 'Query conditions must start with a field key.',
+			text: trimmed,
+		};
+	}
+
+	const rest = value.slice(cellKey.endIndex).trimStart();
+	const operatorMatch = rest.match(/^(<=|>=|<>|!=|=|<|>)/);
+	if (!operatorMatch) {
+		return {
+			message: 'Query condition is missing a comparison operator such as =, !=, <, or >.',
+			text: trimmed,
+		};
+	}
+
+	const valueExpression = rest.slice(operatorMatch[1].length).trim();
+	if (!valueExpression) {
+		return {
+			message: 'Query condition is missing a value after the operator.',
+			text: trimmed,
+		};
+	}
+
+	const valueNode = parseSheetFormulaDataTableQueryValueExpression(valueExpression);
+	if (!valueNode) {
+		return {
+			message: 'Query condition value could not be parsed.',
+			text: valueExpression,
+		};
+	}
+
+	if (
+		valueNode.kind !== 'STRING_LITERAL' &&
+		valueNode.kind !== 'NUMBER_LITERAL' &&
+		valueNode.kind !== 'BOOLEAN_LITERAL' &&
+		valueNode.kind !== 'CELL_REFERENCE' &&
+		valueNode.kind !== 'DATE_TIME_SHORTHAND'
+	) {
+		return {
+			message: 'Query condition value must be a string, number, boolean, cell reference, TODAY, or NOW().',
+			text: valueExpression,
+		};
+	}
+
+	return null;
+}
+
+/*
+ * Parse AND-joined dataTable query WHERE conditions.
+ */
+function parseSheetFormulaDataTableQueryConditions(value: string) {
+	const conditionTexts = splitSheetFormulaTopLevelKeyword(value, 'AND').filter(Boolean);
+	if (!conditionTexts.length) {
+		return null;
+	}
+
+	const conditions = conditionTexts.map(parseSheetFormulaDataTableQueryCondition);
+	return conditions.every((condition): condition is SheetFormulaDataTableQueryCondition => Boolean(condition))
+		? conditions
+		: null;
+}
+
+/*
+ * Parse a data table query formula such as @orders("total") WHERE id = A1.
+ */
+export function parseSheetFormulaDataTableQueryCall(value: string): SheetFormulaDataTableQueryCall | null {
+	const trimmed = value.trim();
+	const match = trimmed.match(/^(@?[A-Za-z_][A-Za-z0-9_]*)\s*\(/);
+	if (!match) {
+		return null;
+	}
+
+	const openParenIndex = match[0].lastIndexOf('(');
+	const callEndIndex = getSheetFormulaCallEndIndex(trimmed, openParenIndex);
+	if (!callEndIndex) {
+		return null;
+	}
+
+	const call = parseSheetFormulaCall(trimmed.slice(0, callEndIndex));
+	const whereText = trimmed.slice(callEndIndex).trim();
+	if (!call || !/^WHERE\b/i.test(whereText)) {
+		return null;
+	}
+
+	const dataTableName = normalizeSheetFormulaDataTableName(call.name.startsWith('@') ? call.name.slice(1) : call.name);
+	const cellKey = call.args.length === 1 ? parseSheetFormulaDataTableCellKeyExpression(call.args[0]) : null;
+	const conditions = parseSheetFormulaDataTableQueryConditions(whereText.replace(/^WHERE\b/i, '').trim());
+	if (!dataTableName || !cellKey || !conditions) {
+		return null;
+	}
+
+	return {
+		cellKey,
+		conditions,
+		dataTableName,
+		text: trimmed,
+	};
+}
+
+/*
+ * Return syntax issues for a data table query formula that could not be parsed.
+ */
+function getSheetFormulaDataTableQuerySyntaxIssues(value: string): SheetFormulaSyntaxIssue[] {
+	const trimmed = value.trim();
+	const match = trimmed.match(/^(@?[A-Za-z_][A-Za-z0-9_]*)\s*\(/);
+	if (!match) {
+		return [];
+	}
+
+	const openParenIndex = match[0].lastIndexOf('(');
+	const callEndIndex = getSheetFormulaCallEndIndex(trimmed, openParenIndex);
+	if (!callEndIndex) {
+		return [{
+			message: 'Data table query call is missing a closing parenthesis.',
+			text: trimmed,
+		}];
+	}
+
+	const callText = trimmed.slice(0, callEndIndex);
+	const call = parseSheetFormulaCall(callText);
+	const whereText = trimmed.slice(callEndIndex).trim();
+	const issues: SheetFormulaSyntaxIssue[] = [];
+	if (!call) {
+		issues.push({
+			message: 'Data table query call could not be parsed.',
+			text: callText,
+		});
+	}
+
+	const resultKeyText = call?.args.length === 1 ? call.args[0].trim() : '';
+	if (!call || call.args.length !== 1 || parseSheetFormulaDataTableCellKeyExpression(resultKeyText) === null) {
+		issues.push({
+			message: 'Data table query result field must be a quoted or bare field key, for example @attendance(attended). Quote field keys that look like cell references.',
+			text: resultKeyText || callText,
+		});
+	}
+
+	if (!/^WHERE\b/i.test(whereText)) {
+		issues.push({
+			message: 'Data table query must include a WHERE clause after the call.',
+			text: whereText || trimmed,
+		});
+		return issues;
+	}
+
+	const conditionText = whereText.replace(/^WHERE\b/i, '').trim();
+	const conditionParts = splitSheetFormulaTopLevelKeyword(conditionText, 'AND').filter(Boolean);
+	if (!conditionParts.length) {
+		issues.push({
+			message: 'WHERE clause must include at least one condition.',
+			text: whereText,
+		});
+		return issues;
+	}
+
+	for (const conditionPart of conditionParts) {
+		const issue = getSheetFormulaDataTableQueryConditionSyntaxIssue(conditionPart);
+		if (issue) {
+			issues.push(issue);
+		}
+	}
+
+	return issues;
+}
+
+/*
+ * Return a concise syntax error message that points at the unsupported formula parts.
+ */
+export function getSheetFormulaSyntaxErrorMessage(value: string) {
+	const trimmed = value.trim();
+	const queryIssues = getSheetFormulaDataTableQuerySyntaxIssues(trimmed);
+	if (queryIssues.length) {
+		const issueText = queryIssues
+			.map((issue) => issue.text ? `${issue.text}: ${issue.message}` : issue.message)
+			.join(' ');
+
+		return `Formula syntax is not supported. ${issueText}`;
+	}
+
+	const state = {
+		index: 0,
+		value: trimmed,
+	};
+	const node = parseSheetFormulaComparisonExpression(state);
+	if (node) {
+		skipSheetFormulaParserWhitespace(state);
+		const unsupportedText = trimmed.slice(state.index).trim();
+		if (unsupportedText) {
+			return `Formula syntax is not supported. Unsupported part: ${unsupportedText}`;
+		}
+	}
+
+	return 'Formula syntax is not supported.';
+}
+
+/*
+ * Return a stable key for resolved dataTable query condition values.
+ */
+export function getSheetFormulaDataTableQueryConditionKey(conditions: Array<{
+	cellKey: string;
+	keyValue?: unknown;
+	operator: SheetFormulaDataTableQueryOperator;
+	value: unknown;
+}>) {
+	return JSON.stringify(conditions.map((condition) => ({
+		cellKey: condition.cellKey,
+		operator: condition.operator,
+		value: condition.keyValue === null || condition.keyValue === undefined
+			? condition.value === null || condition.value === undefined ? null : String(condition.value)
+			: String(condition.keyValue),
+	})));
+}
+
+/*
+ * Return a data table query reference token at one formula text index, when one starts there.
+ */
+function getSheetFormulaDataTableQueryReferenceTokenAtIndex(value: string, startIndex: number): SheetFormulaReferenceToken | null {
+	const query = parseSheetFormulaDataTableQueryCall(value.slice(startIndex));
+	if (!query) {
+		return null;
+	}
+
+	return {
+		...query,
+		endIndex: startIndex + query.text.length,
+		kind: 'DATA_TABLE_QUERY_CELL',
+		startIndex,
+		text: query.text,
 	};
 }
 
@@ -1206,13 +1842,20 @@ export function tokenizeSheetFormulaReferences(value: string): SheetFormulaRefer
 	while (index < value.length) {
 		const char = value[index];
 
-		if (char === '"') {
+		if (isSheetFormulaStringQuoteChar(char)) {
 			index = getSheetFormulaStringEndIndex(value, index);
 			continue;
 		}
 
 		if (isSheetFormulaIdentifierChar(value[index - 1])) {
 			index += 1;
+			continue;
+		}
+
+		const dataTableQueryToken = getSheetFormulaDataTableQueryReferenceTokenAtIndex(value, index);
+		if (dataTableQueryToken) {
+			tokens.push(dataTableQueryToken);
+			index = dataTableQueryToken.endIndex;
 			continue;
 		}
 
@@ -1322,11 +1965,39 @@ export function isSheetRegionType(value: unknown): value is SheetRegionTypeEnum 
 }
 
 /*
+ * Return whether one value is a known sheet region source type.
+ */
+
+export function isSheetRegionSourceType(value: unknown): value is SheetRegionSourceTypeEnum {
+	return SHEET_REGION_SOURCE_TYPE_ENUMS.includes(value as SheetRegionSourceTypeEnum);
+}
+
+/*
  * Return whether one value is a known sheet region conflict policy.
  */
 
 export function isSheetRegionConflictPolicy(value: unknown): value is SheetRegionConflictPolicyEnum {
 	return SHEET_REGION_CONFLICT_POLICY_ENUMS.includes(value as SheetRegionConflictPolicyEnum);
+}
+
+/*
+ * Return reusable column definitions for a custom Sheet region source.
+ */
+
+export function getSheetCustomRegionSourceColumns(sourceType: SheetRegionSourceTypeEnum | string | null | undefined): SheetCustomRegionSourceColumnObj[] {
+	if (sourceType === SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS) {
+		return SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATION_COLUMNS.map((column) => ({ ...column }));
+	}
+
+	return [];
+}
+
+/*
+ * Return whether one Sheet region source type is backed by custom app data.
+ */
+
+export function isSheetCustomRegionSourceType(sourceType: unknown) {
+	return sourceType === SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS;
 }
 
 /*

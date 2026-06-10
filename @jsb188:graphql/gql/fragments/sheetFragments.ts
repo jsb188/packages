@@ -202,6 +202,32 @@ export const sheetRangeFragment = `fragment sheetRangeFragment on SheetRange {
   updatedAt
 }`;
 
+const sheetRegionSourceFilterConditionFields = `
+cellKey
+operator
+textValue
+textValues
+numberValue
+booleanValue
+dateValue
+datetimeValue`;
+
+/*
+ * Return the SheetRegionSourceFilter selection set expanded to the supported nesting depth.
+ */
+function getSheetRegionSourceFilterSelection(depth: number): string {
+	return `
+combinator
+conditions {
+  ${sheetRegionSourceFilterConditionFields}
+}
+${depth > 1
+		? `groups {
+  ${getSheetRegionSourceFilterSelection(depth - 1)}
+}`
+		: ''}`;
+}
+
 export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion {
   id
   organizationId
@@ -216,43 +242,7 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
     type
     dataTableId
     filter {
-      combinator
-      conditions {
-        cellKey
-        operator
-        textValue
-        textValues
-        numberValue
-        booleanValue
-        dateValue
-        datetimeValue
-      }
-      groups {
-        combinator
-        conditions {
-          cellKey
-          operator
-          textValue
-          textValues
-          numberValue
-          booleanValue
-          dateValue
-          datetimeValue
-        }
-        groups {
-          combinator
-          conditions {
-            cellKey
-            operator
-            textValue
-            textValues
-            numberValue
-            booleanValue
-            dateValue
-            datetimeValue
-          }
-        }
-      }
+      ${getSheetRegionSourceFilterSelection(3)}
     }
     sort {
       cellKey

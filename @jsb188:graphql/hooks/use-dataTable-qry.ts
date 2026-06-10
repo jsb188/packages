@@ -1,10 +1,10 @@
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import { GRID_ITEM_LIST_LIMIT } from '@jsb188/mday/constants/sheet.ts';
-import type { DataTablesFilterArgs } from '@jsb188/mday/types/dataTable.d.ts';
-import type { GridItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
+import type { DataTableRowGQL, DataTableRowsForSheetRegionGQL, DataTablesFilterArgs } from '@jsb188/mday/types/dataTable.d.ts';
+import type { GridItemSortEnum, SheetGridViewportObj } from '@jsb188/mday/types/sheet.d.ts';
 import { useMemo } from 'react';
-import { dataTableCellsForRowsQry, dataTableQry, dataTableRowsQry, dataTablesQry } from '../gql/queries/dataTableQueries.ts';
+import { dataTableQry, dataTableRowsForSheetRegionsQry, dataTableRowsQry, dataTablesQry } from '../gql/queries/dataTableQueries.ts';
 import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
 /**
@@ -85,14 +85,6 @@ function getDataTableRowsQueryKey(variables: Record<string, unknown>) {
 }
 
 /*
- * Return the query key that belongs to one source-cell hydration variables payload.
- */
-
-export function getDataTableCellsForRowsQueryKey(variables: Record<string, unknown>) {
-	return `#dataTableCellsForRows:${makeVariablesKey(variables)}`;
-}
-
-/*
  * Add front-end deleted status to deleted or inactive DataTable records.
  */
 
@@ -140,6 +132,66 @@ function getDataTablesQueryVariables(
 		limit: GRID_ITEM_LIST_LIMIT,
 		sort: 'UPDATED_AT_DESC',
 	};
+}
+
+/*
+ * Return the query key that belongs to one Sheet dataTable-region rows variables payload.
+ */
+export function getDataTableRowsForSheetRegionsQueryKey(variables: Record<string, unknown>) {
+	return `#dataTableRowsForSheetRegions:${makeVariablesKey(variables)}`;
+}
+
+/*
+ * Return the row fragments nested inside Sheet dataTable-region placement results.
+ */
+function getDataTableRowsForSheetRegionRows(regions?: DataTableRowsForSheetRegionGQL[] | null) {
+	return regions?.flatMap((region) => (
+		region.rows?.map((rowPlacement) => rowPlacement.row).filter((row): row is DataTableRowGQL => Boolean(row)) || []
+	)) || null;
+}
+
+/*
+ * Merge reactive DataTable rows back into their Sheet region placement containers.
+ */
+function mergeReactiveRowsIntoSheetRegions(
+	regions?: DataTableRowsForSheetRegionGQL[] | null,
+	dataTableRows?: DataTableRowGQL[] | null,
+) {
+	if (!regions || !dataTableRows) {
+		return regions;
+	}
+
+	const rowsById = new Map(dataTableRows.map((row) => [String(row.id || ''), row]));
+	let changedRegions = false;
+	const nextRegions = regions.map((region) => {
+		let changedRows = false;
+		const nextRows = region.rows?.map((rowPlacement) => {
+			const rowId = String(rowPlacement.row?.id || '');
+			const nextRow = rowsById.get(rowId) || rowPlacement.row;
+
+			if (nextRow === rowPlacement.row) {
+				return rowPlacement;
+			}
+
+			changedRows = true;
+			return {
+				...rowPlacement,
+				row: nextRow,
+			};
+		}) || [];
+
+		if (!changedRows) {
+			return region;
+		}
+
+		changedRegions = true;
+		return {
+			...region,
+			rows: nextRows,
+		};
+	});
+
+	return changedRegions ? nextRegions : regions;
 }
 
 /**
@@ -228,32 +280,36 @@ export function useDataTableRows(
 }
 
 /**
- * Fetch DataTable source cells for a grouped set of row ids.
+ * Fetch DataTable rows that fill visible dataTable-backed Sheet regions.
  */
 
-export function useDataTableCellsForRows(
+export function useDataTableRowsForSheetRegions(
 	organizationId?: string | null,
-	requests?: Array<{
-		dataTableId: string;
-		dataTableRowIds: string[];
-	}> | null,
+	sheetId?: string | null,
+	viewport?: SheetGridViewportObj | null,
 	params: UseQueryParams = {},
 ) {
 	const variables = {
 		organizationId,
-		requests: requests || [],
+		sheetId,
+		viewport,
 	};
-	const { data, ...rest } = useQuery(dataTableCellsForRowsQry, {
+	const { data, ...rest } = useQuery(dataTableRowsForSheetRegionsQry, {
 		variables,
-		skip: !organizationId || !requests?.length,
+		skip: !organizationId || !sheetId || !viewport,
 		...params,
 	});
-	const queryMatchesVariables = rest.queryKey === getDataTableCellsForRowsQueryKey(variables) ||
+	const queryMatchesVariables = rest.queryKey === getDataTableRowsForSheetRegionsQueryKey(variables) ||
 		rest.variablesKey === makeVariablesKey(variables);
-	const reactiveCells = useReactiveFragmentMap(queryMatchesVariables ? data?.dataTableCellsForRows || null : null, 'dataTableCellFragment');
+	const rawRegions = queryMatchesVariables ? data?.dataTableRowsForSheetRegions || null : null;
+	const rawRows = useMemo(() => getDataTableRowsForSheetRegionRows(rawRegions), [rawRegions]);
+	const reactiveRows = useReactiveDataTableRows(rawRows);
+	const dataTableRowsForSheetRegions = useMemo(() => {
+		return mergeReactiveRowsIntoSheetRegions(rawRegions, reactiveRows);
+	}, [rawRegions, reactiveRows]);
 
 	return {
-		dataTableCellsForRows: queryMatchesVariables ? reactiveCells : undefined,
+		dataTableRowsForSheetRegions: queryMatchesVariables ? dataTableRowsForSheetRegions : undefined,
 		...rest,
 	};
 }

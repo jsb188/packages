@@ -183,6 +183,27 @@ export interface DataTableRowGQL {
 	updatedAt?: string | null;
 }
 
+export interface DataTableRowsForSheetRegionColumnGQL {
+	formulaText?: string | null;
+	kind?: string | null;
+	sheetColumnIndex?: number | null;
+	sourceCellKey?: string | null;
+}
+
+export interface DataTableRowsForSheetRegionRowGQL {
+	row?: DataTableRowGQL | null;
+	sheetRowIndex?: number | null;
+}
+
+export interface DataTableRowsForSheetRegionGQL {
+	columns?: DataTableRowsForSheetRegionColumnGQL[] | null;
+	dataTableId?: string | null;
+	regionId?: string | null;
+	rows?: DataTableRowsForSheetRegionRowGQL[] | null;
+	sourceId?: string | null;
+	sourceType?: string | null;
+}
+
 export interface DataTableCellGQL {
 	__deleted?: boolean;
 

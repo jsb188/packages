@@ -1,6 +1,7 @@
 import type {
 	SHEET_CELL_SOURCE_TYPE_ENUMS,
 	SHEET_REGION_CONFLICT_POLICY_ENUMS,
+	SHEET_REGION_SOURCE_TYPE_ENUMS,
 	SHEET_REGION_SOURCE_FILTER_COMBINATOR_ENUMS,
 	SHEET_REGION_SOURCE_FILTER_OPERATOR_ENUMS,
 	SHEET_REGION_SOURCE_SORT_DIRECTION_ENUMS,
@@ -11,15 +12,22 @@ import type {
 
 export type SheetCellSourceTypeEnum = typeof SHEET_CELL_SOURCE_TYPE_ENUMS[number];
 export type SheetRegionTypeEnum = typeof SHEET_REGION_TYPE_ENUMS[number];
+export type SheetRegionSourceTypeEnum = typeof SHEET_REGION_SOURCE_TYPE_ENUMS[number];
 export type SheetRegionConflictPolicyEnum = typeof SHEET_REGION_CONFLICT_POLICY_ENUMS[number];
 export type SheetRegionSourceFilterCombinatorEnum = typeof SHEET_REGION_SOURCE_FILTER_COMBINATOR_ENUMS[number];
 export type SheetRegionSourceFilterOperatorEnum = typeof SHEET_REGION_SOURCE_FILTER_OPERATOR_ENUMS[number];
 export type SheetRegionSourceSortDirectionEnum = typeof SHEET_REGION_SOURCE_SORT_DIRECTION_ENUMS[number];
 export type SheetStructureOperationEnum = typeof SHEET_STRUCTURE_OPERATION_ENUMS[number];
 export type GridItemSortEnum = typeof GRID_ITEM_SORT_ENUMS[number];
-export type SheetFormulaReferenceKind = 'SHEET_CELL' | 'SHEET_RANGE' | 'DATA_TABLE_CELL';
+export type SheetFormulaReferenceKind = 'SHEET_CELL' | 'SHEET_RANGE' | 'DATA_TABLE_CELL' | 'DATA_TABLE_QUERY_CELL';
 export type SheetFormulaReferenceStatusEnum = 'READY' | 'LOADING' | 'ERROR' | 'NOT_FOUND';
 export type SheetRegionColumnKind = 'DATA_TABLE_CELL' | 'FORMULA';
+
+export interface SheetCustomRegionSourceColumnObj {
+	key: string;
+	labelKey: string;
+	width: number;
+}
 
 export interface SheetsFilterArgs {
 	active?: boolean | null;
@@ -194,8 +202,8 @@ export interface SheetRangeData {
 }
 
 export interface SheetRegionSourceObj {
-	type: 'DATA_TABLE';
-	dataTableId: number | bigint | string;
+	type: SheetRegionSourceTypeEnum;
+	dataTableId?: number | bigint | string | null;
 	filter?: SheetRegionSourceFilterGroupObj | null;
 	sort?: SheetRegionSourceSortObj[] | null;
 }

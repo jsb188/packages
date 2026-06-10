@@ -66,18 +66,40 @@ ${dataTableRowFragment}
 ${dataTableCellFragment}
 `;
 
-export const dataTableCellsForRowsQry = gql`
-query dataTableCellsForRows (
+export const dataTableRowsForSheetRegionsQry = gql`
+query dataTableRowsForSheetRegions (
   $organizationId: GenericID!
-  $requests: [DataTableCellsForRowsRequestInput!]!
+  $sheetId: GenericID!
+  $viewport: SheetGridViewportInput!
 ) {
-  dataTableCellsForRows (
+  dataTableRowsForSheetRegions (
     organizationId: $organizationId
-    requests: $requests
+    sheetId: $sheetId
+    viewport: $viewport
   ) {
-    ...dataTableCellFragment
+    regionId
+    dataTableId
+    sourceId
+    sourceType
+    columns {
+      sheetColumnIndex
+      sourceCellKey
+      kind
+      formulaText
+    }
+    rows {
+      sheetRowIndex
+      row {
+        ...dataTableRowFragment
+
+        cells {
+          ...dataTableCellFragment
+        }
+      }
+    }
   }
 }
 
+${dataTableRowFragment}
 ${dataTableCellFragment}
 `;

@@ -1,50 +1,62 @@
 import { useEditDataTableCells } from '@jsb188/graphql/hooks/use-dataTable-mtn';
 import { useEditSheetCells, useEditSheetStructure, useUpdateSheet } from '@jsb188/graphql/hooks/use-sheet-mtn';
-import { loadQuery } from '@jsb188/graphql/cache';
-import { getDataTableCellsForRowsQueryKey, useDataTableCellsForRows } from '@jsb188/graphql/hooks/use-dataTable-qry';
+import { useDataTableRowsForSheetRegions } from '@jsb188/graphql/hooks/use-dataTable-qry';
 import type { SheetGridViewportVariables } from '@jsb188/graphql/hooks/use-sheet-qry';
-import { useReactiveSheetCells, useReactiveSheetFormulaReferences, useSheetFormulaReferences, useSheetGrid } from '@jsb188/graphql/hooks/use-sheet-qry';
-import type { DataTableCellGQL, DataTableGQL } from '@jsb188/mday/types/dataTable.d.ts';
+import {
+	useReactiveSheetCells,
+	useReactiveSheetFormulaReferences,
+	useSheetFormulaReferences,
+	useSheetGrid,
+} from '@jsb188/graphql/hooks/use-sheet-qry';
+import type { DataTableCellGQL, DataTableGQL, DataTableRowsForSheetRegionGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
-import type { SheetCellGQL, SheetDesignObj, SheetFormulaReferenceObj, SheetGQL, SheetRangeGQL, SheetRegionGQL, SheetStructureOperationEnum } from '@jsb188/mday/types/sheet.d.ts';
+import type {
+	SheetCellGQL,
+	SheetDesignObj,
+	SheetFormulaReferenceObj,
+	SheetGQL,
+	SheetRangeGQL,
+	SheetStructureOperationEnum,
+} from '@jsb188/mday/types/sheet.d.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useAtom } from 'jotai';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createSheetStateAtoms, type SheetStateAtoms } from '../libs/sheet-state.ts';
 import {
-  createSheetStateAtoms,
-  type SheetStateAtoms,
-} from '../libs/sheet-state.ts';
-import {
-  SheetController,
-  type SheetCellEditInput,
-  type SheetDesignPatchInput,
-  type SheetInsertViewTableRequest,
+	type SheetCellEditInput,
+	SheetController,
+	type SheetDesignPatchInput,
+	type SheetInsertViewTableRequest,
 } from './SheetController.tsx';
 import {
-  getSheetCanvasCellsByCoord,
-  getSheetCanvasDesign,
-  getSheetCanvasFetchRowCount,
-  getSheetCanvasGridViewport,
-  getSheetCanvasInitialRowCount,
-  getSheetCanvasLoadedRowCount,
-  replaceSheetCanvasCellsInViewport,
-  SHEET_CANVAS_DEFAULT_VIEWPORT_HEIGHT,
-  type SheetLoadedGridState,
+	getSheetCellEditInputsForMutation,
+} from '../libs/sheet-history.ts';
+import {
+	getSheetCanvasCellsByCoord,
+	getSheetCanvasCoordKey,
+	getSheetCanvasDesign,
+	getSheetCanvasFetchRowCount,
+	getSheetCanvasGridViewport,
+	getSheetCanvasInitialRowCount,
+	getSheetCanvasLoadedRowCount,
+	replaceSheetCanvasCellsInViewport,
+	SHEET_CANVAS_DEFAULT_VIEWPORT_HEIGHT,
+	type SheetLoadedGridState,
 } from '../libs/sheet-utils.ts';
 import {
-  applySheetStructureEditToCellsByCoord,
-  applySheetStructureEditToRanges,
-  getSheetStructureDesignAfterEdit,
-  getSheetStructureProtectedBounds,
+	applySheetStructureEditToCellsByCoord,
+	applySheetStructureEditToRanges,
+	getSheetStructureDesignAfterEdit,
+	getSheetStructureProtectedBounds,
 } from '../libs/sheet-structure-edit.ts';
 import {
 	getSheetLoadedGridStateAfterStructureEdit,
 	sheetGridCellsMatchPendingStructure,
 	sheetGridRangesMatchPendingStructure,
+	type SheetPendingStructureGridState,
 	sheetStructureDesignMatchesServerDesign,
 	waitForSheetStructureOptimisticPaint,
-	type SheetPendingStructureGridState,
 } from '../libs/sheet-structure-optimistic.ts';
 import {
 	getSheetFormulaReferenceCellsByCoord,
@@ -69,11 +81,6 @@ export interface SheetProps {
 	timeZone?: string | null;
 }
 
-type SheetDataTableCellsForRowsRequest = {
-	dataTableId: string;
-	dataTableRowIds: string[];
-};
-
 type SheetViewportRequest = {
 	columnCount: number;
 	startColumnIndex: number;
@@ -85,6 +92,7 @@ type SheetFormulaDependencyStateParams = {
 	organizationId: string;
 	previewAuthToken?: string | null;
 	sheetId: string;
+	timeZone?: string | null;
 };
 
 type SheetFormulaDependencyState = {
@@ -95,7 +103,9 @@ type SheetFormulaDependencyState = {
 /*
  * Return the initial empty loaded-grid state for one Sheet.
  */
-function getInitialSheetLoadedGridState(initialRowCount: number): SheetLoadedGridState {
+function getInitialSheetLoadedGridState(
+	initialRowCount: number,
+): SheetLoadedGridState {
 	return {
 		cellsByCoord: new Map(),
 		hasMoreRows: false,
@@ -107,7 +117,10 @@ function getInitialSheetLoadedGridState(initialRowCount: number): SheetLoadedGri
 /*
  * Return whether two sheetGrid viewport variable objects are equivalent.
  */
-function sheetViewportVariablesAreEqual(a?: SheetGridViewportVariables | null, b?: SheetGridViewportVariables | null) {
+function sheetViewportVariablesAreEqual(
+	a?: SheetGridViewportVariables | null,
+	b?: SheetGridViewportVariables | null,
+) {
 	return a?.startRowIndex === b?.startRowIndex &&
 		a?.startColumnIndex === b?.startColumnIndex &&
 		a?.rowCount === b?.rowCount &&
@@ -117,86 +130,14 @@ function sheetViewportVariablesAreEqual(a?: SheetGridViewportVariables | null, b
 /*
  * Return whether one loaded-grid state still matches the blank initial state.
  */
-function sheetLoadedGridStateMatchesInitial(state: SheetLoadedGridState, initialRowCount: number) {
+function sheetLoadedGridStateMatchesInitial(
+	state: SheetLoadedGridState,
+	initialRowCount: number,
+) {
 	return state.cellsByCoord.size === 0 &&
 		state.hasMoreRows === false &&
 		state.lastContentRowIndex === null &&
 		state.loadedRowCount === initialRowCount;
-}
-
-/*
- * Return active DataTable regions keyed by their stable region id.
- */
-function getSheetDataTableRegionsById(regions?: SheetRegionGQL[] | null) {
-	return new Map((regions || [])
-		.filter((region) => region?.id && region.type === 'DATA_TABLE' && region.source?.dataTableId)
-		.map((region) => [String(region.id), region]));
-}
-
-/*
- * Return grouped source-row requests for generated Sheet cells.
- */
-function getSheetDataTableSourceCellRequests(
-	cellsByCoord: Map<string, SheetCellGQL>,
-	regions?: SheetRegionGQL[] | null,
-) {
-	const regionsById = getSheetDataTableRegionsById(regions);
-	const rowIdsByDataTableId = new Map<string, Set<string>>();
-
-	cellsByCoord.forEach((cell) => {
-		if (cell.sourceType !== 'REGION_GENERATED' || !cell.region?.sourceRowId || !cell.region?.sourceCellKey) {
-			return;
-		}
-
-		const regionId = String(cell.region.regionId || cell.regionId || '');
-		const region = regionsById.get(regionId);
-		const dataTableId = String(region?.source?.dataTableId || '');
-
-		if (!dataTableId) {
-			return;
-		}
-
-		const rowIds = rowIdsByDataTableId.get(dataTableId) || new Set<string>();
-		rowIds.add(String(cell.region.sourceRowId));
-		rowIdsByDataTableId.set(dataTableId, rowIds);
-	});
-
-	return Array.from(rowIdsByDataTableId.entries())
-		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([dataTableId, rowIds]) => ({
-			dataTableId,
-			dataTableRowIds: Array.from(rowIds).sort(),
-		}));
-}
-
-/*
- * Return exact GraphQL variables for a generated source-cell hydration request.
- */
-function getSheetDataTableSourceCellVariables(
-	organizationId: string,
-	requests: SheetDataTableCellsForRowsRequest[],
-) {
-	return {
-		organizationId,
-		requests,
-	};
-}
-
-/*
- * Return cached source cells for one exact hydration request when present.
- */
-function getCachedSheetDataTableSourceCells(
-	organizationId: string,
-	requests: SheetDataTableCellsForRowsRequest[],
-) {
-	if (!organizationId || !requests.length) {
-		return null;
-	}
-
-	const variables = getSheetDataTableSourceCellVariables(organizationId, requests);
-	const cached = loadQuery(getDataTableCellsForRowsQueryKey(variables));
-
-	return Array.isArray(cached) ? cached as DataTableCellGQL[] : null;
 }
 
 /*
@@ -219,59 +160,301 @@ function mergeSheetCellCoordMaps(
 }
 
 /*
+ * Return whether one saved Sheet cell carries user-entered content fields.
+ */
+function sheetCellHasStoredContent(cell?: SheetCellGQL | null) {
+	return [
+		cell?.rawInput,
+		cell?.value,
+		cell?.textValue,
+		cell?.numberValue,
+		cell?.booleanValue,
+		cell?.dateValue,
+		cell?.datetimeValue,
+		cell?.formula,
+	].some((value) => value !== null && value !== undefined);
+}
+
+/*
+ * Return a stable key for a DataTable source cell rendered through a Sheet region.
+ */
+function getSheetDataTableRegionSourceCellKey(
+	sourceId: string,
+	dataTableRowId: string,
+	cellKey: string,
+) {
+	return `${sourceId}:${dataTableRowId}:${cellKey}`;
+}
+
+/*
+ * Return the stable source id for one rendered Sheet region row container.
+ */
+function getSheetRegionRowsSourceId(region: DataTableRowsForSheetRegionGQL) {
+	return String(region.dataTableId || region.sourceId || region.sourceType || '');
+}
+
+/*
+ * Return real DataTable source cells keyed by table id, row id, and cell key.
+ */
+function getSheetDataTableRegionSourceCellsByKey(
+	regions?: DataTableRowsForSheetRegionGQL[] | null,
+) {
+	const cellsByKey = new Map<string, DataTableCellGQL>();
+
+	(regions || []).forEach((region) => {
+		const sourceId = getSheetRegionRowsSourceId(region);
+		if (!sourceId) {
+			return;
+		}
+
+		(region.rows || []).forEach((rowPlacement) => {
+			(rowPlacement.row?.cells || []).forEach((cell) => {
+				if (!cell?.dataTableRowId || !cell.cellKey) {
+					return;
+				}
+
+				cellsByKey.set(
+					getSheetDataTableRegionSourceCellKey(
+						sourceId,
+						String(cell.dataTableRowId),
+						String(cell.cellKey),
+					),
+					cell,
+				);
+			});
+		});
+	});
+
+	return cellsByKey;
+}
+
+/*
+ * Return real DataTable source cells nested under Sheet region row placements.
+ */
+function getSheetDataTableRegionSourceCells(
+	regions?: DataTableRowsForSheetRegionGQL[] | null,
+) {
+	return (regions || []).flatMap((region) => (
+		region.rows?.flatMap((rowPlacement) => rowPlacement.row?.cells || []) || []
+	));
+}
+
+/*
+ * Return the lightweight Sheet marker cell for one real DataTable source cell placement.
+ */
+function getSheetDataTableRegionMarkerCell(params: {
+	columnIndex: number;
+	organizationId: string;
+	regionId: string;
+	rowId: string;
+	rowIndex: number;
+	sheetId: string;
+	sourceCell?: DataTableCellGQL | null;
+	sourceCellKey: string;
+}): SheetCellGQL {
+	return {
+		id: `region:${params.regionId}:${params.rowIndex}:${params.columnIndex}`,
+		organizationId: params.organizationId,
+		sheetId: params.sheetId,
+		rowIndex: params.rowIndex,
+		columnIndex: params.columnIndex,
+		rawInput: null,
+		value: params.sourceCell?.value ?? null,
+		textValue: params.sourceCell?.textValue ?? null,
+		numberValue: params.sourceCell?.numberValue ?? null,
+		booleanValue: params.sourceCell?.booleanValue ?? null,
+		dateValue: params.sourceCell?.dateValue ?? null,
+		datetimeValue: params.sourceCell?.datetimeValue ?? null,
+		formula: null,
+		style: null,
+		format: null,
+		note: null,
+		sourceType: 'REGION_GENERATED',
+		regionId: params.regionId,
+		region: {
+			regionId: params.regionId,
+			sourceRowId: params.rowId,
+			sourceCellKey: params.sourceCellKey,
+		},
+		createdAt: params.sourceCell?.createdAt || '',
+		updatedAt: params.sourceCell?.updatedAt || '',
+	};
+}
+
+/*
+ * Return a region marker cell with saved Sheet-owned design fields overlaid.
+ */
+function applySheetCellDesignToRegionMarker(markerCell: SheetCellGQL, sheetCell?: SheetCellGQL | null): SheetCellGQL {
+	if (!sheetCell) {
+		return markerCell;
+	}
+
+	return {
+		...markerCell,
+		format: sheetCell.format ?? markerCell.format ?? null,
+		note: sheetCell.note ?? markerCell.note ?? null,
+		style: sheetCell.style ?? markerCell.style ?? null,
+	};
+}
+
+/*
+ * Return Sheet marker cells keyed by coordinate for DataTable region rows.
+ */
+function getSheetDataTableRegionCellsByCoord(params: {
+	baseCellsByCoord: Map<string, SheetCellGQL>;
+	organizationId: string;
+	regions?: DataTableRowsForSheetRegionGQL[] | null;
+	sheetId: string;
+}) {
+	const sourceCellsByKey = getSheetDataTableRegionSourceCellsByKey(
+		params.regions,
+	);
+	const cellsByCoord = new Map<string, SheetCellGQL>();
+
+	(params.regions || []).forEach((region) => {
+		const regionId = String(region.regionId || '');
+		const sourceId = getSheetRegionRowsSourceId(region);
+		if (!regionId || !sourceId) {
+			return;
+		}
+
+		(region.rows || []).forEach((rowPlacement) => {
+			const row = rowPlacement.row;
+			const rowId = String(row?.id || '');
+			const rowIndex = Math.floor(Number(rowPlacement.sheetRowIndex || 0));
+			if (!rowId || rowIndex <= 0) {
+				return;
+			}
+
+			(region.columns || []).forEach((column) => {
+				const sourceCellKey = String(column.sourceCellKey || '');
+				const columnIndex = Math.floor(Number(column.sheetColumnIndex || 0));
+				if (!sourceCellKey || column.kind === 'FORMULA' || columnIndex <= 0) {
+					return;
+				}
+
+				const coordKey = getSheetCanvasCoordKey(rowIndex, columnIndex);
+				const baseCell = params.baseCellsByCoord.get(coordKey);
+				if (baseCell && baseCell.sourceType !== 'REGION_OVERRIDE' && sheetCellHasStoredContent(baseCell)) {
+					return;
+				}
+
+				const sourceKey = getSheetDataTableRegionSourceCellKey(
+					sourceId,
+					rowId,
+					sourceCellKey,
+				);
+				const markerCell = getSheetDataTableRegionMarkerCell({
+					columnIndex,
+					organizationId: params.organizationId,
+					regionId,
+					rowId,
+					rowIndex,
+					sheetId: params.sheetId,
+					sourceCell: sourceCellsByKey.get(sourceKey) || null,
+					sourceCellKey,
+				});
+				cellsByCoord.set(
+					coordKey,
+					applySheetCellDesignToRegionMarker(markerCell, baseCell),
+				);
+			});
+		});
+	});
+
+	return cellsByCoord;
+}
+
+/*
  * Return only active SheetCell fragments that still carry usable coordinate data.
  */
 function getActiveSheetCells(cells?: SheetCellGQL[] | null) {
 	return (cells || []).filter((cell) => {
-		const deleted = (cell as SheetCellGQL & { __deleted?: boolean } | null | undefined)?.__deleted;
+		const deleted = (cell as SheetCellGQL & { __deleted?: boolean } | null | undefined)
+			?.__deleted;
 
-		return !!cell && !deleted && Number(cell.rowIndex || 0) > 0 && Number(cell.columnIndex || 0) > 0;
+		return !!cell && !deleted && Number(cell.rowIndex || 0) > 0 &&
+			Number(cell.columnIndex || 0) > 0;
 	});
 }
 
 /*
  * Resolve the reactive formula dependency state needed by cells that declare formula references.
  */
-function useSheetFormulaDependencyState(params: SheetFormulaDependencyStateParams): SheetFormulaDependencyState {
+function useSheetFormulaDependencyState(
+	params: SheetFormulaDependencyStateParams,
+): SheetFormulaDependencyState {
 	const formulaBaseCellsByCoord = useMemo(() => {
-		return mergeSheetCellCoordMaps(params.cellsByCoord, params.optimisticCellsByCoord);
+		return mergeSheetCellCoordMaps(
+			params.cellsByCoord,
+			params.optimisticCellsByCoord,
+		);
 	}, [params.cellsByCoord, params.optimisticCellsByCoord]);
 	const baseFormulaReferences = useMemo(() => {
 		return getSheetFormulaReferencesFromCells(formulaBaseCellsByCoord);
 	}, [formulaBaseCellsByCoord]);
-	const reactiveBaseFormulaReferences = useReactiveSheetFormulaReferences(baseFormulaReferences);
-	const baseFormulaReferenceSource = reactiveBaseFormulaReferences || baseFormulaReferences;
+	const reactiveBaseFormulaReferences = useReactiveSheetFormulaReferences(
+		baseFormulaReferences,
+	);
+	const baseFormulaReferenceSource = reactiveBaseFormulaReferences ||
+		baseFormulaReferences;
 	const baseFormulaDependencyCellsByCoord = useMemo(() => {
 		return getSheetFormulaReferenceCellsByCoord(baseFormulaReferenceSource);
 	}, [baseFormulaReferenceSource]);
 	const formulaCellsWithBaseDependenciesByCoord = useMemo(() => {
-		return mergeSheetCellCoordMaps(formulaBaseCellsByCoord, baseFormulaDependencyCellsByCoord);
+		return mergeSheetCellCoordMaps(
+			formulaBaseCellsByCoord,
+			baseFormulaDependencyCellsByCoord,
+		);
 	}, [baseFormulaDependencyCellsByCoord, formulaBaseCellsByCoord]);
 	const formulaReferences = useMemo(() => {
-		return getSheetFormulaReferencesFromCells(formulaCellsWithBaseDependenciesByCoord);
+		return getSheetFormulaReferencesFromCells(
+			formulaCellsWithBaseDependenciesByCoord,
+		);
 	}, [formulaCellsWithBaseDependenciesByCoord]);
-	const reactiveFormulaReferences = useReactiveSheetFormulaReferences(formulaReferences);
+	const reactiveFormulaReferences = useReactiveSheetFormulaReferences(
+		formulaReferences,
+	);
 	const formulaReferenceSource = reactiveFormulaReferences || formulaReferences;
 	const formulaReferencesById = useMemo(() => {
 		return getSheetFormulaReferencesById(formulaReferenceSource);
 	}, [formulaReferenceSource]);
 	const formulaDependencyCells = useMemo(() => {
-		return getActiveSheetCells(Array.from(getSheetFormulaReferenceCellsByCoord(formulaReferenceSource).values()));
+		return getActiveSheetCells(
+			Array.from(
+				getSheetFormulaReferenceCellsByCoord(formulaReferenceSource).values(),
+			),
+		);
 	}, [formulaReferenceSource]);
-	const reactiveFormulaDependencyCells = useReactiveSheetCells(formulaDependencyCells) as SheetCellGQL[] | null;
+	const reactiveFormulaDependencyCells = useReactiveSheetCells(
+		formulaDependencyCells,
+	) as SheetCellGQL[] | null;
 	const formulaDependencyCellsByCoord = useMemo(() => {
-		return getSheetCanvasCellsByCoord(getActiveSheetCells(reactiveFormulaDependencyCells || formulaDependencyCells));
+		return getSheetCanvasCellsByCoord(
+			getActiveSheetCells(
+				reactiveFormulaDependencyCells || formulaDependencyCells,
+			),
+		);
 	}, [formulaDependencyCells, reactiveFormulaDependencyCells]);
 	const formulaResolutionCellsByCoord = useMemo(() => {
-		return mergeSheetCellCoordMaps(formulaBaseCellsByCoord, formulaDependencyCellsByCoord);
+		return mergeSheetCellCoordMaps(
+			formulaBaseCellsByCoord,
+			formulaDependencyCellsByCoord,
+		);
 	}, [formulaBaseCellsByCoord, formulaDependencyCellsByCoord]);
 	const formulaReferencesToResolve = useMemo(() => {
 		return getSheetFormulaReferencesNeedingServerResolution({
 			cellsByCoord: formulaResolutionCellsByCoord,
 			references: formulaReferenceSource,
 			referencesById: formulaReferencesById,
+			timeZone: params.timeZone,
 		});
-	}, [formulaReferenceSource, formulaReferencesById, formulaResolutionCellsByCoord]);
+	}, [
+		formulaReferenceSource,
+		formulaReferencesById,
+		formulaResolutionCellsByCoord,
+		params.timeZone,
+	]);
 
 	useSheetFormulaReferences(
 		params.sheetId,
@@ -316,8 +499,12 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const serverDesign = useMemo(() => {
 		return getSheetCanvasDesign(p.sheet.design);
 	}, [p.sheet.design]);
-	const [optimisticStructureDesign, setOptimisticStructureDesign] = useState<SheetDesignObj | null>(null);
-	const [optimisticRanges, setOptimisticRanges] = useState<SheetRangeGQL[] | null>(null);
+	const [optimisticStructureDesign, setOptimisticStructureDesign] = useState<
+		SheetDesignObj | null
+	>(null);
+	const [optimisticRanges, setOptimisticRanges] = useState<
+		SheetRangeGQL[] | null
+	>(null);
 	const design = optimisticStructureDesign || serverDesign;
 	const initialRowCount = useMemo(() => {
 		return getSheetCanvasInitialRowCount(
@@ -335,36 +522,60 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const initialLoadedGridState = useMemo(() => {
 		return getInitialSheetLoadedGridState(initialRowCount);
 	}, [initialRowCount]);
-	const [gridViewportValue, setGridViewportValue] = useAtom(p.stateAtoms.gridViewportAtom);
-	const [loadedGridStateValue, setLoadedGridStateValue] = useAtom(p.stateAtoms.loadedGridStateAtom);
-	const [optimisticCellsByCoord, setOptimisticCellsByCoord] = useAtom(p.stateAtoms.optimisticCellsByCoordAtom);
+	const [gridViewportValue, setGridViewportValue] = useAtom(
+		p.stateAtoms.gridViewportAtom,
+	);
+	const [loadedGridStateValue, setLoadedGridStateValue] = useAtom(
+		p.stateAtoms.loadedGridStateAtom,
+	);
+	const [optimisticCellsByCoord, setOptimisticCellsByCoord] = useAtom(
+		p.stateAtoms.optimisticCellsByCoordAtom,
+	);
 	const gridViewport = gridViewportValue || initialGridViewport;
 	const loadedGridState = loadedGridStateValue || initialLoadedGridState;
-	const setGridViewport = useCallback((update: SheetGridViewportVariables | ((currentState: SheetGridViewportVariables) => SheetGridViewportVariables)) => {
-		setGridViewportValue((currentState) => {
-			const baseState = currentState || initialGridViewport;
+	const setGridViewport = useCallback(
+		(
+			update:
+				| SheetGridViewportVariables
+				| ((
+					currentState: SheetGridViewportVariables,
+				) => SheetGridViewportVariables),
+		) => {
+			setGridViewportValue((currentState) => {
+				const baseState = currentState || initialGridViewport;
 
-			return typeof update === 'function' ? update(baseState) : update;
-		});
-	}, [initialGridViewport, setGridViewportValue]);
-	const setLoadedGridState = useCallback((update: SheetLoadedGridState | ((currentState: SheetLoadedGridState) => SheetLoadedGridState)) => {
-		setLoadedGridStateValue((currentState) => {
-			const baseState = currentState || initialLoadedGridState;
+				return typeof update === 'function' ? update(baseState) : update;
+			});
+		},
+		[initialGridViewport, setGridViewportValue],
+	);
+	const setLoadedGridState = useCallback(
+		(
+			update:
+				| SheetLoadedGridState
+				| ((currentState: SheetLoadedGridState) => SheetLoadedGridState),
+		) => {
+			setLoadedGridStateValue((currentState) => {
+				const baseState = currentState || initialLoadedGridState;
 
-			return typeof update === 'function' ? update(baseState) : update;
-		});
-	}, [initialLoadedGridState, setLoadedGridStateValue]);
+				return typeof update === 'function' ? update(baseState) : update;
+			});
+		},
+		[initialLoadedGridState, setLoadedGridStateValue],
+	);
 
 	const fetchingMoreRef = useRef(false);
-	const { editDataTableCells } = useEditDataTableCells();
-	const { editSheetCells } = useEditSheetCells();
-	const { editSheetStructure } = useEditSheetStructure();
-	const { updateSheet } = useUpdateSheet();
 	const openModalPopUp = useOpenModalPopUp();
 	const openModalScreen = useOpenModalScreen();
+	const { editDataTableCells } = useEditDataTableCells({}, openModalPopUp);
+	const { editSheetCells } = useEditSheetCells({}, openModalPopUp);
+	const { editSheetStructure } = useEditSheetStructure({}, openModalPopUp);
+	const { updateSheet } = useUpdateSheet({}, openModalPopUp);
 	const [sheetStructureGridMergePaused, setSheetStructureGridMergePaused] = useState(false);
 	const sheetStructureGridRefetchStartedRef = useRef(false);
-	const pendingSheetStructureGridRef = useRef<SheetPendingStructureGridState | null>(null);
+	const pendingSheetStructureGridRef = useRef<
+		SheetPendingStructureGridState | null
+	>(null);
 	const loadedGridSheetIdRef = useRef(sheetId);
 	const {
 		loading: sheetGridLoading,
@@ -385,7 +596,8 @@ function SheetDataContent(p: SheetDataContentProps) {
 			return sheetViewportVariablesAreEqual(currentViewport, nextViewport) ? currentViewport : nextViewport;
 		});
 		setLoadedGridState((currentState) => {
-			return !sheetChanged || sheetLoadedGridStateMatchesInitial(currentState, initialRowCount)
+			return !sheetChanged ||
+					sheetLoadedGridStateMatchesInitial(currentState, initialRowCount)
 				? currentState
 				: getInitialSheetLoadedGridState(initialRowCount);
 		});
@@ -426,10 +638,21 @@ function SheetDataContent(p: SheetDataContentProps) {
 		sheetStructureGridRefetchStartedRef.current = false;
 		setSheetStructureGridMergePaused(false);
 		setOptimisticRanges(null);
-		if (sheetStructureDesignMatchesServerDesign(serverDesign, pendingGrid?.design || optimisticStructureDesign)) {
+		if (
+			sheetStructureDesignMatchesServerDesign(
+				serverDesign,
+				pendingGrid?.design || optimisticStructureDesign,
+			)
+		) {
 			setOptimisticStructureDesign(null);
 		}
-	}, [optimisticStructureDesign, serverDesign, sheetGrid, sheetGridLoading, sheetStructureGridMergePaused]);
+	}, [
+		optimisticStructureDesign,
+		serverDesign,
+		sheetGrid,
+		sheetGridLoading,
+		sheetStructureGridMergePaused,
+	]);
 
 	useEffect(() => {
 		pendingSheetStructureGridRef.current = null;
@@ -440,7 +663,12 @@ function SheetDataContent(p: SheetDataContentProps) {
 	}, [sheetId]);
 
 	useEffect(() => {
-		if (sheetStructureDesignMatchesServerDesign(serverDesign, optimisticStructureDesign)) {
+		if (
+			sheetStructureDesignMatchesServerDesign(
+				serverDesign,
+				optimisticStructureDesign,
+			)
+		) {
 			setOptimisticStructureDesign(null);
 		}
 	}, [optimisticStructureDesign, serverDesign]);
@@ -465,7 +693,10 @@ function SheetDataContent(p: SheetDataContentProps) {
 		}
 
 		setLoadedGridState((currentState) => {
-			const requestedRowCount = Number(sheetGrid.viewport?.rowCount || gridViewport.rowCount || initialRowCount);
+			const requestedRowCount = Number(
+				sheetGrid.viewport?.rowCount || gridViewport.rowCount ||
+					initialRowCount,
+			);
 			const loadedRowCount = Math.min(
 				design.grid.rowCount,
 				getSheetCanvasLoadedRowCount({
@@ -480,8 +711,10 @@ function SheetDataContent(p: SheetDataContentProps) {
 				sheetGrid.cells as SheetCellGQL[] | null,
 				sheetGrid.viewport,
 			);
-			const hasMoreRows = Boolean(sheetGrid.pageInfo?.hasMoreRows) && loadedRowCount < design.grid.rowCount;
-			const lastContentRowIndex = sheetGrid.pageInfo?.lastContentRowIndex || null;
+			const hasMoreRows = Boolean(sheetGrid.pageInfo?.hasMoreRows) &&
+				loadedRowCount < design.grid.rowCount;
+			const lastContentRowIndex = sheetGrid.pageInfo?.lastContentRowIndex ||
+				null;
 
 			if (
 				currentState.cellsByCoord === cellsByCoord &&
@@ -499,7 +732,13 @@ function SheetDataContent(p: SheetDataContentProps) {
 				loadedRowCount,
 			};
 		});
-	}, [design.grid.rowCount, gridViewport.rowCount, initialRowCount, sheetGrid, sheetStructureGridMergePaused]);
+	}, [
+		design.grid.rowCount,
+		gridViewport.rowCount,
+		initialRowCount,
+		sheetGrid,
+		sheetStructureGridMergePaused,
+	]);
 
 	const requestViewport = useCallback((viewport: SheetViewportRequest) => {
 		setGridViewport((currentViewport) => {
@@ -514,11 +753,17 @@ function SheetDataContent(p: SheetDataContentProps) {
 	}, []);
 
 	const fetchMoreRows = useCallback(async () => {
-		if (fetchingMoreRef.current || sheetGridLoading || !loadedGridState.hasMoreRows) {
+		if (
+			fetchingMoreRef.current || sheetGridLoading ||
+			!loadedGridState.hasMoreRows
+		) {
 			return;
 		}
 
-		const nextRowCountDelta = getSheetCanvasFetchRowCount(loadedGridState.loadedRowCount, design.grid.rowCount);
+		const nextRowCountDelta = getSheetCanvasFetchRowCount(
+			loadedGridState.loadedRowCount,
+			design.grid.rowCount,
+		);
 		if (nextRowCountDelta <= 0) {
 			return;
 		}
@@ -531,24 +776,21 @@ function SheetDataContent(p: SheetDataContentProps) {
 
 		fetchingMoreRef.current = true;
 		setGridViewport(nextViewport);
-	}, [design.grid.rowCount, gridViewport.columnCount, gridViewport.startColumnIndex, loadedGridState.hasMoreRows, loadedGridState.loadedRowCount, sheetGridLoading]);
-
-	const saveCells = useCallback((cells: SheetCellEditInput[]) => {
-		return editSheetCells({
-			variables: {
-				cells,
-				organizationId,
-				sheetId,
-			},
-		});
-	}, [editSheetCells, organizationId, sheetId]);
+	}, [
+		design.grid.rowCount,
+		gridViewport.columnCount,
+		gridViewport.startColumnIndex,
+		loadedGridState.hasMoreRows,
+		loadedGridState.loadedRowCount,
+		sheetGridLoading,
+	]);
 
 	const saveDataTableCells = useCallback((params: {
-			cells: Array<{
-				cellKey: string;
-				dataTableRowId: string;
-				value: string | null;
-			}>;
+		cells: Array<{
+			cellKey: string;
+			dataTableRowId: string;
+			value: string | null;
+		}>;
 		dataTableId: string;
 	}) => {
 		return editDataTableCells({
@@ -592,21 +834,24 @@ function SheetDataContent(p: SheetDataContentProps) {
 	/*
 	 * Open the app modal that creates a data table-backed region for this Sheet.
 	 */
-	const openPopulateFromDataTableModal = useCallback((request: SheetInsertViewTableRequest) => {
-		if (!organizationId || !sheetId) {
-			return;
-		}
+	const openPopulateFromDataTableModal = useCallback(
+		(request: SheetInsertViewTableRequest) => {
+			if (!organizationId || !sheetId) {
+				return;
+			}
 
-		openModalScreen({
-			name: 'SHEET_INSERT_VIEW',
-			props: {
-				...request,
-				operation: p.operation || null,
-				organizationId,
-				sheetId,
-			},
-		});
-	}, [openModalScreen, organizationId, p.operation, sheetId]);
+			openModalScreen({
+				name: 'SHEET_INSERT_VIEW',
+				props: {
+					...request,
+					operation: p.operation || null,
+					organizationId,
+					sheetId,
+				},
+			});
+		},
+		[openModalScreen, organizationId, p.operation, sheetId],
+	);
 
 	const cellsByCoord = useMemo(() => {
 		return sheetGrid?.cells?.length && !loadedGridState.cellsByCoord.size
@@ -614,31 +859,61 @@ function SheetDataContent(p: SheetDataContentProps) {
 			: loadedGridState.cellsByCoord;
 	}, [loadedGridState.cellsByCoord, sheetGrid?.cells]);
 	const {
+		dataTableRowsForSheetRegions,
+	} = useDataTableRowsForSheetRegions(
+		organizationId,
+		sheetId,
+		gridViewport,
+		{
+			authToken: p.previewAuthToken || null,
+		},
+	);
+	const dataTableRegionCellsByCoord = useMemo(() => {
+		return getSheetDataTableRegionCellsByCoord({
+			baseCellsByCoord: cellsByCoord,
+			organizationId,
+			regions: dataTableRowsForSheetRegions,
+			sheetId,
+		});
+	}, [cellsByCoord, dataTableRowsForSheetRegions, organizationId, sheetId]);
+	const gridCellsByCoord = useMemo(() => {
+		return mergeSheetCellCoordMaps(cellsByCoord, dataTableRegionCellsByCoord);
+	}, [cellsByCoord, dataTableRegionCellsByCoord]);
+	const saveCells = useCallback((cells: SheetCellEditInput[]) => {
+		const currentCellsByCoord = mergeSheetCellCoordMaps(
+			gridCellsByCoord,
+			optimisticCellsByCoord,
+		);
+		const mutationCells = getSheetCellEditInputsForMutation(
+			cells,
+			currentCellsByCoord,
+		);
+
+		if (!mutationCells.length) {
+			return;
+		}
+
+		return editSheetCells({
+			variables: {
+				cells: mutationCells,
+				organizationId,
+				sheetId,
+			},
+		});
+	}, [editSheetCells, gridCellsByCoord, optimisticCellsByCoord, organizationId, sheetId]);
+	const {
 		formulaDependencyCellsByCoord,
 		formulaReferencesById,
 	} = useSheetFormulaDependencyState({
-		cellsByCoord,
+		cellsByCoord: gridCellsByCoord,
 		optimisticCellsByCoord,
 		organizationId,
 		previewAuthToken: p.previewAuthToken || null,
 		sheetId,
 	});
-	const dataTableSourceCellRequests = useMemo(() => {
-		return getSheetDataTableSourceCellRequests(cellsByCoord, sheetGrid?.regions);
-	}, [cellsByCoord, sheetGrid?.regions]);
-	const cachedDataTableSourceCells = useMemo(() => {
-		return getCachedSheetDataTableSourceCells(organizationId, dataTableSourceCellRequests);
-	}, [dataTableSourceCellRequests, organizationId]);
-	const {
-		dataTableCellsForRows,
-	} = useDataTableCellsForRows(
-		organizationId,
-		dataTableSourceCellRequests,
-		{
-			skip: !organizationId || !dataTableSourceCellRequests.length || Boolean(cachedDataTableSourceCells) || Boolean(p.previewAuthToken),
-		},
-	);
-	const sourceDataTableCells = cachedDataTableSourceCells || dataTableCellsForRows || [];
+	const sourceDataTableCells = useMemo(() => {
+		return getSheetDataTableRegionSourceCells(dataTableRowsForSheetRegions);
+	}, [dataTableRowsForSheetRegions]);
 	const sheetRanges = useMemo(() => {
 		return optimisticRanges || sheetGrid?.ranges || [];
 	}, [optimisticRanges, sheetGrid?.ranges]);
@@ -649,106 +924,124 @@ function SheetDataContent(p: SheetDataContentProps) {
 	/*
 	 * Save one row or column structure edit after applying the matching local projection.
 	 */
-	const editSheetGridStructure = useCallback(async (operation: SheetStructureOperationEnum, index: number) => {
-		const bounds = getSheetStructureProtectedBounds(sheetRegions);
-		const nextDesign = getSheetStructureDesignAfterEdit(design, operation, index, bounds);
-		const nextRanges = applySheetStructureEditToRanges(sheetRanges, operation, index, bounds);
-		const previousLoadedGridState = loadedGridState;
-		const previousOptimisticCellsByCoord = optimisticCellsByCoord;
-		const previousOptimisticRanges = optimisticRanges;
-		const previousOptimisticStructureDesign = optimisticStructureDesign;
-		const nextLoadedGridState = getSheetLoadedGridStateAfterStructureEdit({
-			bounds,
-			currentState: previousLoadedGridState,
-			fallbackCellsByCoord: cellsByCoord,
-			nextDesign,
-			operation,
-			targetIndex: index,
-		});
-
-		sheetStructureGridRefetchStartedRef.current = false;
-		pendingSheetStructureGridRef.current = {
-			cellsByCoord: nextLoadedGridState.cellsByCoord,
-			design: nextDesign,
-			ranges: nextRanges,
-		};
-		setSheetStructureGridMergePaused(true);
-		setOptimisticStructureDesign(nextDesign);
-		setOptimisticRanges(nextRanges);
-		setLoadedGridState(nextLoadedGridState);
-		setOptimisticCellsByCoord((currentState) => applySheetStructureEditToCellsByCoord(
-			currentState,
-			operation,
-			index,
-			bounds,
-		));
-
-		try {
-			await waitForSheetStructureOptimisticPaint();
-
-			return await editSheetStructure({
-				variables: {
-					index,
-					operation,
-					organizationId,
-					sheetId,
-				},
+	const editSheetGridStructure = useCallback(
+		async (operation: SheetStructureOperationEnum, index: number) => {
+			const bounds = getSheetStructureProtectedBounds(sheetRegions);
+			const nextDesign = getSheetStructureDesignAfterEdit(
+				design,
+				operation,
+				index,
+				bounds,
+			);
+			const nextRanges = applySheetStructureEditToRanges(
+				sheetRanges,
+				operation,
+				index,
+				bounds,
+			);
+			const previousLoadedGridState = loadedGridState;
+			const previousOptimisticCellsByCoord = optimisticCellsByCoord;
+			const previousOptimisticRanges = optimisticRanges;
+			const previousOptimisticStructureDesign = optimisticStructureDesign;
+			const nextLoadedGridState = getSheetLoadedGridStateAfterStructureEdit({
+				bounds,
+				currentState: previousLoadedGridState,
+				fallbackCellsByCoord: gridCellsByCoord,
+				nextDesign,
+				operation,
+				targetIndex: index,
 			});
-		} catch (error) {
-			pendingSheetStructureGridRef.current = null;
-			sheetStructureGridRefetchStartedRef.current = false;
-			setSheetStructureGridMergePaused(false);
-			setLoadedGridState(previousLoadedGridState);
-			setOptimisticCellsByCoord(previousOptimisticCellsByCoord);
-			setOptimisticRanges(previousOptimisticRanges);
-			setOptimisticStructureDesign(previousOptimisticStructureDesign);
-			throw error;
-		}
-	}, [
-		cellsByCoord,
-		design,
-		editSheetStructure,
-		loadedGridState,
-		optimisticCellsByCoord,
-		optimisticRanges,
-		optimisticStructureDesign,
-		organizationId,
-		setLoadedGridState,
-		setOptimisticCellsByCoord,
-		sheetId,
-		sheetRanges,
-		sheetRegions,
-	]);
 
-	return <SheetController
-		bufferColumns={p.bufferColumns}
-		bufferRows={p.bufferRows}
-		canFetchMoreRows={!sheetGridLoading}
-		cellsByCoord={cellsByCoord}
-		children={p.children}
-		className={p.className}
-		dataTables={p.dataTables}
-		design={design}
-		disabled={p.disabled}
-		formulaDependencyCellsByCoord={formulaDependencyCellsByCoord}
-		formulaReferencesById={formulaReferencesById}
-		hasMoreRows={loadedGridState.hasMoreRows}
-		loadedRowCount={loadedGridState.loadedRowCount}
-		onFetchMoreRows={fetchMoreRows}
-		onPopulateFromDataTable={openPopulateFromDataTableModal}
-		onRemoveDataTableRegion={removeDataTableRegion}
-		onEditSheetStructure={editSheetGridStructure}
-		onSaveDataTableCells={saveDataTableCells}
-		onSaveCells={saveCells}
-		onUpdateSheetDesign={updateSheetDesign}
-		onViewportRequest={requestViewport}
-		ranges={sheetRanges}
-		regions={sheetRegions}
-		setFloatingMessage={p.setFloatingMessage}
-		sourceDataTableCells={sourceDataTableCells}
-		stateAtoms={p.stateAtoms}
-		timeZone={p.timeZone}
-	/>;
+			sheetStructureGridRefetchStartedRef.current = false;
+			pendingSheetStructureGridRef.current = {
+				cellsByCoord: nextLoadedGridState.cellsByCoord,
+				design: nextDesign,
+				ranges: nextRanges,
+			};
+			setSheetStructureGridMergePaused(true);
+			setOptimisticStructureDesign(nextDesign);
+			setOptimisticRanges(nextRanges);
+			setLoadedGridState(nextLoadedGridState);
+			setOptimisticCellsByCoord((currentState) =>
+				applySheetStructureEditToCellsByCoord(
+					currentState,
+					operation,
+					index,
+					bounds,
+				)
+			);
+
+			try {
+				await waitForSheetStructureOptimisticPaint();
+
+				return await editSheetStructure({
+					variables: {
+						index,
+						operation,
+						organizationId,
+						sheetId,
+					},
+				});
+			} catch (error) {
+				pendingSheetStructureGridRef.current = null;
+				sheetStructureGridRefetchStartedRef.current = false;
+				setSheetStructureGridMergePaused(false);
+				setLoadedGridState(previousLoadedGridState);
+				setOptimisticCellsByCoord(previousOptimisticCellsByCoord);
+				setOptimisticRanges(previousOptimisticRanges);
+				setOptimisticStructureDesign(previousOptimisticStructureDesign);
+				throw error;
+			}
+		},
+		[
+			design,
+			editSheetStructure,
+			gridCellsByCoord,
+			loadedGridState,
+			optimisticCellsByCoord,
+			optimisticRanges,
+			optimisticStructureDesign,
+			organizationId,
+			setLoadedGridState,
+			setOptimisticCellsByCoord,
+			sheetId,
+			sheetRanges,
+			sheetRegions,
+		],
+	);
+
+	return (
+		<SheetController
+			bufferColumns={p.bufferColumns}
+			bufferRows={p.bufferRows}
+			canFetchMoreRows={!sheetGridLoading}
+			cellsByCoord={gridCellsByCoord}
+			children={p.children}
+			className={p.className}
+			dataTables={p.dataTables}
+			design={design}
+			disabled={p.disabled}
+			formulaDependencyCellsByCoord={formulaDependencyCellsByCoord}
+			formulaReferencesById={formulaReferencesById}
+			hasMoreRows={loadedGridState.hasMoreRows}
+			loadedRowCount={loadedGridState.loadedRowCount}
+			operation={p.operation}
+			onFetchMoreRows={fetchMoreRows}
+			onPopulateFromDataTable={openPopulateFromDataTableModal}
+			onRemoveDataTableRegion={removeDataTableRegion}
+			onEditSheetStructure={editSheetGridStructure}
+			onSaveDataTableCells={saveDataTableCells}
+			onSaveCells={saveCells}
+			onUpdateSheetDesign={updateSheetDesign}
+			onViewportRequest={requestViewport}
+			ranges={sheetRanges}
+			regions={sheetRegions}
+			setFloatingMessage={p.setFloatingMessage}
+			sourceDataTableCells={sourceDataTableCells}
+			stateAtoms={p.stateAtoms}
+			timeZone={p.timeZone}
+		/>
+	);
 }
 
 export default Sheet;

@@ -3,7 +3,8 @@ import type {
 	SheetUIColumn,
 	SheetUIEditState,
 } from '@jsb188/react-web/ui/SheetUI';
-import { memo, type ChangeEvent, type CSSProperties, useCallback, useEffect, useRef } from 'react';
+import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
+import { memo, type ChangeEvent, type CSSProperties, useCallback, useRef } from 'react';
 
 export type SheetEditorOverlayPosition = {
 	height: number;
@@ -81,7 +82,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 		value: p.editState.draftValue,
 	};
 
-	useEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		if (p.autoFocus === false) {
 			return;
 		}

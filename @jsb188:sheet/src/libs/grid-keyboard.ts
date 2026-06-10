@@ -1,6 +1,8 @@
 export type GridArrowDirection = 'left' | 'right' | 'up' | 'down';
 export type GridTabDirection = 'forward' | 'backward';
 
+export const GRID_FORMULA_INPUT_SELECTOR = '[data-sheet-formula-input="true"]';
+
 export type GridKeyboardElements = {
 	editorElement?: HTMLElement | null;
 	headerEditorElement?: HTMLElement | null;
@@ -113,6 +115,25 @@ function hasGridActiveEditorShortcut(elements: GridKeyboardElements, handlers: G
 }
 
 /*
+ * Return whether a browser text editor should own one native arrow shortcut.
+ */
+
+function hasGridNativeEditorArrowShortcut(event: KeyboardEvent, elements: GridKeyboardElements, arrowDirection: GridArrowDirection | null) {
+	if (!arrowDirection) {
+		return false;
+	}
+
+	if (elements.editorElement?.matches(GRID_FORMULA_INPUT_SELECTOR)) {
+		return true;
+	}
+
+	return Boolean(
+		(event.metaKey || event.ctrlKey || event.altKey) &&
+			(elements.editorElement || elements.headerEditorElement || elements.localEditorElement),
+	);
+}
+
+/*
  * Route one keyboard event through shared grid shortcut behavior.
  */
 
@@ -127,6 +148,11 @@ export function handleGridKeyboardEvent(
 	const hasEditorShortcut = hasGridActiveEditorShortcut(elements, handlers);
 	const undoShortcut = isGridUndoShortcut(event, metaKey);
 	const redoShortcut = isGridRedoShortcut(event, metaKey);
+
+	if (hasGridNativeEditorArrowShortcut(event, elements, arrowDirection)) {
+		return false;
+	}
+
 	const shortcutKey = Boolean(
 		(arrowDirection && handlers.onArrow) ||
 		(event.key === 'Enter' && (hasEditorShortcut || handlers.onEnter)) ||

@@ -30,6 +30,7 @@ export const COMMON_CLASSNAMES = {
   // These are x-paddings used for consistency around content
   tableRowXPadding: 'px_20',
   contentXPadding: 'px_28',
+  contentSidebarClosedPadding: 'pl_8 pr_28',
   contentXMargin: 'mx_28',
 };
 

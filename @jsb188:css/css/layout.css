@@ -143,8 +143,14 @@ body.p_auth {
 /* Floating message */
 
 .floating_msg_cnt {
+  pointer-events: none;
   transition: transform .2s ease-in-out, opacity .2s ease-in-out;
-  transform: translateY(0);
+  width: max-content;
+  max-width: calc(100vw - 40px);
+}
+
+.floating_msg {
+  pointer-events: auto;
 }
 
 /* Helpers, to work with layout variables */
@@ -167,6 +173,10 @@ body.p_auth {
 
 /* App layout; sidebar */
 
+.app_sidebar_edge_reveal {
+  background: linear-gradient(90deg, rgba(var(--color-main), .125), rgba(0,0,0,0));
+}
+
 #app_sidebar {
   position: relative;
   width: 0;
@@ -176,6 +186,13 @@ body.p_auth {
 
 .open #app_sidebar {
   width: var(--sidebar-wt);
+}
+
+.overlayed #app_sidebar {
+  position: fixed; z-index: 50;
+  top: 30px; bottom: 30px; left: 0;
+  width: 0;
+  overflow: visible;
 }
 
 .app_sidebar_inside {
@@ -189,6 +206,18 @@ body.p_auth {
 
 .open .app_sidebar_inside {
   left: 0;
+}
+
+.overlayed .app_sidebar_inside {
+  left: 0;
+  border-top-right-radius: var(--radius-default);
+  border-bottom-right-radius: var(--radius-default);
+  background-color: rgb(var(--color-bg));
+  box-shadow: var(--shadow-line), 0 0 0 1px rgba(0,0,0,.05), 10px 0 20px rgba(0,0,0,.05);
+}
+
+.overlayed.overlay_closing .app_sidebar_inside {
+  left: calc(var(--sidebar-wt) * -1);
 }
 
 .app_sidebar_inside_width {

@@ -232,6 +232,26 @@ describe('sheet region filter query utilities', () => {
 		expect(parseSheetRegionSourceFilterString(query, TEST_DESIGN_CELLS)).toEqual(sourceFilter);
 	});
 
+	it('round trips escaped column keys and string values through canonical query text', () => {
+		const designCells = [
+			...TEST_DESIGN_CELLS,
+			getTestDesignCell('field`key', 'TEXT'),
+		];
+		const sourceFilter = {
+			combinator: 'AND' as const,
+			conditions: [{
+				cellKey: 'field`key',
+				operator: 'CONTAINS' as const,
+				textValue: 'North "Field"\nLine',
+			}],
+			groups: [],
+		};
+		const query = stringifySheetRegionSourceFilter(sourceFilter);
+
+		expect(query).toBe('`field\\`key` CONTAINS "North \\"Field\\"\\nLine"');
+		expect(parseSheetRegionSourceFilterString(query, designCells)).toEqual(sourceFilter);
+	});
+
 	it('throws typed errors for invalid strict parsing', () => {
 		expect(() => parseSheetRegionSourceFilterString('missing = "value"', TEST_DESIGN_CELLS)).toThrow(SheetRegionFilterQueryParseError);
 		expect(() => parseSheetRegionSourceFilterString('name > 1', TEST_DESIGN_CELLS)).toThrow(SheetRegionFilterQueryParseError);

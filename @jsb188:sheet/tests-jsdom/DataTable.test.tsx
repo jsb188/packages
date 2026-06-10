@@ -849,6 +849,23 @@ describe('Sheet container', () => {
 		expect(editor?.value).toBe('Alpha');
 	});
 
+	it('keeps focus in the editor after a typed key starts editing', async () => {
+		const host = await renderSheet();
+		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;
+
+		await act(async () => {
+			nameCell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+		await flushRender();
+		await pressSheetKey('a');
+
+		const editor = host.querySelector('[data-sheet-editor="true"][data-cell-key="name"]') as HTMLInputElement | null;
+
+		expect(editor).not.toBeNull();
+		expect(editor?.value).toBe('a');
+		expect(document.activeElement).toBe(editor);
+	});
+
 	it('prevents default browser behavior for selected-cell Enter editing', async () => {
 		const host = await renderSheet();
 		const nameCell = host.querySelector('[data-row-id="row-0"][data-cell-key="name"][data-sheet-cell="true"]') as HTMLElement;

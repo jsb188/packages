@@ -29,6 +29,7 @@ const LOADING_BREADCRUMBS: BreadcrumbItemObj[] = [{ text: '.............. ......
 interface AppToolbarOutletContext {
   open?: boolean;
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  sidebarOverlayOpen?: boolean;
 }
 
 /**
@@ -241,24 +242,45 @@ const AppToolbar = memo((p: {
   const outletContext = useOutletContext<AppToolbarOutletContext | null>();
   const breadcrumbs = p.breadcrumbs || LOADING_BREADCRUMBS;
   const lastIx = breadcrumbs.length - 1;
-  const showOpenSidebarButton = outletContext?.open === false && !!outletContext.setOpen;
+  const sidebarIsOpen = outletContext?.open;
+  const sidebarOverlayOpen = !!outletContext?.sidebarOverlayOpen;
+  const showOpenSidebarButton = sidebarIsOpen === false && !!outletContext?.setOpen;
+
+  const openSidebarButtonStyle: React.CSSProperties = {
+    opacity: sidebarOverlayOpen ? 0 : 1,
+    overflow: 'hidden',
+    pointerEvents: sidebarOverlayOpen ? 'none' : 'auto',
+    transition: 'width .2s ease, opacity .2s ease',
+    width: sidebarOverlayOpen ? 8 : 40,
+  };
 
   return <div className={cn('bg rel z4', shadowClassName)}>
-    <div className={cn('h_toolbar h_item no_shrink', COMMON_CLASSNAMES.contentXPadding)}>
+    <div className={cn('h_toolbar h_item no_shrink', sidebarIsOpen ? COMMON_CLASSNAMES.contentXPadding : COMMON_CLASSNAMES.contentSidebarClosedPadding)}>
       {showOpenSidebarButton && (
-        <TooltipButton
-          message={i18n.t('app.expand_sidebar')}
-          position='bottom'
-          offsetY={5}
-          className='mr_14 -ml_4 mb_2 w_32 h_32 h_center ft_sm cl_lt no_shrink bg_darker_2_hv r_xs link'
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            outletContext.setOpen?.(true);
-          }}
+        <span
+          aria-hidden={sidebarOverlayOpen}
+          className='h_item no_shrink'
+          style={openSidebarButtonStyle}
         >
-          <Icon name='sidebar-expand-filled' />
-        </TooltipButton>
+          <TooltipButton
+            message={i18n.t('app.expand_sidebar')}
+            position='bottom'
+            offsetY={5}
+            disabled={sidebarOverlayOpen}
+            className='mr_8 mb_2 w_32 h_32 h_center ft_sm cl_bd no_shrink bg_darker_2_hv r_xs link'
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (sidebarOverlayOpen) {
+                return;
+              }
+
+              outletContext.setOpen?.(true);
+            }}
+          >
+            <Icon name='navigation-menu' />
+          </TooltipButton>
+        </span>
       )}
 
       {breadcrumbs?.map((item, i) => {

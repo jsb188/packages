@@ -1,8 +1,9 @@
 import type { DataTableGQL } from '@jsb188/mday/types/dataTable.d.ts';
-import { normalizeSheetCellStyle } from '@jsb188/mday/utils/sheet.ts';
+import { isSheetFormulaText, normalizeSheetCellStyle } from '@jsb188/mday/utils/sheet.ts';
 import type { SheetCellGQL, SheetCellStyleObj, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
 import { useCallback, useRef } from 'react';
 import type { DataTableCellLookup } from './dataTable-cell-editing.tsx';
+import { getSheetCanvasCoordKey } from './sheet-utils.ts';
 import {
 	createGridUndoRedoStack,
 	pushGridUndoEntry,
@@ -82,6 +83,47 @@ function getSheetHistoryStyleComparisonValue(style?: SheetCellStyleObj | null) {
 }
 
 /*
+ * Return whether one generated region marker carries saved Sheet-owned design fields.
+ */
+function generatedRegionCellHasSheetDesign(cell: SheetCellGQL) {
+	return Boolean(getSheetHistoryStyle(cell.style) || cell.format || cell.note);
+}
+
+/*
+ * Return whether one saved Sheet-owned cell carries editable value content.
+ */
+function sheetCellHasEditableValueContent(cell?: SheetCellGQL | null) {
+	if (!cell || cell.sourceType === 'REGION_GENERATED') {
+		return false;
+	}
+
+	return [
+		cell.rawInput,
+		cell.value,
+		cell.textValue,
+		cell.numberValue,
+		cell.booleanValue,
+		cell.dateValue,
+		cell.datetimeValue,
+		cell.formula,
+	].some((value) => value !== null && value !== undefined && value !== '');
+}
+
+/*
+ * Return whether one sparse edit input writes an empty text value.
+ */
+function sheetCellEditInputSetsEmptyValue(input: SheetCellEditInput) {
+	const hasRawInput = Object.prototype.hasOwnProperty.call(input.cell, 'rawInput');
+	const hasValue = Object.prototype.hasOwnProperty.call(input.cell, 'value');
+
+	if (input.clear || (!hasRawInput && !hasValue)) {
+		return false;
+	}
+
+	return (input.cell.rawInput ?? '') === '' && (input.cell.value ?? '') === '';
+}
+
+/*
  * Return a sparse cell input for a text value edit.
  */
 export function getSheetValueEditInput(rowIndex: number, columnIndex: number, value: string | null): SheetCellEditInput {
@@ -116,6 +158,23 @@ export function getSheetCellSnapshotEditInput(rowIndex: number, columnIndex: num
 		return getSheetClearEditInput(rowIndex, columnIndex);
 	}
 
+	if (cell.sourceType === 'REGION_GENERATED') {
+		if (!generatedRegionCellHasSheetDesign(cell)) {
+			return getSheetClearEditInput(rowIndex, columnIndex);
+		}
+
+		return {
+			cell: {
+				columnIndex,
+				format: cell.format ?? null,
+				note: cell.note ?? null,
+				regionId: cell.regionId ?? cell.region?.regionId ?? null,
+				rowIndex,
+				style: getSheetHistoryStyle(cell.style),
+			},
+		};
+	}
+
 	return {
 		cell: {
 			columnIndex,
@@ -146,10 +205,73 @@ export function sheetCellEditInputsAreEqual(a: SheetCellEditInput, b: SheetCellE
 }
 
 /*
+ * Return only Sheet cell edits that should be sent to the mutation.
+ */
+export function getSheetCellEditInputsForMutation(
+	inputs: SheetCellEditInput[],
+	currentCellsByCoord: Map<string, SheetCellGQL>,
+) {
+	return inputs.filter((input) => {
+		const currentCell = currentCellsByCoord.get(
+			getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex),
+		);
+		const currentInput = getSheetCellSnapshotEditInput(
+			input.cell.rowIndex,
+			input.cell.columnIndex,
+			currentCell,
+		);
+
+		if (sheetCellEditInputsAreEqual(currentInput, input)) {
+			return false;
+		}
+
+		if (
+			sheetCellEditInputSetsEmptyValue(input) &&
+			!sheetCellHasEditableValueContent(currentCell)
+		) {
+			return false;
+		}
+
+		return true;
+	});
+}
+
+/*
+ * Return optimistic formula metadata for one pending value edit.
+ */
+function getOptimisticSheetFormulaFromEditInput(input: SheetCellEditInput, currentCell?: SheetCellGQL | null) {
+	if (input.cell.rawInput === undefined && input.cell.value === undefined) {
+		return currentCell?.formula ?? null;
+	}
+
+	const rawInput = input.cell.rawInput ?? input.cell.value;
+	if (!isSheetFormulaText(rawInput)) {
+		return null;
+	}
+
+	return {
+		engine: currentCell?.formula?.engine || 'client',
+		error: null,
+		references: [],
+		text: rawInput,
+		version: currentCell?.formula?.version || 0,
+	};
+}
+
+/*
  * Return an optimistic Sheet cell payload for one pending edit input.
  */
 export function getOptimisticSheetCellFromEditInput(input: SheetCellEditInput, currentCell?: SheetCellGQL | null): SheetCellGQL {
 	if (input.clear) {
+		if (currentCell?.sourceType === 'REGION_GENERATED') {
+			return {
+				...currentCell,
+				format: null,
+				note: null,
+				style: null,
+			} as SheetCellGQL;
+		}
+
 		return {
 			columnIndex: input.cell.columnIndex,
 			rawInput: '',
@@ -165,6 +287,7 @@ export function getOptimisticSheetCellFromEditInput(input: SheetCellEditInput, c
 		columnIndex: input.cell.columnIndex,
 		format: input.cell.format ?? currentCell?.format ?? null,
 		note: input.cell.note ?? currentCell?.note ?? null,
+		formula: getOptimisticSheetFormulaFromEditInput(input, currentCell),
 		rawInput: input.cell.rawInput ?? currentCell?.rawInput ?? null,
 		regionId: input.cell.regionId ?? currentCell?.regionId ?? null,
 		rowIndex: input.cell.rowIndex,

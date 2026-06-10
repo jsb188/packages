@@ -1,7 +1,10 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
-import { SHEET_DATA_TABLE_REGION_MAX_ROWS } from '@jsb188/mday/constants/sheet.ts';
+import {
+	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
+	SHEET_DATA_TABLE_REGION_MAX_ROWS,
+} from '@jsb188/mday/constants/sheet.ts';
 import type { SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
 import {
   getSheetCellKey,
@@ -46,6 +49,8 @@ const SHEET_CANVAS_BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 
 type SheetCanvasTheme = {
 	active: string;
+	activeBackground: string;
+	activeOutline: string;
 	background: string;
 	bodyText: string;
 	contrast: string;
@@ -88,6 +93,15 @@ type SheetCanvasRowRect = SheetCanvasRect & {
 	metric: SheetRowMetric;
 };
 
+type SheetCanvasRegionRect = SheetCanvasRect & {
+	region: SheetRegionGQL;
+};
+
+type SheetCanvasRegionColumnTagTarget = {
+	rect: SheetCanvasRect;
+	sourceCellKey: string;
+};
+
 type SheetCanvasCellBorderSide = typeof SHEET_CANVAS_BORDER_SIDES[number];
 
 type SheetCanvasCellBorderLine = {
@@ -108,6 +122,7 @@ export type SheetCanvasSurfaceProps = {
 	formulaContent?: ReactNode;
 	headerContent?: ReactNode;
 	headerSelection?: SheetHeaderSelectionState | null;
+	hoveredCellState?: SheetUISelectedCellState | null;
 	onContextMenu?: (event: MouseEvent<HTMLDivElement>) => void;
 	onDoubleClick?: (event: MouseEvent<HTMLDivElement>) => void;
 	onFocusOut?: (event: FocusEvent<HTMLDivElement>) => void;
@@ -118,6 +133,7 @@ export type SheetCanvasSurfaceProps = {
 	onPointerMove?: (event: PointerEvent<HTMLDivElement>) => void;
 	overlayContent?: ReactNode;
 	regions?: SheetRegionGQL[] | null;
+	regionDataTableLabelsById?: Map<string, string> | null;
 	hoveredRegionId?: string | null;
 	resizeGuide?: SheetUIResizeGuide | null;
 	rowResizeGuide?: SheetUIRowResizeGuide | null;
@@ -190,6 +206,7 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 	const rootStyles = getComputedStyle(document.documentElement);
 	const rootFontSizePx = getSheetCanvasCSSLengthPx(rootStyles.fontSize || '16px', 16, 16);
 	const active = getSheetCanvasCSSColor(styles, '--color-primary', '#2563eb');
+	const activeBackground = `rgba(${getSheetCanvasCSSValue(styles, '--color-darker-rgb', '0, 0, 0')}, .0125)`;
 	const fontSize = getSheetCanvasCSSValue(styles, '--text-xsmall', '0.875rem');
 	const tagFontSize = getSheetCanvasCSSValue(styles, '--text-xxsmall', '0.75rem');
 	const styleColors = COLORS.reduce<Record<string, string>>((result, colorName) => {
@@ -209,6 +226,8 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 
 	return {
 		active,
+		activeBackground,
+		activeOutline: getSheetCanvasCSSColor(styles, '--color-bg-active', '#e5e7eb'),
 		background: getSheetCanvasCSSColor(styles, '--color-bg', '#ffffff'),
 		bodyText: getSheetCanvasCSSColor(styles, '--color-text', '#111827'),
 		contrast: getSheetCanvasCSSColor(styles, '--color-contrast', active),
@@ -223,7 +242,7 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 		headerSelectedText: getSheetCanvasCSSColor(styles, '--color-solid', '#ffffff'),
 		headerText: getSheetCanvasCSSColor(styles, '--color-text-medium', '#475569'),
 		main: getSheetCanvasCSSColor(styles, '--color-main', active),
-		regionOutline: getSheetCanvasCSSColor(styles, '--color-darker-bold', active),
+		regionOutline: getSheetCanvasCSSColor(styles, '--color-bg-medium', active),
 		resizeGuide: getSheetCanvasCSSColor(styles, '--color-bg-active', '#e5e7eb'),
 		solid: getSheetCanvasCSSColor(styles, '--color-solid', '#ffffff'),
 		selectionFill: active,
@@ -564,6 +583,13 @@ function getSheetCanvasWrappedTextLines(ctx: CanvasRenderingContext2D, text: str
 }
 
 /*
+ * Return the underline y coordinate for canvas text drawn with a middle baseline.
+ */
+function getSheetCanvasTextUnderlineY(textMiddleY: number, lineHeight: number) {
+	return Math.round(textMiddleY + Math.max(3, Math.min(6, lineHeight * 0.25))) + 0.5;
+}
+
+/*
  * Draw wrapped cell text while keeping it clipped to the cell rectangle.
  */
 function drawSheetCanvasWrappedText(params: {
@@ -585,7 +611,7 @@ function drawSheetCanvasWrappedText(params: {
 	const maxLineCount = Math.max(1, Math.floor((params.height + SHEET_CANVAS_TEXT_LINE_GAP) / (params.lineHeight + SHEET_CANVAS_TEXT_LINE_GAP)));
 	const visibleLines = lines.slice(0, maxLineCount);
 	const totalTextHeight = visibleLines.length * params.lineHeight + Math.max(0, visibleLines.length - 1) * SHEET_CANVAS_TEXT_LINE_GAP;
-	const firstBaselineY = params.y + Math.max(params.lineHeight, (params.height - totalTextHeight) / 2 + params.lineHeight / 2);
+	const firstBaselineY = params.y + (params.height - totalTextHeight) / 2 + params.lineHeight / 2;
 
 	params.ctx.fillStyle = params.color;
 	params.ctx.textAlign = 'left';
@@ -597,7 +623,7 @@ function drawSheetCanvasWrappedText(params: {
 		params.ctx.fillText(line, params.x, baselineY);
 
 		if (params.underline) {
-			const underlineY = Math.round(baselineY + 8) + 0.5;
+			const underlineY = getSheetCanvasTextUnderlineY(baselineY, params.lineHeight);
 			const textWidth = params.ctx.measureText(line).width;
 
 			params.ctx.beginPath();
@@ -645,30 +671,32 @@ function drawSheetCanvasText(params: {
 	const textX = params.align === 'center'
 		? params.x + params.width / 2
 		: params.x + SHEET_CANVAS_CELL_PADDING_X;
+	const textY = params.y + 1;
+	const textHeight = Math.max(0, params.height - 1);
 
 	if (params.wrap && params.align !== 'center') {
 		drawSheetCanvasWrappedText({
 			color: params.color,
 			ctx: params.ctx,
-			height: params.height,
+			height: textHeight,
 			lineHeight: params.lineHeight || params.theme.fontLineHeightPx,
 			maxWidth: Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2),
 			text: params.text,
 			underline: params.underline,
 			x: textX,
-			y: params.y,
+			y: textY,
 		});
 	} else {
 		params.ctx.fillText(
 			params.text,
 			textX,
-			params.y + params.height / 2,
+			textY + textHeight / 2,
 		);
 
 		if (params.underline) {
 			const textWidth = Math.min(params.ctx.measureText(params.text).width, Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2));
 			const underlineLeft = params.align === 'center' ? textX - textWidth / 2 : textX;
-			const underlineY = Math.round(params.y + params.height / 2 + (params.lineHeight || params.theme.fontLineHeightPx) / 2 - 2) + 0.5;
+			const underlineY = getSheetCanvasTextUnderlineY(textY + textHeight / 2, params.lineHeight || params.theme.fontLineHeightPx);
 
 			params.ctx.beginPath();
 			params.ctx.strokeStyle = params.color;
@@ -704,6 +732,100 @@ function drawSheetCanvasRoundedRect(ctx: CanvasRenderingContext2D, x: number, y:
 }
 
 /*
+ * Return the rendered height for one small Sheet canvas tag.
+ */
+function getSheetCanvasTagHeight(theme: SheetCanvasTheme) {
+	return Math.ceil(theme.tagLineHeightPx + (SHEET_CANVAS_READ_ONLY_TAG_PADDING_Y * 2));
+}
+
+/*
+ * Return the visible canvas body area below the column headers and beside the row numbers.
+ */
+function getSheetCanvasBodyClipRect(viewportWidth: number, viewportHeight: number): SheetCanvasRect {
+	return {
+		height: Math.max(0, viewportHeight - SHEET_HEADER_HEIGHT),
+		left: SHEET_ROW_NUMBER_WIDTH,
+		top: SHEET_HEADER_HEIGHT,
+		width: Math.max(0, viewportWidth - SHEET_ROW_NUMBER_WIDTH),
+	};
+}
+
+/*
+ * Draw one small Sheet canvas tag with the same spacing as the shared DOM tag.
+ */
+function drawSheetCanvasTag(params: {
+	align?: 'left' | 'right';
+	backgroundColor: string;
+	clipRect?: SheetCanvasRect | null;
+	ctx: CanvasRenderingContext2D;
+	heightOffset?: number;
+	left: number;
+	text: string;
+	textColor: string;
+	theme: SheetCanvasTheme;
+	top: number;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	if (!params.text) {
+		return;
+	}
+
+	const height = Math.max(1, getSheetCanvasTagHeight(params.theme) + (params.heightOffset || 0));
+	const font = `${params.theme.tagFontSize} ${params.theme.fontFamilyMedium}`;
+
+	params.ctx.save();
+	params.ctx.font = font;
+
+	const width = Math.ceil(params.ctx.measureText(params.text).width + (SHEET_CANVAS_READ_ONLY_TAG_PADDING_X * 2));
+	const x = Math.round(params.align === 'right' ? params.left - width : params.left);
+	const y = Math.round(params.top);
+	if (!sheetCanvasRectIsVisible({ height, left: x, top: y, width }, params.viewportWidth, params.viewportHeight)) {
+		params.ctx.restore();
+		return;
+	}
+
+	if (params.clipRect) {
+		const clipRight = params.clipRect.left + params.clipRect.width;
+		const clipBottom = params.clipRect.top + params.clipRect.height;
+		const tagRight = x + width;
+		const tagBottom = y + height;
+
+		if (
+			tagRight <= params.clipRect.left ||
+			x >= clipRight ||
+			tagBottom <= params.clipRect.top ||
+			y >= clipBottom
+		) {
+			params.ctx.restore();
+			return;
+		}
+
+		params.ctx.beginPath();
+		params.ctx.rect(
+			params.clipRect.left,
+			params.clipRect.top,
+			params.clipRect.width,
+			params.clipRect.height,
+		);
+		params.ctx.clip();
+	}
+
+	params.ctx.fillStyle = params.backgroundColor;
+	params.ctx.fillRect(x, y, width, height);
+	params.ctx.fillStyle = params.textColor;
+	params.ctx.font = font;
+	params.ctx.textAlign = 'left';
+	params.ctx.textBaseline = 'middle';
+	params.ctx.fillText(
+		params.text,
+		x + SHEET_CANVAS_READ_ONLY_TAG_PADDING_X,
+		y + height / 2,
+	);
+	params.ctx.restore();
+}
+
+/*
  * Draw the Sheet read-only DataTable tag with the same spacing and colors as the shared DOM tag.
  */
 function drawSheetCanvasReadOnlyTag(params: {
@@ -719,33 +841,17 @@ function drawSheetCanvasReadOnlyTag(params: {
 		return;
 	}
 
-	const text = i18n.t('form.not_editable');
-	const x = Math.round(params.position.left - params.scrollLeft - 1);
-	const y = Math.round(params.position.top - params.scrollTop - 1);
-	const height = Math.ceil(params.theme.tagLineHeightPx + (SHEET_CANVAS_READ_ONLY_TAG_PADDING_Y * 2));
-	const font = `${params.theme.tagFontSize} ${params.theme.fontFamilyMedium}`;
-
-	params.ctx.save();
-	params.ctx.font = font;
-
-	const width = Math.ceil(params.ctx.measureText(text).width + (SHEET_CANVAS_READ_ONLY_TAG_PADDING_X * 2));
-	if (!sheetCanvasRectIsVisible({ height, left: x, top: y, width }, params.viewportWidth, params.viewportHeight)) {
-		params.ctx.restore();
-		return;
-	}
-
-	params.ctx.fillStyle = params.theme.contrast;
-	params.ctx.fillRect(x, y, width, height);
-	params.ctx.fillStyle = params.theme.solid;
-	params.ctx.font = font;
-	params.ctx.textAlign = 'left';
-	params.ctx.textBaseline = 'middle';
-	params.ctx.fillText(
-		text,
-		x + SHEET_CANVAS_READ_ONLY_TAG_PADDING_X,
-		y + height / 2,
-	);
-	params.ctx.restore();
+	drawSheetCanvasTag({
+		backgroundColor: params.theme.contrast,
+		ctx: params.ctx,
+		left: params.position.left - params.scrollLeft - 1,
+		text: i18n.t('form.not_editable'),
+		textColor: params.theme.solid,
+		theme: params.theme,
+		top: params.position.top - params.scrollTop - 1,
+		viewportHeight: params.viewportHeight,
+		viewportWidth: params.viewportWidth,
+	});
 }
 
 /*
@@ -910,7 +1016,7 @@ function drawSheetCanvasDataTableDisplay(params: {
 		params.ctx.fillText(model.text, contentX + model.pillPaddingX, pillY + pillHeight / 2);
 		if (params.underline) {
 			const textWidth = Math.min(metrics.width, Math.max(0, pillWidth - model.pillPaddingX * 2));
-			const underlineY = Math.round(pillY + pillHeight / 2 + lineHeight / 2 - 2) + 0.5;
+			const underlineY = getSheetCanvasTextUnderlineY(pillY + pillHeight / 2, lineHeight);
 
 			params.ctx.beginPath();
 			params.ctx.strokeStyle = params.color;
@@ -1105,7 +1211,27 @@ function getSheetCanvasDataTableRegionEndRow(region: SheetRegionGQL) {
 }
 
 /*
- * Return whether one rendered Sheet cell belongs to a DataTable-populated region.
+ * Return whether one Sheet region is backed by a generated source.
+ */
+function isSheetCanvasGeneratedRegion(region?: SheetRegionGQL | null) {
+	return Boolean(
+		region?.type === 'DATA_TABLE' &&
+		(
+			region.source?.dataTableId ||
+			region.source?.type === SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS
+		),
+	);
+}
+
+/*
+ * Return the stable source id for one generated Sheet region.
+ */
+function getSheetCanvasRegionSourceId(region: SheetRegionGQL) {
+	return String(region.source?.dataTableId || region.source?.type || '');
+}
+
+/*
+ * Return whether one rendered Sheet cell belongs to a generated Sheet region.
  */
 function isSheetCanvasDataTableRegionCell(cell?: SheetCanvasCell | null, regions?: SheetRegionGQL[] | null) {
 	if (cell?.cell?.sourceType !== 'REGION_GENERATED') {
@@ -1113,26 +1239,152 @@ function isSheetCanvasDataTableRegionCell(cell?: SheetCanvasCell | null, regions
 	}
 
 	const regionId = String(cell.cell.region?.regionId || cell.cell.regionId || '');
-	if (!regionId) {
+	if (!regionId || !cell.cell.region?.sourceRowId || !cell.cell.region?.sourceCellKey) {
 		return false;
 	}
 
 	return (regions || []).some((region) => {
 		return String(region.id || '') === regionId &&
-			region.type === 'DATA_TABLE' &&
-			Boolean(region.source?.dataTableId);
+			isSheetCanvasGeneratedRegion(region);
 	});
+}
+
+/*
+ * Return the generated Sheet region that contains one Sheet row and column index.
+ */
+function getSheetCanvasDataTableRegionAtCell(rowIndex: number, columnIndex: number, regions?: SheetRegionGQL[] | null) {
+	return (regions || []).find((region) => {
+		if (!isSheetCanvasGeneratedRegion(region) || !region.columns?.length) {
+			return false;
+		}
+
+		const startColumnIndex = Number(region.startColumnIndex || 0);
+		const endColumnIndex = startColumnIndex + region.columns.length - 1;
+		const startRowIndex = Number(region.startRowIndex || 0);
+		const endRowIndex = getSheetCanvasDataTableRegionEndRow(region);
+
+		return rowIndex >= startRowIndex &&
+			rowIndex <= endRowIndex &&
+			columnIndex >= startColumnIndex &&
+			columnIndex <= endColumnIndex;
+	}) || null;
+}
+
+/*
+ * Return the source DataTable column key for one Sheet column inside a region.
+ */
+function getSheetCanvasDataTableRegionSourceCellKey(region: SheetRegionGQL, columnIndex: number) {
+	const startColumnIndex = Number(region.startColumnIndex || 0);
+	const regionColumnIndex = columnIndex - startColumnIndex;
+
+	return region.columns?.[regionColumnIndex]?.sourceCellKey || '';
+}
+
+/*
+ * Return the visible column-top cell rectangle and source key for one Sheet region column tag target.
+ */
+function getSheetCanvasRegionColumnTagTarget(params: {
+	cellState?: SheetUISelectedCellState | null;
+	columns: SheetColumnMetric[];
+	regions?: SheetRegionGQL[] | null;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+	viewportHeight: number;
+	viewportWidth: number;
+}): SheetCanvasRegionColumnTagTarget | null {
+	const rowIndex = getSheetCanvasRowIndexFromId(params.cellState?.rowId);
+	const columnIndex = getSheetCanvasColumnIndexFromKey(params.cellState?.cellKey);
+
+	if (!rowIndex || !columnIndex) {
+		return null;
+	}
+
+	const region = getSheetCanvasDataTableRegionAtCell(rowIndex, columnIndex, params.regions);
+	const sourceCellKey = region ? getSheetCanvasDataTableRegionSourceCellKey(region, columnIndex) : '';
+	const regionStartRowIndex = Number(region?.startRowIndex || 0);
+	const columnMetric = params.columns.find((metric) => Number(metric.column.key || 0) === columnIndex);
+	const rowMetric = params.rowMetrics.find((metric) => Number(metric.rowKey || 0) === regionStartRowIndex);
+
+	if (!region || !sourceCellKey || !columnMetric || !rowMetric) {
+		return null;
+	}
+
+	const rect = {
+		height: rowMetric.height,
+		left: getSheetCanvasColumnDisplayLeft(columnMetric, params.scrollLeft, params.stickyColumnCount),
+		top: getSheetCanvasRowDisplayTop(rowMetric, params.scrollTop),
+		width: columnMetric.width,
+	};
+
+	if (!sheetCanvasRectIsVisible(rect, params.viewportWidth, params.viewportHeight)) {
+		return null;
+	}
+
+	return {
+		rect,
+		sourceCellKey,
+	};
+}
+
+/*
+ * Return whether one selected coordinate is an empty slot inside a DataTable region.
+ */
+function isSheetCanvasEmptyDataTableRegionCell(params: {
+	cell?: SheetCanvasCell | null;
+	columnIndex: number;
+	regions?: SheetRegionGQL[] | null;
+	rowIndex: number;
+}) {
+	return Boolean(
+		getSheetCanvasDataTableRegionAtCell(params.rowIndex, params.columnIndex, params.regions) &&
+		!isSheetCanvasDataTableRegionCell(params.cell, params.regions),
+	);
+}
+
+/*
+ * Return the selected fill color and opacity for one Sheet canvas cell.
+ */
+function getSheetCanvasSelectedCellFillStyle(params: {
+	cell?: SheetCanvasCell | null;
+	columnIndex: number;
+	regions?: SheetRegionGQL[] | null;
+	rowIndex: number;
+	theme: SheetCanvasTheme;
+}) {
+	if (isSheetCanvasEmptyDataTableRegionCell(params)) {
+		return {
+			color: params.theme.activeBackground,
+			opacity: 1,
+		};
+	}
+
+	return {
+		color: params.theme.selectionFill,
+		opacity: SHEET_CANVAS_SELECTION_ALPHA,
+	};
 }
 
 /*
  * Return the active border color for one selected Sheet canvas cell.
  */
-function getSheetCanvasActiveBorderColor(cell: SheetCanvasCell | null | undefined, regions: SheetRegionGQL[] | null | undefined, theme: SheetCanvasTheme) {
-	if (!isSheetCanvasDataTableRegionCell(cell, regions)) {
-		return theme.active;
+function getSheetCanvasActiveBorderColor(params: {
+	cell?: SheetCanvasCell | null;
+	columnIndex: number;
+	regions?: SheetRegionGQL[] | null;
+	rowIndex: number;
+	theme: SheetCanvasTheme;
+}) {
+	if (isSheetCanvasEmptyDataTableRegionCell(params)) {
+		return params.theme.activeOutline;
 	}
 
-	return cell?.dataTableDisplay?.canEdit ? theme.main : theme.contrast;
+	if (!isSheetCanvasDataTableRegionCell(params.cell, params.regions)) {
+		return params.theme.active;
+	}
+
+	return params.cell?.dataTableDisplay?.canEdit ? params.theme.main : params.theme.contrast;
 }
 
 /*
@@ -1192,12 +1444,12 @@ function isSheetCanvasDataTableRegionSelected(params: {
 }
 
 /*
- * Draw dashed outlines around visible DataTable-populated Sheet regions.
+ * Run a callback for every visible DataTable region whose hover or selection outline is active.
  */
-function drawSheetCanvasDataTableRegionOutlines(params: {
+function forEachVisibleSheetCanvasDataTableRegionRect(params: {
 	columns: SheetColumnMetric[];
-	ctx: CanvasRenderingContext2D;
 	hoveredRegionId?: string | null;
+	onRegionRect: (rect: SheetCanvasRegionRect) => void;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
 	regions?: SheetRegionGQL[] | null;
@@ -1205,12 +1457,11 @@ function drawSheetCanvasDataTableRegionOutlines(params: {
 	scrollLeft: number;
 	scrollTop: number;
 	stickyColumnCount: number;
-	theme: SheetCanvasTheme;
 	viewportHeight: number;
 	viewportWidth: number;
 }) {
 	(params.regions || []).forEach((region) => {
-		if (region.type !== 'DATA_TABLE' || !region.source?.dataTableId || !region.columns?.length) {
+		if (!isSheetCanvasGeneratedRegion(region) || !region.columns?.length) {
 			return;
 		}
 
@@ -1264,18 +1515,173 @@ function drawSheetCanvasDataTableRegionOutlines(params: {
 			return;
 		}
 
-		params.ctx.save();
-		params.ctx.beginPath();
-		params.ctx.setLineDash([6, 4]);
-		params.ctx.strokeStyle = params.theme.regionOutline;
-		params.ctx.lineWidth = 1;
-		params.ctx.strokeRect(
-			Math.round(rect.left) + 0.5,
-			Math.round(rect.top) + 0.5,
-			Math.max(0, Math.round(rect.width)),
-			Math.max(0, Math.round(rect.height)),
-		);
-		params.ctx.restore();
+		params.onRegionRect({
+			...rect,
+			region,
+		});
+	});
+}
+
+/*
+ * Draw dashed outlines around visible DataTable-populated Sheet regions.
+ */
+function drawSheetCanvasDataTableRegionOutlines(params: {
+	columns: SheetColumnMetric[];
+	ctx: CanvasRenderingContext2D;
+	hoveredRegionId?: string | null;
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+	selectedCellState?: SheetUISelectedCellState | null;
+	regions?: SheetRegionGQL[] | null;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	forEachVisibleSheetCanvasDataTableRegionRect({
+		columns: params.columns,
+		hoveredRegionId: params.hoveredRegionId,
+		onRegionRect: (rect) => {
+			params.ctx.save();
+			params.ctx.beginPath();
+			params.ctx.setLineDash([6, 4]);
+			params.ctx.strokeStyle = params.theme.regionOutline;
+			params.ctx.lineWidth = 1;
+			params.ctx.strokeRect(
+				Math.round(rect.left) + 0.5,
+				Math.round(rect.top) + 0.5,
+				Math.max(0, Math.round(rect.width)),
+				Math.max(0, Math.round(rect.height)),
+			);
+			params.ctx.restore();
+		},
+		regions: params.regions,
+		selectedCellKeyMap: params.selectedCellKeyMap,
+		selectedCellState: params.selectedCellState,
+		rowMetrics: params.rowMetrics,
+		scrollLeft: params.scrollLeft,
+		scrollTop: params.scrollTop,
+		stickyColumnCount: params.stickyColumnCount,
+		viewportHeight: params.viewportHeight,
+		viewportWidth: params.viewportWidth,
+	});
+}
+
+/*
+ * Draw the DataTable name tags for visible DataTable-populated Sheet region outlines.
+ */
+function drawSheetCanvasDataTableRegionLabels(params: {
+	columns: SheetColumnMetric[];
+	ctx: CanvasRenderingContext2D;
+	hoveredRegionId?: string | null;
+	regionDataTableLabelsById?: Map<string, string> | null;
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+	selectedCellState?: SheetUISelectedCellState | null;
+	regions?: SheetRegionGQL[] | null;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	const clipRect = getSheetCanvasBodyClipRect(params.viewportWidth, params.viewportHeight);
+
+	forEachVisibleSheetCanvasDataTableRegionRect({
+		columns: params.columns,
+		hoveredRegionId: params.hoveredRegionId,
+		onRegionRect: (rect) => {
+			const sourceId = getSheetCanvasRegionSourceId(rect.region);
+			const dataTableLabel = sourceId ? params.regionDataTableLabelsById?.get(sourceId) : null;
+			if (dataTableLabel) {
+				drawSheetCanvasTag({
+					backgroundColor: params.theme.regionOutline,
+					clipRect,
+					ctx: params.ctx,
+					heightOffset: -1,
+					left: rect.left,
+					text: dataTableLabel,
+					textColor: params.theme.solid,
+					theme: params.theme,
+					top: rect.top - getSheetCanvasTagHeight(params.theme) + 2,
+					viewportHeight: params.viewportHeight,
+					viewportWidth: params.viewportWidth,
+				});
+			}
+		},
+		regions: params.regions,
+		selectedCellKeyMap: params.selectedCellKeyMap,
+		selectedCellState: params.selectedCellState,
+		rowMetrics: params.rowMetrics,
+		scrollLeft: params.scrollLeft,
+		scrollTop: params.scrollTop,
+		stickyColumnCount: params.stickyColumnCount,
+		viewportHeight: params.viewportHeight,
+		viewportWidth: params.viewportWidth,
+	});
+}
+
+/*
+ * Draw the source column key tag for the hovered or selected DataTable region cell.
+ */
+function drawSheetCanvasDataTableRegionColumnKeyLabel(params: {
+	columns: SheetColumnMetric[];
+	ctx: CanvasRenderingContext2D;
+	hoveredCellState?: SheetUISelectedCellState | null;
+	regions?: SheetRegionGQL[] | null;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	selectedCellState?: SheetUISelectedCellState | null;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	const target = getSheetCanvasRegionColumnTagTarget({
+		cellState: params.hoveredCellState,
+		columns: params.columns,
+		regions: params.regions,
+		rowMetrics: params.rowMetrics,
+		scrollLeft: params.scrollLeft,
+		scrollTop: params.scrollTop,
+		stickyColumnCount: params.stickyColumnCount,
+		viewportHeight: params.viewportHeight,
+		viewportWidth: params.viewportWidth,
+	}) || getSheetCanvasRegionColumnTagTarget({
+		cellState: params.selectedCellState,
+		columns: params.columns,
+		regions: params.regions,
+		rowMetrics: params.rowMetrics,
+		scrollLeft: params.scrollLeft,
+		scrollTop: params.scrollTop,
+		stickyColumnCount: params.stickyColumnCount,
+		viewportHeight: params.viewportHeight,
+		viewportWidth: params.viewportWidth,
+	});
+
+	if (!target) {
+		return;
+	}
+
+	const clipRect = getSheetCanvasBodyClipRect(params.viewportWidth, params.viewportHeight);
+
+	drawSheetCanvasTag({
+		align: 'right',
+		backgroundColor: params.theme.regionOutline,
+		clipRect,
+		ctx: params.ctx,
+		heightOffset: -1,
+		left: target.rect.left + target.rect.width,
+		text: target.sourceCellKey,
+		textColor: params.theme.solid,
+		theme: params.theme,
+		top: target.rect.top - getSheetCanvasTagHeight(params.theme) + 2,
+		viewportHeight: params.viewportHeight,
+		viewportWidth: params.viewportWidth,
 	});
 }
 
@@ -1287,6 +1693,8 @@ function drawSheetCanvasCell(params: {
 	ctx: CanvasRenderingContext2D;
 	height: number;
 	isSelected: boolean;
+	selectedFillColor?: string;
+	selectedFillOpacity?: number;
 	theme: SheetCanvasTheme;
 	width: number;
 	x: number;
@@ -1315,10 +1723,10 @@ function drawSheetCanvasCell(params: {
 
 	if (params.isSelected) {
 		params.ctx.save();
-		params.ctx.globalAlpha = SHEET_CANVAS_SELECTION_ALPHA;
+		params.ctx.globalAlpha = params.selectedFillOpacity ?? SHEET_CANVAS_SELECTION_ALPHA;
 		drawSheetCanvasCellFillRect({
 			ctx: params.ctx,
-			color: params.theme.selectionFill,
+			color: params.selectedFillColor || params.theme.selectionFill,
 			height: params.height,
 			left: params.x,
 			top: params.y,
@@ -1378,6 +1786,7 @@ function drawSheetCanvasBodyCell(params: {
 	rowRect: SheetCanvasRowRect;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
+	regions?: SheetRegionGQL[] | null;
 	suppressSelection?: boolean;
 	theme: SheetCanvasTheme;
 }) {
@@ -1391,6 +1800,16 @@ function drawSheetCanvasBodyCell(params: {
 	const cell = params.cellLookup.get(renderKey);
 	const isActive = params.selectedCellState?.rowId === params.rowRect.metric.rowKey &&
 		params.selectedCellState.cellKey === params.columnRect.cellKey;
+	const isSelected = !params.suppressSelection && Boolean(params.selectedCellKeyMap?.[renderKey] || isActive);
+	const selectedFillStyle = isSelected
+		? getSheetCanvasSelectedCellFillStyle({
+			cell,
+			columnIndex: Number(params.columnRect.cellKey || 0),
+			regions: params.regions,
+			rowIndex: Number(params.rowRect.metric.rowKey || 0),
+			theme: params.theme,
+		})
+		: null;
 
 	if (params.suppressSelection) {
 		params.ctx.fillStyle = params.theme.background;
@@ -1406,7 +1825,9 @@ function drawSheetCanvasBodyCell(params: {
 		cell,
 		ctx: params.ctx,
 		height: rect.height,
-		isSelected: !params.suppressSelection && Boolean(params.selectedCellKeyMap?.[renderKey] || isActive),
+		isSelected,
+		selectedFillColor: selectedFillStyle?.color,
+		selectedFillOpacity: selectedFillStyle?.opacity,
 		theme: params.theme,
 		width: rect.width,
 		x: rect.left,
@@ -1429,6 +1850,7 @@ function drawSheetCanvasBodyCells(params: {
 	rowRects: SheetCanvasRowRect[];
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
+	regions?: SheetRegionGQL[] | null;
 	theme: SheetCanvasTheme;
 }): SheetCanvasRect | null {
 	let activeCellRect: SheetCanvasRect | null = null;
@@ -1442,6 +1864,7 @@ function drawSheetCanvasBodyCells(params: {
 				rowRect,
 				selectedCellKeyMap: params.selectedCellKeyMap,
 				selectedCellState: params.selectedCellState,
+				regions: params.regions,
 				theme: params.theme,
 			});
 
@@ -1463,9 +1886,21 @@ function drawSheetCanvasBodyCellBorders(params: {
 	ctx: CanvasRenderingContext2D;
 	rowRects: SheetCanvasRowRect[];
 	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
 }) {
 	const renderedBorderLineKeys = new Set<string>();
+	const bodyWidth = Math.max(0, params.viewportWidth - SHEET_ROW_NUMBER_WIDTH);
+	const bodyHeight = Math.max(0, params.viewportHeight - SHEET_HEADER_HEIGHT);
 
+	if (!bodyWidth || !bodyHeight) {
+		return;
+	}
+
+	params.ctx.save();
+	params.ctx.beginPath();
+	params.ctx.rect(SHEET_ROW_NUMBER_WIDTH, SHEET_HEADER_HEIGHT, bodyWidth, bodyHeight);
+	params.ctx.clip();
 	params.rowRects.forEach((rowRect) => {
 		params.columnRects.forEach((columnRect) => {
 			const renderKey = getSheetCellKey(rowRect.metric.rowKey, columnRect.cellKey);
@@ -1487,6 +1922,7 @@ function drawSheetCanvasBodyCellBorders(params: {
 			});
 		});
 	});
+	params.ctx.restore();
 }
 
 /*
@@ -1499,6 +1935,7 @@ function drawSheetCanvasStickyBodyCells(params: {
 	rowRects: SheetCanvasRowRect[];
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
+	regions?: SheetRegionGQL[] | null;
 	stickyColumnCount: number;
 	stickyRowCount: number;
 	theme: SheetCanvasTheme;
@@ -1524,6 +1961,7 @@ function drawSheetCanvasStickyBodyCells(params: {
 				rowRect,
 				selectedCellKeyMap: params.selectedCellKeyMap,
 				selectedCellState: params.selectedCellState,
+				regions: params.regions,
 				suppressSelection: true,
 				theme: params.theme,
 			});
@@ -2219,6 +2657,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 	const stickyColumnCount = Math.max(0, p.stickyColumnCount || 0);
 	const stickyRowCount = Math.max(0, p.stickyRowCount || 0);
 	const gridRight = getSheetCanvasGridDisplayRight(p.columns, p.scrollLeft, stickyColumnCount);
+	const bodyClipRect = getSheetCanvasBodyClipRect(viewportWidth, viewportHeight);
 	const visibleColumnRects = getSheetCanvasVisibleColumnRects({
 		columns: p.columns,
 		scrollLeft: p.scrollLeft,
@@ -2249,6 +2688,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		rowRects: visibleRowRects,
 		selectedCellKeyMap: p.selectedCellKeyMap,
 		selectedCellState: p.selectedCellState,
+		regions: p.regions,
 		theme,
 	});
 
@@ -2296,6 +2736,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		rowRects: visibleRowRects,
 		selectedCellKeyMap: p.selectedCellKeyMap,
 		selectedCellState: p.selectedCellState,
+		regions: p.regions,
 		stickyColumnCount,
 		stickyRowCount,
 		theme,
@@ -2333,14 +2774,67 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		ctx,
 		rowRects: visibleRowRects,
 		theme,
+		viewportHeight,
+		viewportWidth,
+	});
+	drawSheetCanvasDataTableRegionLabels({
+		columns: p.columns,
+		ctx,
+		hoveredRegionId: p.hoveredRegionId,
+		regionDataTableLabelsById: p.regionDataTableLabelsById,
+		regions: p.regions,
+		selectedCellKeyMap: p.selectedCellKeyMap,
+		selectedCellState: p.selectedCellState,
+		rowMetrics: p.rowMetrics,
+		scrollLeft: p.scrollLeft,
+		scrollTop: p.scrollTop,
+		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
+	});
+	drawSheetCanvasDataTableRegionColumnKeyLabel({
+		columns: p.columns,
+		ctx,
+		hoveredCellState: p.hoveredCellState,
+		regions: p.regions,
+		rowMetrics: p.rowMetrics,
+		scrollLeft: p.scrollLeft,
+		scrollTop: p.scrollTop,
+		selectedCellState: p.selectedCellState,
+		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
 	});
 
+	// Keep selected-cell overlays above body content without painting over sticky headers.
+	ctx.save();
+	ctx.beginPath();
+	ctx.rect(
+		bodyClipRect.left,
+		bodyClipRect.top,
+		bodyClipRect.width,
+		bodyClipRect.height,
+	);
+	ctx.clip();
 	if (activeCellRect) {
 		const activeCell = p.selectedCellState
 			? p.cellLookup.get(getSheetCellKey(p.selectedCellState.rowId, p.selectedCellState.cellKey))
 			: null;
+		const activeRowIndex = getSheetCanvasRowIndexFromId(p.selectedCellState?.rowId);
+		const activeColumnIndex = getSheetCanvasColumnIndexFromKey(p.selectedCellState?.cellKey);
+
 		drawSheetCanvasCellActiveBorder({
-			color: getSheetCanvasActiveBorderColor(activeCell, p.regions, theme),
+			color: activeRowIndex && activeColumnIndex
+				? getSheetCanvasActiveBorderColor({
+					cell: activeCell,
+					columnIndex: activeColumnIndex,
+					regions: p.regions,
+					rowIndex: activeRowIndex,
+					theme,
+				})
+				: theme.active,
 			ctx,
 			height: activeCellRect.height,
 			left: activeCellRect.left,
@@ -2349,6 +2843,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 			width: activeCellRect.width,
 		});
 	}
+	ctx.restore();
 
 	if (p.resizeGuide) {
 		ctx.strokeStyle = theme.resizeGuide;
@@ -2368,6 +2863,16 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		ctx.stroke();
 	}
 
+	// The read-only tag should float over cells, but never over row or column headers.
+	ctx.save();
+	ctx.beginPath();
+	ctx.rect(
+		bodyClipRect.left,
+		bodyClipRect.top,
+		bodyClipRect.width,
+		bodyClipRect.height,
+	);
+	ctx.clip();
 	drawSheetCanvasReadOnlyTag({
 		ctx,
 		position: p.selectedReadOnlyCellPosition,
@@ -2377,6 +2882,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		viewportHeight,
 		viewportWidth,
 	});
+	ctx.restore();
 }
 
 /*
@@ -2471,6 +2977,8 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 	prev.formulaContent === next.formulaContent &&
 	prev.headerContent === next.headerContent &&
 	sheetCanvasHeaderSelectionsAreEqual(prev.headerSelection, next.headerSelection) &&
+	prev.hoveredCellState?.cellKey === next.hoveredCellState?.cellKey &&
+	prev.hoveredCellState?.rowId === next.hoveredCellState?.rowId &&
 	prev.onContextMenu === next.onContextMenu &&
 	prev.onDoubleClick === next.onDoubleClick &&
 	prev.onFocusOut === next.onFocusOut &&
@@ -2481,6 +2989,7 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 	prev.onPointerMove === next.onPointerMove &&
 	prev.overlayContent === next.overlayContent &&
 	prev.regions === next.regions &&
+	prev.regionDataTableLabelsById === next.regionDataTableLabelsById &&
 	prev.hoveredRegionId === next.hoveredRegionId &&
 	prev.resizeGuide?.columnKey === next.resizeGuide?.columnKey &&
 	prev.resizeGuide?.height === next.resizeGuide?.height &&

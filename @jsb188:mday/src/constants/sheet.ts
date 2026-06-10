@@ -8,6 +8,11 @@ export const SHEET_REGION_TYPE_ENUMS = [
 	'DATA_TABLE',
 ] as const;
 
+export const SHEET_REGION_SOURCE_TYPE_ENUMS = [
+	'DATA_TABLE',
+	'CHILD_ORGANIZATIONS',
+] as const;
+
 export const SHEET_REGION_CONFLICT_POLICY_ENUMS = [
 	'TRUNCATE_AT_FIRST_BLOCKER',
 	'OVERWRITE',
@@ -64,3 +69,28 @@ export const BUILT_IN_DATA_TABLE_NAMES = [
   'organizations',
   'orgs',
 ];
+
+export const SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS = 'CHILD_ORGANIZATIONS';
+
+export const SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATION_COLUMNS = [
+	{
+		key: 'name',
+		labelKey: 'form.name',
+		width: 300,
+	},
+	{
+		key: 'phone',
+		labelKey: 'form.phone',
+		width: 160,
+	},
+	{
+		key: 'email',
+		labelKey: 'form.email',
+		width: 275,
+	},
+	{
+		key: 'type',
+		labelKey: 'form.type',
+		width: 108,
+	},
+] as const;

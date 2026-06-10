@@ -10,8 +10,7 @@
 
 .popover .tooltip {
   display: inline-block;
-  /* padding: .58rem .7rem; */
-  padding: .57rem .68rem;
+  padding: .58rem .64rem;
   /* box-shadow: var(--shadow-light); */
   box-shadow: var(--shadow);
 }

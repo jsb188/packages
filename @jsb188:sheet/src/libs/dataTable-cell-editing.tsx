@@ -35,6 +35,7 @@ export const DATA_TABLE_SELECT_EDITOR_MIN_WIDTH = 140;
 export const DATA_TABLE_SELECT_EDITOR_MAX_WIDTH = 400;
 export const DATA_TABLE_DATE_EDITOR_WIDTH = 280;
 export const DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH = 320;
+export const DATA_TABLE_SITE_LOCATION_EDITOR_MIN_WIDTH = 320;
 export const DATA_TABLE_LOCAL_EDITOR_LEFT_OFFSET = -2;
 export const DATA_TABLE_LOCAL_EDITOR_TOP_OFFSET = -1;
 export const DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET = 3;
@@ -517,6 +518,13 @@ export function isDataTableDocumentLinkFieldType(fieldType?: DataTableFieldTypeG
 }
 
 /*
+ * Return the field type that should drive related-record document link behavior.
+ */
+function getDataTableDocumentLinkFieldType(designCell: DataTableDesignCellGQL) {
+	return designCell.humanFieldType || designCell.fieldType;
+}
+
+/*
  * Return whether one cell has a usable related record target.
  */
 export function hasDataTableCellRelatedId(cell?: DataTableCellGQL | null) {
@@ -531,6 +539,13 @@ export function isDataTableInboundContactRelatedTable(relatedTable?: string | nu
 }
 
 /*
+ * Return whether a related table name points to organization site locations.
+ */
+export function isDataTableSiteLocationRelatedTable(relatedTable?: string | null) {
+	return relatedTable === 'organization_sites' || relatedTable === 'organization_site' || relatedTable === 'site' || relatedTable === 'sites';
+}
+
+/*
  * Return whether one dataTable cell has enough data to open from the grid.
  */
 export function canOpenDataTableCellLink(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL) {
@@ -538,7 +553,7 @@ export function canOpenDataTableCellLink(cell: DataTableCellGQL | null | undefin
 		return false;
 	}
 
-	return isDataTableExternalLinkTextValue(cell?.textValue) || (hasDataTableCellRelatedId(cell) && isDataTableDocumentLinkFieldType(designCell.fieldType as DataTableFieldTypeGQL | 'ID_OR_TEXT'));
+	return isDataTableExternalLinkTextValue(cell?.textValue) || (hasDataTableCellRelatedId(cell) && isDataTableDocumentLinkFieldType(getDataTableDocumentLinkFieldType(designCell) as DataTableFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT'));
 }
 
 /*
@@ -553,7 +568,7 @@ export function getDataTableOpenLinkIconName(cell: DataTableCellGQL | null | und
 		return 'external-link';
 	}
 
-	if (hasDataTableCellRelatedId(cell) && isDataTableDocumentLinkFieldType(designCell.fieldType as DataTableFieldTypeGQL | 'ID_OR_TEXT')) {
+	if (hasDataTableCellRelatedId(cell) && isDataTableDocumentLinkFieldType(getDataTableDocumentLinkFieldType(designCell) as DataTableFieldTypeGQL | SheetUIFieldType | 'ID_OR_TEXT')) {
 		return 'notes-paper-text';
 	}
 
@@ -1111,6 +1126,17 @@ export function handleDataTableRelatedDocumentCellEdit(lookup: DataTableCellLook
  */
 export function isDataTableInboundContactIdLookup(lookup: DataTableCellLookup) {
 	return lookup.designCell.fieldType === 'ID' && isDataTableInboundContactRelatedTable(lookup.cell?.relatedTable) && hasDataTableCellRelatedId(lookup.cell);
+}
+
+/*
+ * Return whether one resolved dataTable lookup points at a site location ID cell.
+ */
+export function isDataTableSiteLocationIdLookup(lookup: DataTableCellLookup) {
+	const fieldType = lookup.designCell.humanFieldType || lookup.designCell.fieldType;
+
+	return isDataTableDocumentLinkFieldType(fieldType as DataTableFieldTypeGQL | 'ID_OR_TEXT') &&
+		isDataTableSiteLocationRelatedTable(lookup.cell?.relatedTable) &&
+		hasDataTableCellRelatedId(lookup.cell);
 }
 
 /*

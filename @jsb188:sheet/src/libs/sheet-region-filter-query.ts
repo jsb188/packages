@@ -10,6 +10,11 @@ import type {
 	DataTableFieldTypeEnum,
 	DataTableRecordValue,
 } from '@jsb188/mday/types/dataTable.d.ts';
+import {
+	escapeSheetRegionQueryString,
+	getSheetRegionQueryPartAtIndex,
+	getSheetRegionQueryRenderableParts,
+} from './sheet-region-query-utils.ts';
 import type {
 	SheetRegionSourceFilterCombinatorEnum,
 	SheetRegionSourceFilterConditionObj,
@@ -1171,16 +1176,6 @@ function parseSheetRegionFilterQueryState(state: SheetRegionFilterQueryParserSta
 }
 
 /*
- * Escape one string so it can be written as a quoted filter query value.
- */
-function escapeSheetRegionFilterQueryString(value: string) {
-	return value
-		.replace(/\\/g, '\\\\')
-		.replace(/"/g, '\\"')
-		.replace(/\n/g, '\\n');
-}
-
-/*
  * Return a query-safe column key reference.
  */
 function stringifySheetRegionFilterQueryCellKey(cellKey: string) {
@@ -1193,7 +1188,7 @@ function stringifySheetRegionFilterQueryCellKey(cellKey: string) {
  * Return a quoted string query value.
  */
 function stringifySheetRegionFilterQueryStringValue(value: unknown) {
-	return `"${escapeSheetRegionFilterQueryString(String(value ?? ''))}"`;
+	return `"${escapeSheetRegionQueryString(String(value ?? ''))}"`;
 }
 
 /*
@@ -1383,13 +1378,7 @@ export function getSheetRegionFilterQueryPartAtIndex(
 	parts: SheetRegionFilterQueryPart[],
 	index: number | null | undefined,
 ) {
-	if (index === null || index === undefined || index < 0) {
-		return null;
-	}
-
-	return getSortedSheetRegionFilterQueryParts(parts).find((part) => (
-		index >= part.startIndex && index < part.endIndex
-	)) || null;
+	return getSheetRegionQueryPartAtIndex(getSortedSheetRegionFilterQueryParts(parts), index);
 }
 
 /*
@@ -1399,45 +1388,6 @@ export function getSheetRegionFilterQueryRenderableParts(
 	query: string,
 	parts: SheetRegionFilterQueryPart[],
 ): SheetRegionFilterQueryHighlightChunk[] {
-	const chunks: SheetRegionFilterQueryHighlightChunk[] = [];
 	const sortedParts = getSortedSheetRegionFilterQueryParts(parts);
-	let cursor = 0;
-
-	sortedParts.forEach((part) => {
-		const partIndex = parts.indexOf(part);
-		if (part.endIndex <= cursor || part.endIndex <= part.startIndex) {
-			return;
-		}
-
-		if (part.startIndex > cursor) {
-			chunks.push({
-				endIndex: part.startIndex,
-				kind: 'text',
-				startIndex: cursor,
-				text: query.slice(cursor, part.startIndex),
-			});
-		}
-
-		const startIndex = Math.max(cursor, part.startIndex);
-		chunks.push({
-			endIndex: part.endIndex,
-			kind: 'part',
-			part,
-			partIndex,
-			startIndex,
-			text: query.slice(startIndex, part.endIndex),
-		});
-		cursor = part.endIndex;
-	});
-
-	if (cursor < query.length) {
-		chunks.push({
-			endIndex: query.length,
-			kind: 'text',
-			startIndex: cursor,
-			text: query.slice(cursor),
-		});
-	}
-
-	return chunks;
+	return getSheetRegionQueryRenderableParts(query, sortedParts, parts) as SheetRegionFilterQueryHighlightChunk[];
 }

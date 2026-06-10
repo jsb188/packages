@@ -23,7 +23,7 @@ export const TileItem = memo((p: {
   const { __deleted, active, className, description, iconName, title, to, onClick, onContextMenu } = p;
   const clickable = !__deleted && !!(to || onClick);
   const activeEnabled = !__deleted && active;
-  const hoverClassName = __deleted ? 'bd_lt' : 'bd_lt bd_primary_hv shadow_primary_hv';
+  const hoverClassName = __deleted ? 'bd_lt' : 'bd_lt ol_primary_hv';
 
   return <SmartLink
     to={__deleted ? undefined : to}
@@ -35,7 +35,7 @@ export const TileItem = memo((p: {
     className={cn(
       // 'bg_fade bg_alt_hv r_sm min_w_0 pattern_speckle bg_bf rel bd_1 bd_lt',
       '_bg r_sm min_w_0 bd_1',
-      activeEnabled ? 'bd_primary shadow_primary' : hoverClassName,
+      activeEnabled ? 'ol_primary' : hoverClassName,
       'w_275 h_115 h_left gap_sm p_df',
       clickable && 'link trans_link',
       __deleted && '__deleted',

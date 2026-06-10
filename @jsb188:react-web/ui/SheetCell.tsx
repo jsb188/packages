@@ -1308,7 +1308,7 @@ export const SheetGridCell = memo((p: {
 		editableContentClassName,
 		selectedReadOnlyContentClassName,
 		showCustomBackgroundSelectedOverlay ? 'bg_main_fd' : '',
-		!isInlineEditing ? 'px_6 unsel' : '',
+		!isInlineEditing ? 'pl_6 unsel' : '',
 		!displayValue && !isSheetDateCellFieldType(displayFieldType) ? 'cl_darker_2' : '',
 	);
 

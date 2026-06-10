@@ -84,6 +84,7 @@ import {
   DATA_TABLE_DATE_EDITOR_WIDTH,
   DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH,
   DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
+  DATA_TABLE_SITE_LOCATION_EDITOR_MIN_WIDTH,
   getDataTableCellClassNameFromModel,
   getDataTableCellDisplayClassNameFromModel,
   getDataTableCellDisplayModel,
@@ -103,6 +104,8 @@ import {
   isDataTableInboundContactRelatedTable,
   isDataTableLocalEditorFieldType,
   isDataTableReferenceCell,
+  isDataTableSiteLocationIdLookup,
+  isDataTableSiteLocationRelatedTable,
   isSheetSelectEditorFieldType,
   parseSheetEditorValue,
   getDataTableLocalEditorPosition as sharedGetDataTableLocalEditorPosition,
@@ -125,6 +128,7 @@ import {
   type DataTableUndoRedoEntry,
 } from '../libs/dataTable-history.ts';
 import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
+import { DataTableSiteLocationEditor } from './DataTable-SiteLocation.tsx';
 import {
   dataTableInteractionReducer,
   getActiveEditState,
@@ -189,6 +193,7 @@ type DataTableOpenCellParams = {
 
 type DataTableOpenCellLinkParams = DataTableOpenCellParams & {
 	openInboundContactEditor: (params: DataTableOpenCellParams) => void;
+	openSiteLocationEditor: (params: DataTableOpenCellParams) => void;
 	openModalScreen: ReturnType<typeof useOpenModalScreen>;
 	setFloatingMessage?: SetFloatingMessage;
 };
@@ -1003,7 +1008,7 @@ function getDataTableOpenCellExternalUrl(cell: DataTableCellGQL | null | undefin
  */
 
 function openDataTableCellLink(params: DataTableOpenCellLinkParams) {
-	const { cell, openInboundContactEditor, openModalScreen, setFloatingMessage } = params;
+	const { cell, openInboundContactEditor, openModalScreen, openSiteLocationEditor, setFloatingMessage } = params;
 	const externalUrl = getDataTableOpenCellExternalUrl(cell);
 
 	if (externalUrl) {
@@ -1014,6 +1019,11 @@ function openDataTableCellLink(params: DataTableOpenCellLinkParams) {
 	if (cell?.relatedId) {
 		if (isDataTableInboundContactRelatedTable(cell.relatedTable)) {
 			openInboundContactEditor(params);
+			return;
+		}
+
+		if (isDataTableSiteLocationRelatedTable(cell.relatedTable)) {
+			openSiteLocationEditor(params);
 			return;
 		}
 
@@ -1206,7 +1216,7 @@ function DataTableContent(p: DataTableContentProps) {
 	const singleClickedCellState = getSelectedCellState(interactionState);
 	const selectedCellSelection = getSelectedCellSelection(interactionState);
 	const selectedCellKeyMap = selectedCellSelection?.selectedCellKeyMap || null;
-	const inboundContactEditorState = getOpenLocalEditorState(interactionState);
+	const relatedRecordEditorState = getOpenLocalEditorState(interactionState);
 
 	const effectiveDesign = useMemo(() => {
 		if (designState.dataTableId !== dataTableId) {
@@ -2230,10 +2240,10 @@ function DataTableContent(p: DataTableContentProps) {
 	);
 
 	/*
-	 * Open the inbound contact overlay editor from one dataTable cell lookup.
+	 * Open a related-record overlay editor from one dataTable cell lookup.
 	 */
 
-	function openInboundContactLocalEditor(lookup: DataTableCellLookup, clickSource: SheetUIEditorClickSource) {
+	function openRelatedRecordLocalEditor(lookup: DataTableCellLookup, clickSource: SheetUIEditorClickSource) {
 		const runtime = runtimeRef.current;
 		const displayValue = getSheetCellDisplayValue(lookup.cell, lookup.designCell, undefined, timeZone);
 		const editState = runtime
@@ -2295,6 +2305,34 @@ function DataTableContent(p: DataTableContentProps) {
 						type: 'local_editor_opened',
 					});
 				},
+				openSiteLocationEditor: (openParams: DataTableOpenCellParams) => {
+					const currentRuntime = runtimeRef.current;
+					const lookup = {
+						cell: openParams.cell,
+						designCell: openParams.designCell,
+						row: openParams.row,
+					};
+					const clickSource = openParams.clickSource || 'CELL_BACKGROUND';
+					const editState = currentRuntime
+						? getDataTableCellOverlayEditState(currentRuntime, lookup, clickSource)
+						: {
+								cellKey: getDataTableRuntimeColumnKey(openParams.designCell),
+								clickSource,
+								disableInlineEditor: true,
+								draftValue: getSheetEditorDraftValue(openParams.cell, openParams.designCell),
+								rowId: openParams.row.id,
+							};
+
+					dispatchInteractionState({
+						editState,
+						localEditorState: {
+							clickSource,
+							displayValue: getSheetCellDisplayValue(openParams.cell, openParams.designCell, undefined, timeZone),
+							lookup,
+						},
+						type: 'local_editor_opened',
+					});
+				},
 				openModalScreen,
 				setFloatingMessage,
 			});
@@ -2328,8 +2366,8 @@ function DataTableContent(p: DataTableContentProps) {
 				return;
 			}
 
-			if (isDataTableInboundContactIdLookup(lookup)) {
-				openInboundContactLocalEditor(lookup, 'CELL_BACKGROUND');
+			if (isDataTableInboundContactIdLookup(lookup) || isDataTableSiteLocationIdLookup(lookup)) {
+				openRelatedRecordLocalEditor(lookup, 'CELL_BACKGROUND');
 				return;
 			}
 
@@ -3020,8 +3058,8 @@ function DataTableContent(p: DataTableContentProps) {
 				const isSameDismissedLocalEditorCell = lastDismissedLocalEditorCell?.rowId === lookup.row.id && lastDismissedLocalEditorCell.cellKey === runtimeKey;
 
 				if ((isSameSingleClickedCell || isSameDismissedLocalEditorCell) && cellElement.dataset.sheetCellEditable === 'true' && !runtime.disabled && !lookup.row.__deleted) {
-					if (isDataTableInboundContactIdLookup(lookup)) {
-						openInboundContactLocalEditor(lookup, 'CELL_BACKGROUND');
+					if (isDataTableInboundContactIdLookup(lookup) || isDataTableSiteLocationIdLookup(lookup)) {
+						openRelatedRecordLocalEditor(lookup, 'CELL_BACKGROUND');
 						return;
 					}
 
@@ -3071,8 +3109,8 @@ function DataTableContent(p: DataTableContentProps) {
 				return;
 			}
 
-			if (isDataTableInboundContactIdLookup(lookup)) {
-				openInboundContactLocalEditor(lookup, 'CELL_BACKGROUND');
+			if (isDataTableInboundContactIdLookup(lookup) || isDataTableSiteLocationIdLookup(lookup)) {
+				openRelatedRecordLocalEditor(lookup, 'CELL_BACKGROUND');
 				return;
 			}
 
@@ -3752,13 +3790,16 @@ function DataTableContent(p: DataTableContentProps) {
 		viewportWidth,
 		visualRowCount,
 	]);
-	const inboundContactEditorPosition = useMemo(() => {
-		if (!inboundContactEditorState) {
+	const relatedRecordEditorPosition = useMemo(() => {
+		if (!relatedRecordEditorState) {
 			return null;
 		}
 
-		const { lookup } = inboundContactEditorState;
+		const { lookup } = relatedRecordEditorState;
 		const columnMetric = columnMetricsByKey.get(getDataTableRuntimeColumnKey(lookup.designCell));
+		const minWidth = isDataTableSiteLocationIdLookup(lookup)
+			? DATA_TABLE_SITE_LOCATION_EDITOR_MIN_WIDTH
+			: DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH;
 
 		return sharedGetDataTableLocalEditorPosition({
 			columnMetric,
@@ -3769,12 +3810,12 @@ function DataTableContent(p: DataTableContentProps) {
 			stickyHeaderHeight,
 			viewportHeight,
 			visualRowCount,
-			width: Math.max(columnMetric?.width || 0, DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH) - DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
+			width: Math.max(columnMetric?.width || 0, minWidth) - DATA_TABLE_LOCAL_EDITOR_WIDTH_OFFSET,
 		});
 	}, [
 		columnMetricsByKey,
 		hasPlaceholderTail,
-		inboundContactEditorState,
+		relatedRecordEditorState,
 		rowIndexById,
 		stickyColumnCount,
 		stickyHeaderHeight,
@@ -3816,7 +3857,7 @@ function DataTableContent(p: DataTableContentProps) {
 	}, [columnMetricsData.metrics, renderedRows, selectedCellSelection, stickyColumnCount, stickyHeaderHeight]);
 
 	useEffect(() => {
-		if ((!activeSelectEditorLookup || !selectEditorPosition) && (!activeDateEditorLookup || !dateEditorPosition) && (!inboundContactEditorState || !inboundContactEditorPosition)) {
+		if ((!activeSelectEditorLookup || !selectEditorPosition) && (!activeDateEditorLookup || !dateEditorPosition) && (!relatedRecordEditorState || !relatedRecordEditorPosition)) {
 			return;
 		}
 
@@ -3831,6 +3872,7 @@ function DataTableContent(p: DataTableContentProps) {
 				target.closest('[data-sheet-select-editor="true"]') ||
 				target.closest('[data-sheet-date-editor="true"]') ||
 				target.closest('[data-sheet-inbound-contact-editor="true"]') ||
+				target.closest('[data-sheet-site-location-editor="true"]') ||
 				target.closest('[data-sheet-editor="true"]')
 			) {
 				return;
@@ -3860,8 +3902,8 @@ function DataTableContent(p: DataTableContentProps) {
 		activeSelectEditorLookup,
 		dateEditorPosition,
 		dismissCellEditorToSelectedCell,
-		inboundContactEditorState,
-		inboundContactEditorPosition,
+		relatedRecordEditorState,
+		relatedRecordEditorPosition,
 		selectEditorPosition,
 	]);
 
@@ -3967,12 +4009,12 @@ function DataTableContent(p: DataTableContentProps) {
 					/>
 				</SharedDataTableLocalEditorContainer>
 			) : null}
-			{inboundContactEditorState && inboundContactEditorPosition ? (
-				<SharedDataTableLocalEditorContainer position={inboundContactEditorPosition}>
+			{relatedRecordEditorState && relatedRecordEditorPosition && isDataTableInboundContactIdLookup(relatedRecordEditorState.lookup) ? (
+				<SharedDataTableLocalEditorContainer position={relatedRecordEditorPosition}>
 					<DataTableInboundContactEditor
-						clickSource={inboundContactEditorState.clickSource}
-						displayValue={inboundContactEditorState.displayValue}
-						inboundContactId={String(inboundContactEditorState.lookup.cell?.relatedId || '')}
+						clickSource={relatedRecordEditorState.clickSource}
+						displayValue={relatedRecordEditorState.displayValue}
+						inboundContactId={String(relatedRecordEditorState.lookup.cell?.relatedId || '')}
 						onClose={() => {
 							dismissCellEditorToSelectedCell(undefined, {
 								clearInboundContactEditor: true,
@@ -3980,6 +4022,22 @@ function DataTableContent(p: DataTableContentProps) {
 						}}
 						openModalPopUp={openModalPopUp}
 						organizationId={organizationId}
+					/>
+				</SharedDataTableLocalEditorContainer>
+			) : null}
+			{relatedRecordEditorState && relatedRecordEditorPosition && isDataTableSiteLocationIdLookup(relatedRecordEditorState.lookup) ? (
+				<SharedDataTableLocalEditorContainer position={relatedRecordEditorPosition}>
+					<DataTableSiteLocationEditor
+						clickSource={relatedRecordEditorState.clickSource}
+						displayValue={relatedRecordEditorState.displayValue}
+						onClose={() => {
+							dismissCellEditorToSelectedCell(undefined, {
+								clearInboundContactEditor: true,
+							});
+						}}
+						openModalPopUp={openModalPopUp}
+						organizationId={organizationId}
+						siteLocationId={String(relatedRecordEditorState.lookup.cell?.relatedId || '')}
 					/>
 				</SharedDataTableLocalEditorContainer>
 			) : null}

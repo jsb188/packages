@@ -1,4 +1,5 @@
 import i18n from '@jsb188/app/i18n/index.ts';
+import type { SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
@@ -27,8 +28,11 @@ const SHEET_CONTEXT_MENU_ACTIONS = {
 const SHEET_CONTEXT_MENU_FORMAT_NAMES = {
 	borderStyle: 'borderStyle',
 	fillColor: 'fillColor',
+	fontSize: 'fontSize',
 	textColor: 'textColor',
 } as const;
+
+const SHEET_CONTEXT_MENU_DEFAULT_FONT_SIZE = 14;
 
 export type SheetContextMenuAction = typeof SHEET_CONTEXT_MENU_ACTIONS[keyof typeof SHEET_CONTEXT_MENU_ACTIONS];
 
@@ -43,7 +47,7 @@ export type SheetContextMenuFormatName = typeof SHEET_CONTEXT_MENU_FORMAT_NAMES[
 export type SheetContextMenuFormat = {
 	borderColor?: string | null;
 	name?: SheetContextMenuFormatName;
-	value?: SheetBorderStylePresetValue | string | null;
+	value?: SheetBorderStylePresetValue | string | number | null;
 };
 
 export type SheetContextMenuCellTarget = {
@@ -53,13 +57,18 @@ export type SheetContextMenuCellTarget = {
 
 export type SheetContextMenuTarget = {
 	canEdit: boolean;
+	canEditStructure?: boolean;
+	canFormatCells?: boolean;
 	canPopulateFromDataTable?: boolean;
 	canRemoveCellsFromDataTable?: boolean;
+	dataTableId?: string | null;
+	dataTableRegion?: SheetRegionGQL | null;
 	dataTableRegionId?: string | null;
 	cells: SheetContextMenuCellTarget[];
 	cellKey: string;
 	displayValue: string;
 	fillColor?: string | null;
+	fontSize?: number | null;
 	rowId: string;
 	textColor?: string | null;
 };
@@ -138,6 +147,39 @@ function getSheetContextMenuFormatOptions(target: SheetContextMenuTarget, params
 }
 
 /*
+ * Build the text-format submenu options for one Sheet context-menu target.
+ */
+function getSheetContextMenuTextFormatOptions(target: SheetContextMenuTarget): POListIfaceItem[] {
+	return [{
+		__type: 'LIST_TEXT_FORMAT_CONTROLS',
+		fontSizeLabel: <>{i18n.t('sheet.font_size')}</>,
+		name: SHEET_CONTEXT_MENU_FORMAT_NAMES.fontSize,
+		selectedFontSize: target.fontSize || SHEET_CONTEXT_MENU_DEFAULT_FONT_SIZE,
+		textStyleButtonLabels: {
+			bold: i18n.t('sheet.bold'),
+			italic: i18n.t('sheet.italic'),
+			strikethrough: i18n.t('sheet.strikethrough'),
+			underline: i18n.t('sheet.underline'),
+		},
+		textStyleLabel: <>{i18n.t('sheet.text_style')}</>,
+	}];
+}
+
+/*
+ * Return whether one target can receive cell styling actions.
+ */
+function canFormatSheetContextMenuTarget(target: SheetContextMenuTarget) {
+	return target.canFormatCells ?? target.canEdit;
+}
+
+/*
+ * Return whether one target can receive row or column structure actions.
+ */
+function canEditSheetContextMenuTargetStructure(target: SheetContextMenuTarget) {
+	return target.canEditStructure ?? target.canEdit;
+}
+
+/*
  * Build the data-table region actions for one Sheet context-menu target.
  */
 function getSheetContextMenuDataTableOptions(target: SheetContextMenuTarget): POListIfaceItem[] {
@@ -145,7 +187,7 @@ function getSheetContextMenuDataTableOptions(target: SheetContextMenuTarget): PO
 		__type: 'LIST_ITEM',
 		disabled: !target.canPopulateFromDataTable,
 		iconName: COMMON_ICON_NAMES.insert_from_data_table,
-		text: i18n.t('sheet.insert_from_data_table'),
+		text: target.dataTableRegionId ? i18n.t('sheet.edit_data_table_view') : i18n.t('sheet.insert_from_data_table'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.populateFromDataTable,
 	}];
 
@@ -154,7 +196,7 @@ function getSheetContextMenuDataTableOptions(target: SheetContextMenuTarget): PO
 			__type: 'LIST_ITEM',
 			className: 'cl_err_hv',
 			disabled: !target.canRemoveCellsFromDataTable,
-			iconName: COMMON_ICON_NAMES.delete,
+			iconName: 'layers-grid-subtract',
 			text: i18n.t('sheet.remove_view'),
 			value: SHEET_CONTEXT_MENU_ACTIONS.removeCellsFromDataTable,
 		});
@@ -167,6 +209,8 @@ function getSheetContextMenuDataTableOptions(target: SheetContextMenuTarget): PO
  * Build the PopOver list options for one Sheet context-menu target.
  */
 function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: GetSheetContextMenuOptionsParams): POListIfaceItem[] {
+	const canFormatTarget = canFormatSheetContextMenuTarget(target);
+	const canEditStructure = canEditSheetContextMenuTargetStructure(target);
 	const options: POListIfaceItem[] = [{
 		__type: 'LIST_ITEM',
 		disabled: !target.canEdit,
@@ -188,7 +232,7 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 		__type: 'BREAK',
 	}, {
 		__type: 'LIST_SUBMENU_ITEM',
-		disabled: !target.canEdit,
+		disabled: !canFormatTarget,
 		iconName: COMMON_ICON_NAMES.stylize_selected_cells,
 		submenu: {
 			className: 'min_w_220',
@@ -202,24 +246,31 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 		text: i18n.t('sheet.format_cells'),
 		value: true,
 	}, {
-		__type: 'LIST_ITEM',
-		disabled: !target.canEdit,
+		__type: 'LIST_SUBMENU_ITEM',
+		disabled: !canFormatTarget,
 		iconName: COMMON_ICON_NAMES.format_selected_cells,
+		submenu: {
+			className: 'min_w_220',
+			initialState: {
+				[SHEET_CONTEXT_MENU_FORMAT_NAMES.fontSize]: target.fontSize || SHEET_CONTEXT_MENU_DEFAULT_FONT_SIZE,
+			},
+			options: getSheetContextMenuTextFormatOptions(target),
+		},
 		text: i18n.t('sheet.format_value'),
-		value: SHEET_CONTEXT_MENU_ACTIONS.formatValue,
+		value: true,
 	}, {
 		__type: 'BREAK',
 	}, ...getSheetContextMenuDataTableOptions(target), {
 		__type: 'BREAK',
 	}, {
 		__type: 'LIST_ITEM',
-		disabled: !target.canEdit,
+		disabled: !canEditStructure,
 		iconName: COMMON_ICON_NAMES.row_insert,
 		text: i18n.t('sheet.insert_1_row_above'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.insertRowAbove,
 	}, {
 		__type: 'LIST_ITEM',
-		disabled: !target.canEdit,
+		disabled: !canEditStructure,
 		iconName: COMMON_ICON_NAMES.column_insert,
 		text: i18n.t('sheet.insert_1_column_left'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.insertColumnLeft,
@@ -228,14 +279,14 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 	}, {
 		__type: 'LIST_ITEM',
 		className: 'cl_err_hv',
-		disabled: !target.canEdit,
+		disabled: !canEditStructure,
 		iconName: COMMON_ICON_NAMES.delete_row,
 		text: i18n.t('sheet.delete_row'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.deleteRow,
 	}, {
 		__type: 'LIST_ITEM',
 		className: 'cl_err_hv',
-		disabled: !target.canEdit,
+		disabled: !canEditStructure,
 		iconName: COMMON_ICON_NAMES.delete_column,
 		text: i18n.t('sheet.delete_column'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.deleteColumn,
@@ -320,7 +371,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		handledEventKeyRef.current = eventKey;
 
 		if (SHEET_CONTEXT_MENU_COLOR_FORMAT_NAMES.includes(name as typeof SHEET_CONTEXT_MENU_COLOR_FORMAT_NAMES[number])) {
-			if (target.canEdit && typeof value === 'string') {
+			if (canFormatSheetContextMenuTarget(target) && typeof value === 'string') {
 				onFormatCells(target, {
 					name: name as SheetContextMenuFormatName,
 					value,
@@ -331,13 +382,25 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		}
 
 		if (name === SHEET_CONTEXT_MENU_FORMAT_NAMES.borderStyle) {
-			if (target.canEdit && isSheetBorderStylePresetValue(value)) {
+			if (canFormatSheetContextMenuTarget(target) && isSheetBorderStylePresetValue(value)) {
 				onFormatCells(target, {
 					name: SHEET_CONTEXT_MENU_FORMAT_NAMES.borderStyle,
 					value,
 				});
 			}
 			closePopOver();
+			return;
+		}
+
+		if (name === SHEET_CONTEXT_MENU_FORMAT_NAMES.fontSize) {
+			const fontSize = Math.round(Number(value));
+
+			if (canFormatSheetContextMenuTarget(target) && Number.isFinite(fontSize) && fontSize > 0) {
+				onFormatCells(target, {
+					name: SHEET_CONTEXT_MENU_FORMAT_NAMES.fontSize,
+					value: fontSize,
+				});
+			}
 			return;
 		}
 
@@ -368,7 +431,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 			case SHEET_CONTEXT_MENU_ACTIONS.deleteRow:
 			case SHEET_CONTEXT_MENU_ACTIONS.insertColumnLeft:
 			case SHEET_CONTEXT_MENU_ACTIONS.insertRowAbove:
-				if (target.canEdit) {
+				if (canEditSheetContextMenuTargetStructure(target)) {
 					onEditStructure?.(target, value as SheetContextMenuStructureAction);
 				}
 				closePopOver();

@@ -84,6 +84,21 @@ describe('sheet region sort query utilities', () => {
 		expect(parseSheetRegionSourceSortString(query, TEST_DESIGN_CELLS)).toEqual(sourceSort);
 	});
 
+	it('round trips escaped quoted column keys through canonical query text', () => {
+		const designCells = [
+			...TEST_DESIGN_CELLS,
+			getTestDesignCell('order "date"\nkey'),
+		];
+		const sourceSort = [{
+			cellKey: 'order "date"\nkey',
+			direction: 'DESC' as const,
+		}];
+		const query = stringifySheetRegionSourceSort(sourceSort);
+
+		expect(query).toBe('"order \\"date\\"\\nkey" DESC');
+		expect(parseSheetRegionSourceSortString(query, designCells)).toEqual(sourceSort);
+	});
+
 	it('throws typed errors for invalid strict parsing', () => {
 		expect(() => parseSheetRegionSourceSortString('missing ASC', TEST_DESIGN_CELLS)).toThrow(SheetRegionSortQueryParseError);
 		expect(() => parseSheetRegionSourceSortString('status', TEST_DESIGN_CELLS)).toThrow(SheetRegionSortQueryParseError);
