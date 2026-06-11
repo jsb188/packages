@@ -109,7 +109,7 @@ export interface POModalItemObj extends Omit<POActionListItemBase, 'onClick'> {
   useMutationArgs?: POStateValue[];
 }
 
-export type POListColorValue = ColorEnum | (string & {});
+export type POListColorValue = ColorEnum | (string & {}) | null;
 export type POListBorderStyleValue =
   | 'outlineAllCells'
   | 'outlineInnerCells'
@@ -173,15 +173,30 @@ export interface POListBorderStylesObj extends POItemBase {
 export interface POListTextFormatControlsObj extends POItemBase {
   __type: 'LIST_TEXT_FORMAT_CONTROLS';
   name?: string;
+  markdownName?: string;
+  textStyleNames?: {
+    bold?: string;
+    italic?: string;
+    underline?: string;
+    strikethrough?: string;
+  };
+  selectedTextStyles?: {
+    bold?: boolean | null;
+    italic?: boolean | null;
+    underline?: boolean | null;
+    strikethrough?: boolean | null;
+  };
   fontSizeLabel?: ReactNode;
   textStyleLabel?: ReactNode;
   textStyleButtonLabels?: {
     bold: ReactNode;
     italic: ReactNode;
+    markdown?: ReactNode;
     underline: ReactNode;
     strikethrough: ReactNode;
   };
   selectedFontSize?: number | null;
+  disableMarkdown?: boolean | null;
   minFontSize?: number;
   maxFontSize?: number;
   className?: POClassNameValue;

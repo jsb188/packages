@@ -7,6 +7,7 @@ import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import { memo, type ChangeEvent, type CSSProperties, useCallback, useRef } from 'react';
 
 export type SheetEditorOverlayPosition = {
+	fontSize?: number | null;
 	height: number;
 	left: number;
 	top: number;
@@ -35,6 +36,21 @@ function getSheetEditorOverlayStyle(p: SheetEditorOverlayProps): CSSProperties {
 		top: p.scrollTop + p.position.top + 1,
 		width: p.position.width,
 		zIndex: 43,
+	};
+}
+
+/*
+ * Return inline styles for the editor field itself.
+ */
+function getSheetEditorFieldStyle(p: SheetEditorOverlayProps): CSSProperties | undefined {
+	const fontSize = Number(p.position.fontSize || 0);
+
+	if (!Number.isFinite(fontSize) || fontSize <= 0) {
+		return undefined;
+	}
+
+	return {
+		fontSize,
 	};
 }
 
@@ -71,6 +87,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 		p.onDraftValue(event.currentTarget.value);
 	}, [p.onDraftValue]);
 	const editorClassName = cn('sheet_ui_editor bg stock px_6 ft_xs ft_normal', p.editState.error ? 'error' : '');
+	const editorStyle = getSheetEditorFieldStyle(p);
 	const sharedProps = {
 		className: editorClassName,
 		'data-cell-key': p.editState.cellKey,
@@ -79,6 +96,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 		'data-sheet-editor': 'true',
 		onChange: handleChange,
 		ref: setEditorRef,
+		style: editorStyle,
 		value: p.editState.draftValue,
 	};
 
@@ -132,6 +150,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	prev.editState.rowId === next.editState.rowId &&
 	prev.onDraftValue === next.onDraftValue &&
 	prev.position.height === next.position.height &&
+	prev.position.fontSize === next.position.fontSize &&
 	prev.position.left === next.position.left &&
 	prev.position.top === next.position.top &&
 	prev.position.width === next.position.width &&

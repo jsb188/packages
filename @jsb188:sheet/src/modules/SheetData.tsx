@@ -1,5 +1,6 @@
+import i18n from '@jsb188/app/i18n/index.ts';
 import { useEditDataTableCells } from '@jsb188/graphql/hooks/use-dataTable-mtn';
-import { useEditSheetCells, useEditSheetStructure, useUpdateSheet } from '@jsb188/graphql/hooks/use-sheet-mtn';
+import { useDeleteSheetRegion, useEditSheetCells, useEditSheetStructure, useUpdateSheet } from '@jsb188/graphql/hooks/use-sheet-mtn';
 import { useDataTableRowsForSheetRegions } from '@jsb188/graphql/hooks/use-dataTable-qry';
 import type { SheetGridViewportVariables } from '@jsb188/graphql/hooks/use-sheet-qry';
 import {
@@ -8,7 +9,11 @@ import {
 	useSheetFormulaReferences,
 	useSheetGrid,
 } from '@jsb188/graphql/hooks/use-sheet-qry';
-import type { DataTableCellGQL, DataTableGQL, DataTableRowsForSheetRegionGQL } from '@jsb188/mday/types/dataTable.d.ts';
+import {
+	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
+	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATION_COLUMNS,
+} from '@jsb188/mday/constants/sheet.ts';
+import type { DataTableCellGQL, DataTableDesignCellGQL, DataTableGQL, DataTableRowsForSheetRegionGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 import type {
 	SheetCellGQL,
@@ -16,8 +21,11 @@ import type {
 	SheetFormulaReferenceObj,
 	SheetGQL,
 	SheetRangeGQL,
+	SheetRegionGQL,
 	SheetStructureOperationEnum,
 } from '@jsb188/mday/types/sheet.d.ts';
+import { getOrganizationChildListCellFormulaValueFromId, isOrganizationChildProfileLinkCellKey } from '@jsb188/mday/utils/organization.ts';
+import { getSheetCustomRegionSourceColumns, getSheetRegionSourceId, getSheetRegionSourceType } from '@jsb188/mday/utils/sheet.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useAtom } from 'jotai';
@@ -30,8 +38,20 @@ import {
 	type SheetInsertViewTableRequest,
 } from './SheetController.tsx';
 import {
+	openDataTableCellLink,
+	type DataTableOpenCellParams,
+} from '../libs/dataTable-cell-editing.tsx';
+import {
 	getSheetCellEditInputsForMutation,
+	getSheetCellEditInputCoordKey,
+	getSheetOptimisticCellRebasedOnBase,
+	getSheetOptimisticCellKeysSyncedWithBase,
+	sheetCellEditInputMatchesCell,
 } from '../libs/sheet-history.ts';
+import { sendCellSaveBeacon } from '../libs/cell-save-beacon.ts';
+import {
+	useDebouncedCellSaveBatch,
+} from '../libs/use-debounced-cell-save-batch.ts';
 import {
 	getSheetCanvasCellsByCoord,
 	getSheetCanvasCoordKey,
@@ -77,13 +97,123 @@ export interface SheetProps {
 	organizationId?: string | null;
 	previewAuthToken?: string | null;
 	onPreviewReady?: () => void;
+	onOpenDataTable?: (route: string) => void;
+	organizationProfileAllowEdit?: boolean;
 	setFloatingMessage?: SetFloatingMessage;
 	timeZone?: string | null;
+}
+
+/*
+ * Return DataTable design cells for the built-in Child Organizations Sheet source.
+ */
+function getSheetBuiltInChildOrganizationDesignCells(): DataTableDesignCellGQL[] {
+	return SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATION_COLUMNS.map((column) => {
+		const linksToOrganizationProfile = isOrganizationChildProfileLinkCellKey(column.key);
+
+		return {
+			key: column.key,
+			label: i18n.t(column.labelKey),
+			humanLabel: i18n.t(column.labelKey),
+			iconName: null,
+			fieldType: column.key === 'organizationId'
+				? 'ID'
+				: linksToOrganizationProfile ? 'ID_OR_TEXT' as DataTableDesignCellGQL['fieldType'] : 'TEXT',
+			humanFieldType: linksToOrganizationProfile ? 'ID' : 'TEXT',
+			format: null,
+			instructions: null,
+			source: null,
+			options: [],
+			openLink: linksToOrganizationProfile,
+			humansOnly: false,
+			humansCannotEdit: true,
+			hidden: false,
+			indexed: false,
+			width: column.width,
+		};
+	});
+}
+
+/*
+ * Return a DataTable-shaped source for custom Child Organizations Sheet regions.
+ */
+function getSheetBuiltInChildOrganizationsDataTable(organizationId: string): DataTableGQL {
+	const columns = getSheetBuiltInChildOrganizationDesignCells();
+
+	return {
+		id: SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
+		organizationId,
+		name: SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
+		title: i18n.t('form.vendors'),
+		description: null,
+		design: {
+			id: SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
+			cells: columns,
+			cellsOrder: columns.map((column) => column.key),
+			humansCannotEdit: true,
+			instructions: null,
+			stickyLeft: 0,
+			stickyTop: 0,
+		},
+		active: true,
+		deletedAt: null,
+		createdAt: '',
+		updatedAt: '',
+	};
+}
+
+/*
+ * Return whether the Sheet has any generated Child Organizations regions.
+ */
+function hasSheetChildOrganizationsRegion(regions?: SheetRegionGQL[] | null) {
+	return (regions || []).some((region) => {
+		return getSheetRegionSourceType(region) === SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS;
+	});
+}
+
+/*
+ * Add built-in DataTable-shaped sources needed by custom Sheet regions.
+ */
+function getSheetDataTablesWithBuiltInSources(params: {
+	dataTables?: DataTableGQL[] | null;
+	organizationId: string;
+	regions?: SheetRegionGQL[] | null;
+}) {
+	const dataTables = params.dataTables || [];
+	if (!hasSheetChildOrganizationsRegion(params.regions)) {
+		return dataTables;
+	}
+
+	if (dataTables.some((dataTable) => dataTable?.id === SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS)) {
+		return dataTables;
+	}
+
+	return [
+		...dataTables,
+		getSheetBuiltInChildOrganizationsDataTable(params.organizationId),
+	];
 }
 
 type SheetViewportRequest = {
 	columnCount: number;
 	startColumnIndex: number;
+};
+
+type SheetPendingCellSave = {
+	coordKey: string;
+	input: SheetCellEditInput;
+	saveVersion: number;
+};
+
+type SheetLocalRegionRowsById = Record<string, DataTableRowsForSheetRegionGQL | null>;
+
+export type SheetLocalRegionUpsertInput = {
+	region: SheetRegionGQL;
+	replaceRegionId?: string | null;
+	rows?: DataTableRowsForSheetRegionGQL | null;
+};
+
+export type SheetLocalRegionDeleteInput = {
+	regionId: string;
 };
 
 type SheetFormulaDependencyStateParams = {
@@ -128,6 +258,28 @@ function sheetViewportVariablesAreEqual(
 }
 
 /*
+ * Return whether the current fetched Sheet viewport fully covers a requested viewport.
+ */
+function sheetViewportContainsRequest(
+	currentViewport: SheetGridViewportVariables,
+	nextViewport: SheetGridViewportVariables,
+) {
+	const currentEndRowIndex = currentViewport.startRowIndex +
+		currentViewport.rowCount - 1;
+	const currentEndColumnIndex = currentViewport.startColumnIndex +
+		currentViewport.columnCount - 1;
+	const nextEndRowIndex = nextViewport.startRowIndex + nextViewport.rowCount -
+		1;
+	const nextEndColumnIndex = nextViewport.startColumnIndex +
+		nextViewport.columnCount - 1;
+
+	return nextViewport.startRowIndex >= currentViewport.startRowIndex &&
+		nextViewport.startColumnIndex >= currentViewport.startColumnIndex &&
+		nextEndRowIndex <= currentEndRowIndex &&
+		nextEndColumnIndex <= currentEndColumnIndex;
+}
+
+/*
  * Return whether one loaded-grid state still matches the blank initial state.
  */
 function sheetLoadedGridStateMatchesInitial(
@@ -160,6 +312,177 @@ function mergeSheetCellCoordMaps(
 }
 
 /*
+ * Return formula references with later resolved references replacing earlier loading references by id.
+ */
+function mergeSheetFormulaReferences(
+	baseReferences?: SheetFormulaReferenceObj[] | null,
+	overrideReferences?: SheetFormulaReferenceObj[] | null,
+) {
+	if (!overrideReferences?.length) {
+		return baseReferences || [];
+	}
+
+	const referencesById = new Map<string, SheetFormulaReferenceObj>();
+	(baseReferences || []).forEach((reference) => {
+		if (reference?.id) {
+			referencesById.set(reference.id, reference);
+		}
+	});
+	overrideReferences.forEach((reference) => {
+		if (reference?.id) {
+			referencesById.set(reference.id, reference);
+		}
+	});
+
+	return Array.from(referencesById.values());
+}
+
+/*
+ * Return Sheet regions with local optimistic region edits layered over server regions.
+ */
+function getSheetRegionsWithLocalUpdates(
+	serverRegions?: SheetRegionGQL[] | null,
+	localRegions?: SheetRegionGQL[] | null,
+) {
+	if (!localRegions) {
+		return serverRegions || [];
+	}
+
+	const localRegionIds = new Set(localRegions.map((region) => String(region.id || '')));
+	const activeServerRegions = (serverRegions || []).filter((region) => {
+		return !localRegionIds.has(String(region.id || ''));
+	});
+
+	return [
+		...activeServerRegions,
+		...localRegions.filter((region) => region.active !== false),
+	];
+}
+
+/*
+ * Return local Sheet regions after one optimistic region upsert.
+ */
+function upsertSheetLocalRegion(
+	currentRegions: SheetRegionGQL[] | null,
+	serverRegions: SheetRegionGQL[] | null | undefined,
+	input: SheetLocalRegionUpsertInput,
+) {
+	const baseRegions = getSheetRegionsWithLocalUpdates(serverRegions, currentRegions);
+	const replaceRegionId = String(input.replaceRegionId || input.region.id || '');
+	let inserted = false;
+	const nextRegions = baseRegions.map((region) => {
+		if (String(region.id || '') !== replaceRegionId) {
+			return region;
+		}
+
+		inserted = true;
+		return input.region;
+	});
+
+	return inserted ? nextRegions : [...nextRegions, input.region];
+}
+
+/*
+ * Return local Sheet regions after one optimistic region delete.
+ */
+function deleteSheetLocalRegion(
+	currentRegions: SheetRegionGQL[] | null,
+	serverRegions: SheetRegionGQL[] | null | undefined,
+	input: SheetLocalRegionDeleteInput,
+) {
+	const regionId = String(input.regionId || '');
+	const baseRegions = getSheetRegionsWithLocalUpdates(serverRegions, currentRegions);
+	const nextRegions = baseRegions.filter((region) => String(region.id || '') !== regionId);
+
+	return nextRegions.length === baseRegions.length ? currentRegions : nextRegions;
+}
+
+/*
+ * Return local region row placements with one optimistic region payload upserted.
+ */
+function upsertSheetLocalRegionRows(
+	currentRowsById: SheetLocalRegionRowsById,
+	input: SheetLocalRegionUpsertInput,
+) {
+	const regionId = String(input.region.id || '');
+	if (!regionId) {
+		return currentRowsById;
+	}
+
+	const nextRowsById = { ...currentRowsById };
+	if (input.replaceRegionId && input.replaceRegionId !== regionId) {
+		delete nextRowsById[input.replaceRegionId];
+	}
+	nextRowsById[regionId] = input.rows || null;
+
+	return nextRowsById;
+}
+
+/*
+ * Return local region row placements after one optimistic region delete.
+ */
+function deleteSheetLocalRegionRows(
+	currentRowsById: SheetLocalRegionRowsById,
+	input: SheetLocalRegionDeleteInput,
+) {
+	if (!(input.regionId in currentRowsById)) {
+		return currentRowsById;
+	}
+
+	const nextRowsById = { ...currentRowsById };
+	delete nextRowsById[input.regionId];
+
+	return nextRowsById;
+}
+
+/*
+ * Return server region row placements with local optimistic row placements layered over them.
+ */
+function getSheetRegionRowsWithLocalUpdates(
+	serverRegionRows?: DataTableRowsForSheetRegionGQL[] | null,
+	localRowsById?: SheetLocalRegionRowsById | null,
+) {
+	const localEntries = Object.entries(localRowsById || {});
+	if (!localEntries.length) {
+		return serverRegionRows;
+	}
+
+	const localRegionIds = new Set(localEntries.map(([regionId]) => regionId));
+	const nextRegionRows = (serverRegionRows || []).filter((region) => {
+		return !localRegionIds.has(String(region.regionId || ''));
+	});
+
+	localEntries.forEach(([, rows]) => {
+		if (rows) {
+			nextRegionRows.push(rows);
+		}
+	});
+
+	return nextRegionRows;
+}
+
+/*
+ * Return an optimistic Sheet cell map with the provided coordinate keys removed.
+ */
+function removeSheetOptimisticCellKeys(
+	currentCellsByCoord: Map<string, SheetCellGQL>,
+	coordKeys: string[],
+) {
+	if (!coordKeys.length) {
+		return currentCellsByCoord;
+	}
+
+	const next = new Map(currentCellsByCoord);
+	let changed = false;
+
+	coordKeys.forEach((coordKey) => {
+		changed = next.delete(coordKey) || changed;
+	});
+
+	return changed ? next : currentCellsByCoord;
+}
+
+/*
  * Return whether one saved Sheet cell carries user-entered content fields.
  */
 function sheetCellHasStoredContent(cell?: SheetCellGQL | null) {
@@ -176,9 +499,9 @@ function sheetCellHasStoredContent(cell?: SheetCellGQL | null) {
 }
 
 /*
- * Return a stable key for a DataTable source cell rendered through a Sheet region.
+ * Return a stable key for a source cell rendered through a Sheet generated region.
  */
-function getSheetDataTableRegionSourceCellKey(
+function getSheetRegionSourceCellKey(
 	sourceId: string,
 	dataTableRowId: string,
 	cellKey: string,
@@ -187,22 +510,15 @@ function getSheetDataTableRegionSourceCellKey(
 }
 
 /*
- * Return the stable source id for one rendered Sheet region row container.
+ * Return source cells keyed by region source id, row id, and cell key.
  */
-function getSheetRegionRowsSourceId(region: DataTableRowsForSheetRegionGQL) {
-	return String(region.dataTableId || region.sourceId || region.sourceType || '');
-}
-
-/*
- * Return real DataTable source cells keyed by table id, row id, and cell key.
- */
-function getSheetDataTableRegionSourceCellsByKey(
+function getSheetRegionSourceCellsByKey(
 	regions?: DataTableRowsForSheetRegionGQL[] | null,
 ) {
 	const cellsByKey = new Map<string, DataTableCellGQL>();
 
 	(regions || []).forEach((region) => {
-		const sourceId = getSheetRegionRowsSourceId(region);
+		const sourceId = getSheetRegionSourceId(region);
 		if (!sourceId) {
 			return;
 		}
@@ -214,7 +530,7 @@ function getSheetDataTableRegionSourceCellsByKey(
 				}
 
 				cellsByKey.set(
-					getSheetDataTableRegionSourceCellKey(
+					getSheetRegionSourceCellKey(
 						sourceId,
 						String(cell.dataTableRowId),
 						String(cell.cellKey),
@@ -229,9 +545,9 @@ function getSheetDataTableRegionSourceCellsByKey(
 }
 
 /*
- * Return real DataTable source cells nested under Sheet region row placements.
+ * Return source cells nested under Sheet region row placements.
  */
-function getSheetDataTableRegionSourceCells(
+function getSheetRegionSourceCells(
 	regions?: DataTableRowsForSheetRegionGQL[] | null,
 ) {
 	return (regions || []).flatMap((region) => (
@@ -240,10 +556,11 @@ function getSheetDataTableRegionSourceCells(
 }
 
 /*
- * Return the lightweight Sheet marker cell for one real DataTable source cell placement.
+ * Return the lightweight Sheet marker cell for one generated region source cell placement.
  */
-function getSheetDataTableRegionMarkerCell(params: {
+function getSheetGeneratedRegionMarkerCell(params: {
 	columnIndex: number;
+	formulaValue?: SheetCellGQL['formulaValue'];
 	organizationId: string;
 	regionId: string;
 	rowId: string;
@@ -260,6 +577,7 @@ function getSheetDataTableRegionMarkerCell(params: {
 		columnIndex: params.columnIndex,
 		rawInput: null,
 		value: params.sourceCell?.value ?? null,
+		...(params.formulaValue !== undefined ? { formulaValue: params.formulaValue } : {}),
 		textValue: params.sourceCell?.textValue ?? null,
 		numberValue: params.sourceCell?.numberValue ?? null,
 		booleanValue: params.sourceCell?.booleanValue ?? null,
@@ -298,22 +616,30 @@ function applySheetCellDesignToRegionMarker(markerCell: SheetCellGQL, sheetCell?
 }
 
 /*
- * Return Sheet marker cells keyed by coordinate for DataTable region rows.
+ * Return one generated-region source column definition for runtime cell behavior.
  */
-function getSheetDataTableRegionCellsByCoord(params: {
+function getSheetGeneratedRegionSourceColumn(sourceType: string | null | undefined, sourceCellKey: string) {
+	return getSheetCustomRegionSourceColumns(sourceType).find((column) => column.key === sourceCellKey) || null;
+}
+
+/*
+ * Return Sheet marker cells keyed by coordinate for generated region rows.
+ */
+function getSheetGeneratedRegionCellsByCoord(params: {
 	baseCellsByCoord: Map<string, SheetCellGQL>;
 	organizationId: string;
 	regions?: DataTableRowsForSheetRegionGQL[] | null;
 	sheetId: string;
 }) {
-	const sourceCellsByKey = getSheetDataTableRegionSourceCellsByKey(
+	const sourceCellsByKey = getSheetRegionSourceCellsByKey(
 		params.regions,
 	);
 	const cellsByCoord = new Map<string, SheetCellGQL>();
 
 	(params.regions || []).forEach((region) => {
 		const regionId = String(region.regionId || '');
-		const sourceId = getSheetRegionRowsSourceId(region);
+		const sourceId = getSheetRegionSourceId(region);
+		const sourceType = getSheetRegionSourceType(region);
 		if (!regionId || !sourceId) {
 			return;
 		}
@@ -339,13 +665,15 @@ function getSheetDataTableRegionCellsByCoord(params: {
 					return;
 				}
 
-				const sourceKey = getSheetDataTableRegionSourceCellKey(
+				const sourceKey = getSheetRegionSourceCellKey(
 					sourceId,
 					rowId,
 					sourceCellKey,
 				);
-				const markerCell = getSheetDataTableRegionMarkerCell({
+				const sourceColumn = getSheetGeneratedRegionSourceColumn(sourceType, sourceCellKey);
+				const markerCell = getSheetGeneratedRegionMarkerCell({
 					columnIndex,
+					formulaValue: getOrganizationChildListCellFormulaValueFromId(rowId, sourceColumn?.formulaValueSource) ?? undefined,
 					organizationId: params.organizationId,
 					regionId,
 					rowId,
@@ -416,9 +744,9 @@ function useSheetFormulaDependencyState(
 		formulaReferences,
 	);
 	const formulaReferenceSource = reactiveFormulaReferences || formulaReferences;
-	const formulaReferencesById = useMemo(() => {
-		return getSheetFormulaReferencesById(formulaReferenceSource);
-	}, [formulaReferenceSource]);
+		const formulaReferencesById = useMemo(() => {
+			return getSheetFormulaReferencesById(formulaReferenceSource);
+		}, [formulaReferenceSource]);
 	const formulaDependencyCells = useMemo(() => {
 		return getActiveSheetCells(
 			Array.from(
@@ -456,21 +784,27 @@ function useSheetFormulaDependencyState(
 		params.timeZone,
 	]);
 
-	useSheetFormulaReferences(
-		params.sheetId,
-		params.organizationId,
-		formulaReferencesToResolve,
-		{
-			authToken: params.previewAuthToken || null,
-			skip: !formulaReferencesToResolve.length,
-		},
-	);
+		const { sheetFormulaReferences: fetchedFormulaReferences } = useSheetFormulaReferences(
+			params.sheetId,
+			params.organizationId,
+			formulaReferencesToResolve,
+			{
+				authToken: params.previewAuthToken || null,
+				skip: !formulaReferencesToResolve.length,
+			},
+		);
+		const resolvedFormulaReferenceSource = useMemo(() => {
+			return mergeSheetFormulaReferences(formulaReferenceSource, fetchedFormulaReferences);
+		}, [fetchedFormulaReferences, formulaReferenceSource]);
+		const resolvedFormulaReferencesById = useMemo(() => {
+			return getSheetFormulaReferencesById(resolvedFormulaReferenceSource);
+		}, [resolvedFormulaReferenceSource]);
 
-	return {
-		formulaDependencyCellsByCoord,
-		formulaReferencesById,
-	};
-}
+		return {
+			formulaDependencyCellsByCoord,
+			formulaReferencesById: resolvedFormulaReferencesById,
+		};
+	}
 
 /*
  * Render one Sheet inside an isolated local grid state store.
@@ -505,6 +839,8 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const [optimisticRanges, setOptimisticRanges] = useState<
 		SheetRangeGQL[] | null
 	>(null);
+	const [localRegions, setLocalRegions] = useState<SheetRegionGQL[] | null>(null);
+	const [localRegionRowsById, setLocalRegionRowsById] = useState<SheetLocalRegionRowsById>({});
 	const design = optimisticStructureDesign || serverDesign;
 	const initialRowCount = useMemo(() => {
 		return getSheetCanvasInitialRowCount(
@@ -512,13 +848,12 @@ function SheetDataContent(p: SheetDataContentProps) {
 			serverDesign.grid.rowCount,
 		);
 	}, [serverDesign.grid.rowCount]);
-	const initialColumnCount = Math.min(100, serverDesign.grid.columnCount);
 	const initialGridViewport = useMemo(() => {
 		return getSheetCanvasGridViewport({
-			columnCount: initialColumnCount,
+			columnCount: Math.min(100, serverDesign.grid.columnCount),
 			rowCount: initialRowCount,
 		});
-	}, [initialColumnCount, initialRowCount]);
+	}, [initialRowCount, serverDesign.grid.columnCount]);
 	const initialLoadedGridState = useMemo(() => {
 		return getInitialSheetLoadedGridState(initialRowCount);
 	}, [initialRowCount]);
@@ -531,7 +866,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const [optimisticCellsByCoord, setOptimisticCellsByCoord] = useAtom(
 		p.stateAtoms.optimisticCellsByCoordAtom,
 	);
-	const gridViewport = gridViewportValue || initialGridViewport;
+	const gridViewport = gridViewportValue;
 	const loadedGridState = loadedGridStateValue || initialLoadedGridState;
 	const setGridViewport = useCallback(
 		(
@@ -565,9 +900,11 @@ function SheetDataContent(p: SheetDataContentProps) {
 	);
 
 	const fetchingMoreRef = useRef(false);
+	const sheetCellSaveVersionRef = useRef<Record<string, number>>({});
 	const openModalPopUp = useOpenModalPopUp();
 	const openModalScreen = useOpenModalScreen();
 	const { editDataTableCells } = useEditDataTableCells({}, openModalPopUp);
+	const { deleteSheetRegion } = useDeleteSheetRegion({}, openModalPopUp);
 	const { editSheetCells } = useEditSheetCells({}, openModalPopUp);
 	const { editSheetStructure } = useEditSheetStructure({}, openModalPopUp);
 	const { updateSheet } = useUpdateSheet({}, openModalPopUp);
@@ -587,21 +924,27 @@ function SheetDataContent(p: SheetDataContentProps) {
 	useEffect(() => {
 		const sheetChanged = loadedGridSheetIdRef.current !== sheetId;
 		loadedGridSheetIdRef.current = sheetId;
-		const nextViewport = getSheetCanvasGridViewport({
-			columnCount: Math.min(100, serverDesign.grid.columnCount),
-			rowCount: initialRowCount,
-		});
 
-		setGridViewport((currentViewport) => {
-			return sheetViewportVariablesAreEqual(currentViewport, nextViewport) ? currentViewport : nextViewport;
-		});
-		setLoadedGridState((currentState) => {
-			return !sheetChanged ||
-					sheetLoadedGridStateMatchesInitial(currentState, initialRowCount)
-				? currentState
-				: getInitialSheetLoadedGridState(initialRowCount);
-		});
-	}, [serverDesign.grid.columnCount, initialRowCount, sheetId]);
+		if (!sheetChanged) {
+			setLoadedGridStateValue((currentState) => {
+				if (!currentState) {
+					return currentState;
+				}
+
+				return sheetLoadedGridStateMatchesInitial(currentState, initialRowCount)
+					? getInitialSheetLoadedGridState(initialRowCount)
+					: currentState;
+			});
+			return;
+		}
+
+		setGridViewportValue(null);
+		setLoadedGridStateValue(getInitialSheetLoadedGridState(initialRowCount));
+		setLocalRegionRowsById({});
+		setLocalRegions(null);
+		setOptimisticCellsByCoord(new Map());
+		sheetCellSaveVersionRef.current = {};
+	}, [initialRowCount, setGridViewportValue, setLoadedGridStateValue, setOptimisticCellsByCoord, sheetId]);
 
 	useEffect(() => {
 		if (!sheetGridLoading) {
@@ -694,7 +1037,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 
 		setLoadedGridState((currentState) => {
 			const requestedRowCount = Number(
-				sheetGrid.viewport?.rowCount || gridViewport.rowCount ||
+				sheetGrid.viewport?.rowCount || gridViewport?.rowCount ||
 					initialRowCount,
 			);
 			const loadedRowCount = Math.min(
@@ -734,28 +1077,40 @@ function SheetDataContent(p: SheetDataContentProps) {
 		});
 	}, [
 		design.grid.rowCount,
-		gridViewport.rowCount,
+		gridViewport?.rowCount,
 		initialRowCount,
 		sheetGrid,
 		sheetStructureGridMergePaused,
 	]);
 
 	const requestViewport = useCallback((viewport: SheetViewportRequest) => {
-		setGridViewport((currentViewport) => {
+		setGridViewportValue((currentViewport) => {
+			const baseViewport = currentViewport || initialGridViewport;
 			const nextViewport = getSheetCanvasGridViewport({
 				columnCount: Math.min(100, Math.max(1, viewport.columnCount)),
-				rowCount: currentViewport.rowCount,
+				rowCount: baseViewport.rowCount,
 				startColumnIndex: viewport.startColumnIndex,
 			});
 
-			return sheetViewportVariablesAreEqual(currentViewport, nextViewport) ? currentViewport : nextViewport;
+			if (
+				currentViewport &&
+				(
+					sheetViewportVariablesAreEqual(currentViewport, nextViewport) ||
+					sheetViewportContainsRequest(currentViewport, nextViewport)
+				)
+			) {
+				return currentViewport;
+			}
+
+			return nextViewport;
 		});
-	}, []);
+	}, [initialGridViewport, setGridViewportValue]);
 
 	const fetchMoreRows = useCallback(async () => {
 		if (
 			fetchingMoreRef.current || sheetGridLoading ||
-			!loadedGridState.hasMoreRows
+			!loadedGridState.hasMoreRows ||
+			!gridViewport
 		) {
 			return;
 		}
@@ -778,8 +1133,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 		setGridViewport(nextViewport);
 	}, [
 		design.grid.rowCount,
-		gridViewport.columnCount,
-		gridViewport.startColumnIndex,
+		gridViewport,
 		loadedGridState.hasMoreRows,
 		loadedGridState.loadedRowCount,
 		sheetGridLoading,
@@ -813,11 +1167,46 @@ function SheetDataContent(p: SheetDataContentProps) {
 	}, [organizationId, sheetId, updateSheet]);
 
 	/*
-	 * Open the confirmation popup that deletes one data table-backed region from the Sheet.
+	 * Apply a local Sheet region upsert before the server region query refreshes.
 	 */
-	const removeDataTableRegion = useCallback((regionId: string) => {
+	const applyLocalSheetRegionUpsert = useCallback((input: SheetLocalRegionUpsertInput) => {
+		setLocalRegions((currentRegions) => {
+			return upsertSheetLocalRegion(currentRegions, sheetGrid?.regions, input);
+		});
+		setLocalRegionRowsById((currentRowsById) => {
+			return upsertSheetLocalRegionRows(currentRowsById, input);
+		});
+	}, [sheetGrid?.regions]);
+
+	/*
+	 * Apply a local Sheet region delete before the server region query refreshes.
+	 */
+	const applyLocalSheetRegionDelete = useCallback((input: SheetLocalRegionDeleteInput) => {
+		setLocalRegions((currentRegions) => {
+			return deleteSheetLocalRegion(currentRegions, sheetGrid?.regions, input);
+		});
+		setLocalRegionRowsById((currentRowsById) => {
+			return deleteSheetLocalRegionRows(currentRowsById, input);
+		});
+	}, [sheetGrid?.regions]);
+
+	/*
+	 * Delete one data table-backed region from the Sheet, optionally opening a confirmation popup first.
+	 */
+	const removeDataTableRegion = useCallback((regionId: string, options?: { skipConfirmation?: boolean }) => {
 		if (!organizationId || !sheetId || !regionId) {
 			return;
+		}
+
+		if (options?.skipConfirmation) {
+			applyLocalSheetRegionDelete({ regionId });
+			return deleteSheetRegion({
+				variables: {
+					organizationId,
+					regionId,
+					sheetId,
+				},
+			});
 		}
 
 		openModalPopUp({
@@ -825,11 +1214,12 @@ function SheetDataContent(p: SheetDataContentProps) {
 			preset: 'DELETE_SHEET_REGION',
 			props: {
 				organizationId,
+				onLocalSheetRegionDelete: applyLocalSheetRegionDelete,
 				regionId,
 				sheetId,
 			},
 		});
-	}, [openModalPopUp, organizationId, sheetId]);
+	}, [applyLocalSheetRegionDelete, deleteSheetRegion, openModalPopUp, organizationId, sheetId]);
 
 	/*
 	 * Open the app modal that creates a data table-backed region for this Sheet.
@@ -844,13 +1234,56 @@ function SheetDataContent(p: SheetDataContentProps) {
 				name: 'SHEET_INSERT_VIEW',
 				props: {
 					...request,
+					onLocalSheetRegionDelete: applyLocalSheetRegionDelete,
+					onLocalSheetRegionUpsert: applyLocalSheetRegionUpsert,
 					operation: p.operation || null,
 					organizationId,
 					sheetId,
 				},
 			});
 		},
-		[openModalScreen, organizationId, p.operation, sheetId],
+		[applyLocalSheetRegionDelete, applyLocalSheetRegionUpsert, openModalScreen, organizationId, p.operation, sheetId],
+	);
+	/*
+	 * Open the organization profile modal for a child-organization Sheet source row.
+	 */
+	const openOrganizationProfile = useCallback(
+		(childId: string) => {
+			if (!childId) {
+				return;
+			}
+
+			openModalScreen({
+				name: 'ORG_PROFILE',
+				props: {
+					childId,
+					parentOperation: p.operation || null,
+					allowEdit: Boolean(p.organizationProfileAllowEdit),
+				},
+			});
+		},
+		[openModalScreen, p.operation, p.organizationProfileAllowEdit],
+	);
+
+	/*
+	 * Open a DataTable link cell from a generated Sheet region using the same behavior as DataTable.
+	 */
+	const openSheetDataTableCellLink = useCallback(
+		(params: DataTableOpenCellParams) => {
+			openDataTableCellLink({
+				...params,
+				getOrganizationProfileProps: (childId) => ({
+					childId,
+					parentOperation: p.operation || null,
+					allowEdit: Boolean(p.organizationProfileAllowEdit),
+				}),
+				openInboundContactEditor: () => {},
+				openModalScreen,
+				openSiteLocationEditor: () => {},
+				setFloatingMessage: p.setFloatingMessage,
+			});
+		},
+		[openModalScreen, p.operation, p.organizationProfileAllowEdit, p.setFloatingMessage],
 	);
 
 	const cellsByCoord = useMemo(() => {
@@ -868,39 +1301,186 @@ function SheetDataContent(p: SheetDataContentProps) {
 			authToken: p.previewAuthToken || null,
 		},
 	);
+	const effectiveDataTableRowsForSheetRegions = useMemo(() => {
+		return getSheetRegionRowsWithLocalUpdates(dataTableRowsForSheetRegions, localRegionRowsById);
+	}, [dataTableRowsForSheetRegions, localRegionRowsById]);
 	const dataTableRegionCellsByCoord = useMemo(() => {
-		return getSheetDataTableRegionCellsByCoord({
+		return getSheetGeneratedRegionCellsByCoord({
 			baseCellsByCoord: cellsByCoord,
 			organizationId,
-			regions: dataTableRowsForSheetRegions,
+			regions: effectiveDataTableRowsForSheetRegions,
 			sheetId,
 		});
-	}, [cellsByCoord, dataTableRowsForSheetRegions, organizationId, sheetId]);
+	}, [cellsByCoord, effectiveDataTableRowsForSheetRegions, organizationId, sheetId]);
 	const gridCellsByCoord = useMemo(() => {
 		return mergeSheetCellCoordMaps(cellsByCoord, dataTableRegionCellsByCoord);
 	}, [cellsByCoord, dataTableRegionCellsByCoord]);
-	const saveCells = useCallback((cells: SheetCellEditInput[]) => {
-		const currentCellsByCoord = mergeSheetCellCoordMaps(
-			gridCellsByCoord,
+
+	useEffect(() => {
+		const confirmedKeys = getSheetOptimisticCellKeysSyncedWithBase(
 			optimisticCellsByCoord,
-		);
-		const mutationCells = getSheetCellEditInputsForMutation(
-			cells,
-			currentCellsByCoord,
+			gridCellsByCoord,
 		);
 
-		if (!mutationCells.length) {
+		if (!confirmedKeys.length && !optimisticCellsByCoord.size) {
 			return;
 		}
 
-		return editSheetCells({
-			variables: {
+		setOptimisticCellsByCoord((currentState) => {
+			const confirmedCurrentKeys = getSheetOptimisticCellKeysSyncedWithBase(
+				currentState,
+				gridCellsByCoord,
+			);
+			const confirmedCurrentKeySet = new Set(confirmedCurrentKeys);
+			let nextState = removeSheetOptimisticCellKeys(currentState, confirmedCurrentKeys);
+			let changed = nextState !== currentState;
+
+			currentState.forEach((optimisticCell, coordKey) => {
+				if (confirmedCurrentKeySet.has(coordKey)) {
+					return;
+				}
+
+				const rebasedCell = getSheetOptimisticCellRebasedOnBase(
+					optimisticCell,
+					gridCellsByCoord.get(coordKey),
+				);
+
+				if (rebasedCell === optimisticCell) {
+					return;
+				}
+
+				if (!changed) {
+					nextState = new Map(currentState);
+					changed = true;
+				}
+
+				nextState.set(coordKey, rebasedCell);
+			});
+
+			return changed ? nextState : currentState;
+		});
+	}, [gridCellsByCoord, optimisticCellsByCoord, setOptimisticCellsByCoord]);
+
+	const { queue: queueSheetCellSave } = useDebouncedCellSaveBatch<SheetPendingCellSave>({
+		getKey: (item) => item.coordKey,
+		onError: (items) => {
+			setOptimisticCellsByCoord((currentState) => {
+				const revertKeys = items
+					.filter((item) => sheetCellSaveVersionRef.current[item.coordKey] === item.saveVersion)
+					.map((item) => item.coordKey);
+
+				return removeSheetOptimisticCellKeys(currentState, revertKeys);
+			});
+		},
+		onBeaconFlush: (items) => {
+			const mutationCells = getSheetCellEditInputsForMutation(
+				items.map((item) => item.input),
+				gridCellsByCoord,
+			);
+
+			if (!mutationCells.length) {
+				return true;
+			}
+
+			return sendCellSaveBeacon({
 				cells: mutationCells,
 				organizationId,
-				sheetId,
-			},
+				targetId: sheetId,
+				targetType: 'sheet',
+			});
+		},
+		onFlush: async (items) => {
+			const syncedKeys = items
+				.filter((item) => {
+					return sheetCellSaveVersionRef.current[item.coordKey] === item.saveVersion &&
+						sheetCellEditInputMatchesCell(
+							item.input,
+							gridCellsByCoord.get(item.coordKey),
+						);
+				})
+				.map((item) => item.coordKey);
+
+			if (syncedKeys.length) {
+				setOptimisticCellsByCoord((currentState) => {
+					return removeSheetOptimisticCellKeys(currentState, syncedKeys);
+				});
+			}
+
+			const mutationItems = items.filter((item) => !syncedKeys.includes(item.coordKey));
+			const mutationCells = getSheetCellEditInputsForMutation(
+				mutationItems.map((item) => item.input),
+				gridCellsByCoord,
+			);
+
+			if (!mutationCells.length) {
+				return;
+			}
+
+			const result = await editSheetCells({
+				variables: {
+					cells: mutationCells,
+					organizationId,
+					sheetId,
+				},
+			});
+			const savedCellsByCoord = getSheetCanvasCellsByCoord(
+				(result?.editSheetCells || []) as SheetCellGQL[],
+			);
+
+			if (!savedCellsByCoord.size) {
+				return;
+			}
+
+			setOptimisticCellsByCoord((currentState) => {
+				const next = new Map(currentState);
+				let changed = false;
+
+				mutationItems.forEach((item) => {
+					const savedCell = savedCellsByCoord.get(item.coordKey);
+
+					if (
+						savedCell &&
+						sheetCellSaveVersionRef.current[item.coordKey] === item.saveVersion
+					) {
+						next.set(item.coordKey, savedCell);
+						changed = true;
+					}
+				});
+
+				return changed ? next : currentState;
+			});
+		},
+	});
+	const saveCells = useCallback((cells: SheetCellEditInput[]) => {
+		if (!cells.length) {
+			return;
+		}
+
+		const revertedCoordKeys: string[] = [];
+
+		cells.forEach((input) => {
+			const coordKey = getSheetCellEditInputCoordKey(input);
+			const saveVersion = (sheetCellSaveVersionRef.current[coordKey] || 0) + 1;
+
+			sheetCellSaveVersionRef.current[coordKey] = saveVersion;
+
+			if (sheetCellEditInputMatchesCell(input, gridCellsByCoord.get(coordKey))) {
+				revertedCoordKeys.push(coordKey);
+			}
+
+			queueSheetCellSave({
+				coordKey,
+				input,
+				saveVersion,
+			});
 		});
-	}, [editSheetCells, gridCellsByCoord, optimisticCellsByCoord, organizationId, sheetId]);
+
+		if (revertedCoordKeys.length) {
+			setOptimisticCellsByCoord((currentState) => {
+				return removeSheetOptimisticCellKeys(currentState, revertedCoordKeys);
+			});
+		}
+	}, [gridCellsByCoord, organizationId, queueSheetCellSave, setOptimisticCellsByCoord, sheetId]);
 	const {
 		formulaDependencyCellsByCoord,
 		formulaReferencesById,
@@ -912,14 +1492,21 @@ function SheetDataContent(p: SheetDataContentProps) {
 		sheetId,
 	});
 	const sourceDataTableCells = useMemo(() => {
-		return getSheetDataTableRegionSourceCells(dataTableRowsForSheetRegions);
-	}, [dataTableRowsForSheetRegions]);
+		return getSheetRegionSourceCells(effectiveDataTableRowsForSheetRegions);
+	}, [effectiveDataTableRowsForSheetRegions]);
 	const sheetRanges = useMemo(() => {
 		return optimisticRanges || sheetGrid?.ranges || [];
 	}, [optimisticRanges, sheetGrid?.ranges]);
 	const sheetRegions = useMemo(() => {
-		return sheetGrid?.regions || [];
-	}, [sheetGrid?.regions]);
+		return getSheetRegionsWithLocalUpdates(sheetGrid?.regions, localRegions);
+	}, [localRegions, sheetGrid?.regions]);
+	const dataTablesWithBuiltInSources = useMemo(() => {
+		return getSheetDataTablesWithBuiltInSources({
+			dataTables: p.dataTables,
+			organizationId,
+			regions: sheetRegions,
+		});
+	}, [organizationId, p.dataTables, sheetRegions]);
 
 	/*
 	 * Save one row or column structure edit after applying the matching local projection.
@@ -1018,7 +1605,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 			cellsByCoord={gridCellsByCoord}
 			children={p.children}
 			className={p.className}
-			dataTables={p.dataTables}
+			dataTables={dataTablesWithBuiltInSources}
 			design={design}
 			disabled={p.disabled}
 			formulaDependencyCellsByCoord={formulaDependencyCellsByCoord}
@@ -1027,6 +1614,9 @@ function SheetDataContent(p: SheetDataContentProps) {
 			loadedRowCount={loadedGridState.loadedRowCount}
 			operation={p.operation}
 			onFetchMoreRows={fetchMoreRows}
+			onOpenDataTable={p.onOpenDataTable}
+			onOpenDataTableCellLink={openSheetDataTableCellLink}
+			onOpenOrganizationProfile={openOrganizationProfile}
 			onPopulateFromDataTable={openPopulateFromDataTableModal}
 			onRemoveDataTableRegion={removeDataTableRegion}
 			onEditSheetStructure={editSheetGridStructure}
@@ -1037,6 +1627,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 			ranges={sheetRanges}
 			regions={sheetRegions}
 			setFloatingMessage={p.setFloatingMessage}
+			sheetId={sheetId}
 			sourceDataTableCells={sourceDataTableCells}
 			stateAtoms={p.stateAtoms}
 			timeZone={p.timeZone}

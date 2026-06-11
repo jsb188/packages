@@ -270,7 +270,7 @@ export const TreeListRowUI = memo((p: TreeListRowUIProps) => {
       <span
         className={cn(
           'ellip shift_down min_w_0 f',
-          displayIconName ? 'ml_6' : '',
+          displayIconName ? 'ml_10' : '',
           labelClassName
         )}
       >

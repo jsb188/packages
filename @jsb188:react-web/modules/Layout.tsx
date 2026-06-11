@@ -5,11 +5,12 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { Pill } from '@jsb188/react-web/ui/Button';
 import { useOnlineStatus } from '@jsb188/react-web/utils/dom';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
-import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type Dispatch, type SetStateAction } from 'react';
+import { memo, type Dispatch, type SetStateAction } from 'react';
 import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
 import type { ReactDivElement } from '../types/dom';
 import { BigLoading } from '../ui/Loading';
 import Markdown from '../ui/Markdown';
+import { SidebarEdgeReveal, useSidebarOverlayLayout } from './layout/SidebarOverlay';
 import { TooltipButton } from './PopOver';
 
 // const cssPaths = ['/css/layout.css', '/css/alert.css'];
@@ -20,207 +21,6 @@ import { TooltipButton } from './PopOver';
 
 export type ContainerSizeEnum = 'tn' | 'xxs' | 'xs' | 'sm' | 'df' | 'md' | 'lg' | 'full';
 
-const SIDEBAR_EDGE_REVEAL_WIDTH = 25;
-const SIDEBAR_EDGE_STRIP_DELAY_MS = 500;
-const SIDEBAR_EDGE_OPEN_DELAY_MS = 2000;
-const SIDEBAR_OVERLAY_ANIMATION_MS = 200;
-const SIDEBAR_OVERLAY_DISMISS_DELAY_MS = 1000;
-
-interface SidebarOverlayLayoutState {
-  clearSidebarOverlayDismissTimer: () => void;
-  edgeRevealEnabled: boolean;
-  edgeRevealStyle: CSSProperties;
-  openSidebarOverlay: () => void;
-  sidebarOverlayClosing: boolean;
-  sidebarOverlayRendered: boolean;
-  sidebarVisible: boolean;
-  startSidebarOverlayDismissTimer: () => void;
-}
-
-/*
- * Manage overlay sidebar reveal, close animation, and auto-dismiss timers.
- */
-function useSidebarOverlayLayout(p: {
-  open: boolean;
-  sidebarOverlayOpen: boolean;
-  setSidebarOverlayOpen?: Dispatch<SetStateAction<boolean>>;
-}): SidebarOverlayLayoutState {
-  const {
-    open,
-    sidebarOverlayOpen,
-    setSidebarOverlayOpen,
-  } = p;
-  const [edgeRevealVisible, setEdgeRevealVisible] = useState(false);
-  const [sidebarOverlayRendered, setSidebarOverlayRendered] = useState(!!setSidebarOverlayOpen && sidebarOverlayOpen);
-  const [sidebarOverlayClosing, setSidebarOverlayClosing] = useState(false);
-  const edgeStripTimerRef = useRef<number | null>(null);
-  const edgeOpenTimerRef = useRef<number | null>(null);
-  const sidebarOverlayDismissTimerRef = useRef<number | null>(null);
-  const sidebarOverlayEnabled = !!setSidebarOverlayOpen;
-  const sidebarVisible = open || sidebarOverlayRendered;
-  const edgeRevealEnabled = sidebarOverlayEnabled && !open && !sidebarOverlayRendered;
-
-  /*
-   * Clear pending left-edge reveal timers before starting or canceling the flow.
-   */
-  const clearSidebarEdgeRevealTimers = useCallback(() => {
-    if (edgeStripTimerRef.current) {
-      globalThis.window.clearTimeout(edgeStripTimerRef.current);
-      edgeStripTimerRef.current = null;
-    }
-
-    if (edgeOpenTimerRef.current) {
-      globalThis.window.clearTimeout(edgeOpenTimerRef.current);
-      edgeOpenTimerRef.current = null;
-    }
-  }, []);
-
-  /*
-   * Clear the pending overlay sidebar auto-dismiss timer.
-   */
-  const clearSidebarOverlayDismissTimer = useCallback(() => {
-    if (sidebarOverlayDismissTimerRef.current) {
-      globalThis.window.clearTimeout(sidebarOverlayDismissTimerRef.current);
-      sidebarOverlayDismissTimerRef.current = null;
-    }
-  }, []);
-
-  /*
-   * Reset the closed-sidebar reveal strip back to the hidden/off-screen state.
-   */
-  const resetSidebarEdgeReveal = useCallback(() => {
-    clearSidebarEdgeRevealTimers();
-    setEdgeRevealVisible(false);
-  }, [clearSidebarEdgeRevealTimers]);
-
-  /*
-   * Open the overlay sidebar through the route-owned sidebar state.
-   */
-  const openSidebarOverlay = useCallback(() => {
-    resetSidebarEdgeReveal();
-    setSidebarOverlayOpen?.(true);
-  }, [resetSidebarEdgeReveal, setSidebarOverlayOpen]);
-
-  /*
-   * Start the overlay sidebar auto-dismiss timer once the pointer leaves it.
-   */
-  const startSidebarOverlayDismissTimer = useCallback(() => {
-    if (!sidebarOverlayOpen || open || !setSidebarOverlayOpen) {
-      return;
-    }
-
-    clearSidebarOverlayDismissTimer();
-
-    sidebarOverlayDismissTimerRef.current = globalThis.window.setTimeout(() => {
-      sidebarOverlayDismissTimerRef.current = null;
-      setSidebarOverlayOpen(false);
-    }, SIDEBAR_OVERLAY_DISMISS_DELAY_MS);
-  }, [clearSidebarOverlayDismissTimer, open, setSidebarOverlayOpen, sidebarOverlayOpen]);
-
-  useEffect(() => {
-    if (!sidebarOverlayEnabled || open) {
-      setSidebarOverlayRendered(false);
-      setSidebarOverlayClosing(false);
-      return;
-    }
-
-    if (sidebarOverlayOpen) {
-      setSidebarOverlayRendered(true);
-      setSidebarOverlayClosing(false);
-      return;
-    }
-
-    if (!sidebarOverlayRendered) {
-      return;
-    }
-
-    setSidebarOverlayClosing(true);
-
-    const timeout = globalThis.window.setTimeout(() => {
-      setSidebarOverlayClosing(false);
-      setSidebarOverlayRendered(false);
-    }, SIDEBAR_OVERLAY_ANIMATION_MS);
-
-    return () => {
-      globalThis.window.clearTimeout(timeout);
-    };
-  }, [open, sidebarOverlayEnabled, sidebarOverlayOpen, sidebarOverlayRendered]);
-
-  useEffect(() => {
-    if (open && sidebarOverlayOpen) {
-      setSidebarOverlayOpen?.(false);
-    }
-
-    if (open || !sidebarOverlayOpen) {
-      clearSidebarOverlayDismissTimer();
-    }
-
-    if (!edgeRevealEnabled) {
-      resetSidebarEdgeReveal();
-    }
-  }, [clearSidebarOverlayDismissTimer, edgeRevealEnabled, open, resetSidebarEdgeReveal, setSidebarOverlayOpen, sidebarOverlayOpen]);
-
-  useEffect(() => {
-    return () => {
-      clearSidebarEdgeRevealTimers();
-      clearSidebarOverlayDismissTimer();
-    };
-  }, [clearSidebarEdgeRevealTimers, clearSidebarOverlayDismissTimer]);
-
-  useEffect(() => {
-    if (!edgeRevealEnabled || !setSidebarOverlayOpen) {
-      return;
-    }
-
-    const handleMouseMove = (event: MouseEvent) => {
-      if (event.clientX > SIDEBAR_EDGE_REVEAL_WIDTH) {
-        resetSidebarEdgeReveal();
-        return;
-      }
-
-      if (!edgeStripTimerRef.current) {
-        edgeStripTimerRef.current = globalThis.window.setTimeout(() => {
-          edgeStripTimerRef.current = null;
-          setEdgeRevealVisible(true);
-        }, SIDEBAR_EDGE_STRIP_DELAY_MS);
-      }
-
-      if (!edgeOpenTimerRef.current) {
-        edgeOpenTimerRef.current = globalThis.window.setTimeout(() => {
-          edgeOpenTimerRef.current = null;
-          openSidebarOverlay();
-        }, SIDEBAR_EDGE_OPEN_DELAY_MS);
-      }
-    };
-
-    globalThis.window.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      globalThis.window.removeEventListener('mousemove', handleMouseMove);
-      clearSidebarEdgeRevealTimers();
-    };
-  }, [clearSidebarEdgeRevealTimers, edgeRevealEnabled, openSidebarOverlay, resetSidebarEdgeReveal, setSidebarOverlayOpen]);
-
-  const edgeRevealStyle: CSSProperties = {
-    border: 0,
-    height: '100vh',
-    left: edgeRevealVisible ? 0 : -SIDEBAR_EDGE_REVEAL_WIDTH,
-    transition: 'left ease .2s',
-    width: SIDEBAR_EDGE_REVEAL_WIDTH,
-  };
-
-  return {
-    clearSidebarOverlayDismissTimer,
-    edgeRevealEnabled,
-    edgeRevealStyle,
-    openSidebarOverlay,
-    sidebarOverlayClosing,
-    sidebarOverlayRendered,
-    sidebarVisible,
-    startSidebarOverlayDismissTimer,
-  };
-}
-
 /**
  * Main app area layout
  */
@@ -229,6 +29,7 @@ export function AppLayout(p: ReactDivElement & {
   open: boolean;
   routeName: string;
   notReadyOrError: boolean;
+  disableSidebarBodyTransition?: boolean;
   sidebarOverlayOpen?: boolean;
   setSidebarOverlayOpen?: Dispatch<SetStateAction<boolean>>;
   SidebarComponent?: React.ReactNode;
@@ -240,6 +41,7 @@ export function AppLayout(p: ReactDivElement & {
     open,
     className,
     notReadyOrError,
+    disableSidebarBodyTransition = false,
     sidebarOverlayOpen = false,
     setSidebarOverlayOpen,
     SidebarComponent,
@@ -247,14 +49,14 @@ export function AppLayout(p: ReactDivElement & {
     ...other
   } = p;
   const {
-    clearSidebarOverlayDismissTimer,
     edgeRevealEnabled,
-    edgeRevealStyle,
+    handleSidebarOverlayMouseEnter,
+    handleSidebarOverlayMouseLeave,
     openSidebarOverlay,
+    sidebarEdgeAutoOpenEnabled,
     sidebarOverlayClosing,
     sidebarOverlayRendered,
     sidebarVisible,
-    startSidebarOverlayDismissTimer,
   } = useSidebarOverlayLayout({
     open,
     sidebarOverlayOpen,
@@ -262,21 +64,14 @@ export function AppLayout(p: ReactDivElement & {
   });
 
   return <div
-    className={cn('h_f bg_fade', open ? 'open' : '', sidebarOverlayRendered ? 'overlayed' : '', sidebarOverlayClosing ? 'overlay_closing' : '', className)}
+    className={cn('h_f bg_fade', open && 'open', sidebarOverlayRendered && 'overlayed', sidebarOverlayClosing && 'overlay_closing', className)}
     data-sidebar-open={sidebarVisible ? 'true' : 'false'}
     {...other}
   >
     {edgeRevealEnabled
-    ? <button
-      type='button'
-      aria-label={i18n.t('app.expand_sidebar')}
-      className='app_sidebar_edge_reveal fixed_l pointer z6 p_n'
-      style={edgeRevealStyle}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openSidebarOverlay();
-      }}
+    ? <SidebarEdgeReveal
+      openSidebarOverlay={openSidebarOverlay}
+      sidebarEdgeAutoOpenEnabled={sidebarEdgeAutoOpenEnabled}
     />
     : null}
 
@@ -285,11 +80,12 @@ export function AppLayout(p: ReactDivElement & {
         id='app_sidebar'
         className={cn('f_stretch', sidebarOverlayRendered ? 'z6' : 'z3')}
         aria-hidden={!sidebarVisible}
+        style={disableSidebarBodyTransition ? { transition: 'none' } : undefined}
       >
         <div
           className='app_sidebar_inside v_spread hv_area'
-          onMouseEnter={clearSidebarOverlayDismissTimer}
-          onMouseLeave={startSidebarOverlayDismissTimer}
+          onMouseEnter={handleSidebarOverlayMouseEnter}
+          onMouseLeave={handleSidebarOverlayMouseLeave}
         >
           {SidebarComponent}
         </div>
@@ -869,7 +665,7 @@ export function SidebarCornerCloseButton(p: SidebarCornerCloseButtonProps) {
   }
 
   return <TooltipButton
-    message={i18n.t('app.expand_sidebar')}
+    message={i18n.t('app.open_sidebar')}
     position='bottom'
     offsetY={5}
     className={cn('z5 w_32 h_32 h_center ft_sm cl_lt no_shrink bg_darker_2_hv r_xs link', absolutePositionClassName ?? 'abs_tl_df')}

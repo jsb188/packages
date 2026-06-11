@@ -1,11 +1,9 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
-import {
-	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
-	SHEET_DATA_TABLE_REGION_MAX_ROWS,
-} from '@jsb188/mday/constants/sheet.ts';
+import { SHEET_DATA_TABLE_REGION_MAX_ROWS } from '@jsb188/mday/constants/sheet.ts';
 import type { SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
+import { getSheetRegionSourceId, isSheetGeneratedRegionSource } from '@jsb188/mday/utils/sheet.ts';
 import {
   getSheetCellKey,
   SHEET_HEADER_HEIGHT,
@@ -19,6 +17,7 @@ import {
   type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
 import { getIconSVGPathData } from '@jsb188/react-web/svgs/Icon';
+import { parseLabelMarkdownText, type LabelMarkdownPart } from '@jsb188/react-web/utils/markdown';
 import { memo, useEffect, useRef, type CSSProperties, type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode, type Ref } from 'react';
 import { getGridSelectionBoxPosition } from '../libs/grid-selection.ts';
 import {
@@ -33,6 +32,7 @@ import {
   getSheetCanvasStyleFontSize,
   getSheetCanvasRowIndexFromId,
   type SheetCanvasCell,
+  type SheetCanvasCellStyle,
   type SheetCanvasColumn,
 } from '../libs/sheet-utils.ts';
 import type { DataTableLocalEditorPosition } from '../libs/dataTable-cell-editing.tsx';
@@ -43,20 +43,20 @@ const SHEET_CANVAS_GRID_LINE_WIDTH = 1;
 const SHEET_CANVAS_READ_ONLY_TAG_PADDING_X = 5;
 const SHEET_CANVAS_READ_ONLY_TAG_PADDING_Y = 4;
 const SHEET_CANVAS_SELECTION_ALPHA = 0.09;
+const SHEET_CANVAS_SELECTION_UNAVAILABLE_STRIPE_SIZE = 5.5;
 const SHEET_CANVAS_DATA_TABLE_ICON_PATH_CACHE = new Map<string, Path2D[]>();
 const SHEET_CANVAS_TEXT_LINE_GAP = 2;
 const SHEET_CANVAS_BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 
 type SheetCanvasTheme = {
 	active: string;
-	activeBackground: string;
-	activeOutline: string;
 	background: string;
 	bodyText: string;
 	contrast: string;
 	main: string;
 	fontFamily: string;
 	fontFamilyMedium: string;
+	fontFamilySemibold: string;
 	headerFontSize: string;
 	fontSize: string;
 	fontLineHeightPx: number;
@@ -69,10 +69,18 @@ type SheetCanvasTheme = {
 	resizeGuide: string;
 	solid: string;
 	selectionFill: string;
+	selectionUnavailableStripe: string;
 	selectPillBackgrounds: Record<string, string>;
 	styleColors: Record<string, string>;
 	tagFontSize: string;
 	tagLineHeightPx: number;
+};
+
+type SheetCanvasTextStyle = {
+	bold: boolean;
+	italic: boolean;
+	strikethrough: boolean;
+	underline: boolean;
 };
 
 type SheetCanvasRect = {
@@ -110,6 +118,16 @@ type SheetCanvasCellBorderLine = {
 	x2: number;
 	y1: number;
 	y2: number;
+};
+
+type SheetCanvasMarkdownLine = {
+	parts: LabelMarkdownPart[];
+	width: number;
+};
+
+type SheetCanvasTextOverflow = {
+	cell: SheetCanvasCell;
+	rect: SheetCanvasRect;
 };
 
 export type SheetCanvasSurfaceProps = {
@@ -206,7 +224,7 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 	const rootStyles = getComputedStyle(document.documentElement);
 	const rootFontSizePx = getSheetCanvasCSSLengthPx(rootStyles.fontSize || '16px', 16, 16);
 	const active = getSheetCanvasCSSColor(styles, '--color-primary', '#2563eb');
-	const activeBackground = `rgba(${getSheetCanvasCSSValue(styles, '--color-darker-rgb', '0, 0, 0')}, .0125)`;
+	const primaryRgb = getSheetCanvasCSSValue(styles, '--color-primary', '37, 99, 235');
 	const fontSize = getSheetCanvasCSSValue(styles, '--text-xsmall', '0.875rem');
 	const tagFontSize = getSheetCanvasCSSValue(styles, '--text-xxsmall', '0.75rem');
 	const styleColors = COLORS.reduce<Record<string, string>>((result, colorName) => {
@@ -226,13 +244,12 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 
 	return {
 		active,
-		activeBackground,
-		activeOutline: getSheetCanvasCSSColor(styles, '--color-bg-active', '#e5e7eb'),
 		background: getSheetCanvasCSSColor(styles, '--color-bg', '#ffffff'),
 		bodyText: getSheetCanvasCSSColor(styles, '--color-text', '#111827'),
 		contrast: getSheetCanvasCSSColor(styles, '--color-contrast', active),
 		fontFamily: getSheetCanvasCSSValue(styles, '--font-sans', 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
 		fontFamilyMedium: getSheetCanvasCSSValue(styles, '--font-sans-medium', 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
+		fontFamilySemibold: getSheetCanvasCSSValue(styles, '--font-sans-semibold', 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
 		headerFontSize: getSheetCanvasCSSValue(styles, '--text-xxsmall', '0.8125rem'),
 		fontLineHeightPx: getSheetCanvasCSSLengthPx(fontSize, rootFontSizePx, 14) * 1.4,
 		fontSize,
@@ -242,10 +259,11 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 		headerSelectedText: getSheetCanvasCSSColor(styles, '--color-solid', '#ffffff'),
 		headerText: getSheetCanvasCSSColor(styles, '--color-text-medium', '#475569'),
 		main: getSheetCanvasCSSColor(styles, '--color-main', active),
-		regionOutline: getSheetCanvasCSSColor(styles, '--color-bg-medium', active),
+		regionOutline: getSheetCanvasCSSColor(styles, '--color-bg-medium', '#e5e7eb'),
 		resizeGuide: getSheetCanvasCSSColor(styles, '--color-bg-active', '#e5e7eb'),
 		solid: getSheetCanvasCSSColor(styles, '--color-solid', '#ffffff'),
 		selectionFill: active,
+		selectionUnavailableStripe: `rgba(${primaryRgb}, 0.35)`,
 		selectPillBackgrounds,
 		styleColors,
 		tagFontSize,
@@ -345,6 +363,47 @@ function drawSheetCanvasCellFillRect(params: {
 
 	params.ctx.fillStyle = params.color;
 	params.ctx.fillRect(left, top, width, height);
+}
+
+/*
+ * Draw the unavailable-region selection stripe pattern over one selected Sheet cell.
+ */
+function drawSheetCanvasUnavailableSelectionStripeRect(params: {
+	ctx: CanvasRenderingContext2D;
+	height: number;
+	left: number;
+	theme: SheetCanvasTheme;
+	top: number;
+	width: number;
+}) {
+	const width = Math.max(0, Math.round(params.width));
+	const height = Math.max(0, Math.round(params.height));
+
+	if (!width || !height) {
+		return;
+	}
+
+	const left = Math.round(params.left);
+	const top = Math.round(params.top);
+	const diagonal = Math.ceil(Math.sqrt(width * width + height * height));
+
+	params.ctx.save();
+	params.ctx.beginPath();
+	params.ctx.rect(left, top, width, height);
+	params.ctx.clip();
+	params.ctx.translate(left + width / 2, top + height / 2);
+	params.ctx.rotate(Math.PI / 4);
+	params.ctx.beginPath();
+	params.ctx.strokeStyle = params.theme.selectionUnavailableStripe;
+	params.ctx.lineWidth = 1;
+
+	for (let x = -diagonal; x <= diagonal; x += SHEET_CANVAS_SELECTION_UNAVAILABLE_STRIPE_SIZE) {
+		params.ctx.moveTo(x, -diagonal);
+		params.ctx.lineTo(x, diagonal);
+	}
+
+	params.ctx.stroke();
+	params.ctx.restore();
 }
 
 /*
@@ -586,7 +645,528 @@ function getSheetCanvasWrappedTextLines(ctx: CanvasRenderingContext2D, text: str
  * Return the underline y coordinate for canvas text drawn with a middle baseline.
  */
 function getSheetCanvasTextUnderlineY(textMiddleY: number, lineHeight: number) {
-	return Math.round(textMiddleY + Math.max(3, Math.min(6, lineHeight * 0.25))) + 0.5;
+	return Math.round(textMiddleY + lineHeight * 0.25) + 0.5;
+}
+
+/*
+ * Return the underline stroke width scaled to the same line height as the rendered text.
+ */
+function getSheetCanvasTextUnderlineWidth(lineHeight: number) {
+	return Math.max(1, lineHeight / 20);
+}
+
+/*
+ * Return the strikethrough y coordinate for canvas text drawn with a middle baseline.
+ */
+function getSheetCanvasTextStrikethroughY(textMiddleY: number) {
+	return Math.round(textMiddleY) + 0.5;
+}
+
+/*
+ * Return the full-cell text style flags saved on one Sheet style object.
+ */
+function getSheetCanvasCellTextStyle(style?: SheetCanvasCellStyle | null): SheetCanvasTextStyle {
+	return {
+		bold: style?.bold === true,
+		italic: style?.italic === true,
+		strikethrough: style?.strikethrough === true,
+		underline: style?.underline === true,
+	};
+}
+
+/*
+ * Return the font family that represents one cell-level text style.
+ */
+function getSheetCanvasCellTextFontFamily(style: SheetCanvasTextStyle, theme: SheetCanvasTheme, fallback?: string) {
+	return style.bold ? theme.fontFamilySemibold : fallback || theme.fontFamily;
+}
+
+/*
+ * Return one canvas font declaration for plain cell text.
+ */
+function getSheetCanvasTextFont(params: {
+	fontFamily?: string;
+	fontSize?: string;
+	italic?: boolean;
+	theme: SheetCanvasTheme;
+}) {
+	const fontStyle = params.italic ? 'italic ' : '';
+
+	return `${fontStyle}${params.fontSize || params.theme.fontSize} ${params.fontFamily || params.theme.fontFamily}`;
+}
+
+/*
+ * Add full-cell text styles onto parsed markdown parts without removing inline markdown styles.
+ */
+function getSheetCanvasMarkdownPartsWithTextStyle(parts: LabelMarkdownPart[], textStyle: SheetCanvasTextStyle) {
+	if (!textStyle.bold && !textStyle.italic && !textStyle.strikethrough && !textStyle.underline) {
+		return parts;
+	}
+
+	return parts.map((part) => ({
+		...part,
+		italic: textStyle.italic || part.italic,
+		semibold: textStyle.bold || part.semibold,
+		strikethrough: textStyle.strikethrough || part.strikethrough,
+		underline: textStyle.underline || part.underline,
+	}));
+}
+
+/*
+ * Draw underline and strikethrough decorations for one plain text segment.
+ */
+function drawSheetCanvasTextDecorations(params: {
+	color: string;
+	ctx: CanvasRenderingContext2D;
+	lineHeight: number;
+	strikethrough?: boolean;
+	textMiddleY: number;
+	underline?: boolean;
+	width: number;
+	x: number;
+}) {
+	if (!params.underline && !params.strikethrough) {
+		return;
+	}
+
+	params.ctx.beginPath();
+	params.ctx.strokeStyle = params.color;
+	params.ctx.lineWidth = getSheetCanvasTextUnderlineWidth(params.lineHeight);
+
+	if (params.underline) {
+		const underlineY = getSheetCanvasTextUnderlineY(params.textMiddleY, params.lineHeight);
+
+		params.ctx.moveTo(params.x, underlineY);
+		params.ctx.lineTo(params.x + params.width, underlineY);
+	}
+
+	if (params.strikethrough) {
+		const strikethroughY = getSheetCanvasTextStrikethroughY(params.textMiddleY);
+
+		params.ctx.moveTo(params.x, strikethroughY);
+		params.ctx.lineTo(params.x + params.width, strikethroughY);
+	}
+
+	params.ctx.stroke();
+}
+
+/*
+ * Return the canvas font declaration for one label-markdown text part.
+ */
+function getSheetCanvasMarkdownPartFont(params: {
+	fontFamily?: string;
+	fontSize?: string;
+	part: LabelMarkdownPart;
+	theme: SheetCanvasTheme;
+}) {
+	const fontStyle = params.part.italic ? 'italic ' : '';
+	const fontFamily = params.part.semibold
+		? params.theme.fontFamilySemibold
+		: params.part.medium
+			? params.theme.fontFamilyMedium
+			: params.fontFamily || params.theme.fontFamily;
+
+	return `${fontStyle}${params.fontSize || params.theme.fontSize} ${fontFamily}`;
+}
+
+/*
+ * Return the measured width for one label-markdown text part.
+ */
+function getSheetCanvasMarkdownPartWidth(params: {
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	part: LabelMarkdownPart;
+	theme: SheetCanvasTheme;
+}) {
+	params.ctx.font = getSheetCanvasMarkdownPartFont(params);
+
+	return params.ctx.measureText(params.part.text).width;
+}
+
+/*
+ * Return a copy of one label-markdown part with different text.
+ */
+function getSheetCanvasMarkdownPartText(part: LabelMarkdownPart, text: string): LabelMarkdownPart {
+	return {
+		...part,
+		text,
+	};
+}
+
+/*
+ * Recalculate the width for one wrapped markdown line.
+ */
+function getSheetCanvasMarkdownLineWidth(params: {
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	line: SheetCanvasMarkdownLine;
+	theme: SheetCanvasTheme;
+}) {
+	return params.line.parts.reduce((width, part) => {
+		return width + getSheetCanvasMarkdownPartWidth({
+			ctx: params.ctx,
+			fontFamily: params.fontFamily,
+			fontSize: params.fontSize,
+			part,
+			theme: params.theme,
+		});
+	}, 0);
+}
+
+/*
+ * Remove trailing whitespace from one wrapped markdown line.
+ */
+function trimSheetCanvasMarkdownLineEnd(params: {
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	line: SheetCanvasMarkdownLine;
+	theme: SheetCanvasTheme;
+}) {
+	while (params.line.parts.length) {
+		const lastPart = params.line.parts[params.line.parts.length - 1];
+		const trimmedText = lastPart.text.trimEnd();
+
+		if (trimmedText === lastPart.text) {
+			break;
+		}
+
+		if (trimmedText) {
+			params.line.parts[params.line.parts.length - 1] = getSheetCanvasMarkdownPartText(lastPart, trimmedText);
+			break;
+		}
+
+		params.line.parts.pop();
+	}
+
+	params.line.width = getSheetCanvasMarkdownLineWidth(params);
+}
+
+/*
+ * Add one markdown part to a wrapped markdown line.
+ */
+function appendSheetCanvasMarkdownLinePart(params: {
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	line: SheetCanvasMarkdownLine;
+	part: LabelMarkdownPart;
+	theme: SheetCanvasTheme;
+}) {
+	const width = getSheetCanvasMarkdownPartWidth({
+		ctx: params.ctx,
+		fontFamily: params.fontFamily,
+		fontSize: params.fontSize,
+		part: params.part,
+		theme: params.theme,
+	});
+
+	params.line.parts.push(params.part);
+	params.line.width += width;
+}
+
+/*
+ * Push one wrapped markdown line when it contains visible text.
+ */
+function pushSheetCanvasMarkdownLine(params: {
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	line: SheetCanvasMarkdownLine;
+	lines: SheetCanvasMarkdownLine[];
+	theme: SheetCanvasTheme;
+}) {
+	trimSheetCanvasMarkdownLineEnd(params);
+
+	if (params.line.parts.length) {
+		params.lines.push({
+			parts: params.line.parts,
+			width: params.line.width,
+		});
+	}
+
+	params.line.parts = [];
+	params.line.width = 0;
+}
+
+/*
+ * Return how many characters from one markdown part fit within the requested width.
+ */
+function getSheetCanvasMarkdownFittingTextLength(params: {
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	maxWidth: number;
+	part: LabelMarkdownPart;
+	theme: SheetCanvasTheme;
+}) {
+	let low = 1;
+	let high = params.part.text.length;
+	let fitLength = 1;
+
+	while (low <= high) {
+		const mid = Math.floor((low + high) / 2);
+		const nextPart = getSheetCanvasMarkdownPartText(params.part, params.part.text.slice(0, mid));
+		const width = getSheetCanvasMarkdownPartWidth({
+			ctx: params.ctx,
+			fontFamily: params.fontFamily,
+			fontSize: params.fontSize,
+			part: nextPart,
+			theme: params.theme,
+		});
+
+		if (width <= params.maxWidth) {
+			fitLength = mid;
+			low = mid + 1;
+		} else {
+			high = mid - 1;
+		}
+	}
+
+	return fitLength;
+}
+
+/*
+ * Append one markdown text token into wrapped markdown lines.
+ */
+function appendSheetCanvasMarkdownToken(params: {
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	line: SheetCanvasMarkdownLine;
+	lines: SheetCanvasMarkdownLine[];
+	maxWidth: number;
+	part: LabelMarkdownPart;
+	theme: SheetCanvasTheme;
+}) {
+	let part = params.line.parts.length ? params.part : getSheetCanvasMarkdownPartText(params.part, params.part.text.trimStart());
+
+	if (!part.text) {
+		return;
+	}
+
+	const isWhitespace = !part.text.trim();
+	if (isWhitespace && !params.line.parts.length) {
+		return;
+	}
+
+	const partWidth = getSheetCanvasMarkdownPartWidth({
+		ctx: params.ctx,
+		fontFamily: params.fontFamily,
+		fontSize: params.fontSize,
+		part,
+		theme: params.theme,
+	});
+
+	if (params.line.width + partWidth <= params.maxWidth) {
+		appendSheetCanvasMarkdownLinePart({ ...params, part });
+		return;
+	}
+
+	if (isWhitespace) {
+		pushSheetCanvasMarkdownLine(params);
+		return;
+	}
+
+	if (params.line.parts.length) {
+		pushSheetCanvasMarkdownLine(params);
+		part = getSheetCanvasMarkdownPartText(part, part.text.trimStart());
+	}
+
+	while (part.text) {
+		const width = getSheetCanvasMarkdownPartWidth({
+			ctx: params.ctx,
+			fontFamily: params.fontFamily,
+			fontSize: params.fontSize,
+			part,
+			theme: params.theme,
+		});
+
+		if (width <= params.maxWidth) {
+			appendSheetCanvasMarkdownLinePart({ ...params, part });
+			return;
+		}
+
+		const fitLength = getSheetCanvasMarkdownFittingTextLength({
+			ctx: params.ctx,
+			fontFamily: params.fontFamily,
+			fontSize: params.fontSize,
+			maxWidth: params.maxWidth,
+			part,
+			theme: params.theme,
+		});
+		const nextPart = getSheetCanvasMarkdownPartText(part, part.text.slice(0, fitLength));
+
+		appendSheetCanvasMarkdownLinePart({ ...params, part: nextPart });
+		pushSheetCanvasMarkdownLine(params);
+		part = getSheetCanvasMarkdownPartText(part, part.text.slice(fitLength).trimStart());
+	}
+}
+
+/*
+ * Split label-markdown text into canvas-renderable wrapped lines.
+ */
+function getSheetCanvasWrappedMarkdownLines(params: {
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	maxWidth: number;
+	parts: LabelMarkdownPart[];
+	theme: SheetCanvasTheme;
+}) {
+	const lines: SheetCanvasMarkdownLine[] = [];
+	const line: SheetCanvasMarkdownLine = { parts: [], width: 0 };
+
+	params.parts.forEach((part) => {
+		const tokens = part.text.split(/(\r?\n|\s+)/).filter((token) => token.length > 0);
+
+		tokens.forEach((token) => {
+			if (/^\r?\n$/.test(token)) {
+				pushSheetCanvasMarkdownLine({ ...params, line, lines });
+				return;
+			}
+
+			appendSheetCanvasMarkdownToken({
+				...params,
+				line,
+				lines,
+				part: getSheetCanvasMarkdownPartText(part, token),
+			});
+		});
+	});
+
+	pushSheetCanvasMarkdownLine({ ...params, line, lines });
+
+	return lines;
+}
+
+/*
+ * Draw underline and strikethrough decorations for one markdown part.
+ */
+function drawSheetCanvasMarkdownPartDecorations(params: {
+	color: string;
+	ctx: CanvasRenderingContext2D;
+	lineHeight: number;
+	part: LabelMarkdownPart;
+	textMiddleY: number;
+	width: number;
+	x: number;
+}) {
+	if (!params.part.underline && !params.part.strikethrough) {
+		return;
+	}
+
+	params.ctx.beginPath();
+	params.ctx.strokeStyle = params.color;
+	params.ctx.lineWidth = getSheetCanvasTextUnderlineWidth(params.lineHeight);
+
+	if (params.part.underline) {
+		const underlineY = getSheetCanvasTextUnderlineY(params.textMiddleY, params.lineHeight);
+
+		params.ctx.moveTo(params.x, underlineY);
+		params.ctx.lineTo(params.x + params.width, underlineY);
+	}
+
+	if (params.part.strikethrough) {
+		const strikethroughY = getSheetCanvasTextStrikethroughY(params.textMiddleY);
+
+		params.ctx.moveTo(params.x, strikethroughY);
+		params.ctx.lineTo(params.x + params.width, strikethroughY);
+	}
+
+	params.ctx.stroke();
+}
+
+/*
+ * Draw label-preset markdown text clipped to one Sheet canvas cell rectangle.
+ */
+function drawSheetCanvasMarkdownText(params: {
+	color: string;
+	ctx: CanvasRenderingContext2D;
+	fontFamily?: string;
+	fontSize?: string;
+	height: number;
+	lineHeight?: number;
+	textStyle?: SheetCanvasTextStyle;
+	text: string;
+	theme: SheetCanvasTheme;
+	width: number;
+	x: number;
+	y: number;
+}) {
+	if (!params.text) {
+		return;
+	}
+
+	const lineHeight = params.lineHeight || params.theme.fontLineHeightPx;
+	const maxWidth = Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2);
+	if (maxWidth <= 0) {
+		return;
+	}
+
+	params.ctx.save();
+	params.ctx.beginPath();
+	params.ctx.rect(params.x + 1, params.y + 1, Math.max(0, params.width - 1), Math.max(0, params.height - 1));
+	params.ctx.clip();
+	params.ctx.fillStyle = params.color;
+	params.ctx.textAlign = 'left';
+	params.ctx.textBaseline = 'middle';
+
+	const textX = params.x + SHEET_CANVAS_CELL_PADDING_X;
+	const textY = params.y + 1;
+	const textHeight = Math.max(0, params.height - 1);
+	const lines = getSheetCanvasWrappedMarkdownLines({
+		ctx: params.ctx,
+		fontFamily: params.fontFamily,
+		fontSize: params.fontSize,
+		maxWidth,
+		parts: getSheetCanvasMarkdownPartsWithTextStyle(
+			parseLabelMarkdownText(params.text),
+			params.textStyle || getSheetCanvasCellTextStyle(),
+		),
+		theme: params.theme,
+	});
+	const maxLineCount = Math.max(1, Math.floor((textHeight + SHEET_CANVAS_TEXT_LINE_GAP) / (lineHeight + SHEET_CANVAS_TEXT_LINE_GAP)));
+	const visibleLines = lines.slice(0, maxLineCount);
+	const totalTextHeight = visibleLines.length * lineHeight + Math.max(0, visibleLines.length - 1) * SHEET_CANVAS_TEXT_LINE_GAP;
+	const firstBaselineY = textY + (textHeight - totalTextHeight) / 2 + lineHeight / 2;
+
+	visibleLines.forEach((line, lineIndex) => {
+		const baselineY = firstBaselineY + lineIndex * (lineHeight + SHEET_CANVAS_TEXT_LINE_GAP);
+		let partX = textX;
+
+		line.parts.forEach((part) => {
+			const width = getSheetCanvasMarkdownPartWidth({
+				ctx: params.ctx,
+				fontFamily: params.fontFamily,
+				fontSize: params.fontSize,
+				part,
+				theme: params.theme,
+			});
+
+			params.ctx.font = getSheetCanvasMarkdownPartFont({
+				fontFamily: params.fontFamily,
+				fontSize: params.fontSize,
+				part,
+				theme: params.theme,
+			});
+			params.ctx.fillText(part.text, partX, baselineY);
+			drawSheetCanvasMarkdownPartDecorations({
+				color: params.color,
+				ctx: params.ctx,
+				lineHeight,
+				part,
+				textMiddleY: baselineY,
+				width: Math.min(width, Math.max(0, textX + maxWidth - partX)),
+				x: partX,
+			});
+			partX += width;
+		});
+	});
+
+	params.ctx.restore();
 }
 
 /*
@@ -598,6 +1178,7 @@ function drawSheetCanvasWrappedText(params: {
 	height: number;
 	lineHeight: number;
 	maxWidth: number;
+	strikethrough?: boolean;
 	text: string;
 	underline?: boolean;
 	x: number;
@@ -622,17 +1203,16 @@ function drawSheetCanvasWrappedText(params: {
 
 		params.ctx.fillText(line, params.x, baselineY);
 
-		if (params.underline) {
-			const underlineY = getSheetCanvasTextUnderlineY(baselineY, params.lineHeight);
-			const textWidth = params.ctx.measureText(line).width;
-
-			params.ctx.beginPath();
-			params.ctx.strokeStyle = params.color;
-			params.ctx.lineWidth = 1;
-			params.ctx.moveTo(params.x, underlineY);
-			params.ctx.lineTo(params.x + Math.min(textWidth, params.maxWidth), underlineY);
-			params.ctx.stroke();
-		}
+		drawSheetCanvasTextDecorations({
+			color: params.color,
+			ctx: params.ctx,
+			lineHeight: params.lineHeight,
+			strikethrough: params.strikethrough,
+			textMiddleY: baselineY,
+			underline: params.underline,
+			width: Math.min(params.ctx.measureText(line).width, params.maxWidth),
+			x: params.x,
+		});
 	});
 }
 
@@ -646,7 +1226,9 @@ function drawSheetCanvasText(params: {
 	fontFamily?: string;
 	fontSize?: string;
 	height: number;
+	italic?: boolean;
 	lineHeight?: number;
+	strikethrough?: boolean;
 	text: string;
 	theme: SheetCanvasTheme;
 	underline?: boolean;
@@ -664,7 +1246,12 @@ function drawSheetCanvasText(params: {
 	params.ctx.rect(params.x + 1, params.y + 1, Math.max(0, params.width - 1), Math.max(0, params.height - 1));
 	params.ctx.clip();
 	params.ctx.fillStyle = params.color;
-	params.ctx.font = `${params.fontSize || params.theme.fontSize} ${params.fontFamily || params.theme.fontFamily}`;
+	params.ctx.font = getSheetCanvasTextFont({
+		fontFamily: params.fontFamily,
+		fontSize: params.fontSize,
+		italic: params.italic,
+		theme: params.theme,
+	});
 	params.ctx.textAlign = params.align || 'left';
 	params.ctx.textBaseline = 'middle';
 
@@ -681,6 +1268,7 @@ function drawSheetCanvasText(params: {
 			height: textHeight,
 			lineHeight: params.lineHeight || params.theme.fontLineHeightPx,
 			maxWidth: Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2),
+			strikethrough: params.strikethrough,
 			text: params.text,
 			underline: params.underline,
 			x: textX,
@@ -693,19 +1281,209 @@ function drawSheetCanvasText(params: {
 			textY + textHeight / 2,
 		);
 
-		if (params.underline) {
-			const textWidth = Math.min(params.ctx.measureText(params.text).width, Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2));
-			const underlineLeft = params.align === 'center' ? textX - textWidth / 2 : textX;
-			const underlineY = getSheetCanvasTextUnderlineY(textY + textHeight / 2, params.lineHeight || params.theme.fontLineHeightPx);
+		const lineHeight = params.lineHeight || params.theme.fontLineHeightPx;
+		const textWidth = Math.min(params.ctx.measureText(params.text).width, Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2));
+		const decorationLeft = params.align === 'center' ? textX - textWidth / 2 : textX;
 
-			params.ctx.beginPath();
-			params.ctx.strokeStyle = params.color;
-			params.ctx.lineWidth = 1;
-			params.ctx.moveTo(underlineLeft, underlineY);
-			params.ctx.lineTo(underlineLeft + textWidth, underlineY);
-			params.ctx.stroke();
-		}
+		drawSheetCanvasTextDecorations({
+			color: params.color,
+			ctx: params.ctx,
+			lineHeight,
+			strikethrough: params.strikethrough,
+			textMiddleY: textY + textHeight / 2,
+			underline: params.underline,
+			width: textWidth,
+			x: decorationLeft,
+		});
 	}
+	params.ctx.restore();
+}
+
+/*
+ * Return whether one cell value can use spreadsheet-style horizontal overflow.
+ */
+function canSheetCanvasCellTextOverflow(cell?: SheetCanvasCell | null) {
+	const text = cell?.displayValue || '';
+
+	if (!text || cell?.dataTableDisplay || /\r?\n/.test(text)) {
+		return false;
+	}
+
+	if (cell?.style?.disableMarkdown === true) {
+		return true;
+	}
+
+	const parts = parseLabelMarkdownText(text);
+	const onlyPart = parts[0];
+
+	return parts.length === 1 &&
+		onlyPart?.text === text &&
+		!onlyPart.italic &&
+		!onlyPart.medium &&
+		!onlyPart.semibold &&
+		!onlyPart.strikethrough &&
+		!onlyPart.underline;
+}
+
+/*
+ * Return whether one neighboring cell should stop horizontal text overflow.
+ */
+function isSheetCanvasTextOverflowBlocker(cell?: SheetCanvasCell | null) {
+	return Boolean(cell && (cell.displayValue || cell.dataTableDisplay?.text));
+}
+
+/*
+ * Return the canvas font declaration used to measure and draw plain Sheet text.
+ */
+function getSheetCanvasPlainTextFont(params: {
+	cell?: SheetCanvasCell | null;
+	theme: SheetCanvasTheme;
+}) {
+	const textStyle = getSheetCanvasCellTextStyle(params.cell?.style);
+	const fontFamily = getSheetCanvasCellTextFontFamily(textStyle, params.theme);
+
+	return getSheetCanvasTextFont({
+		fontFamily,
+		fontSize: getSheetCanvasCellFontSize(params.cell?.style, params.theme),
+		italic: textStyle.italic,
+		theme: params.theme,
+	});
+}
+
+/*
+ * Return whether one cell's plain text exceeds the current cell width.
+ */
+function sheetCanvasCellTextExceedsWidth(params: {
+	cell?: SheetCanvasCell | null;
+	ctx: CanvasRenderingContext2D;
+	theme: SheetCanvasTheme;
+	width: number;
+}) {
+	if (!canSheetCanvasCellTextOverflow(params.cell)) {
+		return false;
+	}
+
+	params.ctx.save();
+	params.ctx.font = getSheetCanvasPlainTextFont({
+		cell: params.cell,
+		theme: params.theme,
+	});
+
+	const textWidth = params.ctx.measureText(params.cell?.displayValue || '').width;
+	params.ctx.restore();
+
+	return textWidth > Math.max(0, params.width - SHEET_CANVAS_CELL_PADDING_X * 2);
+}
+
+/*
+ * Return the visible rectangle available to one overflowing Sheet cell.
+ */
+function getSheetCanvasCellTextOverflow(params: {
+	cell?: SheetCanvasCell | null;
+	cellLookup: Map<string, SheetCanvasCell>;
+	columnRect: SheetCanvasColumnRect;
+	columnRects: SheetCanvasColumnRect[];
+	ctx: CanvasRenderingContext2D;
+	rowRect: SheetCanvasRowRect;
+	theme: SheetCanvasTheme;
+}): SheetCanvasTextOverflow | null {
+	const cell = params.cell;
+
+	if (!cell || !canSheetCanvasCellTextOverflow(cell)) {
+		return null;
+	}
+
+	params.ctx.save();
+	params.ctx.font = getSheetCanvasPlainTextFont({
+		cell,
+		theme: params.theme,
+	});
+
+	const textWidth = params.ctx.measureText(cell.displayValue).width;
+	params.ctx.restore();
+
+	const requiredWidth = textWidth + SHEET_CANVAS_CELL_PADDING_X * 2;
+	if (requiredWidth <= params.columnRect.width) {
+		return null;
+	}
+
+	const sourceIndex = params.columnRects.findIndex((rect) => rect.cellKey === params.columnRect.cellKey);
+	if (sourceIndex < 0) {
+		return null;
+	}
+
+	let right = params.columnRect.left + params.columnRect.width;
+	let previousColumnIndex = params.columnRect.metric.columnIndex;
+
+	for (let index = sourceIndex + 1; index < params.columnRects.length && right - params.columnRect.left < requiredWidth; index += 1) {
+		const nextRect = params.columnRects[index];
+
+		if (nextRect.metric.columnIndex !== previousColumnIndex + 1) {
+			break;
+		}
+
+		const neighborCell = params.cellLookup.get(getSheetCellKey(params.rowRect.metric.rowKey, nextRect.cellKey));
+		if (isSheetCanvasTextOverflowBlocker(neighborCell)) {
+			break;
+		}
+
+		right = nextRect.left + nextRect.width;
+		previousColumnIndex = nextRect.metric.columnIndex;
+	}
+
+	return {
+		cell,
+		rect: {
+			height: params.rowRect.height,
+			left: params.columnRect.left,
+			top: params.rowRect.top,
+			width: Math.max(0, right - params.columnRect.left),
+		},
+	};
+}
+
+/*
+ * Draw one horizontally overflowing text cell above default grid lines.
+ */
+function drawSheetCanvasTextOverflow(params: {
+	ctx: CanvasRenderingContext2D;
+	overflow: SheetCanvasTextOverflow;
+	theme: SheetCanvasTheme;
+}) {
+	const cell = params.overflow.cell;
+	const rect = params.overflow.rect;
+	const textStyle = getSheetCanvasCellTextStyle(cell.style);
+	const backgroundColor = getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(cell.style, 'fillColor')) || params.theme.background;
+	const textColor = getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(cell.style, 'textColor')) || params.theme.bodyText;
+	const contentOpacity = cell.formulaLoading ? 0.5 : 1;
+
+	drawSheetCanvasCellFillRect({
+		ctx: params.ctx,
+		color: backgroundColor,
+		height: rect.height,
+		left: rect.left,
+		top: rect.top,
+		width: rect.width,
+	});
+
+	params.ctx.save();
+	params.ctx.globalAlpha *= contentOpacity;
+	drawSheetCanvasText({
+		color: textColor,
+		ctx: params.ctx,
+		fontFamily: getSheetCanvasCellTextFontFamily(textStyle, params.theme),
+		fontSize: getSheetCanvasCellFontSize(cell.style, params.theme),
+		height: rect.height,
+		italic: textStyle.italic,
+		lineHeight: getSheetCanvasCellLineHeightPx(cell.style, params.theme),
+		strikethrough: textStyle.strikethrough,
+		text: cell.displayValue,
+		theme: params.theme,
+		underline: textStyle.underline,
+		width: rect.width,
+		x: rect.left,
+		y: rect.top,
+	});
 	params.ctx.restore();
 }
 
@@ -916,8 +1694,10 @@ function drawSheetCanvasDataTableText(params: {
 	fontFamily?: string;
 	fontSize?: string;
 	height: number;
+	italic?: boolean;
 	lineHeight?: number;
 	maxWidth: number;
+	strikethrough?: boolean;
 	text: string;
 	theme: SheetCanvasTheme;
 	underline?: boolean;
@@ -933,7 +1713,12 @@ function drawSheetCanvasDataTableText(params: {
 	params.ctx.rect(params.x, params.y, params.maxWidth, params.height);
 	params.ctx.clip();
 	params.ctx.fillStyle = params.color;
-	params.ctx.font = `${params.fontSize || params.theme.fontSize} ${params.fontFamily || params.theme.fontFamily}`;
+	params.ctx.font = getSheetCanvasTextFont({
+		fontFamily: params.fontFamily,
+		fontSize: params.fontSize,
+		italic: params.italic,
+		theme: params.theme,
+	});
 	params.ctx.textAlign = 'left';
 	params.ctx.textBaseline = 'middle';
 
@@ -943,6 +1728,7 @@ function drawSheetCanvasDataTableText(params: {
 		height: params.height,
 		lineHeight: params.lineHeight || params.theme.fontLineHeightPx,
 		maxWidth: params.maxWidth,
+		strikethrough: params.strikethrough,
 		text: params.text,
 		underline: params.underline,
 		x: params.x,
@@ -971,7 +1757,9 @@ function drawSheetCanvasDataTableDisplay(params: {
 	fontFamily?: string;
 	fontSize?: string;
 	height: number;
+	italic?: boolean;
 	lineHeight?: number;
+	strikethrough?: boolean;
 	theme: SheetCanvasTheme;
 	underline?: boolean;
 	width: number;
@@ -992,7 +1780,12 @@ function drawSheetCanvasDataTableDisplay(params: {
 
 	if (model.kind === 'selectPill') {
 		params.ctx.save();
-		params.ctx.font = `${params.fontSize || params.theme.fontSize} ${params.fontFamily || params.theme.fontFamily}`;
+		params.ctx.font = getSheetCanvasTextFont({
+			fontFamily: params.fontFamily,
+			fontSize: params.fontSize,
+			italic: params.italic,
+			theme: params.theme,
+		});
 
 		const metrics = params.ctx.measureText(model.text);
 		const lineHeight = params.lineHeight || params.theme.fontLineHeightPx;
@@ -1014,17 +1807,16 @@ function drawSheetCanvasDataTableDisplay(params: {
 		params.ctx.textAlign = 'left';
 		params.ctx.textBaseline = 'middle';
 		params.ctx.fillText(model.text, contentX + model.pillPaddingX, pillY + pillHeight / 2);
-		if (params.underline) {
-			const textWidth = Math.min(metrics.width, Math.max(0, pillWidth - model.pillPaddingX * 2));
-			const underlineY = getSheetCanvasTextUnderlineY(pillY + pillHeight / 2, lineHeight);
-
-			params.ctx.beginPath();
-			params.ctx.strokeStyle = params.color;
-			params.ctx.lineWidth = 1;
-			params.ctx.moveTo(contentX + model.pillPaddingX, underlineY);
-			params.ctx.lineTo(contentX + model.pillPaddingX + textWidth, underlineY);
-			params.ctx.stroke();
-		}
+		drawSheetCanvasTextDecorations({
+			color: params.color,
+			ctx: params.ctx,
+			lineHeight,
+			strikethrough: params.strikethrough,
+			textMiddleY: pillY + pillHeight / 2,
+			underline: params.underline,
+			width: Math.min(metrics.width, Math.max(0, pillWidth - model.pillPaddingX * 2)),
+			x: contentX + model.pillPaddingX,
+		});
 		params.ctx.restore();
 		return;
 	}
@@ -1056,8 +1848,10 @@ function drawSheetCanvasDataTableDisplay(params: {
 		fontFamily: params.fontFamily,
 		fontSize: params.fontSize,
 		height: clipHeight,
+		italic: params.italic,
 		lineHeight: params.lineHeight,
 		maxWidth: Math.max(0, contentRight - textX),
+		strikethrough: params.strikethrough,
 		text: model.text,
 		theme: params.theme,
 		underline: params.underline || model.canOpen,
@@ -1197,7 +1991,7 @@ function drawSheetCanvasSelectionBorder(params: {
 }
 
 /*
- * Return the configured one-based end row for one Sheet DataTable region.
+ * Return the configured one-based end row for one generated Sheet region.
  */
 function getSheetCanvasDataTableRegionEndRow(region: SheetRegionGQL) {
 	const configuredEndRowIndex = Number(region.options?.endRowIndex || 0);
@@ -1214,20 +2008,7 @@ function getSheetCanvasDataTableRegionEndRow(region: SheetRegionGQL) {
  * Return whether one Sheet region is backed by a generated source.
  */
 function isSheetCanvasGeneratedRegion(region?: SheetRegionGQL | null) {
-	return Boolean(
-		region?.type === 'DATA_TABLE' &&
-		(
-			region.source?.dataTableId ||
-			region.source?.type === SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS
-		),
-	);
-}
-
-/*
- * Return the stable source id for one generated Sheet region.
- */
-function getSheetCanvasRegionSourceId(region: SheetRegionGQL) {
-	return String(region.source?.dataTableId || region.source?.type || '');
+	return Boolean(region?.type === 'DATA_TABLE' && isSheetGeneratedRegionSource(region.source));
 }
 
 /*
@@ -1329,7 +2110,7 @@ function getSheetCanvasRegionColumnTagTarget(params: {
 }
 
 /*
- * Return whether one selected coordinate is an empty slot inside a DataTable region.
+ * Return whether one selected coordinate is an empty slot inside a generated region.
  */
 function isSheetCanvasEmptyDataTableRegionCell(params: {
 	cell?: SheetCanvasCell | null;
@@ -1355,14 +2136,16 @@ function getSheetCanvasSelectedCellFillStyle(params: {
 }) {
 	if (isSheetCanvasEmptyDataTableRegionCell(params)) {
 		return {
-			color: params.theme.activeBackground,
-			opacity: 1,
+			color: params.theme.selectionFill,
+			opacity: SHEET_CANVAS_SELECTION_ALPHA,
+			stripe: true,
 		};
 	}
 
 	return {
 		color: params.theme.selectionFill,
 		opacity: SHEET_CANVAS_SELECTION_ALPHA,
+		stripe: false,
 	};
 }
 
@@ -1376,10 +2159,6 @@ function getSheetCanvasActiveBorderColor(params: {
 	rowIndex: number;
 	theme: SheetCanvasTheme;
 }) {
-	if (isSheetCanvasEmptyDataTableRegionCell(params)) {
-		return params.theme.activeOutline;
-	}
-
 	if (!isSheetCanvasDataTableRegionCell(params.cell, params.regions)) {
 		return params.theme.active;
 	}
@@ -1388,7 +2167,7 @@ function getSheetCanvasActiveBorderColor(params: {
 }
 
 /*
- * Return whether the current selection intersects one DataTable region.
+ * Return whether the current selection intersects one generated region.
  */
 function isSheetCanvasDataTableRegionSelected(params: {
 	region: SheetRegionGQL;
@@ -1444,7 +2223,7 @@ function isSheetCanvasDataTableRegionSelected(params: {
 }
 
 /*
- * Run a callback for every visible DataTable region whose hover or selection outline is active.
+ * Run a callback for every visible generated region whose hover or selection outline is active.
  */
 function forEachVisibleSheetCanvasDataTableRegionRect(params: {
 	columns: SheetColumnMetric[];
@@ -1594,7 +2373,7 @@ function drawSheetCanvasDataTableRegionLabels(params: {
 		columns: params.columns,
 		hoveredRegionId: params.hoveredRegionId,
 		onRegionRect: (rect) => {
-			const sourceId = getSheetCanvasRegionSourceId(rect.region);
+			const sourceId = getSheetRegionSourceId(rect.region.source);
 			const dataTableLabel = sourceId ? params.regionDataTableLabelsById?.get(sourceId) : null;
 			if (dataTableLabel) {
 				drawSheetCanvasTag({
@@ -1625,7 +2404,7 @@ function drawSheetCanvasDataTableRegionLabels(params: {
 }
 
 /*
- * Draw the source column key tag for the hovered or selected DataTable region cell.
+ * Draw the source column key tag for the hovered or selected generated region cell.
  */
 function drawSheetCanvasDataTableRegionColumnKeyLabel(params: {
 	columns: SheetColumnMetric[];
@@ -1695,6 +2474,8 @@ function drawSheetCanvasCell(params: {
 	isSelected: boolean;
 	selectedFillColor?: string;
 	selectedFillOpacity?: number;
+	selectedFillStripe?: boolean;
+	suppressText?: boolean;
 	theme: SheetCanvasTheme;
 	width: number;
 	x: number;
@@ -1706,9 +2487,10 @@ function drawSheetCanvasCell(params: {
 	const textColor = params.cell?.style
 		? getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(params.cell.style, 'textColor'))
 		: null;
+	const textStyle = getSheetCanvasCellTextStyle(params.cell?.style);
 	const fontSize = getSheetCanvasCellFontSize(params.cell?.style, params.theme);
 	const lineHeight = getSheetCanvasCellLineHeightPx(params.cell?.style, params.theme);
-	const fontFamily = params.theme.fontFamily;
+	const fontFamily = getSheetCanvasCellTextFontFamily(textStyle, params.theme);
 
 	if (backgroundColor) {
 		drawSheetCanvasCellFillRect({
@@ -1733,6 +2515,21 @@ function drawSheetCanvasCell(params: {
 			width: params.width,
 		});
 		params.ctx.restore();
+
+		if (params.selectedFillStripe) {
+			drawSheetCanvasUnavailableSelectionStripeRect({
+				ctx: params.ctx,
+				height: params.height,
+				left: params.x,
+				theme: params.theme,
+				top: params.y,
+				width: params.width,
+			});
+		}
+	}
+
+	if (params.suppressText) {
+		return;
 	}
 
 	const contentOpacity = params.cell?.formulaLoading ? 0.5 : 1;
@@ -1747,8 +2544,11 @@ function drawSheetCanvasCell(params: {
 			fontFamily,
 			fontSize,
 			height: params.height,
+			italic: textStyle.italic,
 			lineHeight,
+			strikethrough: textStyle.strikethrough,
 			theme: params.theme,
+			underline: textStyle.underline,
 			width: params.width,
 			x: params.x,
 			y: params.y,
@@ -1759,20 +2559,40 @@ function drawSheetCanvasCell(params: {
 
 	params.ctx.save();
 	params.ctx.globalAlpha *= contentOpacity;
-	drawSheetCanvasText({
-		color: textColor || params.theme.bodyText,
-		ctx: params.ctx,
-		fontFamily,
-		fontSize,
-		height: params.height,
-		lineHeight,
-		text: params.cell?.displayValue || '',
-		theme: params.theme,
-		width: params.width,
-		wrap: true,
-		x: params.x,
-		y: params.y,
-	});
+	if (params.cell?.style?.disableMarkdown === true) {
+		drawSheetCanvasText({
+			color: textColor || params.theme.bodyText,
+			ctx: params.ctx,
+			fontFamily,
+			fontSize,
+			height: params.height,
+			italic: textStyle.italic,
+			lineHeight,
+			strikethrough: textStyle.strikethrough,
+			text: params.cell?.displayValue || '',
+			theme: params.theme,
+			underline: textStyle.underline,
+			width: params.width,
+			wrap: true,
+			x: params.x,
+			y: params.y,
+		});
+	} else {
+		drawSheetCanvasMarkdownText({
+			color: textColor || params.theme.bodyText,
+			ctx: params.ctx,
+			fontFamily,
+			fontSize,
+			height: params.height,
+			lineHeight,
+			textStyle,
+			text: params.cell?.displayValue || '',
+			theme: params.theme,
+			width: params.width,
+			x: params.x,
+			y: params.y,
+		});
+	}
 	params.ctx.restore();
 }
 
@@ -1801,6 +2621,12 @@ function drawSheetCanvasBodyCell(params: {
 	const isActive = params.selectedCellState?.rowId === params.rowRect.metric.rowKey &&
 		params.selectedCellState.cellKey === params.columnRect.cellKey;
 	const isSelected = !params.suppressSelection && Boolean(params.selectedCellKeyMap?.[renderKey] || isActive);
+	const suppressText = sheetCanvasCellTextExceedsWidth({
+		cell,
+		ctx: params.ctx,
+		theme: params.theme,
+		width: rect.width,
+	});
 	const selectedFillStyle = isSelected
 		? getSheetCanvasSelectedCellFillStyle({
 			cell,
@@ -1828,6 +2654,8 @@ function drawSheetCanvasBodyCell(params: {
 		isSelected,
 		selectedFillColor: selectedFillStyle?.color,
 		selectedFillOpacity: selectedFillStyle?.opacity,
+		selectedFillStripe: selectedFillStyle?.stripe,
+		suppressText,
 		theme: params.theme,
 		width: rect.width,
 		x: rect.left,
@@ -1875,6 +2703,56 @@ function drawSheetCanvasBodyCells(params: {
 	});
 
 	return activeCellRect;
+}
+
+/*
+ * Draw plain-text overflow above default grid lines while preserving grid hit targets.
+ */
+function drawSheetCanvasBodyTextOverflows(params: {
+	cellLookup: Map<string, SheetCanvasCell>;
+	columnRects: SheetCanvasColumnRect[];
+	ctx: CanvasRenderingContext2D;
+	rowRects: SheetCanvasRowRect[];
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	const bodyWidth = Math.max(0, params.viewportWidth - SHEET_ROW_NUMBER_WIDTH);
+	const bodyHeight = Math.max(0, params.viewportHeight - SHEET_HEADER_HEIGHT);
+
+	if (!bodyWidth || !bodyHeight) {
+		return;
+	}
+
+	params.ctx.save();
+	params.ctx.beginPath();
+	params.ctx.rect(SHEET_ROW_NUMBER_WIDTH, SHEET_HEADER_HEIGHT, bodyWidth, bodyHeight);
+	params.ctx.clip();
+	params.rowRects.forEach((rowRect) => {
+		params.columnRects.forEach((columnRect) => {
+			const renderKey = getSheetCellKey(rowRect.metric.rowKey, columnRect.cellKey);
+			const overflow = getSheetCanvasCellTextOverflow({
+				cell: params.cellLookup.get(renderKey),
+				cellLookup: params.cellLookup,
+				columnRect,
+				columnRects: params.columnRects,
+				ctx: params.ctx,
+				rowRect,
+				theme: params.theme,
+			});
+
+			if (!overflow) {
+				return;
+			}
+
+			drawSheetCanvasTextOverflow({
+				ctx: params.ctx,
+				overflow,
+				theme: params.theme,
+			});
+		});
+	});
+	params.ctx.restore();
 }
 
 /*
@@ -2764,6 +3642,15 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		scrollLeft: p.scrollLeft,
 		scrollTop: p.scrollTop,
 		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
+	});
+	drawSheetCanvasBodyTextOverflows({
+		cellLookup: p.cellLookup,
+		columnRects: visibleColumnRects,
+		ctx,
+		rowRects: visibleRowRects,
 		theme,
 		viewportHeight,
 		viewportWidth,

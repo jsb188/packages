@@ -190,6 +190,7 @@ export interface OrganizationGQL {
   __deleted?: boolean;
 
 	id: string;
+	readableId?: string | null;
 	stripeCustomerId: string | null;
 	inboundEmail: string | null;
 	name: string;

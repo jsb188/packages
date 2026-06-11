@@ -72,10 +72,20 @@ export const BUILT_IN_DATA_TABLE_NAMES = [
 
 export const SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS = 'CHILD_ORGANIZATIONS';
 
+export const SHEET_CUSTOM_REGION_SOURCE_COLUMN_FORMULA_VALUE_SOURCE_ENUMS = [
+	'CHILD_ORGANIZATION_ID',
+] as const;
+
 export const SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATION_COLUMNS = [
+	{
+		key: 'organizationId',
+		labelKey: 'form.organization_id',
+		width: 160,
+	},
 	{
 		key: 'name',
 		labelKey: 'form.name',
+		formulaValueSource: 'CHILD_ORGANIZATION_ID',
 		width: 300,
 	},
 	{

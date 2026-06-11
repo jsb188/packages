@@ -174,7 +174,7 @@ export interface DataTableRowGQL {
 	id: string;
 	cursor: string;
 	organizationId: string;
-	dataTableId: string;
+	dataTableId?: string | null;
 
 	identifier?: string | null;
 	position: number;
@@ -208,8 +208,8 @@ export interface DataTableCellGQL {
 	__deleted?: boolean;
 
 	id: string;
-	dataTableId: string;
-	dataTableRowId: string;
+	dataTableId?: string | null;
+	dataTableRowId?: string | null;
 
 	cellKey: string;
 	iconName?: string | null;

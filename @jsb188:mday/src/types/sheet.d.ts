@@ -7,6 +7,7 @@ import type {
 	SHEET_REGION_SOURCE_SORT_DIRECTION_ENUMS,
 	SHEET_REGION_TYPE_ENUMS,
 	SHEET_STRUCTURE_OPERATION_ENUMS,
+	SHEET_CUSTOM_REGION_SOURCE_COLUMN_FORMULA_VALUE_SOURCE_ENUMS,
 	GRID_ITEM_SORT_ENUMS,
 } from '../constants/sheet.ts';
 
@@ -22,10 +23,12 @@ export type GridItemSortEnum = typeof GRID_ITEM_SORT_ENUMS[number];
 export type SheetFormulaReferenceKind = 'SHEET_CELL' | 'SHEET_RANGE' | 'DATA_TABLE_CELL' | 'DATA_TABLE_QUERY_CELL';
 export type SheetFormulaReferenceStatusEnum = 'READY' | 'LOADING' | 'ERROR' | 'NOT_FOUND';
 export type SheetRegionColumnKind = 'DATA_TABLE_CELL' | 'FORMULA';
+export type SheetCustomRegionSourceColumnFormulaValueSourceEnum = typeof SHEET_CUSTOM_REGION_SOURCE_COLUMN_FORMULA_VALUE_SOURCE_ENUMS[number];
 
 export interface SheetCustomRegionSourceColumnObj {
 	key: string;
 	labelKey: string;
+	formulaValueSource?: SheetCustomRegionSourceColumnFormulaValueSourceEnum | null;
 	width: number;
 }
 
@@ -47,6 +50,11 @@ export interface SheetCellStyleObj {
 	fontSize?: number | null;
 	textColor?: string | null;
 	fillColor?: string | null;
+	disableMarkdown?: boolean | null;
+	bold?: boolean | null;
+	italic?: boolean | null;
+	underline?: boolean | null;
+	strikethrough?: boolean | null;
 	borderTopWidth?: number | null;
 	borderTopColor?: string | null;
 	borderTopStyle?: SheetCellBorderStyleValue | null;
@@ -166,6 +174,7 @@ export interface SheetCellData {
 	columnIndex: number;
 	rawInput?: string | null;
 	value?: SheetCellValue;
+	formulaValue?: SheetCellValue;
 	textValue?: string | null;
 	numberValue?: number | null;
 	booleanValue?: boolean | null;
@@ -343,6 +352,7 @@ export interface SheetCellGQL {
 	columnIndex?: number | null;
 	rawInput?: string | null;
 	value?: string | null;
+	formulaValue?: SheetCellValue;
 	textValue?: string | null;
 	numberValue?: number | null;
 	booleanValue?: boolean | null;

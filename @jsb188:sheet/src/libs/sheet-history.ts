@@ -3,7 +3,7 @@ import { isSheetFormulaText, normalizeSheetCellStyle } from '@jsb188/mday/utils/
 import type { SheetCellGQL, SheetCellStyleObj, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
 import { useCallback, useRef } from 'react';
 import type { DataTableCellLookup } from './dataTable-cell-editing.tsx';
-import { getSheetCanvasCoordKey } from './sheet-utils.ts';
+import { getSheetCanvasCellDraftValue, getSheetCanvasCoordKey } from './sheet-utils.ts';
 import {
 	createGridUndoRedoStack,
 	pushGridUndoEntry,
@@ -66,6 +66,10 @@ export type SheetUndoRedoEntry = {
 	sheetCells?: SheetCellHistoryChange[];
 };
 
+type OptimisticSheetCellGQL = SheetCellGQL & {
+	__optimisticInput?: SheetCellEditInput;
+};
+
 /*
  * Return a normalized style object for mutation and history payloads.
  */
@@ -112,11 +116,17 @@ function sheetCellHasEditableValueContent(cell?: SheetCellGQL | null) {
 /*
  * Return whether one sparse edit input writes an empty text value.
  */
-function sheetCellEditInputSetsEmptyValue(input: SheetCellEditInput) {
+function sheetCellEditInputSetsEmptyValue(input: SheetCellEditInput, currentCell?: SheetCellGQL | null) {
+	const cell = input.cell;
 	const hasRawInput = Object.prototype.hasOwnProperty.call(input.cell, 'rawInput');
 	const hasValue = Object.prototype.hasOwnProperty.call(input.cell, 'value');
+	const hasNonValueEdit =
+		(Object.prototype.hasOwnProperty.call(cell, 'format') && (cell.format ?? null) !== (currentCell?.format ?? null)) ||
+		(Object.prototype.hasOwnProperty.call(cell, 'note') && (cell.note ?? null) !== (currentCell?.note ?? null)) ||
+		(Object.prototype.hasOwnProperty.call(cell, 'regionId') && (cell.regionId ?? null) !== (currentCell?.regionId ?? null)) ||
+		(Object.prototype.hasOwnProperty.call(cell, 'style') && getSheetHistoryStyleComparisonValue(cell.style) !== getSheetHistoryStyleComparisonValue(currentCell?.style));
 
-	if (input.clear || (!hasRawInput && !hasValue)) {
+	if (input.clear || hasNonValueEdit || (!hasRawInput && !hasValue)) {
 		return false;
 	}
 
@@ -190,6 +200,20 @@ export function getSheetCellSnapshotEditInput(rowIndex: number, columnIndex: num
 }
 
 /*
+ * Return whether a Sheet cell already has the same editable draft value.
+ */
+export function sheetCellDraftValueIsEqual(cell: SheetCellGQL | null | undefined, value: string | null) {
+	return getSheetCanvasCellDraftValue(cell) === (value ?? '');
+}
+
+/*
+ * Return the stable coordinate key represented by one Sheet cell edit input.
+ */
+export function getSheetCellEditInputCoordKey(input: SheetCellEditInput) {
+	return getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex);
+}
+
+/*
  * Return whether two Sheet cell edit inputs would save the same sparse cell payload.
  */
 export function sheetCellEditInputsAreEqual(a: SheetCellEditInput, b: SheetCellEditInput) {
@@ -205,6 +229,82 @@ export function sheetCellEditInputsAreEqual(a: SheetCellEditInput, b: SheetCellE
 }
 
 /*
+ * Return whether one edit input only writes the cell's editable value.
+ */
+function sheetCellEditInputOnlySetsValue(input: SheetCellEditInput) {
+	const cell = input.cell;
+
+	return !input.clear &&
+		Object.prototype.hasOwnProperty.call(cell, 'rawInput') &&
+		Object.prototype.hasOwnProperty.call(cell, 'value') &&
+		!Object.prototype.hasOwnProperty.call(cell, 'format') &&
+		!Object.prototype.hasOwnProperty.call(cell, 'note') &&
+		!Object.prototype.hasOwnProperty.call(cell, 'regionId') &&
+		!Object.prototype.hasOwnProperty.call(cell, 'style');
+}
+
+/*
+ * Return whether one edit input is already reflected by the current Sheet cell.
+ */
+export function sheetCellEditInputMatchesCell(input: SheetCellEditInput, currentCell?: SheetCellGQL | null) {
+	if (
+		sheetCellEditInputOnlySetsValue(input) &&
+		sheetCellDraftValueIsEqual(currentCell, input.cell.rawInput ?? input.cell.value ?? null)
+	) {
+		return true;
+	}
+
+	const currentInput = getSheetCellSnapshotEditInput(
+		input.cell.rowIndex,
+		input.cell.columnIndex,
+		currentCell,
+	);
+
+	if (sheetCellEditInputsAreEqual(currentInput, input)) {
+		return true;
+	}
+
+	return sheetCellEditInputSetsEmptyValue(input, currentCell) &&
+		!sheetCellHasEditableValueContent(currentCell);
+}
+
+/*
+ * Return the edit input carried by an optimistic Sheet cell.
+ */
+function getSheetOptimisticCellEditInput(rowIndex: number, columnIndex: number, cell: SheetCellGQL) {
+	return (cell as OptimisticSheetCellGQL).__optimisticInput ||
+		getSheetCellSnapshotEditInput(rowIndex, columnIndex, cell);
+}
+
+/*
+ * Return optimistic cell keys whose local value is now confirmed by base Sheet cells.
+ */
+export function getSheetOptimisticCellKeysSyncedWithBase(
+	optimisticCellsByCoord: Map<string, SheetCellGQL>,
+	baseCellsByCoord: Map<string, SheetCellGQL>,
+) {
+	const confirmedKeys: string[] = [];
+
+	optimisticCellsByCoord.forEach((optimisticCell, coordKey) => {
+		const rowIndex = Number(optimisticCell.rowIndex || 0);
+		const columnIndex = Number(optimisticCell.columnIndex || 0);
+
+		if (!rowIndex || !columnIndex) {
+			return;
+		}
+
+		if (sheetCellEditInputMatchesCell(
+			getSheetOptimisticCellEditInput(rowIndex, columnIndex, optimisticCell),
+			baseCellsByCoord.get(coordKey),
+		)) {
+			confirmedKeys.push(coordKey);
+		}
+	});
+
+	return confirmedKeys;
+}
+
+/*
  * Return only Sheet cell edits that should be sent to the mutation.
  */
 export function getSheetCellEditInputsForMutation(
@@ -212,28 +312,39 @@ export function getSheetCellEditInputsForMutation(
 	currentCellsByCoord: Map<string, SheetCellGQL>,
 ) {
 	return inputs.filter((input) => {
-		const currentCell = currentCellsByCoord.get(
-			getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex),
-		);
-		const currentInput = getSheetCellSnapshotEditInput(
-			input.cell.rowIndex,
-			input.cell.columnIndex,
-			currentCell,
-		);
-
-		if (sheetCellEditInputsAreEqual(currentInput, input)) {
-			return false;
-		}
-
-		if (
-			sheetCellEditInputSetsEmptyValue(input) &&
-			!sheetCellHasEditableValueContent(currentCell)
-		) {
+		if (sheetCellEditInputMatchesCell(
+			input,
+			currentCellsByCoord.get(getSheetCellEditInputCoordKey(input)),
+		)) {
 			return false;
 		}
 
 		return true;
 	});
+}
+
+/*
+ * Return one optimistic cell rebased over the latest base Sheet cell.
+ */
+export function getSheetOptimisticCellRebasedOnBase(
+	optimisticCell: SheetCellGQL,
+	baseCell?: SheetCellGQL | null,
+) {
+	const rowIndex = Number(optimisticCell.rowIndex || 0);
+	const columnIndex = Number(optimisticCell.columnIndex || 0);
+
+	if (!rowIndex || !columnIndex) {
+		return optimisticCell;
+	}
+
+	const input = getSheetOptimisticCellEditInput(rowIndex, columnIndex, optimisticCell);
+	const rebasedCell = getOptimisticSheetCellFromEditInput(input, baseCell);
+	const currentInput = getSheetCellSnapshotEditInput(rowIndex, columnIndex, optimisticCell);
+	const rebasedInput = getSheetCellSnapshotEditInput(rowIndex, columnIndex, rebasedCell);
+
+	return sheetCellEditInputsAreEqual(currentInput, rebasedInput)
+		? optimisticCell
+		: rebasedCell;
 }
 
 /*
@@ -266,6 +377,7 @@ export function getOptimisticSheetCellFromEditInput(input: SheetCellEditInput, c
 		if (currentCell?.sourceType === 'REGION_GENERATED') {
 			return {
 				...currentCell,
+				__optimisticInput: input,
 				format: null,
 				note: null,
 				style: null,
@@ -274,6 +386,7 @@ export function getOptimisticSheetCellFromEditInput(input: SheetCellEditInput, c
 
 		return {
 			columnIndex: input.cell.columnIndex,
+			__optimisticInput: input,
 			rawInput: '',
 			rowIndex: input.cell.rowIndex,
 			value: '',
@@ -285,6 +398,7 @@ export function getOptimisticSheetCellFromEditInput(input: SheetCellEditInput, c
 	return {
 		...(currentCell || {}),
 		columnIndex: input.cell.columnIndex,
+		__optimisticInput: input,
 		format: input.cell.format ?? currentCell?.format ?? null,
 		note: input.cell.note ?? currentCell?.note ?? null,
 		formula: getOptimisticSheetFormulaFromEditInput(input, currentCell),

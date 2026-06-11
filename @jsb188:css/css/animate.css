@@ -374,4 +374,23 @@
   to { opacity: .5; }
 }
 
+.anim_bounce_light {
+  animation-name: keyframes_bounce_light;
+  animation-duration: 750ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.anim_bounce_light.spd_0 { transition-duration: 250ms !important; animation-duration: 250ms !important; }
+.anim_bounce_light.spd_1 { transition-duration: 5000ms !important; animation-duration: 500ms !important; }
+.anim_bounce_light.spd_2 { transition-duration: 1000ms !important; animation-duration: 1000ms !important; }
+.anim_bounce_light.spd_3 { transition-duration: 2000ms !important; animation-duration: 2000ms !important; }
+.anim_bounce_light.spd_4 { transition-duration: 3000ms !important; animation-duration: 3000ms !important; }
+.anim_bounce_light.spd_5 { transition-duration: 4000ms !important; animation-duration: 4000ms !important; }
+
+@keyframes keyframes_bounce_light {
+  0%, 100% { transform: translateY(-1px); }
+  50% { transform: translateY(2px); }
+}
+
 .reverse { animation-direction: reverse; }

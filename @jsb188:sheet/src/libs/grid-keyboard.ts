@@ -1,5 +1,6 @@
 export type GridArrowDirection = 'left' | 'right' | 'up' | 'down';
 export type GridTabDirection = 'forward' | 'backward';
+export type GridTextStyleShortcutName = 'bold' | 'italic' | 'strikethrough' | 'underline';
 
 export const GRID_FORMULA_INPUT_SELECTOR = '[data-sheet-formula-input="true"]';
 
@@ -15,6 +16,7 @@ export type GridKeyboardHandlers = {
 	hasActiveEditState?: boolean;
 	isTextInputKey?: boolean;
 	readClipboardText?: () => Promise<string>;
+	onAdjustFontSize?: (direction: -1 | 1) => Promise<void> | void;
 	onArrow?: (direction: GridArrowDirection, extendSelection: boolean) => void;
 	onClear?: () => Promise<void> | void;
 	onCopy?: () => void;
@@ -23,7 +25,8 @@ export type GridKeyboardHandlers = {
 	onDismissEditor?: () => void;
 	onDismissHeaderEditor?: () => void;
 	onDismissLocalEditor?: () => void;
-	onEditorCommit?: (editorElement: HTMLElement) => Promise<void> | void;
+	onEditorCommit?: (editorElement: HTMLElement) => Promise<boolean | void> | boolean | void;
+	onEditorCommitEnter?: (editorElement: HTMLElement) => void;
 	onEditorCommitValue?: (editorElement: HTMLElement) => Promise<void> | void;
 	onEnter?: () => void;
 	onEscapeSelection?: () => void;
@@ -35,6 +38,7 @@ export type GridKeyboardHandlers = {
 	onSelectAll?: () => void;
 	onTab?: (direction: GridTabDirection) => void;
 	onTextInput?: (pressed: string) => void;
+	onToggleTextStyle?: (name: GridTextStyleShortcutName) => Promise<void> | void;
 	onUndo?: () => Promise<void> | void;
 	stopImmediatePropagation?: boolean;
 };
@@ -107,6 +111,54 @@ function isGridRedoShortcut(event: KeyboardEvent, metaKey: boolean) {
 }
 
 /*
+ * Return the font-size adjustment direction for a grid keyboard shortcut.
+ */
+function getGridFontSizeShortcutDirection(event: KeyboardEvent, metaKey: boolean): -1 | 1 | null {
+	if (!metaKey || event.altKey) {
+		return null;
+	}
+
+	if (event.key === '+' || event.key === '=') {
+		return 1;
+	}
+
+	if (event.key === '-' || event.key === '_') {
+		return -1;
+	}
+
+	return null;
+}
+
+/*
+ * Return the full-cell text style represented by a grid keyboard shortcut.
+ */
+function getGridTextStyleShortcutName(event: KeyboardEvent, metaKey: boolean): GridTextStyleShortcutName | null {
+	if (!metaKey || event.altKey) {
+		return null;
+	}
+
+	const key = event.key.toLowerCase();
+
+	if (!event.shiftKey && key === 'b') {
+		return 'bold';
+	}
+
+	if (!event.shiftKey && key === 'i') {
+		return 'italic';
+	}
+
+	if (!event.shiftKey && key === 'u') {
+		return 'underline';
+	}
+
+	if (event.shiftKey && key === 'x') {
+		return 'strikethrough';
+	}
+
+	return null;
+}
+
+/*
  * Return whether an active editor should keep native editor shortcuts in control.
  */
 
@@ -124,6 +176,10 @@ function hasGridNativeEditorArrowShortcut(event: KeyboardEvent, elements: GridKe
 	}
 
 	if (elements.editorElement?.matches(GRID_FORMULA_INPUT_SELECTOR)) {
+		return true;
+	}
+
+	if (elements.editorElement || elements.headerEditorElement || elements.localEditorElement) {
 		return true;
 	}
 
@@ -148,6 +204,8 @@ export function handleGridKeyboardEvent(
 	const hasEditorShortcut = hasGridActiveEditorShortcut(elements, handlers);
 	const undoShortcut = isGridUndoShortcut(event, metaKey);
 	const redoShortcut = isGridRedoShortcut(event, metaKey);
+	const fontSizeShortcutDirection = getGridFontSizeShortcutDirection(event, metaKey);
+	const textStyleShortcutName = getGridTextStyleShortcutName(event, metaKey);
 
 	if (hasGridNativeEditorArrowShortcut(event, elements, arrowDirection)) {
 		return false;
@@ -163,6 +221,8 @@ export function handleGridKeyboardEvent(
 		(metaKey && event.key.toLowerCase() === 'a' && handlers.onSelectAll) ||
 		(metaKey && event.key.toLowerCase() === 'c' && handlers.onCopy) ||
 		(metaKey && event.key.toLowerCase() === 'v' && handlers.onPaste) ||
+		(!hasEditorShortcut && fontSizeShortcutDirection && handlers.onAdjustFontSize) ||
+		(!hasEditorShortcut && textStyleShortcutName && handlers.onToggleTextStyle) ||
 		(!hasEditorShortcut && undoShortcut && handlers.onUndo) ||
 		(!hasEditorShortcut && redoShortcut && handlers.onRedo)
 	);
@@ -216,11 +276,13 @@ export function handleGridKeyboardEvent(
 		if ((event.key === 'Enter' && elements.editorElement.dataset.fieldType !== 'JSON' && !event.shiftKey) || event.key === 'Tab') {
 			consumeGridKeyboardEvent(event, stopImmediatePropagation);
 			void (async () => {
-				await handlers.onEditorCommit?.(elements.editorElement!);
+				const committed = await handlers.onEditorCommit?.(elements.editorElement!);
 				await handlers.onEditorCommitValue?.(elements.editorElement!);
 
 				if (event.key === 'Tab') {
 					handlers.onTab?.(event.shiftKey ? 'backward' : 'forward');
+				} else if (committed !== false) {
+					handlers.onEditorCommitEnter?.(elements.editorElement!);
 				}
 
 				finishGridKeyboardEvent(handlers);
@@ -290,6 +352,24 @@ export function handleGridKeyboardEvent(
 		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		void (async () => {
 			await handlers.onPaste?.(handlers.readClipboardText ? await handlers.readClipboardText() : '');
+			finishGridKeyboardEvent(handlers);
+		})();
+		return true;
+	}
+
+	if (fontSizeShortcutDirection) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		void (async () => {
+			await handlers.onAdjustFontSize?.(fontSizeShortcutDirection);
+			finishGridKeyboardEvent(handlers);
+		})();
+		return true;
+	}
+
+	if (textStyleShortcutName) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		void (async () => {
+			await handlers.onToggleTextStyle?.(textStyleShortcutName);
 			finishGridKeyboardEvent(handlers);
 		})();
 		return true;

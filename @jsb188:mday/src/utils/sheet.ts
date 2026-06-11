@@ -21,6 +21,7 @@ import type {
 	SheetGridViewportObj,
 	SheetRangeData,
 	SheetRegionConflictPolicyEnum,
+	SheetRegionSourceObj,
 	SheetRegionSourceTypeEnum,
 	SheetCustomRegionSourceColumnObj,
 	SheetRegionTypeEnum,
@@ -207,6 +208,16 @@ type SheetFormulaParserState = {
 	value: string;
 };
 
+type SheetRegionSourceLocator = {
+	dataTableId?: number | bigint | string | null;
+	sourceDataTableId?: number | bigint | string | null;
+	sourceId?: number | bigint | string | null;
+	sourceType?: SheetRegionSourceTypeEnum | string | null;
+	sourceViewId?: number | bigint | string | null;
+	type?: SheetRegionSourceTypeEnum | string | null;
+	source?: Pick<SheetRegionSourceObj, 'dataTableId' | 'type'> | null;
+};
+
 export type SheetFormulaReferenceToken =
 	| SheetFormulaCellReference & {
 		endIndex: number;
@@ -233,10 +244,12 @@ export type SheetFormulaReferenceToken =
 
 const SHEET_CELL_BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 const SHEET_CELL_BORDER_STYLE_VALUES = ['solid', 'dashed', 'dotted', 'double'] as const;
+const SHEET_CELL_TEXT_STYLE_BOOLEAN_KEYS = ['bold', 'italic', 'underline', 'strikethrough'] as const;
 const SHEET_FORMULA_STRING_QUOTE_CHARS = ['"', "'", '`'] as const;
 const SHEET_FORMULA_BARE_DATA_TABLE_CELL_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const SHEET_FORMULA_BARE_STRING_VALUE_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 const SHEET_FORMULA_ISO_DATE_VALUE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:[T ][0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?:Z|[+-][0-9]{2}:[0-9]{2})?)?$/;
+export const SHEET_CELL_STYLE_MAX_FONT_SIZE = 48;
 
 /*
  * Return whether one character starts a supported formula string literal.
@@ -280,6 +293,15 @@ function normalizeSheetCellStylePositiveInteger(value: unknown) {
 }
 
 /*
+ * Return a valid Sheet cell font size rounded to an integer and capped to the supported range.
+ */
+export function normalizeSheetCellFontSize(value: unknown) {
+	const fontSize = normalizeSheetCellStylePositiveInteger(value);
+
+	return fontSize ? Math.min(SHEET_CELL_STYLE_MAX_FONT_SIZE, fontSize) : null;
+}
+
+/*
  * Return a supported cell border width or null when the side should be disabled.
  */
 function normalizeSheetCellBorderWidth(value: unknown) {
@@ -302,6 +324,13 @@ function normalizeSheetCellBorderStyle(value: unknown): SheetCellBorderStyleValu
  */
 function normalizeSheetCellStyleColor(value: unknown) {
 	return typeof value === 'string' && value.trim() ? value : null;
+}
+
+/*
+ * Return a boolean cell style setting only when the value is explicitly boolean.
+ */
+function normalizeSheetCellStyleBoolean(value: unknown) {
+	return typeof value === 'boolean' ? value : null;
 }
 
 /*
@@ -337,11 +366,24 @@ function addNormalizedSheetCellBorderSideStyle(
 }
 
 /*
+ * Add normalized full-cell text style booleans into one Sheet style result object.
+ */
+function addNormalizedSheetCellTextStyleBooleans(result: SheetCellStyleObj, source: Record<string, any>) {
+	SHEET_CELL_TEXT_STYLE_BOOLEAN_KEYS.forEach((key) => {
+		const value = normalizeSheetCellStyleBoolean(source[key]);
+
+		if (value !== null) {
+			result[key] = value;
+		}
+	});
+}
+
+/*
  * Return the only style fields Sheets currently supports for cells and ranges.
  */
 export function normalizeSheetCellStyle(style?: Partial<SheetCellStyleObj> | Record<string, any> | string | null): SheetCellStyleObj {
 	const source = getSheetCellStyleObject(style);
-	const fontSize = normalizeSheetCellStylePositiveInteger(source.fontSize);
+	const fontSize = normalizeSheetCellFontSize(source.fontSize);
 	const normalized: SheetCellStyleObj = {};
 
 	if (fontSize) {
@@ -358,6 +400,12 @@ export function normalizeSheetCellStyle(style?: Partial<SheetCellStyleObj> | Rec
 		normalized.fillColor = fillColor;
 	}
 
+	const disableMarkdown = normalizeSheetCellStyleBoolean(source.disableMarkdown);
+	if (disableMarkdown !== null) {
+		normalized.disableMarkdown = disableMarkdown;
+	}
+
+	addNormalizedSheetCellTextStyleBooleans(normalized, source);
 	SHEET_CELL_BORDER_SIDES.forEach((side) => addNormalizedSheetCellBorderSideStyle(normalized, source, side));
 
 	return normalized;
@@ -1998,6 +2046,77 @@ export function getSheetCustomRegionSourceColumns(sourceType: SheetRegionSourceT
 
 export function isSheetCustomRegionSourceType(sourceType: unknown) {
 	return sourceType === SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS;
+}
+
+/*
+ * Return the concrete source type for a generated Sheet region or rendered region result.
+ */
+export function getSheetRegionSourceType(
+	sourceLocator?: SheetRegionSourceLocator | null,
+): SheetRegionSourceTypeEnum {
+	const sourceType = sourceLocator?.source?.type ||
+		sourceLocator?.sourceType ||
+		sourceLocator?.type ||
+		(sourceLocator?.sourceDataTableId || sourceLocator?.dataTableId || sourceLocator?.source?.dataTableId
+			? 'DATA_TABLE'
+			: null);
+
+	return isSheetRegionSourceType(sourceType) ? sourceType : 'DATA_TABLE';
+}
+
+/*
+ * Return the stable source id used to key source cells for a generated Sheet region.
+ */
+export function getSheetRegionSourceId(
+	sourceLocator?: SheetRegionSourceLocator | null,
+): string {
+	return String(
+		sourceLocator?.sourceDataTableId ||
+			sourceLocator?.dataTableId ||
+			sourceLocator?.source?.dataTableId ||
+			sourceLocator?.sourceId ||
+			sourceLocator?.sourceViewId ||
+			sourceLocator?.source?.type ||
+			sourceLocator?.sourceType ||
+			sourceLocator?.type ||
+			'',
+	);
+}
+
+/*
+ * Return the app route where one Sheet generated-region source can be opened.
+ */
+export function getSheetRegionSourceDataTableRoute(
+	sourceLocator?: SheetRegionSourceLocator | null,
+): string | null {
+	const sourceType = getSheetRegionSourceType(sourceLocator);
+
+	if (sourceType === SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS) {
+		return '/app/vendors';
+	}
+
+	const dataTableId = String(
+		sourceLocator?.sourceDataTableId ||
+			sourceLocator?.dataTableId ||
+			sourceLocator?.source?.dataTableId ||
+			'',
+	);
+
+	return dataTableId ? `/app/d/${dataTableId}` : null;
+}
+
+/*
+ * Return whether a Sheet region source can generate rows into the grid.
+ */
+export function isSheetGeneratedRegionSource(
+	sourceLocator?: SheetRegionSourceLocator | null,
+) {
+	return Boolean(
+		sourceLocator?.sourceDataTableId ||
+			sourceLocator?.dataTableId ||
+			sourceLocator?.source?.dataTableId ||
+			isSheetCustomRegionSourceType(getSheetRegionSourceType(sourceLocator)),
+	);
 }
 
 /*

@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import Markdown, { parseTextWithLinks } from '../ui/Markdown';
+import { parseLabelMarkdownText } from '../utils/markdown';
 
 type MarkdownProps = Parameters<typeof Markdown>[0];
 
@@ -47,6 +48,27 @@ describe('parseTextWithLinks', () => {
   });
 });
 
+describe('parseLabelMarkdownText', () => {
+  it('parses label-preset inline style parts for shared renderers', () => {
+    expect(parseLabelMarkdownText('A **bold** and ~~strike~~ value')).toEqual([
+      { text: 'A ' },
+      { semibold: true, text: 'bold' },
+      { text: ' and ' },
+      { strikethrough: true, text: 'strike' },
+      { text: ' value' },
+    ]);
+    expect(parseLabelMarkdownText('~Not strikethrough~')).toEqual([
+      { text: '~Not strikethrough~' },
+    ]);
+    expect(parseLabelMarkdownText('**___All styles___**')).toEqual([
+      { italic: true, semibold: true, text: 'All styles', underline: true },
+    ]);
+    expect(parseLabelMarkdownText('***Semibold***')).toEqual([
+      { semibold: true, text: 'Semibold' },
+    ]);
+  });
+});
+
 describe('Markdown', () => {
   it('groups consecutive list lines into a single list wrapper', () => {
     const html = renderMarkdown('- First item\n- Second item\n\nTail paragraph');
@@ -69,14 +91,21 @@ describe('Markdown', () => {
 
   it('renders star and underscore style combinations', () => {
     expect(renderMarkdown('**Bold**')).toContain('class="ft_semibold"');
-    expect(renderMarkdown('*Bold*')).toContain('class="ft_semibold"');
+    expect(renderMarkdown('**Bold_with_underscore**')).toContain('class="ft_semibold"');
+    expect(renderMarkdown('*Bold*')).toContain('class="ft_medium"');
+    expect(renderMarkdown('***Semibold***')).toContain('class="ft_semibold"');
     expect(renderMarkdown('_Italic_')).toContain('<i>');
     expect(renderMarkdown('__Underline__')).toContain('class="u"');
     expect(renderMarkdown('___Underline italic___')).toContain('class="u"');
     expect(renderMarkdown('___Underline italic___')).toContain('<i class="u">');
-    expect(renderMarkdown('_*Bold italic*_')).toContain('<i class="ft_semibold">');
-    expect(renderMarkdown('*_Bold italic_*')).toContain('<i class="ft_semibold">');
+    expect(renderMarkdown('_*Bold italic*_')).toContain('<i class="ft_medium">');
+    expect(renderMarkdown('*_Bold italic_*')).toContain('<i class="ft_medium">');
     expect(renderMarkdown('**___Bold underline italic___**')).toContain('<i class="ft_semibold u">');
+    expect(renderMarkdown('***___Semibold underline italic___***')).toContain('<i class="ft_semibold u">');
+    expect(renderMarkdown('~~Strikethrough~~')).toContain('class="strikethrough"');
+    expect(renderMarkdown('~Not strikethrough~')).toContain('~Not strikethrough~');
+    expect(renderMarkdown('**~~Bold strikethrough~~**')).toContain('class="ft_semibold strikethrough"');
+    expect(renderMarkdown('***~~Semibold strikethrough~~***')).toContain('class="ft_semibold strikethrough"');
   });
 
   it('renders article headings as standalone heading blocks', () => {

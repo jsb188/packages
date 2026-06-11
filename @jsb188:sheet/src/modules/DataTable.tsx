@@ -100,17 +100,17 @@ import {
   getSheetEditorFieldType,
   hasDataTableCellRelatedId,
   isDataTableDateEditorFieldType,
-  isDataTableExternalLinkTextValue,
   isDataTableInboundContactRelatedTable,
   isDataTableLocalEditorFieldType,
   isDataTableReferenceCell,
   isDataTableSiteLocationIdLookup,
-  isDataTableSiteLocationRelatedTable,
   isSheetSelectEditorFieldType,
+  openDataTableCellLink,
   parseSheetEditorValue,
   getDataTableLocalEditorPosition as sharedGetDataTableLocalEditorPosition,
   getDataTableSelectedCellTagPosition as sharedGetDataTableSelectedCellTagPosition,
   type DataTableCellLookup,
+  type DataTableOpenCellParams,
   type DataTableRuntimeDesignCell,
 } from '../libs/dataTable-cell-editing.tsx';
 import {
@@ -182,21 +182,6 @@ export interface DataTableProps {
 	setFloatingMessage?: SetFloatingMessage;
 	timeZone?: string | null;
 }
-
-type DataTableOpenCellParams = {
-	cell?: DataTableCellGQL | null;
-	clickSource?: SheetUIEditorClickSource;
-	designCell: DataTableDesignCellGQL;
-	row: DataTableRowGQL;
-	dataTable: DataTableGQL;
-};
-
-type DataTableOpenCellLinkParams = DataTableOpenCellParams & {
-	openInboundContactEditor: (params: DataTableOpenCellParams) => void;
-	openSiteLocationEditor: (params: DataTableOpenCellParams) => void;
-	openModalScreen: ReturnType<typeof useOpenModalScreen>;
-	setFloatingMessage?: SetFloatingMessage;
-};
 
 type DataTableRuntimeState = {
 	columnMetricsByKey: Map<string, SheetColumnMetric>;
@@ -976,75 +961,6 @@ function handleDataTableRelatedDocumentCellEdit(lookup: DataTableCellLookup, set
 
 function isDataTableInboundContactIdLookup(lookup: DataTableCellLookup) {
 	return lookup.designCell.fieldType === 'ID' && isDataTableInboundContactRelatedTable(lookup.cell?.relatedTable) && hasDataTableCellRelatedId(lookup.cell);
-}
-
-/*
- * Return the external URL stored in one open-link dataTable cell.
- */
-
-function getDataTableOpenCellExternalUrl(cell: DataTableCellGQL | null | undefined) {
-	const textValue = cell?.textValue;
-
-	if (isDataTableExternalLinkTextValue(textValue)) {
-		return textValue;
-	}
-
-	const value = cell?.value as unknown;
-
-	if (isDataTableExternalLinkTextValue(value)) {
-		return value;
-	}
-
-	if (value && typeof value === 'object' && !Array.isArray(value)) {
-		const nestedValue = (value as { value?: unknown }).value;
-		return isDataTableExternalLinkTextValue(nestedValue) ? nestedValue : null;
-	}
-
-	return null;
-}
-
-/*
- * Open one clickable dataTable cell using its external URL or related document target.
- */
-
-function openDataTableCellLink(params: DataTableOpenCellLinkParams) {
-	const { cell, openInboundContactEditor, openModalScreen, openSiteLocationEditor, setFloatingMessage } = params;
-	const externalUrl = getDataTableOpenCellExternalUrl(cell);
-
-	if (externalUrl) {
-		window.open(externalUrl, '_blank', 'noopener,noreferrer');
-		return;
-	}
-
-	if (cell?.relatedId) {
-		if (isDataTableInboundContactRelatedTable(cell.relatedTable)) {
-			openInboundContactEditor(params);
-			return;
-		}
-
-		if (isDataTableSiteLocationRelatedTable(cell.relatedTable)) {
-			openSiteLocationEditor(params);
-			return;
-		}
-
-		switch (cell.relatedTable) {
-			case 'logs':
-				openModalScreen({
-					name: 'LOG_ENTRY',
-					props: {
-						logEntryId: String(cell.relatedId),
-					},
-				});
-				return;
-			default:
-				break;
-		}
-	}
-
-	setFloatingMessage?.({
-		text: getDataTableTranslatedText('sheet.unsupported_link_msg', 'This cell cannot be opened yet.'),
-		type: 'NOTICE',
-	});
 }
 
 /*

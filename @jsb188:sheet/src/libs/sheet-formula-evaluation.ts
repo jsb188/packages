@@ -170,6 +170,17 @@ function getSheetFormulaCellScalarValue(cell?: SheetCellGQL | null) {
 }
 
 /*
+ * Return the scalar value a data-table lookup or comparison should read from a Sheet cell.
+ */
+function getSheetFormulaCellComparisonValue(cell?: SheetCellGQL | null) {
+	if (cell?.formulaValue !== undefined) {
+		return cell.formulaValue;
+	}
+
+	return getSheetFormulaCellScalarValue(cell);
+}
+
+/*
  * Return typed cell fields from one formula result value.
  */
 function getSheetFormulaResultTypedValues(value: unknown) {
@@ -216,12 +227,26 @@ export function sheetCellCanClientCalculateFormula(cell?: SheetCellGQL | null) {
 }
 
 /*
+ * Return formula references only when the payload is an array.
+ */
+function getSheetFormulaReferenceList(references?: SheetFormulaReferenceObj[] | null) {
+	return Array.isArray(references) ? references : [];
+}
+
+/*
+ * Return formula reference cells only when the payload field is an array.
+ */
+function getSheetFormulaReferenceCells(reference?: SheetFormulaReferenceObj | null) {
+	return Array.isArray(reference?.cells) ? (reference.cells as SheetCellGQL[]) : [];
+}
+
+/*
  * Return formula references stored on cells keyed by dependency id.
  */
 export function getSheetFormulaReferencesById(references?: SheetFormulaReferenceObj[] | null) {
 	const referencesById = new Map<string, SheetFormulaReferenceObj>();
 
-	(references || []).forEach((reference) => {
+	getSheetFormulaReferenceList(references).forEach((reference) => {
 		if (reference?.id) {
 			referencesById.set(reference.id, reference);
 		}
@@ -237,7 +262,7 @@ export function getSheetFormulaReferencesFromCells(cellsByCoord: Map<string, She
 	const referencesById = new Map<string, SheetFormulaReferenceObj>();
 
 	cellsByCoord.forEach((cell) => {
-		(cell.formula?.references || []).forEach((reference) => {
+		getSheetFormulaReferenceList(cell.formula?.references).forEach((reference) => {
 			if (reference?.id) {
 				referencesById.set(reference.id, reference);
 			}
@@ -253,8 +278,8 @@ export function getSheetFormulaReferencesFromCells(cellsByCoord: Map<string, She
 export function getSheetFormulaReferenceCellsByCoord(references?: SheetFormulaReferenceObj[] | null) {
 	const cellsByCoord = new Map<string, SheetCellGQL>();
 
-	(references || []).forEach((reference) => {
-		(reference.cells || []).forEach((cell) => {
+	getSheetFormulaReferenceList(references).forEach((reference) => {
+		getSheetFormulaReferenceCells(reference).forEach((cell) => {
 			if (cell?.rowIndex && cell.columnIndex) {
 				cellsByCoord.set(getSheetCanvasCoordKey(Number(cell.rowIndex), Number(cell.columnIndex)), cell as SheetCellGQL);
 			}
@@ -267,8 +292,10 @@ export function getSheetFormulaReferenceCellsByCoord(references?: SheetFormulaRe
 /*
  * Return a formula cell with reference values overlaid from the reactive reference cache.
  */
-function getSheetFormulaCellWithResolvedReferences(cell: SheetCellGQL, referencesById?: Map<string, SheetFormulaReferenceObj> | null) {
-	if (!referencesById?.size || !cell.formula?.references?.length) {
+function getSheetFormulaCellWithResolvedReferences(cell: SheetCellGQL, referencesById?: Map<string, SheetFormulaReferenceObj> | null): SheetCellGQL {
+	const references = getSheetFormulaReferenceList(cell.formula?.references);
+
+	if (!cell.formula || !referencesById?.size || !references.length) {
 		return cell;
 	}
 
@@ -276,7 +303,7 @@ function getSheetFormulaCellWithResolvedReferences(cell: SheetCellGQL, reference
 		...cell,
 		formula: {
 			...cell.formula,
-			references: cell.formula.references.map((reference) => {
+			references: references.map((reference) => {
 				return reference.id ? referencesById.get(reference.id) || reference : reference;
 			}),
 		},
@@ -287,7 +314,7 @@ function getSheetFormulaCellWithResolvedReferences(cell: SheetCellGQL, reference
  * Return runtime references for one formula cell after applying reactive cache overlays.
  */
 function getSheetFormulaCellReferences(cell: SheetCellGQL, referencesById?: Map<string, SheetFormulaReferenceObj> | null) {
-	return getSheetFormulaCellWithResolvedReferences(cell, referencesById).formula?.references || [];
+	return getSheetFormulaReferenceList(getSheetFormulaCellWithResolvedReferences(cell, referencesById).formula?.references);
 }
 
 /*
@@ -361,7 +388,7 @@ function getSheetFormulaDataTableRowIdentifierState(params: {
 
 	return {
 		rowIdentifier: getSheetFormulaStringValue(targetCell
-			? getSheetFormulaCellScalarValue(targetCell)
+			? getSheetFormulaCellComparisonValue(targetCell)
 			: getSheetFormulaReferenceScalarValue(reference || ({} as SheetFormulaReferenceObj))),
 		status: 'READY' as const,
 	};
@@ -426,7 +453,7 @@ function getSheetFormulaDataTableQueryConditionValueState(params: {
 	return {
 		status: 'READY' as const,
 		value: targetCell
-			? getSheetFormulaCellScalarValue(targetCell)
+			? getSheetFormulaCellComparisonValue(targetCell)
 			: getSheetFormulaReferenceScalarValue(reference || ({} as SheetFormulaReferenceObj)),
 	};
 }
@@ -482,11 +509,12 @@ export function getSheetFormulaReferencesNeedingServerResolution(params: {
 	timeZone?: string | null;
 }) {
 	const referencesById = params.referencesById || getSheetFormulaReferencesById(params.references);
+	const references = getSheetFormulaReferenceList(params.references);
 	const referencesToResolve = new Map<string, SheetFormulaReferenceObj>();
 	const now = params.now || new Date();
 	const timeZone = isValidTimeZone(params.timeZone) ? params.timeZone || DEFAULT_TIMEZONE : DEFAULT_TIMEZONE;
 
-	(params.references || []).forEach((reference) => {
+	references.forEach((reference) => {
 		if (!reference?.id) {
 			return;
 		}
@@ -515,7 +543,7 @@ export function getSheetFormulaReferencesNeedingServerResolution(params: {
 				cell: {
 					formula: {
 						engine: 'client',
-						references: params.references || [],
+						references,
 						text: `=${resolvedReference.text}`,
 						version: 0,
 					},
@@ -558,7 +586,7 @@ export function getSheetFormulaReferencesNeedingServerResolution(params: {
 			cell: {
 				formula: {
 					engine: 'client',
-					references: params.references || [],
+					references,
 					text: `=${resolvedReference.text}`,
 					version: 0,
 				},
@@ -658,7 +686,14 @@ function getSheetFormulaReferenceScalarValue(reference: SheetFormulaReferenceObj
 		? reference.numberValue
 		: reference.booleanValue !== null && reference.booleanValue !== undefined
 		? reference.booleanValue
-		: reference.dateValue || reference.datetimeValue || reference.textValue || reference.value || null;
+		: reference.dateValue || reference.datetimeValue || reference.value || reference.textValue || null;
+}
+
+/*
+ * Return whether one server-resolved formula reference carries a usable scalar result.
+ */
+function sheetFormulaReferenceHasScalarValue(reference?: SheetFormulaReferenceObj | null) {
+	return getSheetFormulaReferenceScalarValue(reference || ({} as SheetFormulaReferenceObj)) !== null;
 }
 
 /*
@@ -1087,7 +1122,16 @@ function evaluateSheetFormulaNode(params: {
 			return getSheetFormulaErrorResult(queryState.error?.code || 'INVALID_FORMULA', queryState.error?.message || 'Formula dependency is invalid.');
 		}
 
-		if (!dataTableReference || queryState.conditionKey !== (dataTableReference.rowIdentifier || '')) {
+		if (
+			!dataTableReference ||
+			(
+				queryState.conditionKey !== (dataTableReference.rowIdentifier || '') &&
+				!(
+					dataTableReference.status === 'READY' &&
+					sheetFormulaReferenceHasScalarValue(dataTableReference)
+				)
+			)
+		) {
 			return {
 				loading: true,
 				value: null,

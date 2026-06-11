@@ -5,21 +5,41 @@ import { DEFAULT_TIMEZONE } from '@jsb188/app/utils/timeZone.ts';
 import { FEATURES_BY_OPERATION } from '../constants/organization.ts';
 import type {
   ACLPermissionEnum,
-  MergedOrgContact,
-  OrgContact,
-  OrganizationFeatureEnum,
-  OrganizationOperationEnum,
-  OrganizationRelData,
-  OrganizationRelGQL,
+	MergedOrgContact,
+	OrgContact,
+	OrganizationChildData,
+	OrganizationChildGQL,
+	OrganizationDepartmentEnum,
+	OrganizationFeatureEnum,
+	OrganizationOperationEnum,
+	OrganizationRelData,
+	OrganizationRelGQL,
   OrganizationRoleEnum,
   OrganizationSettingsObj
 } from '../types/organization.d.ts';
+import type { SheetCustomRegionSourceColumnFormulaValueSourceEnum } from '../types/sheet.d.ts';
 
 // Placeholder to match Server import
 type ViewerOrganization = any;
 
 type OperationPermissionTuple = readonly [PermissionCheckFor, ACLPermissionEnum, string];
 type OperationPermissionsMap = Record<string, OperationPermissionTuple>;
+type OrganizationChildPreferredContacts =
+	| OrgContact[]
+	| Record<string, Partial<OrgContact> | null | undefined>
+	| null
+	| undefined;
+type OrganizationChildContactSource = {
+	organization?: {
+		id?: string | number | bigint | null;
+		readableId?: string | null;
+		directory?: OrgContact[] | null;
+		name?: string | null;
+		operation?: OrganizationOperationEnum | string | null;
+		settings?: Pick<OrganizationSettingsObj, 'directory'> | null;
+	} | null;
+	preferredContacts?: OrganizationChildPreferredContacts;
+};
 
 export const OPERATION_PERMISSIONS = {
   chat: ['viewData', 'READ', 'You do not have permission to chat with AI in this organization.'],
@@ -413,4 +433,142 @@ export function mergeOrgDirectory(
 	}
 
 	return merged;
+}
+
+/*
+ * Return one preferred contact with a department supplied from the map key when needed.
+ */
+function normalizeOrganizationChildPreferredContact(
+	department: string,
+	contact?: Partial<OrgContact> | null,
+): OrgContact | null {
+	if (!contact) {
+		return null;
+	}
+
+	const contactDepartment = contact.department || (department as OrganizationDepartmentEnum);
+
+	if (!contactDepartment) {
+		return null;
+	}
+
+	return {
+		department: contactDepartment,
+		name: contact.name,
+		phoneNumber: contact.phoneNumber,
+		emailAddress: contact.emailAddress,
+	};
+}
+
+/*
+ * Return preferred child-organization contacts in the array shape expected by directory helpers.
+ */
+export function getOrganizationChildPreferredContacts(
+	childOrganization?: OrganizationChildContactSource | null,
+): OrgContact[] {
+	const preferredContacts = childOrganization?.preferredContacts;
+
+	if (Array.isArray(preferredContacts)) {
+		return preferredContacts
+			.map((contact) => normalizeOrganizationChildPreferredContact(contact.department, contact))
+			.filter(Boolean) as OrgContact[];
+	}
+
+	return Object.entries(preferredContacts || {})
+		.map(([department, contact]) => normalizeOrganizationChildPreferredContact(department, contact))
+		.filter(Boolean) as OrgContact[];
+}
+
+/*
+ * Return the child organization's directory with parent-specific preferred contacts applied.
+ */
+export function getOrganizationChildMergedDirectory(
+	childOrganization?: OrganizationChildContactSource | null,
+): MergedOrgContact[] {
+	const organization = childOrganization?.organization;
+
+	return mergeOrgDirectory(
+		organization?.directory || organization?.settings?.directory || [],
+		getOrganizationChildPreferredContacts(childOrganization),
+	);
+}
+
+/*
+ * Return the primary contact shown for one child organization relationship.
+ */
+export function getOrganizationChildPrimaryContact(
+	childOrganization?: OrganizationChildContactSource | null,
+): MergedOrgContact | null {
+	const directory = getOrganizationChildMergedDirectory(childOrganization);
+
+	return directory.find((contact) => contact.department === 'PRIMARY_CONTACT') || directory[0] || null;
+}
+
+/*
+ * Return whether one child-organization list cell should open the organization profile.
+ */
+export function isOrganizationChildProfileLinkCellKey(cellKey: string) {
+	return cellKey === 'organizationId' || cellKey === 'vendorName' || cellKey === 'name';
+}
+
+/*
+ * Return the display text used by child-organization lists and Sheet custom source cells.
+ */
+export function getOrganizationChildListCellValue(
+	childOrganization: OrganizationChildData | OrganizationChildGQL | OrganizationChildContactSource | null | undefined,
+	cellKey: string,
+): string {
+	const organization = childOrganization?.organization;
+	const primaryContact = getOrganizationChildPrimaryContact(childOrganization);
+
+	switch (cellKey) {
+		case 'organizationId': {
+			const organizationReadableId = organization && 'readableId' in organization ? organization.readableId : null;
+			const organizationId = organization && 'id' in organization ? organization.id : null;
+			const childOrganizationId = childOrganization && 'childId' in childOrganization ? childOrganization.childId : null;
+
+			return organizationReadableId || (organizationId ? String(organizationId) : childOrganizationId ? String(childOrganizationId) : '');
+		}
+		case 'name':
+			return organization?.name || '';
+		case 'phone':
+			return primaryContact?.phoneNumber || '';
+		case 'email':
+			return primaryContact?.emailAddress || '';
+		case 'type':
+			return organization?.operation || '';
+		default:
+			return '';
+	}
+}
+
+/*
+ * Return the organization id that backs formula comparisons for a child-organization list cell.
+ */
+export function getOrganizationChildListCellFormulaValue(
+	childOrganization: OrganizationChildData | OrganizationChildGQL | OrganizationChildContactSource | null | undefined,
+	formulaValueSource?: SheetCustomRegionSourceColumnFormulaValueSourceEnum | string | null,
+): string | null {
+	if (formulaValueSource !== 'CHILD_ORGANIZATION_ID') {
+		return null;
+	}
+
+	const organization = childOrganization?.organization;
+	const organizationId = organization && 'id' in organization ? organization.id : null;
+	const childOrganizationId = childOrganization && 'childId' in childOrganization ? childOrganization.childId : null;
+	const formulaValue = organizationId ?? childOrganizationId ?? null;
+
+	return formulaValue !== null ? String(formulaValue) : null;
+}
+
+/*
+ * Return the formula comparison value for a child-organization list cell when only its row id is available.
+ */
+export function getOrganizationChildListCellFormulaValueFromId(
+	childOrganizationId: string | number | bigint | null | undefined,
+	formulaValueSource?: SheetCustomRegionSourceColumnFormulaValueSourceEnum | string | null,
+): string | null {
+	return formulaValueSource === 'CHILD_ORGANIZATION_ID' && childOrganizationId !== null && childOrganizationId !== undefined
+		? String(childOrganizationId)
+		: null;
 }

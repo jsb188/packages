@@ -29,6 +29,7 @@ export const RULES = {
   chat: true,
   chatsList: true,
   childOrganizations: true,
+  dataTable: true,
   dataTableRows: true,
   dataTableRowsForSheetRegions: true,
   dataTables: true,

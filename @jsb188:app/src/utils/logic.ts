@@ -242,6 +242,24 @@ export function timeoutPromise<T>(
 }
 
 /**
+ * Return a JSON-safe value with stable object key order for cache keys.
+ */
+function getStableVariablesKeyValue(value: any): any {
+	if (Array.isArray(value)) {
+		return value.map(getStableVariablesKeyValue);
+	}
+
+	if (value && typeof value === 'object' && !(value instanceof Date)) {
+		return Object.keys(value).sort().reduce((acc, key) => {
+			acc[key] = getStableVariablesKeyValue(value[key]);
+			return acc;
+		}, {} as Record<string, any>);
+	}
+
+	return value;
+}
+
+/**
  * Make String based key from variables Object
  * @param variables - any variables or arguments object
  * @param doNotLowerCaseCacheKey - If true, the returned key will maintain original casing
@@ -265,7 +283,7 @@ export function makeVariablesKey(
       // }
 			const value = variables[key];
 			if (value || value === 0 || value === false) {
-				return `${acc}$${key}:${typeof value === 'object' ? stringifyJSON(value) : value}`;
+				return `${acc}$${key}:${typeof value === 'object' ? stringifyJSON(getStableVariablesKeyValue(value)) : value}`;
 			}
 			return acc;
 		}, '');

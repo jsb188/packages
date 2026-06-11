@@ -16,10 +16,14 @@ export type SheetSemanticInputGuide = {
 	title: ReactNode;
 };
 
+type SheetSemanticInputPartDataAttributes = {
+	[key: `data-${string}`]: number | string | undefined;
+};
+
 export type SheetSemanticInputOverlayProps<TPart extends SheetSemanticInputPartSpan> = {
 	activePart?: TPart | null;
 	chunks?: Array<SheetSemanticInputTextChunk | SheetSemanticInputPartChunk<TPart>>;
-	getPartDataAttributes?: (part: TPart, partIndex: number) => Record<string, number | string | undefined>;
+	getPartDataAttributes?: (part: TPart, partIndex: number) => SheetSemanticInputPartDataAttributes;
 	getPartGuide?: (part: TPart) => SheetSemanticInputGuide | null;
 	getPartHighlightStyle: (part: TPart) => CSSProperties;
 	inputScrollLeft?: number;
@@ -40,6 +44,15 @@ function getSheetSemanticInputMirrorContentStyle(scrollLeft: number): CSSPropert
 }
 
 /*
+ * Return the React key for one highlighted semantic input part span.
+ */
+function getSheetSemanticInputPartSpanKey<TPart extends SheetSemanticInputPartSpan>(
+	chunk: SheetSemanticInputPartChunk<TPart>,
+) {
+	return `part_${chunk.partIndex}_${chunk.startIndex}_${chunk.endIndex}`;
+}
+
+/*
  * Return props for one highlighted semantic input part span.
  */
 function getSheetSemanticInputPartSpanProps<TPart extends SheetSemanticInputPartSpan>(
@@ -49,7 +62,6 @@ function getSheetSemanticInputPartSpanProps<TPart extends SheetSemanticInputPart
 	return {
 		...props.getPartDataAttributes?.(chunk.part, chunk.partIndex),
 		[SHEET_SEMANTIC_INPUT_PART_INDEX_ATTRIBUTE]: chunk.partIndex,
-		key: `part_${chunk.partIndex}_${chunk.startIndex}_${chunk.endIndex}`,
 		style: props.getPartHighlightStyle(chunk.part),
 	};
 }
@@ -73,7 +85,10 @@ function renderSheetSemanticInputHighlightedText<TPart extends SheetSemanticInpu
 		}
 
 		children.push(
-			<span {...getSheetSemanticInputPartSpanProps(props, chunk)}>
+			<span
+				key={getSheetSemanticInputPartSpanKey(chunk)}
+				{...getSheetSemanticInputPartSpanProps(props, chunk)}
+			>
 				{chunk.text}
 			</span>,
 		);

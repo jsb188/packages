@@ -286,10 +286,9 @@ export function useSheetFormulaReferences(
 		...params,
 		skip: !organizationId || !sheetId || !referenceInputs.length || !!params.skip,
 	});
-	const sheetFormulaReferences = useReactiveSheetFormulaReferences(data?.sheetFormulaReferences || null);
 
 	return {
-		sheetFormulaReferences,
+		sheetFormulaReferences: data?.sheetFormulaReferences || null,
 		...rest,
 	};
 }

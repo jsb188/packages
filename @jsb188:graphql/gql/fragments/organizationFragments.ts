@@ -1,6 +1,7 @@
 
 export const organizationFragment = `fragment organizationFragment on Organization {
   id
+  readableId
   stripeCustomerId
   inboundEmail
   name

@@ -785,7 +785,6 @@ function saveQueryToMemory(
 
       if (updateObservers) {
         updateObservers({
-          queryId: saveQueryToCache ? queryId : null,
           fragmentIds: updatedFragmentIds as string[],
         });
       }
@@ -1254,7 +1253,7 @@ function hasCompleteSelectionSetData(
  * Check if there is cache
  */
 
-export function fetchCachedData(gqlQuery: any, variablesKey: string, updateObservers: UpdateObserversFn) {
+export function fetchCachedData(gqlQuery: any, variablesKey: string, _updateObservers?: UpdateObserversFn) {
   const definitions = gqlQuery.definitions;
   const fragmentDefinitions = makeFragmentDefinitionMap(definitions);
 
@@ -1273,19 +1272,11 @@ export function fetchCachedData(gqlQuery: any, variablesKey: string, updateObser
         if (!cachedData) {
           QUERIES.delete(queryId);
 
-          updateObservers({
-            queryId
-          });
-
           return null;
         }
 
         if (!hasCompleteSelectionData({ [qryName]: cachedData }, selection, fragmentDefinitions)) {
           QUERIES.delete(queryId);
-
-          updateObservers({
-            queryId,
-          });
 
           return null;
         }

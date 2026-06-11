@@ -49,7 +49,7 @@ describe('grid keyboard helpers', () => {
 		expect(onArrow).not.toHaveBeenCalled();
 	});
 
-	it('keeps regular editor arrow keys inside grid keyboard handling', () => {
+	it('lets regular editor arrow keys use native caret movement', () => {
 		const editorElement = createGridEditorElement();
 		const onArrow = vi.fn();
 		const event = createGridKeyboardEvent('ArrowLeft');
@@ -59,8 +59,8 @@ describe('grid keyboard helpers', () => {
 			onArrow,
 		});
 
-		expect(handled).toBe(true);
-		expect(event.defaultPrevented).toBe(true);
+		expect(handled).toBe(false);
+		expect(event.defaultPrevented).toBe(false);
 		expect(onArrow).not.toHaveBeenCalled();
 	});
 });

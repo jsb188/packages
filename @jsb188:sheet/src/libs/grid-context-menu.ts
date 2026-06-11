@@ -81,7 +81,7 @@ export function useGridContextMenu<Target extends GridContextMenuTargetBase>(par
 				y: event.clientY,
 			},
 			variables: {
-				className: 'min_w_180',
+				className: 'min_w_210',
 				options: getOptions(target),
 			},
 			zClassName: 'z8',

@@ -71,6 +71,8 @@ export function useDebouncedCellSaveBatch<T>(params: {
 	onFlush: (items: T[]) => Promise<void> | void;
 }) {
 	const paramsRef = useRef(params);
+	const flushingRef = useRef(false);
+	const flushRequestedWhileRunningRef = useRef(false);
 	const pendingItemsRef = useRef(new Map<string, T>());
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -86,6 +88,11 @@ export function useDebouncedCellSaveBatch<T>(params: {
 	const flush = useCallback(() => {
 		clearTimer();
 
+		if (flushingRef.current) {
+			flushRequestedWhileRunningRef.current = true;
+			return;
+		}
+
 		const items = Array.from(pendingItemsRef.current.values());
 		pendingItemsRef.current.clear();
 
@@ -93,11 +100,19 @@ export function useDebouncedCellSaveBatch<T>(params: {
 			return;
 		}
 
+		flushingRef.current = true;
 		void (async () => {
 			try {
 				await paramsRef.current.onFlush(items);
 			} catch (error) {
 				paramsRef.current.onError?.(items, error);
+			} finally {
+				flushingRef.current = false;
+
+				if (flushRequestedWhileRunningRef.current) {
+					flushRequestedWhileRunningRef.current = false;
+					flush();
+				}
 			}
 		})();
 	}, [clearTimer]);

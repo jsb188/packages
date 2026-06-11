@@ -1,11 +1,93 @@
 import i18n from '@jsb188/app/i18n/index.ts';
+import { isHexColorValue } from '@jsb188/app/utils/color.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
-import { memo, type ChangeEvent, type CSSProperties, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, type ChangeEvent, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useRef, useState } from 'react';
 import type { SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
 
-const SHEET_COLOR_PICKER_WIDTH = 500;
 const DEFAULT_SHEET_COLOR_PICKER_VALUE = '#000000';
+const SHEET_COLOR_PICKER_PRESET_COLORS = [
+	'#000000',
+	'#434343',
+	'#666666',
+	'#999999',
+	'#b7b7b7',
+	'#cccccc',
+	'#d9d9d9',
+	'#efefef',
+	'#f3f3f3',
+	'#ffffff',
+	'#8b1a10',
+	'#ea3223',
+	'#f19e39',
+	'#ffff55',
+	'#75fb4c',
+	'#74fbfd',
+	'#5885e1',
+	'#0004f5',
+	'#8b1cf6',
+	'#ea34f7',
+	'#dfbab1',
+	'#eececd',
+	'#f8e6d0',
+	'#fdf3d0',
+	'#dcead5',
+	'#d3e0e3',
+	'#ccdaf5',
+	'#d3e2f1',
+	'#d8d2e7',
+	'#e6d2dc',
+	'#d08370',
+	'#df9d9b',
+	'#f2cda2',
+	'#fbe6a3',
+	'#bdd6ac',
+	'#a9c3c8',
+	'#aac1f0',
+	'#a7c4e5',
+	'#b2a8d3',
+	'#cea8bc',
+	'#bd4c31',
+	'#d16d6a',
+	'#ecb576',
+	'#f9db78',
+	'#9dc384',
+	'#80a4ae',
+	'#779de5',
+	'#7ca7d8',
+	'#8b7dbe',
+	'#b87e9f',
+	'#992b15',
+	'#bb271a',
+	'#da954b',
+	'#eac452',
+	'#78a75a',
+	'#54808c',
+	'#4a77d1',
+	'#4f84c1',
+	'#634fa2',
+	'#9b5278',
+	'#7a2917',
+	'#8c1a10',
+	'#a96424',
+	'#b89230',
+	'#48752c',
+	'#264e5b',
+	'#2754c5',
+	'#245290',
+	'#321d71',
+	'#6b2346',
+	'#531607',
+	'#5d0e07',
+	'#714216',
+	'#7a611d',
+	'#314d1c',
+	'#18333c',
+	'#274483',
+	'#173660',
+	'#1e124a',
+	'#46152f',
+];
 
 type SheetColorPickerDragState = {
 	startClientX: number;
@@ -31,19 +113,12 @@ export type SheetColorPickerProps = {
 };
 
 /*
- * Return whether one color value can be used by the native color input.
- */
-function isSheetColorPickerHexValue(value: string) {
-	return /^#[0-9a-f]{6}$/i.test(value);
-}
-
-/*
  * Return the normalized value for the native color input.
  */
 function getSheetColorPickerInputValue(value?: string | null) {
 	const nextValue = String(value || '').trim();
 
-	return isSheetColorPickerHexValue(nextValue) ? nextValue : DEFAULT_SHEET_COLOR_PICKER_VALUE;
+	return isHexColorValue(nextValue) ? nextValue : DEFAULT_SHEET_COLOR_PICKER_VALUE;
 }
 
 /*
@@ -59,7 +134,6 @@ function getSheetColorPickerStyle(
 		left: scrollLeft + position.left + offset.x,
 		position: 'absolute',
 		top: scrollTop + position.top + position.height + 1 + offset.y,
-		width: SHEET_COLOR_PICKER_WIDTH,
 		zIndex: 44,
 	};
 }
@@ -72,6 +146,7 @@ export const SheetColorPicker = memo((p: SheetColorPickerProps) => {
 	const [dragOffset, setDragOffset] = useState<SheetColorPickerOffset>({ x: 0, y: 0 });
 	const [dragVersion, setDragVersion] = useState(0);
 	const dragStateRef = useRef<SheetColorPickerDragState | null>(null);
+	const canApplyDraftValue = isHexColorValue(draftValue);
 
 	/*
 	 * Begin dragging the picker from its handle.
@@ -92,6 +167,20 @@ export const SheetColorPicker = memo((p: SheetColorPickerProps) => {
 	}, [dragOffset.x, dragOffset.y]);
 
 	/*
+	 * Keep picker control interactions from reaching the Sheet grid pointer handler.
+	 */
+	const handlePickerPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+		event.stopPropagation();
+	}, []);
+
+	/*
+	 * Keep double-clicks inside picker controls from opening a Sheet cell editor.
+	 */
+	const handlePickerDoubleClick = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+		event.stopPropagation();
+	}, []);
+
+	/*
 	 * Store a new color draft from the native color input.
 	 */
 	const handleColorInputChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -102,8 +191,21 @@ export const SheetColorPicker = memo((p: SheetColorPickerProps) => {
 	 * Store a new color draft from the text input.
 	 */
 	const handleTextInputChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-		setDraftValue(event.currentTarget.value);
+		const nextValue = event.currentTarget.value.trim();
+
+		if (isHexColorValue(nextValue, true)) {
+			setDraftValue(nextValue);
+		}
 	}, []);
+
+	/*
+	 * Apply one preset palette color to the selected cells.
+	 */
+	const handlePresetColor = useCallback((color: string) => {
+		setDraftValue(color);
+		p.onColorValue(color);
+		p.onClose?.();
+	}, [p.onClose, p.onColorValue]);
 
 	/*
 	 * Apply the current color draft to the selected cells.
@@ -111,7 +213,7 @@ export const SheetColorPicker = memo((p: SheetColorPickerProps) => {
 	const handleApply = useCallback(() => {
 		const nextValue = draftValue.trim();
 
-		if (!nextValue) {
+		if (!isHexColorValue(nextValue)) {
 			return;
 		}
 
@@ -162,41 +264,63 @@ export const SheetColorPicker = memo((p: SheetColorPickerProps) => {
 	}, [dragVersion]);
 
 	return <div
-		className={cn('bg shadow_light ft_xs', p.className)}
+		className={cn('bg shadow_light ft_xs w_500', p.className)}
 		data-sheet-color-picker="true"
+		onDoubleClick={handlePickerDoubleClick}
+		onPointerDown={handlePickerPointerDown}
 		style={getSheetColorPickerStyle(p.position, p.scrollLeft, p.scrollTop, dragOffset)}
 	>
 		<TooltipButton
 			as="div"
 			closeWhilePointerDown
       showDelayMs={500}
-			message="Click to drag this window"
+			message={i18n.t('form.click_to_drag_window')}
 			position="top"
 		>
 			<div className="h_10 rel pattern_texture medium_bf bg_fade bg_primary_fd_hv cs_grab" onPointerDown={handleDragStart} />
 		</TooltipButton>
-		<div className="grid gap_10 p_12">
-			<div className="h_spread gap_10">
-				<span className="ft_medium">{p.label}</span>
-				<span className="cl_md">{draftValue}</span>
+		<div className="h_top gap_15 p_15">
+			<div className="grid gap_3" style={{ flex: '0 0 auto', gridTemplateColumns: 'repeat(10, 22px)' }}>
+				{SHEET_COLOR_PICKER_PRESET_COLORS.map((color) => (
+					<button
+						aria-label={color}
+						className="w_22 h_22 bd_1 bd_lt r_4 p_0"
+						key={color}
+						onClick={() => handlePresetColor(color)}
+						style={{ backgroundColor: color }}
+						title={color}
+						type="button"
+					/>
+				))}
 			</div>
-			<div className="h_spread gap_10">
-				<input
-					aria-label={p.label}
-					className="w_60 h_32 p_0 bd_1 bd_lt r_4 bg"
-					onChange={handleColorInputChange}
-					type="color"
-					value={getSheetColorPickerInputValue(draftValue)}
-				/>
-				<input
-					aria-label={p.label}
-					className="f h_32 px_8 bd_1 bd_lt r_4 bg ft_xs"
-					onChange={handleTextInputChange}
-					value={draftValue}
-				/>
-				<button className="h_32 px_10 bg_primary cl_white ft_xs r_4" onClick={handleApply} type="button">
-					{i18n.t('form.apply')}
-				</button>
+
+			<div className="grid gap_10 f p_8">
+        <div className="ft_medium">
+          {p.label}
+        </div>
+
+				<div className="h_spread gap_8">
+          <input
+            aria-label={p.label}
+            className="f h_30 p_0 bd_0"
+            onChange={handleColorInputChange}
+            type="color"
+            value={getSheetColorPickerInputValue(draftValue)}
+          />
+
+					<input
+						aria-label={p.label}
+						aria-invalid={!canApplyDraftValue}
+						className="w_80 h_30 px_8 bd_1 bd_lt r_4 bg ft_xs"
+						onChange={handleTextInputChange}
+						pattern="#[0-9a-fA-F]{6}"
+						value={draftValue}
+					/>
+
+					<button className="f h_30 pb_1 a_c bg_primary cl_white ft_tn r_4" disabled={!canApplyDraftValue} onClick={handleApply} type="button">
+						{i18n.t('form.apply')}
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>;

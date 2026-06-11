@@ -24,6 +24,11 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
       fontSize
       textColor
       fillColor
+      disableMarkdown
+      bold
+      italic
+      underline
+      strikethrough
       borderTopWidth
       borderTopColor
       borderTopStyle
@@ -96,6 +101,7 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   columnIndex
   rawInput
   value
+  formulaValue
   textValue
   numberValue
   booleanValue
@@ -140,6 +146,11 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
     fontSize
     textColor
     fillColor
+    disableMarkdown
+    bold
+    italic
+    underline
+    strikethrough
     borderTopWidth
     borderTopColor
     borderTopStyle
@@ -181,6 +192,11 @@ export const sheetRangeFragment = `fragment sheetRangeFragment on SheetRange {
     fontSize
     textColor
     fillColor
+    disableMarkdown
+    bold
+    italic
+    underline
+    strikethrough
     borderTopWidth
     borderTopColor
     borderTopStyle

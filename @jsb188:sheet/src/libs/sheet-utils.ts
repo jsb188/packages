@@ -249,6 +249,11 @@ export function sheetCanvasStyleHasContent(style?: SheetCanvasCellStyle | null) 
 		style?.fontSize ||
 		style?.fillColor ||
 		style?.textColor ||
+		style?.disableMarkdown !== undefined ||
+		style?.bold !== undefined ||
+		style?.italic !== undefined ||
+		style?.underline !== undefined ||
+		style?.strikethrough !== undefined ||
 		style?.borderTopWidth ||
 		style?.borderRightWidth ||
 		style?.borderBottomWidth ||

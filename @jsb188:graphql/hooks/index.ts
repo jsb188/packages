@@ -5,8 +5,8 @@ import { delay, makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import { isServerErrorGQL } from '@jsb188/graphql/utils';
 import { useConnectedToServerValue, useQueryObserverValue, useScreenIsFocusedValue, useSetFragmentObserver, useSetQueryObserver } from '@jsb188/react/states';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { checkDataCompleteness, clearQueryResetStatus, fetchCachedData, getQueryRefreshTime, loadDataFromCache, loadFragment, removeStaleCache } from '../cache/index.ts';
 import { QUERY_EXPIRE_TIMES } from '../cache/config.ts';
+import { checkDataCompleteness, clearQueryResetStatus, fetchCachedData, getQueryRefreshTime, loadDataFromCache, loadFragment, removeStaleCache } from '../cache/index.ts';
 import { graphqlRequest } from '../client/request.ts';
 import type { AnyModalPopUpFn, GraphQLHandlers, GraphQLQueryOptions, OnCompletedGQLFn, OnErrorGQLFn, UpdateDataObserverArgs, UpdateObserversFn } from '../types.d.ts';
 
@@ -71,12 +71,42 @@ type GraphQLQueryResult = {
   screenIsFocused: boolean;
 };
 
+type GraphQLQueryValues = {
+  data: any;
+  variables?: Record<string, any> | null;
+  loading: boolean;
+  error: ServerErrorObj | null;
+  lastUpdatedCount: number;
+  lastRefreshTriggerTime: string;
+};
+
 /**
  * Global variables
  */
 
 const QRY_TRACKER = new Map();
+const QRY_PROMISES = new Map<string, Promise<any>>();
 const FRAGMENT_OBSERVER_LISTENERS = new Map<string, Set<(fragmentIds: string[]) => void>>();
+
+/**
+ * Return a unique id for one mounted query hook instance.
+ */
+function makeQueryHookId() {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
+/**
+ * Return GraphQL result data wrapped under its operation name.
+ */
+function getQueryDataFromAPIResult(queryName: string, apiResult: any) {
+  if (!apiResult || apiResult.aborted || apiResult.error || apiResult[queryName] === undefined) {
+    return null;
+  }
+
+  return {
+    [queryName]: apiResult[queryName],
+  };
+}
 
 /**
  * Convert reactive fragment observe entries into exact fragment observer keys.
@@ -259,7 +289,7 @@ export function useWatchQuery(
         });
 
       if (!matchedQry) {
-        return [0, false, '', ''];
+        return [lastUpdatedCount, false, '', ''];
       }
 
       const matchedQueryName = matchedQry.name.value;
@@ -279,8 +309,8 @@ export function useWatchQuery(
       return [newUpdatedCount, forceRefetch, '', resetOnlyTime];
     }
 
-    return [0, false, '', ''];
-  }, [qryObserver]);
+    return [lastUpdatedCount, false, '', ''];
+  }, [lastUpdatedCount, qryObserver]);
 
   useEffect(() => {
     if (!loading) {
@@ -796,7 +826,7 @@ export function useQuery(
   query: any,
   options?: GraphQLQueryOptions,
 ): GraphQLQueryResult {
-  const { authToken, onCompleted, onError, openModalPopUp, variables, cacheMap, skip, eagerFragmentKeyMap, doTest } = options || {};
+  const { authToken, onCompleted, onError, openModalPopUp, variables, cacheMap, skip, eagerFragmentKeyMap } = options || {};
   const variablesKey = makeVariablesKey(variables);
   const connectedToServer = useConnectedToServerValue();
   const screenIsFocused = useScreenIsFocusedValue();
@@ -809,16 +839,30 @@ export function useQuery(
   const queryKey = `#${queryName}:${variablesKey}`;
 
   const tracker = useRef({
-    unique: null as string | null,
+    unique: makeQueryHookId(),
     abortCtrl: null as AbortController | null,
+    activeQueryKey: null as string | null,
+    ownQueryObserverCount: 0,
     reconnectedAt: null as number | null,
     json: '',
     init: false
   });
+  const trackedUpdateObservers = useCallback((args: UpdateDataObserverArgs) => {
+    if (
+      args.queryId &&
+      args.queryId === tracker.current.activeQueryKey &&
+      !args.forceRefetch &&
+      !args.resetOnly
+    ) {
+      tracker.current.ownQueryObserverCount += 1;
+    }
+
+    updateObservers(args);
+  }, [updateObservers]);
 
   // check if p.updatedCount is needed
 
-  const [qryValues, setQryValues] = useState({
+  const [qryValues, setQryValues] = useState<GraphQLQueryValues>({
     data: null as any,
     variables,
     loading: false,
@@ -841,16 +885,46 @@ export function useQuery(
   // NOTE: useQuery() assumes {query} and {options} will *never* change, except for {options.variables}
 
   const doQuery = async (queryVariables?: any, triedCount: number = 0) => {
+    const qryVariables = queryVariables || variables;
+    const qryVariablesKey = makeVariablesKey(qryVariables);
+    const qryQueryKey = `#${queryName}:${qryVariablesKey}`;
+    const pendingQuery = QRY_PROMISES.get(qryQueryKey);
 
-    const currentHookId = QRY_TRACKER.get(queryKey);
+    if (pendingQuery) {
+      setQryValues((currentValues: GraphQLQueryValues) => ({
+        ...currentValues,
+        loading: true,
+      }));
+
+      return pendingQuery.then((apiResult) => {
+        if (apiResult?.aborted) {
+          return apiResult;
+        }
+
+        const cachedResult = fetchCachedData(query, qryVariablesKey);
+        const data = cachedResult || getQueryDataFromAPIResult(queryName, apiResult);
+
+        setQryValues((currentValues: GraphQLQueryValues) => ({
+          ...currentValues,
+          variables: qryVariables,
+          data: data || currentValues.data,
+          loading: false,
+          error: apiResult?.error || null,
+        }));
+
+        return apiResult;
+      });
+    }
+
+    const currentHookId = QRY_TRACKER.get(qryQueryKey);
     if (!currentHookId) {
-      QRY_TRACKER.set(queryKey, tracker.current.unique);
+      QRY_TRACKER.set(qryQueryKey, tracker.current.unique);
     } else if (currentHookId) {
       // This query is being fetched already, so do nothing
       // This can happen in 2 ways;
       // 1. This hook is used to doQuery() while doQuery() is alerady in progress (loading)
       // 2. useWatchQuery() caused 2 hooks with same query to be called at once
-      return;
+      return { loading: true, skipped: true };
     }
 
     if (tracker.current.abortCtrl && qryValues.loading) {
@@ -858,25 +932,26 @@ export function useQuery(
       // console.log('ABORT:', queryKey, tracker.current.unique);
       tracker.current.abortCtrl.abort({
         name: 'AbortError',
-        message: `Hook for ${queryKey} has aborted because the [query refetched before the previous one ended].`
+        message: `Hook for ${qryQueryKey} has aborted because the [query refetched before the previous one ended].`
       });
     }
 
     tracker.current.abortCtrl = new AbortController();
+    tracker.current.activeQueryKey = qryQueryKey;
+    tracker.current.ownQueryObserverCount = 0;
 
-    setQryValues({
-      ...qryValues,
+    setQryValues((currentValues: GraphQLQueryValues) => ({
+      ...currentValues,
       loading: true,
-    });
+    }));
 
     const retryCount = options?.retryCount || 0;
     const retryDelay = getRetryDelay(triedCount);
-    const qryVariables = queryVariables || variables;
     // const qryName = query.definitions?.[0]?.name?.value;
 
     // doLog(query, 'Query component [$0] is being refetched.');
 
-    const apiResult = await graphqlRequest(
+    const queryPromise = graphqlRequest(
       query,
       qryVariables,
       {
@@ -885,13 +960,20 @@ export function useQuery(
         cacheMap,
         onCompleted: (data: any | null, error: ServerErrorObj | null) => {
           if (data.data) {
-            setQryValues({
-              ...qryValues,
+            const ownQueryObserverCount = tracker.current.ownQueryObserverCount;
+            tracker.current.ownQueryObserverCount = 0;
+
+            setQryValues((currentValues: GraphQLQueryValues) => ({
+              ...currentValues,
               variables: qryVariables,
               data: data.data,
               loading: false,
               error,
-            });
+              lastUpdatedCount: ownQueryObserverCount
+                ? Math.max(currentValues.lastUpdatedCount, updatedCount + ownQueryObserverCount)
+                : currentValues.lastUpdatedCount,
+              lastRefreshTriggerTime: triggerTime || currentValues.lastRefreshTriggerTime,
+            }));
 
             if (onCompleted) {
               onCompleted(data.data, error, qryVariables);
@@ -901,28 +983,45 @@ export function useQuery(
             tracker.current.reconnectedAt = Date.now();
           }
 
-          unsetQueryTracker(queryKey, tracker.current.unique);
+          tracker.current.activeQueryKey = null;
+          unsetQueryTracker(qryQueryKey, tracker.current.unique);
         },
         onError: (error: ServerErrorObj | null) => {
-          setQryValues({
-            ...qryValues,
+          tracker.current.activeQueryKey = null;
+          tracker.current.ownQueryObserverCount = 0;
+
+          setQryValues((currentValues: GraphQLQueryValues) => ({
+            ...currentValues,
             variables: qryVariables,
             loading: retryCount > triedCount,
             error,
-          });
+          }));
 
           if (onError && retryCount <= triedCount) {
             onError(error, qryVariables);
           }
 
-          unsetQueryTracker(queryKey, tracker.current.unique);
+          unsetQueryTracker(qryQueryKey, tracker.current.unique);
         },
       },
       tracker.current.abortCtrl.signal,
-      updateObservers
+      trackedUpdateObservers
     );
+    QRY_PROMISES.set(qryQueryKey, queryPromise);
+
+    let apiResult;
+    try {
+      apiResult = await queryPromise;
+    } finally {
+      if (QRY_PROMISES.get(qryQueryKey) === queryPromise) {
+        QRY_PROMISES.delete(qryQueryKey);
+      }
+    }
 
     if (apiResult.aborted) {
+      tracker.current.activeQueryKey = null;
+      tracker.current.ownQueryObserverCount = 0;
+      unsetQueryTracker(qryQueryKey, tracker.current.unique);
       return apiResult;
     }
 
@@ -947,10 +1046,6 @@ export function useQuery(
   // Mount & unmount
 
   useEffect(() => {
-    if (!tracker.current.unique) {
-      tracker.current.unique = Date.now().toString(36) + Math.random().toString(36).substring(2);
-    }
-
     return () => {
       unsetQueryTracker(queryKey, tracker.current.unique);
     };
@@ -984,6 +1079,22 @@ export function useQuery(
         (!qryValues.error && !checkDataCompleteness(qryValues.data, query))
       )
     ) {
+      const currentDataMatchesVariables = variablesKey === qryValuesVariablesKey &&
+        checkDataCompleteness(qryValues.data, query);
+      const canAcknowledgeCurrentData = currentDataMatchesVariables &&
+        !forceRefetch &&
+        !resetOnlyTime &&
+        !triggerTime;
+
+      if (canAcknowledgeCurrentData) {
+        setQryValues((currentValues: GraphQLQueryValues) => ({
+          ...currentValues,
+          variables,
+          lastUpdatedCount: updatedCount || 0,
+        }));
+        return;
+      }
+
       const cachedResult = fetchCachedData(query, variablesKey, updateObservers);
       if (cachedResult) {
         setQryValues({
@@ -997,6 +1108,7 @@ export function useQuery(
         });
 
         if (forceRefetch && !qryValues.loading) {
+          // doLog(query, 'forceRefetchhing query at: $0|' + variablesKey + skip + updatedCount);
           doQuery();
           // isTest && console.log('FORCE REFETCH AT:', query.definitions[0].name.value);
           // console.log('::', variablesKey, skip, updatedCount);
@@ -1004,6 +1116,14 @@ export function useQuery(
 
       } else if (!qryValues.loading) {
         // isTest && console.log(query, '>>>>> $0|' + variablesKey + skip + updatedCount + '|');
+        // doLog(query, '!qryValues.loading, doing query at: $0|' + variablesKey + skip + updatedCount);
+        // doLog(query, '1: ' + (triggerTime && triggerTime !== qryValues.lastRefreshTriggerTime));
+        // doLog(query, '2: ' + (updatedCount !== qryValues.lastUpdatedCount));
+        // doLog(query, '3: ' + (variablesKey !== qryValuesVariablesKey));
+        // doLog(query, '4: ' + (!qryValues.error && !checkDataCompleteness(qryValues.data, query)));
+        // doLog(query, 'variablesKey 1: ' + variablesKey);
+        // doLog(query, 'variablesKey 2: ' + qryValuesVariablesKey);
+
         doQuery();
       }
     }
@@ -1101,3 +1221,18 @@ export function useQuery(
     screenIsFocused,
   };
 }
+
+/**
+ * Helper: For development purposes; do not remove.
+ */
+
+// function getQueryName(query: any) {
+//   return query.definitions.filter((d: any) => d.kind === 'OperationDefinition').map(d => d.name.value).join(', ');
+// }
+
+// function doLog(query: any, logStr: string) {
+//   const queryName = getQueryName(query);
+//   if (queryName === 'dataTableRowsForSheetRegions') {
+//     console.log(logStr.replace(/\$0/gi, queryName));
+//   }
+// }

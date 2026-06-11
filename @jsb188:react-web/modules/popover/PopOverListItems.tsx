@@ -1,5 +1,6 @@
 import { COLORS } from '@jsb188/app/constants/app.ts';
 import type { ColorEnum } from '@jsb188/app/types/app.d.ts';
+import { isDarkColor } from '@jsb188/app/utils/color.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import type {
@@ -8,6 +9,7 @@ import type {
   POListBorderStylesObj,
   POListBorderStyleValue,
   POListColorsObj,
+  POListColorValue,
   POListIface,
   POListIfaceItem,
   POListItemObj,
@@ -17,11 +19,11 @@ import type {
   POModalItemObj,
   POStateValue,
 } from '@jsb188/react/types/PopOver.d';
-import { memo, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from 'react';
 import { Icon } from '../../svgs/Icon';
 import { ActivityDots } from '../../ui/Loading';
 import type { PONavItemBase } from '../../ui/PopOverUI';
-import { POLabelsAndValues, POListBreak, POListItem, POListItemCopy, POListItemHeader, POListItemPicker, POListSubtitle, PONavAvatarItem, POText } from '../../ui/PopOverUI';
+import { POListBreak, POListItem, POListItemCopy, POListItemHeader, POListItemPicker, POListSubtitle, PONavAvatarItem, POText } from '../../ui/PopOverUI';
 import type { CalendarSelectedObj, OnChangeCalendarDayFn } from '../Calendar';
 import { Calendar, CalendarDateRange, getCalendarSelector } from '../Calendar';
 import {
@@ -35,8 +37,6 @@ import {
 } from './PopOverListHelpers';
 
 export const DEFAULT_PO_LIST_COLORS = [
-  '#131313', // This is exact hex of var(--color-text);
-  '#FFFFFF', // This is exact hex of var(--color-bg);
   'red',
   'amber',
   'yellow',
@@ -45,7 +45,20 @@ export const DEFAULT_PO_LIST_COLORS = [
   'sky',
   'blue',
   'purple',
-] as const satisfies readonly ColorEnum[];
+] as const satisfies readonly POListColorValue[];
+
+const DEFAULT_PO_LIST_TEXT_COLOR = '#DDDDDD';
+const DEFAULT_PO_LIST_FILL_COLOR = '#222222';
+
+const PO_LIST_SCROLL_END_THRESHOLD = 2;
+const PO_LIST_SCROLL_AFFORDANCE_STYLE = {
+  background: 'linear-gradient(to bottom, rgba(var(--color-bg), 0) 0%, rgba(var(--color-bg), .75) 50%, rgba(var(--color-bg), 1) 100%)',
+} as const;
+
+type POListScrollHintState = {
+  hasOverflowBelow: boolean;
+  hasScrolled: boolean;
+};
 
 interface POOpenModalListItemProps extends PONavItemBase {
   name: string | null;
@@ -53,10 +66,64 @@ interface POOpenModalListItemProps extends PONavItemBase {
 }
 
 /**
+ * Return the scroll hint visibility state for one popover list body.
+ */
+function getPOListScrollHintState(element: HTMLDivElement | null): POListScrollHintState {
+  if (!element) {
+    return {
+      hasOverflowBelow: false,
+      hasScrolled: false,
+    };
+  }
+
+  return {
+    hasOverflowBelow: element.scrollHeight - element.scrollTop - element.clientHeight > PO_LIST_SCROLL_END_THRESHOLD,
+    hasScrolled: element.scrollTop > PO_LIST_SCROLL_END_THRESHOLD,
+  };
+}
+
+/**
  * Return whether a popover color value is one of the app color enum values.
  */
 function isPOListColorEnum(color: string): color is ColorEnum {
   return COLORS.includes(color as ColorEnum);
+}
+
+/**
+ * Return the readable icon color class for a color swatch.
+ */
+function getPOListColorCheckIconClassName(color: POListColorValue): string {
+  return isDarkColor(color) ? 'cl_white' : 'cl_black';
+}
+
+/**
+ * Return the reset swatch background for a popover color list.
+ */
+function getPOListResetColorStyle(name: string) {
+  if (name === 'textColor') {
+    return { background: 'var(--color-text)' };
+  }
+
+  if (name === 'fillColor') {
+    return { background: 'var(--color-bg)' };
+  }
+
+  return undefined;
+}
+
+/**
+ * Return the default color list for a named popover color picker.
+ */
+function getPOListDefaultColors(name: string): readonly POListColorValue[] {
+  if (name === 'textColor') {
+    return [DEFAULT_PO_LIST_TEXT_COLOR, ...DEFAULT_PO_LIST_COLORS];
+  }
+
+  if (name === 'fillColor') {
+    return [DEFAULT_PO_LIST_FILL_COLOR, ...DEFAULT_PO_LIST_COLORS];
+  }
+
+  return DEFAULT_PO_LIST_COLORS;
 }
 
 /**
@@ -263,13 +330,14 @@ POListItemPickerWithData.displayName = 'POListItemPickerWithData';
  */
 const POListColors = memo((p: PONavItemBase & {
   name: string;
-  value?: string | null;
+  value?: POListColorValue;
   item: POListColorsObj;
 }) => {
   const { item, name, onClickItem, value } = p;
   const { className, colors, disabled, label, onClickCustomize, selectedValue } = item;
-  const selectedColor = value ?? selectedValue;
-  const displayColors = colors?.length ? colors : DEFAULT_PO_LIST_COLORS;
+  const selectedColor = value !== undefined ? value : selectedValue;
+  const baseColors = colors?.length ? colors : getPOListDefaultColors(name);
+  const displayColors = [null, ...baseColors.filter((color) => color !== null)];
   const emptyColorCount = Math.max(0, 10 - displayColors.length);
 
   return <div
@@ -291,17 +359,24 @@ const POListColors = memo((p: PONavItemBase & {
     >
       {displayColors.map((color, i) => {
         const selected = selectedColor === color;
-        const colorClassName = isPOListColorEnum(color) ? `bg_${color}` : '';
+        const colorClassName = color && isPOListColorEnum(color) ? `bg_${color}` : '';
+        const isResetColor = color === null;
+        const style = isResetColor ? getPOListResetColorStyle(name) : colorClassName ? undefined : { backgroundColor: color };
 
         return <button
           key={`${name}_${color}_${i}`}
           name={name}
           disabled={disabled}
-          className={cn('w_18 h_18 r_4 bd_1 op_60_hv', colorClassName, selected ? 'bd_bd' : 'bd_lt', disabled && 'op_40')}
+          className={cn('w_18 h_18 r_4 bd_1 bd_lt op_60_hv v_center rel', colorClassName, disabled && 'op_40')}
           onClick={() => onClickItem(name, color)}
-          style={colorClassName ? undefined : { backgroundColor: color }}
+          style={style}
           type='button'
-        />;
+        >
+          {isResetColor && <span className={cn('abs h_10 w_0 bd_r_1 tf_rotate_45', name === 'fillColor' ? 'bd_darker_3' : name === 'textColor' ? 'bd_lighter_4' : 'bd_md')} />}
+          {selected && !isResetColor && <span className={cn('rel z1 ic_xs v_center', getPOListColorCheckIconClassName(color))}>
+            <Icon name='check-filled' />
+          </span>}
+        </button>;
       })}
       {Array.from({ length: emptyColorCount }).map((_, i) => (
         <span
@@ -367,12 +442,22 @@ const POListBorderStyles = memo((p: PONavItemBase & {
 POListBorderStyles.displayName = 'POListBorderStyles';
 
 /**
+ * Return a valid rounded font size for popover text-format controls.
+ */
+function getPOListTextFormatClampedFontSize(value: POStateValue, minFontSize: number, maxFontSize: number) {
+  const fontSize = Math.round(Number(value));
+
+  return Number.isFinite(fontSize) && fontSize > 0
+    ? Math.min(maxFontSize, Math.max(minFontSize, fontSize))
+    : null;
+}
+
+/**
  * Return a usable font size for popover text-format controls.
  */
-function getPOListTextFormatFontSize(value: POStateValue, selectedFontSize?: number | null) {
-  const fontSize = Math.round(Number(value ?? selectedFontSize));
-
-  return Number.isFinite(fontSize) && fontSize > 0 ? fontSize : 14;
+function getPOListTextFormatFontSize(value: POStateValue, selectedFontSize: number | null | undefined, minFontSize: number, maxFontSize: number) {
+  return getPOListTextFormatClampedFontSize(value ?? selectedFontSize, minFontSize, maxFontSize)
+    || Math.min(maxFontSize, Math.max(minFontSize, 14));
 }
 
 /**
@@ -383,21 +468,31 @@ function getPOListTextFormatNextFontSize(fontSize: number, direction: -1 | 1, mi
 }
 
 /**
+ * Return whether a keyboard event would enter unsupported number input characters.
+ */
+function isPOListTextFormatBlockedFontSizeKey(key: string) {
+  return key === '-' || key === '+' || key.toLowerCase() === 'e';
+}
+
+/**
  * Render one inert placeholder button for text style controls.
  */
 const POListTextStyleButton = memo((p: {
   className?: string;
   disabled?: boolean;
   label?: ReactNode;
+  onClick?: () => void;
+  selected?: boolean;
   text: string;
 }) => {
-  const { className, disabled, label, text } = p;
+  const { className, disabled, label, onClick, selected, text } = p;
   const title = typeof label === 'string' ? label : undefined;
 
   return <button
     aria-label={title}
-    className={cn('btn w_32 h_32 r_xs v_center bg_alt_hv bd_1 bd_lt cl_df', className, disabled && 'op_40')}
+    className={cn('btn w_32 h_32 r_xs v_center bg_alt_hv bd_1 cl_df', selected ? 'bd_primary' : 'bd_lt', className, disabled && 'op_40')}
     disabled={disabled}
+    onClick={onClick}
     title={title}
     type='button'
   >
@@ -421,22 +516,120 @@ const POListTextFormatControls = memo((p: PONavItemBase & {
     disabled,
     fontSizeLabel,
     maxFontSize = 96,
-    minFontSize = 1,
+    minFontSize = 8,
+    markdownName,
     selectedFontSize,
+    selectedTextStyles,
+    disableMarkdown,
     textStyleButtonLabels,
     textStyleLabel,
+    textStyleNames,
   } = item;
-  const fontSize = getPOListTextFormatFontSize(value, selectedFontSize);
+  const fontSize = getPOListTextFormatFontSize(value, selectedFontSize, minFontSize, maxFontSize);
+  const [fontSizeInputValue, setFontSizeInputValue] = useState(String(fontSize));
+  const [localDisableMarkdown, setLocalDisableMarkdown] = useState(disableMarkdown === true);
+  const [localTextStyles, setLocalTextStyles] = useState({
+    bold: selectedTextStyles?.bold === true,
+    italic: selectedTextStyles?.italic === true,
+    underline: selectedTextStyles?.underline === true,
+    strikethrough: selectedTextStyles?.strikethrough === true,
+  });
   const decrementFontSize = getPOListTextFormatNextFontSize(fontSize, -1, minFontSize, maxFontSize);
   const incrementFontSize = getPOListTextFormatNextFontSize(fontSize, 1, minFontSize, maxFontSize);
+  const markdownEnabled = localDisableMarkdown !== true;
+
+  useEffect(() => {
+    setFontSizeInputValue(String(fontSize));
+  }, [fontSize]);
+
+  useEffect(() => {
+    setLocalDisableMarkdown(disableMarkdown === true);
+  }, [disableMarkdown]);
+
+  useEffect(() => {
+    setLocalTextStyles({
+      bold: selectedTextStyles?.bold === true,
+      italic: selectedTextStyles?.italic === true,
+      underline: selectedTextStyles?.underline === true,
+      strikethrough: selectedTextStyles?.strikethrough === true,
+    });
+  }, [selectedTextStyles?.bold, selectedTextStyles?.italic, selectedTextStyles?.strikethrough, selectedTextStyles?.underline]);
+
+  /**
+   * Toggle a full-cell text style through the parent popover action.
+   */
+  const handleTextStyleClick = (styleName: keyof NonNullable<POListTextFormatControlsObj['textStyleNames']>) => {
+    const actionName = textStyleNames?.[styleName];
+
+    if (!actionName) {
+      return;
+    }
+
+    const nextValue = localTextStyles[styleName] !== true;
+
+    setLocalTextStyles((prevState) => ({
+      ...prevState,
+      [styleName]: nextValue,
+    }));
+    onClickItem(actionName, nextValue);
+  };
+
+  /**
+   * Toggle markdown rendering for the selected Sheet cells through the parent popover action.
+   */
+  const handleMarkdownClick = () => {
+    if (!markdownName) {
+      return;
+    }
+
+    const nextDisableMarkdown = markdownEnabled;
+
+    setLocalDisableMarkdown(nextDisableMarkdown);
+    onClickItem(markdownName, nextDisableMarkdown);
+  };
+
+  const handleFontSizeInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = event.currentTarget.value;
+
+    if (!inputValue) {
+      setFontSizeInputValue('');
+      return;
+    }
+
+    const nextFontSize = getPOListTextFormatClampedFontSize(inputValue, minFontSize, maxFontSize);
+
+    if (!nextFontSize) {
+      return;
+    }
+
+    setFontSizeInputValue(inputValue);
+    onClickItem(name, nextFontSize);
+  };
+
+  const handleFontSizeInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (isPOListTextFormatBlockedFontSizeKey(event.key)) {
+      event.preventDefault();
+    }
+  };
 
   return <div className={cn('p_8', className)}>
     <POListItemHeader label={fontSizeLabel} />
 
     <div className='h_left gap_4 mb_8'>
-      <div className='w_70 h_40 r_xs v_center bd_1 bd_lt bg_alt ft_medium'>
-        {fontSize}
-      </div>
+      <input
+        aria-label='Font size'
+        className={cn('w_70 h_40 r_xs bd_1 bd_lt bg_alt ft_normal a_c', fontSize >= 22 ? 'pt_4' : fontSize >= 20 ? 'pt_3' : fontSize >= 16 ? 'pt_2' : '')}
+        disabled={disabled}
+        inputMode='decimal'
+        onBlur={() => setFontSizeInputValue(String(fontSize))}
+        onChange={handleFontSizeInputChange}
+        onFocus={(event) => event.currentTarget.select()}
+        onKeyDown={handleFontSizeInputKeyDown}
+        pattern='[0-9]*'
+        style={{ fontSize: `${fontSize}px` }}
+        type='text'
+        value={fontSizeInputValue}
+      />
 
       <button
         aria-label='Decrease font size'
@@ -462,10 +655,11 @@ const POListTextFormatControls = memo((p: PONavItemBase & {
     <POListItemHeader label={textStyleLabel} />
 
     <div className='h_item gap_4'>
-      <POListTextStyleButton className='ft_bold' disabled={disabled} label={textStyleButtonLabels?.bold} text='B' />
-      <POListTextStyleButton className='ft_italic' disabled={disabled} label={textStyleButtonLabels?.italic} text='I' />
-      <POListTextStyleButton className='u' disabled={disabled} label={textStyleButtonLabels?.underline} text='U' />
-      <POListTextStyleButton className='strikethrough' disabled={disabled} label={textStyleButtonLabels?.strikethrough} text='S' />
+      <POListTextStyleButton className='ft_bold' disabled={disabled} label={textStyleButtonLabels?.bold} onClick={() => handleTextStyleClick('bold')} selected={localTextStyles.bold} text='B' />
+      <POListTextStyleButton className='ft_italic' disabled={disabled} label={textStyleButtonLabels?.italic} onClick={() => handleTextStyleClick('italic')} selected={localTextStyles.italic} text='I' />
+      <POListTextStyleButton className='u' disabled={disabled} label={textStyleButtonLabels?.underline} onClick={() => handleTextStyleClick('underline')} selected={localTextStyles.underline} text='U' />
+      <POListTextStyleButton className='strikethrough' disabled={disabled} label={textStyleButtonLabels?.strikethrough} onClick={() => handleTextStyleClick('strikethrough')} selected={localTextStyles.strikethrough} text='S' />
+      <POListTextStyleButton className='ft_tn' disabled={disabled} label={textStyleButtonLabels?.markdown} onClick={handleMarkdownClick} selected={markdownEnabled} text='MD' />
     </div>
   </div>;
 });
@@ -596,29 +790,111 @@ export const POListItems = memo((p: {
     remainingHeight,
     savingValue,
   } = p;
+  const scrollListRef = useRef<HTMLDivElement>(null);
+  const [scrollHintState, setScrollHintState] = useState<POListScrollHintState>({
+    hasOverflowBelow: false,
+    hasScrolled: false,
+  });
   const style = remainingHeight ? { maxHeight: remainingHeight } : undefined;
+  const showScrollHintGradient = scrollHintState.hasOverflowBelow;
+  const showScrollHintArrow = showScrollHintGradient && !scrollHintState.hasScrolled;
 
-  return <div className={cn('inside y_scr_hidden', className)} style={style}>
-    {notReady
-    ? <div className='p_md'>
-      <ActivityDots />
+  /**
+   * Sync the scroll affordance with the list body's current scroll position.
+   */
+  const updateScrollHintState = useCallback(() => {
+    const nextState = getPOListScrollHintState(scrollListRef.current);
+
+    setScrollHintState((prevState) => {
+      if (
+        prevState.hasOverflowBelow === nextState.hasOverflowBelow &&
+        prevState.hasScrolled === nextState.hasScrolled
+      ) {
+        return prevState;
+      }
+
+      return nextState;
+    });
+  }, []);
+
+  /**
+   * Scroll the list body to the final item when the overflow hint is clicked.
+   */
+  const onClickScrollHint = useCallback(() => {
+    const element = scrollListRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    element.scrollTo({
+      top: element.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, []);
+
+  useEffect(() => {
+    updateScrollHintState();
+
+    const element = scrollListRef.current;
+    if (!element) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(updateScrollHintState);
+    resizeObserver.observe(element);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [notReady, options, remainingHeight, updateScrollHintState]);
+
+  return <div className='rel'>
+    <div
+      ref={scrollListRef}
+      className={cn('inside y_scr_hidden', className)}
+      onScroll={updateScrollHintState}
+      style={style}
+    >
+      {notReady
+      ? <div className='p_md'>
+        <ActivityDots />
+      </div>
+      : options.filter((item: POListIfaceItem) => !item.hidden).map((item: POListIfaceItem, i: number) => {
+        const itemName = getPOListItemName(item, i);
+        const itemValue = getPOListItemValue(item);
+        const currentValue = getPOListCurrentValue(formValues, itemName);
+
+        return <PONavItemIface
+          key={itemKeyPrefix ? `${itemKeyPrefix}:${i}` : i}
+          name={itemName}
+          item={item}
+          value={currentValue}
+          onClickItem={isPOListSubmenuItem(item) && onClickSubmenuItem ? onClickSubmenuItem : onClickItem}
+          onOpenSubmenu={onOpenSubmenu}
+          checked={currentValue !== undefined && currentValue === itemValue}
+          saving={savingValue !== undefined && savingValue === itemValue}
+        />;
+      })}
     </div>
-    : options.filter((item: POListIfaceItem) => !item.hidden).map((item: POListIfaceItem, i: number) => {
-      const itemName = getPOListItemName(item, i);
-      const itemValue = getPOListItemValue(item);
-      const currentValue = getPOListCurrentValue(formValues, itemName);
 
-      return <PONavItemIface
-        key={itemKeyPrefix ? `${itemKeyPrefix}:${i}` : i}
-        name={itemName}
-        item={item}
-        value={currentValue}
-        onClickItem={isPOListSubmenuItem(item) && onClickSubmenuItem ? onClickSubmenuItem : onClickItem}
-        onOpenSubmenu={onOpenSubmenu}
-        checked={currentValue !== undefined && currentValue === itemValue}
-        saving={savingValue !== undefined && savingValue === itemValue}
-      />;
-    })}
+    {showScrollHintGradient && (
+      <div
+        className='abs_b h_16 v_center z1 hv_area'
+        style={PO_LIST_SCROLL_AFFORDANCE_STYLE}
+      >
+        <button
+          aria-label='Scroll to bottom'
+          className={cn('btn abs_full h_center bg_darker_1_hv link target trans_op', showScrollHintArrow ? 'op_100' : 'op_0')}
+          onClick={onClickScrollHint}
+          type='button'
+        >
+          <span className='anim_bounce_light'>
+            <Icon name='chevron-down' />
+          </span>
+        </button>
+      </div>
+    )}
   </div>;
 });
 

@@ -6,22 +6,22 @@ import parseEmojiText from '@jsb188/app/utils/emoji.ts';
 import { randomItem } from '@jsb188/app/utils/object.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { makeUploadsUrl } from '@jsb188/app/utils/url_client.ts';
+import {
+  getLabelMarkdownPartClassName,
+  getLabelMarkdownPartElement,
+  INLINE_STYLE_MARKDOWN_REGEX_SOURCE,
+  LABEL_MARKDOWN_REGEX_SOURCE,
+  parseLabelMarkdownToken,
+} from '../utils/markdown.ts';
 import type { ReactSpanElement } from '../types/dom.d';
 
 /**
  * Regex pattern for all presets
  */
 
-const INLINE_STYLE_MARKDOWN_REGEX_SOURCE = [
-  '\\*{1,2}_{1,3}[^*_\\n]+_{1,3}\\*{1,2}',
-  '\\b_{1,3}\\*{1,2}[^*_\\n]+\\*{1,2}_{1,3}\\b',
-  '\\*{1,2}[^*\\n]+\\*{1,2}',
-  '\\b_{1,3}[^_\\n]+_{1,3}\\b',
-].join('|');
-
 const PRESET_REGEX = {
   article: new RegExp(`^#.*|\\[hl\\]([\\s\\S]*?)\\[\\/hl\\]|${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|^[-•] .+$|:([^:\\n ])+:|\\[(.*?)##(.*?)\\]`, 'gmi'),
-  label: new RegExp(`${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|\\[(.*?)##(.*?)\\]`, 'gmi'),
+  label: new RegExp(LABEL_MARKDOWN_REGEX_SOURCE, 'gmi'),
   content_description: new RegExp(`\\[hl\\]([\\s\\S]*?)\\[\\/hl\\]|${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|^[-•] .+$|\\[+([^\\[\\]\\n]+)\\]+`, 'gi'), // More regex needs to be added for this
   message: new RegExp(`\\[hl\\]([\\s\\S]*?)\\[\\/hl\\]|${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|^[-•] .+$|:([^:\\n ])+:`, 'gmi'),
 
@@ -43,10 +43,7 @@ type ParsedMarkdownParagraph = string | ParsedMarkdownPart[];
 
 const TAG_REGEX = /{{(.*?)}}|%{(.*?)}/gmi;
 const HIGHLIGHT_TAG_REGEX = /^\[hl\]([\s\S]*?)\[\/hl\]$/i;
-const SPAN_MARKUP_REGEX = /^\[(.*?)##(.*?)\]$/;
 const INLINE_MARKDOWN_TRIGGER_REGEX = new RegExp(`(\\[hl\\][\\s\\S]*?\\[\\/hl\\]|${INLINE_STYLE_MARKDOWN_REGEX_SOURCE}|:([^:\\n ])+:|\\[(.*?)##(.*?)\\])`);
-const STAR_STYLE_DELIMITERS = ['**', '*'] as const;
-const UNDERSCORE_STYLE_DELIMITERS = ['___', '__', '_'] as const;
 const HEADING_DOM_MAP = {
   '#': 'h1',
   '##': 'h2',
@@ -393,89 +390,17 @@ const getListEl = (
 };
 
 /**
- * Identify italic and underline styles represented by underscore delimiters.
- */
-
-const getUnderscoreStyles = (delimiter: string) => {
-  return {
-    italic: delimiter.length === 1 || delimiter.length === 3,
-    underline: delimiter.length >= 2,
-  };
-};
-
-/**
- * Build a markdown style token when the delimiter pair matches.
- */
-
-const getDelimitedStyleEl = (
-  matchedStr: string,
-  openingDelimiter: string,
-  closingDelimiter: string,
-): ParsedMarkdownText | null => {
-  if (!matchedStr.startsWith(openingDelimiter) || !matchedStr.endsWith(closingDelimiter)) {
-    return null;
-  }
-
-  const text = matchedStr.substring(openingDelimiter.length, matchedStr.length - closingDelimiter.length);
-  const underscoreDelimiter = openingDelimiter.match(/_+/)?.[0] || '';
-  const hasBold = openingDelimiter.includes('*');
-  const underscoreStyles = getUnderscoreStyles(underscoreDelimiter);
-  const className = cn(
-    hasBold && 'ft_semibold',
-    underscoreStyles.underline && 'u',
-  );
-
-  return [
-    text,
-    className || null,
-    underscoreStyles.italic ? 'i' : 'span',
-  ];
-};
-
-/**
- * Parse star and underscore markdown style tokens.
+ * Parse star, underscore, and strikethrough markdown style tokens.
  */
 
 const getStyleMarkdownEl = (matchedStr: string) => {
-  for (const starDelimiter of STAR_STYLE_DELIMITERS) {
-    for (const underscoreDelimiter of UNDERSCORE_STYLE_DELIMITERS) {
-      const starThenUnderscoreEl = getDelimitedStyleEl(
-        matchedStr,
-        starDelimiter + underscoreDelimiter,
-        underscoreDelimiter + starDelimiter,
-      );
+  const part = parseLabelMarkdownToken(matchedStr);
 
-      if (starThenUnderscoreEl) {
-        return starThenUnderscoreEl;
-      }
-
-      const underscoreThenStarEl = getDelimitedStyleEl(
-        matchedStr,
-        underscoreDelimiter + starDelimiter,
-        starDelimiter + underscoreDelimiter,
-      );
-
-      if (underscoreThenStarEl) {
-        return underscoreThenStarEl;
-      }
-    }
-  }
-
-  for (const starDelimiter of STAR_STYLE_DELIMITERS) {
-    const starEl = getDelimitedStyleEl(matchedStr, starDelimiter, starDelimiter);
-    if (starEl) {
-      return starEl;
-    }
-  }
-
-  for (const underscoreDelimiter of UNDERSCORE_STYLE_DELIMITERS) {
-    const underscoreEl = getDelimitedStyleEl(matchedStr, underscoreDelimiter, underscoreDelimiter);
-    if (underscoreEl) {
-      return underscoreEl;
-    }
-  }
-
-  return [matchedStr] as ParsedMarkdownText;
+  return [
+    part.text,
+    getLabelMarkdownPartClassName(part),
+    getLabelMarkdownPartElement(part),
+  ] as ParsedMarkdownText;
 };
 
 /**
@@ -527,10 +452,9 @@ const getBracketEl = (matchedStr: string) => {
     );
   }
 
-  // [spanClassName, text]
-  const spanMatch = matchedStr.match(SPAN_MARKUP_REGEX);
-  if (spanMatch) {
-    return [spanMatch[2], spanMatch[1]];
+  const part = parseLabelMarkdownToken(matchedStr);
+  if (part.className) {
+    return [part.text, part.className];
   }
 
   return [matchedStr.substring(1, matchedStr.length - 1)];
@@ -570,6 +494,7 @@ const getMarkdownEl = (
       );
     case '*':
     case '_':
+    case '~':
       return getStyleMarkdownEl(matchedStr);
     case ':': {
       const codeOrEmojiEl = getCodeOrEmojiEl(matchedStr, fullText, codeUriMap, MappedCodeComponent);
@@ -605,7 +530,7 @@ const renderMarkdownParts = (
       </Fragment>;
     }
 
-    const fragmentContent = lastMdPos === i && typeof md[0]?.trimEnd === 'function'
+    const fragmentContent = lastMdPos === i && typeof md[0] === 'string'
       ? md[0].trimEnd()
       : md[0];
 
@@ -625,7 +550,7 @@ const renderMarkdownParts = (
       <MarkdownText
         key={i}
         noWrap={noWrap}
-        className={isBlockedMD ? undefined : md[1]}
+        className={isBlockedMD ? undefined : md[1] || undefined}
         as={md[2] as React.ElementType || NewLineElement}
       >
         {fragmentContent}

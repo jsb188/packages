@@ -116,7 +116,7 @@ export function PopOverList(p: PopOverHandlerProps & {
   useEffect(() => {
     const onFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target?.matches?.('input, textarea')) {
+      if (target?.matches?.('input, textarea') && !divRef.current?.contains(target)) {
         dismissFn();
       }
     };

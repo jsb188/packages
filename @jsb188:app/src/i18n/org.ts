@@ -182,6 +182,12 @@ export default {
       default: 'Organizations',
 		},
 
+    children_list: {
+      GROWER_NETWORK: 'Farms/Ranches network',
+			FARMERS_MARKET: 'Vendors list',
+      default: 'Organizations list',
+    },
+
 		view: {
 			ARABLE: 'View farm',
 			LIVESTOCK: 'View ranch',

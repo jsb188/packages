@@ -263,7 +263,7 @@ const AppToolbar = memo((p: {
           style={openSidebarButtonStyle}
         >
           <TooltipButton
-            message={i18n.t('app.expand_sidebar')}
+            message={i18n.t('app.open_sidebar')}
             position='bottom'
             offsetY={5}
             disabled={sidebarOverlayOpen}

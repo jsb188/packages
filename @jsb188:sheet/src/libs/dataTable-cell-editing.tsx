@@ -66,6 +66,22 @@ export type DataTableCellLookup = {
 	row: DataTableRowGQL;
 };
 
+export type DataTableOpenCellParams = {
+	cell?: DataTableCellGQL | null;
+	clickSource?: SheetUIEditorClickSource;
+	designCell: DataTableDesignCellGQL;
+	row: DataTableRowGQL;
+	dataTable: DataTableGQL;
+};
+
+export type DataTableOpenCellLinkParams = DataTableOpenCellParams & {
+	getOrganizationProfileProps?: (childId: string, params: DataTableOpenCellParams) => Record<string, unknown>;
+	openInboundContactEditor: (params: DataTableOpenCellParams) => void;
+	openSiteLocationEditor: (params: DataTableOpenCellParams) => void;
+	openModalScreen: (screen: { name: string; props?: Record<string, unknown> }) => void;
+	setFloatingMessage?: SetFloatingMessage;
+};
+
 export type DataTableCellDisplayModelKind = 'plain' | 'selectPill' | 'link' | 'iconLink';
 
 export type DataTableCellDisplayModel = {
@@ -205,6 +221,39 @@ export function stringifyDataTableDisplayValue(value: unknown) {
 }
 
 /*
+ * Return whether a serialized value is the unresolved object used to store a source-backed dataTable cell.
+ */
+function isDataTableSerializedSourceValue(value: unknown) {
+	const parsedValue = parseDataTableRawValue(value);
+
+	return !!parsedValue &&
+		typeof parsedValue === 'object' &&
+		!Array.isArray(parsedValue) &&
+		typeof (parsedValue as Record<string, unknown>).table === 'string' &&
+		typeof (parsedValue as Record<string, unknown>).path === 'string' &&
+		Object.prototype.hasOwnProperty.call(parsedValue, 'value');
+}
+
+/*
+ * Return the stored or resolved value for a source-backed display cell.
+ */
+function getDataTableSourceCellSerializedValue(cell: DataTableCellGQL, designCell: DataTableDesignCellGQL) {
+	if (!designCell.source?.table || !designCell.source?.path) {
+		return undefined;
+	}
+
+	if (isDataTableSerializedSourceValue(cell.value)) {
+		return cell.textValue ?? null;
+	}
+
+	if ((cell.value === undefined || cell.value === null) && cell.textValue !== undefined && cell.textValue !== null) {
+		return cell.textValue;
+	}
+
+	return undefined;
+}
+
+/*
  * Return the persisted cell value for a given field type.
  */
 export function getDataTableCellSerializedValue(cell: DataTableCellGQL | null | undefined, designCell: DataTableDesignCellGQL, optimisticValue?: string | null) {
@@ -230,6 +279,11 @@ export function getDataTableCellSerializedValue(cell: DataTableCellGQL | null | 
 
 	if (designCell.fieldType === 'DATETIME' && cell.datetimeValue) {
 		return String(cell.datetimeValue);
+	}
+
+	const sourceValue = getDataTableSourceCellSerializedValue(cell, designCell);
+	if (sourceValue !== undefined) {
+		return sourceValue;
 	}
 
 	return cell.value ?? cell.textValue ?? null;
@@ -529,6 +583,13 @@ function getDataTableDocumentLinkFieldType(designCell: DataTableDesignCellGQL) {
  */
 export function hasDataTableCellRelatedId(cell?: DataTableCellGQL | null) {
 	return cell?.relatedId !== null && cell?.relatedId !== undefined && String(cell.relatedId).trim() !== '';
+}
+
+/*
+ * Return whether a related table name points to organizations.
+ */
+export function isDataTableOrganizationRelatedTable(relatedTable?: string | null) {
+	return relatedTable === 'organizations' || relatedTable === 'organization' || relatedTable === 'org' || relatedTable === 'orgs';
 }
 
 /*
@@ -1122,6 +1183,17 @@ export function handleDataTableRelatedDocumentCellEdit(lookup: DataTableCellLook
 }
 
 /*
+ * Return whether one resolved dataTable lookup points at an organization profile link cell.
+ */
+export function isDataTableOrganizationProfileLookup(lookup: DataTableCellLookup) {
+	const fieldType = lookup.designCell.humanFieldType || lookup.designCell.fieldType;
+
+	return isDataTableDocumentLinkFieldType(fieldType as DataTableFieldTypeGQL | 'ID_OR_TEXT') &&
+		isDataTableOrganizationRelatedTable(lookup.cell?.relatedTable) &&
+		hasDataTableCellRelatedId(lookup.cell);
+}
+
+/*
  * Return whether one resolved dataTable lookup points at an inbound contact ID cell.
  */
 export function isDataTableInboundContactIdLookup(lookup: DataTableCellLookup) {
@@ -1161,4 +1233,61 @@ export function getDataTableOpenCellExternalUrl(cell: DataTableCellGQL | null | 
 	}
 
 	return null;
+}
+
+/*
+ * Open one clickable dataTable cell using its external URL or related document target.
+ */
+export function openDataTableCellLink(params: DataTableOpenCellLinkParams) {
+	const { cell, openInboundContactEditor, openModalScreen, openSiteLocationEditor, setFloatingMessage } = params;
+	const externalUrl = getDataTableOpenCellExternalUrl(cell);
+
+	if (externalUrl) {
+		window.open(externalUrl, '_blank', 'noopener,noreferrer');
+		return;
+	}
+
+	if (cell?.relatedId) {
+		if (isDataTableOrganizationRelatedTable(cell.relatedTable)) {
+			const childId = String(cell.relatedId);
+
+			openModalScreen({
+				name: 'ORG_PROFILE',
+				props: params.getOrganizationProfileProps?.(childId, params) || {
+					childId,
+					parentOperation: null,
+					allowEdit: false,
+				},
+			});
+			return;
+		}
+
+		if (isDataTableInboundContactRelatedTable(cell.relatedTable)) {
+			openInboundContactEditor(params);
+			return;
+		}
+
+		if (isDataTableSiteLocationRelatedTable(cell.relatedTable)) {
+			openSiteLocationEditor(params);
+			return;
+		}
+
+		switch (cell.relatedTable) {
+			case 'logs':
+				openModalScreen({
+					name: 'LOG_ENTRY',
+					props: {
+						logEntryId: String(cell.relatedId),
+					},
+				});
+				return;
+			default:
+				break;
+		}
+	}
+
+	setFloatingMessage?.({
+		text: getDataTableTranslatedText('sheet.unsupported_link_msg', 'This cell cannot be opened yet.'),
+		type: 'NOTICE',
+	});
 }

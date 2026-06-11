@@ -48,6 +48,7 @@
     "./ui/TreeListUI": "./ui/TreeListUI.tsx",
     "./utils/dom": "./utils/dom.ts",
     "./utils/ipAddress": "./utils/ipAddress.ts",
+    "./utils/markdown": "./utils/markdown.ts",
     "./utils/pto": "./utils/priorityTimeout.ts",
     "./utils/remix": "./utils/remix.ts",
     "./types/dom.d": "./types/dom.d.ts"

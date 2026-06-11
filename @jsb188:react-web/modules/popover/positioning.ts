@@ -256,7 +256,7 @@ export function getPopOverPosition(params: PopOverPositionParams): PopOverPositi
     if (doNotFixToBottom) {
       const nextRemainingHeight = windowHeight - (typeof top === 'number' ? top : 0) - 10;
       if (contentDimensions[1] > 200 && contentDimensions[1] > nextRemainingHeight) {
-        remainingHeight = Math.max(200, nextRemainingHeight);
+        remainingHeight = Math.max(164, nextRemainingHeight);
       }
     } else if (bottom === 'auto') {
       const contentTop = typeof top === 'number' ? top : rect.top;

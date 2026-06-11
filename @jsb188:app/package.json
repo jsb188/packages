@@ -21,6 +21,7 @@
     "./utils/account.ts": "./src/utils/account.ts",
     "./utils/api.ts": "./src/utils/api.ts",
     "./utils/billing.ts": "./src/utils/billing.ts",
+    "./utils/color.ts": "./src/utils/color.ts",
     "./utils/datetime.ts": "./src/utils/datetime.ts",
     "./utils/emoji.ts": "./src/utils/emoji.ts",
     "./utils/cron.ts": "./src/utils/cron.ts",

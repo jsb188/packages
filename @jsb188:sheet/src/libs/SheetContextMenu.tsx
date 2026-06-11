@@ -1,5 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import type { SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
+import { SHEET_CELL_STYLE_MAX_FONT_SIZE, normalizeSheetCellFontSize } from '@jsb188/mday/utils/sheet.ts';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
@@ -20,6 +21,7 @@ const SHEET_CONTEXT_MENU_ACTIONS = {
 	formatValue: 'FORMAT_VALUE',
 	insertColumnLeft: 'INSERT_COLUMN_LEFT',
 	insertRowAbove: 'INSERT_ROW_ABOVE',
+	openDataTable: 'OPEN_DATA_TABLE',
 	pasteCellValues: 'PASTE_CELL_VALUES',
 	populateFromDataTable: 'POPULATE_FROM_DATA_TABLE',
 	removeCellsFromDataTable: 'REMOVE_CELLS_FROM_DATA_TABLE',
@@ -27,9 +29,14 @@ const SHEET_CONTEXT_MENU_ACTIONS = {
 
 const SHEET_CONTEXT_MENU_FORMAT_NAMES = {
 	borderStyle: 'borderStyle',
+	bold: 'bold',
+	disableMarkdown: 'disableMarkdown',
 	fillColor: 'fillColor',
 	fontSize: 'fontSize',
+	italic: 'italic',
+	strikethrough: 'strikethrough',
 	textColor: 'textColor',
+	underline: 'underline',
 } as const;
 
 const SHEET_CONTEXT_MENU_DEFAULT_FONT_SIZE = 14;
@@ -47,7 +54,7 @@ export type SheetContextMenuFormatName = typeof SHEET_CONTEXT_MENU_FORMAT_NAMES[
 export type SheetContextMenuFormat = {
 	borderColor?: string | null;
 	name?: SheetContextMenuFormatName;
-	value?: SheetBorderStylePresetValue | string | number | null;
+	value?: SheetBorderStylePresetValue | boolean | string | number | null;
 };
 
 export type SheetContextMenuCellTarget = {
@@ -59,18 +66,26 @@ export type SheetContextMenuTarget = {
 	canEdit: boolean;
 	canEditStructure?: boolean;
 	canFormatCells?: boolean;
+	canOpenDataTable?: boolean;
 	canPopulateFromDataTable?: boolean;
 	canRemoveCellsFromDataTable?: boolean;
 	dataTableId?: string | null;
 	dataTableRegion?: SheetRegionGQL | null;
 	dataTableRegionId?: string | null;
+	dataTableRoute?: string | null;
 	cells: SheetContextMenuCellTarget[];
 	cellKey: string;
+	disableMarkdown?: boolean | null;
+	bold?: boolean | null;
 	displayValue: string;
 	fillColor?: string | null;
 	fontSize?: number | null;
+	italic?: boolean | null;
+	rawValue?: string;
 	rowId: string;
+	strikethrough?: boolean | null;
 	textColor?: string | null;
+	underline?: boolean | null;
 };
 
 type UseSheetContextMenuParams = {
@@ -78,6 +93,7 @@ type UseSheetContextMenuParams = {
 	onCustomizeCells?: (target: SheetContextMenuTarget, formatName: SheetContextMenuFormatName) => void;
 	onEditStructure?: (target: SheetContextMenuTarget, action: SheetContextMenuStructureAction) => void;
 	onFormatCells: (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => void;
+	onOpenDataTable?: (target: SheetContextMenuTarget) => void;
 	onPasteCells?: (target: SheetContextMenuTarget, clipboardText: string) => void | Promise<void>;
 	onPopulateFromDataTable?: (target: SheetContextMenuTarget) => void;
 	readClipboardText?: () => Promise<string>;
@@ -93,11 +109,18 @@ const SHEET_CONTEXT_MENU_COLOR_FORMAT_NAMES = [
 	SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor,
 ];
 
+const SHEET_CONTEXT_MENU_TEXT_STYLE_FORMAT_NAMES = [
+	SHEET_CONTEXT_MENU_FORMAT_NAMES.bold,
+	SHEET_CONTEXT_MENU_FORMAT_NAMES.italic,
+	SHEET_CONTEXT_MENU_FORMAT_NAMES.strikethrough,
+	SHEET_CONTEXT_MENU_FORMAT_NAMES.underline,
+];
+
 /*
- * Copy one Sheet context-menu target's display value to the clipboard.
+ * Copy one Sheet context-menu target's raw value to the clipboard.
  */
 function copySheetContextMenuCellValue(target: SheetContextMenuTarget) {
-	void copyTextToClipboard(target.displayValue || '');
+	void copyTextToClipboard(target.rawValue ?? target.displayValue ?? '');
 }
 
 /*
@@ -152,16 +175,32 @@ function getSheetContextMenuFormatOptions(target: SheetContextMenuTarget, params
 function getSheetContextMenuTextFormatOptions(target: SheetContextMenuTarget): POListIfaceItem[] {
 	return [{
 		__type: 'LIST_TEXT_FORMAT_CONTROLS',
+		disableMarkdown: target.disableMarkdown ?? null,
 		fontSizeLabel: <>{i18n.t('sheet.font_size')}</>,
+		markdownName: SHEET_CONTEXT_MENU_FORMAT_NAMES.disableMarkdown,
+		maxFontSize: SHEET_CELL_STYLE_MAX_FONT_SIZE,
 		name: SHEET_CONTEXT_MENU_FORMAT_NAMES.fontSize,
 		selectedFontSize: target.fontSize || SHEET_CONTEXT_MENU_DEFAULT_FONT_SIZE,
+		selectedTextStyles: {
+			bold: target.bold ?? null,
+			italic: target.italic ?? null,
+			strikethrough: target.strikethrough ?? null,
+			underline: target.underline ?? null,
+		},
 		textStyleButtonLabels: {
 			bold: i18n.t('sheet.bold'),
 			italic: i18n.t('sheet.italic'),
+			markdown: i18n.t('sheet.markdown'),
 			strikethrough: i18n.t('sheet.strikethrough'),
 			underline: i18n.t('sheet.underline'),
 		},
 		textStyleLabel: <>{i18n.t('sheet.text_style')}</>,
+		textStyleNames: {
+			bold: SHEET_CONTEXT_MENU_FORMAT_NAMES.bold,
+			italic: SHEET_CONTEXT_MENU_FORMAT_NAMES.italic,
+			strikethrough: SHEET_CONTEXT_MENU_FORMAT_NAMES.strikethrough,
+			underline: SHEET_CONTEXT_MENU_FORMAT_NAMES.underline,
+		},
 	}];
 }
 
@@ -189,6 +228,12 @@ function getSheetContextMenuDataTableOptions(target: SheetContextMenuTarget): PO
 		iconName: COMMON_ICON_NAMES.insert_from_data_table,
 		text: target.dataTableRegionId ? i18n.t('sheet.edit_data_table_view') : i18n.t('sheet.insert_from_data_table'),
 		value: SHEET_CONTEXT_MENU_ACTIONS.populateFromDataTable,
+	}, {
+		__type: 'LIST_ITEM',
+		disabled: !target.canOpenDataTable,
+		iconName: COMMON_ICON_NAMES.data_table,
+		text: i18n.t('sheet.open_data_table'),
+		value: SHEET_CONTEXT_MENU_ACTIONS.openDataTable,
 	}];
 
 	if (target.dataTableRegionId) {
@@ -197,7 +242,7 @@ function getSheetContextMenuDataTableOptions(target: SheetContextMenuTarget): PO
 			className: 'cl_err_hv',
 			disabled: !target.canRemoveCellsFromDataTable,
 			iconName: 'layers-grid-subtract',
-			text: i18n.t('sheet.remove_view'),
+			text: i18n.t('sheet.remove_data_table'),
 			value: SHEET_CONTEXT_MENU_ACTIONS.removeCellsFromDataTable,
 		});
 	}
@@ -252,7 +297,12 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 		submenu: {
 			className: 'min_w_220',
 			initialState: {
+				[SHEET_CONTEXT_MENU_FORMAT_NAMES.disableMarkdown]: target.disableMarkdown ?? null,
 				[SHEET_CONTEXT_MENU_FORMAT_NAMES.fontSize]: target.fontSize || SHEET_CONTEXT_MENU_DEFAULT_FONT_SIZE,
+				[SHEET_CONTEXT_MENU_FORMAT_NAMES.bold]: target.bold ?? null,
+				[SHEET_CONTEXT_MENU_FORMAT_NAMES.italic]: target.italic ?? null,
+				[SHEET_CONTEXT_MENU_FORMAT_NAMES.strikethrough]: target.strikethrough ?? null,
+				[SHEET_CONTEXT_MENU_FORMAT_NAMES.underline]: target.underline ?? null,
 			},
 			options: getSheetContextMenuTextFormatOptions(target),
 		},
@@ -321,6 +371,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		onCustomizeCells,
 		onEditStructure,
 		onFormatCells,
+		onOpenDataTable,
 		onPasteCells,
 		onPopulateFromDataTable,
 		readClipboardText,
@@ -371,7 +422,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		handledEventKeyRef.current = eventKey;
 
 		if (SHEET_CONTEXT_MENU_COLOR_FORMAT_NAMES.includes(name as typeof SHEET_CONTEXT_MENU_COLOR_FORMAT_NAMES[number])) {
-			if (canFormatSheetContextMenuTarget(target) && typeof value === 'string') {
+			if (canFormatSheetContextMenuTarget(target) && (typeof value === 'string' || value === null)) {
 				onFormatCells(target, {
 					name: name as SheetContextMenuFormatName,
 					value,
@@ -393,12 +444,32 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		}
 
 		if (name === SHEET_CONTEXT_MENU_FORMAT_NAMES.fontSize) {
-			const fontSize = Math.round(Number(value));
+			const fontSize = normalizeSheetCellFontSize(value);
 
-			if (canFormatSheetContextMenuTarget(target) && Number.isFinite(fontSize) && fontSize > 0) {
+			if (canFormatSheetContextMenuTarget(target) && fontSize) {
 				onFormatCells(target, {
 					name: SHEET_CONTEXT_MENU_FORMAT_NAMES.fontSize,
 					value: fontSize,
+				});
+			}
+			return;
+		}
+
+		if (name === SHEET_CONTEXT_MENU_FORMAT_NAMES.disableMarkdown) {
+			if (canFormatSheetContextMenuTarget(target) && typeof value === 'boolean') {
+				onFormatCells(target, {
+					name: SHEET_CONTEXT_MENU_FORMAT_NAMES.disableMarkdown,
+					value,
+				});
+			}
+			return;
+		}
+
+		if (SHEET_CONTEXT_MENU_TEXT_STYLE_FORMAT_NAMES.includes(name as typeof SHEET_CONTEXT_MENU_TEXT_STYLE_FORMAT_NAMES[number])) {
+			if (canFormatSheetContextMenuTarget(target) && typeof value === 'boolean') {
+				onFormatCells(target, {
+					name: name as SheetContextMenuFormatName,
+					value,
 				});
 			}
 			return;
@@ -418,6 +489,12 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 			case SHEET_CONTEXT_MENU_ACTIONS.pasteCellValues:
 				if (target.canEdit) {
 					void pasteSheetContextMenuCellValues(target, readClipboardText, onPasteCells);
+				}
+				closePopOver();
+				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.openDataTable:
+				if (target.canOpenDataTable) {
+					onOpenDataTable?.(target);
 				}
 				closePopOver();
 				break;
@@ -447,7 +524,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 				break;
 			default:
 		}
-	}, [activeTargetRef, closePopOver, onEditCell, onEditStructure, onFormatCells, onPasteCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, popOver?.globalState, readClipboardText]);
+	}, [activeTargetRef, closePopOver, onEditCell, onEditStructure, onFormatCells, onOpenDataTable, onPasteCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, popOver?.globalState, readClipboardText]);
 
 	return {
 		closeSheetContextMenu,
