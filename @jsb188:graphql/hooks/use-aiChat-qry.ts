@@ -2,7 +2,7 @@ import { getENVVariable } from '@jsb188/app';
 import { getAuthToken } from '@jsb188/app/utils/api.ts';
 import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import SSE from '@jsb188/sse';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { loadFragment, loadQuery, resetQuery, updateQuery } from '../cache/index.ts';
 import { useQuery, useReactiveFragmentMap } from '../client/index.ts';
 import { aiChatMessagesQry, aiChatQry, aiChatsQry } from '../gql/queries/aiChatQueries.ts';
@@ -76,6 +76,151 @@ function getGeneratingFragmentId(sseData: PublishPayload) {
 }
 
 /**
+ * Return the message id from an AI chat message fragment key.
+ */
+
+function getAIChatMessageIdFromFragmentKey(fragmentKey?: string | null) {
+  const fragmentName = '$aiChatMessageFragment:';
+  return fragmentKey?.startsWith(fragmentName)
+    ? fragmentKey.substring(fragmentName.length)
+    : null;
+}
+
+/**
+ * Merge one message into a local live message list.
+ */
+
+function upsertLocalAIChatMessage(messages: any[], message: any, prepend?: boolean) {
+  if (!message?.id) {
+    return messages;
+  }
+
+  const index = messages.findIndex((item) => item?.id === message.id);
+  if (index >= 0) {
+    const nextMessages = messages.slice(0);
+    nextMessages[index] = {
+      ...nextMessages[index],
+      ...message,
+    };
+    return nextMessages;
+  }
+
+  return prepend
+    ? [message, ...messages]
+    : [...messages, message];
+}
+
+/**
+ * Merge SSE payloads into local live AI chat messages.
+ */
+
+function mergeSSEPayloadToLocalAIChatMessages(messages: any[], sseData: PublishPayload) {
+  const { __type, data, dataFragmentKey, fragmentKey, fragmentNamespace, otherData } = sseData;
+
+  switch (__type) {
+    case 'QUERY_APPEND':
+    case 'QUERY_PREPEND':
+      {
+        const messageId = getAIChatMessageIdFromFragmentKey(dataFragmentKey);
+        if (messageId && data && typeof data === 'object') {
+          return upsertLocalAIChatMessage(
+            messages,
+            {
+              ...data,
+              id: data.id || messageId,
+            },
+            __type === 'QUERY_PREPEND',
+          );
+        }
+      }
+      break;
+    case 'DATA_APPEND':
+    case 'DATA_PREPEND':
+      {
+        const messageId = getAIChatMessageIdFromFragmentKey(fragmentKey);
+        if (messageId && fragmentNamespace === 'text') {
+          const index = messages.findIndex((item) => item?.id === messageId);
+          const currentMessage = index >= 0 ? messages[index] : {
+            id: messageId,
+            accountId: null,
+            type: 'NORMAL',
+            cursor: null,
+            text: '',
+            finished: false,
+            at: new Date().toISOString(),
+          };
+          const currentText = currentMessage.text || '';
+          const nextText = __type === 'DATA_PREPEND'
+            ? `${data || ''}${currentText}`
+            : `${currentText}${data || ''}`;
+
+          return upsertLocalAIChatMessage(messages, {
+            ...currentMessage,
+            ...(
+              otherData && typeof otherData === 'object'
+                ? otherData
+                : {}
+            ),
+            text: nextText,
+          });
+        }
+      }
+      break;
+    case 'DATA_UPDATE':
+      {
+        const messageId = getAIChatMessageIdFromFragmentKey(dataFragmentKey || fragmentKey);
+        if (messageId && data && typeof data === 'object') {
+          return upsertLocalAIChatMessage(messages, {
+            id: messageId,
+            ...data,
+          });
+        }
+      }
+      break;
+    default:
+      break;
+  }
+
+  return messages;
+}
+
+/**
+ * Merge local live messages into the cached AI chat response.
+ */
+
+function mergeLocalAIChatMessages(aiChat: any, localMessages: any[]) {
+  if (!aiChat || !localMessages.length) {
+    return aiChat;
+  }
+
+  const localMessageMap = new Map(localMessages.map((message) => [message.id, message]));
+  const usedMessageIds = new Set<string>();
+  const messages = (aiChat.messages || []).map((message: any) => {
+    const localMessage = localMessageMap.get(message.id);
+    if (!localMessage) {
+      return message;
+    }
+
+    usedMessageIds.add(message.id);
+    return {
+      ...message,
+      ...localMessage,
+    };
+  });
+
+  for (const message of localMessages) {
+    if (!usedMessageIds.has(message.id)) {
+      messages.push(message);
+    }
+  }
+
+  return {
+    ...aiChat,
+    messages,
+  };
+}
+
+/**
  * Fetch AI chat
  */
 
@@ -91,11 +236,24 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
     ...queryParams,
   });
 
-  const { updateObservers } = rest;
+  const { updateObservers, variablesKey } = rest;
   const [sessionKey, setSessionKey] = useState<string | null>(initialSessionKey || null);
   const [generatingFragmentId, setGeneratingFragmentId] = useState<string | null>(null);
+  const [localMessages, setLocalMessages] = useState<any[]>([]);
   const aiChat = data?.aiChat || loadFragment(`$aiChatFragment:${aiChatId}`);
+  const mergedAIChat = useMemo(
+    () => mergeLocalAIChatMessages(aiChat, localMessages),
+    [aiChat, localMessages],
+  );
   const dataAIChatId = aiChat?.id;
+
+  const addLocalMessage = useCallback((message: any) => {
+    setLocalMessages((prevMessages) => upsertLocalAIChatMessage(prevMessages, message));
+  }, []);
+
+  useEffect(() => {
+    setLocalMessages([]);
+  }, [dataAIChatId]);
 
   useEffect(() => {
     // Browser has too many issues such as proxy, network, roadblocks
@@ -112,13 +270,15 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
         // path: 'test-sse',
         searchParams: {
           session_key: sessionKey,
-          auth_token: currentAuthToken
+          auth_token: currentAuthToken,
+          variablesKey,
         }
       });
 
       const connectParams = {
         onMessage: (sseData: PublishPayload) => {
           handleSSEData(sseData, updateObservers);
+          setLocalMessages((prevMessages) => mergeSSEPayloadToLocalAIChatMessages(prevMessages, sseData));
 
           const nextValue = getGeneratingFragmentId(sseData);
           if (nextValue === null || typeof nextValue === 'string') {
@@ -138,7 +298,7 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
         // removeNetworkListeners();
       };
     }
-  }, [authToken, dataAIChatId, sessionKey]);
+  }, [authToken, dataAIChatId, sessionKey, variablesKey]);
 
   useEffect(() => {
     // Every time AIChat is fetched, check if it exists in lists cache
@@ -178,9 +338,10 @@ export function useAIChatWithSSE(aiChatId?: string, initialSessionKey?: string |
   }, [aiChat?.inProgress]);
 
   return {
-    aiChat,
+    aiChat: mergedAIChat,
     generatingFragmentId,
     sessionKey,
+    addLocalMessage,
     setSessionKey,
     ...rest
   };

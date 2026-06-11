@@ -147,6 +147,8 @@ export default {
     20078: 'This sheet cell cannot be edited.',
     '20079_icon': 'layers-grid-warning',
     20079: 'This data table region overlaps an existing data table region.',
+    20080: 'You do not have access to this data table.',
+    20081: 'You do not have access to this sheet.',
 
     // 3x
 

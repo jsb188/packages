@@ -13,6 +13,9 @@ type DatabaseActionResult = {
 	documentData: any;
 };
 
+const COMPACT_CACHE_KEY_SEGMENT_BYTE_LIMIT = 1800;
+const UTF8_ENCODER = new TextEncoder();
+
 export interface GetFiltersFromURLResult {
 	filter: Omit<Partial<FilterLogEntriesArgs>, 'operation'> | null;
 	sort: string | null;
@@ -257,6 +260,37 @@ function getStableVariablesKeyValue(value: any): any {
 	}
 
 	return value;
+}
+
+/*
+ * Return a compact deterministic hash for a cache key segment.
+ */
+function hashCacheKeySegment(value: string, seed: number) {
+	let hash = 0x811c9dc5 ^ seed;
+
+	for (let i = 0; i < value.length; i++) {
+		hash ^= value.charCodeAt(i);
+		hash = Math.imul(hash, 0x01000193);
+	}
+
+	return (hash >>> 0).toString(36);
+}
+
+/*
+ * Shorten oversized KV/cache key string segments while preserving deterministic identity.
+ */
+export function compactCacheKeySegment(value: string, byteLimit: number = COMPACT_CACHE_KEY_SEGMENT_BYTE_LIMIT) {
+	const byteLength = UTF8_ENCODER.encode(value).byteLength;
+	if (byteLength <= byteLimit) {
+		return value;
+	}
+
+	return [
+		'*hash',
+		byteLength.toString(36),
+		hashCacheKeySegment(value, 0),
+		hashCacheKeySegment(value, 0x9e3779b9),
+	].join(':');
 }
 
 /**

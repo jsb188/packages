@@ -199,7 +199,10 @@ export function useSheet(
 		...params,
 		skip: !organizationId || !sheetId || !!cachedSheet || !!params.skip,
 	});
-	const sheet = useMemo(() => mapSheetDeletedStatus(data?.sheet), [data?.sheet]);
+
+  // IMPORTANT: Keep `|| data?.sheet` here -- this prevents an incorrect !sheet state and `loading` state mismatch
+  // It's either that or we have to NOT use useMemo() here, both are valid options.
+	const sheet = useMemo(() => mapSheetDeletedStatus(data?.sheet), [data?.sheet]) || data?.sheet;
 
 	return {
 		sheet: cachedSheet || sheet,

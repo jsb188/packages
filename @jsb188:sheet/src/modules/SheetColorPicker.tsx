@@ -2,7 +2,7 @@ import i18n from '@jsb188/app/i18n/index.ts';
 import { isHexColorValue } from '@jsb188/app/utils/color.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import { TooltipButton } from '@jsb188/react-web/modules/PopOver';
-import { memo, type ChangeEvent, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import type { SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
 
 const DEFAULT_SHEET_COLOR_PICKER_VALUE = '#000000';

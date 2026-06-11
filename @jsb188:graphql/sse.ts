@@ -33,6 +33,8 @@ function handleQueryConcat(payload: PublishPayload, updateObservers?: UpdateObse
 
   if (fragmentKey && fragmentNamespace && dataFragmentKey && data) {
     const isAppend = __type === 'QUERY_APPEND';
+    addFragmentToCache(dataFragmentKey, data);
+
     const updateData = (currentData: any) => {
       const currentList = currentData?.[fragmentNamespace]?.data;
       if (
@@ -40,7 +42,6 @@ function handleQueryConcat(payload: PublishPayload, updateObservers?: UpdateObse
         Array.isArray(currentList) &&
         !currentList.find(a => a[0] === dataFragmentKey)
       ) {
-        addFragmentToCache(dataFragmentKey, data);
         const updatedList = isAppend ? [...currentList, [dataFragmentKey]] : [[dataFragmentKey], ...currentList];
 
         // console.log('UPDATED !!!!')
@@ -85,6 +86,14 @@ function handleFragmentConcat(payload: PublishPayload, updateObservers?: UpdateO
 
   if (fragmentKey && fragmentNamespace && data) {
     const namespaceType = typeof fragmentNamespace;
+    const seedData = {
+      ...(
+        otherData && typeof otherData === 'object'
+          ? otherData
+          : {}
+      ),
+      [fragmentNamespace]: data,
+    };
     const updateData = (currentData: any) => {
       if (typeof currentData[fragmentNamespace] === namespaceType) {
         let nextValue;
@@ -102,7 +111,13 @@ function handleFragmentConcat(payload: PublishPayload, updateObservers?: UpdateO
       return currentData;
     };
 
-    updateFragment(fragmentKey, updateData, null, false, updateObservers);
+    const updateFragmentKey = updateFragment(fragmentKey, updateData, null, false, updateObservers);
+    if (!updateFragmentKey) {
+      addFragmentToCache(fragmentKey, seedData);
+      updateObservers?.({
+        fragmentIds: [fragmentKey],
+      });
+    }
   }
 
 }
@@ -113,7 +128,14 @@ function handleFragmentConcat(payload: PublishPayload, updateObservers?: UpdateO
 
 function handleFragmentUpdate(payload: PublishPayload, updateObservers?: UpdateObserversFn) {
   const { fragmentKey, dataFragmentKey, data } = payload;
-  updateFragment(dataFragmentKey || fragmentKey, data, null, false, updateObservers);
+  const updateFragmentKey = dataFragmentKey || fragmentKey;
+  const updatedFragmentKey = updateFragment(updateFragmentKey, data, null, false, updateObservers);
+  if (!updatedFragmentKey) {
+    addFragmentToCache(updateFragmentKey, data);
+    updateObservers?.({
+      fragmentIds: [updateFragmentKey],
+    });
+  }
 }
 
 /**

@@ -86,7 +86,6 @@ import {
 } from '../libs/sheet-border-styles.ts';
 import { getSheetCellTextRequiredRowHeight } from '../libs/sheet-text-measure.ts';
 import {
-	getOptimisticSheetCellFromEditInput,
 	getSheetCellSnapshotEditInput,
 	getSheetClearEditInput,
 	getSheetValueEditInput,
@@ -101,17 +100,21 @@ import {
 	type SheetUndoRedoEntry,
 } from '../libs/sheet-history.ts';
 import {
-  getGridKeyboardElements,
-  isGridShortcutBlockedByActiveInput,
-  isGridTextInputKey,
-  useGridElementSize,
+	getSheetFormulaCalculationCellsByCoord,
+	getSheetOptimisticCellEditTransition,
+} from '../libs/sheet-local-state.ts';
+import {
+	getGridKeyboardElements,
+	isGridShortcutBlockedByActiveInput,
+	isGridTextInputKey,
+	useGridElementSize,
 } from '../libs/grid-runtime.ts';
 import {
-	groupCellSaveItemsByTarget,
-	sendGroupedCellSaveItems,
-	useDebouncedCellSaveBatch,
-} from '../libs/use-debounced-cell-save-batch.ts';
-import { sendCellSaveBeacon } from '../libs/cell-save-beacon.ts';
+	getSheetCellsWithOptimisticDataTableValues,
+	getSheetDataTableSourceCellKey,
+	getSourceDataTableCellsByTargetKey,
+	useSheetDataTableOptimisticValues,
+} from '../libs/use-sheet-dataTable-optimistic-values.ts';
 import {
   getSheetCanvasColumnDisplayLeft,
   getSheetCanvasColumnDisplayRight,
@@ -340,17 +343,6 @@ type SheetFormulaErrorOverlayState = {
 	position: DataTableLocalEditorPosition;
 };
 
-type SheetPendingDataTableCellSave = {
-	cellKey: string;
-	dataTableId: string;
-	dataTableRowId: string;
-	optimisticKey: string;
-	organizationId: string | number | bigint | null;
-	saveVersion: number;
-	target: SheetDataTableCellEditTarget;
-	value: string | null;
-};
-
 export type SheetCanvasRowResizeState = {
 	latestHeight: number;
 	rowKey: string;
@@ -558,109 +550,6 @@ function isSheetDataTableRegionCellWithoutEditTarget(
 	target: SheetDataTableCellEditTarget | null,
 ) {
 	return Boolean(!target && getSheetDataTableRegionAtCellFromMap(rowIndex, columnIndex, regionsById));
-}
-
-/*
- * Return a stable key for a DataTable source cell target.
- */
-function getSheetDataTableSourceCellKey(dataTableId: string, dataTableRowId: string, cellKey: string) {
-	return `${dataTableId}:${dataTableRowId}:${cellKey}`;
-}
-
-/*
- * Return the parts encoded inside a Sheet DataTable source cell key.
- */
-function parseSheetDataTableSourceCellKey(sourceKey: string) {
-	const parts = sourceKey.split(':');
-	const cellKey = parts.pop() || '';
-	const dataTableRowId = parts.pop() || '';
-	const dataTableId = parts.join(':');
-
-	return {
-		cellKey,
-		dataTableId,
-		dataTableRowId,
-	};
-}
-
-/*
- * Return hydrated source DataTable cells keyed by dataTable, row, and cell key.
- */
-function getSourceDataTableCellsByTargetKey(cells?: DataTableCellGQL[] | null) {
-	return new Map((cells || [])
-		.filter((cell) => cell?.dataTableId && cell.dataTableRowId && cell.cellKey)
-		.map((cell) => [
-			getSheetDataTableSourceCellKey(String(cell.dataTableId), String(cell.dataTableRowId), String(cell.cellKey)),
-			cell,
-		]));
-}
-
-/*
- * Return the design cell used to compare one Sheet DataTable optimistic value.
- */
-function getSheetDataTableDesignCellForSourceKey(
-	sourceKey: string,
-	sourceCell: DataTableCellGQL | null | undefined,
-	designCellsByDataTableId: Map<string, Map<string, DataTableRuntimeDesignCell>>,
-) {
-	const keyParts = parseSheetDataTableSourceCellKey(sourceKey);
-	const dataTableId = String(sourceCell?.dataTableId || keyParts.dataTableId || '');
-	const cellKey = String(sourceCell?.cellKey || keyParts.cellKey || '');
-
-	return designCellsByDataTableId.get(dataTableId)?.get(cellKey) || null;
-}
-
-/*
- * Return the latest saved value for a queued Sheet DataTable cell save.
- */
-function getSheetPendingDataTableCellSaveCurrentValue(
-	item: SheetPendingDataTableCellSave,
-	sourceCellsByTargetKey: Map<string, DataTableCellGQL>,
-	designCellsByDataTableId: Map<string, Map<string, DataTableRuntimeDesignCell>>,
-) {
-	const sourceCell = sourceCellsByTargetKey.get(item.optimisticKey) || item.target.lookup.cell || null;
-	const designCell = getSheetDataTableDesignCellForSourceKey(
-		item.optimisticKey,
-		sourceCell,
-		designCellsByDataTableId,
-	) || item.target.lookup.designCell;
-
-	return getDataTableCellSerializedValue(sourceCell, designCell);
-}
-
-/*
- * Return optimistic DataTable source keys that have caught up to the latest server source cells.
- */
-function getConfirmedSheetDataTableOptimisticKeys(params: {
-	designCellsByDataTableId: Map<string, Map<string, DataTableRuntimeDesignCell>>;
-	optimisticValues: Record<string, string | null>;
-	sourceCellsByTargetKey: Map<string, DataTableCellGQL>;
-}) {
-	const confirmedKeys: string[] = [];
-
-	Object.entries(params.optimisticValues).forEach(([sourceKey, optimisticValue]) => {
-		const sourceCell = params.sourceCellsByTargetKey.get(sourceKey);
-
-		if (!sourceCell) {
-			return;
-		}
-
-		const designCell = getSheetDataTableDesignCellForSourceKey(
-			sourceKey,
-			sourceCell,
-			params.designCellsByDataTableId,
-		);
-
-		if (!designCell) {
-			return;
-		}
-
-		if (getDataTableCellSerializedValue(sourceCell || null, designCell) === optimisticValue) {
-			confirmedKeys.push(sourceKey);
-		}
-	});
-
-	return confirmedKeys;
 }
 
 /*
@@ -1875,62 +1764,6 @@ function getSheetStructureIndexFromContextMenuTarget(target: SheetContextMenuTar
 }
 
 /*
- * Return cells overlaid on top of any fetched formula dependency cells.
- */
-function getSheetFormulaCalculationCellsByCoord(
-	cellsByCoord: Map<string, SheetCellGQL>,
-	dependencyCellsByCoord?: Map<string, SheetCellGQL> | null,
-) {
-	if (!dependencyCellsByCoord?.size) {
-		return cellsByCoord;
-	}
-
-	const next = new Map(dependencyCellsByCoord);
-
-	cellsByCoord.forEach((cell, key) => {
-		next.set(key, cell);
-	});
-
-	return next;
-}
-
-/*
- * Return Sheet cell coordinate maps merged from left to right.
- */
-function mergeSheetControllerCellCoordMaps(...maps: Array<Map<string, SheetCellGQL> | null | undefined>) {
-	const next = new Map<string, SheetCellGQL>();
-
-	maps.forEach((map) => {
-		map?.forEach((cell, key) => {
-			next.set(key, cell);
-		});
-	});
-
-	return next;
-}
-
-/*
- * Return one optimistic Sheet cell with client-calculated formula values applied when possible.
- */
-function getClientCalculatedOptimisticSheetCell(params: {
-	cell: SheetCellGQL;
-	cellsByCoord: Map<string, SheetCellGQL>;
-	formulaReferencesById?: Map<string, SheetFormulaReferenceObj> | null;
-	timeZone?: string | null;
-}) {
-	if (!sheetCellCanClientCalculateFormula(params.cell)) {
-		return params.cell;
-	}
-
-	return getClientCalculatedSheetFormulaCell({
-		cell: params.cell,
-		cellsByCoord: params.cellsByCoord,
-		referencesById: params.formulaReferencesById,
-		timeZone: params.timeZone,
-	});
-}
-
-/*
  * Render the stateful canvas Sheet controller.
  */
 export function SheetController(p: SheetControllerProps) {
@@ -1944,7 +1777,6 @@ export function SheetController(p: SheetControllerProps) {
 	const [editState, setEditState] = useAtom(p.stateAtoms.editStateAtom);
 	const [optimisticCellsByCoord, setOptimisticCellsByCoord] = useAtom(p.stateAtoms.optimisticCellsByCoordAtom);
 	const optimisticCellsByCoordRef = useRef(optimisticCellsByCoord);
-	const [optimisticDataTableValues, setOptimisticDataTableValues] = useState<Record<string, string | null>>({});
 	const [localColumnWidths, setLocalColumnWidths] = useAtom(p.stateAtoms.localColumnWidthsAtom);
 	const [localRowHeights, setLocalRowHeights] = useAtom(p.stateAtoms.localRowHeightsAtom);
 	const [resizeState, setResizeState] = useAtom(p.stateAtoms.resizeStateAtom);
@@ -1956,9 +1788,10 @@ export function SheetController(p: SheetControllerProps) {
 	const dragSelectionRef = useRef<SheetCanvasDragSelectionState | null>(null);
 	const openedDataTableCellPointerDownRef = useRef<SheetUISelectedCellState | null>(null);
 	const colorPickerPointerDownInsideRef = useRef(false);
-	const dataTableCellSaveVersionRef = useRef<Record<string, number>>({});
 	const fetchingMoreRef = useRef(false);
 	const designRef = useRef(p.design);
+	const localColumnWidthsRef = useRef(localColumnWidths);
+	const localRowHeightsRef = useRef(localRowHeights);
 	const onUpdateSheetDesignRef = useRef(p.onUpdateSheetDesign);
 	const resizeStateRef = useRef<SheetCanvasResizeState | null>(null);
 	const rowResizeStateRef = useRef<SheetCanvasRowResizeState | null>(null);
@@ -2051,12 +1884,45 @@ export function SheetController(p: SheetControllerProps) {
 
 		return next;
 	}, [optimisticCellsByCoord, p.cellsByCoord]);
+	const dataTablesById = useMemo(() => {
+		return getSheetDataTablesById(p.dataTables);
+	}, [p.dataTables]);
+	const dataTableLabelsById = useMemo(() => {
+		return getSheetRegionSourceLabelsById(p.dataTables, p.operation);
+	}, [p.dataTables, p.operation]);
+	const designCellsByDataTableId = useMemo(() => {
+		return getSheetDataTableDesignCellsByTableId(p.dataTables);
+	}, [p.dataTables]);
+	const regionsById = useMemo(() => {
+		return getSheetRegionsById(p.regions);
+	}, [p.regions]);
+	const sourceCellsByTargetKey = useMemo(() => {
+		return getSourceDataTableCellsByTargetKey(p.sourceDataTableCells);
+	}, [p.sourceDataTableCells]);
+	const {
+		applyChanges: applySheetDataTableCellChanges,
+		clearOptimisticValue: clearOptimisticDataTableValue,
+		optimisticValues: optimisticDataTableValues,
+	} = useSheetDataTableOptimisticValues({
+		designCellsByDataTableId,
+		onSaveDataTableCells: p.onSaveDataTableCells,
+		sheetId: p.sheetId,
+		sourceCellsByTargetKey,
+	});
 	const formulaCalculationCellsByCoord = useMemo(() => {
+		const formulaSourceCellsByCoord = getSheetCellsWithOptimisticDataTableValues({
+			cellsByCoord: effectiveCellsByCoord,
+			designCellsByDataTableId,
+			optimisticValues: optimisticDataTableValues,
+			regionsById,
+			sourceCellsByTargetKey,
+		});
+
 		return getSheetFormulaCalculationCellsByCoord(
-			effectiveCellsByCoord,
+			formulaSourceCellsByCoord,
 			p.formulaDependencyCellsByCoord,
 		);
-	}, [effectiveCellsByCoord, p.formulaDependencyCellsByCoord]);
+	}, [designCellsByDataTableId, effectiveCellsByCoord, optimisticDataTableValues, p.formulaDependencyCellsByCoord, regionsById, sourceCellsByTargetKey]);
 	const calculatedCellsByCoord = useMemo(() => {
 		const next = new Map<string, SheetCellGQL>();
 
@@ -2076,54 +1942,6 @@ export function SheetController(p: SheetControllerProps) {
 
 		return next;
 	}, [effectiveCellsByCoord, formulaCalculationCellsByCoord, p.formulaReferencesById, p.timeZone]);
-	const dataTablesById = useMemo(() => {
-		return getSheetDataTablesById(p.dataTables);
-	}, [p.dataTables]);
-	const dataTableLabelsById = useMemo(() => {
-		return getSheetRegionSourceLabelsById(p.dataTables, p.operation);
-	}, [p.dataTables, p.operation]);
-	const designCellsByDataTableId = useMemo(() => {
-		return getSheetDataTableDesignCellsByTableId(p.dataTables);
-	}, [p.dataTables]);
-	const regionsById = useMemo(() => {
-		return getSheetRegionsById(p.regions);
-	}, [p.regions]);
-	const sourceCellsByTargetKey = useMemo(() => {
-		return getSourceDataTableCellsByTargetKey(p.sourceDataTableCells);
-	}, [p.sourceDataTableCells]);
-
-	useEffect(() => {
-		setOptimisticDataTableValues({});
-		dataTableCellSaveVersionRef.current = {};
-	}, [p.sheetId]);
-
-	useEffect(() => {
-		const confirmedKeys = getConfirmedSheetDataTableOptimisticKeys({
-			designCellsByDataTableId,
-			optimisticValues: optimisticDataTableValues,
-			sourceCellsByTargetKey,
-		});
-
-		if (!confirmedKeys.length) {
-			return;
-		}
-
-		setOptimisticDataTableValues((currentValues) => {
-			const next = { ...currentValues };
-			let changed = false;
-
-			getConfirmedSheetDataTableOptimisticKeys({
-				designCellsByDataTableId,
-				optimisticValues: currentValues,
-				sourceCellsByTargetKey,
-			}).forEach((key) => {
-				delete next[key];
-				changed = true;
-			});
-
-			return changed ? next : currentValues;
-		});
-	}, [designCellsByDataTableId, optimisticDataTableValues, sourceCellsByTargetKey]);
 
 	const cellLookup = useMemo(() => {
 		const cells = new Map<string, SheetCanvasCell>();
@@ -2516,6 +2334,8 @@ export function SheetController(p: SheetControllerProps) {
 
 	useEffect(() => {
 		designRef.current = p.design;
+		localColumnWidthsRef.current = localColumnWidths;
+		localRowHeightsRef.current = localRowHeights;
 		onUpdateSheetDesignRef.current = p.onUpdateSheetDesign;
 		resizeStateRef.current = resizeState;
 		rowResizeStateRef.current = rowResizeState;
@@ -2798,290 +2618,72 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		const nextOptimisticCellsByCoord = new Map(optimisticCellsByCoordRef.current);
-		const pendingCells = inputs.map((input) => {
-			const key = getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex);
-			const currentCell = nextOptimisticCellsByCoord.get(key) || runtime?.effectiveCellsByCoord.get(key) || null;
-			const optimisticCell = getOptimisticSheetCellFromEditInput(input, currentCell);
-
-			nextOptimisticCellsByCoord.set(key, optimisticCell);
-
-			return {
-				input,
-				key,
-				optimisticCell,
-			};
-		});
-		const nextFormulaCalculationCellsByCoord = getSheetFormulaCalculationCellsByCoord(
-			mergeSheetControllerCellCoordMaps(
-				runtime?.effectiveCellsByCoord || new Map(),
-				nextOptimisticCellsByCoord,
-			),
-			p.formulaDependencyCellsByCoord,
-		);
-		const saveInputs = pendingCells.map(({ input, key, optimisticCell }) => {
-			const calculatedCell = getClientCalculatedOptimisticSheetCell({
-				cell: optimisticCell,
-				cellsByCoord: nextFormulaCalculationCellsByCoord,
-				formulaReferencesById: p.formulaReferencesById,
-				timeZone: p.timeZone,
-			});
-
-			nextOptimisticCellsByCoord.set(key, calculatedCell);
-
-			return input.clear
-				? input
-				: getSheetCellSnapshotEditInput(input.cell.rowIndex, input.cell.columnIndex, calculatedCell);
+		const nextTransition = getSheetOptimisticCellEditTransition({
+			baseCellsByCoord: runtime?.effectiveCellsByCoord || new Map(),
+			currentOptimisticCellsByCoord: optimisticCellsByCoordRef.current,
+			formulaDependencyCellsByCoord: p.formulaDependencyCellsByCoord,
+			formulaReferencesById: p.formulaReferencesById,
+			inputs,
+			timeZone: p.timeZone,
 		});
 
-		optimisticCellsByCoordRef.current = nextOptimisticCellsByCoord;
+		optimisticCellsByCoordRef.current = nextTransition.optimisticCellsByCoord;
 
 		setOptimisticCellsByCoord((current) => {
-			const next = new Map(current);
-			const pendingStateCells = saveInputs.map((input) => {
-				const key = getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex);
-				const currentCell = current.get(key) || runtime?.effectiveCellsByCoord.get(key) || null;
-				const optimisticCell = getOptimisticSheetCellFromEditInput(input, currentCell);
-
-				next.set(key, optimisticCell);
-
-				return {
-					key,
-					optimisticCell,
-				};
-			});
-			const stateFormulaCalculationCellsByCoord = getSheetFormulaCalculationCellsByCoord(
-				mergeSheetControllerCellCoordMaps(
-					runtime?.effectiveCellsByCoord || new Map(),
-					next,
-				),
-				p.formulaDependencyCellsByCoord,
-			);
-
-			pendingStateCells.forEach(({ key, optimisticCell }) => {
-				next.set(key, getClientCalculatedOptimisticSheetCell({
-					cell: optimisticCell,
-					cellsByCoord: stateFormulaCalculationCellsByCoord,
-					formulaReferencesById: p.formulaReferencesById,
-					timeZone: p.timeZone,
-				}));
-			});
-
-			return next;
+			return getSheetOptimisticCellEditTransition({
+				baseCellsByCoord: runtime?.effectiveCellsByCoord || new Map(),
+				currentOptimisticCellsByCoord: current,
+				formulaDependencyCellsByCoord: p.formulaDependencyCellsByCoord,
+				formulaReferencesById: p.formulaReferencesById,
+				inputs,
+				timeZone: p.timeZone,
+			}).optimisticCellsByCoord;
 		});
 
-		await p.onSaveCells(saveInputs);
+		await p.onSaveCells(nextTransition.saveInputs);
 	}, [p.formulaDependencyCellsByCoord, p.formulaReferencesById, p.onSaveCells, p.timeZone]);
 
-	const { queue: queueSheetDataTableCellSave } = useDebouncedCellSaveBatch<SheetPendingDataTableCellSave>({
-		getKey: (item) => item.optimisticKey,
-		onError: (items) => {
-			setOptimisticDataTableValues((currentValues) => {
-				const next = { ...currentValues };
-				let changed = false;
-
-				items.forEach((item) => {
-					if (dataTableCellSaveVersionRef.current[item.optimisticKey] === item.saveVersion) {
-						delete next[item.optimisticKey];
-						changed = true;
-					}
-				});
-
-				return changed ? next : currentValues;
-			});
-		},
-		onBeaconFlush: (items) => {
-			const mutationItems = items.filter((item) => {
-				return getSheetPendingDataTableCellSaveCurrentValue(
-					item,
-					sourceCellsByTargetKey,
-					designCellsByDataTableId,
-				) !== item.value;
-			});
-			const groups = groupCellSaveItemsByTarget(mutationItems, (item) => ({
-				organizationId: item.organizationId,
-				targetId: item.dataTableId,
-			}));
-
-			return sendGroupedCellSaveItems(groups, (group) => {
-				return sendCellSaveBeacon({
-					cells: group.items.map((item) => ({
-						cellKey: item.cellKey,
-						dataTableRowId: item.dataTableRowId,
-						value: item.value,
-					})),
-					organizationId: group.organizationId || null,
-					targetId: group.targetId || null,
-					targetType: 'dataTable',
-				});
-			});
-		},
-		onFlush: async (items) => {
-			const syncedKeys = items
-				.filter((item) => {
-					return dataTableCellSaveVersionRef.current[item.optimisticKey] === item.saveVersion &&
-						getSheetPendingDataTableCellSaveCurrentValue(
-							item,
-							sourceCellsByTargetKey,
-							designCellsByDataTableId,
-						) === item.value;
-				})
-				.map((item) => item.optimisticKey);
-
-			if (syncedKeys.length) {
-				setOptimisticDataTableValues((currentValues) => {
-					const next = { ...currentValues };
-					let changed = false;
-
-					syncedKeys.forEach((key) => {
-						delete next[key];
-						changed = true;
-					});
-
-					return changed ? next : currentValues;
-				});
-			}
-
-			const mutationItems = items.filter((item) => !syncedKeys.includes(item.optimisticKey));
-			const groups = groupCellSaveItemsByTarget(
-				mutationItems.filter((item) => {
-					return getSheetPendingDataTableCellSaveCurrentValue(
-						item,
-						sourceCellsByTargetKey,
-						designCellsByDataTableId,
-					) !== item.value;
-				}),
-				(item) => ({
-					organizationId: item.organizationId,
-					targetId: item.dataTableId,
-				}),
-			);
-			const savedCellsByKey = new Map<string, DataTableCellGQL>();
-
-			for (const group of groups) {
-				if (!group.targetId) {
-					continue;
-				}
-
-				const result = await p.onSaveDataTableCells({
-					dataTableId: String(group.targetId),
-					cells: group.items.map((item) => ({
-						cellKey: item.cellKey,
-						dataTableRowId: item.dataTableRowId,
-						value: item.value,
-					})),
-				}) as { editDataTableCells?: DataTableCellGQL[] } | undefined;
-				const savedCells = (result?.editDataTableCells || []) as DataTableCellGQL[];
-
-				savedCells.forEach((cell) => {
-					if (!cell?.dataTableId || !cell.dataTableRowId || !cell.cellKey) {
-						return;
-					}
-
-					savedCellsByKey.set(
-						getSheetDataTableSourceCellKey(
-							String(cell.dataTableId),
-							String(cell.dataTableRowId),
-							String(cell.cellKey),
-						),
-						cell,
-					);
-				});
-			}
-
-			if (!savedCellsByKey.size) {
-				return;
-			}
-
-			setOptimisticDataTableValues((currentValues) => {
-				const next = { ...currentValues };
-				let changed = false;
-
-				mutationItems.forEach((item) => {
-					const savedCell = savedCellsByKey.get(item.optimisticKey);
-
-					if (
-						savedCell &&
-						dataTableCellSaveVersionRef.current[item.optimisticKey] === item.saveVersion
-					) {
-						next[item.optimisticKey] = getDataTableCellSerializedValue(
-							savedCell,
-							item.target.lookup.designCell,
-						);
-						changed = true;
-					}
-				});
-
-				return changed ? next : currentValues;
-			});
-		},
-	});
-
-	const applySheetDataTableCellChanges = useCallback(async (changes: SheetDataTableCellHistoryChange[], direction: 'after' | 'before') => {
-		if (!changes.length) {
-			return;
-		}
-
-		const pendingSaves = changes.flatMap((change) => {
-			const dataTableId = String(change.target.dataTable.id || '');
-
-			if (!dataTableId) {
-				return [];
-			}
-
-			const optimisticKey = getSheetDataTableSourceCellKey(
-				dataTableId,
-				change.target.sourceRowId,
-				change.target.sourceCellKey,
-			);
-			const saveVersion = (dataTableCellSaveVersionRef.current[optimisticKey] || 0) + 1;
-
-			dataTableCellSaveVersionRef.current[optimisticKey] = saveVersion;
-
-			return [{
-				cellKey: change.target.sourceCellKey,
-				dataTableId,
-				dataTableRowId: change.target.sourceRowId,
-				optimisticKey,
-				organizationId: change.target.dataTable.organizationId || null,
-				saveVersion,
-				target: change.target,
-				value: change[direction],
-			} satisfies SheetPendingDataTableCellSave];
-		});
-
-		setOptimisticDataTableValues((current) => {
-			const next = { ...current };
-
-			pendingSaves.forEach((item) => {
-				next[item.optimisticKey] = item.value;
-			});
-			return next;
-		});
-
-		pendingSaves.forEach(queueSheetDataTableCellSave);
-	}, [queueSheetDataTableCellSave]);
-
 	const applySheetDesignPatch = useCallback(async (patch: SheetDesignPatchInput) => {
+		const previousColumnWidths = localColumnWidthsRef.current;
+		const previousRowHeights = localRowHeightsRef.current;
+
 		if (patch.columns) {
 			const columns = parseSheetJSONObject(patch.columns, {});
-
-			setLocalColumnWidths(getSheetCanvasColumnWidths({
+			const nextColumnWidths = getSheetCanvasColumnWidths({
 				...designRef.current,
 				columns,
-			}));
+			});
+
+			localColumnWidthsRef.current = nextColumnWidths;
+			setLocalColumnWidths(nextColumnWidths);
 		}
 
 		if (patch.rows) {
 			const rows = parseSheetJSONObject(patch.rows, {});
-
-			setLocalRowHeights(getSheetCanvasRowHeights({
+			const nextRowHeights = getSheetCanvasRowHeights({
 				...designRef.current,
 				rows,
-			}, rowCount));
+			}, rowCount);
+
+			localRowHeightsRef.current = nextRowHeights;
+			setLocalRowHeights(nextRowHeights);
 		}
 
-		await p.onUpdateSheetDesign(patch);
+		try {
+			await p.onUpdateSheetDesign(patch);
+		} catch (error) {
+			if (patch.columns) {
+				localColumnWidthsRef.current = previousColumnWidths;
+				setLocalColumnWidths(previousColumnWidths);
+			}
+
+			if (patch.rows) {
+				localRowHeightsRef.current = previousRowHeights;
+				setLocalRowHeights(previousRowHeights);
+			}
+
+			throw error;
+		}
 	}, [p.onUpdateSheetDesign, rowCount, setLocalColumnWidths, setLocalRowHeights]);
 
 	const applySheetHistoryEntry = useCallback(async (entry: SheetUndoRedoEntry, direction: 'after' | 'before') => {
@@ -3175,15 +2777,11 @@ export function SheetController(p: SheetControllerProps) {
 				target,
 			}], 'after');
 		} catch (error) {
-			setOptimisticDataTableValues((current) => {
-				const next = { ...current };
-				delete next[optimisticKey];
-				return next;
-			});
+			clearOptimisticDataTableValue(optimisticKey);
 
 			throw error;
 		}
-	}, [applySheetDataTableCellChanges, optimisticDataTableValues, pushSheetUndoEntry]);
+	}, [applySheetDataTableCellChanges, clearOptimisticDataTableValue, optimisticDataTableValues, pushSheetUndoEntry]);
 
 	const commitEditorElement = useCallback(async (editorElement: HTMLElement, options?: { keepEditState?: boolean; selectAfterCommit?: boolean }) => {
 		if (committingEditorRef.current) {
@@ -4101,7 +3699,7 @@ export function SheetController(p: SheetControllerProps) {
 
 			handleGridKeyboardEvent(event, elements, {
 				blocked: keyDown.alert || keyDown.modal || isGridShortcutBlockedByActiveInput(SHEET_GRID_EDITOR_SELECTOR),
-				hasActiveCell: Boolean(selectedCellState || runtimeRef.current?.rowIds.length),
+				hasActiveCell: Boolean(selectedCellState),
 				hasActiveEditState: Boolean(editState),
 				isTextInputKey: isGridTextInputKey(event),
 				onAdjustFontSize: adjustSelectedSheetCellFontSize,

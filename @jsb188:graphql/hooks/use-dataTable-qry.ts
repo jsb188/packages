@@ -238,7 +238,10 @@ export function useDataTable(
 		...params,
 		skip: !organizationId || !dataTableId || !!cachedDataTable || !!params.skip,
 	});
-	const dataTable = useMemo(() => mapDataTableDeletedStatus(data?.dataTable), [data?.dataTable]);
+
+  // IMPORTANT: Keep `|| data?.dataTable` here -- this prevents an incorrect !dataTable state and `loading` state mismatch
+  // It's either that or we have to NOT use useMemo() here, both are valid options.
+	const dataTable = useMemo(() => mapDataTableDeletedStatus(data?.dataTable), [data?.dataTable]) || data?.dataTable;
 
 	return {
 		dataTable: cachedDataTable || dataTable,

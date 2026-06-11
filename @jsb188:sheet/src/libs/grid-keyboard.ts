@@ -107,7 +107,10 @@ function isGridUndoShortcut(event: KeyboardEvent, metaKey: boolean) {
  */
 
 function isGridRedoShortcut(event: KeyboardEvent, metaKey: boolean) {
-	return metaKey && event.shiftKey && event.key.toLowerCase() === 'z';
+	const key = event.key.toLowerCase();
+
+	return (metaKey && event.shiftKey && key === 'z') ||
+		(event.ctrlKey && !event.metaKey && !event.shiftKey && key === 'y');
 }
 
 /*
@@ -231,6 +234,11 @@ export function handleGridKeyboardEvent(
 		return false;
 	}
 
+	if (!handlers.hasActiveCell && !hasEditorShortcut && event.key !== 'Escape') {
+		finishGridKeyboardEvent(handlers);
+		return false;
+	}
+
 	if (event.key === 'Escape' && handlers.onDismissContextMenu?.()) {
 		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		finishGridKeyboardEvent(handlers);
@@ -298,10 +306,18 @@ export function handleGridKeyboardEvent(
 		if (event.key === 'Escape') {
 			consumeGridKeyboardEvent(event, stopImmediatePropagation);
 			handlers.onDismissLocalEditor?.();
+			finishGridKeyboardEvent(handlers);
+			return true;
+		}
+
+		if (event.key === 'Enter' || event.key === 'Tab') {
+			consumeGridKeyboardEvent(event, stopImmediatePropagation);
+			finishGridKeyboardEvent(handlers);
+			return true;
 		}
 
 		finishGridKeyboardEvent(handlers);
-		return true;
+		return false;
 	}
 
 	if (handlers.hasActiveEditState) {
