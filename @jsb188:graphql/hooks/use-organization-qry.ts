@@ -1,7 +1,7 @@
 import { useQuery, useReactiveFragment } from '@jsb188/graphql/client';
 import type { ChildOrgsFilterArgs } from '@jsb188/mday/types/organization.d.ts';
 export { useInboundContact, useInboundContacts, useReactiveInboundContactFragment } from './use-inboundContact-qry.ts';
-import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationSitesQry } from '../gql/queries/organizationQueries.ts';
+import { childOrganizationsQry, myOrganizationsQry, organizationMembersQry, organizationSitesQry, pageRoutesQry } from '../gql/queries/organizationQueries.ts';
 import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
 const ORG_CHILDREN_LIMIT = 250;
@@ -187,4 +187,27 @@ export function useReactiveOrganizationComplianceFragment(complianceId: string, 
     ],
     queryCount,
   );
+}
+
+/**
+ * Fetch custom page routes for organization
+ */
+
+export function usePageRoutes(
+  organizationId: string | null,
+  params: UseQueryParams = {},
+) {
+  const { skip, ...restParams } = params;
+  const { data, ...rest } = useQuery(pageRoutesQry, {
+    variables: {
+      organizationId,
+    },
+    skip: skip || !organizationId,
+    ...restParams,
+  });
+
+  return {
+    pageRoutes: data?.pageRoutes,
+    ...rest
+  };
 }

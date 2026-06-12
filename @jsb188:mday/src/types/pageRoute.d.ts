@@ -32,3 +32,17 @@ export interface OrganizationPageRouteData {
 	createdAt: Date;
 	updatedAt: Date;
 }
+
+export interface OrgPageRouteGQL {
+	id: string;
+	organizationId: string;
+	slug: string;
+	query: PageRouteQueryEnum;
+	logEntriesFilter?: PageRouteLogEntriesFilterObj | null;
+	childOrgsFilter?: PageRouteChildOrgsFilterObj | null;
+	columns: string[];
+	iconName?: string | null;
+	starred?: boolean | null;
+	createdAt?: string | null;
+	updatedAt?: string | null;
+}

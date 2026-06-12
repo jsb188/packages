@@ -1,7 +1,7 @@
 import { gql } from 'graphql-tag';
 import { accountFragment } from '../fragments/accountFragments.ts';
 import { integrationConnectionFragment } from '../fragments/integrationFragments.ts';
-import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSiteFragment } from '../fragments/organizationFragments.ts';
+import { organizationChildFragment, organizationComplianceFragment, organizationFragment, organizationRelationshipFragment, organizationSiteFragment, orgPageRouteFragment } from '../fragments/organizationFragments.ts';
 import { emailFragment, phoneFragment } from '../fragments/otherFragments.ts';
 import { storageFileFragment } from '../fragments/storageFragments.ts';
 
@@ -164,4 +164,18 @@ query organizationSites (
 }
 
 ${organizationSiteFragment}
+`;
+
+export const pageRoutesQry = gql`
+query pageRoutes (
+  $organizationId: GenericID!
+) {
+  pageRoutes (
+    organizationId: $organizationId
+  ) {
+    ...orgPageRouteFragment
+  }
+}
+
+${orgPageRouteFragment}
 `;

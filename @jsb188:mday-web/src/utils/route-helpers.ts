@@ -34,6 +34,7 @@ type ValidRoutePath =
   | '/app/workflows-test'
   | '/app/workflows'
   | '/app/grids'
+  | '/app/workspace'
   | '/app/s/'
   | '/app/emails'
   | '/app/logs'
@@ -97,6 +98,11 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
     to: '/app/grids',
     text: 'app.grids',
     iconName: COMMON_ICON_NAMES.grids,
+  },
+  '/app/workspace': {
+    to: '/app/workspace',
+    text: 'app.workspace',
+    iconName: COMMON_ICON_NAMES.app_connections,
   },
   '/app/c/': {
     to: '/app/c/',

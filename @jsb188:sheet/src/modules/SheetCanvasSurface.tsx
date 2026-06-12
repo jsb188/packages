@@ -556,6 +556,7 @@ function drawSheetCanvasCellBorders(params: {
 	cell?: SheetCanvasCell | null;
 	ctx: CanvasRenderingContext2D;
 	height: number;
+	hiddenBorderLineKeys?: Set<string>;
 	renderedBorderLineKeys: Set<string>;
 	theme: SheetCanvasTheme;
 	width: number;
@@ -582,6 +583,10 @@ function drawSheetCanvasCellBorders(params: {
 			width: params.width,
 		});
 		const borderLineKey = getSheetCanvasCellBorderLineKey(borderLine);
+
+		if (params.hiddenBorderLineKeys?.has(borderLineKey)) {
+			return;
+		}
 
 		if (params.renderedBorderLineKeys.has(borderLineKey)) {
 			return;
@@ -1453,35 +1458,121 @@ function getSheetCanvasCellTextOverflow(params: {
 }
 
 /*
+ * Add every vertical cell border covered by one horizontal text overflow span.
+ */
+function addSheetCanvasTextOverflowHiddenBorderLineKeys(params: {
+	columnRect: SheetCanvasColumnRect;
+	columnRects: SheetCanvasColumnRect[];
+	hiddenBorderLineKeys: Set<string>;
+	overflow: SheetCanvasTextOverflow;
+	rowRect: SheetCanvasRowRect;
+}) {
+	const overflowRight = params.overflow.rect.left + params.overflow.rect.width;
+	if (overflowRight <= params.overflow.sourceRect.left + params.overflow.sourceRect.width) {
+		return;
+	}
+
+	const sourceIndex = params.columnRects.findIndex((rect) => rect.cellKey === params.columnRect.cellKey);
+	if (sourceIndex < 0) {
+		return;
+	}
+
+	for (let index = sourceIndex + 1; index < params.columnRects.length; index += 1) {
+		const columnRect = params.columnRects[index];
+		const dividerX = columnRect.left;
+
+		if (dividerX <= params.overflow.sourceRect.left || dividerX >= overflowRight) {
+			continue;
+		}
+
+		const line = getSheetCanvasCellBorderLine({
+			height: params.rowRect.height,
+			left: columnRect.left,
+			side: 'Left',
+			top: params.rowRect.top,
+			width: columnRect.width,
+		});
+
+		params.hiddenBorderLineKeys.add(getSheetCanvasCellBorderLineKey(line));
+	}
+}
+
+/*
+ * Draw the background behind overflowing text without extending past its span.
+ */
+function drawSheetCanvasTextOverflowBackground(params: {
+	backgroundColor: string;
+	ctx: CanvasRenderingContext2D;
+	rect: SheetCanvasRect;
+	selectedFillColor?: string;
+	selectedFillOpacity?: number;
+	selectedFillStripe?: boolean;
+	theme: SheetCanvasTheme;
+}) {
+	const left = Math.round(params.rect.left) + SHEET_CANVAS_GRID_LINE_WIDTH;
+	const top = Math.round(params.rect.top) + SHEET_CANVAS_GRID_LINE_WIDTH;
+	const width = Math.max(0, Math.round(params.rect.width) - SHEET_CANVAS_GRID_LINE_WIDTH);
+	const height = Math.max(0, Math.round(params.rect.height) - SHEET_CANVAS_GRID_LINE_WIDTH);
+
+	if (!width || !height) {
+		return;
+	}
+
+	params.ctx.fillStyle = params.backgroundColor;
+	params.ctx.fillRect(left, top, width, height);
+
+	if (!params.selectedFillColor) {
+		return;
+	}
+
+	params.ctx.save();
+	params.ctx.globalAlpha = params.selectedFillOpacity ?? SHEET_CANVAS_SELECTION_ALPHA;
+	params.ctx.fillStyle = params.selectedFillColor;
+	params.ctx.fillRect(left, top, width, height);
+	params.ctx.restore();
+
+	if (params.selectedFillStripe) {
+		drawSheetCanvasUnavailableSelectionStripeRect({
+			ctx: params.ctx,
+			height,
+			left,
+			theme: params.theme,
+			top,
+			width,
+		});
+	}
+}
+
+/*
  * Draw one horizontally overflowing text cell above default grid lines.
  */
 function drawSheetCanvasTextOverflow(params: {
 	ctx: CanvasRenderingContext2D;
-	spanBackground: boolean;
 	overflow: SheetCanvasTextOverflow;
+	selectedFillColor?: string;
+	selectedFillOpacity?: number;
+	selectedFillStripe?: boolean;
 	theme: SheetCanvasTheme;
 }) {
 	const cell = params.overflow.cell;
 	const rect = params.overflow.rect;
-	const backgroundRect = params.spanBackground ? rect : params.overflow.sourceRect;
 	const textStyle = getSheetCanvasCellTextStyle(cell.style);
 	const backgroundColor = getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(cell.style, 'fillColor')) || params.theme.background;
 	const textColor = getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(cell.style, 'textColor')) || params.theme.bodyText;
 	const contentOpacity = cell.formulaLoading ? 0.5 : 1;
 
 	// This fill paints after the default grid lines, so inset it by one
-	// grid-line width on every side; this keeps the rect's boundary dividers
-	// (row number gutter, row top/bottom lines) visible and only covers the
-	// vertical dividers that the text actually crosses. Outside edit mode,
-	// constrain this repaint to the source cell so neighboring cell fills stay
-	// visually independent while text can still overflow across them.
-	params.ctx.fillStyle = backgroundColor;
-	params.ctx.fillRect(
-		Math.round(backgroundRect.left) + SHEET_CANVAS_GRID_LINE_WIDTH,
-		Math.round(backgroundRect.top) + SHEET_CANVAS_GRID_LINE_WIDTH,
-		Math.max(0, Math.round(backgroundRect.width) - SHEET_CANVAS_GRID_LINE_WIDTH),
-		Math.max(0, Math.round(backgroundRect.height) - SHEET_CANVAS_GRID_LINE_WIDTH),
-	);
+	// grid-line width on every side; this keeps the span's outer dividers
+	// visible while covering the interior vertical dividers crossed by text.
+	drawSheetCanvasTextOverflowBackground({
+		backgroundColor,
+		ctx: params.ctx,
+		rect,
+		selectedFillColor: params.selectedFillColor,
+		selectedFillOpacity: params.selectedFillOpacity,
+		selectedFillStripe: params.selectedFillStripe,
+		theme: params.theme,
+	});
 
 	params.ctx.save();
 	params.ctx.globalAlpha *= contentOpacity;
@@ -3113,18 +3204,21 @@ function drawSheetCanvasBodyTextOverflows(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	columnRects: SheetCanvasColumnRect[];
 	ctx: CanvasRenderingContext2D;
-	editState?: SheetUIEditState | null;
 	mergedRanges?: SheetMergedRangeObj[] | null;
+	regions?: SheetRegionGQL[] | null;
 	rowRects: SheetCanvasRowRect[];
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+	selectedCellState?: SheetUISelectedCellState | null;
 	theme: SheetCanvasTheme;
 	viewportHeight: number;
 	viewportWidth: number;
 }) {
+	const hiddenBorderLineKeys = new Set<string>();
 	const bodyWidth = Math.max(0, params.viewportWidth - SHEET_ROW_NUMBER_WIDTH);
 	const bodyHeight = Math.max(0, params.viewportHeight - SHEET_HEADER_HEIGHT);
 
 	if (!bodyWidth || !bodyHeight) {
-		return;
+		return hiddenBorderLineKeys;
 	}
 
 	params.ctx.save();
@@ -3138,8 +3232,9 @@ function drawSheetCanvasBodyTextOverflows(params: {
 			}
 
 			const renderKey = getSheetCellKey(rowRect.metric.rowKey, columnRect.cellKey);
+			const cell = params.cellLookup.get(renderKey);
 			const overflow = getSheetCanvasCellTextOverflow({
-				cell: params.cellLookup.get(renderKey),
+				cell,
 				cellLookup: params.cellLookup,
 				columnRect,
 				columnRects: params.columnRects,
@@ -3152,18 +3247,40 @@ function drawSheetCanvasBodyTextOverflows(params: {
 				return;
 			}
 
-			const spanBackground = params.editState?.rowId === rowRect.metric.rowKey &&
-				params.editState.cellKey === columnRect.cellKey;
+			addSheetCanvasTextOverflowHiddenBorderLineKeys({
+				columnRect,
+				columnRects: params.columnRects,
+				hiddenBorderLineKeys,
+				overflow,
+				rowRect,
+			});
+
+			const isActive = params.selectedCellState?.rowId === rowRect.metric.rowKey &&
+				params.selectedCellState.cellKey === columnRect.cellKey;
+			const isSelected = Boolean(params.selectedCellKeyMap?.[renderKey] || isActive);
+			const selectedFillStyle = isSelected
+				? getSheetCanvasSelectedCellFillStyle({
+					cell,
+					columnIndex: Number(columnRect.cellKey || 0),
+					regions: params.regions,
+					rowIndex: Number(rowRect.metric.rowKey || 0),
+					theme: params.theme,
+				})
+				: null;
 
 			drawSheetCanvasTextOverflow({
 				ctx: params.ctx,
-				spanBackground,
 				overflow,
+				selectedFillColor: selectedFillStyle?.color,
+				selectedFillOpacity: selectedFillStyle?.opacity,
+				selectedFillStripe: selectedFillStyle?.stripe,
 				theme: params.theme,
 			});
 		});
 	});
 	params.ctx.restore();
+
+	return hiddenBorderLineKeys;
 }
 
 /*
@@ -3173,6 +3290,7 @@ function drawSheetCanvasBodyCellBorders(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	columnRects: SheetCanvasColumnRect[];
 	ctx: CanvasRenderingContext2D;
+	hiddenBorderLineKeys?: Set<string>;
 	mergedRanges?: SheetMergedRangeObj[] | null;
 	rowRects: SheetCanvasRowRect[];
 	theme: SheetCanvasTheme;
@@ -3208,6 +3326,7 @@ function drawSheetCanvasBodyCellBorders(params: {
 				cell,
 				ctx: params.ctx,
 				height: rowRect.height,
+				hiddenBorderLineKeys: params.hiddenBorderLineKeys,
 				renderedBorderLineKeys,
 				theme: params.theme,
 				width: columnRect.width,
@@ -4257,13 +4376,15 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 			viewportWidth,
 		});
 	}
-	drawSheetCanvasBodyTextOverflows({
+	const hiddenOverflowBorderLineKeys = drawSheetCanvasBodyTextOverflows({
 		cellLookup: p.cellLookup,
 		columnRects: visibleColumnRects,
 		ctx,
-		editState: p.editState,
 		mergedRanges: p.mergedRanges,
+		regions: p.regions,
 		rowRects: visibleRowRects,
+		selectedCellKeyMap: p.selectedCellKeyMap,
+		selectedCellState: p.selectedCellState,
 		theme,
 		viewportHeight,
 		viewportWidth,
@@ -4272,6 +4393,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		cellLookup: p.cellLookup,
 		columnRects: visibleColumnRects,
 		ctx,
+		hiddenBorderLineKeys: hiddenOverflowBorderLineKeys,
 		mergedRanges: p.mergedRanges,
 		rowRects: visibleRowRects,
 		theme,

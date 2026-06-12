@@ -325,6 +325,45 @@ export function getSheetCellEditInputsForMutation(
 }
 
 /*
+ * Return one mutation cell payload with stored-value fields omitted when the
+ * edit keeps the confirmed cell's value. A presentation-only payload lets the
+ * server skip formula dependency work for style changes, and keeps style
+ * edits on region override cells from re-sending materializer-owned content
+ * (the server rejects value writes inside generated regions).
+ */
+export function getSheetCellEditInputForMutationPayload(
+	input: SheetCellEditInput,
+	baseCell?: SheetCellGQL | null,
+): SheetCellEditInput {
+	const cell = input.cell;
+	const hasValueFields = Object.prototype.hasOwnProperty.call(cell, 'rawInput') ||
+		Object.prototype.hasOwnProperty.call(cell, 'value');
+
+	if (input.clear || !hasValueFields) {
+		return input;
+	}
+
+	// Compare against the base snapshot so a pending value edit (one that
+	// differs from the confirmed cell) always keeps its value fields
+	const baseInput = getSheetCellSnapshotEditInput(cell.rowIndex, cell.columnIndex, baseCell);
+	const valueSynced = (cell.rawInput ?? null) === (baseInput.cell.rawInput ?? null) &&
+		(cell.value ?? null) === (baseInput.cell.value ?? null);
+
+	if (!valueSynced) {
+		return input;
+	}
+
+	const presentationCell = { ...cell };
+	delete presentationCell.rawInput;
+	delete presentationCell.value;
+
+	return {
+		...input,
+		cell: presentationCell,
+	};
+}
+
+/*
  * Return one pending preview cell rebased over the latest base Sheet cell.
  * The rebase uses the pending edit's FULL snapshot input (value, style,
  * format, and note together), so a preview that accumulated state from

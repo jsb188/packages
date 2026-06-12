@@ -11,6 +11,7 @@ import {
 } from './sheet-dataTable-preview.ts';
 import {
 	getSheetCellEditInputCoordKey,
+	getSheetCellEditInputForMutationPayload,
 	getSheetCellEditInputsForMutation,
 	sheetCellEditInputMatchesCell,
 	type SheetCellEditInput,
@@ -233,9 +234,18 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			// must not re-send them
 			markSheetPendingEditsSent(targetSheetId, sendingItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })));
 
+			// Value fields that merely re-send the confirmed value drop out of
+			// the payload so the server sees presentation-only edits as such
+			const mutationPayloadCells = isCurrentSheet
+				? mutationCells.map((input) => getSheetCellEditInputForMutationPayload(
+					input,
+					params.baseCellsByCoord.get(getSheetCellEditInputCoordKey(input)),
+				))
+				: mutationCells;
+
 			const result = await params.editSheetCells({
 				variables: {
-					cells: mutationCells,
+					cells: mutationPayloadCells,
 					organizationId: sendingItems[0]?.persist.organizationId || params.organizationId,
 					sheetId: targetSheetId,
 				},
@@ -421,8 +431,17 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 					return true;
 				}
 
+				// Value fields that merely re-send the confirmed value drop out
+				// of the payload so the server sees presentation-only edits as such
+				const beaconCells = targetSheetId === params.sheetId
+					? mutationCells.map((input) => getSheetCellEditInputForMutationPayload(
+						input,
+						params.baseCellsByCoord.get(getSheetCellEditInputCoordKey(input)),
+					))
+					: mutationCells;
+
 				const sent = sendCellSaveBeacon({
-					cells: mutationCells,
+					cells: beaconCells,
 					organizationId: group.organizationId || null,
 					targetId: group.targetId || null,
 					targetType: 'sheet',

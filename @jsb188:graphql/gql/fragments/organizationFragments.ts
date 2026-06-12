@@ -127,3 +127,28 @@ export const organizationChildFragment = `fragment organizationChildFragment on 
     phoneNumber
   }
 }`;
+
+export const orgPageRouteFragment = `fragment orgPageRouteFragment on OrgPageRoute {
+  id
+  organizationId
+  slug
+  query
+  logEntriesFilter {
+    siteId
+    preset
+    types
+    activities
+    startDate
+    endDate
+    query
+  }
+  childOrgsFilter {
+    childOrgIds
+    affiliated
+  }
+  columns
+  iconName
+  starred
+  createdAt
+  updatedAt
+}`;

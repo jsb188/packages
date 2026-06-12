@@ -39,8 +39,19 @@ export interface ColumnsLayoutColumnObj<T = any> {
   items?: T[] | null;
   initialWidth?: number;
   itemClassName?: string;
+  // Item key to highlight; use this to mark the folder item whose sub column is open
+  selectedItemKey?: string | number | null;
+  // Drill-in column rendered immediately to the right of this column while open
+  subColumn?: ColumnsLayoutColumnObj | null;
   getItemKey?: (item: T, index: number) => string;
-  renderItem: (item: T, index: number) => React.ReactNode;
+  // Declarative item content used when renderItem is not supplied
+  getItemTitle?: (item: T, index: number) => string;
+  getItemSubtitle?: (item: T, index: number) => string | null | undefined;
+  getItemIconName?: (item: T, index: number) => string | null | undefined;
+  // Folder items render a chevron affordance; open their sub column from onClickItem
+  getItemIsFolder?: (item: T, index: number) => boolean;
+  renderItem?: (item: T, index: number) => React.ReactNode;
+  onClickItem?: (item: T, index: number) => void;
   getContextMenuOptions?: (item: T, index: number) => POListIfaceItem[];
   onClickExpand?: (columnId: string) => void;
 }
@@ -83,6 +94,24 @@ export function getColumnsLayoutContextMenuId(contextMenuId: string, columnId: s
  */
 function getColumnsLayoutItemKey<T>(column: ColumnsLayoutColumnObj<T>, item: T, index: number) {
   return column.getItemKey ? column.getItemKey(item, index) : index;
+}
+
+/**
+ * Flatten columns with their open sub columns into one ordered render list.
+ */
+function getColumnsLayoutColumnList(columns: ColumnsLayoutColumnObj[]) {
+  const columnList: ColumnsLayoutColumnObj[] = [];
+
+  for (const column of columns) {
+    let current: ColumnsLayoutColumnObj | null | undefined = column;
+
+    while (current) {
+      columnList.push(current);
+      current = current.subColumn;
+    }
+  }
+
+  return columnList;
 }
 
 /**
@@ -228,6 +257,41 @@ const ColumnsLayoutColumnMocks = memo(() => {
 ColumnsLayoutColumnMocks.displayName = 'ColumnsLayoutColumnMocks';
 
 /**
+ * Render the default item content with an optional subtitle and folder affordance.
+ */
+export function ColumnsLayoutItemContent(p: {
+  iconName?: string | null;
+  isFolder?: boolean;
+  subtitle?: string | null;
+  title: string;
+}) {
+  const { iconName, isFolder, subtitle, title } = p;
+
+  return <div className='h_item gap_xs px_sm py_xs'>
+    {iconName && (
+      <span className='v_center no_shrink cl_md'>
+        <Icon tryColor name={iconName} />
+      </span>
+    )}
+    <span className='f v_stretch min_w_0'>
+      <span className='ellip ft_sm'>
+        {title}
+      </span>
+      {subtitle && (
+        <span className='ellip ft_xs cl_md'>
+          {subtitle}
+        </span>
+      )}
+    </span>
+    {isFolder && (
+      <span className='v_center no_shrink cl_md'>
+        <Icon name='chevron-right' />
+      </span>
+    )}
+  </div>;
+}
+
+/**
  * Render one column item with its own right-click context menu.
  */
 const ColumnsLayoutItem = memo((p: {
@@ -241,7 +305,15 @@ const ColumnsLayoutItem = memo((p: {
   const { openPopOver, popOver } = usePopOver();
   const popOverId = getColumnsLayoutContextMenuId(contextMenuId, column.id, itemKey);
   const active = popOver?.id === popOverId;
-  const { getContextMenuOptions } = column;
+  const { getContextMenuOptions, onClickItem } = column;
+  const selected = column.selectedItemKey != null && String(column.selectedItemKey) === String(itemKey);
+
+  /*
+   * Notify the parent that this item was clicked.
+   */
+  const onClick = useCallback(() => {
+    onClickItem?.(item, index);
+  }, [index, item, onClickItem]);
 
   /*
    * Open the item context menu at the pointer location.
@@ -271,10 +343,18 @@ const ColumnsLayoutItem = memo((p: {
   }, [getContextMenuOptions, index, item, openPopOver, popOverId]);
 
   return <div
-    className={cn('w_f', active && 'bg_alt', column.itemClassName)}
+    className={cn('w_f', (active || selected) && 'bg_alt', onClickItem && 'bg_alt_hv link', column.itemClassName)}
+    onClick={onClickItem ? onClick : undefined}
     onContextMenu={getContextMenuOptions ? onContextMenu : undefined}
   >
-    {column.renderItem(item, index)}
+    {column.renderItem
+      ? column.renderItem(item, index)
+      : <ColumnsLayoutItemContent
+        iconName={column.getItemIconName?.(item, index)}
+        isFolder={column.getItemIsFolder?.(item, index)}
+        subtitle={column.getItemSubtitle?.(item, index)}
+        title={column.getItemTitle?.(item, index) || ''}
+      />}
   </div>;
 });
 
@@ -420,7 +500,7 @@ function ColumnsLayout(p: ColumnsLayoutProps) {
 
   return <AppContentArea className={cn('hide_y', className)}>
     <div id={domId} className='h_left h_f'>
-      {columns.map((column) => {
+      {getColumnsLayoutColumnList(columns).map((column) => {
         const width = columnWidths[column.id] ?? column.initialWidth ?? COLUMNS_LAYOUT_DEFAULT_COLUMN_WIDTH;
 
         return <Fragment key={column.id}>
