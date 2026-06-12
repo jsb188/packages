@@ -217,6 +217,7 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
       cellKey
       direction
     }
+    includeRowIds
   }
 
   columns {
@@ -238,17 +239,7 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
 
 export const sheetViewFragment = `fragment sheetViewFragment on SheetView {
   id
-
-  viewport {
-    startRowIndex
-    startColumnIndex
-    rowCount
-    columnCount
-  }
-
-  rows {
-    rowIndex
-  }
+  cellsRevision
 
   pageInfo {
     hasMoreRows

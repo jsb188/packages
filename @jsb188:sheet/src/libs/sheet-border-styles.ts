@@ -128,18 +128,26 @@ function sheetBorderStyleSelectionHasNeighbor(params: {
 	));
 }
 
+export type SheetBorderSideNeighbors = {
+	bottom: boolean;
+	left: boolean;
+	right: boolean;
+	top: boolean;
+};
+
 /*
- * Return the border sides one preset should enable for one selected cell.
+ * Return the border sides one preset should enable for a cell with the given
+ * in-selection neighbors. Whole-line formatting computes a uniform interior
+ * delta from synthetic neighbors instead of walking every selected cell.
  */
-function getSheetBorderPresetSidesForCell(
+export function getSheetBorderPresetSidesForNeighbors(
 	preset: SheetBorderStylePresetValue,
-	cell: SheetBorderStyleCellCoord,
-	selectedCellCoordKeys: Set<string>,
+	neighbors: SheetBorderSideNeighbors,
 ) {
-	const hasTopNeighbor = sheetBorderStyleSelectionHasNeighbor({ cell, columnOffset: 0, rowOffset: -1, selectedCellCoordKeys });
-	const hasRightNeighbor = sheetBorderStyleSelectionHasNeighbor({ cell, columnOffset: 1, rowOffset: 0, selectedCellCoordKeys });
-	const hasBottomNeighbor = sheetBorderStyleSelectionHasNeighbor({ cell, columnOffset: 0, rowOffset: 1, selectedCellCoordKeys });
-	const hasLeftNeighbor = sheetBorderStyleSelectionHasNeighbor({ cell, columnOffset: -1, rowOffset: 0, selectedCellCoordKeys });
+	const hasTopNeighbor = neighbors.top;
+	const hasRightNeighbor = neighbors.right;
+	const hasBottomNeighbor = neighbors.bottom;
+	const hasLeftNeighbor = neighbors.left;
 	const sides: SheetBorderSideName[] = [];
 
 	switch (preset) {
@@ -211,6 +219,22 @@ function getSheetBorderPresetSidesForCell(
 }
 
 /*
+ * Return the border sides one preset should enable for one selected cell.
+ */
+function getSheetBorderPresetSidesForCell(
+	preset: SheetBorderStylePresetValue,
+	cell: SheetBorderStyleCellCoord,
+	selectedCellCoordKeys: Set<string>,
+) {
+	return getSheetBorderPresetSidesForNeighbors(preset, {
+		bottom: sheetBorderStyleSelectionHasNeighbor({ cell, columnOffset: 0, rowOffset: 1, selectedCellCoordKeys }),
+		left: sheetBorderStyleSelectionHasNeighbor({ cell, columnOffset: -1, rowOffset: 0, selectedCellCoordKeys }),
+		right: sheetBorderStyleSelectionHasNeighbor({ cell, columnOffset: 1, rowOffset: 0, selectedCellCoordKeys }),
+		top: sheetBorderStyleSelectionHasNeighbor({ cell, columnOffset: 0, rowOffset: -1, selectedCellCoordKeys }),
+	});
+}
+
+/*
  * Apply one border placement preset to one selected Sheet cell style.
  */
 export function applySheetBorderPresetStyleToCell(params: {
@@ -226,6 +250,57 @@ export function applySheetBorderPresetStyleToCell(params: {
 
 	getSheetBorderPresetSidesForCell(params.preset, params.cell, params.selectedCellCoordKeys)
 		.forEach((side) => setSheetCellBorderSideStyle(params.style, side));
+}
+
+/*
+ * Return the style delta one border preset writes for a cell with the given
+ * in-selection neighbors: enabled sides get default width/style values, and
+ * outlineNone nulls every border key so merges remove them.
+ */
+export function getSheetBorderPresetStyleDeltaForNeighbors(
+	preset: SheetBorderStylePresetValue,
+	neighbors: SheetBorderSideNeighbors,
+) {
+	const delta: Record<string, unknown> = {};
+
+	if (preset === SHEET_BORDER_STYLE_PRESETS.outlineNone) {
+		SHEET_BORDER_SIDE_NAMES.forEach((side) => {
+			delta[getSheetCellBorderSideWidthKey(side)] = null;
+			delta[getSheetCellBorderSideColorKey(side)] = null;
+			delta[getSheetCellBorderSideStyleKey(side)] = null;
+		});
+
+		return delta;
+	}
+
+	getSheetBorderPresetSidesForNeighbors(preset, neighbors).forEach((side) => {
+		delta[getSheetCellBorderSideWidthKey(side)] = SHEET_BORDER_DEFAULT_WIDTH;
+		delta[getSheetCellBorderSideStyleKey(side)] = SHEET_BORDER_DEFAULT_STYLE;
+		delta[getSheetCellBorderSideColorKey(side)] = null;
+	});
+
+	return delta;
+}
+
+/*
+ * Return the color delta that paints every border side enabled in one saved
+ * line style; null when the style has no enabled sides.
+ */
+export function getSheetBorderColorStyleDelta(style: Record<string, unknown>, color: string) {
+	const normalizedColor = color.trim();
+	const delta: Record<string, unknown> = {};
+	let applied = false;
+
+	SHEET_BORDER_SIDE_NAMES.forEach((side) => {
+		if (!sheetCellStyleHasBorderSide(style, side)) {
+			return;
+		}
+
+		applied = true;
+		delta[getSheetCellBorderSideColorKey(side)] = normalizedColor || null;
+	});
+
+	return applied ? delta : null;
 }
 
 /*

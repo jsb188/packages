@@ -1,7 +1,6 @@
 import type { UseMutationParams } from '@jsb188/graphql/types.d';
 import { OpenModalPopUpFn } from '@jsb188/react/states';
 import {
-	clearSheetCellMtn,
 	createSheetMtn,
 	deleteSheetMtn,
 	deleteSheetRangeMtn,
@@ -92,27 +91,6 @@ export function useEditSheetCells(params: UseMutationParams = {}, openModalPopUp
 
 	return {
 		editSheetCells,
-		updateObservers,
-		...mtnValues,
-		...mtnHandlers,
-	};
-}
-
-/*
- * Clear one sheet cell.
- */
-
-export function useClearSheetCell(params: UseMutationParams = {}, openModalPopUp?: OpenModalPopUpFn) {
-	const [clearSheetCell, mtnValues, mtnHandlers, updateObservers] = useMutation(
-		clearSheetCellMtn,
-		{
-			openModalPopUp,
-			...params,
-		},
-	);
-
-	return {
-		clearSheetCell,
 		updateObservers,
 		...mtnValues,
 		...mtnHandlers,

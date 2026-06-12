@@ -1,5 +1,5 @@
 import i18n from '@jsb188/app/i18n/index.ts';
-import type { SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { SheetCellValueTypeEnum, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
 import { SHEET_CELL_STYLE_MAX_FONT_SIZE, normalizeSheetCellFontSize } from '@jsb188/mday/utils/sheet.ts';
 import type { POListIfaceItem } from '@jsb188/react/types/PopOver.d';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
@@ -18,6 +18,7 @@ const SHEET_CONTEXT_MENU_ACTIONS = {
 	deleteColumn: 'DELETE_COLUMN',
 	deleteRow: 'DELETE_ROW',
 	editCell: 'EDIT_CELL',
+	editDisplayRules: 'EDIT_DISPLAY_RULES',
 	formatValue: 'FORMAT_VALUE',
 	insertColumnLeft: 'INSERT_COLUMN_LEFT',
 	insertRowAbove: 'INSERT_ROW_ABOVE',
@@ -97,11 +98,14 @@ export type SheetContextMenuTarget = {
 	strikethrough?: boolean | null;
 	textColor?: string | null;
 	underline?: boolean | null;
+	/* Detected value type of the target cell (server typed columns or client text classification) */
+	valueType?: SheetCellValueTypeEnum | null;
 };
 
 type UseSheetContextMenuParams = {
 	onEditCell: (target: SheetContextMenuTarget) => void;
 	onCustomizeCells?: (target: SheetContextMenuTarget, formatName: SheetContextMenuFormatName) => void;
+	onEditDisplayRules?: (target: SheetContextMenuTarget) => void;
 	onEditStructure?: (target: SheetContextMenuTarget, action: SheetContextMenuStructureAction) => void;
 	onFormatCells: (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => void;
 	onMergeCells?: (target: SheetContextMenuTarget, mode: SheetContextMenuMergeMode) => void;
@@ -183,6 +187,24 @@ function getSheetContextMenuFormatOptions(target: SheetContextMenuTarget, params
 }
 
 /*
+ * Return the user-facing label for one detected Sheet cell value type.
+ */
+export function getSheetCellValueTypeLabel(valueType?: SheetCellValueTypeEnum | null) {
+	switch (valueType) {
+		case 'CELL_INT':
+			return i18n.t('sheet.cell_value_type_int');
+		case 'CELL_FLOAT':
+			return i18n.t('sheet.cell_value_type_float');
+		case 'CELL_DATE':
+			return i18n.t('sheet.cell_value_type_date');
+		case 'CELL_BOOLEAN':
+			return i18n.t('sheet.cell_value_type_boolean');
+		default:
+			return i18n.t('sheet.cell_value_type_text');
+	}
+}
+
+/*
  * Build the text-format submenu options for one Sheet context-menu target.
  */
 function getSheetContextMenuTextFormatOptions(target: SheetContextMenuTarget): POListIfaceItem[] {
@@ -214,6 +236,29 @@ function getSheetContextMenuTextFormatOptions(target: SheetContextMenuTarget): P
 			strikethrough: SHEET_CONTEXT_MENU_FORMAT_NAMES.strikethrough,
 			underline: SHEET_CONTEXT_MENU_FORMAT_NAMES.underline,
 		},
+	}, {
+		__type: 'BREAK',
+	}, {
+		// Value formatting builds on the detected type; the submenu surfaces
+		// what type the target cell's value classified as, plus the rule editor
+		__type: 'LIST_SUBMENU_ITEM',
+		iconName: COMMON_ICON_NAMES.format_selected_cells,
+		submenu: {
+			className: 'min_w_180',
+			options: [{
+				__type: 'LIST_ITEM',
+				disabled: true,
+				text: getSheetCellValueTypeLabel(target.valueType),
+				value: SHEET_CONTEXT_MENU_ACTIONS.formatValue,
+			}, {
+				__type: 'LIST_ITEM',
+				iconName: COMMON_ICON_NAMES.format_selected_cells,
+				text: i18n.t('sheet.display_rules'),
+				value: SHEET_CONTEXT_MENU_ACTIONS.editDisplayRules,
+			}],
+		},
+		text: i18n.t('sheet.format_cell_value'),
+		value: true,
 	}];
 }
 
@@ -430,6 +475,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 	const {
 		onEditCell,
 		onCustomizeCells,
+		onEditDisplayRules,
 		onEditStructure,
 		onFormatCells,
 		onMergeCells,
@@ -576,6 +622,12 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 				}
 				closePopOver();
 				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.editDisplayRules:
+				if (canFormatSheetContextMenuTarget(target)) {
+					onEditDisplayRules?.(target);
+				}
+				closePopOver();
+				break;
 			case SHEET_CONTEXT_MENU_ACTIONS.formatValue:
 				closePopOver();
 				break;
@@ -611,7 +663,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 				break;
 			default:
 		}
-	}, [activeTargetRef, closePopOver, onEditCell, onEditStructure, onFormatCells, onMergeCells, onOpenDataTable, onPasteCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, onUnmergeCells, popOver?.globalState, readClipboardText]);
+	}, [activeTargetRef, closePopOver, onEditCell, onEditDisplayRules, onEditStructure, onFormatCells, onMergeCells, onOpenDataTable, onPasteCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, onUnmergeCells, popOver?.globalState, readClipboardText]);
 
 	return {
 		closeSheetContextMenu,

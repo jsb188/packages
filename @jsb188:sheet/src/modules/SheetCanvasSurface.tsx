@@ -3479,7 +3479,16 @@ function drawSheetCanvasMergedCells(params: {
 
 	ctx.save();
 	ctx.beginPath();
-	ctx.rect(params.bodyClipRect.left, params.bodyClipRect.top, params.bodyClipRect.width, params.bodyClipRect.height);
+	// Inset the clip past the header/row-number divider lines: the grid color
+	// is translucent, so repainting those shared pixels with the merge fill
+	// underneath would tint them cell-colored and make a merged cell touching
+	// the top or left edge read one pixel taller/wider than regular cells
+	ctx.rect(
+		params.bodyClipRect.left + SHEET_CANVAS_GRID_LINE_WIDTH,
+		params.bodyClipRect.top + SHEET_CANVAS_GRID_LINE_WIDTH,
+		Math.max(0, params.bodyClipRect.width - SHEET_CANVAS_GRID_LINE_WIDTH),
+		Math.max(0, params.bodyClipRect.height - SHEET_CANVAS_GRID_LINE_WIDTH),
+	);
 	ctx.clip();
 
 	params.mergedRanges.forEach((merge) => {

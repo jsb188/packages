@@ -1,7 +1,8 @@
-import { normalizeSheetCellStyle, normalizeSheetDesign, mergeSheetJSONObjects, getSheetColumnDesignKey, getSheetRowDesignKey, isSheetCellInRange } from '@jsb188/mday/utils/sheet.ts';
+import { evaluateSheetDisplayRules, normalizeSheetCellFormat, normalizeSheetCellStyle, normalizeSheetDesign, mergeSheetCellFormats, mergeSheetJSONObjects, getSheetColumnDesignKey, getSheetRowDesignKey, isSheetCellInRange } from '@jsb188/mday/utils/sheet.ts';
 import { SHEET_DATA_TABLE_REGION_MAX_ROWS, SHEET_DEFAULT_COLUMN_COUNT } from '@jsb188/mday/constants/sheet.ts';
 import type {
 	SheetAxisDesignObj,
+	SheetCellFormatObj,
 	SheetCellGQL,
 	SheetCellStyleObj,
 	SheetDesignGQL,
@@ -44,6 +45,7 @@ export type SheetCanvasCell = {
 	dataTableDisplay?: DataTableCellDisplayModel | null;
 	displayValue: string;
 	draftValue: string;
+	format: SheetCellFormatObj;
 	formulaLoading: boolean;
 	rowId: string;
 	rowIndex: number;
@@ -368,7 +370,35 @@ export function getSheetCanvasResolvedStyle(params: {
 }
 
 /*
- * Return whether one empty coordinate should still be treated as a formatted cell.
+ * Return the merged presentation format for one sparse or empty sheet cell,
+ * following the same cascade order as styles. Display rules merge per
+ * value-type key: the most specific layer that defines one CELL_* key wins
+ * that key whole.
+ */
+export function getSheetCanvasResolvedFormat(params: {
+	cell?: SheetCellGQL | null;
+	columnIndex: number;
+	design: SheetDesignObj;
+	ranges: SheetRangeGQL[];
+	rowIndex: number;
+}): SheetCellFormatObj {
+	const rowDesign = getSheetCanvasRowDesign(params.design, params.rowIndex);
+	const columnDesign = getSheetCanvasColumnDesign(params.design, params.columnIndex);
+	const matchingRanges = getSheetCanvasMatchingRanges(params.ranges, params.rowIndex, params.columnIndex);
+
+	return mergeSheetCellFormats(
+		normalizeSheetCellFormat(params.design.defaultCellFormat),
+		normalizeSheetCellFormat(columnDesign.format),
+		normalizeSheetCellFormat(rowDesign.format),
+		...matchingRanges.map((range) => normalizeSheetCellFormat(range.format)),
+		normalizeSheetCellFormat(params.cell?.format),
+	);
+}
+
+/*
+ * Return whether one empty coordinate should still be treated as a formatted
+ * cell. Display rules count as formatting so empty cells covered by line or
+ * range rules stay in the canvas lookup and can render their else text.
  */
 export function isSheetCanvasFormattedEmptyCell(params: {
 	cell?: SheetCellGQL | null;
@@ -377,13 +407,15 @@ export function isSheetCanvasFormattedEmptyCell(params: {
 	ranges: SheetRangeGQL[];
 	rowIndex: number;
 }) {
-	return sheetCanvasStyleHasContent(getSheetCanvasResolvedStyle(params));
+	return sheetCanvasStyleHasContent(getSheetCanvasResolvedStyle(params)) ||
+		Boolean(getSheetCanvasResolvedFormat(params).displayRules);
 }
 
 /*
- * Return a user-facing display string for a sparse sheet cell.
+ * Return the raw user-facing display string for a sparse sheet cell, before
+ * any display rules rewrite it.
  */
-export function getSheetCanvasCellDisplayValue(cell?: SheetCellGQL | null) {
+function getSheetCanvasCellRawDisplayValue(cell?: SheetCellGQL | null) {
 	if (!cell) {
 		return '';
 	}
@@ -420,6 +452,30 @@ export function getSheetCanvasCellDisplayValue(cell?: SheetCellGQL | null) {
 }
 
 /*
+ * Return a user-facing display string for a sparse sheet cell. A resolved
+ * format's display rules can rewrite the rendered text (including else text on
+ * empty cells); raw and typed values stay untouched for editing, sorting, and
+ * formulas. Callers without a resolved format always get the raw display.
+ */
+export function getSheetCanvasCellDisplayValue(cell?: SheetCellGQL | null, resolvedFormat?: SheetCellFormatObj | null) {
+	const rawDisplayValue = getSheetCanvasCellRawDisplayValue(cell);
+
+	if (resolvedFormat?.displayRules) {
+		const ruledValue = evaluateSheetDisplayRules({
+			cell,
+			displayRules: resolvedFormat.displayRules,
+			rawDisplayValue,
+		});
+
+		if (ruledValue !== null) {
+			return ruledValue;
+		}
+	}
+
+	return rawDisplayValue;
+}
+
+/*
  * Return the editable draft string for one sheet cell.
  */
 export function getSheetCanvasCellDraftValue(cell?: SheetCellGQL | null) {
@@ -446,12 +502,15 @@ export function getSheetCanvasCell(params: {
 	rowId: string;
 	rowIndex: number;
 }): SheetCanvasCell {
+	const format = getSheetCanvasResolvedFormat(params);
+
 	return {
 		cell: params.cell || null,
 		cellKey: params.cellKey,
 		columnIndex: params.columnIndex,
-		displayValue: getSheetCanvasCellDisplayValue(params.cell),
+		displayValue: getSheetCanvasCellDisplayValue(params.cell, format),
 		draftValue: getSheetCanvasCellDraftValue(params.cell),
+		format,
 		formulaLoading: Boolean((params.cell as SheetCellGQL & { __formulaLoading?: boolean } | null | undefined)?.__formulaLoading),
 		rowId: params.rowId,
 		rowIndex: params.rowIndex,

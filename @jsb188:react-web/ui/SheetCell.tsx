@@ -12,6 +12,7 @@ import type {
 	SheetUIEditState,
 	SheetUICellRenderStore,
 	SheetUIHeaderEditState,
+	SheetUIRowCheckboxes,
 	SheetUIRowSlot,
 	SheetUISelectedCellKeyMap,
 	SheetUISelectedCellState,
@@ -892,6 +893,7 @@ SheetStickyColumnSpacerSlot.displayName = 'SheetStickyColumnSpacerSlot';
  */
 
 export const SheetRowNumberCell = memo((p: {
+	checkboxChecked?: boolean | null;
 	deleted?: boolean;
 	isPlaceholderRow?: boolean;
 	rowContentHeight?: number;
@@ -902,6 +904,7 @@ export const SheetRowNumberCell = memo((p: {
 	rowResizeEnabled?: boolean;
 }) => {
 	const rowContentHeight = p.rowContentHeight ?? p.rowHeight ?? SHEET_ROW_HEIGHT;
+	const showCheckbox = typeof p.checkboxChecked === 'boolean' && !!p.rowId;
 
 	return <div
 		className={cn(
@@ -925,10 +928,26 @@ export const SheetRowNumberCell = memo((p: {
 				height: rowContentHeight,
 			}}
 		>
-			{p.rowNumber ?? null}
+			{showCheckbox
+				? <input
+					checked={Boolean(p.checkboxChecked)}
+					data-row-id={p.rowId || undefined}
+					data-sheet-row-checkbox='true'
+					onChange={() => {}}
+					onClick={(event) => {
+						event.stopPropagation();
+					}}
+					onPointerDown={(event) => {
+						event.stopPropagation();
+					}}
+					readOnly
+					type='checkbox'
+				/>
+				: p.rowNumber ?? null}
 		</span>
 	</div>;
 	}, (prev, next) => (
+		prev.checkboxChecked === next.checkboxChecked &&
 		prev.deleted === next.deleted &&
 		prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.rowContentHeight === next.rowContentHeight &&
@@ -988,6 +1007,7 @@ SheetRowResizeHandle.displayName = 'SheetRowResizeHandle';
  */
 
 export const SheetRowNumberSlot = memo((p: {
+	checkboxChecked?: boolean | null;
 	deleted?: boolean;
 	isPlaceholderRow?: boolean;
 	rowId?: string | null;
@@ -1011,6 +1031,7 @@ export const SheetRowNumberSlot = memo((p: {
 		}}
 	>
 		<SheetRowNumberCell
+			checkboxChecked={p.checkboxChecked}
 			deleted={p.deleted}
 			isPlaceholderRow={p.isPlaceholderRow}
 			rowContentHeight={rowHeight}
@@ -1032,6 +1053,7 @@ export const SheetRowNumberSlot = memo((p: {
 			: null}
 	</div>;
 	}, (prev, next) => (
+		prev.checkboxChecked === next.checkboxChecked &&
 		prev.deleted === next.deleted &&
 		prev.isPlaceholderRow === next.isPlaceholderRow &&
 	prev.rowId === next.rowId &&
@@ -1050,9 +1072,26 @@ SheetRowNumberSlot.displayName = 'SheetRowNumberSlot';
  */
 
 export const SheetTopLeftRowNumberSlot = memo((p: {
+	rowCheckboxes?: SheetUIRowCheckboxes | null;
 	rowWidth: number;
 }) => {
 	const rowHeight = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE;
+
+	const checkboxContent = p.rowCheckboxes
+		? <input
+			checked={p.rowCheckboxes.headerChecked}
+			data-sheet-row-checkbox-header='true'
+			onChange={() => {}}
+			onClick={(event) => {
+				event.stopPropagation();
+			}}
+			onPointerDown={(event) => {
+				event.stopPropagation();
+			}}
+			readOnly
+			type='checkbox'
+		/>
+		: null;
 
 	return <div
 		className='abs noclick'
@@ -1069,21 +1108,36 @@ export const SheetTopLeftRowNumberSlot = memo((p: {
 		<div
 			className={cn(
 				'sheet_ui_row_number of abs sticky h_center ft_xs cl_md no_sel z2',
-				'',
+				checkboxContent ? 'bd_r_1 bd_b_1 bd_lt' : '',
 				STICKY_CELL_BG_CSS,
 			)}
 			data-sheet-top-left-corner-cell='true'
 			style={{
 				height: rowHeight,
 				left: 0,
+				// The slot wrapper is click-through; re-enable clicks for the corner checkbox
+				pointerEvents: checkboxContent ? 'auto' : undefined,
 				position: 'sticky',
 				top: 0,
 				width: SHEET_ROW_NUMBER_WIDTH,
 				zIndex: SHEET_STICKY_CORNER_Z_INDEX,
 			}}
-		/>
+		>
+			{checkboxContent && p.rowCheckboxes?.headerTooltipMessage
+				? <TooltipButton
+					as='div'
+					className='h_center w_f h_f'
+					message={p.rowCheckboxes.headerTooltipMessage}
+					position='top'
+				>
+					{checkboxContent}
+				</TooltipButton>
+				: checkboxContent}
+		</div>
 	</div>;
 }, (prev, next) => (
+	prev.rowCheckboxes?.headerChecked === next.rowCheckboxes?.headerChecked &&
+	prev.rowCheckboxes?.headerTooltipMessage === next.rowCheckboxes?.headerTooltipMessage &&
 	prev.rowWidth === next.rowWidth
 ));
 

@@ -478,6 +478,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 		confirmedCellsByCoord,
 		loading: sheetViewLoading,
 		ranges: sheetViewRanges,
+		recordCellsRevision,
 		regions: sheetViewRegions,
 		setConfirmedCellsByCoord,
 		sheetView,
@@ -845,6 +846,9 @@ function SheetDataContent(p: SheetDataContentProps) {
 		baseCellsByCoord: gridCellsByCoord,
 		designCellsByDataTableId,
 		editSheetCells,
+		// The mutation response carries the post-save cells revision; recording
+		// it keeps this client's own (or a dropped) echo from reading as a gap
+		onCellsRevision: recordCellsRevision,
 		onCycleCells: handleCycleCells,
 		onPendingCoordsCleared: (coordKeys) => pendingCoordsClearedHandlerRef.current(coordKeys),
 		onSaveDataTableCells: saveDataTableCells,

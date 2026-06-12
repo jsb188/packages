@@ -6,12 +6,20 @@ import {
 } from '@jsb188/mday/constants/sheet.ts';
 import { sheetMergedRangesIntersect, addSheetMergedRange, getSheetMergedRangeAtCell, getSheetMergedRanges, isSheetCellInMergedRange, isSheetMergedRangeAnchor, removeSheetMergedRangesIntersecting,
 	getSheetAutofillValues,
+	getSheetCellValueType,
+	getSheetCellValueTypeForDataTableFieldType,
 	getSheetChildOrganizationSourceOrgId,
+	getSheetColumnDesignKey,
 	getSheetRegionSourceDataTableRoute,
 	getSheetRegionSourceId,
+	getSheetRowDesignKey,
 	isSheetGeneratedRegionSource,
+	mergeSheetAxisDesignLineFormats,
+	mergeSheetAxisDesignLineStyles,
 	normalizeSheetCellFontSize,
+	normalizeSheetCellFormat,
 	normalizeSheetCellStyle,
+	sheetCellFormatHasDisplayRules,
 	shiftSheetFormulaReferences,
 	type SheetAutofillCell,
 } from '@jsb188/mday/utils/sheet.ts';
@@ -22,8 +30,13 @@ import type {
 } from '@jsb188/mday/types/dataTable.d.ts';
 import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
 import type { SheetMergedRangeObj,
+  SheetAxisDesignObj,
+  SheetCellFormatObj,
   SheetCellGQL,
+  SheetCellValueTypeEnum,
   SheetDesignObj,
+  SheetDisplayRulesForTypeObj,
+  SheetDisplayRulesObj,
   SheetRangeGQL,
   SheetRegionGQL,
   SheetStructureOperationEnum,
@@ -58,6 +71,7 @@ import { useAtom, useAtomValue } from 'jotai';
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
 import { SheetCanvasSurface } from './SheetCanvasSurface.tsx';
 import { SheetColorPicker } from './SheetColorPicker.tsx';
+import { SheetDisplayRulesEditor } from './SheetDisplayRulesEditor.tsx';
 import { SheetEditorOverlay, type SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
 import { SheetFormulaInput } from './SheetFormulaInput.tsx';
 import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuFormatName, type SheetContextMenuMergeMode, type SheetContextMenuStructureAction, type SheetContextMenuTarget } from '../libs/SheetContextMenu.tsx';
@@ -81,15 +95,19 @@ import {
 	getSheetEventElementTarget,
 	isSheetColorPickerEventTarget,
 	isSheetContextMenuOverlayEventTarget,
+	isSheetDisplayRulesEditorEventTarget,
 	SHEET_GRID_EDITOR_SELECTOR,
 	SHEET_TEXT_EDITOR_SELECTOR,
 } from '../libs/sheet-overlay-targets.ts';
 import {
 	applySheetBorderColorToEnabledSides,
 	applySheetBorderPresetStyleToCell,
+	getSheetBorderColorStyleDelta,
+	getSheetBorderPresetStyleDeltaForNeighbors,
 	getSheetBorderStyleCellCoords,
 	isSheetBorderStylePresetValue,
 	type SheetBorderStyleCellCoord,
+	type SheetBorderStylePresetValue,
 } from '../libs/sheet-border-styles.ts';
 import { getSheetCellTextRequiredRowHeight } from '../libs/sheet-text-measure.ts';
 import {
@@ -107,6 +125,7 @@ import {
 	type SheetCellHistoryChange,
 	type SheetDataTableCellEditTarget,
 	type SheetDataTableCellHistoryChange,
+	type SheetDesignHistoryChange,
 	type SheetDesignPatchInput,
 	type SheetRegionHistoryChange,
 	type SheetUndoRedoEntry,
@@ -159,14 +178,17 @@ import {
   getSheetCanvasCellDisplayValue,
   getSheetCanvasCellDraftValue,
   getSheetCanvasColumnBufferCount,
+  getSheetCanvasColumnDesign,
   getSheetCanvasColumnIndexFromKey,
   getSheetCanvasColumns,
   getSheetCanvasColumnWidths,
   getSheetCanvasCoordKey,
   getSheetCanvasInitialRowCount,
   getSheetCanvasRowBufferCount,
+  getSheetCanvasRowDesign,
   getSheetCanvasRowHeights,
   getSheetCanvasRowIndexFromId,
+  getSheetCanvasResolvedFormat,
   getSheetCanvasRowKeys,
   getSheetCanvasStyleColor,
   getSheetCanvasStyleFontSize,
@@ -402,6 +424,57 @@ type SheetColorPickerState = {
 	formatName: SheetContextMenuFormatName;
 	target: SheetContextMenuTarget;
 };
+
+type SheetDisplayRulesEditorState = {
+	target: SheetContextMenuTarget;
+};
+
+/*
+ * Return the format object safe to persist at cell level for one coordinate.
+ * Served cells carry a server-pre-merged format (design and range layers
+ * folded in), so display-rule type keys that byte-match the design-only
+ * resolution drop out — otherwise saving a cell rule would also bake the
+ * inherited column/row rules into the cell as permanent cell-level rules.
+ */
+function getSheetCellOwnedDisplayRulesFormat(params: {
+	cell?: SheetCellGQL | null;
+	columnIndex: number;
+	design: SheetDesignObj;
+	ranges: SheetRangeGQL[];
+	rowIndex: number;
+}): SheetCellFormatObj {
+	const format = normalizeSheetCellFormat(params.cell?.format);
+	const displayRules: SheetDisplayRulesObj = { ...(format.displayRules || {}) };
+
+	if (!Object.keys(displayRules).length) {
+		return format;
+	}
+
+	const inheritedRules = getSheetCanvasResolvedFormat({
+		...params,
+		cell: null,
+	}).displayRules || {};
+
+	(Object.keys(displayRules) as SheetCellValueTypeEnum[]).forEach((typeKey) => {
+		if (
+			inheritedRules[typeKey] &&
+			JSON.stringify(displayRules[typeKey]) === JSON.stringify(inheritedRules[typeKey])
+		) {
+			delete displayRules[typeKey];
+		}
+	});
+
+	if (Object.keys(displayRules).length) {
+		return {
+			...format,
+			displayRules,
+		};
+	}
+
+	const { displayRules: _droppedRules, ...formatWithoutRules } = format;
+
+	return formatWithoutRules;
+}
 
 type SheetCanvasFillDragState = {
 	pointerId: number;
@@ -1817,6 +1890,8 @@ function getSheetCanvasContextMenuTarget(params: {
 	canRemoveCellsFromDataTable: boolean;
 	cell: SheetCanvasHitCell;
 	cellLookup: Map<string, SheetCanvasCell>;
+	/* Region cells derive their value type from the DataTable column field type */
+	designCellsByDataTableId?: Map<string, Map<string, { fieldType?: string | null }>> | null;
 	disabled?: boolean;
 	effectiveCellsByCoord: Map<string, SheetCellGQL>;
 	mergedRanges?: SheetMergedRangeObj[] | null;
@@ -1917,7 +1992,42 @@ function getSheetCanvasContextMenuTarget(params: {
 		strikethrough: typeof targetCell?.style?.strikethrough === 'boolean' ? targetCell.style.strikethrough : null,
 		textColor: targetCell?.style ? getSheetCanvasStyleColor(targetCell.style, 'textColor') : null,
 		underline: typeof targetCell?.style?.underline === 'boolean' ? targetCell.style.underline : null,
+		valueType: getSheetContextMenuTargetValueType({
+			dataTableRegion,
+			designCellsByDataTableId: params.designCellsByDataTableId,
+			displayValue: targetCell?.displayValue,
+			effectiveCell: rowIndex && columnIndex
+				? params.effectiveCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex))
+				: null,
+		}),
 	} satisfies SheetContextMenuTarget;
+}
+
+/*
+ * Return the detected value type for one context-menu target cell. Cells
+ * inside a DataTable region type by their column's field type (refined to a
+ * whole number when the stored numeric value is one); plain cells classify
+ * by their stored typed columns or display text.
+ */
+function getSheetContextMenuTargetValueType(params: {
+	dataTableRegion?: SheetRegionGQL | null;
+	designCellsByDataTableId?: Map<string, Map<string, { fieldType?: string | null }>> | null;
+	displayValue?: string | null;
+	effectiveCell?: SheetCellGQL | null;
+}) {
+	const { dataTableRegion, designCellsByDataTableId, displayValue, effectiveCell } = params;
+	const regionFieldType = dataTableRegion && effectiveCell?.sourceCellKey
+		? designCellsByDataTableId
+			?.get(String(dataTableRegion.source?.dataTableId || ''))
+			?.get(String(effectiveCell.sourceCellKey))?.fieldType
+		: null;
+	const fieldValueType = getSheetCellValueTypeForDataTableFieldType(regionFieldType);
+
+	if (fieldValueType === 'CELL_FLOAT' && effectiveCell?.numberValue !== null && effectiveCell?.numberValue !== undefined) {
+		return Number.isInteger(Number(effectiveCell.numberValue)) ? 'CELL_INT' : 'CELL_FLOAT';
+	}
+
+	return fieldValueType || getSheetCellValueType(effectiveCell, displayValue);
 }
 
 /*
@@ -1926,6 +2036,7 @@ function getSheetCanvasContextMenuTarget(params: {
 function getSheetKeyboardFormatTarget(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	columnMetricsByKey: Map<string, SheetColumnMetric>;
+	designCellsByDataTableId?: Map<string, Map<string, { fieldType?: string | null }>> | null;
 	disabled?: boolean;
 	effectiveCellsByCoord: Map<string, SheetCellGQL>;
 	regions?: SheetRegionGQL[] | null;
@@ -1958,12 +2069,51 @@ function getSheetKeyboardFormatTarget(params: {
 			rowMetric,
 		},
 		cellLookup: params.cellLookup,
+		designCellsByDataTableId: params.designCellsByDataTableId,
 		disabled: params.disabled,
 		effectiveCellsByCoord: params.effectiveCellsByCoord,
 		regions: params.regions,
 		selectedCellKeyMap: selectedCells.length ? params.selectedCellKeyMap : null,
 		selectedCellState: params.selectedCellState,
 	});
+}
+
+/*
+ * Return the whole-column/row format target when the formatted cells cover
+ * entire selected header lines. Whole-line formatting persists as ONE sheet
+ * design patch (line styles merge under per-cell styles at paint time) instead
+ * of one cell write per covered coordinate — critical when a data table
+ * region fills the line with thousands of materialized cells.
+ */
+function getSheetFullLineFormatTarget(params: {
+	columnCount: number;
+	headerSelection?: SheetHeaderSelectionState | null;
+	rowCount: number;
+	targetCellCount: number;
+}): { lineIndexes: number[]; type: 'COLUMN' | 'ROW' } | null {
+	const headerSelection = params.headerSelection;
+
+	if (headerSelection?.type === 'COLUMN') {
+		const lineIndexes = headerSelection.cellKeys
+			.map((cellKey) => getSheetCanvasColumnIndexFromKey(cellKey))
+			.filter((index): index is number => Boolean(index));
+
+		return lineIndexes.length && params.targetCellCount === lineIndexes.length * params.rowCount
+			? { lineIndexes, type: 'COLUMN' }
+			: null;
+	}
+
+	if (headerSelection?.type === 'ROW') {
+		const lineIndexes = headerSelection.rowIds
+			.map((rowId) => getSheetCanvasRowIndexFromId(rowId))
+			.filter((index): index is number => Boolean(index));
+
+		return lineIndexes.length && params.targetCellCount === lineIndexes.length * params.columnCount
+			? { lineIndexes, type: 'ROW' }
+			: null;
+	}
+
+	return null;
 }
 
 /*
@@ -2064,6 +2214,13 @@ export function SheetController(p: SheetControllerProps) {
 	}, [pendingCellEdits]);
 	const [localColumnWidths, setLocalColumnWidths] = useAtom(p.stateAtoms.localColumnWidthsAtom);
 	const [localRowHeights, setLocalRowHeights] = useAtom(p.stateAtoms.localRowHeightsAtom);
+	// Optimistic copy of the axis design maps from the latest local design
+	// patch; line styles render instantly while the saved design round-trips
+	// (mirrors the localColumnWidths pattern)
+	const [localAxisDesign, setLocalAxisDesign] = useState<{
+		columns?: Record<string, SheetAxisDesignObj>;
+		rows?: Record<string, SheetAxisDesignObj>;
+	}>({});
 	const [resizeState, setResizeState] = useAtom(p.stateAtoms.resizeStateAtom);
 	const [rowResizeState, setRowResizeState] = useAtom(p.stateAtoms.rowResizeStateAtom);
 	const remoteSelections = p.remoteSelections;
@@ -2072,6 +2229,7 @@ export function SheetController(p: SheetControllerProps) {
 	const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
 	const [formulaInputFocused, setFormulaInputFocused] = useState(false);
 	const [colorPickerState, setColorPickerState] = useState<SheetColorPickerState | null>(null);
+	const [displayRulesEditorState, setDisplayRulesEditorState] = useState<SheetDisplayRulesEditorState | null>(null);
 	const dragSelectionRef = useRef<SheetCanvasDragSelectionState | null>(null);
 	const fillDragStateRef = useRef<SheetCanvasFillDragState | null>(null);
 	const fillDragRangeRef = useRef<SheetMergedRangeObj | null>(null);
@@ -2105,7 +2263,9 @@ export function SheetController(p: SheetControllerProps) {
 
 	const openedDataTableCellPointerDownRef = useRef<SheetUISelectedCellState | null>(null);
 	const colorPickerPointerDownInsideRef = useRef(false);
+	const displayRulesEditorPointerDownInsideRef = useRef(false);
 	const designRef = useRef(p.design);
+	const localAxisDesignRef = useRef(localAxisDesign);
 	const localColumnWidthsRef = useRef(localColumnWidths);
 	const localRowHeightsRef = useRef(localRowHeights);
 	const onUpdateSheetDesignRef = useRef(p.onUpdateSheetDesign);
@@ -2375,6 +2535,20 @@ export function SheetController(p: SheetControllerProps) {
 		return next;
 	}, [effectiveCellsByCoord, p.timeZone]);
 
+	// Style resolution reads the optimistic axis maps so line styles from a
+	// just-applied design patch paint before the saved design round-trips
+	const styleResolutionDesign = useMemo(() => {
+		if (!localAxisDesign.columns && !localAxisDesign.rows) {
+			return p.design;
+		}
+
+		return {
+			...p.design,
+			...(localAxisDesign.columns ? { columns: localAxisDesign.columns } : {}),
+			...(localAxisDesign.rows ? { rows: localAxisDesign.rows } : {}),
+		};
+	}, [localAxisDesign, p.design]);
+
 	const cellLookup = useMemo(() => {
 		const cells = new Map<string, SheetCanvasCell>();
 		const visibleRows = rowMetricsData.metrics.slice(visibleRange.rowStart, visibleRange.rowEnd);
@@ -2396,7 +2570,7 @@ export function SheetController(p: SheetControllerProps) {
 				const hasFormatting = isSheetCanvasFormattedEmptyCell({
 					cell,
 					columnIndex,
-					design: p.design,
+					design: styleResolutionDesign,
 					ranges: p.ranges,
 					rowIndex,
 				});
@@ -2418,7 +2592,7 @@ export function SheetController(p: SheetControllerProps) {
 					cell,
 					cellKey: String(columnIndex),
 					columnIndex,
-					design: p.design,
+					design: styleResolutionDesign,
 					ranges: p.ranges,
 					rowId: rowMetric.rowKey,
 					rowIndex,
@@ -2453,7 +2627,7 @@ export function SheetController(p: SheetControllerProps) {
 		});
 
 		return cells;
-	}, [calculatedCellsByCoord, columnMetricsData.metrics, dataTablesById, designCellsByDataTableId, effectiveCellsByCoord, optimisticDataTableValues, p.design, p.disabled, p.ranges, p.timeZone, regionsById, rowMetricsData.metrics, sourceCellsByTargetKey, visibleRange.columnEnd, visibleRange.columnStart, visibleRange.rowEnd, visibleRange.rowStart]);
+	}, [calculatedCellsByCoord, columnMetricsData.metrics, dataTablesById, designCellsByDataTableId, effectiveCellsByCoord, optimisticDataTableValues, p.disabled, p.ranges, p.timeZone, regionsById, rowMetricsData.metrics, sourceCellsByTargetKey, styleResolutionDesign, visibleRange.columnEnd, visibleRange.columnStart, visibleRange.rowEnd, visibleRange.rowStart]);
 	const columnMetricsByKey = useMemo(() => {
 		return new Map(columnMetricsData.metrics.map((metric) => {
 			const canvasColumn = metric.column as SheetCanvasColumn;
@@ -2506,6 +2680,40 @@ export function SheetController(p: SheetControllerProps) {
 			stickyColumnCount,
 		});
 	}, [colorPickerState, columnMetricsByKey, rowMetricsByKey, scrollState.scrollLeft, scrollState.scrollTop, stickyColumnCount]);
+	const displayRulesEditorPosition = useMemo(() => {
+		if (!displayRulesEditorState) {
+			return null;
+		}
+
+		return getSheetCanvasEditorPosition({
+			columnMetricsByKey,
+			editState: {
+				cellKey: displayRulesEditorState.target.cellKey,
+				draftValue: '',
+				rowId: displayRulesEditorState.target.rowId,
+			},
+			rowMetricsByKey,
+			scrollLeft: scrollState.scrollLeft,
+			scrollTop: scrollState.scrollTop,
+			stickyColumnCount,
+		});
+	}, [displayRulesEditorState, columnMetricsByKey, rowMetricsByKey, scrollState.scrollLeft, scrollState.scrollTop, stickyColumnCount]);
+	/*
+	 * The display rules saved for the editor target's value type, read from the
+	 * resolved cell format (inherited line/range rules included) so the editor
+	 * prefills with exactly what currently paints.
+	 */
+	const displayRulesEditorValue = useMemo(() => {
+		const target = displayRulesEditorState?.target;
+
+		if (!target?.valueType) {
+			return null;
+		}
+
+		const canvasCell = cellLookup.get(getSheetCellKey(target.rowId, target.cellKey));
+
+		return canvasCell?.format.displayRules?.[target.valueType] || null;
+	}, [cellLookup, displayRulesEditorState]);
 	const activeDataTableEditTarget = useMemo(() => {
 		if (!editState) {
 			return null;
@@ -3129,6 +3337,7 @@ export function SheetController(p: SheetControllerProps) {
 		const previousColumnWidths = localColumnWidthsRef.current;
 		const previousRowHeights = localRowHeightsRef.current;
 		const previousMergedRanges = mergedRangesRef.current;
+		const previousAxisDesign = localAxisDesignRef.current;
 
 		if (patch.metadata !== undefined) {
 			// Merged ranges render from the optimistic override until the
@@ -3159,6 +3368,19 @@ export function SheetController(p: SheetControllerProps) {
 			setLocalRowHeights(nextRowHeights);
 		}
 
+		// The full patched axis maps render immediately so whole-line styles
+		// appear before the saved design round-trips
+		if (patch.columns || patch.rows) {
+			const nextAxisDesign = {
+				...previousAxisDesign,
+				...(patch.columns ? { columns: parseSheetJSONObject(patch.columns, {}) as Record<string, SheetAxisDesignObj> } : {}),
+				...(patch.rows ? { rows: parseSheetJSONObject(patch.rows, {}) as Record<string, SheetAxisDesignObj> } : {}),
+			};
+
+			localAxisDesignRef.current = nextAxisDesign;
+			setLocalAxisDesign(nextAxisDesign);
+		}
+
 		try {
 			await p.onUpdateSheetDesign(patch);
 		} catch (error) {
@@ -3170,6 +3392,11 @@ export function SheetController(p: SheetControllerProps) {
 			if (patch.rows) {
 				localRowHeightsRef.current = previousRowHeights;
 				setLocalRowHeights(previousRowHeights);
+			}
+
+			if (patch.columns || patch.rows) {
+				localAxisDesignRef.current = previousAxisDesign;
+				setLocalAxisDesign(previousAxisDesign);
 			}
 
 			if (patch.metadata !== undefined) {
@@ -3665,15 +3892,58 @@ export function SheetController(p: SheetControllerProps) {
 			});
 		});
 
-		if (!sheetCellChanges.length) {
+		// Whole-line selections also drop their saved line styles in the same entry
+		const fullLineTarget = getSheetFullLineFormatTarget({
+			columnCount: runtime.columnMetrics.length,
+			headerSelection,
+			rowCount: runtime.rowIds.length,
+			targetCellCount: selectedCells.length,
+		});
+		let designChange: SheetDesignHistoryChange | null = null;
+
+		if (fullLineTarget) {
+			const vertical = fullLineTarget.type === 'COLUMN';
+			const currentAxis = (vertical ? designRef.current.columns : designRef.current.rows) || {};
+			const lineDeltas = fullLineTarget.lineIndexes
+				.map((lineIndex) => {
+					const key = vertical ? getSheetColumnDesignKey(lineIndex) : getSheetRowDesignKey(lineIndex);
+					const lineStyle = normalizeSheetCellStyle(currentAxis[key]?.style) as Record<string, unknown>;
+					const delta: Record<string, unknown> = {};
+
+					Object.keys(lineStyle).forEach((prop) => {
+						delta[prop] = null;
+					});
+
+					return { delta, key };
+				})
+				.filter((lineDelta) => Object.keys(lineDelta.delta).length);
+
+			if (lineDeltas.length) {
+				const nextAxis = mergeSheetAxisDesignLineStyles(currentAxis, lineDeltas);
+
+				designChange = vertical
+					? { after: { columns: JSON.stringify(nextAxis) }, before: { columns: JSON.stringify(currentAxis) } }
+					: { after: { rows: JSON.stringify(nextAxis) }, before: { rows: JSON.stringify(currentAxis) } };
+			}
+		}
+
+		if (!sheetCellChanges.length && !designChange) {
 			return;
 		}
 
 		pushSheetUndoEntry({
-			sheetCells: sheetCellChanges,
+			...(designChange ? { design: designChange } : {}),
+			...(sheetCellChanges.length ? { sheetCells: sheetCellChanges } : {}),
 		});
-		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
-	}, [applySheetCellInputs, p.disabled, pushSheetUndoEntry, selectedCellKeyMap, selectedCellState]);
+
+		if (sheetCellChanges.length) {
+			await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+		}
+
+		if (designChange) {
+			await applySheetDesignPatch(designChange.after);
+		}
+	}, [applySheetCellInputs, applySheetDesignPatch, headerSelection, p.disabled, pushSheetUndoEntry, selectedCellKeyMap, selectedCellState]);
 
 	/*
 	 * Copy the current selection to the system clipboard as TSV and stash the
@@ -4661,11 +4931,333 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
+		setDisplayRulesEditorState(null);
 		setColorPickerState({
 			formatName,
 			target,
 		});
 	}, []);
+
+	/*
+	 * Open the in-sheet display rules editor for one Sheet context-menu target.
+	 * DataTable region cells are excluded: their typed field renderers own the
+	 * displayed text, so rules would never paint there.
+	 */
+	const handleSheetContextMenuEditDisplayRules = useCallback((target: SheetContextMenuTarget) => {
+		if (!(target.canFormatCells ?? target.canEdit) || target.dataTableRegionId || !target.valueType) {
+			return;
+		}
+
+		setColorPickerState(null);
+		setDisplayRulesEditorState({ target });
+	}, []);
+
+	/*
+	 * Apply one format action to whole selected columns or rows as a single
+	 * design patch: the uniform style delta merges into the saved line styles,
+	 * with per-cell edits only for border boundary cells and cells whose own
+	 * saved style would override the new line style. One updateSheet mutation
+	 * replaces one cell write per covered coordinate, which matters when a
+	 * data table region fills the line with thousands of materialized cells.
+	 */
+	const applySheetFullLineFormat = useCallback(async (params: {
+		borderColor: string | null;
+		borderPreset: SheetBorderStylePresetValue | null;
+		format: SheetContextMenuFormat;
+		lineIndexes: number[];
+		rowHeightDesignChange: SheetDesignHistoryChange | null;
+		type: 'COLUMN' | 'ROW';
+	}) => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime || !params.lineIndexes.length) {
+			return;
+		}
+
+		const vertical = params.type === 'COLUMN';
+		const lineIndexSet = new Set(params.lineIndexes);
+		const crossEnd = vertical ? runtime.rowIds.length : runtime.columnMetrics.length;
+		const lineDeltas: Array<{ delta: Record<string, unknown>; key: string }> = [];
+		const deltasByLineIndex = new Map<number, Record<string, unknown>>();
+
+		params.lineIndexes.forEach((lineIndex) => {
+			let delta: Record<string, unknown>;
+
+			if (params.borderPreset) {
+				// Interior cells always have along-axis neighbors; cross-axis
+				// neighbors depend on the adjacent line being selected too
+				delta = getSheetBorderPresetStyleDeltaForNeighbors(params.borderPreset, vertical
+					? { bottom: true, left: lineIndexSet.has(lineIndex - 1), right: lineIndexSet.has(lineIndex + 1), top: true }
+					: { bottom: lineIndexSet.has(lineIndex + 1), left: true, right: true, top: lineIndexSet.has(lineIndex - 1) });
+			} else if (params.borderColor !== null) {
+				const lineDesign = vertical
+					? getSheetCanvasColumnDesign(designRef.current, lineIndex)
+					: getSheetCanvasRowDesign(designRef.current, lineIndex);
+
+				delta = getSheetBorderColorStyleDelta({ ...normalizeSheetCellStyle(lineDesign.style) }, params.borderColor) || {};
+			} else {
+				delta = { [String(params.format.name)]: params.format.value ?? null };
+			}
+
+			deltasByLineIndex.set(lineIndex, delta);
+			lineDeltas.push({
+				delta,
+				key: vertical ? getSheetColumnDesignKey(lineIndex) : getSheetRowDesignKey(lineIndex),
+			});
+		});
+
+		// Border presets enable extra sides on the first and last cross-axis
+		// cells (e.g. the top border of an outline); those few cells carry the
+		// extra sides as per-cell styles layered over the line style
+		const boundaryExtrasByCoordKey = new Map<string, Record<string, unknown>>();
+
+		if (params.borderPreset && params.borderPreset !== 'outlineNone' && crossEnd > 0) {
+			const boundaryCrossIndexes = crossEnd > 1 ? [1, crossEnd] : [1];
+
+			boundaryCrossIndexes.forEach((crossIndex) => {
+				params.lineIndexes.forEach((lineIndex) => {
+					const uniformDelta = deltasByLineIndex.get(lineIndex) || {};
+					const cellDelta = getSheetBorderPresetStyleDeltaForNeighbors(params.borderPreset!, vertical
+						? { bottom: crossIndex < crossEnd, left: lineIndexSet.has(lineIndex - 1), right: lineIndexSet.has(lineIndex + 1), top: crossIndex > 1 }
+						: { bottom: lineIndexSet.has(lineIndex + 1), left: crossIndex > 1, right: crossIndex < crossEnd, top: lineIndexSet.has(lineIndex - 1) });
+					const extraProps: Record<string, unknown> = {};
+
+					Object.entries(cellDelta).forEach(([prop, value]) => {
+						if (value !== null && value !== undefined && (uniformDelta[prop] === null || uniformDelta[prop] === undefined)) {
+							extraProps[prop] = value;
+						}
+					});
+
+					if (Object.keys(extraProps).length) {
+						const rowIndex = vertical ? crossIndex : lineIndex;
+						const columnIndex = vertical ? lineIndex : crossIndex;
+
+						boundaryExtrasByCoordKey.set(getSheetCanvasCoordKey(rowIndex, columnIndex), extraProps);
+					}
+				});
+			});
+		}
+
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
+		const pushStyleChange = (rowIndex: number, columnIndex: number, currentCell: SheetCellGQL | undefined, nextStyle: Record<string, unknown>) => {
+			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, currentCell);
+			const after: SheetCellEditInput = {
+				cell: {
+					columnIndex,
+					rowIndex,
+					style: normalizeSheetCellStyle(nextStyle),
+				},
+			};
+
+			if (!sheetCellEditInputsAreEqual(before, after)) {
+				sheetCellChanges.push({ after, before });
+			}
+		};
+
+		// Saved per-cell styles override line styles at paint time: only cells
+		// whose style sets an affected property need an edit (drop the property
+		// so the line style shows; a border color repaints their own sides).
+		// The sparse stored-cell map drives this scan, not the selection size.
+		runtime.editBaseCellsByCoord.forEach((cell, coordKey) => {
+			const rowIndex = Math.floor(Number(cell.rowIndex || 0));
+			const columnIndex = Math.floor(Number(cell.columnIndex || 0));
+			const lineIndex = vertical ? columnIndex : rowIndex;
+
+			if (!rowIndex || !columnIndex || !lineIndexSet.has(lineIndex)) {
+				return;
+			}
+
+			const currentStyle = normalizeSheetCellStyle(cell.style) as Record<string, unknown>;
+			const boundaryExtras = boundaryExtrasByCoordKey.get(coordKey);
+
+			if (params.borderColor !== null && !params.borderPreset) {
+				// Color applies to the cell's own enabled sides, like the per-cell path
+				const cellColorDelta = getSheetBorderColorStyleDelta(currentStyle, params.borderColor);
+
+				if (cellColorDelta) {
+					const nextStyle = { ...currentStyle };
+
+					Object.entries(cellColorDelta).forEach(([prop, value]) => {
+						if (value === null) {
+							delete nextStyle[prop];
+						} else {
+							nextStyle[prop] = value;
+						}
+					});
+
+					pushStyleChange(rowIndex, columnIndex, cell, nextStyle);
+				}
+
+				boundaryExtrasByCoordKey.delete(coordKey);
+				return;
+			}
+
+			const affectedKeys = Object.keys(deltasByLineIndex.get(lineIndex) || {});
+			const hasConflict = affectedKeys.some((prop) => currentStyle[prop] !== undefined);
+
+			if (!hasConflict && !boundaryExtras) {
+				return;
+			}
+
+			const nextStyle = { ...currentStyle };
+
+			affectedKeys.forEach((prop) => {
+				delete nextStyle[prop];
+			});
+			Object.assign(nextStyle, boundaryExtras || {});
+			pushStyleChange(rowIndex, columnIndex, cell, nextStyle);
+			boundaryExtrasByCoordKey.delete(coordKey);
+		});
+
+		// Remaining boundary cells have no stored cell yet: create style-only rows
+		boundaryExtrasByCoordKey.forEach((extraProps, coordKey) => {
+			const [rowPart, columnPart] = coordKey.split(':');
+			const rowIndex = Math.floor(Number(rowPart));
+			const columnIndex = Math.floor(Number(columnPart));
+
+			if (rowIndex && columnIndex) {
+				pushStyleChange(rowIndex, columnIndex, undefined, extraProps);
+			}
+		});
+
+		// One design change carries the line styles (plus the auto-grown row
+		// heights of a font-size change) for a single updateSheet mutation
+		const currentAxis = (vertical ? designRef.current.columns : designRef.current.rows) || {};
+		const nextAxis = mergeSheetAxisDesignLineStyles(currentAxis, lineDeltas);
+		const designBefore: SheetDesignPatchInput = {};
+		const designAfter: SheetDesignPatchInput = {};
+
+		if (vertical) {
+			designBefore.columns = JSON.stringify(currentAxis);
+			designAfter.columns = JSON.stringify(nextAxis);
+
+			if (params.rowHeightDesignChange) {
+				designBefore.rows = params.rowHeightDesignChange.before.rows;
+				designAfter.rows = params.rowHeightDesignChange.after.rows;
+			}
+		} else if (params.rowHeightDesignChange) {
+			// Row styles and the auto-grown row heights merge into one rows map
+			designBefore.rows = params.rowHeightDesignChange.before.rows;
+			designAfter.rows = JSON.stringify(mergeSheetAxisDesignLineStyles(
+				parseSheetJSONObject(params.rowHeightDesignChange.after.rows, {}) as Record<string, SheetAxisDesignObj>,
+				lineDeltas,
+			));
+		} else {
+			designBefore.rows = JSON.stringify(currentAxis);
+			designAfter.rows = JSON.stringify(nextAxis);
+		}
+
+		pushSheetUndoEntry({
+			design: { after: designAfter, before: designBefore },
+			...(sheetCellChanges.length ? { sheetCells: sheetCellChanges } : {}),
+		});
+
+		if (sheetCellChanges.length) {
+			await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+		}
+
+		await applySheetDesignPatch(designAfter);
+	}, [applySheetCellInputs, applySheetDesignPatch, pushSheetUndoEntry]);
+
+	/*
+	 * Apply one display-rules edit to whole selected columns or rows as a single
+	 * design patch: the rules merge into the saved line formats, with per-cell
+	 * edits only for cells whose own saved format would override the new line
+	 * rules at paint time. One updateSheet mutation replaces one cell write per
+	 * covered coordinate.
+	 */
+	const applySheetFullLineDisplayRules = useCallback(async (params: {
+		lineIndexes: number[];
+		rules: SheetDisplayRulesForTypeObj | null;
+		type: 'COLUMN' | 'ROW';
+		valueType: SheetCellValueTypeEnum;
+	}) => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime || !params.lineIndexes.length) {
+			return;
+		}
+
+		const vertical = params.type === 'COLUMN';
+		const lineIndexSet = new Set(params.lineIndexes);
+		const lineDeltas = params.lineIndexes.map((lineIndex) => ({
+			key: vertical ? getSheetColumnDesignKey(lineIndex) : getSheetRowDesignKey(lineIndex),
+			rules: params.rules,
+			valueType: params.valueType,
+		}));
+
+		// Saved per-cell rules override line rules at paint time: cells whose own
+		// format defines the target value type drop that key so the line rule
+		// shows. The sparse stored-cell map drives this scan, not the selection.
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
+
+		runtime.editBaseCellsByCoord.forEach((cell, coordKey) => {
+			const rowIndex = Math.floor(Number(cell.rowIndex || 0));
+			const columnIndex = Math.floor(Number(cell.columnIndex || 0));
+			const lineIndex = vertical ? columnIndex : rowIndex;
+
+			if (!rowIndex || !columnIndex || !lineIndexSet.has(lineIndex)) {
+				return;
+			}
+
+			const ownedFormat = getSheetCellOwnedDisplayRulesFormat({
+				cell,
+				columnIndex,
+				design: designRef.current,
+				ranges: p.ranges,
+				rowIndex,
+			});
+
+			if (!ownedFormat.displayRules?.[params.valueType]) {
+				return;
+			}
+
+			const displayRules: SheetDisplayRulesObj = { ...ownedFormat.displayRules };
+			delete displayRules[params.valueType];
+
+			const nextFormat: SheetCellFormatObj = { ...ownedFormat };
+
+			if (Object.keys(displayRules).length) {
+				nextFormat.displayRules = displayRules;
+			} else {
+				delete nextFormat.displayRules;
+			}
+
+			const after: SheetCellEditInput = {
+				cell: {
+					columnIndex,
+					format: JSON.stringify(nextFormat),
+					rowIndex,
+				},
+			};
+			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, cell);
+
+			if (!sheetCellEditInputsAreEqual(before, after)) {
+				sheetCellChanges.push({ after, before });
+			}
+		});
+
+		// One design change carries the line rules for a single updateSheet mutation
+		const currentAxis = (vertical ? designRef.current.columns : designRef.current.rows) || {};
+		const nextAxis = mergeSheetAxisDesignLineFormats(currentAxis, lineDeltas);
+		const designBefore: SheetDesignPatchInput = vertical
+			? { columns: JSON.stringify(currentAxis) }
+			: { rows: JSON.stringify(currentAxis) };
+		const designAfter: SheetDesignPatchInput = vertical
+			? { columns: JSON.stringify(nextAxis) }
+			: { rows: JSON.stringify(nextAxis) };
+
+		pushSheetUndoEntry({
+			design: { after: designAfter, before: designBefore },
+			...(sheetCellChanges.length ? { sheetCells: sheetCellChanges } : {}),
+		});
+
+		if (sheetCellChanges.length) {
+			await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+		}
+
+		await applySheetDesignPatch(designAfter);
+	}, [applySheetCellInputs, applySheetDesignPatch, p.ranges, pushSheetUndoEntry]);
 
 	const handleSheetContextMenuFormatCells = useCallback(async (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => {
 		const runtime = runtimeRef.current;
@@ -4699,6 +5291,27 @@ export function SheetController(p: SheetControllerProps) {
 				rowMetricsByKey: runtime.rowMetricsByKey,
 			})
 			: null;
+
+		// Whole-column/row selections format through one design patch instead
+		// of one edit per covered cell
+		const fullLineTarget = getSheetFullLineFormatTarget({
+			columnCount: runtime.columnMetrics.length,
+			headerSelection,
+			rowCount: runtime.rowIds.length,
+			targetCellCount: cellCoords.length,
+		});
+
+		if (fullLineTarget) {
+			await applySheetFullLineFormat({
+				borderColor,
+				borderPreset,
+				format,
+				lineIndexes: fullLineTarget.lineIndexes,
+				rowHeightDesignChange,
+				type: fullLineTarget.type,
+			});
+			return;
+		}
 
 		cellCoords.forEach((cellCoord) => {
 			const { columnIndex, coordKey, rowIndex } = cellCoord;
@@ -4757,7 +5370,93 @@ export function SheetController(p: SheetControllerProps) {
 		if (rowHeightDesignChange) {
 			await applySheetDesignPatch(rowHeightDesignChange.after);
 		}
-	}, [applySheetCellInputs, applySheetDesignPatch, pushSheetUndoEntry]);
+	}, [applySheetCellInputs, applySheetDesignPatch, applySheetFullLineFormat, headerSelection, pushSheetUndoEntry]);
+
+	/*
+	 * Save one display-rules edit from the in-sheet editor for its target value
+	 * type. Whole-column/row selections persist through one design patch (line
+	 * rules merge under per-cell rules at paint time); other selections write
+	 * per-cell formats. Saving null clears the value type's rules.
+	 */
+	const handleSheetDisplayRulesSave = useCallback(async (rules: SheetDisplayRulesForTypeObj | null) => {
+		const runtime = runtimeRef.current;
+		const target = displayRulesEditorState?.target;
+		const valueType = target?.valueType;
+
+		if (!runtime || !target || !valueType) {
+			return;
+		}
+
+		const cellCoords = getSheetBorderStyleCellCoords(target.cells);
+
+		// Whole-column/row selections persist through one design patch instead
+		// of one edit per covered cell
+		const fullLineTarget = getSheetFullLineFormatTarget({
+			columnCount: runtime.columnMetrics.length,
+			headerSelection,
+			rowCount: runtime.rowIds.length,
+			targetCellCount: cellCoords.length,
+		});
+
+		if (fullLineTarget) {
+			await applySheetFullLineDisplayRules({
+				lineIndexes: fullLineTarget.lineIndexes,
+				rules,
+				type: fullLineTarget.type,
+				valueType,
+			});
+			return;
+		}
+
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
+
+		cellCoords.forEach(({ columnIndex, coordKey, rowIndex }) => {
+			const currentCell = runtime.editBaseCellsByCoord.get(coordKey);
+			const nextFormat = getSheetCellOwnedDisplayRulesFormat({
+				cell: currentCell,
+				columnIndex,
+				design: designRef.current,
+				ranges: p.ranges,
+				rowIndex,
+			});
+			const displayRules: SheetDisplayRulesObj = { ...(nextFormat.displayRules || {}) };
+
+			if (rules) {
+				displayRules[valueType] = rules;
+			} else {
+				delete displayRules[valueType];
+			}
+
+			if (Object.keys(displayRules).length) {
+				nextFormat.displayRules = displayRules;
+			} else {
+				delete nextFormat.displayRules;
+			}
+
+			const after: SheetCellEditInput = {
+				cell: {
+					columnIndex,
+					format: JSON.stringify(nextFormat),
+					rowIndex,
+				},
+			};
+			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, currentCell);
+
+			if (!sheetCellEditInputsAreEqual(before, after)) {
+				sheetCellChanges.push({ after, before });
+			}
+		});
+
+		if (!sheetCellChanges.length) {
+			return;
+		}
+
+		pushSheetUndoEntry({
+			sheetCells: sheetCellChanges,
+		});
+
+		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+	}, [applySheetCellInputs, applySheetFullLineDisplayRules, displayRulesEditorState, headerSelection, p.ranges, pushSheetUndoEntry]);
 
 	const handleSheetContextMenuPopulateDataTable = useCallback((target: SheetContextMenuTarget) => {
 		const request = getSheetInsertViewTableRequest(target);
@@ -4848,6 +5547,7 @@ export function SheetController(p: SheetControllerProps) {
 		const target = getSheetKeyboardFormatTarget({
 			cellLookup: runtime.cellLookup,
 			columnMetricsByKey: runtime.columnMetricsByKey,
+			designCellsByDataTableId,
 			disabled: p.disabled,
 			effectiveCellsByCoord: runtime.effectiveCellsByCoord,
 			regions: p.regions,
@@ -4872,7 +5572,7 @@ export function SheetController(p: SheetControllerProps) {
 			name: 'fontSize',
 			value: nextFontSize,
 		});
-	}, [handleSheetContextMenuFormatCells, p.disabled, p.regions, selectedCellKeyMap, selectedCellState]);
+	}, [designCellsByDataTableId, handleSheetContextMenuFormatCells, p.disabled, p.regions, selectedCellKeyMap, selectedCellState]);
 
 	/*
 	 * Toggle the selected Sheet cells' full-cell text style from the keyboard shortcut.
@@ -4887,6 +5587,7 @@ export function SheetController(p: SheetControllerProps) {
 		const target = getSheetKeyboardFormatTarget({
 			cellLookup: runtime.cellLookup,
 			columnMetricsByKey: runtime.columnMetricsByKey,
+			designCellsByDataTableId,
 			disabled: p.disabled,
 			effectiveCellsByCoord: runtime.effectiveCellsByCoord,
 			regions: p.regions,
@@ -4903,7 +5604,35 @@ export function SheetController(p: SheetControllerProps) {
 			name,
 			value: target[name] !== true,
 		});
-	}, [handleSheetContextMenuFormatCells, p.disabled, p.regions, selectedCellKeyMap, selectedCellState]);
+	}, [designCellsByDataTableId, handleSheetContextMenuFormatCells, p.disabled, p.regions, selectedCellKeyMap, selectedCellState]);
+
+	/*
+	 * Open the in-sheet display rules editor on the current selection from the
+	 * formula bar button.
+	 */
+	const openSheetDisplayRulesEditorFromSelection = useCallback(() => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime) {
+			return;
+		}
+
+		const target = getSheetKeyboardFormatTarget({
+			cellLookup: runtime.cellLookup,
+			columnMetricsByKey: runtime.columnMetricsByKey,
+			designCellsByDataTableId,
+			disabled: p.disabled,
+			effectiveCellsByCoord: runtime.effectiveCellsByCoord,
+			regions: p.regions,
+			rowMetricsByKey: runtime.rowMetricsByKey,
+			selectedCellKeyMap,
+			selectedCellState,
+		});
+
+		if (target) {
+			handleSheetContextMenuEditDisplayRules(target);
+		}
+	}, [designCellsByDataTableId, handleSheetContextMenuEditDisplayRules, p.disabled, p.regions, selectedCellKeyMap, selectedCellState]);
 
 	/*
 	 * Apply the custom Sheet color picker value to the active color format target.
@@ -4931,6 +5660,18 @@ export function SheetController(p: SheetControllerProps) {
 		setColorPickerState(null);
 		return true;
 	}, [colorPickerState]);
+
+	/*
+	 * Close the active in-sheet display rules editor.
+	 */
+	const closeSheetDisplayRulesEditor = useCallback(() => {
+		if (!displayRulesEditorState) {
+			return false;
+		}
+
+		setDisplayRulesEditorState(null);
+		return true;
+	}, [displayRulesEditorState]);
 
 	/*
 	 * Apply one merged-ranges change: instant local feedback through the
@@ -5033,6 +5774,7 @@ export function SheetController(p: SheetControllerProps) {
 	} = useSheetContextMenu({
 		onCustomizeCells: handleSheetContextMenuCustomizeCells,
 		onEditCell: handleSheetContextMenuEditCell,
+		onEditDisplayRules: handleSheetContextMenuEditDisplayRules,
 		onEditStructure: handleSheetContextMenuEditStructure,
 		onFormatCells: handleSheetContextMenuFormatCells,
 		onMergeCells: handleSheetContextMenuMergeCells,
@@ -5048,8 +5790,8 @@ export function SheetController(p: SheetControllerProps) {
 	 * Close the topmost dismissible Sheet overlay from keyboard shortcuts.
 	 */
 	const dismissSheetKeyboardOverlay = useCallback(() => {
-		return closeSheetColorPicker() || closeSheetContextMenu();
-	}, [closeSheetColorPicker, closeSheetContextMenu]);
+		return closeSheetDisplayRulesEditor() || closeSheetColorPicker() || closeSheetContextMenu();
+	}, [closeSheetColorPicker, closeSheetContextMenu, closeSheetDisplayRulesEditor]);
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
@@ -5335,27 +6077,36 @@ export function SheetController(p: SheetControllerProps) {
 	}, [rowResizeState?.rowKey]);
 
 	/*
-	 * Dismiss the color picker from the sheet's centralized pointer capture path.
+	 * Dismiss the color picker and display rules editor from the sheet's
+	 * centralized pointer capture path.
 	 */
 	const handlePointerDownCapture = useCallback((event: PointerEvent<HTMLDivElement>) => {
 		const insideColorPicker = isSheetColorPickerEventTarget(event.target);
+		const insideDisplayRulesEditor = isSheetDisplayRulesEditorEventTarget(event.target);
 
 		colorPickerPointerDownInsideRef.current = insideColorPicker;
+		displayRulesEditorPointerDownInsideRef.current = insideDisplayRulesEditor;
 
 		if (!insideColorPicker && colorPickerState) {
 			closeSheetColorPicker();
 		}
-	}, [closeSheetColorPicker, colorPickerState]);
+
+		if (!insideDisplayRulesEditor && displayRulesEditorState) {
+			closeSheetDisplayRulesEditor();
+		}
+	}, [closeSheetColorPicker, closeSheetDisplayRulesEditor, colorPickerState, displayRulesEditorState]);
 
 	const handlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
 		dismissGridContextMenuOnPointerDown(event.nativeEvent, closeSheetContextMenu);
 
 		const target = getSheetEventElementTarget(event.target);
 		const startedInsideColorPicker = colorPickerPointerDownInsideRef.current || isSheetColorPickerEventTarget(event.target);
+		const startedInsideDisplayRulesEditor = displayRulesEditorPointerDownInsideRef.current || isSheetDisplayRulesEditorEventTarget(event.target);
 
 		colorPickerPointerDownInsideRef.current = false;
+		displayRulesEditorPointerDownInsideRef.current = false;
 
-		if (startedInsideColorPicker) {
+		if (startedInsideColorPicker || startedInsideDisplayRulesEditor) {
 			return;
 		}
 
@@ -5941,6 +6692,7 @@ export function SheetController(p: SheetControllerProps) {
 			canRemoveCellsFromDataTable: Boolean(p.onRemoveDataTableRegion) && !p.disabled,
 			cell: contextMenuTarget.cell,
 			cellLookup,
+			designCellsByDataTableId,
 			disabled: p.disabled,
 			effectiveCellsByCoord,
 			mergedRanges,
@@ -6122,12 +6874,25 @@ export function SheetController(p: SheetControllerProps) {
 		void saveDataTableLocalEditorDraftValue(target, draftValue, true);
 	}, [activeDataTableEditTarget, saveDataTableLocalEditorDraftValue]);
 
+	// Highlights the formula-bar display-rules button when the selected cell's
+	// resolved format defines rules for any value type (dormant types included)
+	const selectedCellHasDisplayRules = useMemo(() => {
+		if (!selectedCellState) {
+			return false;
+		}
+
+		const canvasCell = cellLookup.get(getSheetCellKey(selectedCellState.rowId, selectedCellState.cellKey));
+
+		return sheetCellFormatHasDisplayRules(canvasCell?.format);
+	}, [cellLookup, selectedCellState]);
+
 	const formulaInputContent = <SheetFormulaInput
 		canEdit={formulaInputCanStartEdit}
 		column={formulaInputState.column}
 		dataTables={p.dataTables}
 		editState={formulaInputCanEdit ? editState : null}
 		error={formulaInputState.error}
+		hasDisplayRules={selectedCellHasDisplayRules}
 		onBlur={handleFormulaInputBlur}
 		onCommit={(input) => {
 			void commitEditorElement(input, {
@@ -6137,6 +6902,7 @@ export function SheetController(p: SheetControllerProps) {
 		}}
 		onDraftValue={updateSheetEditorDraftValue}
 		onEditStart={handleFormulaInputFocus}
+		onOpenDisplayRules={p.disabled ? undefined : openSheetDisplayRulesEditorFromSelection}
 		readOnly={!formulaInputCanStartEdit}
 		value={formulaInputCanEdit ? editState?.draftValue || '' : formulaInputState.value}
 	/>;
@@ -6245,6 +7011,20 @@ export function SheetController(p: SheetControllerProps) {
 					: colorPickerState.formatName === 'fillColor'
 						? colorPickerState.target.fillColor
 						: null}
+			/>
+			: null}
+		{displayRulesEditorState?.target.valueType && displayRulesEditorPosition
+			? <SheetDisplayRulesEditor
+				key={`${displayRulesEditorState.target.rowId}:${displayRulesEditorState.target.cellKey}:${displayRulesEditorState.target.valueType}`}
+				onClose={closeSheetDisplayRulesEditor}
+				onSave={(rules) => {
+					void handleSheetDisplayRulesSave(rules);
+				}}
+				position={displayRulesEditorPosition}
+				scrollLeft={scrollState.scrollLeft}
+				scrollTop={scrollState.scrollTop}
+				value={displayRulesEditorValue}
+				valueType={displayRulesEditorState.target.valueType}
 			/>
 			: null}
 	</>;

@@ -1,3 +1,4 @@
+import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import {
 	isSheetFormulaText,
@@ -11,7 +12,7 @@ import type {
 	DataTableDesignCellGQL,
 	DataTableGQL,
 } from '@jsb188/mday/types/dataTable.d.ts';
-import { Icon } from '@jsb188/react-web/svgs/Icon';
+import { COMMON_ICON_NAMES, Icon } from '@jsb188/react-web/svgs/Icon';
 import type {
 	SheetUIColumn,
 	SheetUIEditState,
@@ -46,10 +47,13 @@ export type SheetFormulaInputProps = {
 	dataTables?: DataTableGQL[] | null;
 	editState?: SheetUIEditState | null;
 	error?: string | null;
+	/* Renders the display-rules button highlighted when the selected cell already has rules */
+	hasDisplayRules?: boolean;
 	onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
 	onCommit?: (input: HTMLInputElement) => void;
 	onDraftValue: (draftValue: string) => void;
 	onEditStart?: () => void;
+	onOpenDisplayRules?: () => void;
 	readOnly?: boolean;
 	value: string;
 };
@@ -1329,6 +1333,20 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 	>
 		<div className='bg w_f'>
 			<div className='h_item ft_xs'>
+				{p.onOpenDisplayRules
+					? (
+						<button
+							aria-label={i18n.t('sheet.display_rules')}
+							className={cn('ic_sm no_shrink ml_8 r_4 p_0', p.hasDisplayRules ? 'bg_primary_fd cl_primary' : 'cl_darker_4')}
+							onClick={p.onOpenDisplayRules}
+							onPointerDown={(event) => event.stopPropagation()}
+							title={i18n.t('sheet.display_rules')}
+							type='button'
+						>
+							<Icon name={COMMON_ICON_NAMES.format_selected_cells} />
+						</button>
+					)
+					: null}
 				<span className='ic_sm no_shrink ml_8 cl_darker_4' aria-hidden='true'>
 					<Icon name='layer-style' />
 				</span>

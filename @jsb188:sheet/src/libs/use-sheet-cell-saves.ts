@@ -20,10 +20,11 @@ import {
 import {
 	clearSheetPendingEdits,
 	markSheetPendingEditsSent,
-	persistSheetPendingEdit,
+	persistSheetPendingEditsBatch,
 	readSheetPendingEdits,
 	type PersistedSheetPendingEntry,
 } from './sheet-pending-persistence.ts';
+import { getSheetEditClientId } from './sheet-edit-identity.ts';
 import { getSheetCanvasCellsByCoord } from './sheet-utils.ts';
 import {
 	groupCellSaveItemsByTarget,
@@ -93,8 +94,8 @@ export type EditSheetCellsResult = {
 	editSheetCells?: {
 		savedCells?: SheetCellGQL[] | null;
 		recalculatedCells?: SheetCellGQL[] | null;
-		recalculatedCount?: number | null;
 		cycleCellIds?: string[] | null;
+		cellsRevision?: number | null;
 	} | null;
 };
 
@@ -109,10 +110,13 @@ export type UseSheetCellSavesParams = {
 	editSheetCells: (params: {
 		variables: {
 			cells: SheetCellEditInput[];
+			clientId?: string | null;
 			organizationId: string;
 			sheetId: string;
 		};
 	}) => Promise<unknown> | unknown;
+	/* Reports the sheet's cells revision returned by a successful save */
+	onCellsRevision?: (cellsRevision: number) => void;
 	/* Reports cells that are part of a circular reference chain */
 	onCycleCells?: (cycleCellIds: string[]) => void;
 	/* Pending previews dropped after a save error; used to relay CELLS_CLEAR */
@@ -382,6 +386,9 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				const result = await params.editSheetCells({
 					variables: {
 						cells: mutationPayloadCells,
+						// The server echoes the client id on realtime payloads so
+						// this client can skip its own echoes
+						clientId: getSheetEditClientId(),
 						organizationId: sendingItems[0]?.persist.organizationId || params.organizationId,
 						sheetId: targetSheetId,
 					},
@@ -391,6 +398,13 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				const savedCells = (editResult?.savedCells || []) as SheetCellGQL[];
 				const recalculatedCells = (editResult?.recalculatedCells || []) as SheetCellGQL[];
 				const savedCellsByCoord = getSheetCanvasCellsByCoord(savedCells);
+
+				// The acting client learns the new sheet revision from the
+				// response, so its own (or a dropped) echo never reads as a gap
+				const responseCellsRevision = Math.floor(Number(editResult?.cellsRevision || 0));
+				if (isCurrentSheet && !requestFailed && responseCellsRevision > 0) {
+					params.onCellsRevision?.(responseCellsRevision);
+				}
 
 				// A failed request fails every sent item; a "successful" result
 				// can still silently omit coordinates from savedCells (e.g. a
@@ -487,7 +501,7 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				}
 			}
 		}
-	}, [getFlushBaseCell, params.baseCellsByCoord, params.editSheetCells, params.onCycleCells, params.onPendingCoordsCleared, params.organizationId, params.setConfirmedCellsByCoord, params.setPendingCellEdits, params.sheetId]);
+	}, [getFlushBaseCell, params.baseCellsByCoord, params.editSheetCells, params.onCellsRevision, params.onCycleCells, params.onPendingCoordsCleared, params.organizationId, params.setConfirmedCellsByCoord, params.setPendingCellEdits, params.sheetId]);
 
 	const flushDataTableItems = useCallback(async (items: Extract<SheetCellSaveItem, { kind: 'DATA_TABLE' }>[]) => {
 		// Edits whose value matches the confirmed source cell need no mutation
@@ -744,15 +758,18 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 		}
 
 		const revertKeys: string[] = [];
+		const revertClearRefs: Array<{ coordKey: string }> = [];
 		const pendingByCoord = new Map<string, SheetPendingCellEdit>();
+		// Persistence batches into ONE storage write: large entry sets (whole
+		// line formats, big pastes) must not re-serialize the map per cell
+		const persistEntries: Array<{ coordKey: string; entry: Omit<PersistedSheetPendingEntry, 'seq'> }> = [];
+		const persistQueueIndexes: number[] = [];
+		const queueItems: Array<Extract<SheetCellSaveItem, { kind: 'SHEET' }>> = [];
 
 		entries.forEach(({ input, previewCell }) => {
 			const coordKey = getSheetCellEditInputCoordKey(input);
 			const saveVersion = (sheetVersionsRef.current[coordKey] || 0) + 1;
 			sheetVersionsRef.current[coordKey] = saveVersion;
-
-			// Seq 0 marks items with no persisted twin; seq-gated clears skip it
-			let persistSeq = 0;
 
 			// Reverts compare against the freshest confirmed data (render base
 			// or a newer mutation result), not a stale render snapshot
@@ -762,7 +779,7 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				revertKeys.push(coordKey);
 
 				if (!inFlightCoordKeysRef.current.has(coordKey)) {
-					clearSheetPendingEdits(params.sheetId, [{ coordKey }]);
+					revertClearRefs.push({ coordKey });
 				}
 				// An in-flight same-coordinate mutation may be about to
 				// overwrite the value this revert restores, so the revert MUST
@@ -773,13 +790,17 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 
 				// The persisted twin lets a remounting Sheet rehydrate this
 				// preview while the flushed save is still in flight
-				persistSeq = persistSheetPendingEdit(params.sheetId, coordKey, {
-					baseRevision: Number.isFinite(baseRevision) ? baseRevision : null,
-					editedAt: Date.now(),
-					flushState: 'queued',
-					input,
-					previewCell,
+				persistEntries.push({
+					coordKey,
+					entry: {
+						baseRevision: Number.isFinite(baseRevision) ? baseRevision : null,
+						editedAt: Date.now(),
+						flushState: 'queued',
+						input,
+						previewCell,
+					},
 				});
+				persistQueueIndexes.push(queueItems.length);
 
 				pendingByCoord.set(coordKey, {
 					input,
@@ -789,17 +810,32 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				});
 			}
 
-			queue({
+			queueItems.push({
 				coordKey,
 				input,
 				kind: 'SHEET',
 				persist: {
 					organizationId: params.organizationId,
-					seq: persistSeq,
+					// Seq 0 marks items with no persisted twin; seq-gated clears
+					// skip it. Persisted items get their seq stamped below.
+					seq: 0,
 					sheetId: params.sheetId,
 				},
 				saveVersion,
 			});
+		});
+
+		const persistSeqs = persistSheetPendingEditsBatch(params.sheetId, persistEntries);
+		persistQueueIndexes.forEach((queueIndex, position) => {
+			queueItems[queueIndex].persist.seq = persistSeqs[position] ?? 0;
+		});
+
+		if (revertClearRefs.length) {
+			clearSheetPendingEdits(params.sheetId, revertClearRefs);
+		}
+
+		queueItems.forEach((item) => {
+			queue(item);
 		});
 
 		params.setPendingCellEdits((currentState) => {
@@ -840,6 +876,8 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				value: edit.value,
 			};
 			const seqByCoordKey: Record<string, number> = {};
+			// Twin persistence batches into one storage write per source edit
+			const persistEntries: Array<{ coordKey: string; entry: Omit<PersistedSheetPendingEntry, 'seq'> }> = [];
 
 			edit.previews.forEach(({ coordKey, previewCell }) => {
 				const [rowPart, columnPart] = coordKey.split(':');
@@ -853,13 +891,16 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 
 				// The persisted twin lets a remounting Sheet rehydrate this
 				// preview while the flushed save is still in flight
-				seqByCoordKey[coordKey] = persistSheetPendingEdit(params.sheetId, coordKey, {
-					baseRevision: Number.isFinite(baseRevision) ? baseRevision : null,
-					dataTableTarget,
-					editedAt: Date.now(),
-					flushState: 'queued',
-					input,
-					previewCell,
+				persistEntries.push({
+					coordKey,
+					entry: {
+						baseRevision: Number.isFinite(baseRevision) ? baseRevision : null,
+						dataTableTarget,
+						editedAt: Date.now(),
+						flushState: 'queued',
+						input,
+						previewCell,
+					},
 				});
 
 				pendingByCoord.set(coordKey, {
@@ -869,6 +910,11 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 					saveVersion,
 					state: 'pending',
 				});
+			});
+
+			const persistSeqs = persistSheetPendingEditsBatch(params.sheetId, persistEntries);
+			persistEntries.forEach(({ coordKey }, position) => {
+				seqByCoordKey[coordKey] = persistSeqs[position] ?? 0;
 			});
 
 			queue({

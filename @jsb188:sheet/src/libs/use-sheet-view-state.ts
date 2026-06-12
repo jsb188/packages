@@ -15,6 +15,7 @@ import {
 	mergeRefetchedSheetCells,
 	type SheetDeletedCellCoord,
 } from './sheet-cell-store.ts';
+import { getSheetEditClientId } from './sheet-edit-identity.ts';
 import type { SheetStateAtoms } from './sheet-state.ts';
 import { getSheetCanvasCellsByCoord } from './sheet-utils.ts';
 
@@ -69,6 +70,7 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 	}, [params.serverDesign.grid.columnCount, params.serverDesign.grid.rowCount]);
 	const {
 		loading,
+		refetch,
 		sheetView,
 	} = useSheetView(params.sheetId, params.organizationId, fullViewport, {
 		authToken: params.previewAuthToken || null,
@@ -76,6 +78,25 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 	const typedSheetView = sheetView as SheetViewGQL | null;
 	const appliedSheetViewRef = useRef<SheetViewGQL | null>(null);
 	const confirmedSheetIdRef = useRef(params.sheetId);
+	// Highest cells revision this client has seen (snapshot, realtime payload,
+	// or own mutation response); a realtime payload arriving more than one
+	// revision ahead means at least one emission was lost — refetch to heal
+	const lastCellsRevisionRef = useRef(0);
+	const gapRefetchRequestedRef = useRef(false);
+	const refetchRef = useRef(refetch);
+	refetchRef.current = refetch;
+
+	/*
+	 * Record a cells revision learned outside the realtime pipe (the sheetView
+	 * snapshot or a mutation response), so an echo never reads as a gap.
+	 */
+	const recordCellsRevision = useCallback((cellsRevision: number) => {
+		const revision = Math.floor(Number(cellsRevision || 0));
+
+		if (revision > lastCellsRevisionRef.current) {
+			lastCellsRevisionRef.current = revision;
+		}
+	}, []);
 
 	const setConfirmedCellsByCoord: SetConfirmedSheetCells = useCallback((update) => {
 		setConfirmedCellsByCoordValue((currentState) => {
@@ -91,6 +112,8 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 
 		confirmedSheetIdRef.current = params.sheetId;
 		appliedSheetViewRef.current = null;
+		lastCellsRevisionRef.current = 0;
+		gapRefetchRequestedRef.current = false;
 		setConfirmedCellsByCoordValue(new Map());
 	}, [params.sheetId, setConfirmedCellsByCoordValue]);
 
@@ -111,6 +134,11 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 		const previousSheetView = appliedSheetViewRef.current;
 		appliedSheetViewRef.current = typedSheetView;
 
+		// The snapshot seeds (or catches up) the cells revision and settles any
+		// pending gap-triggered refetch
+		recordCellsRevision(Number(typedSheetView.cellsRevision || 0));
+		gapRefetchRequestedRef.current = false;
+
 		const incomingCellsByCoord = getSheetCanvasCellsByCoord(
 			(typedSheetView.cells || []) as SheetCellGQL[],
 		);
@@ -129,7 +157,7 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 		} else {
 			setConfirmedCellsByCoordValue(incomingCellsByCoord);
 		}
-	}, [params.sheetStructureGridMergePaused, setConfirmedCellsByCoordValue, typedSheetView]);
+	}, [params.sheetStructureGridMergePaused, recordCellsRevision, setConfirmedCellsByCoordValue, typedSheetView]);
 
 	// Realtime: merge $sheetViewFragment patches into local state. Cell deltas
 	// merge into the confirmed layer (revision-gated, so re-processing the
@@ -168,13 +196,33 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 		return observeReactiveFragments([fragmentKey], () => {
 			const fragment = loadFragment(fragmentKey) as {
 				cellsDelta?: SheetCellGQL[] | null;
+				cellsRevision?: number | null;
 				deletedCellCoords?: SheetDeletedCellCoord[] | null;
+				originClientId?: string | null;
 				ranges?: SheetRangeGQL[] | null;
 				regions?: SheetRegionGQL[] | null;
 				structureOp?: SheetViewStructureOpPatch | null;
 			} | null;
 			if (!fragment) {
 				return;
+			}
+
+			// Gap detection: every server-side cell change bumps the sheet's
+			// cells revision and every cells payload carries it (chunks of one
+			// change share a value). A payload more than one revision ahead
+			// means an emission was silently lost — refetch the snapshot to
+			// heal instead of rendering stale cells forever.
+			const incomingRevision = Math.floor(Number(fragment.cellsRevision || 0));
+			if (incomingRevision > 0 && !mergePausedRef.current) {
+				const lastSeenRevision = lastCellsRevisionRef.current;
+
+				if (lastSeenRevision > 0 && incomingRevision > lastSeenRevision + 1 && !gapRefetchRequestedRef.current) {
+					lastCellsRevisionRef.current = incomingRevision;
+					gapRefetchRequestedRef.current = true;
+					refetchRef.current?.();
+				} else if (incomingRevision > lastSeenRevision) {
+					lastCellsRevisionRef.current = incomingRevision;
+				}
 			}
 
 			// Structure ops dispatch first so cell deltas land on shifted maps
@@ -193,7 +241,12 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 				setWsRegions(fragment.regions);
 			}
 
+			// Own echoes carry this client's id; the mutation response already
+			// merged their cells, so re-processing them is skipped
+			const isOwnEcho = Boolean(fragment.originClientId) && fragment.originClientId === getSheetEditClientId();
+
 			if (
+				!isOwnEcho &&
 				!mergePausedRef.current &&
 				(fragment.cellsDelta?.length || fragment.deletedCellCoords?.length)
 			) {
@@ -217,6 +270,7 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 		loading,
 		pageInfo: typedSheetView?.pageInfo || null,
 		ranges: wsRanges || typedSheetView?.ranges || null,
+		recordCellsRevision,
 		regions: wsRegions || typedSheetView?.regions || null,
 		setConfirmedCellsByCoord,
 		sheetView: typedSheetView,

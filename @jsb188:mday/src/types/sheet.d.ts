@@ -1,5 +1,6 @@
 import type {
 	SHEET_CELL_SOURCE_TYPE_ENUMS,
+	SHEET_DISPLAY_RULE_OPERATOR_ENUMS,
 	SHEET_REGION_CONFLICT_POLICY_ENUMS,
 	SHEET_REGION_SOURCE_TYPE_ENUMS,
 	SHEET_REGION_SOURCE_FILTER_COMBINATOR_ENUMS,
@@ -7,6 +8,7 @@ import type {
 	SHEET_REGION_SOURCE_SORT_DIRECTION_ENUMS,
 	SHEET_REGION_TYPE_ENUMS,
 	SHEET_STRUCTURE_OPERATION_ENUMS,
+	SHEET_CELL_VALUE_TYPE_ENUMS,
 	SHEET_CUSTOM_REGION_SOURCE_COLUMN_FORMULA_VALUE_SOURCE_ENUMS,
 	GRID_ITEM_SORT_ENUMS,
 } from '../constants/sheet.ts';
@@ -19,6 +21,7 @@ export type SheetRegionSourceFilterCombinatorEnum = typeof SHEET_REGION_SOURCE_F
 export type SheetRegionSourceFilterOperatorEnum = typeof SHEET_REGION_SOURCE_FILTER_OPERATOR_ENUMS[number];
 export type SheetRegionSourceSortDirectionEnum = typeof SHEET_REGION_SOURCE_SORT_DIRECTION_ENUMS[number];
 export type SheetStructureOperationEnum = typeof SHEET_STRUCTURE_OPERATION_ENUMS[number];
+export type SheetCellValueTypeEnum = typeof SHEET_CELL_VALUE_TYPE_ENUMS[number];
 export type GridItemSortEnum = typeof GRID_ITEM_SORT_ENUMS[number];
 export type SheetFormulaReferenceKind = 'SHEET_CELL' | 'SHEET_RANGE' | 'DATA_TABLE_CELL' | 'DATA_TABLE_QUERY_CELL';
 export type SheetFormulaReferenceStatusEnum = 'READY' | 'LOADING' | 'ERROR' | 'NOT_FOUND';
@@ -67,6 +70,28 @@ export interface SheetCellStyleObj {
 	borderLeftWidth?: number | null;
 	borderLeftColor?: string | null;
 	borderLeftStyle?: SheetCellBorderStyleValue | null;
+}
+
+export type SheetDisplayRuleOperatorEnum = typeof SHEET_DISPLAY_RULE_OPERATOR_ENUMS[number];
+
+export interface SheetDisplayRuleBranchObj {
+	op: SheetDisplayRuleOperatorEnum;
+	/* Comparison value typed per the rule's value-type key; null means "is empty" (eq/neq only) */
+	value: number | boolean | string | null;
+	then: string;
+}
+
+export interface SheetDisplayRulesForTypeObj {
+	if: SheetDisplayRuleBranchObj[];
+	else?: string | null;
+}
+
+/* Keyed by SheetCellValueTypeEnum; keys not matching the cell's current value type stay dormant */
+export type SheetDisplayRulesObj = Partial<Record<SheetCellValueTypeEnum, SheetDisplayRulesForTypeObj>>;
+
+export interface SheetCellFormatObj {
+	displayRules?: SheetDisplayRulesObj | null;
+	[key: string]: any;
 }
 
 export interface SheetGridDesignObj {
@@ -239,6 +264,8 @@ export interface SheetRegionSourceObj {
 	dataTableId?: number | bigint | string | null;
 	filter?: SheetRegionSourceFilterGroupObj | null;
 	sort?: SheetRegionSourceSortObj[] | null;
+	/* Included source row ids for built-in (generated) sources; null/absent inserts every row */
+	includeRowIds?: Array<number | bigint | string> | null;
 }
 
 export interface SheetRegionSourceFilterGroupObj {
@@ -444,9 +471,10 @@ export interface SheetGridRowGQL {
 
 export interface SheetViewGQL {
 	id?: string | null;
+	/* Per-sheet monotonic counter bumped on every cell-content change; carried
+	 * on realtime cells payloads so clients can detect dropped messages */
+	cellsRevision?: number | null;
 	sheet?: SheetGQL | null;
-	viewport?: SheetGridViewportObj | null;
-	rows?: SheetGridRowGQL[];
 	cells?: SheetCellGQL[];
 	ranges?: SheetRangeGQL[];
 	regions?: SheetRegionGQL[];

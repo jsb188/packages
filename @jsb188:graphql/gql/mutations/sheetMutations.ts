@@ -66,11 +66,13 @@ mutation editSheetCells (
   $organizationId: GenericID!
   $sheetId: GenericID!
   $cells: [SheetCellEditInput!]!
+  $clientId: String
 ) {
   editSheetCells (
     organizationId: $organizationId
     sheetId: $sheetId
     cells: $cells
+    clientId: $clientId
   ) {
     savedCells {
       ...sheetCellFragment
@@ -80,28 +82,8 @@ mutation editSheetCells (
       ...sheetCellFragment
     }
 
-    recalculatedCount
     cycleCellIds
-  }
-}
-
-${sheetCellFragment}
-`;
-
-export const clearSheetCellMtn = gql`
-mutation clearSheetCell (
-  $organizationId: GenericID!
-  $sheetId: GenericID!
-  $rowIndex: Int!
-  $columnIndex: Int!
-) {
-  clearSheetCell (
-    organizationId: $organizationId
-    sheetId: $sheetId
-    rowIndex: $rowIndex
-    columnIndex: $columnIndex
-  ) {
-    ...sheetCellFragment
+    cellsRevision
   }
 }
 

@@ -96,6 +96,7 @@ export type SheetUICell = {
 
 export type SheetUIRowSlot = {
 	cellsByKey: Record<string, SheetUICell | undefined>;
+	checkboxChecked?: boolean | null;
 	deleted?: boolean;
 	rowId?: string | null;
 	rowIndex: number;
@@ -105,6 +106,11 @@ export type SheetUIRowSlot = {
 	hideBottomBorder?: boolean;
 	rowTop: number;
 	rowWidth: number;
+};
+
+export type SheetUIRowCheckboxes = {
+	headerChecked: boolean;
+	headerTooltipMessage?: string;
 };
 
 export type SheetUIEditorClickSource = 'CELL_LINK' | 'CELL_BACKGROUND';
@@ -225,6 +231,7 @@ export interface SheetUIProps {
 	headerWidth: number;
 	rowHeaderWidth?: number;
 	resizeGuide?: SheetUIResizeGuide | null;
+	rowCheckboxes?: SheetUIRowCheckboxes | null;
 	rowResizeEnabled?: boolean;
 	rowResizeGuide?: SheetUIRowResizeGuide | null;
 	rows: SheetUIRowSlot[];

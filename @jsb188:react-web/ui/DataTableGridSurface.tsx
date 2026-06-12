@@ -57,8 +57,11 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	const sheetSurfaceHeight = p.sheetSurfaceHeight ?? p.canvasHeight;
 	const sheetSurfaceTop = p.sheetSurfaceTop ?? 0;
 	const showRowNumbers = p.showRowNumbers !== false;
+	const rowCheckboxes = p.rowCheckboxes || null;
+	// Row checkboxes reuse the sticky row-header band that row numbers normally occupy
+	const showRowHeaderArea = showRowNumbers || Boolean(rowCheckboxes);
 	const hideStickyColumnSpacer = p.hideStickyColumnSpacer === true;
-	const rowHeaderWidth = p.rowHeaderWidth ?? (showRowNumbers ? SHEET_ROW_NUMBER_WIDTH : 0);
+	const rowHeaderWidth = p.rowHeaderWidth ?? (showRowHeaderArea ? SHEET_ROW_NUMBER_WIDTH : 0);
 	const stickyColumnEndLeft = p.stickyColumnEndLeft ?? rowHeaderWidth;
 
 	return <div
@@ -164,13 +167,17 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 					</DataTableResizeGuideLayer>
 					: null}
 
-				{showRowNumbers
-					? <DataTableTopLeftRowNumberSlot rowWidth={Math.max(p.headerSpacerWidth ?? p.headerWidth, p.canvasWidth)} />
+				{showRowHeaderArea
+					? <DataTableTopLeftRowNumberSlot
+						rowCheckboxes={rowCheckboxes}
+						rowWidth={Math.max(p.headerSpacerWidth ?? p.headerWidth, p.canvasWidth)}
+					/>
 					: null}
 
-				{showRowNumbers ? p.rows.map((rowSlot) => {
+				{showRowHeaderArea ? p.rows.map((rowSlot) => {
 					return <DataTableRowNumberSlot
 						key={rowSlot.rowKey}
+						checkboxChecked={rowCheckboxes ? rowSlot.checkboxChecked : undefined}
 						isPlaceholderRow={isSheetPlaceholderRowSlot(rowSlot)}
 						deleted={rowSlot.deleted}
 						rowId={rowSlot.rowId}
@@ -284,6 +291,9 @@ export const DataTableGridSurface = memo((p: DataTableGridSurfaceProps) => {
 	prev.resizeGuide?.columnKey === next.resizeGuide?.columnKey &&
 	prev.resizeGuide?.height === next.resizeGuide?.height &&
 	prev.resizeGuide?.left === next.resizeGuide?.left &&
+	Boolean(prev.rowCheckboxes) === Boolean(next.rowCheckboxes) &&
+	prev.rowCheckboxes?.headerChecked === next.rowCheckboxes?.headerChecked &&
+	prev.rowCheckboxes?.headerTooltipMessage === next.rowCheckboxes?.headerTooltipMessage &&
 	prev.rowHeaderWidth === next.rowHeaderWidth &&
 	prev.rowResizeEnabled === next.rowResizeEnabled &&
 	prev.rowResizeGuide?.rowKey === next.rowResizeGuide?.rowKey &&

@@ -157,6 +157,32 @@ export function persistSheetPendingEdit(
 }
 
 /*
+ * Persist many pending edits for a sheet with ONE storage write and return
+ * their seq tokens in input order. Large batches (whole-line formats, big
+ * pastes) must not re-serialize the whole map once per cell.
+ */
+export function persistSheetPendingEditsBatch(
+	sheetId: string,
+	entries: Array<{ coordKey: string; entry: Omit<PersistedSheetPendingEntry, 'seq'> }>,
+) {
+	if (!entries.length) {
+		return [];
+	}
+
+	const sheetEntries = getSheetPendingEntries(sheetId);
+	const seqs = entries.map(({ coordKey, entry }) => {
+		const seq = seqCounter++;
+		sheetEntries.set(coordKey, { ...entry, seq });
+
+		return seq;
+	});
+
+	writeSheetPendingStorage(sheetId);
+
+	return seqs;
+}
+
+/*
  * Mark persisted entries as sent (carried by a mutation or an accepted
  * beacon); only an entry still holding the matching seq is updated.
  */

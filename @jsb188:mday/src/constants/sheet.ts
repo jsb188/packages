@@ -51,6 +51,33 @@ export const SHEET_STRUCTURE_OPERATION_ENUMS = [
 	'DELETE_COLUMN',
 ] as const;
 
+export const SHEET_CELL_VALUE_TYPE_ENUMS = [
+	'CELL_INT',
+	'CELL_FLOAT',
+	'CELL_DATE',
+	'CELL_BOOLEAN',
+	'CELL_TEXT',
+] as const;
+
+export const SHEET_DISPLAY_RULE_OPERATOR_ENUMS = [
+	'eq',
+	'neq',
+	'gt',
+	'gte',
+	'lt',
+	'lte',
+] as const;
+
+export const SHEET_DISPLAY_RULE_COMPARISON_OPERATORS = [
+	'gt',
+	'gte',
+	'lt',
+	'lte',
+] as const;
+
+export const SHEET_DISPLAY_RULE_MAX_BRANCHES = 10;
+export const SHEET_DISPLAY_RULE_MAX_TEXT_LENGTH = 500;
+
 export const GRID_ITEM_SORT_ENUMS = [
 	'UPDATED_AT_DESC',
 	'TITLE_ASC',

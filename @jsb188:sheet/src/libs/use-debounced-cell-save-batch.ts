@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-export const CELL_SAVE_BATCH_DELAY_MS = 3000;
+// Coalescing window for cell saves. Per-key buffering means a burst of edits
+// to the same cell still sends one op; single-in-flight flushing means edits
+// made while a batch is saving coalesce into the NEXT batch, so a short
+// window self-throttles to the mutation round-trip on busy sheets while
+// keeping the page-exit loss window small.
+export const CELL_SAVE_BATCH_DELAY_MS = 400;
+
+// One flush carries at most this many entries; the remainder re-flushes
+// immediately after the batch settles, keeping any single request bounded
+export const CELL_SAVE_BATCH_MAX_ITEMS = 500;
 
 type CellSaveTargetId = string | number | bigint | null | undefined;
 
@@ -66,6 +75,7 @@ export function sendGroupedCellSaveItems<T>(
 export function useDebouncedCellSaveBatch<T>(params: {
 	delayMs?: number;
 	getKey: (item: T) => string;
+	maxItems?: number;
 	onBeaconFlush?: (items: T[]) => boolean;
 	onError?: (items: T[], error: unknown) => void;
 	onFlush: (items: T[]) => Promise<void> | void;
@@ -93,11 +103,26 @@ export function useDebouncedCellSaveBatch<T>(params: {
 			return;
 		}
 
-		const items = Array.from(pendingItemsRef.current.values());
-		pendingItemsRef.current.clear();
+		// Take at most maxItems entries in insertion order; anything beyond
+		// the cap stays buffered and re-flushes right after this batch settles
+		const maxItems = paramsRef.current.maxItems ?? CELL_SAVE_BATCH_MAX_ITEMS;
+		const items: T[] = [];
+
+		for (const [key, item] of pendingItemsRef.current) {
+			if (items.length >= maxItems) {
+				break;
+			}
+
+			items.push(item);
+			pendingItemsRef.current.delete(key);
+		}
 
 		if (!items.length) {
 			return;
+		}
+
+		if (pendingItemsRef.current.size) {
+			flushRequestedWhileRunningRef.current = true;
 		}
 
 		flushingRef.current = true;
@@ -136,6 +161,14 @@ export function useDebouncedCellSaveBatch<T>(params: {
 	const queue = useCallback((item: T) => {
 		pendingItemsRef.current.set(paramsRef.current.getKey(item), item);
 		clearTimer();
+
+		// A buffer at the batch cap flushes immediately; the debounce only
+		// coalesces keystroke-sized bursts
+		if (pendingItemsRef.current.size >= (paramsRef.current.maxItems ?? CELL_SAVE_BATCH_MAX_ITEMS)) {
+			flush();
+			return;
+		}
+
 		timerRef.current = setTimeout(flush, paramsRef.current.delayMs ?? CELL_SAVE_BATCH_DELAY_MS);
 	}, [clearTimer, flush]);
 

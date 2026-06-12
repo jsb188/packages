@@ -2,8 +2,13 @@ import {
 	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATION_COLUMNS,
 	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
 	SHEET_CELL_SOURCE_TYPE_ENUMS,
+	SHEET_CELL_VALUE_TYPE_ENUMS,
 	SHEET_DEFAULT_COLUMN_COUNT,
 	SHEET_DEFAULT_ROW_COUNT,
+	SHEET_DISPLAY_RULE_COMPARISON_OPERATORS,
+	SHEET_DISPLAY_RULE_MAX_BRANCHES,
+	SHEET_DISPLAY_RULE_MAX_TEXT_LENGTH,
+	SHEET_DISPLAY_RULE_OPERATOR_ENUMS,
 	SHEET_REGION_CONFLICT_POLICY_ENUMS,
 	SHEET_REGION_SOURCE_TYPE_ENUMS,
 	SHEET_REGION_TYPE_ENUMS,
@@ -16,10 +21,17 @@ import type {
 	SheetMergedRangeObj,
 	SheetAxisDesignObj,
 	SheetCellBorderStyleValue,
+	SheetCellFormatObj,
 	SheetCellStyleObj,
 	SheetCellSourceTypeEnum,
 	SheetDesignObj,
+	SheetDisplayRuleBranchObj,
+	SheetDisplayRuleOperatorEnum,
+	SheetDisplayRulesForTypeObj,
+	SheetDisplayRulesObj,
 	SheetGridViewportObj,
+	SheetCellGQL,
+	SheetCellValueTypeEnum,
 	SheetRangeData,
 	SheetRegionConflictPolicyEnum,
 	SheetRegionGQL,
@@ -415,19 +427,25 @@ export function normalizeSheetCellStyle(style?: Partial<SheetCellStyleObj> | Rec
 }
 
 /*
- * Return axis design values with supported cell style fields normalized.
+ * Return axis design values with supported cell style and format fields
+ * normalized.
  */
 function normalizeSheetAxisDesignMap(map?: Record<string, SheetAxisDesignObj> | null) {
 	return Object.fromEntries(Object.entries(map || {}).map(([key, value]) => {
-		const { style: _style, ...axisDesign } = value || {};
+		const { format: _format, style: _style, ...axisDesign } = value || {};
 		const style = normalizeSheetCellStyle(_style);
+		const format = normalizeSheetCellFormat(_format);
+		const next: SheetAxisDesignObj = { ...axisDesign };
 
-		return [
-			key,
-			Object.keys(style).length
-				? { ...axisDesign, style }
-				: axisDesign,
-		];
+		if (Object.keys(style).length) {
+			next.style = style;
+		}
+
+		if (Object.keys(format).length) {
+			next.format = format;
+		}
+
+		return [key, next];
 	}));
 }
 
@@ -2632,7 +2650,7 @@ export function normalizeSheetDesign(design?: Partial<SheetDesignObj> | null): S
 		columns: normalizeSheetAxisDesignMap(design?.columns),
 		rows: normalizeSheetAxisDesignMap(design?.rows),
 		defaultCellStyle: normalizeSheetCellStyle(design?.defaultCellStyle),
-		defaultCellFormat: design?.defaultCellFormat || {},
+		defaultCellFormat: normalizeSheetCellFormat(design?.defaultCellFormat),
 		namedRanges: Array.isArray(design?.namedRanges) ? design.namedRanges : [],
 		metadata: design?.metadata || {},
 	};
@@ -2935,6 +2953,525 @@ export function sheetAxisDesignHasContent(design?: SheetAxisDesignObj | null) {
 }
 
 /*
+ * Return the detected value type of one raw cell text: whole numbers are
+ * CELL_INT, decimal numbers CELL_FLOAT, ISO calendar dates CELL_DATE, and
+ * everything else CELL_TEXT.
+ */
+export function getSheetTextValueType(value?: string | null): SheetCellValueTypeEnum {
+	const trimmedValue = String(value ?? '').trim();
+
+	if (!trimmedValue) {
+		return 'CELL_TEXT';
+	}
+
+	if (/^-?\d+$/.test(trimmedValue)) {
+		return 'CELL_INT';
+	}
+
+	if (/^-?(\d+\.\d+|\.\d+|\d+\.)$/.test(trimmedValue)) {
+		return 'CELL_FLOAT';
+	}
+
+	if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedValue)) {
+		// A date-shaped string still has to be a real calendar date
+		const [year, month, day] = trimmedValue.split('-').map(Number);
+		const date = new Date(Date.UTC(year, month - 1, day));
+
+		if (date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day) {
+			return 'CELL_DATE';
+		}
+	}
+
+	const upperValue = trimmedValue.toUpperCase();
+
+	if (upperValue === 'TRUE' || upperValue === 'FALSE') {
+		return 'CELL_BOOLEAN';
+	}
+
+	return 'CELL_TEXT';
+}
+
+/*
+ * Return the cell value type one DataTable column field type projects into a
+ * Sheet region cell, or null when the field type is unknown. Numeric columns
+ * report CELL_FLOAT; callers can refine to CELL_INT from the stored value.
+ */
+export function getSheetCellValueTypeForDataTableFieldType(fieldType?: string | null): SheetCellValueTypeEnum | null {
+	switch (fieldType) {
+		case 'NUMBER':
+		case 'PRICE':
+			return 'CELL_FLOAT';
+		case 'BOOLEAN':
+			return 'CELL_BOOLEAN';
+		case 'DATE':
+		case 'DATETIME':
+		case 'WEEK_OF_MON':
+		case 'WEEK_OF_SUN':
+			return 'CELL_DATE';
+		case undefined:
+		case null:
+			return null;
+		default:
+			return 'CELL_TEXT';
+	}
+}
+
+/*
+ * Return the detected value type of one Sheet cell. The server's stored typed
+ * columns win when present; pending or optimistic cells (no typed columns yet)
+ * fall back to classifying the display text client-side.
+ */
+export function getSheetCellValueType(
+	cell?: Pick<SheetCellGQL, 'booleanValue' | 'dateValue' | 'datetimeValue' | 'numberValue'> | null,
+	displayValue?: string | null,
+): SheetCellValueTypeEnum {
+	if (cell) {
+		if (cell.numberValue !== null && cell.numberValue !== undefined) {
+			return Number.isInteger(Number(cell.numberValue)) ? 'CELL_INT' : 'CELL_FLOAT';
+		}
+
+		if (cell.dateValue || cell.datetimeValue) {
+			return 'CELL_DATE';
+		}
+
+		if (cell.booleanValue !== null && cell.booleanValue !== undefined) {
+			return 'CELL_BOOLEAN';
+		}
+	}
+
+	return getSheetTextValueType(displayValue);
+}
+
+/*
+ * Return one axis design map (columns or rows) with style deltas merged into a
+ * set of lines. Null delta values remove the key from the saved line style;
+ * lines whose merged style (and design) end up empty drop out of the map.
+ * Whole-column/row formatting persists through these line styles as a single
+ * design patch instead of one cell write per covered coordinate.
+ */
+export function mergeSheetAxisDesignLineStyles(
+	axisDesign: Record<string, SheetAxisDesignObj> | null | undefined,
+	lineDeltas: Array<{ delta: Record<string, unknown>; key: string }>,
+): Record<string, SheetAxisDesignObj> {
+	const next: Record<string, SheetAxisDesignObj> = { ...(axisDesign || {}) };
+
+	lineDeltas.forEach(({ delta, key }) => {
+		const lineDesign = next[key] || {};
+		const mergedStyle: Record<string, unknown> = { ...normalizeSheetCellStyle(lineDesign.style) };
+
+		Object.entries(delta).forEach(([prop, value]) => {
+			if (value === null || value === undefined) {
+				delete mergedStyle[prop];
+			} else {
+				mergedStyle[prop] = value;
+			}
+		});
+
+		const normalizedStyle = normalizeSheetCellStyle(mergedStyle);
+
+		if (Object.keys(normalizedStyle).length) {
+			next[key] = {
+				...lineDesign,
+				style: normalizedStyle,
+			};
+			return;
+		}
+
+		// An emptied style drops from the line design; an emptied line drops
+		// from the axis map so the saved design stays sparse
+		const { style: _droppedStyle, ...lineDesignWithoutStyle } = lineDesign;
+
+		if (Object.keys(lineDesignWithoutStyle).length) {
+			next[key] = lineDesignWithoutStyle;
+		} else {
+			delete next[key];
+		}
+	});
+
+	return next;
+}
+
+/*
+ * Return one display rule comparison value coerced to the primitive its
+ * value-type key compares against. Null survives as the "is empty" match for
+ * equality checks; undefined marks an unusable value.
+ */
+function normalizeSheetDisplayRuleBranchValue(
+	valueType: SheetCellValueTypeEnum,
+	isComparison: boolean,
+	value: unknown,
+): number | boolean | string | null | undefined {
+	if (value === null || value === undefined || value === '') {
+		// "is empty" only ever matches through equality checks
+		return isComparison ? undefined : null;
+	}
+
+	switch (valueType) {
+		case 'CELL_INT':
+		case 'CELL_FLOAT': {
+			const numberValue = Number(value);
+			return Number.isFinite(numberValue) ? numberValue : undefined;
+		}
+		case 'CELL_BOOLEAN': {
+			if (typeof value === 'boolean') {
+				return value;
+			}
+
+			const text = String(value).trim().toUpperCase();
+			return text === 'TRUE' ? true : text === 'FALSE' ? false : undefined;
+		}
+		case 'CELL_DATE': {
+			const text = String(value).trim().slice(0, 10);
+			return getSheetTextValueType(text) === 'CELL_DATE' ? text : undefined;
+		}
+		default:
+			return String(value).slice(0, SHEET_DISPLAY_RULE_MAX_TEXT_LENGTH);
+	}
+}
+
+/*
+ * Return one normalized display rule branch for a value-type key, or null when
+ * the operator or comparison value is unusable for that type.
+ */
+function normalizeSheetDisplayRuleBranch(
+	valueType: SheetCellValueTypeEnum,
+	branch: unknown,
+): SheetDisplayRuleBranchObj | null {
+	if (!branch || typeof branch !== 'object' || Array.isArray(branch)) {
+		return null;
+	}
+
+	const source = branch as Record<string, any>;
+	const op = String(source.op || '').toLowerCase() as SheetDisplayRuleOperatorEnum;
+
+	if (!SHEET_DISPLAY_RULE_OPERATOR_ENUMS.includes(op)) {
+		return null;
+	}
+
+	const isComparison = (SHEET_DISPLAY_RULE_COMPARISON_OPERATORS as readonly string[]).includes(op);
+
+	// Ordered comparisons only make sense for numbers and dates
+	if (isComparison && (valueType === 'CELL_BOOLEAN' || valueType === 'CELL_TEXT')) {
+		return null;
+	}
+
+	const value = normalizeSheetDisplayRuleBranchValue(valueType, isComparison, source.value);
+
+	if (value === undefined) {
+		return null;
+	}
+
+	const then = typeof source.then === 'string' || typeof source.then === 'number'
+		? String(source.then).slice(0, SHEET_DISPLAY_RULE_MAX_TEXT_LENGTH)
+		: '';
+
+	return { op, value, then };
+}
+
+/*
+ * Return the only display rule fields Sheets supports, keyed by cell value
+ * type, or null when nothing valid survives. Unknown type keys, unknown
+ * operators, and comparison values that cannot coerce to the type key's
+ * primitive all drop silently.
+ */
+export function normalizeSheetDisplayRules(value?: unknown): SheetDisplayRulesObj | null {
+	const source = getSheetCellStyleObject(value);
+	const normalized: SheetDisplayRulesObj = {};
+
+	SHEET_CELL_VALUE_TYPE_ENUMS.forEach((valueType) => {
+		const rulesForType = source[valueType];
+
+		if (!rulesForType || typeof rulesForType !== 'object' || Array.isArray(rulesForType)) {
+			return;
+		}
+
+		const branches = (Array.isArray(rulesForType.if) ? rulesForType.if : [])
+			.map((branch: unknown) => normalizeSheetDisplayRuleBranch(valueType, branch))
+			.filter((branch: SheetDisplayRuleBranchObj | null): branch is SheetDisplayRuleBranchObj => Boolean(branch))
+			.slice(0, SHEET_DISPLAY_RULE_MAX_BRANCHES);
+
+		const elseValue = typeof rulesForType.else === 'string' || typeof rulesForType.else === 'number'
+			? String(rulesForType.else).slice(0, SHEET_DISPLAY_RULE_MAX_TEXT_LENGTH)
+			: null;
+
+		if (!branches.length && elseValue === null) {
+			return;
+		}
+
+		normalized[valueType] = {
+			if: branches,
+			...(elseValue !== null ? { else: elseValue } : {}),
+		};
+	});
+
+	return Object.keys(normalized).length ? normalized : null;
+}
+
+/*
+ * Return one cell format object with its display rules validated and other
+ * format keys preserved, from flexible saved Sheet format input.
+ */
+export function normalizeSheetCellFormat(format?: Partial<SheetCellFormatObj> | Record<string, any> | string | null): SheetCellFormatObj {
+	const { displayRules: rawDisplayRules, ...rest } = getSheetCellStyleObject(format);
+	const displayRules = normalizeSheetDisplayRules(rawDisplayRules);
+
+	return displayRules ? { ...rest, displayRules } : rest;
+}
+
+/*
+ * Return a shallow merged cell format following the same cascade rule as
+ * styles, except display rules merge per value-type key: the most specific
+ * layer that defines one CELL_* key wins that key whole.
+ */
+export function mergeSheetCellFormats(...values: Array<Partial<SheetCellFormatObj> | Record<string, any> | string | null | undefined>): SheetCellFormatObj {
+	return values.reduce<SheetCellFormatObj>((merged, value) => {
+		const format = getSheetCellStyleObject(value);
+
+		if (!Object.keys(format).length) {
+			return merged;
+		}
+
+		const { displayRules, ...rest } = format;
+		// The spread keeps earlier layers' displayRules; this layer's rules merge per type key below
+		const next: SheetCellFormatObj = { ...merged, ...rest };
+
+		if (displayRules && typeof displayRules === 'object' && !Array.isArray(displayRules)) {
+			const mergedRules: SheetDisplayRulesObj = { ...(merged.displayRules || {}) };
+
+			SHEET_CELL_VALUE_TYPE_ENUMS.forEach((valueType) => {
+				const rulesForType = displayRules[valueType];
+
+				if (rulesForType && typeof rulesForType === 'object' && !Array.isArray(rulesForType)) {
+					mergedRules[valueType] = rulesForType as SheetDisplayRulesForTypeObj;
+				}
+			});
+
+			if (Object.keys(mergedRules).length) {
+				next.displayRules = mergedRules;
+			}
+		}
+
+		return next;
+	}, {});
+}
+
+/*
+ * Return the comparison source value one cell exposes for a display rule
+ * value type. The server's stored typed columns win when present; pending or
+ * optimistic cells fall back to classifying the raw display text.
+ */
+function getSheetDisplayRuleCellValue(
+	valueType: SheetCellValueTypeEnum,
+	cell?: Pick<SheetCellGQL, 'booleanValue' | 'dateValue' | 'datetimeValue' | 'numberValue'> | null,
+	rawDisplayValue?: string | null,
+): number | boolean | string | null {
+	switch (valueType) {
+		case 'CELL_INT':
+		case 'CELL_FLOAT': {
+			if (cell?.numberValue !== null && cell?.numberValue !== undefined) {
+				return Number(cell.numberValue);
+			}
+
+			const text = String(rawDisplayValue ?? '').trim();
+			const textType = getSheetTextValueType(text);
+			return textType === 'CELL_INT' || textType === 'CELL_FLOAT' ? Number(text) : null;
+		}
+		case 'CELL_BOOLEAN': {
+			if (cell?.booleanValue !== null && cell?.booleanValue !== undefined) {
+				return Boolean(cell.booleanValue);
+			}
+
+			const text = String(rawDisplayValue ?? '').trim().toUpperCase();
+			return text === 'TRUE' ? true : text === 'FALSE' ? false : null;
+		}
+		case 'CELL_DATE': {
+			const dateValue = cell?.dateValue || cell?.datetimeValue;
+
+			if (dateValue) {
+				// ISO date prefix; lexicographic compare is correct for YYYY-MM-DD
+				return String(dateValue).slice(0, 10);
+			}
+
+			const text = String(rawDisplayValue ?? '').trim();
+			return getSheetTextValueType(text) === 'CELL_DATE' ? text : null;
+		}
+		default: {
+			const text = String(rawDisplayValue ?? '');
+			return text === '' ? null : text;
+		}
+	}
+}
+
+/*
+ * Return whether one display rule branch matches a cell comparison value.
+ * Branches with non-null values never match empty cells; empty cells only
+ * match "is empty" (eq null) branches or fall through to the else text.
+ */
+function doesSheetDisplayRuleBranchMatch(
+	branch: SheetDisplayRuleBranchObj,
+	cellValue: number | boolean | string | null,
+): boolean {
+	if (cellValue === null) {
+		return branch.value === null && branch.op === 'eq';
+	}
+
+	if (branch.value === null) {
+		return branch.op === 'neq';
+	}
+
+	switch (branch.op) {
+		case 'eq':
+			return cellValue === branch.value;
+		case 'neq':
+			return cellValue !== branch.value;
+		case 'gt':
+			return (cellValue as number | string) > (branch.value as number | string);
+		case 'gte':
+			return (cellValue as number | string) >= (branch.value as number | string);
+		case 'lt':
+			return (cellValue as number | string) < (branch.value as number | string);
+		case 'lte':
+			return (cellValue as number | string) <= (branch.value as number | string);
+		default:
+			return false;
+	}
+}
+
+/*
+ * Return the display text one cell's display rules resolve to, or null when no
+ * rule applies and the caller should keep the raw display value. Rules keyed
+ * to a different value type than the cell's current one stay dormant. Empty
+ * cells have no detectable value type, so they evaluate against the single
+ * defined type key; with multiple type keys defined, empty cells are skipped
+ * to avoid ambiguity.
+ */
+export function evaluateSheetDisplayRules(params: {
+	cell?: Pick<SheetCellGQL, 'booleanValue' | 'dateValue' | 'datetimeValue' | 'numberValue'> | null;
+	displayRules?: SheetDisplayRulesObj | null;
+	rawDisplayValue?: string | null;
+}): string | null {
+	const { cell, displayRules, rawDisplayValue } = params;
+
+	if (!displayRules || typeof displayRules !== 'object') {
+		return null;
+	}
+
+	const definedTypes = SHEET_CELL_VALUE_TYPE_ENUMS.filter((valueType) => {
+		const rulesForType = displayRules[valueType];
+		return Boolean(rulesForType && typeof rulesForType === 'object' && !Array.isArray(rulesForType));
+	});
+
+	if (!definedTypes.length) {
+		return null;
+	}
+
+	const isEmpty = !String(rawDisplayValue ?? '').trim();
+	let valueType: SheetCellValueTypeEnum;
+
+	if (isEmpty) {
+		if (definedTypes.length !== 1) {
+			return null;
+		}
+
+		valueType = definedTypes[0];
+	} else {
+		valueType = getSheetCellValueType(cell, rawDisplayValue);
+	}
+
+	const rulesForType = displayRules[valueType];
+
+	if (!rulesForType) {
+		return null;
+	}
+
+	const cellValue = isEmpty ? null : getSheetDisplayRuleCellValue(valueType, cell, rawDisplayValue);
+	const branches = Array.isArray(rulesForType.if) ? rulesForType.if : [];
+
+	for (const branch of branches) {
+		if (doesSheetDisplayRuleBranchMatch(branch, cellValue)) {
+			return String(branch.then ?? '');
+		}
+	}
+
+	return typeof rulesForType.else === 'string' ? rulesForType.else : null;
+}
+
+/*
+ * Return whether one saved cell format defines display rules — for any value
+ * type by default, or for one specific value type when given.
+ */
+export function sheetCellFormatHasDisplayRules(
+	format?: Partial<SheetCellFormatObj> | Record<string, any> | string | null,
+	valueType?: SheetCellValueTypeEnum | null,
+): boolean {
+	const { displayRules } = getSheetCellStyleObject(format);
+
+	if (!displayRules || typeof displayRules !== 'object' || Array.isArray(displayRules)) {
+		return false;
+	}
+
+	const typeKeys = valueType ? [valueType] : SHEET_CELL_VALUE_TYPE_ENUMS;
+
+	return typeKeys.some((typeKey) => {
+		const rulesForType = displayRules[typeKey];
+		return Boolean(rulesForType && typeof rulesForType === 'object' && !Array.isArray(rulesForType));
+	});
+}
+
+/*
+ * Return one axis design map (columns or rows) with display rule deltas merged
+ * into a set of lines. A null rules value removes that value-type key from the
+ * saved line format; lines whose merged format (and design) end up empty drop
+ * out of the map. Whole-column/row display rules persist through these line
+ * formats as a single design patch instead of one cell write per coordinate.
+ */
+export function mergeSheetAxisDesignLineFormats(
+	axisDesign: Record<string, SheetAxisDesignObj> | null | undefined,
+	lineDeltas: Array<{ key: string; rules: SheetDisplayRulesForTypeObj | null; valueType: SheetCellValueTypeEnum }>,
+): Record<string, SheetAxisDesignObj> {
+	const next: Record<string, SheetAxisDesignObj> = { ...(axisDesign || {}) };
+
+	lineDeltas.forEach(({ key, rules, valueType }) => {
+		const lineDesign = next[key] || {};
+		const format = normalizeSheetCellFormat(lineDesign.format);
+		const displayRules: SheetDisplayRulesObj = { ...(format.displayRules || {}) };
+		const normalizedRules = rules ? normalizeSheetDisplayRules({ [valueType]: rules })?.[valueType] : null;
+
+		if (normalizedRules) {
+			displayRules[valueType] = normalizedRules;
+		} else {
+			delete displayRules[valueType];
+		}
+
+		if (Object.keys(displayRules).length) {
+			format.displayRules = displayRules;
+		} else {
+			delete format.displayRules;
+		}
+
+		if (Object.keys(format).length) {
+			next[key] = {
+				...lineDesign,
+				format,
+			};
+			return;
+		}
+
+		// An emptied format drops from the line design; an emptied line drops
+		// from the axis map so the saved design stays sparse
+		const { format: _droppedFormat, ...lineDesignWithoutFormat } = lineDesign;
+
+		if (Object.keys(lineDesignWithoutFormat).length) {
+			next[key] = lineDesignWithoutFormat;
+		} else {
+			delete next[key];
+		}
+	});
+
+	return next;
+}
+
+/*
  * Return whether one grid coordinate is inside a saved sheet range.
  */
 
@@ -3000,6 +3537,7 @@ export function getSheetRegionInputFromRegion(region: SheetRegionGQL): Record<st
 					})),
 				}
 				: {}),
+			...(source.includeRowIds?.length ? { includeRowIds: source.includeRowIds.map(String) } : {}),
 		},
 		startColumnIndex: region.startColumnIndex,
 		startRowIndex: region.startRowIndex,
