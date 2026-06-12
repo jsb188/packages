@@ -6,12 +6,12 @@ import { Pill } from '@jsb188/react-web/ui/Button';
 import { useOnlineStatus } from '@jsb188/react-web/utils/dom';
 import { useAnimationVisibility } from '@jsb188/react/hooks';
 import { memo, type Dispatch, type SetStateAction } from 'react';
-import { COMMON_ICON_NAMES, Icon } from '../svgs/Icon';
-import type { ReactDivElement } from '../types/dom';
-import { BigLoading } from '../ui/Loading';
-import Markdown from '../ui/Markdown';
-import { SidebarEdgeReveal, useSidebarOverlayLayout } from './layout/SidebarOverlay';
-import { TooltipButton } from './PopOver';
+import { COMMON_ICON_NAMES, Icon } from '../../svgs/Icon';
+import type { ReactDivElement } from '../../types/dom';
+import { BigLoading } from '../../ui/Loading';
+import Markdown from '../../ui/Markdown';
+import { TooltipButton } from '../PopOver';
+import { SidebarEdgeReveal, useSidebarOverlayLayout } from './SidebarOverlay';
 
 // const cssPaths = ['/css/layout.css', '/css/alert.css'];
 

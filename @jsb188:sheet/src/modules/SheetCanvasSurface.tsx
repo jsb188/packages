@@ -46,6 +46,7 @@ const SHEET_CANVAS_READ_ONLY_TAG_PADDING_X = 5;
 const SHEET_CANVAS_READ_ONLY_TAG_PADDING_Y = 4;
 const SHEET_CANVAS_SELECTION_ALPHA = 0.09;
 const SHEET_CANVAS_SELECTION_UNAVAILABLE_STRIPE_SIZE = 5.5;
+const SHEET_CANVAS_FILL_HANDLE_SIZE = 7;
 const SHEET_CANVAS_DATA_TABLE_ICON_PATH_CACHE = new Map<string, Path2D[]>();
 const SHEET_CANVAS_TEXT_LINE_GAP = 2;
 const SHEET_CANVAS_BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
@@ -69,6 +70,7 @@ type SheetCanvasTheme = {
 	headerText: string;
 	regionOutline: string;
 	resizeGuide: string;
+	sheetTopDivider: string;
 	solid: string;
 	selectionFill: string;
 	selectionUnavailableStripe: string;
@@ -166,6 +168,10 @@ export type SheetCanvasSurfaceProps = {
 	}> | null;
 	/* Merged cell ranges; covered cells render as one anchor-driven cell */
 	mergedRanges?: SheetMergedRangeObj[] | null;
+	/* Pending fill-handle drag target range (dashed preview border) */
+	fillPreviewRange?: SheetMergedRangeObj | null;
+	/* Render the fill handle dot at the selection's bottom-right corner */
+	showFillHandle?: boolean;
 	hoveredRegionId?: string | null;
 	resizeGuide?: SheetUIResizeGuide | null;
 	rowResizeGuide?: SheetUIRowResizeGuide | null;
@@ -238,6 +244,7 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 	const rootStyles = getComputedStyle(document.documentElement);
 	const rootFontSizePx = getSheetCanvasCSSLengthPx(rootStyles.fontSize || '16px', 16, 16);
 	const active = getSheetCanvasCSSColor(styles, '--color-primary', '#2563eb');
+	const activeBackground = getSheetCanvasCSSColor(styles, '--color-bg-active', '#e5e7eb');
 	const primaryRgb = getSheetCanvasCSSValue(styles, '--color-primary', '37, 99, 235');
 	const fontSize = getSheetCanvasCSSValue(styles, '--text-xsmall', '0.875rem');
 	const tagFontSize = getSheetCanvasCSSValue(styles, '--text-xxsmall', '0.75rem');
@@ -274,7 +281,8 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 		headerText: getSheetCanvasCSSColor(styles, '--color-text-medium', '#475569'),
 		main: getSheetCanvasCSSColor(styles, '--color-main', active),
 		regionOutline: getSheetCanvasCSSColor(styles, '--color-bg-medium', '#e5e7eb'),
-		resizeGuide: getSheetCanvasCSSColor(styles, '--color-bg-active', '#e5e7eb'),
+		resizeGuide: activeBackground,
+		sheetTopDivider: activeBackground,
 		solid: getSheetCanvasCSSColor(styles, '--color-solid', '#ffffff'),
 		selectionFill: active,
 		selectionUnavailableStripe: `rgba(${primaryRgb}, 0.35)`,
@@ -2271,6 +2279,99 @@ function drawSheetCanvasSelectionBorder(params: {
 }
 
 /*
+ * Draw a dashed preview border around the pending fill-handle target range.
+ */
+function drawSheetCanvasFillPreviewBorder(params: {
+	columns: SheetColumnMetric[];
+	ctx: CanvasRenderingContext2D;
+	fillPreviewRange?: SheetMergedRangeObj | null;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	if (!params.fillPreviewRange) {
+		return;
+	}
+
+	const rect = getSheetCanvasIndexRangeRect({
+		columns: params.columns,
+		endColumnIndex: params.fillPreviewRange.endColumnIndex,
+		endRowIndex: params.fillPreviewRange.endRowIndex,
+		rowMetrics: params.rowMetrics,
+		scrollLeft: params.scrollLeft,
+		scrollTop: params.scrollTop,
+		startColumnIndex: params.fillPreviewRange.startColumnIndex,
+		startRowIndex: params.fillPreviewRange.startRowIndex,
+		stickyColumnCount: params.stickyColumnCount,
+	});
+
+	if (!rect || !sheetCanvasRectIsVisible(rect, params.viewportWidth, params.viewportHeight)) {
+		return;
+	}
+
+	params.ctx.save();
+	params.ctx.beginPath();
+	params.ctx.setLineDash([3, 3]);
+	params.ctx.strokeStyle = params.theme.contrast;
+	params.ctx.lineWidth = 1;
+	params.ctx.strokeRect(
+		Math.round(rect.left) + 0.5,
+		Math.round(rect.top) + 0.5,
+		Math.max(0, Math.round(rect.width)),
+		Math.max(0, Math.round(rect.height)),
+	);
+	params.ctx.restore();
+}
+
+/*
+ * Draw the fill handle dot at the bottom-right corner of the local selection,
+ * preferring the multi-cell selection box over the single active cell.
+ */
+function drawSheetCanvasFillHandle(params: {
+	activeCellRect?: SheetCanvasRect | null;
+	columns: SheetColumnMetric[];
+	ctx: CanvasRenderingContext2D;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+}) {
+	const selectionBox = getGridSelectionBoxPosition({
+		columnMetrics: params.columns,
+		getColumnDisplayLeft: (metric) => {
+			return getSheetCanvasColumnDisplayLeft(metric, params.scrollLeft, params.stickyColumnCount) - SHEET_ROW_NUMBER_WIDTH;
+		},
+		getRowDisplayTop: (metric) => {
+			return metric.top - params.scrollTop;
+		},
+		rowMetrics: params.rowMetrics,
+		selectedCellKeyMap: params.selectedCellKeyMap,
+		stickyHeaderHeight: SHEET_HEADER_HEIGHT,
+	});
+	const cornerRect = selectionBox || params.activeCellRect;
+
+	if (!cornerRect) {
+		return;
+	}
+
+	const size = SHEET_CANVAS_FILL_HANDLE_SIZE;
+	const left = Math.round(cornerRect.left + cornerRect.width) - Math.ceil(size / 2);
+	const top = Math.round(cornerRect.top + cornerRect.height) - Math.ceil(size / 2);
+
+	// Background halo so the dot stays readable over cell content and borders
+	params.ctx.fillStyle = params.theme.background;
+	params.ctx.fillRect(left - 1, top - 1, size + 2, size + 2);
+	params.ctx.fillStyle = params.theme.active;
+	params.ctx.fillRect(left, top, size, size);
+}
+
+/*
  * Return the configured one-based end row for one generated Sheet region.
  */
 function getSheetCanvasDataTableRegionEndRow(region: SheetRegionGQL) {
@@ -3551,6 +3652,22 @@ function drawSheetCanvasHeaders(params: {
 }
 
 /*
+ * Draw the top-left Sheet corner above every canvas layer.
+ */
+function drawSheetCanvasTopLeftCornerCover(params: {
+	ctx: CanvasRenderingContext2D;
+	theme: SheetCanvasTheme;
+}) {
+	params.ctx.fillStyle = params.theme.headerBackground;
+	params.ctx.fillRect(
+		0,
+		SHEET_CANVAS_GRID_LINE_WIDTH,
+		SHEET_ROW_NUMBER_WIDTH - SHEET_CANVAS_GRID_LINE_WIDTH,
+		SHEET_HEADER_HEIGHT - SHEET_CANVAS_GRID_LINE_WIDTH,
+	);
+}
+
+/*
  * Add one crisp vertical canvas line to a batched grid path.
  */
 function addSheetCanvasVerticalGridLine(params: {
@@ -3834,21 +3951,7 @@ function drawSheetCanvasGridLines(params: {
 		ctx: params.ctx,
 		seen: fullHeightVerticalLines,
 		top: 0,
-		x: 0,
-	});
-	addSheetCanvasVerticalGridLine({
-		bottom: params.viewportHeight,
-		ctx: params.ctx,
-		seen: fullHeightVerticalLines,
-		top: 0,
 		x: SHEET_ROW_NUMBER_WIDTH,
-	});
-	addSheetCanvasHorizontalGridLine({
-		ctx: params.ctx,
-		left: 0,
-		right: params.viewportWidth,
-		seen: fullWidthHorizontalLines,
-		y: 0,
 	});
 	addSheetCanvasHorizontalGridLine({
 		ctx: params.ctx,
@@ -3920,6 +4023,18 @@ function drawSheetCanvasGridLines(params: {
 		});
 	});
 
+	params.ctx.stroke();
+
+	params.ctx.beginPath();
+	params.ctx.strokeStyle = params.theme.sheetTopDivider;
+	params.ctx.lineWidth = SHEET_CANVAS_GRID_LINE_WIDTH;
+	addSheetCanvasHorizontalGridLine({
+		ctx: params.ctx,
+		left: 0,
+		right: params.viewportWidth,
+		seen: fullWidthHorizontalLines,
+		y: 0,
+	});
 	params.ctx.stroke();
 
 	drawSheetCanvasSelectedHeaderGridLines({
@@ -4207,7 +4322,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 	);
 	ctx.clip();
 	const effectiveActiveCellRect = activeMergeCellRect || activeCellRect;
-	if (effectiveActiveCellRect) {
+	if (effectiveActiveCellRect && !p.editState) {
 		const activeCell = p.selectedCellState
 			? p.cellLookup.get(getSheetCellKey(p.selectedCellState.rowId, p.selectedCellState.cellKey))
 			: null;
@@ -4245,6 +4360,31 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 			width: effectiveActiveCellRect.width,
 		});
 		ctx.restore();
+	}
+	drawSheetCanvasFillPreviewBorder({
+		columns: p.columns,
+		ctx,
+		fillPreviewRange: p.fillPreviewRange,
+		rowMetrics: p.rowMetrics,
+		scrollLeft: p.scrollLeft,
+		scrollTop: p.scrollTop,
+		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
+	});
+	if (p.showFillHandle && !p.editState) {
+		drawSheetCanvasFillHandle({
+			activeCellRect: effectiveActiveCellRect,
+			columns: p.columns,
+			ctx,
+			rowMetrics: p.rowMetrics,
+			scrollLeft: p.scrollLeft,
+			scrollTop: p.scrollTop,
+			selectedCellKeyMap: p.selectedCellKeyMap,
+			stickyColumnCount,
+			theme,
+		});
 	}
 	drawSheetCanvasLoadingOutlines({
 		bodyClipRect,
@@ -4300,6 +4440,11 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		viewportWidth,
 	});
 	ctx.restore();
+
+	drawSheetCanvasTopLeftCornerCover({
+		ctx,
+		theme,
+	});
 }
 
 /*
@@ -4417,6 +4562,11 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 	prev.editState?.cellKey === next.editState?.cellKey &&
 	prev.editState?.rowId === next.editState?.rowId &&
 	prev.editState?.draftValue === next.editState?.draftValue &&
+	prev.fillPreviewRange?.startRowIndex === next.fillPreviewRange?.startRowIndex &&
+	prev.fillPreviewRange?.startColumnIndex === next.fillPreviewRange?.startColumnIndex &&
+	prev.fillPreviewRange?.endRowIndex === next.fillPreviewRange?.endRowIndex &&
+	prev.fillPreviewRange?.endColumnIndex === next.fillPreviewRange?.endColumnIndex &&
+	prev.showFillHandle === next.showFillHandle &&
 	prev.formulaContent === next.formulaContent &&
 	prev.headerContent === next.headerContent &&
 	sheetCanvasHeaderSelectionsAreEqual(prev.headerSelection, next.headerSelection) &&

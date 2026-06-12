@@ -5,11 +5,14 @@ import {
 	SHEET_DATA_TABLE_REGION_MAX_ROWS,
 } from '@jsb188/mday/constants/sheet.ts';
 import { sheetMergedRangesIntersect, addSheetMergedRange, getSheetMergedRangeAtCell, getSheetMergedRanges, isSheetCellInMergedRange, isSheetMergedRangeAnchor, removeSheetMergedRangesIntersecting,
+	getSheetAutofillValues,
 	getSheetRegionSourceDataTableRoute,
 	getSheetRegionSourceId,
 	isSheetGeneratedRegionSource,
 	normalizeSheetCellFontSize,
 	normalizeSheetCellStyle,
+	shiftSheetFormulaReferences,
+	type SheetAutofillCell,
 } from '@jsb188/mday/utils/sheet.ts';
 import type {
   DataTableCellGQL,
@@ -57,7 +60,8 @@ import { SheetColorPicker } from './SheetColorPicker.tsx';
 import { SheetEditorOverlay, type SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
 import { SheetFormulaInput } from './SheetFormulaInput.tsx';
 import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuFormatName, type SheetContextMenuMergeMode, type SheetContextMenuStructureAction, type SheetContextMenuTarget } from '../libs/SheetContextMenu.tsx';
-import { parseGridClipboardText } from '../libs/grid-clipboard.ts';
+import { getInternalGridClipboard, parseGridClipboardText, setInternalGridClipboard } from '../libs/grid-clipboard.ts';
+import type { GridInternalClipboardCell } from '../libs/grid-clipboard.ts';
 import {
 	dismissGridContextMenuOnPointerDown,
 } from '../libs/grid-context-menu.ts';
@@ -134,6 +138,7 @@ import {
   getGridSelectedCellsFromKeyMap,
   getGridSelectedCellKeyMapFromCells,
   getGridSelectionAnchorCell,
+  getGridTopLeftSelectedCell,
   getNextActiveGridSelectedCell,
   getOrderedGridSelectedCells,
 } from '../libs/grid-selection.ts';
@@ -167,7 +172,7 @@ import {
 } from '../libs/sheet-state.ts';
 import type { SheetPresenceRosterEntry, SheetRemoteSelection } from '../libs/sheet-collab.ts';
 import SheetPresenceRoster from '../ui/SheetPresenceRoster.tsx';
-import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
+import type { SetFloatingMessage } from '@jsb188/react-web/modules/layout/MainLayout';
 import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
 import { DataTableSiteLocationEditor } from './DataTable-SiteLocation.tsx';
 import {
@@ -210,6 +215,7 @@ export type { SheetCellEditInput, SheetDesignPatchInput } from '../libs/sheet-hi
 const SHEET_CANVAS_ROW_RIGHT_PADDING = 64;
 const SHEET_CANVAS_COLUMN_RESIZE_HANDLE_WIDTH = 7;
 const SHEET_CANVAS_ROW_RESIZE_HANDLE_HEIGHT = 6;
+const SHEET_CANVAS_FILL_HANDLE_HIT_SIZE = 8;
 // This must match the .app_scr::-webkit-scrollbar width/height in packages/@jsb188:css/css/layout.css.
 const SHEET_CANVAS_APP_SCROLLBAR_SIZE = 19;
 const SHEET_KEYBOARD_DEFAULT_FONT_SIZE = 14;
@@ -370,6 +376,11 @@ type SheetCanvasDragSelectionState =
 type SheetColorPickerState = {
 	formatName: SheetContextMenuFormatName;
 	target: SheetContextMenuTarget;
+};
+
+type SheetCanvasFillDragState = {
+	pointerId: number;
+	source: SheetMergedRangeObj;
 };
 
 /*
@@ -1609,6 +1620,108 @@ function getSheetSelectedCellsBounds(cells: Array<{ cellKey: string; rowId: stri
 }
 
 /*
+ * Return the canvas pixel point of the selection's bottom-right corner where
+ * the fill handle dot renders, or null when that corner is not rendered.
+ */
+function getSheetCanvasFillHandlePoint(params: {
+	bounds: SheetMergedRangeObj;
+	columnMetrics: SheetColumnMetric[];
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+}) {
+	const rowMetric = params.rowMetrics.find((metric) => Math.floor(Number(metric.rowKey || 0)) === params.bounds.endRowIndex);
+	const columnMetric = params.columnMetrics.find((metric) => {
+		const canvasColumn = metric.column as SheetCanvasColumn;
+		return Number(canvasColumn.sheetColumnIndex || metric.column.key || 0) === params.bounds.endColumnIndex;
+	});
+
+	if (!rowMetric || !columnMetric) {
+		return null;
+	}
+
+	return {
+		x: getSheetCanvasColumnDisplayRight(columnMetric, params.scrollLeft, params.stickyColumnCount),
+		y: getSheetCanvasRowDisplayBottom(rowMetric, params.scrollTop),
+	};
+}
+
+/*
+ * Return whether one pointer event grabs the selection's fill handle dot.
+ */
+function isSheetCanvasFillHandleHit(params: {
+	clientX: number;
+	clientY: number;
+	point: { x: number; y: number };
+	scrollNode: HTMLDivElement | null;
+}) {
+	const rect = params.scrollNode?.getBoundingClientRect();
+
+	if (!rect) {
+		return false;
+	}
+
+	const x = params.clientX - rect.left;
+	const y = params.clientY - rect.top;
+
+	return Math.abs(x - params.point.x) <= SHEET_CANVAS_FILL_HANDLE_HIT_SIZE &&
+		Math.abs(y - params.point.y) <= SHEET_CANVAS_FILL_HANDLE_HIT_SIZE;
+}
+
+/*
+ * Return the fill target range for one pointer cell during a fill-handle
+ * drag, clamped to the dominant drag axis like spreadsheet fill handles, or
+ * null while the pointer stays inside the source selection.
+ */
+function getSheetFillTargetRange(
+	source: SheetMergedRangeObj,
+	pointerRowIndex: number,
+	pointerColumnIndex: number,
+): SheetMergedRangeObj | null {
+	const downDistance = pointerRowIndex - source.endRowIndex;
+	const upDistance = source.startRowIndex - pointerRowIndex;
+	const rightDistance = pointerColumnIndex - source.endColumnIndex;
+	const leftDistance = source.startColumnIndex - pointerColumnIndex;
+	const rowDistance = Math.max(downDistance, upDistance, 0);
+	const columnDistance = Math.max(rightDistance, leftDistance, 0);
+
+	if (!rowDistance && !columnDistance) {
+		return null;
+	}
+
+	if (rowDistance >= columnDistance) {
+		return downDistance >= upDistance
+			? {
+				endColumnIndex: source.endColumnIndex,
+				endRowIndex: pointerRowIndex,
+				startColumnIndex: source.startColumnIndex,
+				startRowIndex: source.endRowIndex + 1,
+			}
+			: {
+				endColumnIndex: source.endColumnIndex,
+				endRowIndex: source.startRowIndex - 1,
+				startColumnIndex: source.startColumnIndex,
+				startRowIndex: pointerRowIndex,
+			};
+	}
+
+	return rightDistance >= leftDistance
+		? {
+			endColumnIndex: pointerColumnIndex,
+			endRowIndex: source.endRowIndex,
+			startColumnIndex: source.endColumnIndex + 1,
+			startRowIndex: source.startRowIndex,
+		}
+		: {
+			endColumnIndex: source.startColumnIndex - 1,
+			endRowIndex: source.endRowIndex,
+			startColumnIndex: pointerColumnIndex,
+			startRowIndex: source.startRowIndex,
+		};
+}
+
+/*
  * Return the merge ranges to add for the requested merge mode.
  */
 function getSheetMergeRangesForMode(bounds: SheetMergedRangeObj, mode: SheetContextMenuMergeMode): SheetMergedRangeObj[] {
@@ -1931,6 +2044,26 @@ export function SheetController(p: SheetControllerProps) {
 	const [formulaInputFocused, setFormulaInputFocused] = useState(false);
 	const [colorPickerState, setColorPickerState] = useState<SheetColorPickerState | null>(null);
 	const dragSelectionRef = useRef<SheetCanvasDragSelectionState | null>(null);
+	const fillDragStateRef = useRef<SheetCanvasFillDragState | null>(null);
+	const fillDragRangeRef = useRef<SheetMergedRangeObj | null>(null);
+	const [fillDragRange, setFillDragRange] = useState<SheetMergedRangeObj | null>(null);
+
+	// Sheet-coordinate bounds of the current selection, for the fill handle dot
+	const fillHandleBounds = useMemo(() => {
+		if (p.disabled) {
+			return null;
+		}
+
+		const selectedMap = getGridResolvedSelectedCellKeyMap({
+			selectedCellKeyMap,
+			selectedCellState,
+		});
+
+		return selectedMap
+			? getSheetSelectedCellsBounds(getGridSelectedCellsFromKeyMap(selectedMap))
+			: null;
+	}, [p.disabled, selectedCellKeyMap, selectedCellState]);
+
 	const openedDataTableCellPointerDownRef = useRef<SheetUISelectedCellState | null>(null);
 	const colorPickerPointerDownInsideRef = useRef(false);
 	const designRef = useRef(p.design);
@@ -3333,7 +3466,7 @@ export function SheetController(p: SheetControllerProps) {
 			rowIds: runtime.rowIds,
 			selectedCellKeyMap: selectedMap,
 		});
-		const rows = new Map<string, string[]>();
+		const rows = new Map<string, GridInternalClipboardCell[]>();
 
 		selectedCells.forEach((cell) => {
 			const rowValues = rows.get(cell.rowId) || [];
@@ -3343,30 +3476,59 @@ export function SheetController(p: SheetControllerProps) {
 				? runtime.calculatedCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex))
 				: null;
 
-			rowValues.push(getSheetCanvasCellDraftValue(sourceCell));
+			rowValues.push({
+				columnIndex: columnIndex || 0,
+				rowIndex: rowIndex || 0,
+				value: getSheetCanvasCellDraftValue(sourceCell),
+			});
 			rows.set(cell.rowId, rowValues);
 		});
 
-		void copyTextToClipboard(Array.from(rows.values()).map((row) => row.join('\t')).join('\n'));
+		const grid = Array.from(rows.values());
+		const text = grid.map((row) => row.map((entry) => entry.value).join('\t')).join('\n');
+
+		// Keep the copy source coordinates so an in-app paste can shift formula references
+		setInternalGridClipboard({ grid, text });
+		void copyTextToClipboard(text);
 	}, [selectedCellKeyMap, selectedCellState]);
 
 	/*
-	 * Paste clipboard text from the selected cell or an explicit context-menu target cell.
+	 * Paste clipboard text from the top-left selected cell or an explicit context-menu selection target.
 	 */
-	const pasteSelectedSheetCells = useCallback(async (clipboardText: string, targetCell?: SheetUISelectedCellState | null) => {
+	const pasteSelectedSheetCells = useCallback(async (
+		clipboardText: string,
+		targetCell?: SheetUISelectedCellState | null,
+		targetSelectedCellKeyMap?: SheetUISelectedCellKeyMap | null,
+	) => {
 		const runtime = runtimeRef.current;
-		const activeCell = targetCell || selectedCellState;
+		const selectedMap = targetSelectedCellKeyMap || (targetCell
+			? getGridSelectedCellKeyMapFromCells([targetCell])
+			: getGridResolvedSelectedCellKeyMap({
+				selectedCellKeyMap,
+				selectedCellState,
+			}));
+		const pasteStartCell = getGridTopLeftSelectedCell({
+			columnMetrics: runtime?.columnMetrics || [],
+			fallbackCell: targetCell || selectedCellState,
+			rowIds: runtime?.rowIds || [],
+			selectedCellKeyMap: selectedMap,
+		});
 
-		if (!runtime || !activeCell) {
+		if (!runtime || !pasteStartCell) {
 			return;
 		}
 
-		const clipboardGrid = parseGridClipboardText(clipboardText);
-		const startRowIndex = runtime.rowIds.indexOf(activeCell.rowId);
+		// An in-app copy carries source coordinates for relative formula shifting;
+		// external clipboard text falls back to plain TSV parsing
+		const internalClipboard = getInternalGridClipboard(clipboardText);
+		const clipboardGrid = internalClipboard
+			? internalClipboard.grid.map((row) => row.map((entry) => entry.value))
+			: parseGridClipboardText(clipboardText);
+		const startRowIndex = runtime.rowIds.indexOf(pasteStartCell.rowId);
 		const startColumnIndex = runtime.columnMetrics.findIndex((metric) => {
 			const canvasColumn = metric.column as SheetCanvasColumn;
 
-			return String(canvasColumn.sheetColumnIndex) === activeCell.cellKey;
+			return String(canvasColumn.sheetColumnIndex) === pasteStartCell.cellKey;
 		});
 		const sheetCellChanges: SheetCellHistoryChange[] = [];
 		const dataTableCellChanges: SheetDataTableCellHistoryChange[] = [];
@@ -3422,9 +3584,18 @@ export function SheetController(p: SheetControllerProps) {
 						return;
 					}
 
+					// Shift formula references by the distance from the copy source cell
+					const sourceEntry = internalClipboard?.grid[rowOffset]?.[columnOffset];
+					const pasteValue = sourceEntry && sourceEntry.rowIndex && sourceEntry.columnIndex
+						? shiftSheetFormulaReferences(
+							value,
+							rowIndex - sourceEntry.rowIndex,
+							canvasColumn.sheetColumnIndex - sourceEntry.columnIndex,
+						).text
+						: value;
 					const key = getSheetCanvasCoordKey(rowIndex, canvasColumn.sheetColumnIndex);
 					const before = getSheetCellSnapshotEditInput(rowIndex, canvasColumn.sheetColumnIndex, runtime.effectiveCellsByCoord.get(key));
-					const after = getSheetValueEditInput(rowIndex, canvasColumn.sheetColumnIndex, value);
+					const after = getSheetValueEditInput(rowIndex, canvasColumn.sheetColumnIndex, pasteValue);
 
 					if (!sheetCellEditInputsAreEqual(before, after)) {
 						sheetCellChanges.push({
@@ -3447,7 +3618,137 @@ export function SheetController(p: SheetControllerProps) {
 
 		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
 		await applySheetDataTableCellChanges(dataTableCellChanges, 'after');
-	}, [applySheetCellInputs, applySheetDataTableCellChanges, dataTablesById, designCellsByDataTableId, optimisticDataTableValues, p.disabled, pushSheetUndoEntry, regionsById, selectedCellState, sourceCellsByTargetKey]);
+	}, [applySheetCellInputs, applySheetDataTableCellChanges, dataTablesById, designCellsByDataTableId, optimisticDataTableValues, p.disabled, pushSheetUndoEntry, regionsById, selectedCellKeyMap, selectedCellState, sourceCellsByTargetKey]);
+
+	/*
+	 * Apply autofill values into the target range when a fill-handle drag ends,
+	 * then grow the selection over the source plus filled cells.
+	 */
+	const applySheetFillRange = useCallback(async (source: SheetMergedRangeObj, target: SheetMergedRangeObj) => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime || p.disabled) {
+			return;
+		}
+
+		const vertical = target.startColumnIndex === source.startColumnIndex && target.endColumnIndex === source.endColumnIndex;
+		const backward = vertical ? target.endRowIndex < source.startRowIndex : target.endColumnIndex < source.startColumnIndex;
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
+
+		// One run per column for vertical fills, one per row for horizontal fills
+		const runCount = vertical
+			? source.endColumnIndex - source.startColumnIndex + 1
+			: source.endRowIndex - source.startRowIndex + 1;
+
+		for (let runIndex = 0; runIndex < runCount; runIndex += 1) {
+			const sourceCells: SheetAutofillCell[] = [];
+			const targetCells: Array<{ columnIndex: number; rowIndex: number }> = [];
+
+			if (vertical) {
+				const columnIndex = source.startColumnIndex + runIndex;
+
+				for (let rowIndex = source.startRowIndex; rowIndex <= source.endRowIndex; rowIndex += 1) {
+					sourceCells.push({
+						columnIndex,
+						rowIndex,
+						value: getSheetCanvasCellDraftValue(runtime.calculatedCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex))),
+					});
+				}
+
+				// Target cells ordered nearest-to-source first
+				if (backward) {
+					for (let rowIndex = target.endRowIndex; rowIndex >= target.startRowIndex; rowIndex -= 1) {
+						targetCells.push({ columnIndex, rowIndex });
+					}
+				} else {
+					for (let rowIndex = target.startRowIndex; rowIndex <= target.endRowIndex; rowIndex += 1) {
+						targetCells.push({ columnIndex, rowIndex });
+					}
+				}
+			} else {
+				const rowIndex = source.startRowIndex + runIndex;
+
+				for (let columnIndex = source.startColumnIndex; columnIndex <= source.endColumnIndex; columnIndex += 1) {
+					sourceCells.push({
+						columnIndex,
+						rowIndex,
+						value: getSheetCanvasCellDraftValue(runtime.calculatedCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex))),
+					});
+				}
+
+				if (backward) {
+					for (let columnIndex = target.endColumnIndex; columnIndex >= target.startColumnIndex; columnIndex -= 1) {
+						targetCells.push({ columnIndex, rowIndex });
+					}
+				} else {
+					for (let columnIndex = target.startColumnIndex; columnIndex <= target.endColumnIndex; columnIndex += 1) {
+						targetCells.push({ columnIndex, rowIndex });
+					}
+				}
+			}
+
+			const values = getSheetAutofillValues({
+				backward,
+				sourceCells,
+				targetCells,
+			});
+
+			targetCells.forEach((targetCell, index) => {
+				// Autofill writes plain sheet cells only; data-table-backed cells are skipped
+				const dataTableTarget = getSheetDataTableCellEditTarget({
+					columnIndex: targetCell.columnIndex,
+					dataTablesById,
+					designCellsByDataTableId,
+					effectiveCellsByCoord: runtime.effectiveCellsByCoord,
+					regionsById,
+					rowIndex: targetCell.rowIndex,
+					sourceCellsByTargetKey,
+				});
+
+				if (dataTableTarget || getSheetDataTableRegionAtCellFromMap(targetCell.rowIndex, targetCell.columnIndex, regionsById)) {
+					return;
+				}
+
+				const key = getSheetCanvasCoordKey(targetCell.rowIndex, targetCell.columnIndex);
+				const before = getSheetCellSnapshotEditInput(targetCell.rowIndex, targetCell.columnIndex, runtime.effectiveCellsByCoord.get(key));
+				const after = getSheetValueEditInput(targetCell.rowIndex, targetCell.columnIndex, values[index]);
+
+				if (!sheetCellEditInputsAreEqual(before, after)) {
+					sheetCellChanges.push({
+						after,
+						before,
+					});
+				}
+			});
+		}
+
+		// Grow the selection over the source plus filled range, like spreadsheets do
+		const unionKeyMap: SheetUISelectedCellKeyMap = {};
+		const unionStartRowIndex = Math.min(source.startRowIndex, target.startRowIndex);
+		const unionEndRowIndex = Math.max(source.endRowIndex, target.endRowIndex);
+		const unionStartColumnIndex = Math.min(source.startColumnIndex, target.startColumnIndex);
+		const unionEndColumnIndex = Math.max(source.endColumnIndex, target.endColumnIndex);
+
+		for (let rowIndex = unionStartRowIndex; rowIndex <= unionEndRowIndex; rowIndex += 1) {
+			for (let columnIndex = unionStartColumnIndex; columnIndex <= unionEndColumnIndex; columnIndex += 1) {
+				unionKeyMap[getSheetCellKey(String(rowIndex), String(columnIndex))] = true;
+			}
+		}
+
+		setHeaderSelection(null);
+		setSelectedCellKeyMap(unionKeyMap);
+
+		if (!sheetCellChanges.length) {
+			return;
+		}
+
+		pushSheetUndoEntry({
+			dataTableCells: [],
+			sheetCells: sheetCellChanges,
+		});
+
+		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+	}, [applySheetCellInputs, dataTablesById, designCellsByDataTableId, p.disabled, pushSheetUndoEntry, regionsById, setHeaderSelection, setSelectedCellKeyMap, sourceCellsByTargetKey]);
 
 	const selectAllSheetCells = useCallback(() => {
 		const runtime = runtimeRef.current;
@@ -3849,7 +4150,7 @@ export function SheetController(p: SheetControllerProps) {
 		await pasteSelectedSheetCells(clipboardText, {
 			cellKey: target.cellKey,
 			rowId: target.rowId,
-		});
+		}, getGridSelectedCellKeyMapFromCells(target.cells));
 	}, [pasteSelectedSheetCells]);
 
 	/*
@@ -4388,6 +4689,104 @@ export function SheetController(p: SheetControllerProps) {
 			stickyColumnCount,
 		}) : {};
 
+		// Fill-handle drag: the selection's corner dot wins over cell selection
+		const fillHandlePoint = runtime && fillHandleBounds
+			? getSheetCanvasFillHandlePoint({
+				bounds: fillHandleBounds,
+				columnMetrics: runtime.columnMetrics,
+				rowMetrics: runtime.rowMetrics,
+				scrollLeft: runtime.scrollLeft,
+				scrollTop: runtime.scrollTop,
+				stickyColumnCount,
+			})
+			: null;
+
+		if (runtime && hit.cell && fillHandleBounds && fillHandlePoint && isSheetCanvasFillHandleHit({
+			clientX: event.clientX,
+			clientY: event.clientY,
+			point: fillHandlePoint,
+			scrollNode: runtime.scrollNode,
+		})) {
+			event.preventDefault();
+			fillDragStateRef.current = {
+				pointerId: event.pointerId,
+				source: fillHandleBounds,
+			};
+			fillDragRangeRef.current = null;
+
+			const previousBodyCursor = setSheetCanvasBodyCursor('crosshair');
+			const onFillPointerMove = (moveEvent: globalThis.PointerEvent) => {
+				const dragState = fillDragStateRef.current;
+				const currentRuntime = runtimeRef.current;
+
+				if (!dragState || dragState.pointerId !== moveEvent.pointerId || !currentRuntime) {
+					return;
+				}
+
+				const nextHit = getSheetCanvasPointerHit({
+					clientX: moveEvent.clientX,
+					clientY: moveEvent.clientY,
+					columnMetrics: currentRuntime.columnMetrics,
+					columnOffsets: currentRuntime.columnOffsets,
+					rowMetrics: currentRuntime.rowMetrics,
+					rowOffsets: currentRuntime.rowOffsets,
+					scrollLeft: currentRuntime.scrollLeft,
+					scrollNode: currentRuntime.scrollNode,
+					scrollTop: currentRuntime.scrollTop,
+					stickyColumnCount,
+				});
+
+				if (!nextHit.cell) {
+					return;
+				}
+
+				const pointerRowIndex = getSheetCanvasRowIndexFromId(nextHit.cell.rowId);
+				const pointerColumnIndex = getSheetCanvasColumnIndexFromKey(nextHit.cell.cellKey);
+
+				if (!pointerRowIndex || !pointerColumnIndex) {
+					return;
+				}
+
+				moveEvent.preventDefault();
+				const nextRange = getSheetFillTargetRange(dragState.source, pointerRowIndex, pointerColumnIndex);
+
+				fillDragRangeRef.current = nextRange;
+				setFillDragRange((currentRange) => {
+					return currentRange?.startRowIndex === nextRange?.startRowIndex &&
+							currentRange?.startColumnIndex === nextRange?.startColumnIndex &&
+							currentRange?.endRowIndex === nextRange?.endRowIndex &&
+							currentRange?.endColumnIndex === nextRange?.endColumnIndex
+						? currentRange
+						: nextRange;
+				});
+			};
+			const onFillPointerUp = (upEvent: globalThis.PointerEvent) => {
+				restoreSheetCanvasBodyCursor(previousBodyCursor);
+
+				if (fillDragStateRef.current?.pointerId === upEvent.pointerId) {
+					const dragState = fillDragStateRef.current;
+					const targetRange = fillDragRangeRef.current;
+
+					fillDragStateRef.current = null;
+					fillDragRangeRef.current = null;
+					setFillDragRange(null);
+
+					if (dragState && targetRange) {
+						void applySheetFillRange(dragState.source, targetRange);
+					}
+				}
+
+				window.removeEventListener('pointermove', onFillPointerMove);
+				window.removeEventListener('pointerup', onFillPointerUp);
+				window.removeEventListener('pointercancel', onFillPointerUp);
+			};
+
+			window.addEventListener('pointermove', onFillPointerMove);
+			window.addEventListener('pointerup', onFillPointerUp);
+			window.addEventListener('pointercancel', onFillPointerUp);
+			return;
+		}
+
 		if (hit.columnResize) {
 			event.preventDefault();
 			startColumnResize(hit.columnResize.columnMetric, event.clientX);
@@ -4640,7 +5039,7 @@ export function SheetController(p: SheetControllerProps) {
 		window.addEventListener('pointermove', onPointerMove);
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointercancel', onPointerUp);
-	}, [closeSheetCellEditorForSelection, closeSheetContextMenu, commitEditorElement, dataTablesById, designCellsByDataTableId, openSheetOpenableDataTableCell, p.disabled, regionsById, selectSheetCell, selectSheetCellRangeToTarget, selectSheetColumn, selectSheetColumnRange, selectedCellState, selectSheetRow, selectSheetRowRange, setHeaderSelection, sourceCellsByTargetKey, startColumnResize, startRowResize, stickyColumnCount]);
+	}, [applySheetFillRange, closeSheetCellEditorForSelection, closeSheetContextMenu, commitEditorElement, dataTablesById, designCellsByDataTableId, fillHandleBounds, openSheetOpenableDataTableCell, p.disabled, regionsById, selectSheetCell, selectSheetCellRangeToTarget, selectSheetColumn, selectSheetColumnRange, selectedCellState, selectSheetRow, selectSheetRowRange, setHeaderSelection, sourceCellsByTargetKey, startColumnResize, startRowResize, stickyColumnCount]);
 
 	const handlePointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
 		const runtime = runtimeRef.current;
@@ -4664,7 +5063,24 @@ export function SheetController(p: SheetControllerProps) {
 			regionsById,
 			sourceCellsByTargetKey,
 		}) : null;
-		const cursor = getSheetCanvasPointerCursor(hit, p.disabled, Boolean(openableDataTableTarget));
+		// The fill handle dot shows a crosshair over every other cursor
+		const fillHandlePoint = runtime && fillHandleBounds
+			? getSheetCanvasFillHandlePoint({
+				bounds: fillHandleBounds,
+				columnMetrics: runtime.columnMetrics,
+				rowMetrics: runtime.rowMetrics,
+				scrollLeft: runtime.scrollLeft,
+				scrollTop: runtime.scrollTop,
+				stickyColumnCount,
+			})
+			: null;
+		const fillHandleHovered = Boolean(hit.cell && fillHandlePoint && isSheetCanvasFillHandleHit({
+			clientX: event.clientX,
+			clientY: event.clientY,
+			point: fillHandlePoint,
+			scrollNode: runtime?.scrollNode || null,
+		}));
+		const cursor = fillHandleHovered ? 'crosshair' : getSheetCanvasPointerCursor(hit, p.disabled, Boolean(openableDataTableTarget));
 		const rowIndex = hit.cell ? getSheetCanvasRowIndexFromId(hit.cell.rowId) : null;
 		const columnIndex = hit.cell ? getSheetCanvasColumnIndexFromKey(hit.cell.cellKey) : null;
 		const dataTableRegion = rowIndex && columnIndex
@@ -4691,7 +5107,7 @@ export function SheetController(p: SheetControllerProps) {
 				? currentCellState
 				: nextCellState;
 		});
-	}, [dataTablesById, designCellsByDataTableId, p.disabled, p.regions, regionsById, sourceCellsByTargetKey, stickyColumnCount]);
+	}, [dataTablesById, designCellsByDataTableId, fillHandleBounds, p.disabled, p.regions, regionsById, sourceCellsByTargetKey, stickyColumnCount]);
 
 	const handlePointerLeave = useCallback((event: PointerEvent<HTMLDivElement>) => {
 		if (event.currentTarget.style.cursor) {
@@ -5132,6 +5548,8 @@ export function SheetController(p: SheetControllerProps) {
 		regionDataTableLabelsById={dataTableLabelsById}
 		remoteSelections={remoteSelections}
 		mergedRanges={mergedRanges}
+		fillPreviewRange={fillDragRange}
+		showFillHandle={!p.disabled}
 		loadingCellCoords={loadingCellCoords}
 		loadingRegionRects={p.loadingRegionRects}
 		hoveredRegionId={hoveredRegionId}

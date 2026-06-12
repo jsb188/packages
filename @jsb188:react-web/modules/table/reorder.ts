@@ -451,7 +451,7 @@ export function useTableColumnReorderController(p: {
 
 		return {
 			'aria-grabbed': visualState?.columnKey === column.key ? true : undefined,
-			className: visualState?.columnKey === column.key ? 'bg_active' : 'cs_default_to_grabing bg_active_hv',
+			className: visualState?.columnKey === column.key ? 'bg_alt' : 'cs_default_to_grabing bg_alt_hv',
 			'data-table-column-reorder-handle': column.key,
 			onPointerCancel: onColumnReorderPointerCancel,
 			onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => onColumnReorderPointerDown(event, column, columnIndex),

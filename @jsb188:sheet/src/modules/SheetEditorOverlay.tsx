@@ -46,11 +46,11 @@ function getSheetEditorDomColor(color?: string | null) {
  */
 function getSheetEditorOverlayStyle(p: SheetEditorOverlayProps): CSSProperties {
 	return {
-		height: p.position.height,
-		left: p.scrollLeft + p.position.left + 1,
+		height: p.position.height + 1,
+		left: p.scrollLeft + p.position.left,
 		position: 'absolute',
-		top: p.scrollTop + p.position.top + 1,
-		width: p.position.width,
+		top: p.scrollTop + p.position.top,
+		width: p.position.width + 1,
 		zIndex: 43,
 	};
 }
@@ -141,7 +141,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	const handleChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		p.onDraftValue(event.currentTarget.value);
 	}, [p.onDraftValue]);
-	const editorClassName = cn('sheet_ui_editor bg stock px_6 ft_xs ft_normal', p.editState.error ? 'error' : '');
+	const editorClassName = cn('sheet_ui_editor bg stock pb_2 px_8 ft_xs ft_normal', p.editState.error ? 'error' : '');
 	const editorStyle = getSheetEditorFieldStyle(p);
 	const sharedProps = {
 		className: editorClassName,

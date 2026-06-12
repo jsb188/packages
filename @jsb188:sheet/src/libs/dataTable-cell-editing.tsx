@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { getReadableCalDate } from '@jsb188/app/utils/datetime.ts';
 import { formatCurrency } from '@jsb188/app/utils/number.ts';
-import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
+import type { SetFloatingMessage } from '@jsb188/react-web/modules/layout/MainLayout';
 import type { CalendarSelectedObj } from '@jsb188/react-web/modules/Calendar';
 import {
 	getValidSheetOptionColor,

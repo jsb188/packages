@@ -370,6 +370,33 @@ export function getOrderedGridSelectedCells(params: {
 }
 
 /*
+ * Return the top-left-most cell from a generic grid selection.
+ */
+export function getGridTopLeftSelectedCell(params: {
+	columnMetrics: SheetColumnMetric[];
+	fallbackCell?: SheetUISelectedCellState | null;
+	rowIds: string[];
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+}) {
+	if (!params.selectedCellKeyMap) {
+		return params.fallbackCell || null;
+	}
+
+	for (const rowId of params.rowIds) {
+		for (const metric of params.columnMetrics) {
+			if (params.selectedCellKeyMap[getSheetCellKey(rowId, metric.column.key)]) {
+				return {
+					cellKey: metric.column.key,
+					rowId,
+				};
+			}
+		}
+	}
+
+	return params.fallbackCell || null;
+}
+
+/*
  * Return the next active cell within the current selected cells.
  */
 export function getNextActiveGridSelectedCell(params: {

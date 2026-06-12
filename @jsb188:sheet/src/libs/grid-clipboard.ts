@@ -52,3 +52,37 @@ export function parseGridClipboardText(text: string) {
 	});
 }
 
+export type GridInternalClipboardCell = {
+	columnIndex: number;
+	rowIndex: number;
+	value: string;
+};
+
+export type GridInternalClipboard = {
+	grid: GridInternalClipboardCell[][];
+	text: string;
+};
+
+// Last in-app copy payload; the system clipboard only carries plain TSV text,
+// so the copy origin coordinates and unescaped cell values live here
+let internalGridClipboard: GridInternalClipboard | null = null;
+
+/*
+ * Remember the source coordinates and raw cell values of one in-app copy so a
+ * later paste can shift formula references relative to the copy origin.
+ */
+export function setInternalGridClipboard(payload: GridInternalClipboard | null) {
+	internalGridClipboard = payload;
+}
+
+/*
+ * Return the internal clipboard payload only while the system clipboard still
+ * holds the exact text written by the same copy; any external copy in between
+ * changes the text and invalidates the payload.
+ */
+export function getInternalGridClipboard(clipboardText: string): GridInternalClipboard | null {
+	return internalGridClipboard && internalGridClipboard.text === clipboardText
+		? internalGridClipboard
+		: null;
+}
+

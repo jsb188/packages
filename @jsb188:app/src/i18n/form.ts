@@ -118,6 +118,7 @@ export default {
     scroll_for_more: 'Scroll for more',
     search_: 'Search: "%{query}"',
     close: 'Close',
+    expand: 'Expand',
     expand_tree_item: 'Expand tree item',
     collapse_tree_item: 'Collapse tree item',
     join: 'Join',

@@ -1,5 +1,5 @@
 import type { DataTableCellGQL, DataTableDesignGQL, DataTableRowGQL } from '@jsb188/mday/types/dataTable.d.ts';
-import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
+import type { SetFloatingMessage } from '@jsb188/react-web/modules/layout/MainLayout';
 import { clampSheetColumnWidth, getSheetCellKey, type SheetColumnWidths } from '@jsb188/react-web/ui/SheetUI';
 import { atom } from 'jotai';
 import { useEffect, useRef } from 'react';

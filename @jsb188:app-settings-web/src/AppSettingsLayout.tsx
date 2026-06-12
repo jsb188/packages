@@ -1,4 +1,4 @@
-import { getErrorMessageContent } from '@jsb188/react-web/modules/Layout';
+import { getErrorMessageContent } from '@jsb188/react-web/modules/layout/MainLayout';
 import { Icon } from '@jsb188/react-web/svgs/Icon';
 import Markdown from '@jsb188/react-web/ui/Markdown';
 import { ModalContentContainer, ModalFloatingSaveButton, ModalSideNav, ModalSideNavIface } from '@jsb188/react-web/ui/ModalUI';

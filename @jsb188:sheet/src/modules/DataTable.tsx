@@ -12,7 +12,7 @@ import type {
 import {
   moveVisibleDataTableColumnKeyInOrder,
 } from '@jsb188/mday/utils/dataTable.ts';
-import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
+import type { SetFloatingMessage } from '@jsb188/react-web/modules/layout/MainLayout';
 import { DataTableUI } from '@jsb188/react-web/ui/DataTableUI';
 import {
   clampSheetColumnWidth,

@@ -31,7 +31,7 @@ export function getFirstAvailableDocumentNameVariant(baseName: string, takenName
 }
 
 /*
- * Return a document name with a random alphanumeric suffix.
+ * Return a document name with a random underscore-prefixed alphanumeric suffix.
  */
 
 export function buildRandomDocumentNameVariant(baseName: string) {

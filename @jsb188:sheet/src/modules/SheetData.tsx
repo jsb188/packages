@@ -18,7 +18,7 @@ import type {
 } from '@jsb188/mday/types/sheet.d.ts';
 import { getOrganizationChildListCellFormulaValueFromId, isOrganizationChildProfileLinkCellKey } from '@jsb188/mday/utils/organization.ts';
 import { getSheetCustomRegionSourceColumns, getSheetRegionSourceId, getSheetRegionSourceType } from '@jsb188/mday/utils/sheet.ts';
-import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
+import type { SetFloatingMessage } from '@jsb188/react-web/modules/layout/MainLayout';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useAtom, useSetAtom } from 'jotai';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';

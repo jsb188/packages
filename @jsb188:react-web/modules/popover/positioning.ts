@@ -177,6 +177,22 @@ export function getClientRectValues(rect: ClientRect | DOMRect): ClientRectValue
 }
 
 /**
+ * Return a zero-size rectangle anchored at a pointer location (e.g. a right-click event).
+ */
+export function getPointerClientRectValues(clientX: number, clientY: number): ClientRectValues {
+  return {
+    width: 0,
+    height: 0,
+    left: clientX,
+    right: clientX,
+    top: clientY,
+    bottom: clientY,
+    x: clientX,
+    y: clientY,
+  };
+}
+
+/**
  * Return the positioned style and optional remaining height for the popover wrapper.
  */
 export function getPopOverPosition(params: PopOverPositionParams): PopOverPositionResult {

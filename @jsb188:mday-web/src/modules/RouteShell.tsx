@@ -3,7 +3,7 @@ import {
 	ContentGate,
 	ErrorMessage,
 	ErrorMessageContainer,
-} from '@jsb188/react-web/modules/Layout';
+} from '@jsb188/react-web/modules/layout/MainLayout';
 import { memo, type Dispatch, type SetStateAction } from 'react';
 
 interface AppRouteShellProps {

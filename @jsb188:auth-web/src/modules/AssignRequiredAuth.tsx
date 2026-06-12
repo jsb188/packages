@@ -1,7 +1,7 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { useRequestChangeEmail } from '@jsb188/graphql/hooks/use-account-mtn';
 import { useChangeAccountPassword } from '@jsb188/graphql/hooks/use-auth-mtn';
-import { FullPageLayout } from '@jsb188/react-web/modules/Layout';
+import { FullPageLayout } from '@jsb188/react-web/modules/layout/MainLayout';
 import SchemaForm from '@jsb188/react-web/modules/SchemaForm';
 import { COMMON_ICON_NAMES } from '@jsb188/react-web/svgs/Icon';
 import { FullWidthButton } from '@jsb188/react-web/ui/Button';

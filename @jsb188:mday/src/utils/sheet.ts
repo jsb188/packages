@@ -1540,6 +1540,22 @@ export function getSheetFormulaColumnIndex(columnLabel: string) {
 }
 
 /*
+ * Return a spreadsheet-style column label from a one-based column index.
+ */
+export function getSheetFormulaColumnLabel(columnIndex: number) {
+	let label = '';
+	let remaining = Math.floor(columnIndex);
+
+	while (remaining > 0) {
+		const remainder = (remaining - 1) % 26;
+		label = String.fromCharCode(65 + remainder) + label;
+		remaining = Math.floor((remaining - 1) / 26);
+	}
+
+	return label;
+}
+
+/*
  * Parse a spreadsheet-style cell reference like C12.
  */
 export function parseSheetFormulaCellReference(value: string): SheetFormulaCellReference | null {
@@ -2150,6 +2166,272 @@ export function tokenizeSheetFormulaReferences(value: string): SheetFormulaRefer
 	}
 
 	return tokens;
+}
+
+export const SHEET_FORMULA_REF_ERROR = '#REF!';
+
+export type SheetFormulaShiftResult = {
+	hasRefError: boolean;
+	text: string;
+};
+
+/*
+ * Return one cell reference rendered after a row/column shift, or null when
+ * the shift moves it out of the sheet bounds.
+ */
+function getShiftedSheetFormulaCellReferenceText(
+	reference: { columnIndex: number; rowIndex: number },
+	rowDelta: number,
+	columnDelta: number,
+) {
+	const rowIndex = reference.rowIndex + rowDelta;
+	const columnIndex = reference.columnIndex + columnDelta;
+
+	if (rowIndex < 1 || columnIndex < 1) {
+		return null;
+	}
+
+	return `${getSheetFormulaColumnLabel(columnIndex)}${rowIndex}`;
+}
+
+/*
+ * Return the rewritten text for one reference token after a row/column shift,
+ * or null when the token needs no rewrite. Data table tokens only rewrite the
+ * sheet cell references nested inside them; field keys and table names are
+ * never shifted.
+ */
+function getShiftedSheetFormulaReferenceTokenText(
+	token: SheetFormulaReferenceToken,
+	rowDelta: number,
+	columnDelta: number,
+): SheetFormulaShiftResult | null {
+	if (token.kind === 'SHEET_CELL') {
+		const shifted = getShiftedSheetFormulaCellReferenceText(token, rowDelta, columnDelta);
+		return shifted
+			? { hasRefError: false, text: shifted }
+			: { hasRefError: true, text: SHEET_FORMULA_REF_ERROR };
+	}
+
+	if (token.kind === 'SHEET_RANGE') {
+		const start = getShiftedSheetFormulaCellReferenceText(
+			{ columnIndex: token.startColumnIndex, rowIndex: token.startRowIndex },
+			rowDelta,
+			columnDelta,
+		);
+		const end = getShiftedSheetFormulaCellReferenceText(
+			{ columnIndex: token.endColumnIndex, rowIndex: token.endRowIndex },
+			rowDelta,
+			columnDelta,
+		);
+
+		// A range with either corner out of bounds collapses to one #REF! error
+		return start && end
+			? { hasRefError: false, text: `${start}:${end}` }
+			: { hasRefError: true, text: SHEET_FORMULA_REF_ERROR };
+	}
+
+	if (token.kind === 'DATA_TABLE_CELL') {
+		// Only the row identifier argument is an expression that can hold refs
+		const inner = shiftSheetFormulaReferencesInText(token.rowIdentifierExpression.trim(), rowDelta, columnDelta);
+		if (inner.text === token.rowIdentifierExpression.trim() && !inner.hasRefError) {
+			return null;
+		}
+
+		const call = parseSheetFormulaCall(token.text);
+		if (!call || call.args.length !== 2) {
+			return null;
+		}
+
+		return {
+			hasRefError: inner.hasRefError,
+			text: `${call.name}(${inner.text}, ${call.args[1].trim()})`,
+		};
+	}
+
+	if (token.kind === 'DATA_TABLE_QUERY_CELL') {
+		// Rewrite only WHERE condition values the parser classified as cell references
+		let hasRefError = false;
+		let changed = false;
+		const conditionTexts = token.conditions.map((condition) => {
+			if (condition.valueNode.kind !== 'CELL_REFERENCE') {
+				return condition.text;
+			}
+
+			const shifted = getShiftedSheetFormulaCellReferenceText(condition.valueNode.reference, rowDelta, columnDelta);
+			const prefix = condition.text.slice(0, condition.text.length - condition.valueExpression.length);
+			changed = true;
+
+			if (!shifted) {
+				hasRefError = true;
+				return `${prefix}${SHEET_FORMULA_REF_ERROR}`;
+			}
+
+			return `${prefix}${shifted}`;
+		});
+
+		if (!changed) {
+			return null;
+		}
+
+		const headMatch = token.text.match(/^@?[A-Za-z_][A-Za-z0-9_]*\s*\(/);
+		const callEndIndex = headMatch ? getSheetFormulaCallEndIndex(token.text, headMatch[0].lastIndexOf('(')) : null;
+		if (!callEndIndex) {
+			return null;
+		}
+
+		return {
+			hasRefError,
+			text: `${token.text.slice(0, callEndIndex)} WHERE ${conditionTexts.join(' AND ')}`,
+		};
+	}
+
+	return null;
+}
+
+/*
+ * Shift sheet references inside one formula expression text by splicing each
+ * rewritten token over its original span, preserving all other characters.
+ */
+function shiftSheetFormulaReferencesInText(
+	text: string,
+	rowDelta: number,
+	columnDelta: number,
+): SheetFormulaShiftResult {
+	const tokens = tokenizeSheetFormulaReferences(text);
+	if (!tokens.length) {
+		return { hasRefError: false, text };
+	}
+
+	let hasRefError = false;
+	let result = '';
+	let cursor = 0;
+
+	tokens.forEach((token) => {
+		const rewrite = getShiftedSheetFormulaReferenceTokenText(token, rowDelta, columnDelta);
+		result += text.slice(cursor, token.startIndex);
+		result += rewrite ? rewrite.text : text.slice(token.startIndex, token.endIndex);
+		hasRefError = hasRefError || Boolean(rewrite?.hasRefError);
+		cursor = token.endIndex;
+	});
+
+	result += text.slice(cursor);
+	return { hasRefError, text: result };
+}
+
+/*
+ * Shift every sheet cell/range reference in one formula input by a row and
+ * column delta — the relative-addressing rewrite applied when a formula is
+ * pasted or autofilled into a different cell (=A3 copied one row down
+ * becomes =A4). References shifted out of bounds become #REF! and flag
+ * hasRefError. Non-formula inputs are returned unchanged.
+ */
+export function shiftSheetFormulaReferences(
+	value: string,
+	rowDelta: number,
+	columnDelta: number,
+): SheetFormulaShiftResult {
+	if (!isSheetFormulaText(value) || (!rowDelta && !columnDelta)) {
+		return { hasRefError: false, text: value };
+	}
+
+	return shiftSheetFormulaReferencesInText(value, rowDelta, columnDelta);
+}
+
+export type SheetAutofillCell = {
+	columnIndex: number;
+	rowIndex: number;
+	value: string;
+};
+
+/*
+ * Return one autofill source value parsed as a plain numeric literal, or null
+ * when it is not a number.
+ */
+function getSheetAutofillNumericValue(value: string) {
+	const trimmed = value.trim();
+	if (!trimmed || !/^[+-]?(\d+\.?\d*|\.\d+)$/.test(trimmed)) {
+		return null;
+	}
+
+	const parsed = Number(trimmed);
+	return Number.isFinite(parsed) ? parsed : null;
+}
+
+/*
+ * Return the constant step of one all-numeric source run, or null when the
+ * values do not form an arithmetic series.
+ */
+function getSheetAutofillArithmeticStep(values: number[]) {
+	if (values.length < 2) {
+		return null;
+	}
+
+	const step = values[1] - values[0];
+
+	for (let index = 2; index < values.length; index += 1) {
+		if (Math.abs(values[index] - values[index - 1] - step) > 1e-9) {
+			return null;
+		}
+	}
+
+	return step;
+}
+
+/*
+ * Format one extrapolated numeric autofill value without float drift.
+ */
+function formatSheetAutofillNumber(value: number) {
+	return String(parseFloat(value.toPrecision(12)));
+}
+
+/*
+ * Return the autofill values for one run of target cells extending one
+ * ordered run of source cells — one column of a vertical fill or one row of
+ * a horizontal fill. Source cells are ordered along the fill axis
+ * (top-to-bottom / left-to-right) and target cells from nearest-to-block
+ * outward; backward marks fills that extend up or left.
+ * - All-numeric source runs with a constant step extend the arithmetic
+ *   series (1, 2, 3 fills 4, 5, 6).
+ * - Every other run repeats the source block cyclically, with formula values
+ *   shifting their cell references by the distance from their source cell.
+ */
+export function getSheetAutofillValues(params: {
+	backward?: boolean;
+	sourceCells: SheetAutofillCell[];
+	targetCells: Array<{ columnIndex: number; rowIndex: number }>;
+}): string[] {
+	const { backward, sourceCells, targetCells } = params;
+	const count = sourceCells.length;
+
+	if (!count) {
+		return targetCells.map(() => '');
+	}
+
+	const numericValues = sourceCells.map((cell) => {
+		return isSheetFormulaText(cell.value) ? null : getSheetAutofillNumericValue(cell.value);
+	});
+	const step = numericValues.every((value) => value !== null)
+		? getSheetAutofillArithmeticStep(numericValues as number[])
+		: null;
+
+	return targetCells.map((target, index) => {
+		// Signed position of the target relative to the source block start
+		const offset = backward ? -(index + 1) : count + index;
+
+		if (step !== null) {
+			return formatSheetAutofillNumber((numericValues[0] as number) + offset * step);
+		}
+
+		// Cyclic repeat: negative offsets wrap to tile the pattern backwards
+		const sourceIndex = ((offset % count) + count) % count;
+		const source = sourceCells[sourceIndex];
+
+		return shiftSheetFormulaReferences(
+			source.value,
+			target.rowIndex - source.rowIndex,
+			target.columnIndex - source.columnIndex,
+		).text;
+	});
 }
 
 /*

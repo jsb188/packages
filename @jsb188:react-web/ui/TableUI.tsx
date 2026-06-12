@@ -251,7 +251,6 @@ export const TableHeaderCell = memo((p: HTMLAttributes<HTMLDivElement> & TableCe
       fontWeight: 'inherit',
       padding: 0,
       position: 'relative',
-      textAlign: 'left',
       ...style,
     }}
     {...rest}
