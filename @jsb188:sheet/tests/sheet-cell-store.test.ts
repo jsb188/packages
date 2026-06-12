@@ -3,6 +3,7 @@ import type { SheetCellGQL } from '@jsb188/mday/types/sheet.d.ts';
 import {
 	getSheetRenderCellsByCoord,
 	mergeConfirmedSheetCells,
+	mergeRefetchedSheetCells,
 	removeConfirmedSheetRegionCells,
 	type SheetPendingCellEdit,
 	type SheetRemotePendingCell,
@@ -107,6 +108,78 @@ describe('mergeConfirmedSheetCells', () => {
 		]);
 
 		expect(next).toBe(current);
+	});
+});
+
+describe('mergeRefetchedSheetCells', () => {
+	it('keeps a stored same-id cell with a higher revision over the snapshot twin', () => {
+		const current = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', revision: 7, textValue: 'fresh save' }),
+		]);
+		const incoming = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', revision: 5, textValue: 'stale snapshot' }),
+		]);
+
+		const next = mergeRefetchedSheetCells(current, incoming);
+		expect(next.get('1:1')?.textValue).toBe('fresh save');
+		expect(next.get('1:1')?.revision).toBe(7);
+	});
+
+	it('takes the snapshot cell when its revision is equal or higher', () => {
+		const current = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', revision: 5, textValue: 'old' }),
+		]);
+
+		const higher = mergeRefetchedSheetCells(current, mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', revision: 6, textValue: 'newer snapshot' }),
+		]));
+		expect(higher.get('1:1')?.textValue).toBe('newer snapshot');
+
+		const equal = mergeRefetchedSheetCells(current, mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', revision: 5, textValue: 'same revision' }),
+		]));
+		expect(equal.get('1:1')?.textValue).toBe('same revision');
+	});
+
+	it('drops stored coordinates missing from the snapshot', () => {
+		const current = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', rowIndex: 4, columnIndex: 5, revision: 9 }),
+		]);
+
+		const next = mergeRefetchedSheetCells(current, new Map());
+		expect(next.has('4:5')).toBe(false);
+	});
+
+	it('adds snapshot-only coordinates', () => {
+		const incoming = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'b', rowIndex: 2, columnIndex: 2, revision: 1 }),
+		]);
+
+		const next = mergeRefetchedSheetCells(new Map(), incoming);
+		expect(next.get('2:2')?.id).toBe('b');
+	});
+
+	it('lets a different snapshot id at the same coordinate win regardless of revision', () => {
+		const current = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', revision: 9, textValue: 'old cell' }),
+		]);
+		const incoming = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'b', revision: 1, textValue: 'replacement' }),
+		]);
+
+		const next = mergeRefetchedSheetCells(current, incoming);
+		expect(next.get('1:1')?.id).toBe('b');
+	});
+
+	it('returns the incoming map reference unchanged when no stored cell outranks it', () => {
+		const current = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', revision: 5 }),
+		]);
+		const incoming = mergeConfirmedSheetCells(new Map(), [
+			buildCell({ id: 'a', revision: 5 }),
+		]);
+
+		expect(mergeRefetchedSheetCells(current, incoming)).toBe(incoming);
 	});
 });
 

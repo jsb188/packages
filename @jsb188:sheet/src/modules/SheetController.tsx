@@ -72,6 +72,9 @@ import {
   GRID_FORMULA_INPUT_SELECTOR,
   handleGridKeyboardEvent,
   type GridArrowDirection,
+  type GridFillShortcutDirection,
+  type GridHomeEndEdge,
+  type GridPageDirection,
   type GridTextStyleShortcutName,
 } from '../libs/grid-keyboard.ts';
 import {
@@ -90,17 +93,22 @@ import {
 } from '../libs/sheet-border-styles.ts';
 import { getSheetCellTextRequiredRowHeight } from '../libs/sheet-text-measure.ts';
 import {
+	applySheetStructureShiftToUndoEntries,
 	getSheetCellSnapshotEditInput,
 	getSheetClearEditInput,
+	getSheetStructureHistoryChange,
 	getSheetValueEditInput,
 	sheetCellDraftValueIsEqual,
+	sheetCellEditInputMatchesCell,
 	sheetCellEditInputsAreEqual,
+	sheetCellHasSavedDesign,
 	useSheetUndoRedo,
 	type SheetCellEditInput,
 	type SheetCellHistoryChange,
 	type SheetDataTableCellEditTarget,
 	type SheetDataTableCellHistoryChange,
 	type SheetDesignPatchInput,
+	type SheetRegionHistoryChange,
 	type SheetUndoRedoEntry,
 } from '../libs/sheet-history.ts';
 import {
@@ -134,11 +142,12 @@ import {
 import {
   gridSelectedCellKeyMapHasMultipleCells,
   getGridArrowNavigationSelection,
+  getGridDataEdgeNavigationSelection,
   getGridRangeSelection,
   getGridResolvedSelectedCellKeyMap,
   getGridSelectedCellsFromKeyMap,
   getGridSelectedCellKeyMapFromCells,
-  getGridSelectionAnchorCell,
+  getGridSelectedCellKeyMapWithCellToggled,
   getGridTopLeftSelectedCell,
   getNextActiveGridSelectedCell,
   getOrderedGridSelectedCells,
@@ -235,9 +244,19 @@ export type SheetInsertViewTableRequest = {
 };
 
 type SheetClearSelectedCellsOptions = {
+	/* Clear saved formatting along with content (cut-moves; Delete keeps formatting) */
+	clearDesign?: boolean;
 	deleteDataTableRegions?: boolean;
 	promptForDataTableRegions?: boolean;
 };
+
+/*
+ * Serialize one cell value for TSV clipboard text, quoting embedded tabs,
+ * newlines, and quotes so spreadsheet apps parse them back as one cell.
+ */
+function getSheetClipboardEscapedValue(value: string) {
+	return /[\t\n"]/.test(value) ? '"' + value.replace(/"/g, '""') + '"' : value;
+}
 
 /*
  * Return whether the current browser URL is a local development URL.
@@ -284,7 +303,9 @@ type SheetControllerProps = {
 	onOpenDataTableCellLink?: (params: DataTableOpenCellParams) => void;
 	onOpenOrganizationProfile?: (childId: string, childOrgId?: string | null) => void;
 	onPopulateFromDataTable?: (request: SheetInsertViewTableRequest) => void;
-	onRemoveDataTableRegion?: (regionId: string, options?: { skipConfirmation?: boolean }) => Promise<unknown> | unknown;
+	onRemoveDataTableRegion?: (regionId: string, options?: { onDeleted?: (regionId: string) => void; skipConfirmation?: boolean }) => Promise<unknown> | unknown;
+	/* Recreates one deleted data table region from its captured state (undo) */
+	onRestoreDataTableRegion?: (region: SheetRegionGQL) => Promise<SheetRegionGQL | null>;
 	/* Relays instant pending previews to peer viewers */
 	onBroadcastCellEdits?: (previews: Array<{ coordKey: string; previewCell: SheetCellGQL }>) => void;
 	onClearDataTablePendingEdits: (sourceKey: string) => void;
@@ -299,6 +320,8 @@ type SheetControllerProps = {
 	}> | null;
 	presenceRoster?: SheetPresenceRosterEntry[] | null;
 	remoteSelections?: SheetRemoteSelection[] | null;
+	/* Last collaborator structure op; rebases the local undo/redo stacks over the shift */
+	remoteStructureShift?: { index: number; operation: SheetStructureOperationEnum; seq: number } | null;
 	onUpdateSheetDesign: (design: SheetDesignPatchInput) => Promise<unknown> | unknown;
 	organizationId?: string | null;
 	ranges: SheetRangeGQL[];
@@ -2053,8 +2076,12 @@ export function SheetController(p: SheetControllerProps) {
 	const fillDragStateRef = useRef<SheetCanvasFillDragState | null>(null);
 	const fillDragRangeRef = useRef<SheetMergedRangeObj | null>(null);
 	const [fillDragRange, setFillDragRange] = useState<SheetMergedRangeObj | null>(null);
+	// Copied or cut source range; renders the marching-ants border until pasted or dismissed
+	const [copySourceRange, setCopySourceRange] = useState<SheetMergedRangeObj | null>(null);
 
-	// Sheet-coordinate bounds of the current selection, for the fill handle dot
+	// Sheet-coordinate bounds of the current selection, for the fill handle dot.
+	// Cmd/Ctrl+click can punch holes in a selection; range-driven features (fill
+	// handle, fill shortcuts) only run when the selection is one solid rectangle.
 	const fillHandleBounds = useMemo(() => {
 		if (p.disabled) {
 			return null;
@@ -2064,10 +2091,16 @@ export function SheetController(p: SheetControllerProps) {
 			selectedCellKeyMap,
 			selectedCellState,
 		});
+		const selectedCells = selectedMap ? getGridSelectedCellsFromKeyMap(selectedMap) : [];
+		const bounds = selectedCells.length ? getSheetSelectedCellsBounds(selectedCells) : null;
 
-		return selectedMap
-			? getSheetSelectedCellsBounds(getGridSelectedCellsFromKeyMap(selectedMap))
-			: null;
+		if (!bounds) {
+			return null;
+		}
+
+		const boundsArea = (bounds.endRowIndex - bounds.startRowIndex + 1) * (bounds.endColumnIndex - bounds.startColumnIndex + 1);
+
+		return selectedCells.length === boundsArea ? bounds : null;
 	}, [p.disabled, selectedCellKeyMap, selectedCellState]);
 
 	const openedDataTableCellPointerDownRef = useRef<SheetUISelectedCellState | null>(null);
@@ -2081,6 +2114,7 @@ export function SheetController(p: SheetControllerProps) {
 	const committingEditorRef = useRef(false);
 	const {
 		pushUndoEntry: pushSheetUndoEntry,
+		rebaseEntries: rebaseSheetUndoEntries,
 		runApplyingHistory: runApplyingSheetHistory,
 		takeRedoEntry: takeSheetRedoEntry,
 		takeUndoEntry: takeSheetUndoEntry,
@@ -2091,6 +2125,7 @@ export function SheetController(p: SheetControllerProps) {
 		columnMetrics: SheetColumnMetric[];
 		columnMetricsByKey: Map<string, SheetColumnMetric>;
 		columnOffsets: number[];
+		editBaseCellsByCoord: Map<string, SheetCellGQL>;
 		effectiveCellsByCoord: Map<string, SheetCellGQL>;
 		rowMetrics: SheetRowMetric[];
 		rowMetricsByKey: Map<string, SheetRowMetric>;
@@ -2174,6 +2209,22 @@ export function SheetController(p: SheetControllerProps) {
 
 		return next;
 	}, [pendingCellEdits, p.cellsByCoord, remotePendingCells]);
+	// Edit-time base: confirmed + own pending only. Peer previews are unconfirmed
+	// presentation hints — building an edit snapshot on one would capture the
+	// peer's preview value into our own save and clobber or revert their edit
+	const editBaseCellsByCoord = useMemo(() => {
+		if (!pendingCellEdits.size) {
+			return p.cellsByCoord;
+		}
+
+		const next = new Map(p.cellsByCoord);
+
+		pendingCellEdits.forEach((pendingEdit, key) => {
+			next.set(key, pendingEdit.previewCell);
+		});
+
+		return next;
+	}, [pendingCellEdits, p.cellsByCoord]);
 	const dataTablesById = useMemo(() => {
 		return getSheetDataTablesById(p.dataTables);
 	}, [p.dataTables]);
@@ -2734,6 +2785,25 @@ export function SheetController(p: SheetControllerProps) {
 		rowResizeStateRef.current = rowResizeState;
 	});
 
+	// A collaborator's structure op shifts coordinates without entering this
+	// client's history: rebase both undo/redo stacks over the shift so older
+	// entries keep targeting the right cells. Own structure ops skip this —
+	// they push their own history entry, and undoing it restores the layout
+	// older entries were recorded against.
+	const appliedRemoteStructureShiftSeqRef = useRef(0);
+	useEffect(() => {
+		const shift = p.remoteStructureShift;
+
+		if (!shift || shift.seq === appliedRemoteStructureShiftSeqRef.current) {
+			return;
+		}
+
+		appliedRemoteStructureShiftSeqRef.current = shift.seq;
+		rebaseSheetUndoEntries((entries) => {
+			return applySheetStructureShiftToUndoEntries(entries, shift.operation, shift.index);
+		});
+	}, [p.remoteStructureShift, rebaseSheetUndoEntries]);
+
 	useEffect(() => {
 		runtimeRef.current = {
 			calculatedCellsByCoord,
@@ -2741,6 +2811,7 @@ export function SheetController(p: SheetControllerProps) {
 			columnMetrics: columnMetricsData.metrics,
 			columnMetricsByKey,
 			columnOffsets: columnMetricsData.offsets,
+			editBaseCellsByCoord,
 			effectiveCellsByCoord,
 			rowMetrics: rowMetricsData.metrics,
 			rowMetricsByKey,
@@ -2874,6 +2945,45 @@ export function SheetController(p: SheetControllerProps) {
 		scrollCellIntoView(targetCell);
 	}, [closeSheetCellEditorForSelection, scrollCellIntoView, selectSheetCell, selectedCellState, setHeaderSelection]);
 
+	/*
+	 * Toggle one cell in or out of the current selection (Cmd/Ctrl+click).
+	 * Removing the active cell hands the active state to another selected cell.
+	 */
+	const toggleSheetCellInSelection = useCallback((cell_: SheetUISelectedCellState) => {
+		const cell = remapSheetCellToMergeAnchor(cell_);
+		const currentMap = getGridResolvedSelectedCellKeyMap({
+			selectedCellKeyMap,
+			selectedCellState,
+		}) || {};
+		const nextMap = getGridSelectedCellKeyMapWithCellToggled(currentMap, cell);
+		const toggledKey = getSheetCellKey(cell.rowId, cell.cellKey);
+
+		closeSheetCellEditorForSelection();
+		setHeaderSelection(null);
+
+		if (nextMap[toggledKey]) {
+			// Added to the selection: the clicked cell becomes the active cell
+			setSelectedCellState(cell);
+			setSelectedCellKeyMap(nextMap);
+			return;
+		}
+
+		const remainingCells = getGridSelectedCellsFromKeyMap(nextMap);
+
+		if (!remainingCells.length) {
+			// Removing the last cell collapses the selection onto the clicked cell
+			setSelectedCellState(cell);
+			setSelectedCellKeyMap(getGridSelectedCellKeyMapFromCells([cell]));
+			return;
+		}
+
+		if (selectedCellState && getSheetCellKey(selectedCellState.rowId, selectedCellState.cellKey) === toggledKey) {
+			setSelectedCellState(remainingCells[remainingCells.length - 1]);
+		}
+
+		setSelectedCellKeyMap(nextMap);
+	}, [closeSheetCellEditorForSelection, remapSheetCellToMergeAnchor, selectedCellKeyMap, selectedCellState, setHeaderSelection]);
+
 	const openSheetCellEditor = useCallback((cell_?: SheetUISelectedCellState | null, initialValue?: string, selectAllOnFocus = true) => {
 		const cell = cell_ ? remapSheetCellToMergeAnchor(cell_) : cell_;
 		const runtime = runtimeRef.current;
@@ -2990,7 +3100,7 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		const nextTransition = getSheetOptimisticCellEditTransition({
-			baseCellsByCoord: runtime?.effectiveCellsByCoord || new Map(),
+			baseCellsByCoord: runtime?.editBaseCellsByCoord || new Map(),
 			currentOptimisticCellsByCoord: pendingPreviewsRef.current,
 			inputs,
 			timeZone: p.timeZone,
@@ -3072,6 +3182,34 @@ export function SheetController(p: SheetControllerProps) {
 
 	const applySheetHistoryEntry = useCallback(async (entry: SheetUndoRedoEntry, direction: 'after' | 'before') => {
 		await runApplyingSheetHistory(async () => {
+			// Structure replays first so cell and design changes recorded against
+			// the restored layout land on the right coordinates
+			if (entry.structure && p.onEditSheetStructure) {
+				const step = entry.structure[direction];
+
+				await p.onEditSheetStructure(step.operation, step.index);
+
+				if (step.restoreCells?.length) {
+					await applySheetCellInputs(step.restoreCells);
+				}
+			}
+
+			if (entry.regions?.length) {
+				for (const change of entry.regions) {
+					if (direction === 'before' && change.before && p.onRestoreDataTableRegion) {
+						// Undo recreates the region under a NEW id; the entry's
+						// redo side updates in place so redo deletes the live one
+						const restoredRegion = await p.onRestoreDataTableRegion(change.before);
+
+						if (restoredRegion?.id) {
+							change.after = { regionId: String(restoredRegion.id) };
+						}
+					} else if (direction === 'after' && change.after?.regionId) {
+						await p.onRemoveDataTableRegion?.(change.after.regionId, { skipConfirmation: true });
+					}
+				}
+			}
+
 			if (entry.sheetCells?.length) {
 				await applySheetCellInputs(entry.sheetCells.map((change) => change[direction]));
 			}
@@ -3084,7 +3222,7 @@ export function SheetController(p: SheetControllerProps) {
 				await applySheetDesignPatch(entry.design[direction]);
 			}
 		});
-	}, [applySheetCellInputs, applySheetDataTableCellChanges, applySheetDesignPatch, runApplyingSheetHistory]);
+	}, [applySheetCellInputs, applySheetDataTableCellChanges, applySheetDesignPatch, p.onEditSheetStructure, p.onRemoveDataTableRegion, p.onRestoreDataTableRegion, runApplyingSheetHistory]);
 
 	const undoSheetHistory = useCallback(async () => {
 		const entry = takeSheetUndoEntry();
@@ -3115,7 +3253,7 @@ export function SheetController(p: SheetControllerProps) {
 		}
 
 		const coordKey = getSheetCanvasCoordKey(rowIndex, columnIndex);
-		const currentCell = runtimeRef.current?.effectiveCellsByCoord.get(coordKey) || null;
+		const currentCell = runtimeRef.current?.editBaseCellsByCoord.get(coordKey) || null;
 
 		if (sheetCellDraftValueIsEqual(currentCell, value)) {
 			return;
@@ -3409,10 +3547,15 @@ export function SheetController(p: SheetControllerProps) {
 			}
 
 			const key = getSheetCanvasCoordKey(rowIndex, columnIndex);
-			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, runtime.effectiveCellsByCoord.get(key));
-			const after = getSheetClearEditInput(rowIndex, columnIndex);
+			const currentCell = runtime.editBaseCellsByCoord.get(key);
+			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, currentCell);
+			// Delete clears content only: cells with saved formatting keep it
+			// (Google Sheets parity); unformatted cells drop their sparse row
+			const after = sheetCellHasSavedDesign(currentCell) && !options.clearDesign
+				? getSheetValueEditInput(rowIndex, columnIndex, '')
+				: getSheetClearEditInput(rowIndex, columnIndex);
 
-			if (!sheetCellEditInputsAreEqual(before, after)) {
+			if (!sheetCellEditInputsAreEqual(before, after) && !sheetCellEditInputMatchesCell(after, currentCell)) {
 				sheetCellChanges.push({
 					after,
 					before,
@@ -3428,9 +3571,20 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		if (sheetCellChanges.length || dataTableCellChanges.length) {
+		// Deleted regions join the same history entry as the cleared cells so
+		// one undo restores the whole gesture
+		const regionChanges: SheetRegionHistoryChange[] = options.deleteDataTableRegions
+			? selectedDataTableRegionIds.flatMap((regionId) => {
+				const region = regionsById.get(regionId);
+
+				return region ? [{ after: { regionId }, before: region }] : [];
+			})
+			: [];
+
+		if (sheetCellChanges.length || dataTableCellChanges.length || regionChanges.length) {
 			pushSheetUndoEntry({
 				dataTableCells: dataTableCellChanges,
+				...(regionChanges.length ? { regions: regionChanges } : {}),
 				sheetCells: sheetCellChanges,
 			});
 		}
@@ -3459,7 +3613,75 @@ export function SheetController(p: SheetControllerProps) {
 		});
 	}, [clearSelectedSheetCellsWithOptions]);
 
-	const copySelectedSheetCells = useCallback(() => {
+	/*
+	 * Clear formatting (style and number format) on the selected Sheet cells
+	 * while keeping their values and notes (Cmd/Ctrl+\).
+	 */
+	const clearSelectedSheetCellFormatting = useCallback(async () => {
+		const runtime = runtimeRef.current;
+		const selectedMap = getGridResolvedSelectedCellKeyMap({
+			selectedCellKeyMap,
+			selectedCellState,
+		});
+
+		if (!runtime || !selectedMap || p.disabled) {
+			return;
+		}
+
+		const selectedCells = getOrderedGridSelectedCells({
+			columnMetrics: runtime.columnMetrics,
+			rowIds: runtime.rowIds,
+			selectedCellKeyMap: selectedMap,
+		});
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
+
+		selectedCells.forEach((cell) => {
+			const rowIndex = getSheetCanvasRowIndexFromId(cell.rowId);
+			const columnIndex = getSheetCanvasColumnIndexFromKey(cell.cellKey);
+
+			if (!rowIndex || !columnIndex) {
+				return;
+			}
+
+			const key = getSheetCanvasCoordKey(rowIndex, columnIndex);
+			const currentCell = runtime.editBaseCellsByCoord.get(key);
+
+			// Only cells carrying saved design (style, format, or note-free style)
+			// produce a change; untouched cells need no mutation
+			if (!sheetCellHasSavedDesign(currentCell)) {
+				return;
+			}
+
+			sheetCellChanges.push({
+				after: {
+					cell: {
+						columnIndex,
+						format: null,
+						rowIndex,
+						style: null,
+					},
+				},
+				before: getSheetCellSnapshotEditInput(rowIndex, columnIndex, currentCell),
+			});
+		});
+
+		if (!sheetCellChanges.length) {
+			return;
+		}
+
+		pushSheetUndoEntry({
+			sheetCells: sheetCellChanges,
+		});
+		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+	}, [applySheetCellInputs, p.disabled, pushSheetUndoEntry, selectedCellKeyMap, selectedCellState]);
+
+	/*
+	 * Copy the current selection to the system clipboard as TSV and stash the
+	 * full-fidelity payload (source coords, raw values, formatting) on the
+	 * internal clipboard. A cut marks the payload so the next in-app paste
+	 * moves the source cells instead of duplicating them.
+	 */
+	const copySelectedSheetCellsWithOptions = useCallback((options: { cut?: boolean } = {}) => {
 		const runtime = runtimeRef.current;
 		const selectedMap = getGridResolvedSelectedCellKeyMap({
 			selectedCellKeyMap,
@@ -3481,25 +3703,60 @@ export function SheetController(p: SheetControllerProps) {
 			const rowValues = rows.get(cell.rowId) || [];
 			const rowIndex = getSheetCanvasRowIndexFromId(cell.rowId);
 			const columnIndex = getSheetCanvasColumnIndexFromKey(cell.cellKey);
-			const sourceCell = rowIndex && columnIndex
-				? runtime.calculatedCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex))
-				: null;
+			const coordKey = rowIndex && columnIndex ? getSheetCanvasCoordKey(rowIndex, columnIndex) : null;
+			const sourceCell = coordKey ? runtime.calculatedCellsByCoord.get(coordKey) : null;
+			// Formatting reads from the presentation overlay so pending style
+			// edits copy along with the confirmed state
+			const presentationCell = coordKey ? runtime.effectiveCellsByCoord.get(coordKey) : null;
+			const style = normalizeSheetCellStyle(presentationCell?.style);
 
 			rowValues.push({
 				columnIndex: columnIndex || 0,
+				format: presentationCell?.format ?? null,
+				note: presentationCell?.note ?? null,
 				rowIndex: rowIndex || 0,
+				style: Object.keys(style).length ? style : null,
 				value: getSheetCanvasCellDraftValue(sourceCell),
 			});
 			rows.set(cell.rowId, rowValues);
 		});
 
 		const grid = Array.from(rows.values());
-		const text = grid.map((row) => row.map((entry) => entry.value).join('\t')).join('\n');
+		const text = grid.map((row) => row.map((entry) => getSheetClipboardEscapedValue(entry.value)).join('\t')).join('\n');
 
-		// Keep the copy source coordinates so an in-app paste can shift formula references
-		setInternalGridClipboard({ grid, text });
+		// Keep the copy source payload so an in-app paste can shift formula
+		// references, carry formatting, and move cut sources
+		setInternalGridClipboard({ cut: options.cut, grid, text });
+		setCopySourceRange(getSheetSelectedCellsBounds(selectedCells));
 		void copyTextToClipboard(text);
 	}, [selectedCellKeyMap, selectedCellState]);
+
+	const copySelectedSheetCells = useCallback(() => {
+		copySelectedSheetCellsWithOptions();
+	}, [copySelectedSheetCellsWithOptions]);
+
+	/*
+	 * Cut the current selection: same payload as copy, marked so the next
+	 * in-app paste moves the cells (values and formatting) and clears the source.
+	 */
+	const cutSelectedSheetCells = useCallback(() => {
+		if (!p.disabled) {
+			copySelectedSheetCellsWithOptions({ cut: true });
+		}
+	}, [copySelectedSheetCellsWithOptions, p.disabled]);
+
+	/*
+	 * Drop the copied-range marker and any pending cut payload (Escape).
+	 */
+	const dismissSheetCopyState = useCallback(() => {
+		if (!copySourceRange) {
+			return false;
+		}
+
+		setCopySourceRange(null);
+		setInternalGridClipboard(null);
+		return true;
+	}, [copySourceRange]);
 
 	/*
 	 * Paste clipboard text from the top-left selected cell or an explicit context-menu selection target.
@@ -3527,8 +3784,9 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		// An in-app copy carries source coordinates for relative formula shifting;
-		// external clipboard text falls back to plain TSV parsing
+		// An in-app copy carries source coordinates and formatting for relative
+		// formula shifting and style transfer; external clipboard text falls
+		// back to plain TSV parsing
 		const internalClipboard = getInternalGridClipboard(clipboardText);
 		const clipboardGrid = internalClipboard
 			? internalClipboard.grid.map((row) => row.map((entry) => entry.value))
@@ -3546,65 +3804,141 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		clipboardGrid.forEach((rowValues, rowOffset) => {
-			const rowId = runtime.rowIds[startRowIndex + rowOffset];
-			const rowIndex = getSheetCanvasRowIndexFromId(rowId);
+		// Tile the clipboard across a larger selection when the selection is one
+		// solid rectangle and an exact multiple of the clipboard dimensions
+		const clipboardRowCount = clipboardGrid.length;
+		const clipboardColumnCount = clipboardGrid.reduce((max, row) => Math.max(max, row.length), 0);
+		let tileRowCount = 1;
+		let tileColumnCount = 1;
 
-			if (!rowIndex) {
-				return;
+		if (!targetCell && selectedMap && clipboardRowCount && clipboardColumnCount) {
+			const selectedCells = getGridSelectedCellsFromKeyMap(selectedMap);
+			const bounds = getSheetSelectedCellsBounds(selectedCells);
+			const boundsHeight = bounds ? bounds.endRowIndex - bounds.startRowIndex + 1 : 0;
+			const boundsWidth = bounds ? bounds.endColumnIndex - bounds.startColumnIndex + 1 : 0;
+
+			if (
+				bounds &&
+				selectedCells.length === boundsHeight * boundsWidth &&
+				boundsHeight % clipboardRowCount === 0 &&
+				boundsWidth % clipboardColumnCount === 0 &&
+				(boundsHeight > clipboardRowCount || boundsWidth > clipboardColumnCount)
+			) {
+				tileRowCount = boundsHeight / clipboardRowCount;
+				tileColumnCount = boundsWidth / clipboardColumnCount;
 			}
+		}
 
-			rowValues.forEach((value, columnOffset) => {
-				const metric = runtime.columnMetrics[startColumnIndex + columnOffset];
-				const canvasColumn = metric?.column as SheetCanvasColumn | undefined;
+		for (let tileRow = 0; tileRow < tileRowCount; tileRow += 1) {
+			for (let tileColumn = 0; tileColumn < tileColumnCount; tileColumn += 1) {
+				clipboardGrid.forEach((rowValues, rowOffset) => {
+					const rowId = runtime.rowIds[startRowIndex + tileRow * clipboardRowCount + rowOffset];
+					const rowIndex = getSheetCanvasRowIndexFromId(rowId);
 
-				if (canvasColumn) {
-					const dataTableTarget = getSheetDataTableCellEditTarget({
-						columnIndex: canvasColumn.sheetColumnIndex,
-						dataTablesById,
-						designCellsByDataTableId,
-						effectiveCellsByCoord: runtime.effectiveCellsByCoord,
-						regionsById,
-						rowIndex,
-						sourceCellsByTargetKey,
-					});
+					if (!rowIndex) {
+						return;
+					}
 
-					if (dataTableTarget) {
-						if (!canEditSheetDataTableCellTarget(dataTableTarget, p.disabled)) {
-							return;
-						}
+					rowValues.forEach((value, columnOffset) => {
+						const metric = runtime.columnMetrics[startColumnIndex + tileColumn * clipboardColumnCount + columnOffset];
+						const canvasColumn = metric?.column as SheetCanvasColumn | undefined;
 
-						const parsedValue = parseSheetEditorValue(dataTableTarget.lookup.designCell, value);
-						const dataTableId = String(dataTableTarget.dataTable.id || '');
-						const optimisticKey = getSheetDataTableSourceCellKey(dataTableId, dataTableTarget.sourceRowId, dataTableTarget.sourceCellKey);
-						const currentValue = getDataTableCellSerializedValue(dataTableTarget.lookup.cell, dataTableTarget.lookup.designCell, optimisticDataTableValues[optimisticKey]);
-
-						if (!parsedValue.error && currentValue !== parsedValue.value) {
-							dataTableCellChanges.push({
-								after: parsedValue.value,
-								before: currentValue,
-								target: dataTableTarget,
+						if (canvasColumn) {
+							const dataTableTarget = getSheetDataTableCellEditTarget({
+								columnIndex: canvasColumn.sheetColumnIndex,
+								dataTablesById,
+								designCellsByDataTableId,
+								effectiveCellsByCoord: runtime.effectiveCellsByCoord,
+								regionsById,
+								rowIndex,
+								sourceCellsByTargetKey,
 							});
+
+							if (dataTableTarget) {
+								if (!canEditSheetDataTableCellTarget(dataTableTarget, p.disabled)) {
+									return;
+								}
+
+								const parsedValue = parseSheetEditorValue(dataTableTarget.lookup.designCell, value);
+								const dataTableId = String(dataTableTarget.dataTable.id || '');
+								const optimisticKey = getSheetDataTableSourceCellKey(dataTableId, dataTableTarget.sourceRowId, dataTableTarget.sourceCellKey);
+								const currentValue = getDataTableCellSerializedValue(dataTableTarget.lookup.cell, dataTableTarget.lookup.designCell, optimisticDataTableValues[optimisticKey]);
+
+								if (!parsedValue.error && currentValue !== parsedValue.value) {
+									dataTableCellChanges.push({
+										after: parsedValue.value,
+										before: currentValue,
+										target: dataTableTarget,
+									});
+								}
+								return;
+							}
+
+							if (getSheetDataTableRegionAtCellFromMap(rowIndex, canvasColumn.sheetColumnIndex, regionsById)) {
+								return;
+							}
+
+							// Shift formula references by the distance from the copy source cell
+							const sourceEntry = internalClipboard?.grid[rowOffset]?.[columnOffset];
+							const pasteValue = sourceEntry && sourceEntry.rowIndex && sourceEntry.columnIndex
+								? shiftSheetFormulaReferences(
+									value,
+									rowIndex - sourceEntry.rowIndex,
+									canvasColumn.sheetColumnIndex - sourceEntry.columnIndex,
+								).text
+								: value;
+							const key = getSheetCanvasCoordKey(rowIndex, canvasColumn.sheetColumnIndex);
+							const before = getSheetCellSnapshotEditInput(rowIndex, canvasColumn.sheetColumnIndex, runtime.editBaseCellsByCoord.get(key));
+							// In-app pastes carry the source cell's formatting along
+							// with the value, Google Sheets style
+							const after: SheetCellEditInput = sourceEntry
+								? {
+									cell: {
+										columnIndex: canvasColumn.sheetColumnIndex,
+										format: sourceEntry.format ?? null,
+										note: sourceEntry.note ?? null,
+										rawInput: pasteValue,
+										rowIndex,
+										style: sourceEntry.style ?? null,
+										value: pasteValue,
+									},
+								}
+								: getSheetValueEditInput(rowIndex, canvasColumn.sheetColumnIndex, pasteValue);
+
+							if (!sheetCellEditInputsAreEqual(before, after)) {
+								sheetCellChanges.push({
+									after,
+									before,
+								});
+							}
 						}
+					});
+				});
+			}
+		}
+
+		// A cut moves its source: clear every source cell the paste target does
+		// not overwrite, then retire the cut payload so it pastes only once
+		if (internalClipboard?.cut) {
+			const pastedCoordKeys = new Set(sheetCellChanges.map((change) => {
+				return getSheetCanvasCoordKey(change.after.cell.rowIndex, change.after.cell.columnIndex);
+			}));
+
+			internalClipboard.grid.forEach((row) => {
+				row.forEach((entry) => {
+					if (!entry.rowIndex || !entry.columnIndex) {
 						return;
 					}
 
-					if (getSheetDataTableRegionAtCellFromMap(rowIndex, canvasColumn.sheetColumnIndex, regionsById)) {
+					const key = getSheetCanvasCoordKey(entry.rowIndex, entry.columnIndex);
+
+					// Cut only moves plain sheet cells; region-backed cells stay
+					if (pastedCoordKeys.has(key) || getSheetDataTableRegionAtCellFromMap(entry.rowIndex, entry.columnIndex, regionsById)) {
 						return;
 					}
 
-					// Shift formula references by the distance from the copy source cell
-					const sourceEntry = internalClipboard?.grid[rowOffset]?.[columnOffset];
-					const pasteValue = sourceEntry && sourceEntry.rowIndex && sourceEntry.columnIndex
-						? shiftSheetFormulaReferences(
-							value,
-							rowIndex - sourceEntry.rowIndex,
-							canvasColumn.sheetColumnIndex - sourceEntry.columnIndex,
-						).text
-						: value;
-					const key = getSheetCanvasCoordKey(rowIndex, canvasColumn.sheetColumnIndex);
-					const before = getSheetCellSnapshotEditInput(rowIndex, canvasColumn.sheetColumnIndex, runtime.effectiveCellsByCoord.get(key));
-					const after = getSheetValueEditInput(rowIndex, canvasColumn.sheetColumnIndex, pasteValue);
+					const before = getSheetCellSnapshotEditInput(entry.rowIndex, entry.columnIndex, runtime.editBaseCellsByCoord.get(key));
+					const after = getSheetClearEditInput(entry.rowIndex, entry.columnIndex);
 
 					if (!sheetCellEditInputsAreEqual(before, after)) {
 						sheetCellChanges.push({
@@ -3612,9 +3946,12 @@ export function SheetController(p: SheetControllerProps) {
 							before,
 						});
 					}
-				}
+				});
 			});
-		});
+
+			setInternalGridClipboard(null);
+			setCopySourceRange(null);
+		}
 
 		if (!sheetCellChanges.length && !dataTableCellChanges.length) {
 			return;
@@ -3719,7 +4056,7 @@ export function SheetController(p: SheetControllerProps) {
 				}
 
 				const key = getSheetCanvasCoordKey(targetCell.rowIndex, targetCell.columnIndex);
-				const before = getSheetCellSnapshotEditInput(targetCell.rowIndex, targetCell.columnIndex, runtime.effectiveCellsByCoord.get(key));
+				const before = getSheetCellSnapshotEditInput(targetCell.rowIndex, targetCell.columnIndex, runtime.editBaseCellsByCoord.get(key));
 				const after = getSheetValueEditInput(targetCell.rowIndex, targetCell.columnIndex, values[index]);
 
 				if (!sheetCellEditInputsAreEqual(before, after)) {
@@ -3758,6 +4095,106 @@ export function SheetController(p: SheetControllerProps) {
 
 		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
 	}, [applySheetCellInputs, dataTablesById, designCellsByDataTableId, p.disabled, pushSheetUndoEntry, regionsById, setHeaderSelection, setSelectedCellKeyMap, sourceCellsByTargetKey]);
+
+	/*
+	 * Fill the selected range from its leading row or column (Cmd/Ctrl+D and
+	 * Cmd/Ctrl+R). A single-line selection fills from the neighboring row above
+	 * (or column to the left), Google Sheets style. Values copy with relative
+	 * formula shifting, and formatting copies along.
+	 */
+	const fillSelectedSheetCellsFromEdge = useCallback(async (direction: GridFillShortcutDirection) => {
+		const runtime = runtimeRef.current;
+		const bounds = fillHandleBounds;
+
+		if (!runtime || !bounds || p.disabled) {
+			return;
+		}
+
+		const vertical = direction === 'down';
+		const boundsStart = vertical ? bounds.startRowIndex : bounds.startColumnIndex;
+		const boundsEnd = vertical ? bounds.endRowIndex : bounds.endColumnIndex;
+		let sourceIndex = boundsStart;
+		let targetStart = boundsStart + 1;
+
+		if (boundsStart === boundsEnd) {
+			// Single-line selection: fill from the neighbor just outside it
+			if (boundsStart <= 1) {
+				return;
+			}
+
+			sourceIndex = boundsStart - 1;
+			targetStart = boundsStart;
+		}
+
+		const lineStart = vertical ? bounds.startColumnIndex : bounds.startRowIndex;
+		const lineEnd = vertical ? bounds.endColumnIndex : bounds.endRowIndex;
+		const sheetCellChanges: SheetCellHistoryChange[] = [];
+
+		for (let line = lineStart; line <= lineEnd; line += 1) {
+			const sourceRowIndex = vertical ? sourceIndex : line;
+			const sourceColumnIndex = vertical ? line : sourceIndex;
+			const sourceKey = getSheetCanvasCoordKey(sourceRowIndex, sourceColumnIndex);
+			const sourceValue = getSheetCanvasCellDraftValue(runtime.calculatedCellsByCoord.get(sourceKey));
+			const sourcePresentation = runtime.editBaseCellsByCoord.get(sourceKey);
+			const sourceStyle = normalizeSheetCellStyle(sourcePresentation?.style);
+
+			for (let target = targetStart; target <= boundsEnd; target += 1) {
+				const rowIndex = vertical ? target : line;
+				const columnIndex = vertical ? line : target;
+
+				// Fill writes plain sheet cells only; data-table-backed cells are skipped
+				const dataTableTarget = getSheetDataTableCellEditTarget({
+					columnIndex,
+					dataTablesById,
+					designCellsByDataTableId,
+					effectiveCellsByCoord: runtime.effectiveCellsByCoord,
+					regionsById,
+					rowIndex,
+					sourceCellsByTargetKey,
+				});
+
+				if (dataTableTarget || getSheetDataTableRegionAtCellFromMap(rowIndex, columnIndex, regionsById)) {
+					continue;
+				}
+
+				const shiftedValue = shiftSheetFormulaReferences(
+					sourceValue,
+					rowIndex - sourceRowIndex,
+					columnIndex - sourceColumnIndex,
+				).text;
+				const key = getSheetCanvasCoordKey(rowIndex, columnIndex);
+				const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, runtime.editBaseCellsByCoord.get(key));
+				const after: SheetCellEditInput = {
+					cell: {
+						columnIndex,
+						format: sourcePresentation?.format ?? null,
+						note: sourcePresentation?.note ?? null,
+						rawInput: shiftedValue,
+						rowIndex,
+						style: Object.keys(sourceStyle).length ? sourceStyle : null,
+						value: shiftedValue,
+					},
+				};
+
+				if (!sheetCellEditInputsAreEqual(before, after)) {
+					sheetCellChanges.push({
+						after,
+						before,
+					});
+				}
+			}
+		}
+
+		if (!sheetCellChanges.length) {
+			return;
+		}
+
+		pushSheetUndoEntry({
+			sheetCells: sheetCellChanges,
+		});
+
+		await applySheetCellInputs(sheetCellChanges.map((change) => change.after));
+	}, [applySheetCellInputs, dataTablesById, designCellsByDataTableId, fillHandleBounds, p.disabled, pushSheetUndoEntry, regionsById, sourceCellsByTargetKey]);
 
 	const selectAllSheetCells = useCallback(() => {
 		const runtime = runtimeRef.current;
@@ -3879,23 +4316,108 @@ export function SheetController(p: SheetControllerProps) {
 		selectSheetColumnRange(columnMetric, columnMetric);
 	}, [selectSheetColumnRange]);
 
-	const navigateSheetArrow = useCallback((direction: GridArrowDirection, extendSelection: boolean) => {
+	/*
+	 * Return whether one Sheet cell coordinate holds visible content; drives
+	 * Cmd/Ctrl+arrow jumps to the edge of the surrounding data block.
+	 */
+	const sheetCellCoordHasContent = useCallback((rowId: string, cellKey: string) => {
 		const runtime = runtimeRef.current;
-		let nextCell = runtime ? getGridArrowNavigationSelection({
-			columnMetrics: runtime.columnMetrics,
-			direction,
-			rowIds: runtime.rowIds,
-			selectedCellState,
-		}) : null;
+		const rowIndex = getSheetCanvasRowIndexFromId(rowId);
+		const columnIndex = getSheetCanvasColumnIndexFromKey(cellKey);
 
-		if (!runtime || !nextCell) {
+		if (!runtime || !rowIndex || !columnIndex) {
+			return false;
+		}
+
+		const coordKey = getSheetCanvasCoordKey(rowIndex, columnIndex);
+		const cell = runtime.calculatedCellsByCoord.get(coordKey) || runtime.effectiveCellsByCoord.get(coordKey);
+
+		return getSheetCanvasCellDraftValue(cell) !== '' || getSheetCanvasCellDisplayValue(cell) !== '';
+	}, []);
+
+	const navigateSheetArrow = useCallback((direction: GridArrowDirection, extendSelection: boolean, toDataEdge?: boolean) => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime) {
+			return;
+		}
+
+		if (extendSelection && selectedCellState) {
+			// Shift+arrow keeps the active cell anchored and moves the range's
+			// opposite corner, Google Sheets style
+			const anchorCell = selectedCellState;
+			const selectedMap = getGridResolvedSelectedCellKeyMap({
+				selectedCellKeyMap,
+				selectedCellState,
+			});
+			const selectedCells = selectedMap ? getGridSelectedCellsFromKeyMap(selectedMap) : [];
+			const bounds = selectedCells.length ? getSheetSelectedCellsBounds(selectedCells) : null;
+			const anchorRowIndex = getSheetCanvasRowIndexFromId(anchorCell.rowId) || 0;
+			const anchorColumnIndex = getSheetCanvasColumnIndexFromKey(anchorCell.cellKey) || 0;
+			const rangeEndCell = bounds
+				? {
+					cellKey: String(anchorColumnIndex === bounds.startColumnIndex ? bounds.endColumnIndex : bounds.startColumnIndex),
+					rowId: String(anchorRowIndex === bounds.startRowIndex ? bounds.endRowIndex : bounds.startRowIndex),
+				}
+				: anchorCell;
+			const nextEnd = toDataEdge
+				? getGridDataEdgeNavigationSelection({
+					columnMetrics: runtime.columnMetrics,
+					direction,
+					hasCellContent: sheetCellCoordHasContent,
+					rowIds: runtime.rowIds,
+					selectedCellState: rangeEndCell,
+				})
+				: getGridArrowNavigationSelection({
+					columnMetrics: runtime.columnMetrics,
+					direction,
+					rowIds: runtime.rowIds,
+					selectedCellState: rangeEndCell,
+				});
+
+			if (!nextEnd) {
+				return;
+			}
+
+			const selection = getGridRangeSelection({
+				activeCell: nextEnd,
+				anchorCell,
+				columnMetrics: runtime.columnMetrics,
+				rowIds: runtime.rowIds,
+				selectedActiveCell: anchorCell,
+			});
+
+			closeSheetCellEditorForSelection();
+			setHeaderSelection(null);
+			setSelectedCellState(selection.activeCell);
+			setSelectedCellKeyMap(selection.selectedCellKeyMap);
+			scrollCellIntoView(nextEnd);
+			return;
+		}
+
+		let nextCell = toDataEdge
+			? getGridDataEdgeNavigationSelection({
+				columnMetrics: runtime.columnMetrics,
+				direction,
+				hasCellContent: sheetCellCoordHasContent,
+				rowIds: runtime.rowIds,
+				selectedCellState,
+			})
+			: getGridArrowNavigationSelection({
+				columnMetrics: runtime.columnMetrics,
+				direction,
+				rowIds: runtime.rowIds,
+				selectedCellState,
+			});
+
+		if (!nextCell) {
 			return;
 		}
 
 		// Arrow moves step out of the current merged range instead of cycling
 		// back onto its anchor
 		const merges = mergedRangesRef.current;
-		if (merges.length && selectedCellState && !extendSelection) {
+		if (merges.length && selectedCellState && !toDataEdge) {
 			const activeRowIndex = Math.floor(Number(selectedCellState.rowId || 0));
 			const activeColumnIndex = Math.floor(Number(selectedCellState.cellKey || 0));
 			const activeMerge = activeRowIndex && activeColumnIndex
@@ -3930,42 +4452,20 @@ export function SheetController(p: SheetControllerProps) {
 			}
 		}
 
-		if (extendSelection) {
-			const anchorCell = getGridSelectionAnchorCell({
-				activeCell: selectedCellState,
-				columnMetrics: runtime.columnMetrics,
-				rowIds: runtime.rowIds,
-				selectedCellKeyMap,
-			}) || selectedCellState || nextCell;
-			const selection = getGridRangeSelection({
-				activeCell: nextCell,
-				anchorCell,
-				columnMetrics: runtime.columnMetrics,
-				rowIds: runtime.rowIds,
-				selectedActiveCell: nextCell,
-			});
-
-			closeSheetCellEditorForSelection();
-			setHeaderSelection(null);
-			setSelectedCellState(selection.activeCell);
-			setSelectedCellKeyMap(selection.selectedCellKeyMap);
-			scrollCellIntoView(selection.activeCell);
-			return;
-		}
-
 		selectSheetCell(nextCell);
-	}, [closeSheetCellEditorForSelection, scrollCellIntoView, selectSheetCell, selectedCellKeyMap, selectedCellState, setHeaderSelection]);
+	}, [closeSheetCellEditorForSelection, scrollCellIntoView, selectSheetCell, selectedCellKeyMap, selectedCellState, setHeaderSelection, sheetCellCoordHasContent]);
 
 	/*
-	 * Move the active selection down one row after committing an editor with Enter.
+	 * Move the active selection down (or up for Shift+Enter) one row after
+	 * committing an editor with Enter.
 	 */
-	const navigateSheetEditorEnter = useCallback((editorElement: HTMLElement) => {
+	const navigateSheetEditorEnter = useCallback((editorElement: HTMLElement, direction: 'down' | 'up' = 'down') => {
 		const runtime = runtimeRef.current;
 		const cellKey = editorElement.dataset.cellKey;
 		const rowId = editorElement.dataset.rowId;
 		const nextCell = runtime && cellKey && rowId ? getGridArrowNavigationSelection({
 			columnMetrics: runtime.columnMetrics,
-			direction: 'down',
+			direction,
 			rowIds: runtime.rowIds,
 			selectedCellState: {
 				cellKey,
@@ -4000,6 +4500,151 @@ export function SheetController(p: SheetControllerProps) {
 
 		navigateSheetArrow(direction === 'forward' ? 'right' : 'left', false);
 	}, [navigateSheetArrow, scrollCellIntoView, selectedCellKeyMap, selectedCellState, setHeaderSelection]);
+
+	/*
+	 * Move (or Shift-extend) the selection for Home/End: row start or row end,
+	 * and with Cmd/Ctrl the top-left cell or the used range's last cell.
+	 */
+	const navigateSheetHomeEnd = useCallback((edge: GridHomeEndEdge, metaKey: boolean, extendSelection: boolean) => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime || !selectedCellState) {
+			return;
+		}
+
+		let targetCell: SheetUISelectedCellState | null = null;
+		const firstColumn = runtime.columnMetrics[0]?.column as SheetCanvasColumn | undefined;
+
+		if (metaKey) {
+			if (edge === 'start') {
+				targetCell = firstColumn
+					? { cellKey: String(firstColumn.sheetColumnIndex), rowId: '1' }
+					: null;
+			} else {
+				const usedRange = getSheetCanvasUsedRange({
+					cellsByCoord: runtime.calculatedCellsByCoord,
+					columns: runtime.columnMetrics,
+					design: p.design,
+					loadedRowCount: runtime.rowIds.length,
+					ranges: p.ranges,
+				});
+
+				targetCell = usedRange.maxRowIndex && usedRange.maxColumnIndex
+					? {
+						cellKey: String(usedRange.maxColumnIndex),
+						rowId: String(Math.min(runtime.rowIds.length, usedRange.maxRowIndex)),
+					}
+					: null;
+			}
+		} else if (edge === 'start') {
+			targetCell = firstColumn
+				? { cellKey: String(firstColumn.sheetColumnIndex), rowId: selectedCellState.rowId }
+				: null;
+		} else {
+			// End jumps to the last filled cell of the current row, or the row
+			// start when the row is empty
+			const rowIndex = getSheetCanvasRowIndexFromId(selectedCellState.rowId) || 0;
+			let lastFilledColumnIndex = 0;
+
+			runtime.columnMetrics.forEach((metric) => {
+				const canvasColumn = metric.column as SheetCanvasColumn;
+
+				if (rowIndex && sheetCellCoordHasContent(selectedCellState.rowId, String(canvasColumn.sheetColumnIndex))) {
+					lastFilledColumnIndex = Math.max(lastFilledColumnIndex, canvasColumn.sheetColumnIndex);
+				}
+			});
+
+			targetCell = {
+				cellKey: String(lastFilledColumnIndex || (firstColumn?.sheetColumnIndex ?? 1)),
+				rowId: selectedCellState.rowId,
+			};
+		}
+
+		if (!targetCell) {
+			return;
+		}
+
+		if (extendSelection) {
+			selectSheetCellRangeToTarget(targetCell);
+			return;
+		}
+
+		selectSheetCell(targetCell);
+	}, [p.design, p.ranges, selectSheetCell, selectSheetCellRangeToTarget, selectedCellState, sheetCellCoordHasContent]);
+
+	/*
+	 * Move (or Shift-extend) the selection by one viewport height for PageUp/PageDown.
+	 */
+	const navigateSheetPage = useCallback((direction: GridPageDirection, extendSelection: boolean) => {
+		const runtime = runtimeRef.current;
+
+		if (!runtime || !selectedCellState) {
+			return;
+		}
+
+		const currentRowPosition = runtime.rowIds.indexOf(selectedCellState.rowId);
+
+		if (currentRowPosition < 0) {
+			return;
+		}
+
+		const pageHeight = Math.max(SHEET_ROW_HEIGHT, runtime.viewportHeight - SHEET_HEADER_HEIGHT);
+		const currentTop = runtime.rowOffsets[currentRowPosition] || 0;
+		const targetTop = direction === 'down' ? currentTop + pageHeight : currentTop - pageHeight;
+		let targetRowPosition = currentRowPosition;
+
+		if (direction === 'down') {
+			while (targetRowPosition < runtime.rowIds.length - 1 && (runtime.rowOffsets[targetRowPosition + 1] || 0) <= targetTop) {
+				targetRowPosition += 1;
+			}
+		} else {
+			while (targetRowPosition > 0 && (runtime.rowOffsets[targetRowPosition - 1] || 0) >= targetTop) {
+				targetRowPosition -= 1;
+			}
+		}
+
+		const targetRowId = runtime.rowIds[targetRowPosition];
+
+		if (!targetRowId || targetRowId === selectedCellState.rowId) {
+			return;
+		}
+
+		const targetCell = {
+			cellKey: selectedCellState.cellKey,
+			rowId: targetRowId,
+		};
+
+		if (extendSelection) {
+			selectSheetCellRangeToTarget(targetCell);
+			return;
+		}
+
+		selectSheetCell(targetCell);
+	}, [selectSheetCell, selectSheetCellRangeToTarget, selectedCellState]);
+
+	/*
+	 * Select the active cell's whole row (Shift+Space).
+	 */
+	const selectActiveSheetRow = useCallback(() => {
+		const runtime = runtimeRef.current;
+		const rowMetric = selectedCellState ? runtime?.rowMetricsByKey.get(selectedCellState.rowId) : null;
+
+		if (rowMetric) {
+			selectSheetRow(rowMetric);
+		}
+	}, [selectSheetRow, selectedCellState]);
+
+	/*
+	 * Select the active cell's whole column (Ctrl+Space).
+	 */
+	const selectActiveSheetColumn = useCallback(() => {
+		const runtime = runtimeRef.current;
+		const columnMetric = selectedCellState ? runtime?.columnMetricsByKey.get(selectedCellState.cellKey) : null;
+
+		if (columnMetric) {
+			selectSheetColumn(columnMetric);
+		}
+	}, [selectSheetColumn, selectedCellState]);
 
 	const handleSheetContextMenuEditCell = useCallback((target: SheetContextMenuTarget) => {
 		openSheetCellEditor({
@@ -4057,7 +4702,7 @@ export function SheetController(p: SheetControllerProps) {
 
 		cellCoords.forEach((cellCoord) => {
 			const { columnIndex, coordKey, rowIndex } = cellCoord;
-			const currentCell = runtime.effectiveCellsByCoord.get(coordKey);
+			const currentCell = runtime.editBaseCellsByCoord.get(coordKey);
 
 			const currentStyle = parseSheetJSONObject(currentCell?.style, {}) as Record<string, unknown>;
 			const nextStyle = { ...currentStyle };
@@ -4136,11 +4781,28 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		await p.onRemoveDataTableRegion?.(target.dataTableRegionId);
-	}, [p.onRemoveDataTableRegion]);
+		// Capture the region before the delete so undo can recreate it; the
+		// entry pushes only once the (possibly confirmation-gated) delete runs
+		const region = regionsById.get(target.dataTableRegionId) || null;
+
+		await p.onRemoveDataTableRegion?.(target.dataTableRegionId, {
+			onDeleted: region
+				? (regionId) => {
+					pushSheetUndoEntry({
+						regions: [{
+							after: { regionId },
+							before: region,
+						}],
+					});
+				}
+				: undefined,
+		});
+	}, [p.onRemoveDataTableRegion, pushSheetUndoEntry, regionsById]);
 
 	/*
-	 * Run one row or column structure edit from the Sheet context menu.
+	 * Run one row or column structure edit from the Sheet context menu. The
+	 * undo entry is captured before the operation (a delete destroys the line's
+	 * content) and pushed only after the operation succeeds.
 	 */
 	const handleSheetContextMenuEditStructure = useCallback(async (target: SheetContextMenuTarget, action: SheetContextMenuStructureAction) => {
 		const index = getSheetStructureIndexFromContextMenuTarget(target, action);
@@ -4149,8 +4811,19 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
-		await p.onEditSheetStructure(getSheetStructureOperationFromContextMenuAction(action), index);
-	}, [p.onEditSheetStructure]);
+		const operation = getSheetStructureOperationFromContextMenuAction(action);
+		const structureChange = getSheetStructureHistoryChange(
+			operation,
+			index,
+			runtimeRef.current?.editBaseCellsByCoord || new Map(),
+		);
+
+		await p.onEditSheetStructure(operation, index);
+
+		pushSheetUndoEntry({
+			structure: structureChange,
+		});
+	}, [p.onEditSheetStructure, pushSheetUndoEntry]);
 
 	/*
 	 * Paste clipboard text through the same Sheet mutation path used by keyboard shortcuts.
@@ -4305,8 +4978,8 @@ export function SheetController(p: SheetControllerProps) {
 		}, mergedRangesRef.current);
 		const clearChanges: SheetCellHistoryChange[] = [];
 
-		// The confirmed/effective map is sparse: scan it instead of the bounds
-		runtime.effectiveCellsByCoord.forEach((cell) => {
+		// The confirmed/edit-base map is sparse: scan it instead of the bounds
+		runtime.editBaseCellsByCoord.forEach((cell) => {
 			const rowIndex = Math.floor(Number(cell.rowIndex || 0));
 			const columnIndex = Math.floor(Number(cell.columnIndex || 0));
 			const mergeRange = mergeRanges.find((range) => isSheetCellInMergedRange(range, rowIndex, columnIndex));
@@ -4392,7 +5065,9 @@ export function SheetController(p: SheetControllerProps) {
 				onAdjustFontSize: adjustSelectedSheetCellFontSize,
 				onArrow: navigateSheetArrow,
 				onClear: clearSelectedSheetCells,
+				onClearFormatting: clearSelectedSheetCellFormatting,
 				onCopy: copySelectedSheetCells,
+				onCut: cutSelectedSheetCells,
 				onDismissActiveEditor: () => {
 					setEditState(null);
 				},
@@ -4406,13 +5081,24 @@ export function SheetController(p: SheetControllerProps) {
 					openSheetCellEditor(selectedCellState, undefined, false);
 				},
 				onEscapeSelection: () => {
+					// Escape first cancels a pending copy or cut, then collapses
+					// the selection to the active cell
+					if (dismissSheetCopyState()) {
+						return;
+					}
+
 					setSelectedCellKeyMap(getGridResolvedSelectedCellKeyMap({
 						selectedCellState,
 					}));
 				},
+				onFill: fillSelectedSheetCellsFromEdge,
+				onHomeEnd: navigateSheetHomeEnd,
+				onPage: navigateSheetPage,
 				onPaste: pasteSelectedSheetCells,
 				onRedo: redoSheetHistory,
 				onSelectAll: selectAllSheetCells,
+				onSelectColumn: selectActiveSheetColumn,
+				onSelectRow: selectActiveSheetRow,
 				onTab: navigateSheetTab,
 				onTextInput: (pressed) => {
 					openSheetCellEditor(selectedCellState, pressed, false);
@@ -4431,19 +5117,27 @@ export function SheetController(p: SheetControllerProps) {
 		};
 	}, [
 		adjustSelectedSheetCellFontSize,
+		clearSelectedSheetCellFormatting,
 		clearSelectedSheetCells,
+		dismissSheetCopyState,
 		dismissSheetKeyboardOverlay,
 		commitKeyboardEditorElement,
 		copySelectedSheetCells,
+		cutSelectedSheetCells,
 		editState,
+		fillSelectedSheetCellsFromEdge,
 		keyDown.alert,
 		keyDown.modal,
 		navigateSheetArrow,
 		navigateSheetEditorEnter,
+		navigateSheetHomeEnd,
+		navigateSheetPage,
 		navigateSheetTab,
 		openSheetCellEditor,
 		pasteSelectedSheetCells,
 		redoSheetHistory,
+		selectActiveSheetColumn,
+		selectActiveSheetRow,
 		selectAllSheetCells,
 		selectedCellState,
 		toggleSelectedSheetCellTextStyle,
@@ -4932,6 +5626,19 @@ export function SheetController(p: SheetControllerProps) {
 			return;
 		}
 
+		// Click on the corner box above the row numbers selects the whole sheet
+		if (runtime && !hit.cell) {
+			const scrollRect = runtime.scrollNode?.getBoundingClientRect();
+			const cornerX = scrollRect ? event.clientX - scrollRect.left : -1;
+			const cornerY = scrollRect ? event.clientY - scrollRect.top : -1;
+
+			if (cornerX >= 0 && cornerX < SHEET_ROW_NUMBER_WIDTH && cornerY >= 0 && cornerY < SHEET_HEADER_HEIGHT) {
+				event.preventDefault();
+				selectAllSheetCells();
+				return;
+			}
+		}
+
 		if (!runtime || !hit.cell) {
 			return;
 		}
@@ -4940,6 +5647,15 @@ export function SheetController(p: SheetControllerProps) {
 			cellKey: hit.cell.cellKey,
 			rowId: hit.cell.rowId,
 		};
+
+		// Cmd/Ctrl+click toggles single cells in and out of the selection.
+		// macOS Ctrl+click stays the system context-menu gesture (it does not
+		// reach here as a primary-button pointerdown).
+		if ((event.metaKey || event.ctrlKey) && selectedCellState) {
+			event.preventDefault();
+			toggleSheetCellInSelection(anchorCell);
+			return;
+		}
 
 		if (event.shiftKey && selectedCellState) {
 			event.preventDefault();
@@ -5048,7 +5764,7 @@ export function SheetController(p: SheetControllerProps) {
 		window.addEventListener('pointermove', onPointerMove);
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointercancel', onPointerUp);
-	}, [applySheetFillRange, closeSheetCellEditorForSelection, closeSheetContextMenu, commitEditorElement, dataTablesById, designCellsByDataTableId, fillHandleBounds, openSheetOpenableDataTableCell, p.disabled, regionsById, selectSheetCell, selectSheetCellRangeToTarget, selectSheetColumn, selectSheetColumnRange, selectedCellState, selectSheetRow, selectSheetRowRange, setHeaderSelection, sourceCellsByTargetKey, startColumnResize, startRowResize, stickyColumnCount]);
+	}, [applySheetFillRange, closeSheetCellEditorForSelection, closeSheetContextMenu, commitEditorElement, dataTablesById, designCellsByDataTableId, fillHandleBounds, openSheetOpenableDataTableCell, p.disabled, regionsById, selectAllSheetCells, selectSheetCell, selectSheetCellRangeToTarget, selectSheetColumn, selectSheetColumnRange, selectedCellState, selectSheetRow, selectSheetRowRange, setHeaderSelection, sourceCellsByTargetKey, startColumnResize, startRowResize, stickyColumnCount, toggleSheetCellInSelection]);
 
 	const handlePointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
 		const runtime = runtimeRef.current;
@@ -5557,6 +6273,7 @@ export function SheetController(p: SheetControllerProps) {
 		regionDataTableLabelsById={dataTableLabelsById}
 		remoteSelections={remoteSelections}
 		mergedRanges={mergedRanges}
+		copyRange={copySourceRange}
 		fillPreviewRange={fillDragRange}
 		showFillHandle={!p.disabled}
 		loadingCellCoords={loadingCellCoords}

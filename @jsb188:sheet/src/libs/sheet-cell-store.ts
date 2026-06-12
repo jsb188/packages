@@ -140,6 +140,48 @@ export function mergeConfirmedSheetCells(
 }
 
 /*
+ * Merge a same-sheet sheetView refetch snapshot over the current confirmed
+ * map. The snapshot keeps its wholesale semantics (coordinates missing from
+ * it were deleted or shifted server-side, and snapshot-only coordinates are
+ * added), but a stored same-id cell with a HIGHER revision survives: a
+ * refetch raced by recent saves must not roll freshly confirmed cells back
+ * to the older snapshot the server read. Returns the incoming map reference
+ * unchanged when no stored cell outranks its snapshot twin.
+ */
+export function mergeRefetchedSheetCells(
+	current: Map<string, SheetCellGQL>,
+	incoming: Map<string, SheetCellGQL>,
+) {
+	let next = incoming;
+	let changed = false;
+
+	current.forEach((existingCell, coordKey) => {
+		const incomingCell = incoming.get(coordKey);
+
+		// Old-only coordinates stay dropped; a different id at the same
+		// coordinate means the snapshot's cell is a replacement and wins
+		if (!incomingCell || String(existingCell.id || '') !== String(incomingCell.id || '')) {
+			return;
+		}
+
+		const existingRevision = Number(existingCell.revision);
+		const incomingRevision = Number(incomingCell.revision);
+		if (
+			Number.isFinite(existingRevision) && Number.isFinite(incomingRevision) &&
+			existingRevision > incomingRevision
+		) {
+			if (!changed) {
+				next = new Map(incoming);
+				changed = true;
+			}
+			next.set(coordKey, existingCell);
+		}
+	});
+
+	return next;
+}
+
+/*
  * Return the render map layered confirmed < remote-pending < own-pending, so
  * the viewer's own edits always win locally. Returns the confirmed map
  * reference unchanged when nothing is pending.

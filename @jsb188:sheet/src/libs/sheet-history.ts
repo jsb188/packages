@@ -1,6 +1,6 @@
 import type { DataTableGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import { isSheetFormulaText, normalizeSheetCellStyle } from '@jsb188/mday/utils/sheet.ts';
-import type { SheetCellGQL, SheetCellStyleObj, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
+import type { SheetCellGQL, SheetCellStyleObj, SheetRegionGQL, SheetStructureOperationEnum } from '@jsb188/mday/types/sheet.d.ts';
 import { useCallback, useRef } from 'react';
 import type { DataTableCellLookup } from './dataTable-cell-editing.tsx';
 import { getSheetCanvasCellDraftValue, getSheetCanvasCoordKey } from './sheet-utils.ts';
@@ -61,10 +61,32 @@ export type SheetDesignHistoryChange = {
 	before: SheetDesignPatchInput;
 };
 
+export type SheetStructureHistoryStep = {
+	index: number;
+	operation: SheetStructureOperationEnum;
+	/* Cell snapshots replayed after the operation to restore destroyed content */
+	restoreCells?: SheetCellEditInput[];
+};
+
+export type SheetStructureHistoryChange = {
+	after: SheetStructureHistoryStep;
+	before: SheetStructureHistoryStep;
+};
+
+export type SheetRegionHistoryChange = {
+	/* The live region id to delete on redo; updated after each undo recreates
+	 * the region under a new id */
+	after: { regionId: string } | null;
+	/* Full captured region state recreated on undo; null for a region create */
+	before: SheetRegionGQL | null;
+};
+
 export type SheetUndoRedoEntry = {
 	dataTableCells?: SheetDataTableCellHistoryChange[];
 	design?: SheetDesignHistoryChange;
+	regions?: SheetRegionHistoryChange[];
 	sheetCells?: SheetCellHistoryChange[];
+	structure?: SheetStructureHistoryChange;
 };
 
 type OptimisticSheetCellGQL = SheetCellGQL & {
@@ -88,10 +110,17 @@ function getSheetHistoryStyleComparisonValue(style?: SheetCellStyleObj | null) {
 }
 
 /*
+ * Return whether one Sheet cell carries saved design fields (style, format, or note).
+ */
+export function sheetCellHasSavedDesign(cell?: SheetCellGQL | null) {
+	return Boolean(cell && (getSheetHistoryStyle(cell.style) || cell.format || cell.note));
+}
+
+/*
  * Return whether one generated region marker carries saved Sheet-owned design fields.
  */
 function generatedRegionCellHasSheetDesign(cell: SheetCellGQL) {
-	return Boolean(getSheetHistoryStyle(cell.style) || cell.format || cell.note);
+	return sheetCellHasSavedDesign(cell);
 }
 
 /*
@@ -476,7 +505,167 @@ export function getOptimisticSheetCellFromEditInput(input: SheetCellEditInput, c
  * Return whether one Sheet history entry contains at least one undoable change.
  */
 export function sheetUndoRedoEntryHasChanges(entry: SheetUndoRedoEntry) {
-	return Boolean(entry.sheetCells?.length || entry.dataTableCells?.length || entry.design);
+	return Boolean(entry.sheetCells?.length || entry.dataTableCells?.length || entry.design || entry.structure || entry.regions?.length);
+}
+
+/*
+ * Return the undo/redo steps for one Sheet structure operation. Delete
+ * operations capture full snapshots of the destroyed row or column so undo
+ * can re-insert the line and restore its content. Region-generated cells are
+ * skipped — the region materializer rebuilds them itself.
+ */
+export function getSheetStructureHistoryChange(
+	operation: SheetStructureOperationEnum,
+	index: number,
+	cellsByCoord: Map<string, SheetCellGQL>,
+): SheetStructureHistoryChange {
+	const after: SheetStructureHistoryStep = { index, operation };
+
+	if (operation === 'INSERT_ROW_ABOVE') {
+		return { after, before: { index, operation: 'DELETE_ROW' } };
+	}
+
+	if (operation === 'INSERT_COLUMN_LEFT') {
+		return { after, before: { index, operation: 'DELETE_COLUMN' } };
+	}
+
+	const restoreCells: SheetCellEditInput[] = [];
+
+	cellsByCoord.forEach((cell) => {
+		const rowIndex = Math.floor(Number(cell.rowIndex || 0));
+		const columnIndex = Math.floor(Number(cell.columnIndex || 0));
+
+		if (!rowIndex || !columnIndex || cell.sourceType === 'REGION_GENERATED') {
+			return;
+		}
+
+		const onDeletedLine = operation === 'DELETE_ROW' ? rowIndex === index : columnIndex === index;
+
+		if (onDeletedLine) {
+			const snapshot = getSheetCellSnapshotEditInput(rowIndex, columnIndex, cell);
+
+			if (!snapshot.clear) {
+				restoreCells.push(snapshot);
+			}
+		}
+	});
+
+	return {
+		after,
+		before: {
+			index,
+			operation: operation === 'DELETE_ROW' ? 'INSERT_ROW_ABOVE' : 'INSERT_COLUMN_LEFT',
+			...(restoreCells.length ? { restoreCells } : {}),
+		},
+	};
+}
+
+/*
+ * Return undo/redo entries rebased over one structure operation that shifted
+ * sheet coordinates without entering this client's history (a collaborator's
+ * insert or delete). Changes touching a deleted row or column are dropped;
+ * entries left without changes disappear. Whole-map design snapshots are not
+ * remapped — reverting one after a remote shift restores per-line sizes by
+ * their new indexes, which is the accepted coarse behavior.
+ */
+export function applySheetStructureShiftToUndoEntries(
+	entries: SheetUndoRedoEntry[],
+	operation: SheetStructureOperationEnum,
+	index: number,
+): SheetUndoRedoEntry[] {
+	const isRow = operation === 'INSERT_ROW_ABOVE' || operation === 'DELETE_ROW';
+	const isDelete = operation === 'DELETE_ROW' || operation === 'DELETE_COLUMN';
+
+	// Map one absolute index through the shift; null means the line was deleted
+	const shiftIndexValue = (value: number): number | null => {
+		if (isDelete) {
+			if (value === index) {
+				return null;
+			}
+
+			return value > index ? value - 1 : value;
+		}
+
+		return value >= index ? value + 1 : value;
+	};
+
+	const shiftCellInput = (input: SheetCellEditInput): SheetCellEditInput | null => {
+		const value = isRow ? input.cell.rowIndex : input.cell.columnIndex;
+		const shifted = shiftIndexValue(value);
+
+		if (shifted === null) {
+			return null;
+		}
+
+		if (shifted === value) {
+			return input;
+		}
+
+		return {
+			...input,
+			cell: {
+				...input.cell,
+				...(isRow ? { rowIndex: shifted } : { columnIndex: shifted }),
+			},
+		};
+	};
+
+	const shiftStructureStep = (step: SheetStructureHistoryStep): SheetStructureHistoryStep | null => {
+		const stepIsRow = step.operation === 'INSERT_ROW_ABOVE' || step.operation === 'DELETE_ROW';
+		const shiftedIndex = stepIsRow === isRow ? shiftIndexValue(step.index) : step.index;
+
+		if (shiftedIndex === null) {
+			return null;
+		}
+
+		const restoreCells = step.restoreCells
+			?.map(shiftCellInput)
+			.filter((input): input is SheetCellEditInput => Boolean(input));
+
+		return {
+			index: shiftedIndex,
+			operation: step.operation,
+			...(restoreCells?.length ? { restoreCells } : {}),
+		};
+	};
+
+	const nextEntries: SheetUndoRedoEntry[] = [];
+
+	entries.forEach((entry) => {
+		const nextEntry: SheetUndoRedoEntry = { ...entry };
+
+		if (entry.sheetCells?.length) {
+			const nextChanges: SheetCellHistoryChange[] = [];
+
+			entry.sheetCells.forEach((change) => {
+				const before = shiftCellInput(change.before);
+				const after = shiftCellInput(change.after);
+
+				if (before && after) {
+					nextChanges.push({ after, before });
+				}
+			});
+
+			nextEntry.sheetCells = nextChanges;
+		}
+
+		if (entry.structure) {
+			const before = shiftStructureStep(entry.structure.before);
+			const after = shiftStructureStep(entry.structure.after);
+
+			if (before && after) {
+				nextEntry.structure = { after, before };
+			} else {
+				delete nextEntry.structure;
+			}
+		}
+
+		if (sheetUndoRedoEntryHasChanges(nextEntry)) {
+			nextEntries.push(nextEntry);
+		}
+	});
+
+	return nextEntries;
 }
 
 /*
@@ -506,6 +695,11 @@ export function useSheetUndoRedo() {
 		return takeGridRedoEntry(historyRef.current);
 	}, []);
 
+	const rebaseEntries = useCallback((rebase: (entries: SheetUndoRedoEntry[]) => SheetUndoRedoEntry[]) => {
+		historyRef.current.undo = rebase(historyRef.current.undo);
+		historyRef.current.redo = rebase(historyRef.current.redo);
+	}, []);
+
 	const runApplyingHistory = useCallback(async (apply: () => Promise<void> | void) => {
 		applyingHistoryRef.current = true;
 
@@ -519,6 +713,7 @@ export function useSheetUndoRedo() {
 	return {
 		isApplyingHistory,
 		pushUndoEntry,
+		rebaseEntries,
 		runApplyingHistory,
 		takeRedoEntry,
 		takeUndoEntry,

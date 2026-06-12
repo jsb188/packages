@@ -22,6 +22,8 @@ import type {
 	SheetGridViewportObj,
 	SheetRangeData,
 	SheetRegionConflictPolicyEnum,
+	SheetRegionGQL,
+	SheetRegionSourceFilterGroupObj,
 	SheetRegionSourceObj,
 	SheetRegionSourceTypeEnum,
 	SheetCustomRegionSourceColumnObj,
@@ -2941,4 +2943,77 @@ export function isSheetCellInRange(rowIndex: number, columnIndex: number, range:
 		rowIndex <= range.endRowIndex &&
 		columnIndex >= range.startColumnIndex &&
 		columnIndex <= range.endColumnIndex;
+}
+
+/*
+ * Return one region source filter group picked down to mutation input fields,
+ * dropping GQL-only metadata so the payload round-trips through SheetRegionInput.
+ */
+function getSheetRegionSourceFilterInput(filter: SheetRegionSourceFilterGroupObj): Record<string, any> {
+	return {
+		combinator: filter.combinator,
+		...(filter.conditions?.length
+			? {
+				conditions: filter.conditions.map((condition) => ({
+					cellKey: condition.cellKey,
+					operator: condition.operator,
+					...(condition.textValue === null || condition.textValue === undefined ? {} : { textValue: condition.textValue }),
+					...(condition.textValues?.length ? { textValues: condition.textValues } : {}),
+					...(condition.numberValue === null || condition.numberValue === undefined ? {} : { numberValue: condition.numberValue }),
+					...(condition.booleanValue === null || condition.booleanValue === undefined ? {} : { booleanValue: condition.booleanValue }),
+					...(condition.dateValue === null || condition.dateValue === undefined ? {} : { dateValue: condition.dateValue }),
+					...(condition.datetimeValue === null || condition.datetimeValue === undefined ? {} : { datetimeValue: condition.datetimeValue }),
+				})),
+			}
+			: {}),
+		...(filter.groups?.length ? { groups: filter.groups.map(getSheetRegionSourceFilterInput) } : {}),
+	};
+}
+
+/*
+ * Return the upsert mutation input that recreates one saved Sheet region.
+ * Used to undo a region delete locally today, and shaped to stay serializable
+ * for future server-persisted undo records.
+ */
+export function getSheetRegionInputFromRegion(region: SheetRegionGQL): Record<string, any> | null {
+	const source = region.source;
+
+	if (!source?.type || !region.type || !region.startRowIndex || !region.startColumnIndex) {
+		return null;
+	}
+
+	return {
+		columns: (region.columns || []).map((column) => ({
+			...(column.kind ? { kind: column.kind } : {}),
+			...(column.sourceCellKey ? { sourceCellKey: column.sourceCellKey } : {}),
+			...(column.formulaText ? { formulaText: column.formulaText } : {}),
+		})),
+		source: {
+			type: source.type,
+			...(source.dataTableId === null || source.dataTableId === undefined ? {} : { dataTableId: String(source.dataTableId) }),
+			...(source.filter ? { filter: getSheetRegionSourceFilterInput(source.filter) } : {}),
+			...(source.sort?.length
+				? {
+					sort: source.sort.map((sort) => ({
+						cellKey: sort.cellKey,
+						direction: sort.direction,
+					})),
+				}
+				: {}),
+		},
+		startColumnIndex: region.startColumnIndex,
+		startRowIndex: region.startRowIndex,
+		type: region.type,
+		...(region.options
+			? {
+				options: {
+					...(region.options.conflictPolicy ? { conflictPolicy: region.options.conflictPolicy } : {}),
+					...(region.options.endRowIndex === null || region.options.endRowIndex === undefined ? {} : { endRowIndex: region.options.endRowIndex }),
+					...(region.options.includeHeaderRow === null || region.options.includeHeaderRow === undefined
+						? {}
+						: { includeHeaderRow: region.options.includeHeaderRow }),
+				},
+			}
+			: {}),
+	};
 }

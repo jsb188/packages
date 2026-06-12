@@ -22,6 +22,7 @@ import {
 	markSheetPendingEditsSent,
 	persistSheetPendingEdit,
 	readSheetPendingEdits,
+	type PersistedSheetPendingEntry,
 } from './sheet-pending-persistence.ts';
 import { getSheetCanvasCellsByCoord } from './sheet-utils.ts';
 import {
@@ -83,7 +84,12 @@ type SheetCellSaveItem =
 		value: string | null;
 	};
 
-type EditSheetCellsResult = {
+export type EditSheetCellsResult = {
+	/* The GraphQL client resolves request failures instead of rejecting:
+	 * doMutate returns `{error}` for network/server errors and `{aborted}`
+	 * for aborted requests, so both surface as plain result fields */
+	aborted?: boolean | null;
+	error?: unknown;
 	editSheetCells?: {
 		savedCells?: SheetCellGQL[] | null;
 		recalculatedCells?: SheetCellGQL[] | null;
@@ -141,6 +147,106 @@ export function getSheetPendingEditDataTableSourceKey(pendingEdit: SheetPendingC
 }
 
 /*
+ * Return whether one editSheetCells request failed. The GraphQL client
+ * resolves failures instead of rejecting them (see EditSheetCellsResult), so
+ * a failure surfaces as an error/aborted field or a missing payload.
+ */
+export function editSheetCellsResultIsFailure(result: EditSheetCellsResult | null | undefined) {
+	return Boolean(result?.error) || Boolean(result?.aborted) || !result?.editSheetCells;
+}
+
+/*
+ * Return the sent save items the server did not commit: every item when the
+ * request itself failed, otherwise the items whose coordinate is silently
+ * missing from savedCells (e.g. a server-side batch-limit drop).
+ */
+export function getFailedSheetCellSaveItems<T extends { coordKey: string }>(
+	sendingItems: T[],
+	savedCellsByCoord: Map<string, unknown>,
+	requestFailed: boolean,
+) {
+	if (requestFailed) {
+		return sendingItems;
+	}
+
+	return sendingItems.filter((item) => !savedCellsByCoord.has(item.coordKey));
+}
+
+/*
+ * Return the freshest confirmed cell known for one coordinate: the higher-
+ * revision pick between the render-time base cell and the most recent
+ * mutation result for the coordinate. The render base can lag a just-saved
+ * cell (a flush re-run from the batch's finally block closes over a
+ * pre-render snapshot), so synced-edit skips and payload strips compare
+ * against this pick instead of the base alone.
+ */
+export function getSheetFlushBaseCell(
+	baseCell?: SheetCellGQL | null,
+	recentSavedCell?: SheetCellGQL | null,
+): SheetCellGQL | undefined {
+	if (!baseCell || !recentSavedCell) {
+		return baseCell || recentSavedCell || undefined;
+	}
+
+	const baseRevision = Number(baseCell.revision);
+	const recentRevision = Number(recentSavedCell.revision);
+
+	// Equal or unreadable revisions defer to the render base
+	if (Number.isFinite(baseRevision) && Number.isFinite(recentRevision)) {
+		return recentRevision > baseRevision ? recentSavedCell : baseCell;
+	}
+
+	return Number.isFinite(recentRevision) ? recentSavedCell : baseCell;
+}
+
+/*
+ * Return the base map with recent mutation results overlaid per coordinate
+ * (higher revision wins). Kept cheap: only the recent-save entries are
+ * touched, and the base map reference is reused when there are none.
+ */
+export function getSheetFlushBaseCellsByCoord(
+	baseCellsByCoord: Map<string, SheetCellGQL>,
+	recentSavedCellsByCoord: Map<string, SheetCellGQL>,
+) {
+	if (!recentSavedCellsByCoord.size) {
+		return baseCellsByCoord;
+	}
+
+	const merged = new Map(baseCellsByCoord);
+	recentSavedCellsByCoord.forEach((savedCell, coordKey) => {
+		const flushBaseCell = getSheetFlushBaseCell(merged.get(coordKey), savedCell);
+		if (flushBaseCell) {
+			merged.set(coordKey, flushBaseCell);
+		}
+	});
+
+	return merged;
+}
+
+/*
+ * Serialize one edit payload for exact comparison; bigint values (e.g.
+ * regionId) stringify so JSON.stringify does not throw.
+ */
+function stringifySheetEditPayload(value: unknown) {
+	return JSON.stringify(value, (_key, jsonValue) => typeof jsonValue === 'bigint' ? String(jsonValue) : jsonValue);
+}
+
+/*
+ * Return whether one persisted pending entry still mirrors the in-memory
+ * pending edit a reconciliation decision was made for. A different payload
+ * means the persisted twin belongs to a newer same-coordinate edit queued
+ * after the decision's snapshot, and must survive a twin clear.
+ */
+export function sheetPersistedEntryMatchesPendingEdit(
+	persistedEntry: Pick<PersistedSheetPendingEntry, 'dataTableTarget' | 'input'>,
+	pendingEdit: Pick<SheetPendingCellEdit, 'dataTableTarget' | 'input'>,
+) {
+	return stringifySheetEditPayload(persistedEntry.input) === stringifySheetEditPayload(pendingEdit.input) &&
+		stringifySheetEditPayload(persistedEntry.dataTableTarget ?? null) ===
+			stringifySheetEditPayload(pendingEdit.dataTableTarget ?? null);
+}
+
+/*
  * Return a pending map with the listed coordinate keys removed.
  */
 function removePendingCellEditKeys(
@@ -174,6 +280,25 @@ function removePendingCellEditKeys(
 export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 	const sheetVersionsRef = useRef<Record<string, number>>({});
 	const dataTableVersionsRef = useRef<Record<string, number>>({});
+	// Revision-gated cache of mutation results for the mounted sheet: the
+	// render base can lag a just-saved cell (stale closure on a synchronous
+	// flush re-run), so flush-time comparisons fold this cache in
+	const recentSavedCellsByCoordRef = useRef(new Map<string, SheetCellGQL>());
+	// Coordinates with a mutation currently in flight for the mounted sheet;
+	// synced-edit drops skip them because the in-flight save may be about to
+	// overwrite the value a newer edit restores
+	const inFlightCoordKeysRef = useRef(new Set<string>());
+
+	/*
+	 * Return the freshest confirmed cell known for one mounted-sheet
+	 * coordinate (render base vs recent mutation results).
+	 */
+	const getFlushBaseCell = useCallback((coordKey: string) => {
+		return getSheetFlushBaseCell(
+			params.baseCellsByCoord.get(coordKey),
+			recentSavedCellsByCoordRef.current.get(coordKey),
+		);
+	}, [params.baseCellsByCoord]);
 
 	const flushSheetItems = useCallback(async (items: Extract<SheetCellSaveItem, { kind: 'SHEET' }>[]) => {
 		// A flush can resolve after a sheetId switch in the same mount, so
@@ -194,11 +319,12 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			// skips and mutation filtering are only valid for its own items
 			const isCurrentSheet = targetSheetId === params.sheetId;
 
-			// Edits whose value already matches the confirmed base need no mutation
+			// Edits whose value already matches the freshest confirmed data
+			// (render base or a newer mutation result) need no mutation
 			const syncedItems = isCurrentSheet
 				? sheetItems.filter((item) => {
 					return sheetVersionsRef.current[item.coordKey] === item.saveVersion &&
-						sheetCellEditInputMatchesCell(item.input, params.baseCellsByCoord.get(item.coordKey));
+						sheetCellEditInputMatchesCell(item.input, getFlushBaseCell(item.coordKey));
 				})
 				: [];
 
@@ -213,7 +339,7 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			const mutationCells = isCurrentSheet
 				? getSheetCellEditInputsForMutation(
 					mutationItems.map((item) => item.input),
-					params.baseCellsByCoord,
+					getSheetFlushBaseCellsByCoord(params.baseCellsByCoord, recentSavedCellsByCoordRef.current),
 				)
 				: mutationItems.map((item) => item.input);
 			const mutationCellSet = new Set(mutationCells);
@@ -231,7 +357,10 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			}
 
 			// The mutation now carries these edits; a post-reload rehydrate
-			// must not re-send them
+			// must not re-send them. Marking 'sent' before the await is safe
+			// only because the post-await reconciliation below clears the twin
+			// of every item the server did not commit, so a failed edit cannot
+			// stay parked in the 'sent' state forever
 			markSheetPendingEditsSent(targetSheetId, sendingItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })));
 
 			// Value fields that merely re-send the confirmed value drop out of
@@ -239,63 +368,126 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			const mutationPayloadCells = isCurrentSheet
 				? mutationCells.map((input) => getSheetCellEditInputForMutationPayload(
 					input,
-					params.baseCellsByCoord.get(getSheetCellEditInputCoordKey(input)),
+					getFlushBaseCell(getSheetCellEditInputCoordKey(input)),
 				))
 				: mutationCells;
 
-			const result = await params.editSheetCells({
-				variables: {
-					cells: mutationPayloadCells,
-					organizationId: sendingItems[0]?.persist.organizationId || params.organizationId,
-					sheetId: targetSheetId,
-				},
-			}) as EditSheetCellsResult | undefined;
-			const editResult = result?.editSheetCells || null;
-			const savedCells = (editResult?.savedCells || []) as SheetCellGQL[];
-			const recalculatedCells = (editResult?.recalculatedCells || []) as SheetCellGQL[];
-			const savedCellsByCoord = getSheetCanvasCellsByCoord(savedCells);
-
-			// The server committed the saved coordinates: any later read returns
-			// post-commit data, so their persisted twins are no longer needed
-			clearSheetPendingEdits(
-				targetSheetId,
-				sendingItems
-					.filter((item) => savedCellsByCoord.has(item.coordKey))
-					.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })),
-			);
-
-			if (!isCurrentSheet) {
-				continue;
+			// In-flight coordinates guard the synced-drop in saveCells and the
+			// beacon filter while this mutation is on the wire
+			if (isCurrentSheet) {
+				sendingItems.forEach((item) => inFlightCoordKeysRef.current.add(item.coordKey));
 			}
 
-			// Saved cells and the server-recalculated cascade land in the confirmed
-			// store immediately; the realtime echo that follows is a revision-gated
-			// no-op
-			if (savedCells.length || recalculatedCells.length) {
-				params.setConfirmedCellsByCoord((currentState) => {
-					return mergeConfirmedSheetCells(currentState, [...savedCells, ...recalculatedCells]);
-				});
+			try {
+				const result = await params.editSheetCells({
+					variables: {
+						cells: mutationPayloadCells,
+						organizationId: sendingItems[0]?.persist.organizationId || params.organizationId,
+						sheetId: targetSheetId,
+					},
+				}) as EditSheetCellsResult | undefined;
+				const requestFailed = editSheetCellsResultIsFailure(result);
+				const editResult = result?.editSheetCells || null;
+				const savedCells = (editResult?.savedCells || []) as SheetCellGQL[];
+				const recalculatedCells = (editResult?.recalculatedCells || []) as SheetCellGQL[];
+				const savedCellsByCoord = getSheetCanvasCellsByCoord(savedCells);
+
+				// A failed request fails every sent item; a "successful" result
+				// can still silently omit coordinates from savedCells (e.g. a
+				// server-side batch-limit drop), which fails those items alone
+				const failedItems = getFailedSheetCellSaveItems(sendingItems, savedCellsByCoord, requestFailed);
+				const failedItemSet = new Set(failedItems);
+				const savedItems = sendingItems.filter((item) => !failedItemSet.has(item));
+
+				// The server committed the saved coordinates: any later read returns
+				// post-commit data, so their persisted twins are no longer needed
+				if (savedItems.length) {
+					clearSheetPendingEdits(
+						targetSheetId,
+						savedItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })),
+					);
+				}
+
+				// Failed edits also drop their persisted twins (seq-gated, so a
+				// newer re-persisted edit at the same coordinate survives); the
+				// mutation never throws, so the batch onError cannot do this
+				if (failedItems.length) {
+					clearSheetPendingEdits(
+						targetSheetId,
+						failedItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })),
+					);
+				}
+
+				if (!isCurrentSheet) {
+					continue;
+				}
+
+				// Saved cells and the server-recalculated cascade land in the confirmed
+				// store immediately; the realtime echo that follows is a revision-gated
+				// no-op. The recent-saves cache mirrors the merge so flush-time
+				// comparisons stay fresh even on a pre-render re-run
+				if (!requestFailed && (savedCells.length || recalculatedCells.length)) {
+					recentSavedCellsByCoordRef.current = mergeConfirmedSheetCells(
+						recentSavedCellsByCoordRef.current,
+						[...savedCells, ...recalculatedCells],
+					);
+					params.setConfirmedCellsByCoord((currentState) => {
+						return mergeConfirmedSheetCells(currentState, [...savedCells, ...recalculatedCells]);
+					});
+				}
+
+				if (editResult?.cycleCellIds?.length) {
+					params.onCycleCells?.(editResult.cycleCellIds.map(String));
+				}
+
+				// The confirmed cells now carry the saved values: drop the previews
+				// whose save version is still current (newer edits keep their preview)
+				if (savedItems.length) {
+					params.setPendingCellEdits((currentState) => {
+						const removableKeys = savedItems
+							.filter((item) => {
+								return sheetVersionsRef.current[item.coordKey] === item.saveVersion &&
+									currentState.get(item.coordKey)?.saveVersion === item.saveVersion;
+							})
+							.map((item) => item.coordKey);
+
+						return removePendingCellEditKeys(currentState, removableKeys);
+					});
+				}
+
+				// Failed previews fall back to the confirmed value (double-gated
+				// like the success path, so a newer edit keeps its preview) and
+				// relay the clears so peers drop their mirrored previews too
+				if (failedItems.length) {
+					const clearedCoordKeys: string[] = [];
+
+					params.setPendingCellEdits((currentState) => {
+						let next = currentState;
+						failedItems.forEach((item) => {
+							if (
+								sheetVersionsRef.current[item.coordKey] === item.saveVersion &&
+								currentState.get(item.coordKey)?.saveVersion === item.saveVersion
+							) {
+								next = removePendingCellEditKeys(next, [item.coordKey], item.saveVersion);
+								clearedCoordKeys.push(item.coordKey);
+							}
+						});
+						return next;
+					});
+
+					if (clearedCoordKeys.length) {
+						params.onPendingCoordsCleared?.(clearedCoordKeys);
+					}
+				}
+			} finally {
+				// In-flight coordinates lift once reconciliation completed (or
+				// the mutation threw and the batch onError takes over)
+				if (isCurrentSheet) {
+					sendingItems.forEach((item) => inFlightCoordKeysRef.current.delete(item.coordKey));
+				}
 			}
-
-			if (editResult?.cycleCellIds?.length) {
-				params.onCycleCells?.(editResult.cycleCellIds.map(String));
-			}
-
-			// The confirmed cells now carry the saved values: drop the previews
-			// whose save version is still current (newer edits keep their preview)
-			params.setPendingCellEdits((currentState) => {
-				const removableKeys = sendingItems
-					.filter((item) => {
-						return savedCellsByCoord.has(item.coordKey) &&
-							sheetVersionsRef.current[item.coordKey] === item.saveVersion &&
-							currentState.get(item.coordKey)?.saveVersion === item.saveVersion;
-					})
-					.map((item) => item.coordKey);
-
-				return removePendingCellEditKeys(currentState, removableKeys);
-			});
 		}
-	}, [params.baseCellsByCoord, params.editSheetCells, params.onCycleCells, params.organizationId, params.setConfirmedCellsByCoord, params.setPendingCellEdits, params.sheetId]);
+	}, [getFlushBaseCell, params.baseCellsByCoord, params.editSheetCells, params.onCycleCells, params.onPendingCoordsCleared, params.organizationId, params.setConfirmedCellsByCoord, params.setPendingCellEdits, params.sheetId]);
 
 	const flushDataTableItems = useCallback(async (items: Extract<SheetCellSaveItem, { kind: 'DATA_TABLE' }>[]) => {
 		// Edits whose value matches the confirmed source cell need no mutation
@@ -411,15 +603,19 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			}));
 			allSent = sendGroupedCellSaveItems(sheetGroups, (group) => {
 				const targetSheetId = String(group.targetId || '');
-				// The confirmed base only describes the mounted sheet
-				const mutationCells = targetSheetId === params.sheetId
-					? getSheetCellEditInputsForMutation(
-						group.items.map((item) => item.input),
-						params.baseCellsByCoord,
-					)
-					: group.items.map((item) => item.input);
-				const mutationCellSet = new Set(mutationCells);
-				const filteredItems = group.items.filter((item) => !mutationCellSet.has(item.input));
+				// The confirmed base only describes the mounted sheet, and the
+				// flush base folds in recent mutation results. Coordinates with
+				// a mutation still in flight always send: the in-flight save
+				// may be about to overwrite the value this edit restores
+				const isCurrentSheet = targetSheetId === params.sheetId;
+				const sendableItems = isCurrentSheet
+					? group.items.filter((item) => {
+						return inFlightCoordKeysRef.current.has(item.coordKey) ||
+							!sheetCellEditInputMatchesCell(item.input, getFlushBaseCell(item.coordKey));
+					})
+					: group.items;
+				const sendableItemSet = new Set(sendableItems);
+				const filteredItems = group.items.filter((item) => !sendableItemSet.has(item));
 
 				// Items dropped by the mutation filter already match the
 				// confirmed base: their persisted twins are stale
@@ -427,18 +623,22 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 					clearSheetPendingEdits(targetSheetId, filteredItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })));
 				}
 
-				if (!mutationCells.length) {
+				if (!sendableItems.length) {
 					return true;
 				}
 
 				// Value fields that merely re-send the confirmed value drop out
-				// of the payload so the server sees presentation-only edits as such
-				const beaconCells = targetSheetId === params.sheetId
-					? mutationCells.map((input) => getSheetCellEditInputForMutationPayload(
-						input,
-						params.baseCellsByCoord.get(getSheetCellEditInputCoordKey(input)),
-					))
-					: mutationCells;
+				// of the payload so the server sees presentation-only edits as
+				// such; in-flight coordinates keep their full payload because
+				// the value they "re-send" is exactly what the in-flight save
+				// may be overwriting
+				const beaconCells = sendableItems.map((item) => {
+					if (!isCurrentSheet || inFlightCoordKeysRef.current.has(item.coordKey)) {
+						return item.input;
+					}
+
+					return getSheetCellEditInputForMutationPayload(item.input, getFlushBaseCell(item.coordKey));
+				});
 
 				const sent = sendCellSaveBeacon({
 					cells: beaconCells,
@@ -452,9 +652,7 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				if (sent) {
 					markSheetPendingEditsSent(
 						targetSheetId,
-						group.items
-							.filter((item) => mutationCellSet.has(item.input))
-							.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })),
+						sendableItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })),
 					);
 				}
 
@@ -532,6 +730,9 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 	useEffect(() => {
 		sheetVersionsRef.current = {};
 		dataTableVersionsRef.current = {};
+		// Both caches describe the mounted sheet's coordinates only
+		recentSavedCellsByCoordRef.current = new Map();
+		inFlightCoordKeysRef.current = new Set();
 	}, [params.sheetId]);
 
 	/*
@@ -553,12 +754,22 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			// Seq 0 marks items with no persisted twin; seq-gated clears skip it
 			let persistSeq = 0;
 
-			if (sheetCellEditInputMatchesCell(input, params.baseCellsByCoord.get(coordKey))) {
-				// The edit restores the confirmed value: no preview needed
+			// Reverts compare against the freshest confirmed data (render base
+			// or a newer mutation result), not a stale render snapshot
+			if (sheetCellEditInputMatchesCell(input, getFlushBaseCell(coordKey))) {
+				// The edit restores the confirmed value: no preview needed; the
+				// item still queues below so the flush re-checks it
 				revertKeys.push(coordKey);
-				clearSheetPendingEdits(params.sheetId, [{ coordKey }]);
+
+				if (!inFlightCoordKeysRef.current.has(coordKey)) {
+					clearSheetPendingEdits(params.sheetId, [{ coordKey }]);
+				}
+				// An in-flight same-coordinate mutation may be about to
+				// overwrite the value this revert restores, so the revert MUST
+				// reach the server; the in-flight edit's persisted twin also
+				// stays untouched for its own reconciliation to settle
 			} else {
-				const baseRevision = Number(params.baseCellsByCoord.get(coordKey)?.revision);
+				const baseRevision = Number(getFlushBaseCell(coordKey)?.revision);
 
 				// The persisted twin lets a remounting Sheet rehydrate this
 				// preview while the flushed save is still in flight
@@ -601,7 +812,7 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			}
 			return next;
 		});
-	}, [params.baseCellsByCoord, params.organizationId, params.setPendingCellEdits, params.sheetId, queue]);
+	}, [getFlushBaseCell, params.organizationId, params.setPendingCellEdits, params.sheetId, queue]);
 
 	/*
 	 * Queue DataTable source cell edits with previews fanned out to every

@@ -1,6 +1,6 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { useEditDataTableCells } from '@jsb188/graphql/hooks/use-dataTable-mtn';
-import { useDeleteSheetRegion, useEditSheetCells, useEditSheetStructure, useUpdateSheet } from '@jsb188/graphql/hooks/use-sheet-mtn';
+import { useDeleteSheetRegion, useEditSheetCells, useEditSheetStructure, useUpdateSheet, useUpsertSheetDataTableRegion } from '@jsb188/graphql/hooks/use-sheet-mtn';
 import {
 	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
 	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATION_COLUMNS,
@@ -17,7 +17,7 @@ import type {
 	SheetStructureOperationEnum,
 } from '@jsb188/mday/types/sheet.d.ts';
 import { getOrganizationChildListCellFormulaValueFromId, isOrganizationChildProfileLinkCellKey } from '@jsb188/mday/utils/organization.ts';
-import { getSheetChildOrganizationSourceOrgId, getSheetCustomRegionSourceColumns, getSheetRegionSourceId, getSheetRegionSourceType } from '@jsb188/mday/utils/sheet.ts';
+import { getSheetChildOrganizationSourceOrgId, getSheetCustomRegionSourceColumns, getSheetRegionInputFromRegion, getSheetRegionSourceId, getSheetRegionSourceType } from '@jsb188/mday/utils/sheet.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/layout/MainLayout';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useAtom, useSetAtom } from 'jotai';
@@ -84,6 +84,7 @@ import {
 } from '../libs/sheet-dataTable-preview.ts';
 import {
 	getSheetPendingEditDataTableSourceKey,
+	sheetPersistedEntryMatchesPendingEdit,
 	type SheetCellSaveEntry,
 	useSheetCellSaves,
 } from '../libs/use-sheet-cell-saves.ts';
@@ -465,6 +466,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const openModalScreen = useOpenModalScreen();
 	const { editDataTableCells } = useEditDataTableCells({}, openModalPopUp);
 	const { deleteSheetRegion } = useDeleteSheetRegion({}, openModalPopUp);
+	const { upsertSheetDataTableRegion } = useUpsertSheetDataTableRegion({}, openModalPopUp);
 	const { editSheetCells } = useEditSheetCells({}, openModalPopUp);
 	const { editSheetStructure } = useEditSheetStructure({}, openModalPopUp);
 	const { updateSheet } = useUpdateSheet({}, openModalPopUp);
@@ -644,15 +646,19 @@ function SheetDataContent(p: SheetDataContentProps) {
 	}, [applyLocalSheetRegionDelete, setConfirmedCellsByCoord]);
 
 	/*
-	 * Delete one data table-backed region from the Sheet, optionally opening a confirmation popup first.
+	 * Delete one data table-backed region from the Sheet, optionally opening a
+	 * confirmation popup first. `onDeleted` fires only when the delete actually
+	 * applies (immediately, or after the user confirms), so callers can push
+	 * history entries without recording cancelled deletes.
 	 */
-	const removeDataTableRegion = useCallback((regionId: string, options?: { skipConfirmation?: boolean }) => {
+	const removeDataTableRegion = useCallback((regionId: string, options?: { onDeleted?: (regionId: string) => void; skipConfirmation?: boolean }) => {
 		if (!organizationId || !sheetId || !regionId) {
 			return;
 		}
 
 		if (options?.skipConfirmation) {
 			applyLocalSheetRegionDeleteWithCells({ regionId });
+			options.onDeleted?.(regionId);
 			return deleteSheetRegion({
 				variables: {
 					organizationId,
@@ -667,12 +673,43 @@ function SheetDataContent(p: SheetDataContentProps) {
 			preset: 'DELETE_SHEET_REGION',
 			props: {
 				organizationId,
-				onLocalSheetRegionDelete: applyLocalSheetRegionDeleteWithCells,
+				onLocalSheetRegionDelete: (params: { regionId: string }) => {
+					applyLocalSheetRegionDeleteWithCells(params);
+					options?.onDeleted?.(params.regionId);
+				},
 				regionId,
 				sheetId,
 			},
 		});
 	}, [applyLocalSheetRegionDeleteWithCells, deleteSheetRegion, openModalPopUp, organizationId, sheetId]);
+
+	/*
+	 * Recreate one deleted data table region from its captured state (undo).
+	 * The server assigns a new region id; the caller updates its redo records
+	 * with the returned region.
+	 */
+	const restoreDataTableRegion = useCallback(async (region: SheetRegionGQL) => {
+		const regionInput = getSheetRegionInputFromRegion(region);
+
+		if (!organizationId || !sheetId || !regionInput) {
+			return null;
+		}
+
+		const result = await upsertSheetDataTableRegion({
+			variables: {
+				organizationId,
+				region: regionInput,
+				sheetId,
+			},
+		}) as { upsertSheetDataTableRegion?: SheetRegionGQL | null } | undefined;
+		const restoredRegion = result?.upsertSheetDataTableRegion || null;
+
+		if (restoredRegion) {
+			applyLocalSheetRegionUpsertWithLoading({ region: restoredRegion });
+		}
+
+		return restoredRegion;
+	}, [applyLocalSheetRegionUpsertWithLoading, organizationId, sheetId, upsertSheetDataTableRegion]);
 
 	/*
 	 * Open the app modal that creates a data table-backed region for this Sheet.
@@ -1019,6 +1056,14 @@ function SheetDataContent(p: SheetDataContentProps) {
 		return true;
 	}, []);
 
+	// Last collaborator structure op; SheetController rebases its undo/redo
+	// stacks over the shift (own ops push their own history entries instead)
+	const [remoteStructureShift, setRemoteStructureShift] = useState<{
+		index: number;
+		operation: SheetStructureOperationEnum;
+		seq: number;
+	} | null>(null);
+
 	const applyRemoteSheetStructureOp = useCallback((structureOp: { opId: string | null; operation: string; index: number }) => {
 		const opId = String(structureOp.opId || '');
 		if (opId && !recordAppliedStructureOpId(opId)) {
@@ -1029,6 +1074,11 @@ function SheetDataContent(p: SheetDataContentProps) {
 			structureOp.operation as SheetStructureOperationEnum,
 			structureOp.index,
 		);
+		setRemoteStructureShift((currentShift) => ({
+			index: structureOp.index,
+			operation: structureOp.operation as SheetStructureOperationEnum,
+			seq: (currentShift?.seq || 0) + 1,
+		}));
 	}, [applySheetStructureShiftToLocalState, recordAppliedStructureOpId]);
 
 	remoteStructureOpHandlerRef.current = applyRemoteSheetStructureOp;
@@ -1306,9 +1356,26 @@ function SheetDataContent(p: SheetDataContentProps) {
 		}
 
 		// Confirmed entries no longer need their persisted twins; without this
-		// write-back the next refresh would resurrect already-settled previews
+		// write-back the next refresh would resurrect already-settled previews.
+		// A twin only drops while it still mirrors the entry the decision was
+		// made for: a newer same-coordinate edit queued between render and this
+		// effect run keeps its (different-payload) persisted twin
 		if (removeCoordKeys.length) {
-			clearSheetPendingEdits(sheetId, removeCoordKeys.map((coordKey) => ({ coordKey })));
+			const persistedEntries = readSheetPendingEdits(sheetId);
+			const clearableRefs = removeCoordKeys
+				.filter((coordKey) => {
+					const persistedEntry = persistedEntries.get(coordKey);
+					const pendingEdit = pendingCellEdits.get(coordKey);
+					return Boolean(
+						persistedEntry && pendingEdit &&
+						sheetPersistedEntryMatchesPendingEdit(persistedEntry, pendingEdit),
+					);
+				})
+				.map((coordKey) => ({ coordKey }));
+
+			if (clearableRefs.length) {
+				clearSheetPendingEdits(sheetId, clearableRefs);
+			}
 		}
 
 		setPendingCellEdits((currentState) => {
@@ -1439,6 +1506,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 			onOpenOrganizationProfile={openOrganizationProfile}
 			onPopulateFromDataTable={openPopulateFromDataTableModal}
 			onRemoveDataTableRegion={removeDataTableRegion}
+			onRestoreDataTableRegion={restoreDataTableRegion}
 			onEditSheetStructure={editSheetGridStructure}
 			loadingRegionRects={loadingRegionRects}
 			onBroadcastCellEdits={broadcastCellEdits}
@@ -1447,6 +1515,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 			onSaveCells={saveCells}
 			presenceRoster={presenceRoster}
 			remoteSelections={remoteSelections}
+			remoteStructureShift={remoteStructureShift}
 			onUpdateSheetDesign={updateSheetDesign}
 			ranges={sheetRanges}
 			regions={sheetRegions}

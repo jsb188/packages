@@ -12,6 +12,7 @@ import { useAtom } from 'jotai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
 	mergeConfirmedSheetCells,
+	mergeRefetchedSheetCells,
 	type SheetDeletedCellCoord,
 } from './sheet-cell-store.ts';
 import type { SheetStateAtoms } from './sheet-state.ts';
@@ -94,7 +95,10 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 	}, [params.sheetId, setConfirmedCellsByCoordValue]);
 
 	// A fresh sheetView result is the complete authoritative snapshot: replace
-	// the confirmed layer wholesale (deletions included by construction)
+	// the confirmed layer wholesale (deletions included by construction). A
+	// SAME-sheet refetch (e.g. one triggered by a design rowCount change) can
+	// race recently saved cells, so it revision-gates per coordinate instead
+	// of rolling them back to the older snapshot the server read
 	useEffect(() => {
 		if (
 			!typedSheetView ||
@@ -104,10 +108,27 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 			return;
 		}
 
+		const previousSheetView = appliedSheetViewRef.current;
 		appliedSheetViewRef.current = typedSheetView;
-		setConfirmedCellsByCoordValue(
-			getSheetCanvasCellsByCoord((typedSheetView.cells || []) as SheetCellGQL[]),
+
+		const incomingCellsByCoord = getSheetCanvasCellsByCoord(
+			(typedSheetView.cells || []) as SheetCellGQL[],
 		);
+
+		// The sheet-switch reset effect nulls the applied ref, so a non-null
+		// previous snapshot with the same sheet id marks a same-sheet refetch
+		const isSameSheetRefetch = Boolean(
+			previousSheetView &&
+			String(previousSheetView.id || '') === String(typedSheetView.id || ''),
+		);
+
+		if (isSameSheetRefetch) {
+			setConfirmedCellsByCoordValue((currentState) => {
+				return mergeRefetchedSheetCells(currentState, incomingCellsByCoord);
+			});
+		} else {
+			setConfirmedCellsByCoordValue(incomingCellsByCoord);
+		}
 	}, [params.sheetStructureGridMergePaused, setConfirmedCellsByCoordValue, typedSheetView]);
 
 	// Realtime: merge $sheetViewFragment patches into local state. Cell deltas

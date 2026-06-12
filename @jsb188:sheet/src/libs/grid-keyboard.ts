@@ -1,6 +1,9 @@
 export type GridArrowDirection = 'left' | 'right' | 'up' | 'down';
 export type GridTabDirection = 'forward' | 'backward';
 export type GridTextStyleShortcutName = 'bold' | 'italic' | 'strikethrough' | 'underline';
+export type GridFillShortcutDirection = 'down' | 'right';
+export type GridHomeEndEdge = 'start' | 'end';
+export type GridPageDirection = 'up' | 'down';
 
 export const GRID_FORMULA_INPUT_SELECTOR = '[data-sheet-formula-input="true"]';
 
@@ -17,25 +20,32 @@ export type GridKeyboardHandlers = {
 	isTextInputKey?: boolean;
 	readClipboardText?: () => Promise<string>;
 	onAdjustFontSize?: (direction: -1 | 1) => Promise<void> | void;
-	onArrow?: (direction: GridArrowDirection, extendSelection: boolean) => void;
+	onArrow?: (direction: GridArrowDirection, extendSelection: boolean, toDataEdge?: boolean) => void;
 	onClear?: () => Promise<void> | void;
+	onClearFormatting?: () => Promise<void> | void;
 	onCopy?: () => void;
+	onCut?: () => Promise<void> | void;
 	onDismissActiveEditor?: () => void;
 	onDismissContextMenu?: () => boolean;
 	onDismissEditor?: () => void;
 	onDismissHeaderEditor?: () => void;
 	onDismissLocalEditor?: () => void;
 	onEditorCommit?: (editorElement: HTMLElement) => Promise<boolean | void> | boolean | void;
-	onEditorCommitEnter?: (editorElement: HTMLElement) => void;
+	onEditorCommitEnter?: (editorElement: HTMLElement, direction?: 'down' | 'up') => void;
 	onEditorCommitValue?: (editorElement: HTMLElement) => Promise<void> | void;
 	onEnter?: () => void;
 	onEscapeSelection?: () => void;
+	onFill?: (direction: GridFillShortcutDirection) => Promise<void> | void;
 	onHeaderEditorCommit?: (headerEditorElement: HTMLElement) => void;
+	onHomeEnd?: (edge: GridHomeEndEdge, metaKey: boolean, extendSelection: boolean) => void;
 	onKeyFinish?: () => void;
 	onKeyStart?: (input: { metaKey: boolean; pressed: string }) => void;
+	onPage?: (direction: GridPageDirection, extendSelection: boolean) => void;
 	onPaste?: (clipboardText: string) => Promise<void> | void;
 	onRedo?: () => Promise<void> | void;
 	onSelectAll?: () => void;
+	onSelectColumn?: () => void;
+	onSelectRow?: () => void;
 	onTab?: (direction: GridTabDirection) => void;
 	onTextInput?: (pressed: string) => void;
 	onToggleTextStyle?: (name: GridTextStyleShortcutName) => Promise<void> | void;
@@ -109,8 +119,100 @@ function isGridUndoShortcut(event: KeyboardEvent, metaKey: boolean) {
 function isGridRedoShortcut(event: KeyboardEvent, metaKey: boolean) {
 	const key = event.key.toLowerCase();
 
+	// Cmd+Y must work on macOS like Ctrl+Y does elsewhere
 	return (metaKey && event.shiftKey && key === 'z') ||
-		(event.ctrlKey && !event.metaKey && !event.shiftKey && key === 'y');
+		(metaKey && !event.shiftKey && key === 'y');
+}
+
+/*
+ * Return whether a keyboard event should cut the grid selection.
+ */
+
+function isGridCutShortcut(event: KeyboardEvent, metaKey: boolean) {
+	return metaKey && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'x';
+}
+
+/*
+ * Return the fill direction represented by a grid keyboard shortcut.
+ */
+
+function getGridFillShortcutDirection(event: KeyboardEvent, metaKey: boolean): GridFillShortcutDirection | null {
+	if (!metaKey || event.shiftKey || event.altKey) {
+		return null;
+	}
+
+	const key = event.key.toLowerCase();
+
+	if (key === 'd') {
+		return 'down';
+	}
+
+	if (key === 'r') {
+		return 'right';
+	}
+
+	return null;
+}
+
+/*
+ * Return whether a keyboard event should clear formatting on the grid selection.
+ */
+
+function isGridClearFormattingShortcut(event: KeyboardEvent, metaKey: boolean) {
+	return metaKey && !event.altKey && event.key === '\\';
+}
+
+/*
+ * Return the whole-row or whole-column selection target of a space shortcut.
+ * Cmd+Space stays with the OS (Spotlight), so column select is Ctrl-only.
+ */
+
+function getGridSpaceSelectShortcutTarget(event: KeyboardEvent): 'row' | 'column' | null {
+	if (event.key !== ' ' || event.altKey || event.metaKey) {
+		return null;
+	}
+
+	if (event.shiftKey && !event.ctrlKey) {
+		return 'row';
+	}
+
+	if (event.ctrlKey && !event.shiftKey) {
+		return 'column';
+	}
+
+	return null;
+}
+
+/*
+ * Return the Home/End navigation edge of a grid keyboard event.
+ */
+
+function getGridHomeEndShortcutEdge(event: KeyboardEvent): GridHomeEndEdge | null {
+	if (event.key === 'Home') {
+		return 'start';
+	}
+
+	if (event.key === 'End') {
+		return 'end';
+	}
+
+	return null;
+}
+
+/*
+ * Return the page navigation direction of a grid keyboard event.
+ */
+
+function getGridPageShortcutDirection(event: KeyboardEvent): GridPageDirection | null {
+	if (event.key === 'PageUp') {
+		return 'up';
+	}
+
+	if (event.key === 'PageDown') {
+		return 'down';
+	}
+
+	return null;
 }
 
 /*
@@ -207,6 +309,12 @@ export function handleGridKeyboardEvent(
 	const hasEditorShortcut = hasGridActiveEditorShortcut(elements, handlers);
 	const undoShortcut = isGridUndoShortcut(event, metaKey);
 	const redoShortcut = isGridRedoShortcut(event, metaKey);
+	const cutShortcut = isGridCutShortcut(event, metaKey);
+	const fillShortcutDirection = getGridFillShortcutDirection(event, metaKey);
+	const clearFormattingShortcut = isGridClearFormattingShortcut(event, metaKey);
+	const spaceSelectTarget = getGridSpaceSelectShortcutTarget(event);
+	const homeEndEdge = getGridHomeEndShortcutEdge(event);
+	const pageDirection = getGridPageShortcutDirection(event);
 	const fontSizeShortcutDirection = getGridFontSizeShortcutDirection(event, metaKey);
 	const textStyleShortcutName = getGridTextStyleShortcutName(event, metaKey);
 
@@ -216,7 +324,7 @@ export function handleGridKeyboardEvent(
 
 	const shortcutKey = Boolean(
 		(arrowDirection && handlers.onArrow) ||
-		(event.key === 'Enter' && (hasEditorShortcut || handlers.onEnter)) ||
+		((event.key === 'Enter' || event.key === 'F2') && (hasEditorShortcut || handlers.onEnter)) ||
 		(event.key === 'Escape' && (hasEditorShortcut || handlers.onEscapeSelection || handlers.onDismissContextMenu)) ||
 		(event.key === 'Tab' && (hasEditorShortcut || handlers.onTab)) ||
 		((event.key === 'Delete' || event.key === 'Backspace') && handlers.onClear) ||
@@ -224,6 +332,13 @@ export function handleGridKeyboardEvent(
 		(metaKey && event.key.toLowerCase() === 'a' && handlers.onSelectAll) ||
 		(metaKey && event.key.toLowerCase() === 'c' && handlers.onCopy) ||
 		(metaKey && event.key.toLowerCase() === 'v' && handlers.onPaste) ||
+		(!hasEditorShortcut && cutShortcut && handlers.onCut) ||
+		(!hasEditorShortcut && fillShortcutDirection && handlers.onFill) ||
+		(!hasEditorShortcut && clearFormattingShortcut && handlers.onClearFormatting) ||
+		(!hasEditorShortcut && spaceSelectTarget === 'row' && handlers.onSelectRow) ||
+		(!hasEditorShortcut && spaceSelectTarget === 'column' && handlers.onSelectColumn) ||
+		(!hasEditorShortcut && homeEndEdge && handlers.onHomeEnd) ||
+		(!hasEditorShortcut && pageDirection && handlers.onPage) ||
 		(!hasEditorShortcut && fontSizeShortcutDirection && handlers.onAdjustFontSize) ||
 		(!hasEditorShortcut && textStyleShortcutName && handlers.onToggleTextStyle) ||
 		(!hasEditorShortcut && undoShortcut && handlers.onUndo) ||
@@ -281,7 +396,7 @@ export function handleGridKeyboardEvent(
 			return true;
 		}
 
-		if ((event.key === 'Enter' && elements.editorElement.dataset.fieldType !== 'JSON' && !event.shiftKey) || event.key === 'Tab') {
+		if ((event.key === 'Enter' && elements.editorElement.dataset.fieldType !== 'JSON') || event.key === 'Tab') {
 			consumeGridKeyboardEvent(event, stopImmediatePropagation);
 			void (async () => {
 				const committed = await handlers.onEditorCommit?.(elements.editorElement!);
@@ -290,7 +405,8 @@ export function handleGridKeyboardEvent(
 				if (event.key === 'Tab') {
 					handlers.onTab?.(event.shiftKey ? 'backward' : 'forward');
 				} else if (committed !== false) {
-					handlers.onEditorCommitEnter?.(elements.editorElement!);
+					// Shift+Enter commits and moves the selection up instead of down
+					handlers.onEditorCommitEnter?.(elements.editorElement!, event.shiftKey ? 'up' : 'down');
 				}
 
 				finishGridKeyboardEvent(handlers);
@@ -338,7 +454,36 @@ export function handleGridKeyboardEvent(
 
 	if (arrowDirection) {
 		consumeGridKeyboardEvent(event, stopImmediatePropagation);
-		handlers.onArrow?.(arrowDirection, event.shiftKey);
+		// Cmd/Ctrl jumps to the edge of the surrounding data block
+		handlers.onArrow?.(arrowDirection, event.shiftKey, metaKey);
+		finishGridKeyboardEvent(handlers);
+		return true;
+	}
+
+	if (homeEndEdge && handlers.onHomeEnd) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		handlers.onHomeEnd(homeEndEdge, metaKey, event.shiftKey);
+		finishGridKeyboardEvent(handlers);
+		return true;
+	}
+
+	if (pageDirection && handlers.onPage) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		handlers.onPage(pageDirection, event.shiftKey);
+		finishGridKeyboardEvent(handlers);
+		return true;
+	}
+
+	if (spaceSelectTarget === 'row' && handlers.onSelectRow) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		handlers.onSelectRow();
+		finishGridKeyboardEvent(handlers);
+		return true;
+	}
+
+	if (spaceSelectTarget === 'column' && handlers.onSelectColumn) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		handlers.onSelectColumn();
 		finishGridKeyboardEvent(handlers);
 		return true;
 	}
@@ -361,6 +506,33 @@ export function handleGridKeyboardEvent(
 		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onCopy?.();
 		finishGridKeyboardEvent(handlers);
+		return true;
+	}
+
+	if (cutShortcut && handlers.onCut) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		void (async () => {
+			await handlers.onCut?.();
+			finishGridKeyboardEvent(handlers);
+		})();
+		return true;
+	}
+
+	if (fillShortcutDirection && handlers.onFill) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		void (async () => {
+			await handlers.onFill?.(fillShortcutDirection);
+			finishGridKeyboardEvent(handlers);
+		})();
+		return true;
+	}
+
+	if (clearFormattingShortcut && handlers.onClearFormatting) {
+		consumeGridKeyboardEvent(event, stopImmediatePropagation);
+		void (async () => {
+			await handlers.onClearFormatting?.();
+			finishGridKeyboardEvent(handlers);
+		})();
 		return true;
 	}
 
@@ -418,7 +590,7 @@ export function handleGridKeyboardEvent(
 		return true;
 	}
 
-	if (event.key === 'Enter' && !event.shiftKey) {
+	if ((event.key === 'Enter' && !event.shiftKey) || event.key === 'F2') {
 		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 		handlers.onEnter?.();
 		finishGridKeyboardEvent(handlers);

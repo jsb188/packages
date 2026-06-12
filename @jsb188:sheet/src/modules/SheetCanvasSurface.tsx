@@ -172,6 +172,8 @@ export type SheetCanvasSurfaceProps = {
 	mergedRanges?: SheetMergedRangeObj[] | null;
 	/* Pending fill-handle drag target range (dashed preview border) */
 	fillPreviewRange?: SheetMergedRangeObj | null;
+	/* Copied or cut source range awaiting paste (marching-ants dashed border) */
+	copyRange?: SheetMergedRangeObj | null;
 	/* Render the fill handle dot at the selection's bottom-right corner */
 	showFillHandle?: boolean;
 	hoveredRegionId?: string | null;
@@ -2411,6 +2413,56 @@ function drawSheetCanvasFillPreviewBorder(params: {
 }
 
 /*
+ * Draw a dashed border around the copied (or cut) source range so the user can
+ * see what a paste will read from, Google Sheets marching-ants style.
+ */
+function drawSheetCanvasCopyRangeBorder(params: {
+	columns: SheetColumnMetric[];
+	copyRange?: SheetMergedRangeObj | null;
+	ctx: CanvasRenderingContext2D;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	if (!params.copyRange) {
+		return;
+	}
+
+	const rect = getSheetCanvasIndexRangeRect({
+		columns: params.columns,
+		endColumnIndex: params.copyRange.endColumnIndex,
+		endRowIndex: params.copyRange.endRowIndex,
+		rowMetrics: params.rowMetrics,
+		scrollLeft: params.scrollLeft,
+		scrollTop: params.scrollTop,
+		startColumnIndex: params.copyRange.startColumnIndex,
+		startRowIndex: params.copyRange.startRowIndex,
+		stickyColumnCount: params.stickyColumnCount,
+	});
+
+	if (!rect || !sheetCanvasRectIsVisible(rect, params.viewportWidth, params.viewportHeight)) {
+		return;
+	}
+
+	params.ctx.save();
+	params.ctx.beginPath();
+	params.ctx.setLineDash([5, 4]);
+	params.ctx.strokeStyle = params.theme.active;
+	params.ctx.lineWidth = 1.5;
+	params.ctx.strokeRect(
+		Math.round(rect.left) + 0.5,
+		Math.round(rect.top) + 0.5,
+		Math.max(0, Math.round(rect.width)),
+		Math.max(0, Math.round(rect.height)),
+	);
+	params.ctx.restore();
+}
+
+/*
  * Draw the fill handle dot at the bottom-right corner of the local selection,
  * preferring the multi-cell selection box over the single active cell.
  */
@@ -4493,6 +4545,18 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		viewportHeight,
 		viewportWidth,
 	});
+	drawSheetCanvasCopyRangeBorder({
+		columns: p.columns,
+		copyRange: p.copyRange,
+		ctx,
+		rowMetrics: p.rowMetrics,
+		scrollLeft: p.scrollLeft,
+		scrollTop: p.scrollTop,
+		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
+	});
 	if (p.showFillHandle && !p.editState) {
 		drawSheetCanvasFillHandle({
 			activeCellRect: effectiveActiveCellRect,
@@ -4686,6 +4750,10 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 	prev.fillPreviewRange?.startColumnIndex === next.fillPreviewRange?.startColumnIndex &&
 	prev.fillPreviewRange?.endRowIndex === next.fillPreviewRange?.endRowIndex &&
 	prev.fillPreviewRange?.endColumnIndex === next.fillPreviewRange?.endColumnIndex &&
+	prev.copyRange?.startRowIndex === next.copyRange?.startRowIndex &&
+	prev.copyRange?.startColumnIndex === next.copyRange?.startColumnIndex &&
+	prev.copyRange?.endRowIndex === next.copyRange?.endRowIndex &&
+	prev.copyRange?.endColumnIndex === next.copyRange?.endColumnIndex &&
 	prev.showFillHandle === next.showFillHandle &&
 	prev.formulaContent === next.formulaContent &&
 	prev.headerContent === next.headerContent &&

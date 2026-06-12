@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+	applySheetStructureShiftToUndoEntries,
 	getOptimisticSheetCellFromEditInput,
 	getSheetCellEditInputsForMutation,
 	getSheetCellSnapshotEditInput,
 	getSheetPendingPreviewRebasedOnBase,
+	getSheetStructureHistoryChange,
 	getSheetValueEditInput,
+	type SheetUndoRedoEntry,
 } from '../src/libs/sheet-history';
 
 describe('sheet history optimistic cells', () => {
@@ -136,5 +139,96 @@ describe('pending preview rebase over base', () => {
 		const rebased = getSheetPendingPreviewRebasedOnBase(snapshotInput, styled, null);
 		expect(rebased.rawInput).toBe('hello');
 		expect((rebased.style as any)?.textColor).toBe('#ff0000');
+	});
+});
+
+describe('sheet structure history', () => {
+	/*
+	 * Build a cells-by-coord map from sparse cell shapes for structure tests.
+	 */
+	function createCellsByCoord(cells: any[]) {
+		const map = new Map<string, any>();
+
+		cells.forEach((cell) => {
+			map.set(`${cell.rowIndex}:${cell.columnIndex}`, cell);
+		});
+
+		return map;
+	}
+
+	it('inverts an insert into a delete with no content capture', () => {
+		const change = getSheetStructureHistoryChange('INSERT_ROW_ABOVE', 3, new Map());
+
+		expect(change.after).toEqual({ index: 3, operation: 'INSERT_ROW_ABOVE' });
+		expect(change.before).toEqual({ index: 3, operation: 'DELETE_ROW' });
+	});
+
+	it('captures destroyed row content for a delete, skipping region-generated cells', () => {
+		const cellsByCoord = createCellsByCoord([
+			{ columnIndex: 1, rawInput: 'keep me', rowIndex: 2, style: { bold: true }, value: 'keep me' },
+			{ columnIndex: 2, rawInput: 'generated', rowIndex: 2, sourceType: 'REGION_GENERATED', value: 'generated' },
+			{ columnIndex: 1, rawInput: 'other row', rowIndex: 3, value: 'other row' },
+		]);
+		const change = getSheetStructureHistoryChange('DELETE_ROW', 2, cellsByCoord);
+
+		expect(change.after).toEqual({ index: 2, operation: 'DELETE_ROW' });
+		expect(change.before.operation).toBe('INSERT_ROW_ABOVE');
+		expect(change.before.index).toBe(2);
+		expect(change.before.restoreCells).toHaveLength(1);
+		expect(change.before.restoreCells?.[0].cell.rawInput).toBe('keep me');
+		expect((change.before.restoreCells?.[0].cell.style as any)?.bold).toBe(true);
+	});
+
+	it('rebases undo entries over a remote row insert', () => {
+		const entries: SheetUndoRedoEntry[] = [{
+			sheetCells: [{
+				after: getSheetValueEditInput(5, 1, 'after'),
+				before: getSheetValueEditInput(5, 1, 'before'),
+			}],
+		}];
+		const rebased = applySheetStructureShiftToUndoEntries(entries, 'INSERT_ROW_ABOVE', 3);
+
+		expect(rebased[0].sheetCells?.[0].after.cell.rowIndex).toBe(6);
+		expect(rebased[0].sheetCells?.[0].before.cell.rowIndex).toBe(6);
+	});
+
+	it('drops changes touching a remotely deleted column and prunes empty entries', () => {
+		const entries: SheetUndoRedoEntry[] = [
+			{
+				sheetCells: [{
+					after: getSheetValueEditInput(1, 4, 'after'),
+					before: getSheetValueEditInput(1, 4, 'before'),
+				}],
+			},
+			{
+				sheetCells: [{
+					after: getSheetValueEditInput(1, 6, 'after'),
+					before: getSheetValueEditInput(1, 6, 'before'),
+				}],
+			},
+		];
+		const rebased = applySheetStructureShiftToUndoEntries(entries, 'DELETE_COLUMN', 4);
+
+		// The deleted-column entry disappears; the later column shifts left
+		expect(rebased).toHaveLength(1);
+		expect(rebased[0].sheetCells?.[0].after.cell.columnIndex).toBe(5);
+	});
+
+	it('rebases structure entries on the same axis, including restore cells', () => {
+		const entries: SheetUndoRedoEntry[] = [{
+			structure: {
+				after: { index: 5, operation: 'DELETE_ROW' },
+				before: {
+					index: 5,
+					operation: 'INSERT_ROW_ABOVE',
+					restoreCells: [getSheetValueEditInput(5, 1, 'restored')],
+				},
+			},
+		}];
+		const rebased = applySheetStructureShiftToUndoEntries(entries, 'INSERT_ROW_ABOVE', 2);
+
+		expect(rebased[0].structure?.after.index).toBe(6);
+		expect(rebased[0].structure?.before.index).toBe(6);
+		expect(rebased[0].structure?.before.restoreCells?.[0].cell.rowIndex).toBe(6);
 	});
 });

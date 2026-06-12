@@ -231,6 +231,137 @@ export function getGridArrowNavigationSelection(params: {
 }
 
 /*
+ * Return whether a selected-cell key map forms one solid rectangle. Toggling
+ * cells out of a selection (Cmd/Ctrl+click) can leave holes; range-shaped
+ * features like the fill handle and range copy only run on solid rectangles.
+ */
+export function gridSelectedCellKeyMapIsSolidRectangle(params: {
+	columnMetrics: SheetColumnMetric[];
+	rowIds: string[];
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+}) {
+	const { columnMetrics, rowIds, selectedCellKeyMap } = params;
+
+	if (!selectedCellKeyMap) {
+		return false;
+	}
+
+	let minColumnIndex = Infinity;
+	let maxColumnIndex = -Infinity;
+	let minRowIndex = Infinity;
+	let maxRowIndex = -Infinity;
+	let selectedCount = 0;
+
+	rowIds.forEach((rowId, rowIndex) => {
+		columnMetrics.forEach((metric, columnIndex) => {
+			if (!selectedCellKeyMap[getSheetCellKey(rowId, metric.column.key)]) {
+				return;
+			}
+
+			selectedCount += 1;
+			minColumnIndex = Math.min(minColumnIndex, columnIndex);
+			maxColumnIndex = Math.max(maxColumnIndex, columnIndex);
+			minRowIndex = Math.min(minRowIndex, rowIndex);
+			maxRowIndex = Math.max(maxRowIndex, rowIndex);
+		});
+	});
+
+	if (!selectedCount) {
+		return false;
+	}
+
+	return selectedCount === (maxColumnIndex - minColumnIndex + 1) * (maxRowIndex - minRowIndex + 1);
+}
+
+/*
+ * Return a copy of a selected-cell key map with one cell toggled in or out.
+ */
+export function getGridSelectedCellKeyMapWithCellToggled(
+	selectedCellKeyMap: SheetUISelectedCellKeyMap,
+	cell: SheetUISelectedCellState,
+) {
+	const cellKey = getSheetCellKey(cell.rowId, cell.cellKey);
+	const next = { ...selectedCellKeyMap };
+
+	if (next[cellKey]) {
+		delete next[cellKey];
+	} else {
+		next[cellKey] = true;
+	}
+
+	return next;
+}
+
+/*
+ * Return the next selected grid cell after one Cmd/Ctrl+arrow jump to the edge
+ * of the surrounding data block, Google Sheets style: from inside a block jump
+ * to the block's last filled cell, from a block edge or an empty cell jump to
+ * the next filled cell, and with no further content jump to the grid edge.
+ */
+export function getGridDataEdgeNavigationSelection(params: {
+	columnMetrics: SheetColumnMetric[];
+	direction: GridArrowDirection;
+	hasCellContent: (rowId: string, cellKey: string) => boolean;
+	rowIds: string[];
+	selectedCellState?: SheetUISelectedCellState | null;
+}) {
+	const { columnMetrics, direction, hasCellContent, rowIds, selectedCellState } = params;
+
+	if (!columnMetrics.length || !rowIds.length || !selectedCellState) {
+		return null;
+	}
+
+	const currentColumnIndex = columnMetrics.findIndex((metric) => metric.column.key === selectedCellState.cellKey);
+	const currentRowIndex = rowIds.indexOf(selectedCellState.rowId);
+
+	if (currentColumnIndex < 0 || currentRowIndex < 0) {
+		return null;
+	}
+
+	const vertical = direction === 'up' || direction === 'down';
+	const step = direction === 'right' || direction === 'down' ? 1 : -1;
+	const lastIndex = vertical ? rowIds.length - 1 : columnMetrics.length - 1;
+	const currentIndex = vertical ? currentRowIndex : currentColumnIndex;
+	const cellAt = (index: number) => {
+		return {
+			cellKey: vertical ? selectedCellState.cellKey : columnMetrics[index].column.key,
+			rowId: vertical ? rowIds[index] : selectedCellState.rowId,
+		};
+	};
+	const contentAt = (index: number) => {
+		const cell = cellAt(index);
+
+		return hasCellContent(cell.rowId, cell.cellKey);
+	};
+
+	const nextIndex = currentIndex + step;
+
+	if (nextIndex < 0 || nextIndex > lastIndex) {
+		return cellAt(currentIndex);
+	}
+
+	let targetIndex = nextIndex;
+
+	if (contentAt(currentIndex) && contentAt(nextIndex)) {
+		// Inside a filled block: stop on the block's last filled cell
+		while (targetIndex + step >= 0 && targetIndex + step <= lastIndex && contentAt(targetIndex + step)) {
+			targetIndex += step;
+		}
+	} else {
+		// On an edge or in empty space: stop on the next filled cell, or the grid edge
+		while (targetIndex >= 0 && targetIndex <= lastIndex && !contentAt(targetIndex)) {
+			targetIndex += step;
+		}
+
+		if (targetIndex < 0 || targetIndex > lastIndex) {
+			targetIndex = step > 0 ? lastIndex : 0;
+		}
+	}
+
+	return cellAt(targetIndex);
+}
+
+/*
  * Return the stable anchor corner for an existing rectangular grid selection.
  */
 
