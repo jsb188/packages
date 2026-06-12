@@ -1219,12 +1219,18 @@ export function useQuery(
     });
   }, [queryKey, refreshTime, queryData[queryName]]);
 
+  // {queryOutput} is synced one render behind (in the effect above), so when the
+  // freshly computed {queryData} already holds this query's result, return it directly;
+  // otherwise loading=false would be returned with stale/empty data for one render.
+  // A null result still counts as data; only undefined means "not fetched yet".
+  const hasFreshData = queryData[queryName] !== undefined;
+
   return {
     ...qryValues,
     queryName,
-    queryKey: queryOutput.queryKey,
-    data: queryOutput.data || queryData,
-    refreshTime: queryOutput.refreshTime,
+    queryKey: hasFreshData ? queryKey : queryOutput.queryKey,
+    data: hasFreshData ? queryData : (queryOutput.data || queryData),
+    refreshTime: hasFreshData ? refreshTime : queryOutput.refreshTime,
     resetOnlyTime,
     variablesKey,
     refetch,

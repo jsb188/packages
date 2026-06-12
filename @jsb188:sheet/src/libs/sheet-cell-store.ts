@@ -29,6 +29,9 @@ export type SheetPendingCellEdit = {
 	} | null;
 	/* Instant render value; carries __formulaLoading when not client-previewable */
 	previewCell: SheetCellGQL;
+	/* Present when this entry was restored from persistence after a remount;
+	 * carries the data the catch-up and TTL clearing rules need */
+	rehydrated?: { baseRevision: number | null; editedAt: number } | null;
 	saveVersion: number;
 	state: SheetPendingCellEditState;
 };

@@ -219,7 +219,10 @@ export function applySheetBorderPresetStyleToCell(params: {
 	selectedCellCoordKeys: Set<string>;
 	style: Record<string, unknown>;
 }) {
-	clearSheetCellBorderStyle(params.style);
+	if (params.preset === SHEET_BORDER_STYLE_PRESETS.outlineNone) {
+		clearSheetCellBorderStyle(params.style);
+		return;
+	}
 
 	getSheetBorderPresetSidesForCell(params.preset, params.cell, params.selectedCellCoordKeys)
 		.forEach((side) => setSheetCellBorderSideStyle(params.style, side));

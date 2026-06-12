@@ -2702,6 +2702,22 @@ export function isSheetCustomRegionSourceType(sourceType: unknown) {
 }
 
 /*
+ * Return the serialized child organization id carried by one custom Child
+ * Organizations source cell, or null for cells from other sources. Custom
+ * Child Organizations source rows are keyed by the child organization id.
+ */
+
+export function getSheetChildOrganizationSourceOrgId(
+	cell?: { dataTableId?: string | null; dataTableRowId?: string | null } | null,
+) {
+	if (!cell || String(cell.dataTableId || '') !== SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS) {
+		return null;
+	}
+
+	return String(cell.dataTableRowId || '') || null;
+}
+
+/*
  * Return the concrete source type for a generated Sheet region or rendered region result.
  */
 export function getSheetRegionSourceType(

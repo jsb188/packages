@@ -8,6 +8,8 @@ export const PAGE_ROUTE_QUERY_ENUMS = [
 
 // Slugs that can never be used for custom page routes (single-character slugs are always rejected)
 export const PAGE_ROUTE_RESERVED_SLUGS = [
+	'workspaces',
+	'workspace',
 	'grids',
 	'grid',
 	'tables',

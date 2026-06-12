@@ -22,11 +22,11 @@ import type {
  */
 
 export const SHEET_COLUMN_WIDTH = 160;
-export const SHEET_COLUMN_MIN_WIDTH = 72;
+export const SHEET_COLUMN_MIN_WIDTH = 25;
 export const SHEET_COLUMN_MAX_WIDTH = 640;
 export const SHEET_ROW_NUMBER_WIDTH = 38;
 export const SHEET_ROW_HEIGHT = 32;
-export const SHEET_ROW_MIN_HEIGHT = 22;
+export const SHEET_ROW_MIN_HEIGHT = 25;
 export const SHEET_ROW_MAX_HEIGHT = 240;
 export const SHEET_HEADER_HEIGHT = 28;
 export const SHEET_STICKY_SPACER_SIZE = 4;

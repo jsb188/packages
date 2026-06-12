@@ -588,25 +588,46 @@ const POListTextFormatControls = memo((p: PONavItemBase & {
     onClickItem(markdownName, nextDisableMarkdown);
   };
 
+  /**
+   * Mirror typed font-size digits and only live-apply values already inside the supported range.
+   */
   const handleFontSizeInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.currentTarget.value;
 
-    if (!inputValue) {
-      setFontSizeInputValue('');
-      return;
-    }
-
-    const nextFontSize = getPOListTextFormatClampedFontSize(inputValue, minFontSize, maxFontSize);
-
-    if (!nextFontSize) {
+    if (!/^\d*$/.test(inputValue)) {
       return;
     }
 
     setFontSizeInputValue(inputValue);
-    onClickItem(name, nextFontSize);
+
+    // Out-of-range values stay visible while typing and only get clamped on
+    // commit (blur/Enter), so a partial entry never snaps to min/max mid-typing
+    const nextFontSize = Math.round(Number(inputValue));
+
+    if (inputValue && nextFontSize >= minFontSize && nextFontSize <= maxFontSize) {
+      onClickItem(name, nextFontSize);
+    }
+  };
+
+  /**
+   * Commit the typed font size clamped to the supported range.
+   */
+  const handleFontSizeInputCommit = () => {
+    const nextFontSize = getPOListTextFormatClampedFontSize(fontSizeInputValue, minFontSize, maxFontSize);
+
+    if (nextFontSize && nextFontSize !== fontSize) {
+      onClickItem(name, nextFontSize);
+    }
+
+    setFontSizeInputValue(String(nextFontSize || fontSize));
   };
 
   const handleFontSizeInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+      return;
+    }
+
     if (isPOListTextFormatBlockedFontSizeKey(event.key)) {
       event.preventDefault();
     }
@@ -621,7 +642,7 @@ const POListTextFormatControls = memo((p: PONavItemBase & {
         className={cn('w_70 h_40 r_xs bd_1 bd_lt bg_alt ft_normal a_c', fontSize >= 22 ? 'pt_4' : fontSize >= 20 ? 'pt_3' : fontSize >= 16 ? 'pt_2' : '')}
         disabled={disabled}
         inputMode='decimal'
-        onBlur={() => setFontSizeInputValue(String(fontSize))}
+        onBlur={handleFontSizeInputCommit}
         onChange={handleFontSizeInputChange}
         onFocus={(event) => event.currentTarget.select()}
         onKeyDown={handleFontSizeInputKeyDown}

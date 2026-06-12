@@ -21,6 +21,7 @@ import {
 	type SheetRowHeights,
 	type SheetUIColumn,
 } from '@jsb188/react-web/ui/SheetUI';
+import { parseLabelMarkdownText } from '@jsb188/react-web/utils/markdown';
 import type { DataTableCellDisplayModel } from './dataTable-cell-editing.tsx';
 
 export const SHEET_CANVAS_INITIAL_ROW_COUNT = 200;
@@ -297,6 +298,32 @@ export function getSheetCanvasStyleFontSize(style?: SheetCanvasCellStyle | null)
 	const fontSize = Number(style?.fontSize);
 
 	return Number.isFinite(fontSize) && fontSize > 0 ? fontSize : null;
+}
+
+/*
+ * Return whether one cell value can use spreadsheet-style horizontal overflow.
+ */
+export function canSheetCanvasCellTextOverflow(cell?: SheetCanvasCell | null) {
+	const text = cell?.displayValue || '';
+
+	if (!text || cell?.dataTableDisplay || /\r?\n/.test(text)) {
+		return false;
+	}
+
+	if (cell?.style?.disableMarkdown === true) {
+		return true;
+	}
+
+	const parts = parseLabelMarkdownText(text);
+	const onlyPart = parts[0];
+
+	return parts.length === 1 &&
+		onlyPart?.text === text &&
+		!onlyPart.italic &&
+		!onlyPart.medium &&
+		!onlyPart.semibold &&
+		!onlyPart.strikethrough &&
+		!onlyPart.underline;
 }
 
 /*

@@ -16,6 +16,12 @@ import {
 	type SheetCellEditInput,
 	type SheetDataTableCellEditTarget,
 } from './sheet-history.ts';
+import {
+	clearSheetPendingEdits,
+	markSheetPendingEditsSent,
+	persistSheetPendingEdit,
+	readSheetPendingEdits,
+} from './sheet-pending-persistence.ts';
 import { getSheetCanvasCellsByCoord } from './sheet-utils.ts';
 import {
 	groupCellSaveItemsByTarget,
@@ -45,11 +51,21 @@ export type SheetDataTableCellSaveEdit = {
 	value: string | null;
 };
 
+/* Queue-time persistence stamp: identifies the persisted twin of one queued
+ * edit (seq-gated clears) and the sheet the edit was queued for, so flush
+ * callbacks running after a sheetId switch or unmount target the right sheet */
+type SheetCellSavePersistRef = {
+	organizationId: string;
+	seq: number;
+	sheetId: string;
+};
+
 type SheetCellSaveItem =
 	| {
 		kind: 'SHEET';
 		coordKey: string;
 		input: SheetCellEditInput;
+		persist: SheetCellSavePersistRef;
 		saveVersion: number;
 	}
 	| {
@@ -59,6 +75,7 @@ type SheetCellSaveItem =
 		dataTableId: string;
 		dataTableRowId: string;
 		organizationId: string | number | bigint | null;
+		persist: { seqByCoordKey: Record<string, number>; sheetId: string };
 		saveVersion: number;
 		sourceKey: string;
 		target: SheetDataTableCellEditTarget;
@@ -158,66 +175,116 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 	const dataTableVersionsRef = useRef<Record<string, number>>({});
 
 	const flushSheetItems = useCallback(async (items: Extract<SheetCellSaveItem, { kind: 'SHEET' }>[]) => {
-		// Edits whose value already matches the confirmed base need no mutation
-		const syncedKeys = items
-			.filter((item) => {
-				return sheetVersionsRef.current[item.coordKey] === item.saveVersion &&
-					sheetCellEditInputMatchesCell(item.input, params.baseCellsByCoord.get(item.coordKey));
-			})
-			.map((item) => item.coordKey);
+		// A flush can resolve after a sheetId switch in the same mount, so
+		// items group by the sheet they were queued for and never save to the
+		// wrong sheet
+		const itemGroupsBySheetId = new Map<string, typeof items>();
+		items.forEach((item) => {
+			const group = itemGroupsBySheetId.get(item.persist.sheetId);
+			if (group) {
+				group.push(item);
+			} else {
+				itemGroupsBySheetId.set(item.persist.sheetId, [item]);
+			}
+		});
 
-		if (syncedKeys.length) {
-			params.setPendingCellEdits((currentState) => removePendingCellEditKeys(currentState, syncedKeys));
-		}
+		for (const [targetSheetId, sheetItems] of itemGroupsBySheetId) {
+			// The confirmed base only describes the mounted sheet, so synced
+			// skips and mutation filtering are only valid for its own items
+			const isCurrentSheet = targetSheetId === params.sheetId;
 
-		const mutationItems = items.filter((item) => !syncedKeys.includes(item.coordKey));
-		const mutationCells = getSheetCellEditInputsForMutation(
-			mutationItems.map((item) => item.input),
-			params.baseCellsByCoord,
-		);
+			// Edits whose value already matches the confirmed base need no mutation
+			const syncedItems = isCurrentSheet
+				? sheetItems.filter((item) => {
+					return sheetVersionsRef.current[item.coordKey] === item.saveVersion &&
+						sheetCellEditInputMatchesCell(item.input, params.baseCellsByCoord.get(item.coordKey));
+				})
+				: [];
 
-		if (!mutationCells.length) {
-			return;
-		}
+			if (syncedItems.length) {
+				params.setPendingCellEdits((currentState) => {
+					return removePendingCellEditKeys(currentState, syncedItems.map((item) => item.coordKey));
+				});
+				clearSheetPendingEdits(targetSheetId, syncedItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })));
+			}
 
-		const result = await params.editSheetCells({
-			variables: {
-				cells: mutationCells,
-				organizationId: params.organizationId,
-				sheetId: params.sheetId,
-			},
-		}) as EditSheetCellsResult | undefined;
-		const editResult = result?.editSheetCells || null;
-		const savedCells = (editResult?.savedCells || []) as SheetCellGQL[];
-		const recalculatedCells = (editResult?.recalculatedCells || []) as SheetCellGQL[];
-		const savedCellsByCoord = getSheetCanvasCellsByCoord(savedCells);
+			const mutationItems = sheetItems.filter((item) => !syncedItems.includes(item));
+			const mutationCells = isCurrentSheet
+				? getSheetCellEditInputsForMutation(
+					mutationItems.map((item) => item.input),
+					params.baseCellsByCoord,
+				)
+				: mutationItems.map((item) => item.input);
+			const mutationCellSet = new Set(mutationCells);
+			const sendingItems = mutationItems.filter((item) => mutationCellSet.has(item.input));
+			const filteredItems = mutationItems.filter((item) => !mutationCellSet.has(item.input));
 
-		// Saved cells and the server-recalculated cascade land in the confirmed
-		// store immediately; the realtime echo that follows is a revision-gated
-		// no-op
-		if (savedCells.length || recalculatedCells.length) {
-			params.setConfirmedCellsByCoord((currentState) => {
-				return mergeConfirmedSheetCells(currentState, [...savedCells, ...recalculatedCells]);
+			// Items dropped by the mutation filter already match the confirmed
+			// base: their persisted twins are stale
+			if (filteredItems.length) {
+				clearSheetPendingEdits(targetSheetId, filteredItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })));
+			}
+
+			if (!mutationCells.length) {
+				continue;
+			}
+
+			// The mutation now carries these edits; a post-reload rehydrate
+			// must not re-send them
+			markSheetPendingEditsSent(targetSheetId, sendingItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })));
+
+			const result = await params.editSheetCells({
+				variables: {
+					cells: mutationCells,
+					organizationId: sendingItems[0]?.persist.organizationId || params.organizationId,
+					sheetId: targetSheetId,
+				},
+			}) as EditSheetCellsResult | undefined;
+			const editResult = result?.editSheetCells || null;
+			const savedCells = (editResult?.savedCells || []) as SheetCellGQL[];
+			const recalculatedCells = (editResult?.recalculatedCells || []) as SheetCellGQL[];
+			const savedCellsByCoord = getSheetCanvasCellsByCoord(savedCells);
+
+			// The server committed the saved coordinates: any later read returns
+			// post-commit data, so their persisted twins are no longer needed
+			clearSheetPendingEdits(
+				targetSheetId,
+				sendingItems
+					.filter((item) => savedCellsByCoord.has(item.coordKey))
+					.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })),
+			);
+
+			if (!isCurrentSheet) {
+				continue;
+			}
+
+			// Saved cells and the server-recalculated cascade land in the confirmed
+			// store immediately; the realtime echo that follows is a revision-gated
+			// no-op
+			if (savedCells.length || recalculatedCells.length) {
+				params.setConfirmedCellsByCoord((currentState) => {
+					return mergeConfirmedSheetCells(currentState, [...savedCells, ...recalculatedCells]);
+				});
+			}
+
+			if (editResult?.cycleCellIds?.length) {
+				params.onCycleCells?.(editResult.cycleCellIds.map(String));
+			}
+
+			// The confirmed cells now carry the saved values: drop the previews
+			// whose save version is still current (newer edits keep their preview)
+			params.setPendingCellEdits((currentState) => {
+				const removableKeys = sendingItems
+					.filter((item) => {
+						return savedCellsByCoord.has(item.coordKey) &&
+							sheetVersionsRef.current[item.coordKey] === item.saveVersion &&
+							currentState.get(item.coordKey)?.saveVersion === item.saveVersion;
+					})
+					.map((item) => item.coordKey);
+
+				return removePendingCellEditKeys(currentState, removableKeys);
 			});
 		}
-
-		if (editResult?.cycleCellIds?.length) {
-			params.onCycleCells?.(editResult.cycleCellIds.map(String));
-		}
-
-		// The confirmed cells now carry the saved values: drop the previews
-		// whose save version is still current (newer edits keep their preview)
-		params.setPendingCellEdits((currentState) => {
-			const removableKeys = mutationItems
-				.filter((item) => {
-					return savedCellsByCoord.has(item.coordKey) &&
-						sheetVersionsRef.current[item.coordKey] === item.saveVersion &&
-						currentState.get(item.coordKey)?.saveVersion === item.saveVersion;
-				})
-				.map((item) => item.coordKey);
-
-			return removePendingCellEditKeys(currentState, removableKeys);
-		});
 	}, [params.baseCellsByCoord, params.editSheetCells, params.onCycleCells, params.organizationId, params.setConfirmedCellsByCoord, params.setPendingCellEdits, params.sheetId]);
 
 	const flushDataTableItems = useCallback(async (items: Extract<SheetCellSaveItem, { kind: 'DATA_TABLE' }>[]) => {
@@ -237,6 +304,13 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			params.setPendingCellEdits((currentState) => {
 				return removePendingCellEditKeys(currentState, syncedItems.flatMap((item) => item.coordKeys));
 			});
+			// Synced edits also drop their persisted twins
+			syncedItems.forEach((item) => {
+				clearSheetPendingEdits(item.persist.sheetId, item.coordKeys.map((coordKey) => ({
+					coordKey,
+					seq: item.persist.seqByCoordKey[coordKey] ?? 0,
+				})));
+			});
 		}
 
 		const mutationItems = items.filter((item) => !syncedItems.includes(item));
@@ -249,6 +323,15 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			if (!group.targetId) {
 				continue;
 			}
+
+			// The mutation now carries these edits; a post-reload rehydrate
+			// must not re-send them
+			group.items.forEach((item) => {
+				markSheetPendingEditsSent(item.persist.sheetId, item.coordKeys.map((coordKey) => ({
+					coordKey,
+					seq: item.persist.seqByCoordKey[coordKey] ?? 0,
+				})));
+			});
 
 			await params.onSaveDataTableCells({
 				dataTableId: String(group.targetId),
@@ -268,6 +351,19 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 	const { queue } = useDebouncedCellSaveBatch<SheetCellSaveItem>({
 		getKey: (item) => item.kind === 'SHEET' ? `sheet:${item.coordKey}` : `dt:${item.sourceKey}`,
 		onError: (items) => {
+			// Failed edits drop their persisted twins (seq-gated, so a stale
+			// post-unmount failure cannot clear a re-persisted newer edit)
+			items.forEach((item) => {
+				if (item.kind === 'SHEET') {
+					clearSheetPendingEdits(item.persist.sheetId, [{ coordKey: item.coordKey, seq: item.persist.seq }]);
+				} else {
+					clearSheetPendingEdits(item.persist.sheetId, item.coordKeys.map((coordKey) => ({
+						coordKey,
+						seq: item.persist.seqByCoordKey[coordKey] ?? 0,
+					})));
+				}
+			});
+
 			// Reverted previews fall back to the confirmed value
 			const clearedCoordKeys: string[] = [];
 
@@ -297,18 +393,54 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 
 			let allSent = true;
 
-			const sheetMutationCells = getSheetCellEditInputsForMutation(
-				sheetItems.map((item) => item.input),
-				params.baseCellsByCoord,
-			);
-			if (sheetMutationCells.length) {
-				allSent = sendCellSaveBeacon({
-					cells: sheetMutationCells,
-					organizationId: params.organizationId,
-					targetId: params.sheetId,
+			// Sheet items group by their queue-time sheet so a beacon fired
+			// after a sheetId switch still targets the right sheet
+			const sheetGroups = groupCellSaveItemsByTarget(sheetItems, (item) => ({
+				organizationId: item.persist.organizationId,
+				targetId: item.persist.sheetId,
+			}));
+			allSent = sendGroupedCellSaveItems(sheetGroups, (group) => {
+				const targetSheetId = String(group.targetId || '');
+				// The confirmed base only describes the mounted sheet
+				const mutationCells = targetSheetId === params.sheetId
+					? getSheetCellEditInputsForMutation(
+						group.items.map((item) => item.input),
+						params.baseCellsByCoord,
+					)
+					: group.items.map((item) => item.input);
+				const mutationCellSet = new Set(mutationCells);
+				const filteredItems = group.items.filter((item) => !mutationCellSet.has(item.input));
+
+				// Items dropped by the mutation filter already match the
+				// confirmed base: their persisted twins are stale
+				if (filteredItems.length) {
+					clearSheetPendingEdits(targetSheetId, filteredItems.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })));
+				}
+
+				if (!mutationCells.length) {
+					return true;
+				}
+
+				const sent = sendCellSaveBeacon({
+					cells: mutationCells,
+					organizationId: group.organizationId || null,
+					targetId: group.targetId || null,
 					targetType: 'sheet',
-				}) && allSent;
-			}
+				});
+
+				// An accepted beacon carries the edits; a post-reload rehydrate
+				// must not re-send them
+				if (sent) {
+					markSheetPendingEditsSent(
+						targetSheetId,
+						group.items
+							.filter((item) => mutationCellSet.has(item.input))
+							.map((item) => ({ coordKey: item.coordKey, seq: item.persist.seq })),
+					);
+				}
+
+				return sent;
+			}) && allSent;
 
 			const dataTableMutationItems = dataTableItems.filter((item) => {
 				return getSheetDataTableSourceCellCurrentValue(
@@ -319,6 +451,17 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 					item.target.lookup.designCell,
 				) !== item.value;
 			});
+
+			// Synced DataTable edits drop their persisted twins
+			dataTableItems
+				.filter((item) => !dataTableMutationItems.includes(item))
+				.forEach((item) => {
+					clearSheetPendingEdits(item.persist.sheetId, item.coordKeys.map((coordKey) => ({
+						coordKey,
+						seq: item.persist.seqByCoordKey[coordKey] ?? 0,
+					})));
+				});
+
 			if (dataTableMutationItems.length) {
 				const groups = groupCellSaveItemsByTarget(dataTableMutationItems, (item) => ({
 					organizationId: item.organizationId,
@@ -326,7 +469,7 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				}));
 
 				allSent = sendGroupedCellSaveItems(groups, (group) => {
-					return sendCellSaveBeacon({
+					const sent = sendCellSaveBeacon({
 						cells: group.items.map((item) => ({
 							cellKey: item.cellKey,
 							dataTableRowId: item.dataTableRowId,
@@ -336,6 +479,19 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 						targetId: group.targetId || null,
 						targetType: 'dataTable',
 					});
+
+					// An accepted beacon carries the edits; a post-reload
+					// rehydrate must not re-send them
+					if (sent) {
+						group.items.forEach((item) => {
+							markSheetPendingEditsSent(item.persist.sheetId, item.coordKeys.map((coordKey) => ({
+								coordKey,
+								seq: item.persist.seqByCoordKey[coordKey] ?? 0,
+							})));
+						});
+					}
+
+					return sent;
 				}) && allSent;
 			}
 
@@ -375,10 +531,26 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			const saveVersion = (sheetVersionsRef.current[coordKey] || 0) + 1;
 			sheetVersionsRef.current[coordKey] = saveVersion;
 
+			// Seq 0 marks items with no persisted twin; seq-gated clears skip it
+			let persistSeq = 0;
+
 			if (sheetCellEditInputMatchesCell(input, params.baseCellsByCoord.get(coordKey))) {
 				// The edit restores the confirmed value: no preview needed
 				revertKeys.push(coordKey);
+				clearSheetPendingEdits(params.sheetId, [{ coordKey }]);
 			} else {
+				const baseRevision = Number(params.baseCellsByCoord.get(coordKey)?.revision);
+
+				// The persisted twin lets a remounting Sheet rehydrate this
+				// preview while the flushed save is still in flight
+				persistSeq = persistSheetPendingEdit(params.sheetId, coordKey, {
+					baseRevision: Number.isFinite(baseRevision) ? baseRevision : null,
+					editedAt: Date.now(),
+					flushState: 'queued',
+					input,
+					previewCell,
+				});
+
 				pendingByCoord.set(coordKey, {
 					input,
 					previewCell,
@@ -391,6 +563,11 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				coordKey,
 				input,
 				kind: 'SHEET',
+				persist: {
+					organizationId: params.organizationId,
+					seq: persistSeq,
+					sheetId: params.sheetId,
+				},
 				saveVersion,
 			});
 		});
@@ -405,7 +582,7 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			}
 			return next;
 		});
-	}, [params.baseCellsByCoord, params.setPendingCellEdits, queue]);
+	}, [params.baseCellsByCoord, params.organizationId, params.setPendingCellEdits, params.sheetId, queue]);
 
 	/*
 	 * Queue DataTable source cell edits with previews fanned out to every
@@ -423,25 +600,41 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			const saveVersion = (dataTableVersionsRef.current[sourceKey] || 0) + 1;
 			dataTableVersionsRef.current[sourceKey] = saveVersion;
 
+			const dataTableTarget = {
+				cellKey: edit.cellKey,
+				dataTableId: edit.dataTableId,
+				dataTableRowId: edit.dataTableRowId,
+				organizationId: edit.organizationId === null || edit.organizationId === undefined
+					? null
+					: String(edit.organizationId),
+				value: edit.value,
+			};
+			const seqByCoordKey: Record<string, number> = {};
+
 			edit.previews.forEach(({ coordKey, previewCell }) => {
 				const [rowPart, columnPart] = coordKey.split(':');
+				const input = {
+					cell: {
+						columnIndex: Math.floor(Number(columnPart)),
+						rowIndex: Math.floor(Number(rowPart)),
+					},
+				};
+				const baseRevision = Number(params.baseCellsByCoord.get(coordKey)?.revision);
+
+				// The persisted twin lets a remounting Sheet rehydrate this
+				// preview while the flushed save is still in flight
+				seqByCoordKey[coordKey] = persistSheetPendingEdit(params.sheetId, coordKey, {
+					baseRevision: Number.isFinite(baseRevision) ? baseRevision : null,
+					dataTableTarget,
+					editedAt: Date.now(),
+					flushState: 'queued',
+					input,
+					previewCell,
+				});
 
 				pendingByCoord.set(coordKey, {
-					dataTableTarget: {
-						cellKey: edit.cellKey,
-						dataTableId: edit.dataTableId,
-						dataTableRowId: edit.dataTableRowId,
-						organizationId: edit.organizationId === null || edit.organizationId === undefined
-							? null
-							: String(edit.organizationId),
-						value: edit.value,
-					},
-					input: {
-						cell: {
-							columnIndex: Math.floor(Number(columnPart)),
-							rowIndex: Math.floor(Number(rowPart)),
-						},
-					},
+					dataTableTarget,
+					input,
 					previewCell,
 					saveVersion,
 					state: 'pending',
@@ -455,6 +648,10 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				dataTableRowId: edit.dataTableRowId,
 				kind: 'DATA_TABLE',
 				organizationId: edit.organizationId,
+				persist: {
+					seqByCoordKey,
+					sheetId: params.sheetId,
+				},
 				saveVersion,
 				sourceKey,
 				target: edit.target,
@@ -471,12 +668,27 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				return next;
 			});
 		}
-	}, [params.setPendingCellEdits, queue]);
+	}, [params.baseCellsByCoord, params.setPendingCellEdits, params.sheetId, queue]);
 
 	/*
 	 * Drop every pending preview tied to one DataTable source cell.
 	 */
 	const clearDataTablePendingEdits = useCallback((sourceKey: string) => {
+		// Drop the persisted twins first so a reload cannot resurrect them
+		const persistedRefs: Array<{ coordKey: string }> = [];
+		readSheetPendingEdits(params.sheetId).forEach((entry, coordKey) => {
+			const target = entry.dataTableTarget;
+			if (
+				target &&
+				getSheetDataTableSourceCellKey(target.dataTableId, target.dataTableRowId, target.cellKey) === sourceKey
+			) {
+				persistedRefs.push({ coordKey });
+			}
+		});
+		if (persistedRefs.length) {
+			clearSheetPendingEdits(params.sheetId, persistedRefs);
+		}
+
 		params.setPendingCellEdits((currentState) => {
 			let next = currentState;
 			let changed = false;
@@ -493,7 +705,7 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 
 			return next;
 		});
-	}, [params.setPendingCellEdits]);
+	}, [params.setPendingCellEdits, params.sheetId]);
 
 	return {
 		clearDataTablePendingEdits,

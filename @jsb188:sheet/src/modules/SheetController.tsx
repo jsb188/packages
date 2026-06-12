@@ -6,6 +6,7 @@ import {
 } from '@jsb188/mday/constants/sheet.ts';
 import { sheetMergedRangesIntersect, addSheetMergedRange, getSheetMergedRangeAtCell, getSheetMergedRanges, isSheetCellInMergedRange, isSheetMergedRangeAnchor, removeSheetMergedRangesIntersecting,
 	getSheetAutofillValues,
+	getSheetChildOrganizationSourceOrgId,
 	getSheetRegionSourceDataTableRoute,
 	getSheetRegionSourceId,
 	isSheetGeneratedRegionSource,
@@ -144,6 +145,7 @@ import {
 } from '../libs/grid-selection.ts';
 import {
 	getSheetRegionGridRect,
+  canSheetCanvasCellTextOverflow,
   getSheetCanvasCell,
   getSheetCanvasCellDisplayValue,
   getSheetCanvasCellDraftValue,
@@ -280,7 +282,7 @@ type SheetControllerProps = {
 	onEditSheetStructure?: (operation: SheetStructureOperationEnum, index: number) => Promise<unknown> | unknown;
 	onOpenDataTable?: (route: string) => void;
 	onOpenDataTableCellLink?: (params: DataTableOpenCellParams) => void;
-	onOpenOrganizationProfile?: (childId: string) => void;
+	onOpenOrganizationProfile?: (childId: string, childOrgId?: string | null) => void;
 	onPopulateFromDataTable?: (request: SheetInsertViewTableRequest) => void;
 	onRemoveDataTableRegion?: (regionId: string, options?: { skipConfirmation?: boolean }) => Promise<unknown> | unknown;
 	/* Relays instant pending previews to peer viewers */
@@ -800,7 +802,8 @@ function getSheetAutoRowHeightPatchForFontSize(params: {
 	let changed = false;
 
 	params.cellCoords.forEach((cellCoord) => {
-		const text = String(params.cellLookup.get(cellCoord.coordKey)?.displayValue || '');
+		const cell = params.cellLookup.get(cellCoord.coordKey);
+		const text = String(cell?.displayValue || '');
 
 		if (!text) {
 			return;
@@ -816,6 +819,9 @@ function getSheetAutoRowHeightPatchForFontSize(params: {
 		const requiredHeight = clampSheetRowHeight(getSheetCellTextRequiredRowHeight({
 			columnWidth: columnMetric.width,
 			fontSize: params.fontSize,
+			// Overflow-eligible text draws as one unwrapped line, so its row
+			// height must not be measured with column-width wrapping
+			singleLine: canSheetCanvasCellTextOverflow(cell),
 			text,
 		}));
 
@@ -2895,7 +2901,10 @@ export function SheetController(p: SheetControllerProps) {
 
 		if (dataTableTarget) {
 			if (isDataTableOrganizationProfileLookup(dataTableTarget.lookup)) {
-				p.onOpenOrganizationProfile?.(String(dataTableTarget.lookup.cell?.relatedId || ''));
+				p.onOpenOrganizationProfile?.(
+					String(dataTableTarget.lookup.cell?.relatedId || ''),
+					getSheetChildOrganizationSourceOrgId(dataTableTarget.lookup.cell),
+				);
 				setEditState(null);
 				scrollCellIntoView(targetCell);
 				return;

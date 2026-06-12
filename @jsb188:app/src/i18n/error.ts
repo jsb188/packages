@@ -140,6 +140,7 @@ export default {
     20074: 'Inbound contacts must have an email address or phone number.',
     20075: 'Table column width settings are invalid.',
     '20076_icon': 'layers-grid-warning',
+    '20076_title': 'Sheet not found',
     20076: 'This sheet could not be found.\nIt may have been deleted.',
     '20077_icon': 'layers-grid-warning',
     20077: 'Sheet could not be updated.',

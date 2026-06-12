@@ -17,7 +17,7 @@ import type {
 	SheetStructureOperationEnum,
 } from '@jsb188/mday/types/sheet.d.ts';
 import { getOrganizationChildListCellFormulaValueFromId, isOrganizationChildProfileLinkCellKey } from '@jsb188/mday/utils/organization.ts';
-import { getSheetCustomRegionSourceColumns, getSheetRegionSourceId, getSheetRegionSourceType } from '@jsb188/mday/utils/sheet.ts';
+import { getSheetChildOrganizationSourceOrgId, getSheetCustomRegionSourceColumns, getSheetRegionSourceId, getSheetRegionSourceType } from '@jsb188/mday/utils/sheet.ts';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/layout/MainLayout';
 import { useOpenModalPopUp, useOpenModalScreen } from '@jsb188/react/states';
 import { useAtom, useSetAtom } from 'jotai';
@@ -47,7 +47,15 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { BigLoadingDelayed } from '@jsb188/react-web/ui/Loading';
 import {
 	removeConfirmedSheetRegionCells,
+	type SheetPendingCellEdit,
 } from '../libs/sheet-cell-store.ts';
+import {
+	clearAllSheetPendingEdits,
+	clearSheetPendingEdits,
+	markSheetPendingEditsSent,
+	readSheetPendingEdits,
+	SHEET_PENDING_PERSIST_TTL_MS,
+} from '../libs/sheet-pending-persistence.ts';
 import {
 	applySheetStructureEditToCellsByCoord,
 	applySheetStructureEditToPendingEdits,
@@ -76,6 +84,7 @@ import {
 } from '../libs/sheet-dataTable-preview.ts';
 import {
 	getSheetPendingEditDataTableSourceKey,
+	type SheetCellSaveEntry,
 	useSheetCellSaves,
 } from '../libs/use-sheet-cell-saves.ts';
 import { useSheetLocalRegions } from '../libs/use-sheet-local-regions.ts';
@@ -229,6 +238,7 @@ function areSheetCellSourceMetaEqual(
 function getSheetCustomSourceCellSourceMeta(
 	sourceType: string | null | undefined,
 	pointer: ReturnType<typeof getSheetConfirmedRegionCellPointer>,
+	existingMeta?: SheetCellSourceMetaObj | null,
 ): SheetCellSourceMetaObj | null {
 	if (
 		sourceType !== SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS ||
@@ -240,7 +250,11 @@ function getSheetCustomSourceCellSourceMeta(
 
 	return {
 		relatedTable: 'organizations',
-		relatedId: pointer.sourceRowId,
+		// The server materializes the OrganizationChild relationship id into
+		// sourceMeta.relatedId; that id is what the organization profile modal
+		// expects. The source row id (the child organization id) is only a
+		// fallback for cells that have not been materialized yet
+		relatedId: existingMeta?.relatedId || pointer.sourceRowId,
 		referenceStatus: null,
 		iconName: null,
 	};
@@ -326,6 +340,7 @@ function applySheetCustomSourceCellSourceMeta(
 		const sourceMeta = getSheetCustomSourceCellSourceMeta(
 			sourceTypeByRegionId.get(pointer.regionId),
 			pointer,
+			cell.sourceMeta,
 		);
 
 		if (!sourceMeta || areSheetCellSourceMetaEqual(cell.sourceMeta, sourceMeta)) {
@@ -376,6 +391,7 @@ function getSheetSourceDataTableCellsFromConfirmed(
 		const customSourceMeta = getSheetCustomSourceCellSourceMeta(
 			sourceTypeByRegionId.get(pointer.regionId),
 			pointer,
+			cell.sourceMeta,
 		);
 		const sourceMeta = customSourceMeta
 			? { ...cell.sourceMeta, ...customSourceMeta }
@@ -683,9 +699,12 @@ function SheetDataContent(p: SheetDataContentProps) {
 	);
 	/*
 	 * Open the organization profile modal for a child-organization Sheet source row.
+	 * The Sheet page does not load the childOrganizations list query, so the
+	 * modal also receives the parent organization id and child organization id
+	 * to fetch the relationship itself.
 	 */
 	const openOrganizationProfile = useCallback(
-		(childId: string) => {
+		(childId: string, childOrgId?: string | null) => {
 			if (!childId) {
 				return;
 			}
@@ -694,12 +713,14 @@ function SheetDataContent(p: SheetDataContentProps) {
 				name: 'ORG_PROFILE',
 				props: {
 					childId,
+					childOrgId: childOrgId || null,
+					organizationId,
 					parentOperation: p.operation || null,
 					allowEdit: Boolean(p.organizationProfileAllowEdit),
 				},
 			});
 		},
-		[openModalScreen, p.operation, p.organizationProfileAllowEdit],
+		[openModalScreen, organizationId, p.operation, p.organizationProfileAllowEdit],
 	);
 
 	/*
@@ -719,8 +740,10 @@ function SheetDataContent(p: SheetDataContentProps) {
 
 			openDataTableCellLink({
 				...params,
-				getOrganizationProfileProps: (childId) => ({
+				getOrganizationProfileProps: (childId, linkParams) => ({
 					childId,
+					childOrgId: getSheetChildOrganizationSourceOrgId(linkParams.cell),
+					organizationId,
 					parentOperation: p.operation || null,
 					allowEdit: Boolean(p.organizationProfileAllowEdit),
 				}),
@@ -730,7 +753,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 				setFloatingMessage: p.setFloatingMessage,
 			});
 		},
-		[openModalScreen, p.operation, p.organizationProfileAllowEdit, p.setFloatingMessage],
+		[openModalScreen, organizationId, p.operation, p.organizationProfileAllowEdit, p.setFloatingMessage],
 	);
 
 	/*
@@ -794,6 +817,87 @@ function SheetDataContent(p: SheetDataContentProps) {
 		sheetId,
 		sourceCellsByTargetKey,
 	});
+
+	/*
+	 * Rehydrate persisted pending edits once per sheet, after the first
+	 * authoritative sheetView snapshot for that sheet has been applied: the
+	 * restored previews mask the stale cells a quick navigation or refresh
+	 * fetched while the flushed save was still in flight server-side, and
+	 * edits whose flush never ran (crashed tab, rejected beacon) are re-sent.
+	 * Waiting for the sheetView gate also keeps a rehydrated clear-edit from
+	 * being reconciled away against the empty pre-fetch confirmed map.
+	 */
+	const rehydratedSheetIdRef = useRef<string | null>(null);
+	useEffect(() => {
+		if (!sheetView || String(sheetView.id || '') !== sheetId || rehydratedSheetIdRef.current === sheetId) {
+			return;
+		}
+		rehydratedSheetIdRef.current = sheetId;
+
+		const persistedEntries = readSheetPendingEdits(sheetId);
+		if (!persistedEntries.size) {
+			return;
+		}
+
+		const queuedSheetEntries: SheetCellSaveEntry[] = [];
+		const queuedDataTableCellsByTableId = new Map<string, Array<{ cellKey: string; dataTableRowId: string; value: string | null }>>();
+		const queuedDataTableRefs: Array<{ coordKey: string; seq: number }> = [];
+		const restoredByCoord = new Map<string, SheetPendingCellEdit>();
+
+		persistedEntries.forEach((entry, coordKey) => {
+			if (entry.flushState === 'queued' && !entry.dataTableTarget) {
+				// Sheet-owned edits whose flush never ran re-enter the live
+				// save path: preview, debounce, synced-skip, re-persist
+				queuedSheetEntries.push({ input: entry.input, previewCell: entry.previewCell });
+				return;
+			}
+
+			restoredByCoord.set(coordKey, {
+				dataTableTarget: entry.dataTableTarget || null,
+				input: entry.input,
+				previewCell: entry.previewCell,
+				rehydrated: { baseRevision: entry.baseRevision ?? null, editedAt: entry.editedAt },
+				saveVersion: 0,
+				state: 'saving',
+			});
+
+			if (entry.flushState === 'queued' && entry.dataTableTarget) {
+				const target = entry.dataTableTarget;
+				const cells = queuedDataTableCellsByTableId.get(target.dataTableId) || [];
+				// Edits fanned out to several coordinates share one source cell
+				if (!cells.some((cell) => cell.dataTableRowId === target.dataTableRowId && cell.cellKey === target.cellKey)) {
+					cells.push({ cellKey: target.cellKey, dataTableRowId: target.dataTableRowId, value: target.value });
+				}
+				queuedDataTableCellsByTableId.set(target.dataTableId, cells);
+				queuedDataTableRefs.push({ coordKey, seq: entry.seq });
+			}
+		});
+
+		if (restoredByCoord.size) {
+			setPendingCellEdits((currentState) => {
+				const next = new Map(currentState);
+				restoredByCoord.forEach((pendingEdit, coordKey) => {
+					// Live edits made before rehydration stay authoritative
+					if (!next.has(coordKey)) {
+						next.set(coordKey, pendingEdit);
+					}
+				});
+				return next;
+			});
+		}
+
+		if (queuedSheetEntries.length) {
+			saveCells(queuedSheetEntries);
+		}
+
+		queuedDataTableCellsByTableId.forEach((cells, dataTableId) => {
+			void saveDataTableCells({ cells, dataTableId });
+		});
+		if (queuedDataTableRefs.length) {
+			// The re-dispatched DataTable mutation now carries these edits
+			markSheetPendingEditsSent(sheetId, queuedDataTableRefs);
+		}
+	}, [saveCells, saveDataTableCells, setPendingCellEdits, sheetId, sheetView]);
 
 	/*
 	 * Collaboration presence: roster + remote selections + the change relay
@@ -860,6 +964,10 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const applySheetStructureShiftToLocalState = useCallback((operation: SheetStructureOperationEnum, index: number) => {
 		const bounds = getSheetStructureProtectedBounds(sheetRegionsRef.current);
 
+		// Persisted pending edits are keyed by coordinate, which a structure
+		// shift invalidates: drop them instead of rehydrating stale coordinates
+		clearAllSheetPendingEdits(sheetId);
+
 		setConfirmedCellsByCoord((currentState) =>
 			applySheetStructureEditToCellsByCoord(currentState, operation, index, bounds)
 		);
@@ -892,7 +1000,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 		});
 		setOptimisticRanges(applySheetStructureEditToRanges(sheetRangesRef.current, operation, index, bounds));
 		setOptimisticStructureDesign(getSheetStructureDesignAfterEdit(designRef.current, operation, index, bounds));
-	}, [setConfirmedCellsByCoord, setPendingCellEdits, setRemotePendingCells]);
+	}, [setConfirmedCellsByCoord, setPendingCellEdits, setRemotePendingCells, sheetId]);
 
 	/*
 	 * Idempotence guard: structure operations arrive through both the peer
@@ -1032,10 +1140,29 @@ function SheetDataContent(p: SheetDataContentProps) {
 				const next = new Map([...currentState].filter(([, entry]) => entry.at > regionExpiresBefore));
 				return next.size === currentState.size ? currentState : next;
 			});
+
+			// Rehydrated previews whose save never confirms (lost echo, failed
+			// beacon) eventually reveal the confirmed truth instead of masking
+			// it forever
+			const pendingExpiresBefore = Date.now() - SHEET_PENDING_PERSIST_TTL_MS;
+			setPendingCellEdits((currentState) => {
+				if (!currentState.size) {
+					return currentState;
+				}
+
+				const next = new Map([...currentState].filter(([, pendingEdit]) => {
+					return !pendingEdit.rehydrated || pendingEdit.rehydrated.editedAt > pendingExpiresBefore;
+				}));
+				return next.size === currentState.size ? currentState : next;
+			});
+
+			// Reading prunes TTL-expired persisted entries so storage cannot
+			// resurrect stale previews on the next refresh
+			readSheetPendingEdits(sheetId);
 		}, 5000);
 
 		return () => clearInterval(intervalId);
-	}, [setRemotePendingCells]);
+	}, [setPendingCellEdits, setRemotePendingCells, sheetId]);
 
 	/*
 	 * Incoming peer changes: instant previews, preview clears, and structure
@@ -1111,6 +1238,79 @@ function SheetDataContent(p: SheetDataContentProps) {
 			return;
 		}
 
+		// Decisions are computed outside the state updater (which must stay
+		// pure) so confirmed entries can also drop their persisted twins
+		const removeCoordKeys: string[] = [];
+		const rebasedByCoord = new Map<string, SheetPendingCellEdit>();
+
+		pendingCellEdits.forEach((pendingEdit, coordKey) => {
+			const baseCell = gridCellsByCoord.get(coordKey);
+			const sourceKey = getSheetPendingEditDataTableSourceKey(pendingEdit);
+
+			if (sourceKey) {
+				// DataTable preview: cleared when the confirmed source cell
+				// reports the pending value
+				const sourceCell = sourceCellsByTargetKey.get(sourceKey);
+				const designCell = sourceCell
+					? getSheetDataTableDesignCellForSourceKey(sourceKey, sourceCell, designCellsByDataTableId)
+					: null;
+
+				if (
+					sourceCell && designCell &&
+					getDataTableCellSerializedValue(sourceCell, designCell) === (pendingEdit.dataTableTarget?.value ?? null)
+				) {
+					removeCoordKeys.push(coordKey);
+				}
+				return;
+			}
+
+			if (sheetCellEditInputMatchesCell(pendingEdit.input, baseCell)) {
+				removeCoordKeys.push(coordKey);
+				return;
+			}
+
+			// Rehydrated previews also clear once the confirmed cell moved
+			// past the revision their edit was based on: the server processed
+			// newer data even if input normalization keeps the exact match
+			// from firing. Clear-edits are excluded so a peer's unrelated
+			// revision bump cannot resurrect-then-mask a deleted cell
+			const baseRevision = Number(baseCell?.revision);
+			if (
+				pendingEdit.rehydrated && !pendingEdit.input.clear &&
+				Number.isFinite(baseRevision) &&
+				(pendingEdit.rehydrated.baseRevision === null || baseRevision > pendingEdit.rehydrated.baseRevision)
+			) {
+				removeCoordKeys.push(coordKey);
+				return;
+			}
+
+			// Previews awaiting a server-computed value must not rebase:
+			// rebuilding them from their input would restore the raw
+			// formula text and strip the loading marker; the save flush
+			// clears them when the computed cell arrives
+			if ((pendingEdit.previewCell as SheetCellGQL & { __formulaLoading?: boolean }).__formulaLoading) {
+				return;
+			}
+
+			const rebasedCell = getSheetPendingPreviewRebasedOnBase(pendingEdit.input, pendingEdit.previewCell, baseCell);
+			if (rebasedCell !== pendingEdit.previewCell) {
+				rebasedByCoord.set(coordKey, {
+					...pendingEdit,
+					previewCell: rebasedCell,
+				});
+			}
+		});
+
+		if (!removeCoordKeys.length && !rebasedByCoord.size) {
+			return;
+		}
+
+		// Confirmed entries no longer need their persisted twins; without this
+		// write-back the next refresh would resurrect already-settled previews
+		if (removeCoordKeys.length) {
+			clearSheetPendingEdits(sheetId, removeCoordKeys.map((coordKey) => ({ coordKey })));
+		}
+
 		setPendingCellEdits((currentState) => {
 			let nextState = currentState;
 			let changed = false;
@@ -1122,52 +1322,22 @@ function SheetDataContent(p: SheetDataContentProps) {
 				return nextState;
 			};
 
-			currentState.forEach((pendingEdit, coordKey) => {
-				const baseCell = gridCellsByCoord.get(coordKey);
-				const sourceKey = getSheetPendingEditDataTableSourceKey(pendingEdit);
-
-				if (sourceKey) {
-					// DataTable preview: cleared when the confirmed source cell
-					// reports the pending value
-					const sourceCell = sourceCellsByTargetKey.get(sourceKey);
-					const designCell = sourceCell
-						? getSheetDataTableDesignCellForSourceKey(sourceKey, sourceCell, designCellsByDataTableId)
-						: null;
-
-					if (
-						sourceCell && designCell &&
-						getDataTableCellSerializedValue(sourceCell, designCell) === (pendingEdit.dataTableTarget?.value ?? null)
-					) {
-						ensureNext().delete(coordKey);
-					}
-					return;
-				}
-
-				if (sheetCellEditInputMatchesCell(pendingEdit.input, baseCell)) {
+			// Each decision only applies while the entry it was made for is
+			// still current; a newer live edit at the coordinate wins
+			removeCoordKeys.forEach((coordKey) => {
+				if (currentState.has(coordKey) && currentState.get(coordKey) === pendingCellEdits.get(coordKey)) {
 					ensureNext().delete(coordKey);
-					return;
 				}
-
-				// Previews awaiting a server-computed value must not rebase:
-				// rebuilding them from their input would restore the raw
-				// formula text and strip the loading marker; the save flush
-				// clears them when the computed cell arrives
-				if ((pendingEdit.previewCell as SheetCellGQL & { __formulaLoading?: boolean }).__formulaLoading) {
-					return;
-				}
-
-				const rebasedCell = getSheetPendingPreviewRebasedOnBase(pendingEdit.input, pendingEdit.previewCell, baseCell);
-				if (rebasedCell !== pendingEdit.previewCell) {
-					ensureNext().set(coordKey, {
-						...pendingEdit,
-						previewCell: rebasedCell,
-					});
+			});
+			rebasedByCoord.forEach((pendingEdit, coordKey) => {
+				if (currentState.get(coordKey) === pendingCellEdits.get(coordKey)) {
+					ensureNext().set(coordKey, pendingEdit);
 				}
 			});
 
 			return changed ? nextState : currentState;
 		});
-	}, [designCellsByDataTableId, gridCellsByCoord, pendingCellEdits, setPendingCellEdits, sourceCellsByTargetKey]);
+	}, [designCellsByDataTableId, gridCellsByCoord, pendingCellEdits, setPendingCellEdits, sheetId, sourceCellsByTargetKey]);
 
 	/*
 	 * Save one row or column structure edit after applying the matching local projection.

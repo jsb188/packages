@@ -72,10 +72,18 @@ function getSheetMeasuredWrappedTextLines(ctx: CanvasRenderingContext2D | null, 
 export function getSheetCellTextRequiredRowHeight(params: {
 	columnWidth: number;
 	fontSize: number;
+	singleLine?: boolean;
 	text: string;
 }) {
 	const fontSize = Math.max(1, Number(params.fontSize) || 1);
 	const lineHeight = fontSize * 1.4;
+
+	// Plain single-line cell text never wraps when drawn (it overflows into
+	// neighboring cells or gets clipped instead), so it only needs one line
+	if (params.singleLine) {
+		return Math.ceil(lineHeight + 2);
+	}
+
 	const maxWidth = Math.max(0, params.columnWidth - SHEET_TEXT_MEASURE_CELL_PADDING_X * 2);
 	const ctx = getSheetTextMeasureCanvasContext();
 

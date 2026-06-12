@@ -28,6 +28,7 @@ export interface OrganizationPageRouteData {
 	filters: PageRouteFiltersObj;
 	columns: string[];
 	iconName?: string | null;
+	starred: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 }

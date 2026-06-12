@@ -28,6 +28,7 @@ import {
   sheetCanvasRectIsVisible,
 } from '../libs/sheet-canvas-geometry.ts';
 import {
+  canSheetCanvasCellTextOverflow,
   getSheetCanvasColumnIndexFromKey,
   getSheetCanvasStyleColor,
   getSheetCanvasStyleFontSize,
@@ -132,6 +133,7 @@ type SheetCanvasMarkdownLine = {
 type SheetCanvasTextOverflow = {
 	cell: SheetCanvasCell;
 	rect: SheetCanvasRect;
+	sourceRect: SheetCanvasRect;
 };
 
 export type SheetCanvasSurfaceProps = {
@@ -1325,32 +1327,6 @@ function drawSheetCanvasText(params: {
 }
 
 /*
- * Return whether one cell value can use spreadsheet-style horizontal overflow.
- */
-function canSheetCanvasCellTextOverflow(cell?: SheetCanvasCell | null) {
-	const text = cell?.displayValue || '';
-
-	if (!text || cell?.dataTableDisplay || /\r?\n/.test(text)) {
-		return false;
-	}
-
-	if (cell?.style?.disableMarkdown === true) {
-		return true;
-	}
-
-	const parts = parseLabelMarkdownText(text);
-	const onlyPart = parts[0];
-
-	return parts.length === 1 &&
-		onlyPart?.text === text &&
-		!onlyPart.italic &&
-		!onlyPart.medium &&
-		!onlyPart.semibold &&
-		!onlyPart.strikethrough &&
-		!onlyPart.underline;
-}
-
-/*
  * Return whether one neighboring cell should stop horizontal text overflow.
  */
 function isSheetCanvasTextOverflowBlocker(cell?: SheetCanvasCell | null) {
@@ -1462,7 +1438,16 @@ function getSheetCanvasCellTextOverflow(params: {
 			height: params.rowRect.height,
 			left: params.columnRect.left,
 			top: params.rowRect.top,
-			width: Math.max(0, right - params.columnRect.left),
+			// The neighbor walk above only bounds the available space; the drawn
+			// rect must cover just the text so untouched neighbor area keeps its
+			// default grid appearance
+			width: Math.max(0, Math.min(right - params.columnRect.left, Math.ceil(requiredWidth))),
+		},
+		sourceRect: {
+			height: params.rowRect.height,
+			left: params.columnRect.left,
+			top: params.rowRect.top,
+			width: params.columnRect.width,
 		},
 	};
 }
@@ -1472,24 +1457,31 @@ function getSheetCanvasCellTextOverflow(params: {
  */
 function drawSheetCanvasTextOverflow(params: {
 	ctx: CanvasRenderingContext2D;
+	spanBackground: boolean;
 	overflow: SheetCanvasTextOverflow;
 	theme: SheetCanvasTheme;
 }) {
 	const cell = params.overflow.cell;
 	const rect = params.overflow.rect;
+	const backgroundRect = params.spanBackground ? rect : params.overflow.sourceRect;
 	const textStyle = getSheetCanvasCellTextStyle(cell.style);
 	const backgroundColor = getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(cell.style, 'fillColor')) || params.theme.background;
 	const textColor = getSheetCanvasResolvedStyleColor(params.theme, getSheetCanvasStyleColor(cell.style, 'textColor')) || params.theme.bodyText;
 	const contentOpacity = cell.formulaLoading ? 0.5 : 1;
 
-	drawSheetCanvasCellFillRect({
-		ctx: params.ctx,
-		color: backgroundColor,
-		height: rect.height,
-		left: rect.left,
-		top: rect.top,
-		width: rect.width,
-	});
+	// This fill paints after the default grid lines, so inset it by one
+	// grid-line width on every side; this keeps the rect's boundary dividers
+	// (row number gutter, row top/bottom lines) visible and only covers the
+	// vertical dividers that the text actually crosses. Outside edit mode,
+	// constrain this repaint to the source cell so neighboring cell fills stay
+	// visually independent while text can still overflow across them.
+	params.ctx.fillStyle = backgroundColor;
+	params.ctx.fillRect(
+		Math.round(backgroundRect.left) + SHEET_CANVAS_GRID_LINE_WIDTH,
+		Math.round(backgroundRect.top) + SHEET_CANVAS_GRID_LINE_WIDTH,
+		Math.max(0, Math.round(backgroundRect.width) - SHEET_CANVAS_GRID_LINE_WIDTH),
+		Math.max(0, Math.round(backgroundRect.height) - SHEET_CANVAS_GRID_LINE_WIDTH),
+	);
 
 	params.ctx.save();
 	params.ctx.globalAlpha *= contentOpacity;
@@ -3121,6 +3113,7 @@ function drawSheetCanvasBodyTextOverflows(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	columnRects: SheetCanvasColumnRect[];
 	ctx: CanvasRenderingContext2D;
+	editState?: SheetUIEditState | null;
 	mergedRanges?: SheetMergedRangeObj[] | null;
 	rowRects: SheetCanvasRowRect[];
 	theme: SheetCanvasTheme;
@@ -3159,8 +3152,12 @@ function drawSheetCanvasBodyTextOverflows(params: {
 				return;
 			}
 
+			const spanBackground = params.editState?.rowId === rowRect.metric.rowKey &&
+				params.editState.cellKey === columnRect.cellKey;
+
 			drawSheetCanvasTextOverflow({
 				ctx: params.ctx,
+				spanBackground,
 				overflow,
 				theme: params.theme,
 			});
@@ -4264,6 +4261,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		cellLookup: p.cellLookup,
 		columnRects: visibleColumnRects,
 		ctx,
+		editState: p.editState,
 		mergedRanges: p.mergedRanges,
 		rowRects: visibleRowRects,
 		theme,

@@ -216,7 +216,7 @@ describe('SheetUI helpers', () => {
 			status: 80,
 		});
 
-		expect(clampSheetColumnWidth(20)).toBe(72);
+		expect(clampSheetColumnWidth(20)).toBe(25);
 		expect(metrics.offsets).toEqual([0, 200, 280, 440]);
 		expect(getSheetColumnIndexAtOffset(metrics.offsets, 199)).toBe(0);
 		expect(getSheetColumnIndexAtOffset(metrics.offsets, 200)).toBe(1);
@@ -242,7 +242,7 @@ describe('SheetUI helpers', () => {
 			'2': 80,
 		});
 
-		expect(clampSheetRowHeight(10)).toBe(22);
+		expect(clampSheetRowHeight(10)).toBe(25);
 		expect(metrics.offsets).toEqual([0, 48, 128, 160]);
 		expect(getSheetRowIndexAtOffset(metrics.offsets, 47)).toBe(0);
 		expect(getSheetRowIndexAtOffset(metrics.offsets, 48)).toBe(1);
