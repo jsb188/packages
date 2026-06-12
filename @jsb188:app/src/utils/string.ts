@@ -744,3 +744,19 @@ export function getDisplayName(firstName?: string | null, lastName?: string | nu
     displayName
   };
 }
+
+/**
+ * Hash a string with FNV-1a (32-bit) into a short stable hex token.
+ * @returns 8-character hexadecimal hash string
+ */
+
+export function hashStringFNV1a(value: string) {
+  let hash = 0x811c9dc5;
+
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}

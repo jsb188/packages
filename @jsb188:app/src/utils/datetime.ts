@@ -77,10 +77,25 @@ export function getUtcWeekOfYear(date: Date) {
 }
 
 /**
+ * Format a future date as a month label, showing the year only when it differs from the reference date.
+ */
+
+function getFutureMonthLabel(date: Date, referenceDate: Date) {
+	return date.toLocaleDateString('en-US', {
+		month: 'long',
+		year: date.getFullYear() === referenceDate.getFullYear() ? undefined : 'numeric',
+	});
+}
+
+/**
  * Get date period from date
  */
 
 export function getWeeksMonthAgo(d1: Date, d2: Date, weeksThresh = 12): string {
+	if (getStartOfDay(d1).getTime() > getStartOfDay(d2).getTime()) {
+		return getFutureMonthLabel(d1, d2);
+	}
+
 	const diffWeeks = getWeeksDiff(d2, d1);
 	if (diffWeeks === 0) {
 		return i18n.t('datetime.period_THIS_WEEK');

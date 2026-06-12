@@ -1212,6 +1212,26 @@ export function isDataTableSiteLocationIdLookup(lookup: DataTableCellLookup) {
 }
 
 /*
+ * Return whether one lookup should open the inbound contact overlay,
+ * regardless of fieldType: routing follows the cell's related table the same
+ * way DataTable's openCell handler does, with external URLs taking priority.
+ */
+export function isDataTableInboundContactOpenLookup(lookup: DataTableCellLookup) {
+	return isDataTableInboundContactRelatedTable(lookup.cell?.relatedTable) &&
+		hasDataTableCellRelatedId(lookup.cell) &&
+		!getDataTableOpenCellExternalUrl(lookup.cell);
+}
+
+/*
+ * Return whether one lookup should open the site location overlay.
+ */
+export function isDataTableSiteLocationOpenLookup(lookup: DataTableCellLookup) {
+	return isDataTableSiteLocationRelatedTable(lookup.cell?.relatedTable) &&
+		hasDataTableCellRelatedId(lookup.cell) &&
+		!getDataTableOpenCellExternalUrl(lookup.cell);
+}
+
+/*
  * Return the external URL stored in one open-link dataTable cell.
  */
 export function getDataTableOpenCellExternalUrl(cell: DataTableCellGQL | null | undefined) {

@@ -10,6 +10,8 @@ import {
 	getTableDividerResizeTarget,
 } from './table/layout';
 import { TableMockClient, TableMockSSR, TablePageMock } from './table/mocks';
+import { getOrderedTableCellClassNames, getOrderedTableColumns, getOrderedTableHeaders } from './table/order';
+import { useTableColumnReorderController } from './table/reorder';
 import { ReactiveTableListItem, TableListItem } from './table/rows';
 import type {
 	MapTableListDataFn,
@@ -37,8 +39,19 @@ export type {
  * Render a grid table with optional header column resizing.
  */
 export const VZTable = memo((p: TableListProps) => {
-	const { bodyRef, borderStyle, columnWidths, disableOnClickRow, footerNode, reactiveFragmentFn, onColumnResizeCommit, resizableColumns, tableDesign, headers, listData, cellClassNames, mapListData, onClickRow, removeLeftPadding, removeRightPadding, trowClassName } = p;
-	const columns = tableDesign?.columns || [];
+	const { bodyRef, borderStyle, columnOrder, columnWidths, disableOnClickRow, footerNode, reactiveFragmentFn, onColumnOrderCommit, onColumnResizeCommit, reorderableColumns, resizableColumns, tableDesign, headers, listData, cellClassNames, mapListData, onClickRow, removeLeftPadding, removeRightPadding, trowClassName } = p;
+	const sourceColumns = tableDesign?.columns || [];
+	const columns = useMemo(() => getOrderedTableColumns(sourceColumns, columnOrder), [columnOrder, sourceColumns]);
+	const renderHeaders = useMemo(() => getOrderedTableHeaders(headers, sourceColumns, columns), [columns, headers, sourceColumns]);
+	const renderCellClassNames = useMemo(() => getOrderedTableCellClassNames(cellClassNames, sourceColumns, columns), [cellClassNames, columns, sourceColumns]);
+	const renderTableDesign = useMemo(() => (
+		tableDesign
+			? {
+				...tableDesign,
+				columns,
+			}
+			: tableDesign
+	), [columns, tableDesign]);
 	const showColumnDividers = Boolean(tableDesign?.dividers?.columns);
 	const showRowDivider = borderStyle === 'BORDER';
 	const {
@@ -61,9 +74,19 @@ export const VZTable = memo((p: TableListProps) => {
 	} = useTableGridController({
 		columnWidths,
 		columns,
-		headers,
+		headers: renderHeaders,
 		listData,
 		onColumnResizeCommit,
+	});
+	const {
+		getHeaderCellReorderProps,
+		visualState: columnReorderVisualState,
+	} = useTableColumnReorderController({
+		bodyScrollerRef,
+		columns,
+		enabled: reorderableColumns,
+		headerTableRef,
+		onColumnOrderCommit,
 	});
 	const tableRowProps = useMemo(() => ({
 		cellClassNames,
@@ -72,9 +95,10 @@ export const VZTable = memo((p: TableListProps) => {
 		onClickRow,
 		removeLeftPadding,
 		removeRightPadding,
-		tableDesign,
+		sourceColumns,
+		tableDesign: renderTableDesign,
 		trowClassName,
-	}), [cellClassNames, disableOnClickRow, mapListData, onClickRow, removeLeftPadding, removeRightPadding, tableDesign, trowClassName]);
+	}), [cellClassNames, disableOnClickRow, mapListData, onClickRow, removeLeftPadding, removeRightPadding, renderTableDesign, sourceColumns, trowClassName]);
 
 	return <>
 		<div
@@ -95,6 +119,27 @@ export const VZTable = memo((p: TableListProps) => {
 			}}
 		/>
 
+		{columnReorderVisualState && (
+			<div
+				className='abs bg_active bd_1 bd_lt shadow_bg_lg r_sm px_8 h_center noclick of'
+				data-table-column-reorder-drag={columnReorderVisualState.columnKey}
+				style={{
+					height: columnReorderVisualState.height,
+					left: 0,
+					opacity: 0.92,
+					pointerEvents: 'none',
+					top: 0,
+					transform: `translateX(${columnReorderVisualState.dragLeft}px)`,
+					width: columnReorderVisualState.width,
+					zIndex: 6,
+				}}
+			>
+				<span className='ellip shift_down ft_medium'>
+					{columnReorderVisualState.label}
+				</span>
+			</div>
+		)}
+
 		{headers && (
 			<div
 				ref={headerScrollerRef}
@@ -112,9 +157,10 @@ export const VZTable = memo((p: TableListProps) => {
 					<TableHeaderRow
 						addHorizontalPadding
 						borderStyle={borderStyle ?? 'BORDER'}
-						cellClassNames={cellClassNames}
+						cellClassNames={renderCellClassNames}
 						columns={columns}
-						headers={headers}
+						getHeaderCellProps={getHeaderCellReorderProps}
+						headers={renderHeaders}
 						removeLeftPadding={removeLeftPadding}
 						removeRightPadding={removeRightPadding}
 						renderHeaderCellOverlay={resizableColumns
@@ -130,7 +176,10 @@ export const VZTable = memo((p: TableListProps) => {
 									className='cs_back hv_area'
 									data-table-column-resize-handle={resizeTarget.column.key}
 									onPointerCancel={onColumnResizePointerCancel}
-									onPointerDown={(event) => onColumnResizePointerDown(event, resizeTarget)}
+									onPointerDown={(event) => {
+										event.stopPropagation();
+										onColumnResizePointerDown(event, resizeTarget);
+									}}
 									onPointerMove={onColumnResizePointerMove}
 									onPointerUp={onColumnResizePointerUp}
 									role='separator'
@@ -215,10 +264,13 @@ VZTable.displayName = 'VZTable';
  * Render a virtualized grid route table.
  */
 export function VirtualizedTable(p: VirtualizedTableBaseProps & {
+	columnOrder?: string[] | null;
 	columnWidths?: Record<string, number>;
 	disableOnClickRow?: boolean;
 	onClickRow?: (vzItem?: VZListItemObj, subRowItemValue?: any, onClickProps?: any) => void;
+	onColumnOrderCommit?: (columnOrder: string[]) => void;
 	onColumnResizeCommit?: (columnWidths: Record<string, number>) => void;
+	reorderableColumns?: boolean;
 	resizableColumns?: boolean;
 	tableDesign?: TableDesign;
 	trowClassName?: string;
@@ -226,7 +278,7 @@ export function VirtualizedTable(p: VirtualizedTableBaseProps & {
 	headers?: Partial<TableHeaderObj>[] | null;
 	mapListData: MapTableListDataFn;
 }) {
-	const { columnWidths, disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, endOfListMessage, headers, cellClassNames, onColumnResizeCommit, reactiveFragmentFn, resizableColumns, mapListData, tableDesign, trowClassName, onClickRow, maxFetchLimit } = p;
+	const { columnOrder, columnWidths, disableOnClickRow, HeaderComponent, FooterComponent, MockComponent, className, endOfListMessage, headers, cellClassNames, onColumnOrderCommit, onColumnResizeCommit, reactiveFragmentFn, reorderableColumns, resizableColumns, mapListData, tableDesign, trowClassName, onClickRow, maxFetchLimit } = p;
 	const vzState = useVirtualizedState(p);
 	const { listData: nextListData, hasMoreTop, hasMoreBottom } = vzState;
 	const { listData, renderIsDeferred } = useVirtualizedRenderWindow(nextListData, !hasMoreTop);
@@ -247,6 +299,7 @@ export function VirtualizedTable(p: VirtualizedTableBaseProps & {
 		<VZTable
 			bodyRef={listRef as Ref<HTMLDivElement>}
 			cellClassNames={cellClassNames}
+			columnOrder={columnOrder}
 			columnWidths={columnWidths}
 			disableOnClickRow={disableOnClickRow}
 			footerNode={footerNode}
@@ -254,8 +307,10 @@ export function VirtualizedTable(p: VirtualizedTableBaseProps & {
 			listData={listData}
 			mapListData={mapListData}
 			onClickRow={onClickRow}
+			onColumnOrderCommit={onColumnOrderCommit}
 			onColumnResizeCommit={onColumnResizeCommit}
 			reactiveFragmentFn={reactiveFragmentFn}
+			reorderableColumns={reorderableColumns}
 			resizableColumns={resizableColumns}
 			tableDesign={tableDesign}
 			trowClassName={trowClassName}

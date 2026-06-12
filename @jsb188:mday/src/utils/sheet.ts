@@ -13,6 +13,7 @@ import {
 	GRID_ITEM_LIST_LIMIT,
 } from '../constants/sheet.ts';
 import type {
+	SheetMergedRangeObj,
 	SheetAxisDesignObj,
 	SheetCellBorderStyleValue,
 	SheetCellStyleObj,
@@ -1312,6 +1313,223 @@ export function parseSheetFormulaExpression(value: string): SheetFormulaASTNode 
 		: null;
 }
 
+export interface SheetFormulaStaticCellReference {
+	rowIndex: number;
+	columnIndex: number;
+}
+
+export interface SheetFormulaStaticRangeReference {
+	startRowIndex: number;
+	startColumnIndex: number;
+	endRowIndex: number;
+	endColumnIndex: number;
+}
+
+export interface SheetFormulaStaticDataTableCellReference {
+	dataTableName: string;
+	cellKey: string;
+	rowIdentifier: string | null;
+	text: string;
+}
+
+export interface SheetFormulaStaticDataTableQueryCondition {
+	cellKey: string;
+	operator: SheetFormulaDataTableQueryOperator;
+	isStatic: boolean;
+	staticValue: string | number | boolean | null;
+	text: string;
+}
+
+export interface SheetFormulaStaticDataTableQueryReference {
+	dataTableName: string;
+	cellKey: string;
+	conditions: SheetFormulaStaticDataTableQueryCondition[];
+	text: string;
+}
+
+export interface SheetFormulaStaticReferences {
+	cells: SheetFormulaStaticCellReference[];
+	ranges: SheetFormulaStaticRangeReference[];
+	dataTableCells: SheetFormulaStaticDataTableCellReference[];
+	dataTableQueries: SheetFormulaStaticDataTableQueryReference[];
+	volatile: boolean;
+}
+
+/*
+ * Return whether a formula function name refers to a time-dependent builtin.
+ */
+function isSheetFormulaVolatileFunctionName(name: string) {
+	const normalizedName = name.replace(/^@/, '').toUpperCase();
+	return normalizedName === 'TODAY' || normalizedName === 'NOW';
+}
+
+/*
+ * Return the literal scalar value of an AST node, or null when the value can
+ * only be known at evaluation time (cell references, expressions, shorthands).
+ */
+function getSheetFormulaStaticNodeValue(node: SheetFormulaASTNode): string | number | boolean | null {
+	if (node.kind === 'STRING_LITERAL' || node.kind === 'NUMBER_LITERAL' || node.kind === 'BOOLEAN_LITERAL') {
+		return node.value;
+	}
+
+	return null;
+}
+
+/*
+ * Return the data-table lookup call metadata for a function-call AST node, or
+ * null when the node is not an @table(rowIdentifier, "cellKey") lookup.
+ */
+export function parseSheetFormulaDataTableCellCallNode(node: Extract<SheetFormulaASTNode, { kind: 'FUNCTION_CALL' }>) {
+	if (!node.name.startsWith('@')) {
+		return null;
+	}
+
+	const dataTableName = normalizeSheetFormulaDataTableName(node.name.slice(1));
+	const cellKeyNode = node.args[1];
+	if (!dataTableName || node.args.length !== 2 || cellKeyNode?.kind !== 'STRING_LITERAL') {
+		return null;
+	}
+
+	return {
+		cellKey: cellKeyNode.value,
+		dataTableName,
+		rowIdentifierNode: node.args[0],
+		text: node.text,
+	};
+}
+
+/*
+ * Walk one formula AST node and accumulate its static references. Used by
+ * collectSheetFormulaStaticReferences below; does no I/O and no evaluation.
+ */
+function walkSheetFormulaStaticReferences(node: SheetFormulaASTNode, result: SheetFormulaStaticReferences) {
+	if (node.kind === 'CELL_REFERENCE') {
+		result.cells.push({
+			rowIndex: node.reference.rowIndex,
+			columnIndex: node.reference.columnIndex,
+		});
+		return;
+	}
+
+	if (node.kind === 'RANGE_REFERENCE') {
+		result.ranges.push({
+			startRowIndex: node.reference.startRowIndex,
+			startColumnIndex: node.reference.startColumnIndex,
+			endRowIndex: node.reference.endRowIndex,
+			endColumnIndex: node.reference.endColumnIndex,
+		});
+		return;
+	}
+
+	if (node.kind === 'DATE_TIME_SHORTHAND') {
+		result.volatile = true;
+		return;
+	}
+
+	if (node.kind === 'DATA_TABLE_QUERY') {
+		result.dataTableQueries.push({
+			dataTableName: normalizeSheetFormulaDataTableName(node.query.dataTableName),
+			cellKey: node.query.cellKey,
+			conditions: node.query.conditions.map((condition) => {
+				const staticValue = getSheetFormulaStaticNodeValue(condition.valueNode);
+
+				return {
+					cellKey: condition.cellKey,
+					operator: condition.operator,
+					isStatic: staticValue !== null,
+					staticValue,
+					text: condition.text,
+				};
+			}),
+			text: node.text,
+		});
+
+		// Condition values may reference sheet cells or volatile shorthands
+		node.query.conditions.forEach((condition) => {
+			walkSheetFormulaStaticReferences(condition.valueNode, result);
+		});
+		return;
+	}
+
+	if (node.kind === 'FUNCTION_CALL') {
+		const dataTableCall = parseSheetFormulaDataTableCellCallNode(node);
+		if (dataTableCall) {
+			const staticIdentifier = getSheetFormulaStaticNodeValue(dataTableCall.rowIdentifierNode);
+
+			result.dataTableCells.push({
+				dataTableName: dataTableCall.dataTableName,
+				cellKey: dataTableCall.cellKey,
+				rowIdentifier: staticIdentifier === null ? null : String(staticIdentifier),
+				text: dataTableCall.text,
+			});
+
+			// The row identifier may itself reference sheet cells
+			walkSheetFormulaStaticReferences(dataTableCall.rowIdentifierNode, result);
+			return;
+		}
+
+		if (isSheetFormulaVolatileFunctionName(node.name)) {
+			result.volatile = true;
+		}
+
+		node.args.forEach((arg) => {
+			walkSheetFormulaStaticReferences(arg, result);
+		});
+		return;
+	}
+
+	if (node.kind === 'BINARY_EXPRESSION') {
+		walkSheetFormulaStaticReferences(node.left, result);
+		walkSheetFormulaStaticReferences(node.right, result);
+		return;
+	}
+
+	if (node.kind === 'UNARY_EXPRESSION') {
+		walkSheetFormulaStaticReferences(node.value, result);
+	}
+}
+
+/*
+ * Collect every reference a formula AST depends on, without evaluating it:
+ * sheet cells/ranges, data table cell lookups, data table query lookups, and
+ * whether the formula is volatile (time-dependent). Cell and range references
+ * are de-duplicated. Pure function shared by the server dependency graph and
+ * client dependency highlighting.
+ */
+export function collectSheetFormulaStaticReferences(node: SheetFormulaASTNode): SheetFormulaStaticReferences {
+	const result: SheetFormulaStaticReferences = {
+		cells: [],
+		ranges: [],
+		dataTableCells: [],
+		dataTableQueries: [],
+		volatile: false,
+	};
+
+	walkSheetFormulaStaticReferences(node, result);
+
+	const cellKeys = new Set<string>();
+	result.cells = result.cells.filter((cell) => {
+		const key = `${cell.rowIndex}:${cell.columnIndex}`;
+		if (cellKeys.has(key)) {
+			return false;
+		}
+		cellKeys.add(key);
+		return true;
+	});
+
+	const rangeKeys = new Set<string>();
+	result.ranges = result.ranges.filter((range) => {
+		const key = `${range.startRowIndex}:${range.startColumnIndex}:${range.endRowIndex}:${range.endColumnIndex}`;
+		if (rangeKeys.has(key)) {
+			return false;
+		}
+		rangeKeys.add(key);
+		return true;
+	});
+
+	return result;
+}
+
 /*
  * Return a one-based column index from a spreadsheet-style column label.
  */
@@ -1954,6 +2172,159 @@ export function getDefaultSheetDesign(): SheetDesignObj {
 		namedRanges: [],
 		metadata: {},
 	};
+}
+
+/*
+ * Return the validated merged-cell ranges stored in one sheet design's
+ * metadata. Invalid or single-cell entries are dropped.
+ */
+export function getSheetMergedRanges(metadata?: Record<string, any> | null): SheetMergedRangeObj[] {
+	const merges = Array.isArray(metadata?.merges) ? metadata.merges : [];
+
+	return merges.flatMap((merge: Partial<SheetMergedRangeObj>) => {
+		const startRowIndex = Math.floor(Number(merge?.startRowIndex || 0));
+		const startColumnIndex = Math.floor(Number(merge?.startColumnIndex || 0));
+		const endRowIndex = Math.floor(Number(merge?.endRowIndex || 0));
+		const endColumnIndex = Math.floor(Number(merge?.endColumnIndex || 0));
+
+		if (
+			startRowIndex < 1 || startColumnIndex < 1 ||
+			endRowIndex < startRowIndex || endColumnIndex < startColumnIndex ||
+			(endRowIndex === startRowIndex && endColumnIndex === startColumnIndex)
+		) {
+			return [];
+		}
+
+		return [{ startRowIndex, startColumnIndex, endRowIndex, endColumnIndex }];
+	});
+}
+
+/*
+ * Return whether one cell coordinate falls inside one merged range.
+ */
+export function isSheetCellInMergedRange(merge: SheetMergedRangeObj, rowIndex: number, columnIndex: number) {
+	return rowIndex >= merge.startRowIndex && rowIndex <= merge.endRowIndex &&
+		columnIndex >= merge.startColumnIndex && columnIndex <= merge.endColumnIndex;
+}
+
+/*
+ * Return the merged range containing one cell coordinate, or null.
+ */
+export function getSheetMergedRangeAtCell(
+	merges: SheetMergedRangeObj[],
+	rowIndex: number,
+	columnIndex: number,
+) {
+	return merges.find((merge) => isSheetCellInMergedRange(merge, rowIndex, columnIndex)) || null;
+}
+
+/*
+ * Return whether one cell is the anchor (top-left) of one merged range.
+ */
+export function isSheetMergedRangeAnchor(merge: SheetMergedRangeObj, rowIndex: number, columnIndex: number) {
+	return merge.startRowIndex === rowIndex && merge.startColumnIndex === columnIndex;
+}
+
+/*
+ * Return whether two merged ranges intersect.
+ */
+export function sheetMergedRangesIntersect(a: SheetMergedRangeObj, b: SheetMergedRangeObj) {
+	return a.startRowIndex <= b.endRowIndex && a.endRowIndex >= b.startRowIndex &&
+		a.startColumnIndex <= b.endColumnIndex && a.endColumnIndex >= b.startColumnIndex;
+}
+
+/*
+ * Return merged ranges with one new range added; existing ranges it overlaps
+ * are absorbed (removed), matching the merge-over behavior of spreadsheets.
+ */
+export function addSheetMergedRange(merges: SheetMergedRangeObj[], range: SheetMergedRangeObj) {
+	return [
+		...merges.filter((merge) => !sheetMergedRangesIntersect(merge, range)),
+		range,
+	];
+}
+
+/*
+ * Return merged ranges without any range intersecting the given bounds.
+ */
+export function removeSheetMergedRangesIntersecting(merges: SheetMergedRangeObj[], bounds: SheetMergedRangeObj) {
+	return merges.filter((merge) => !sheetMergedRangesIntersect(merge, bounds));
+}
+
+/*
+ * Return one axis span shifted by a row/column insert or delete at the target
+ * index, or null when the span collapses entirely.
+ */
+function shiftSheetMergedRangeAxis(
+	start: number,
+	end: number,
+	targetIndex: number,
+	delta: 1 | -1,
+): [number, number] | null {
+	if (delta === 1) {
+		// Insert before targetIndex: spans at/after shift; spans containing the
+		// index grow
+		if (targetIndex <= start) {
+			return [start + 1, end + 1];
+		}
+		if (targetIndex <= end) {
+			return [start, end + 1];
+		}
+		return [start, end];
+	}
+
+	// Delete targetIndex: spans after shift back; spans containing it shrink
+	if (targetIndex < start) {
+		return [start - 1, end - 1];
+	}
+	if (targetIndex <= end) {
+		return start === end ? null : [start, end - 1];
+	}
+	return [start, end];
+}
+
+/*
+ * Return merged ranges shifted by one row/column structure edit. Ranges that
+ * collapse to a single cell or lose their span entirely are dropped.
+ */
+export function shiftSheetMergedRangesForStructureEdit(
+	merges: SheetMergedRangeObj[],
+	operation: SheetStructureOperationEnum,
+	targetIndex: number,
+): SheetMergedRangeObj[] {
+	const rowDelta = operation === 'INSERT_ROW_ABOVE' ? 1 : operation === 'DELETE_ROW' ? -1 : 0;
+	const columnDelta = operation === 'INSERT_COLUMN_LEFT' ? 1 : operation === 'DELETE_COLUMN' ? -1 : 0;
+
+	if (!rowDelta && !columnDelta) {
+		return merges;
+	}
+
+	return merges.flatMap((merge) => {
+		const rowSpan = rowDelta
+			? shiftSheetMergedRangeAxis(merge.startRowIndex, merge.endRowIndex, targetIndex, rowDelta as 1 | -1)
+			: [merge.startRowIndex, merge.endRowIndex] as [number, number];
+		const columnSpan = columnDelta
+			? shiftSheetMergedRangeAxis(merge.startColumnIndex, merge.endColumnIndex, targetIndex, columnDelta as 1 | -1)
+			: [merge.startColumnIndex, merge.endColumnIndex] as [number, number];
+
+		if (!rowSpan || !columnSpan) {
+			return [];
+		}
+
+		const next = {
+			startRowIndex: rowSpan[0],
+			endRowIndex: rowSpan[1],
+			startColumnIndex: columnSpan[0],
+			endColumnIndex: columnSpan[1],
+		};
+
+		// A merge reduced to one cell is no longer a merge
+		if (next.startRowIndex === next.endRowIndex && next.startColumnIndex === next.endColumnIndex) {
+			return [];
+		}
+
+		return [next];
+	});
 }
 
 /*

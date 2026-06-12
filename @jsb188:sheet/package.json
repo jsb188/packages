@@ -30,6 +30,7 @@
     "./libs/grid-undo-redo": "./src/libs/grid-undo-redo.ts",
     "./libs/grid-viewport": "./src/libs/grid-viewport.ts",
     "./libs/sheet-canvas-geometry": "./src/libs/sheet-canvas-geometry.ts",
+    "./libs/sheet-collab": "./src/libs/sheet-collab.ts",
     "./libs/sheet-history": "./src/libs/sheet-history.ts",
     "./libs/sheet-region-filter-query": "./src/libs/sheet-region-filter-query.ts",
     "./libs/sheet-region-sort-query": "./src/libs/sheet-region-sort-query.ts",

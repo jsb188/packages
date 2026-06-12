@@ -72,7 +72,16 @@ mutation editSheetCells (
     sheetId: $sheetId
     cells: $cells
   ) {
-    ...sheetCellFragment
+    savedCells {
+      ...sheetCellFragment
+    }
+
+    recalculatedCells {
+      ...sheetCellFragment
+    }
+
+    recalculatedCount
+    cycleCellIds
   }
 }
 
@@ -105,12 +114,14 @@ mutation editSheetStructure (
   $sheetId: GenericID!
   $operation: SheetStructureOperation!
   $index: Int!
+  $opId: String
 ) {
   editSheetStructure (
     organizationId: $organizationId
     sheetId: $sheetId
     operation: $operation
     index: $index
+    opId: $opId
   ) {
     ...sheetFragment
   }

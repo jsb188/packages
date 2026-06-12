@@ -85,12 +85,14 @@ mutation editOrganizationSettings (
   $sidebar: [OrganizationSidebarGroupInput!]
   $routeId: String
   $columnWidths: [String!]
+  $columnOrder: [String!]
 ) {
   editOrganizationSettings (
     organizationId: $organizationId
     sidebar: $sidebar
     routeId: $routeId
     columnWidths: $columnWidths
+    columnOrder: $columnOrder
   ) {
     ...organizationSettingsFragment
   }

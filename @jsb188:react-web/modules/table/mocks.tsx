@@ -15,11 +15,13 @@ import {
 	getTableGridTemplateColumns,
 	getTableWidthStyle,
 } from './layout';
+import { getOrderedTableColumns } from './order';
 import { renderTrailingEmptyCell } from './rows';
 
 type TableMockProps = {
 	browserHeightRatio?: number;
 	cellClassNames?: string | (string | undefined)[];
+	columnOrder?: string[] | null;
 	columnWidths?: Record<string, number>;
 	isInnerContent?: boolean;
 	isSmallerRows?: boolean;
@@ -33,9 +35,9 @@ type TableMockProps = {
 /**
  * Build fallback mock columns when a table design is not available.
  */
-function getMockTableColumns(tableDesign?: TableDesign): TableDesignColumn[] {
+function getMockTableColumns(tableDesign?: TableDesign, columnOrder?: string[] | null): TableDesignColumn[] {
 	if (tableDesign?.columns.length) {
-		return tableDesign.columns;
+		return getOrderedTableColumns(tableDesign.columns, columnOrder);
 	}
 
 	return [{
@@ -111,8 +113,8 @@ function renderMockTableRow(columns: TableDesignColumn[], p: {
  * Render a client-only grid table loading mock.
  */
 export const TableMockClient = memo((p: TableMockProps) => {
-	const { browserHeightRatio, cellClassNames, columnWidths: resizedColumnWidths, isInnerContent, isSmallerRows, mockHeaderRows, removeAvatarElement, removeBorderLine, removeHorizontalPadding, tableDesign } = p;
-	const columns = getMockTableColumns(tableDesign);
+	const { browserHeightRatio, cellClassNames, columnOrder, columnWidths: resizedColumnWidths, isInnerContent, isSmallerRows, mockHeaderRows, removeAvatarElement, removeBorderLine, removeHorizontalPadding, tableDesign } = p;
+	const columns = getMockTableColumns(tableDesign, columnOrder);
 	const mockCount = getMockTableRowCount(browserHeightRatio);
 	const columnWidths = getResolvedTableColumnWidths(columns, resizedColumnWidths || {});
 	const tableWidthStyle = getTableWidthStyle(columns, columnWidths);

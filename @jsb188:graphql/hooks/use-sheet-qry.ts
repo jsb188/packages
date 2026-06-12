@@ -1,9 +1,8 @@
-import { makeVariablesKey } from '@jsb188/app/utils/logic.ts';
 import { GRID_ITEM_LIST_LIMIT } from '@jsb188/mday/constants/sheet.ts';
-import type { SheetsFilterArgs, SheetFormulaReferenceObj, GridItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
+import type { SheetsFilterArgs, GridItemSortEnum } from '@jsb188/mday/types/sheet.d.ts';
 import { useQuery, useReactiveFragment, useReactiveFragmentMap } from '@jsb188/graphql/client';
 import { useMemo } from 'react';
-import { sheetFormulaReferencesQry, sheetGridQry, sheetQry, sheetsQry } from '../gql/queries/sheetQueries.ts';
+import { sheetQry, sheetsQry, sheetViewQry } from '../gql/queries/sheetQueries.ts';
 import type { PaginationArgs, UseQueryParams } from '../types.d.ts';
 
 export type SheetGridViewportVariables = {
@@ -18,92 +17,6 @@ export type SheetsVariables = PaginationArgs & {
 	organizationId?: string | null;
 	sort?: GridItemSortEnum | null;
 };
-
-export type SheetFormulaReferenceInputVariables = Pick<
-	SheetFormulaReferenceObj,
-	| 'cellKey'
-	| 'columnIndex'
-	| 'columnLabel'
-	| 'dataTableName'
-	| 'endColumnIndex'
-	| 'endRowIndex'
-	| 'id'
-	| 'kind'
-	| 'rowIdentifier'
-	| 'rowIndex'
-	| 'startColumnIndex'
-	| 'startRowIndex'
-	| 'text'
->;
-
-/*
- * Return the query key that belongs to one sheet grid variables key.
- */
-
-function getSheetGridQueryKey(variablesKey: string) {
-	return `#sheetGrid:${variablesKey}`;
-}
-
-/*
- * Return a formula reference cache key for one reference id.
- */
-export function getSheetFormulaReferenceFragmentKey(referenceId: string) {
-	return `$sheetFormulaReferenceFragment:${referenceId}`;
-}
-
-/*
- * Return GraphQL-safe input fields for one formula dependency reference.
- */
-function getSheetFormulaReferenceInput(reference: SheetFormulaReferenceObj): SheetFormulaReferenceInputVariables {
-	return {
-		cellKey: reference.cellKey || null,
-		columnIndex: reference.columnIndex ?? null,
-		columnLabel: reference.columnLabel || null,
-		dataTableName: reference.dataTableName || null,
-		endColumnIndex: reference.endColumnIndex ?? null,
-		endRowIndex: reference.endRowIndex ?? null,
-		id: reference.id || null,
-		kind: reference.kind,
-		rowIdentifier: reference.rowIdentifier ?? null,
-		rowIndex: reference.rowIndex ?? null,
-		startColumnIndex: reference.startColumnIndex ?? null,
-		startRowIndex: reference.startRowIndex ?? null,
-		text: reference.text,
-	};
-}
-
-/*
- * Return GraphQL-safe input fields for formula dependency references.
- */
-function getSheetFormulaReferenceInputs(references?: SheetFormulaReferenceObj[] | null) {
-	return (references || [])
-		.filter((reference) => reference?.id && reference.kind && reference.text)
-		.map(getSheetFormulaReferenceInput);
-}
-
-/*
- * Merge reactive SheetCell fragments back into a sheetGrid viewport.
- */
-
-function mergeReactiveCellsIntoSheetGrid(sheetGrid?: any | null, sheetGridCells?: any[] | null) {
-	if (!sheetGrid || !sheetGridCells) {
-		return sheetGrid;
-	}
-
-	if (sheetGridCells === sheetGrid.cells && !sheetGridCells.some((cell) => cell?.__deleted)) {
-		return sheetGrid;
-	}
-
-	const nextCells = sheetGridCells.filter((cell) => !cell?.__deleted);
-	if (nextCells.length === sheetGrid.cells?.length && nextCells.every((cell, index) => cell === sheetGrid.cells[index])) {
-		return sheetGrid;
-	}
-
-	return {
-		...sheetGrid,
-		cells: nextCells,
-	};
-}
 
 /*
  * Add front-end deleted status to inactive or trashed Sheet records.
@@ -226,37 +139,6 @@ export function useReactiveSheetFragment(sheetId: string, currentData?: any, que
 }
 
 /*
- * Get reactive SheetGrid fragment.
- */
-
-export function useReactiveSheetGridFragment(sheetGridId: string, currentData?: any, queryCount?: number) {
-	const reactiveSheetGrid = useReactiveFragment(
-		currentData,
-		sheetGridId ? [`$sheetGridFragment:${sheetGridId}`] : [],
-		queryCount,
-	);
-
-	if (!currentData || !reactiveSheetGrid) {
-		return reactiveSheetGrid;
-	}
-
-	return {
-		...currentData,
-		regions: reactiveSheetGrid.regions ?? currentData.regions,
-	};
-}
-
-/*
- * Get reactive SheetGrid cell fragments.
- */
-
-export function useReactiveSheetGridCells(sheetGrid?: any | null) {
-	const reactiveCells = useReactiveFragmentMap(sheetGrid?.cells || null, 'sheetCellFragment');
-
-	return mergeReactiveCellsIntoSheetGrid(sheetGrid, reactiveCells);
-}
-
-/*
  * Get reactive SheetCell fragments.
  */
 export function useReactiveSheetCells(cells?: any[] | null) {
@@ -264,43 +146,27 @@ export function useReactiveSheetCells(cells?: any[] | null) {
 }
 
 /*
- * Get reactive Sheet formula reference fragments.
+ * Return the reactive fragment key carrying realtime sheetView cell deltas
+ * for one sheet ({ id, cellsDelta, deletedCellCoords } patches).
  */
-export function useReactiveSheetFormulaReferences(references?: SheetFormulaReferenceObj[] | null) {
-	return useReactiveFragmentMap(references || null, 'sheetFormulaReferenceFragment') as SheetFormulaReferenceObj[] | null;
+export function getSheetViewFragmentKey(sheetId: string) {
+	return `$sheetViewFragment:${sheetId}`;
 }
 
 /*
- * Fetch formula dependency references that were incomplete in the sheetGrid response.
- */
-export function useSheetFormulaReferences(
-	sheetId?: string | null,
-	organizationId?: string | null,
-	references?: SheetFormulaReferenceObj[] | null,
-	params: UseQueryParams = {},
-) {
-	const referenceInputs = useMemo(() => getSheetFormulaReferenceInputs(references), [references]);
-	const { data, ...rest } = useQuery(sheetFormulaReferencesQry, {
-		variables: {
-			organizationId,
-			sheetId,
-			references: referenceInputs,
-		},
-		...params,
-		skip: !organizationId || !sheetId || !referenceInputs.length || !!params.skip,
-	});
-
-	return {
-		sheetFormulaReferences: data?.sheetFormulaReferences || null,
-		...rest,
-	};
-}
-
-/*
- * Fetch one sheet viewport by id.
+ * Fetch one full sheet viewport in a single round trip: sheet metadata plus
+ * cells that already carry their final server-computed values (user cells and
+ * materialized region cells uniformly). No second-phase formula reference
+ * resolution is needed.
+ *
+ * NOTE: The result is intentionally NOT wrapped in useReactiveFragment.
+ * Realtime updates arrive as $sheetViewFragment cell deltas which the sheet
+ * cell store consumes directly (observeReactiveFragments +
+ * getSheetViewFragmentKey); merging them into this query result would fight
+ * the store's revision-gated merge.
  */
 
-export function useSheetGrid(
+export function useSheetView(
 	sheetId?: string | null,
 	organizationId?: string | null,
 	viewport?: SheetGridViewportVariables | null,
@@ -311,19 +177,14 @@ export function useSheetGrid(
 		sheetId,
 		viewport,
 	};
-	const { data, ...rest } = useQuery(sheetGridQry, {
+	const { data, ...rest } = useQuery(sheetViewQry, {
 		variables,
 		skip: !organizationId || !sheetId || !viewport,
 		...params,
 	});
-	const variablesKey = makeVariablesKey(variables);
-	const queryMatchesVariables = rest.queryKey === getSheetGridQueryKey(variablesKey) ||
-		rest.variablesKey === variablesKey;
-	const reactiveSheetGrid = useReactiveSheetGridFragment(sheetId || '', queryMatchesVariables ? data?.sheetGrid : undefined);
-	const sheetGrid = useReactiveSheetGridCells(reactiveSheetGrid);
 
 	return {
-		sheetGrid,
+		sheetView: data?.sheetView || null,
 		...rest,
 	};
 }

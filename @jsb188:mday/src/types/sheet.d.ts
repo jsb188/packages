@@ -93,6 +93,13 @@ export interface SheetNamedRangeObj {
 	endColumnIndex: number;
 }
 
+export interface SheetMergedRangeObj {
+	startRowIndex: number;
+	startColumnIndex: number;
+	endRowIndex: number;
+	endColumnIndex: number;
+}
+
 export interface SheetDesignObj {
 	version: number;
 	grid: SheetGridDesignObj;
@@ -164,6 +171,13 @@ export interface SheetData {
 	updatedAt: Date;
 }
 
+export interface SheetCellSourceMetaObj {
+	relatedTable?: string | null;
+	relatedId?: string | null;
+	referenceStatus?: 'ACTIVE' | 'DELETED' | null;
+	iconName?: string | null;
+}
+
 export interface SheetCellData {
 	__table: 'sheet_cells';
 
@@ -173,6 +187,7 @@ export interface SheetCellData {
 	rowIndex: number;
 	columnIndex: number;
 	rawInput?: string | null;
+	formulaText?: string | null;
 	value?: SheetCellValue;
 	formulaValue?: SheetCellValue;
 	textValue?: string | null;
@@ -180,12 +195,21 @@ export interface SheetCellData {
 	booleanValue?: boolean | null;
 	dateValue?: Date | string | null;
 	datetimeValue?: Date | string | null;
+	errorCode?: string | null;
+	errorMessage?: string | null;
+	computedAt?: Date | string | null;
+	revision?: number | bigint;
+	volatile?: boolean;
 	formula?: SheetFormulaObj | null;
 	style?: SheetCellStyleObj | null;
 	format?: Record<string, any> | null;
 	note?: string | null;
 	sourceType: SheetCellSourceTypeEnum;
 	regionId?: number | bigint | null;
+	sourceDataTableRowId?: number | bigint | null;
+	sourceRowKey?: string | null;
+	sourceCellKey?: string | null;
+	sourceMeta?: SheetCellSourceMetaObj | null;
 	region?: SheetCellRegionSourceObj | null;
 	createdAt: Date;
 	updatedAt: Date;
@@ -266,8 +290,45 @@ export interface SheetRegionData {
 	columns: SheetRegionColumnObj[];
 	options: SheetRegionOptionsObj;
 	active: boolean;
+	lastSyncedAt?: Date | string | null;
+	syncRevision?: number | bigint;
 	createdAt: Date;
 	updatedAt: Date;
+}
+
+export type SheetCellDepKind = 'CELL' | 'RANGE' | 'DT_CELL' | 'DT_QUERY';
+
+export interface SheetCellDepData {
+	__table: 'sheet_cell_deps';
+
+	id: number | bigint;
+	organizationId: number | bigint;
+	sheetId: number | bigint;
+	dependentCellId: number | bigint;
+	dependentRowIndex: number;
+	dependentColumnIndex: number;
+	kind: SheetCellDepKind;
+	precedentSheetId?: number | bigint | null;
+	startRowIndex?: number | null;
+	startColumnIndex?: number | null;
+	endRowIndex?: number | null;
+	endColumnIndex?: number | null;
+	dataTableId?: number | bigint | null;
+	targetCellKey?: string | null;
+	rowIdentifier?: string | null;
+	matchedDataTableRowId?: number | bigint | null;
+	hasNonEqualityConditions: boolean;
+}
+
+export interface SheetCellDepConditionData {
+	__table: 'sheet_cell_dep_conditions';
+
+	id: number | bigint;
+	depId: number | bigint;
+	dataTableId: number | bigint;
+	cellKey: string;
+	operator: string;
+	valueHash?: string | null;
 }
 
 export interface SheetGridViewportObj {
@@ -351,6 +412,7 @@ export interface SheetCellGQL {
 	rowIndex?: number | null;
 	columnIndex?: number | null;
 	rawInput?: string | null;
+	formulaText?: string | null;
 	value?: string | null;
 	formulaValue?: SheetCellValue;
 	textValue?: string | null;
@@ -358,12 +420,19 @@ export interface SheetCellGQL {
 	booleanValue?: boolean | null;
 	dateValue?: string | null;
 	datetimeValue?: string | null;
+	errorCode?: string | null;
+	errorMessage?: string | null;
+	computedAt?: string | null;
+	revision?: number | null;
 	formula?: SheetFormulaObj | null;
 	style?: SheetCellStyleObj | null;
 	format?: string | null;
 	note?: string | null;
 	sourceType?: SheetCellSourceTypeEnum | null;
 	regionId?: string | null;
+	sourceDataTableRowId?: string | null;
+	sourceCellKey?: string | null;
+	sourceMeta?: SheetCellSourceMetaObj | null;
 	region?: SheetCellRegionSourceObj | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
@@ -371,6 +440,17 @@ export interface SheetCellGQL {
 
 export interface SheetGridRowGQL {
 	rowIndex: number;
+}
+
+export interface SheetViewGQL {
+	id?: string | null;
+	sheet?: SheetGQL | null;
+	viewport?: SheetGridViewportObj | null;
+	rows?: SheetGridRowGQL[];
+	cells?: SheetCellGQL[];
+	ranges?: SheetRangeGQL[];
+	regions?: SheetRegionGQL[];
+	pageInfo?: SheetGridPageInfoGQL | null;
 }
 
 export interface SheetGridPageInfoGQL {

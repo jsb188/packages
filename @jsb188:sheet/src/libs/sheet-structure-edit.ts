@@ -7,7 +7,7 @@ import type {
 	SheetRegionOptionsObj,
 	SheetStructureOperationEnum,
 } from '@jsb188/mday/types/sheet.d.ts';
-import {
+import { getSheetMergedRanges, shiftSheetMergedRangesForStructureEdit,
 	normalizeSheetDesign,
 	shiftSheetAxisDesignForStructureEdit,
 	type SheetProtectedAxisSpan,
@@ -533,6 +533,67 @@ export function applySheetStructureEditToCellsByCoord<T extends SheetStructureCe
 }
 
 /*
+ * Apply one structure edit to a pending-edit map: shift the coordinate keys
+ * plus each entry's preview cell and edit-input coordinates. Entries whose
+ * coordinate is removed by the edit are dropped.
+ */
+export function applySheetStructureEditToPendingEdits<
+	T extends {
+		input: { cell: { rowIndex: number; columnIndex: number } };
+		previewCell: { rowIndex?: number | null; columnIndex?: number | null };
+	},
+>(
+	pendingEditsByCoord: Map<string, T>,
+	operation: SheetStructureOperationEnum,
+	targetIndex: number,
+	bounds: SheetStructureBounds[] = [],
+) {
+	let changed = false;
+	const nextPendingEditsByCoord = new Map<string, T>();
+
+	pendingEditsByCoord.forEach((pendingEdit, coordKey) => {
+		const rowIndex = normalizeSheetStructureIndex(pendingEdit.input.cell.rowIndex);
+		const columnIndex = normalizeSheetStructureIndex(pendingEdit.input.cell.columnIndex);
+
+		if (!rowIndex || !columnIndex) {
+			nextPendingEditsByCoord.set(coordKey, pendingEdit);
+			return;
+		}
+
+		const nextCoord = getSheetStructureCellCoordAfterEdit(rowIndex, columnIndex, operation, targetIndex, bounds);
+		if (!nextCoord) {
+			changed = true;
+			return;
+		}
+
+		if (nextCoord.rowIndex === rowIndex && nextCoord.columnIndex === columnIndex) {
+			nextPendingEditsByCoord.set(coordKey, pendingEdit);
+			return;
+		}
+
+		changed = true;
+		nextPendingEditsByCoord.set(getSheetStructureCoordKey(nextCoord.rowIndex, nextCoord.columnIndex), {
+			...pendingEdit,
+			input: {
+				...pendingEdit.input,
+				cell: {
+					...pendingEdit.input.cell,
+					columnIndex: nextCoord.columnIndex,
+					rowIndex: nextCoord.rowIndex,
+				},
+			},
+			previewCell: {
+				...pendingEdit.previewCell,
+				columnIndex: nextCoord.columnIndex,
+				rowIndex: nextCoord.rowIndex,
+			},
+		});
+	});
+
+	return changed ? nextPendingEditsByCoord : pendingEditsByCoord;
+}
+
+/*
  * Return saved ranges with their coordinates projected through one structure edit.
  */
 export function applySheetStructureEditToRanges<T extends SheetStructureRangeLike>(
@@ -577,6 +638,11 @@ export function getSheetStructureDesignAfterEdit(
 	const rowDelta = operation === 'INSERT_ROW_ABOVE' ? 1 : operation === 'DELETE_ROW' ? -1 : 0;
 	const columnDelta = operation === 'INSERT_COLUMN_LEFT' ? 1 : operation === 'DELETE_COLUMN' ? -1 : 0;
 
+	const merges = getSheetMergedRanges(design.metadata);
+	const shiftedMerges = merges.length
+		? shiftSheetMergedRangesForStructureEdit(merges, operation, targetIndex)
+		: merges;
+
 	return {
 		...design,
 		grid: {
@@ -590,6 +656,14 @@ export function getSheetStructureDesignAfterEdit(
 		rows: rowDelta
 			? shiftSheetAxisDesignForStructureEdit(design.rows, operation, targetIndex, rowSpans)
 			: design.rows,
+		...(merges.length
+			? {
+				metadata: {
+					...(design.metadata || {}),
+					merges: shiftedMerges,
+				},
+			}
+			: {}),
 	};
 }
 

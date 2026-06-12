@@ -1,5 +1,5 @@
 import { normalizeSheetCellStyle, normalizeSheetDesign, mergeSheetJSONObjects, getSheetColumnDesignKey, getSheetRowDesignKey, isSheetCellInRange } from '@jsb188/mday/utils/sheet.ts';
-import { SHEET_DEFAULT_COLUMN_COUNT } from '@jsb188/mday/constants/sheet.ts';
+import { SHEET_DATA_TABLE_REGION_MAX_ROWS, SHEET_DEFAULT_COLUMN_COUNT } from '@jsb188/mday/constants/sheet.ts';
 import type {
 	SheetAxisDesignObj,
 	SheetCellGQL,
@@ -9,6 +9,7 @@ import type {
 	SheetGridPageInfoGQL,
 	SheetGridViewportObj,
 	SheetRangeGQL,
+	SheetRegionGQL,
 } from '@jsb188/mday/types/sheet.d.ts';
 import {
 	clampSheetColumnWidth,
@@ -24,8 +25,6 @@ import type { DataTableCellDisplayModel } from './dataTable-cell-editing.tsx';
 
 export const SHEET_CANVAS_INITIAL_ROW_COUNT = 200;
 export const SHEET_CANVAS_MAX_ROW_COUNT = 1000;
-export const SHEET_CANVAS_FETCH_ROW_COUNT = 250;
-export const SHEET_CANVAS_FETCH_BUFFER_ROWS = 25;
 export const SHEET_CANVAS_DEFAULT_VIEWPORT_HEIGHT = 700;
 export const SHEET_CANVAS_DEFAULT_VIEWPORT_WIDTH = 1000;
 export const SHEET_CANVAS_ROW_BUFFER_SCREEN_RATIO = 0.7;
@@ -48,13 +47,6 @@ export type SheetCanvasCell = {
 	rowId: string;
 	rowIndex: number;
 	style: SheetCanvasCellStyle;
-};
-
-export type SheetLoadedGridState = {
-	cellsByCoord: Map<string, SheetCellGQL>;
-	hasMoreRows: boolean;
-	lastContentRowIndex: number | null;
-	loadedRowCount: number;
 };
 
 /*
@@ -217,6 +209,30 @@ export function getSheetCanvasRowHeights(design: SheetDesignObj, rowCount: numbe
 }
 
 /*
+ * Return the one-based grid rectangle one Sheet region covers, or null when
+ * the region definition is incomplete.
+ */
+export function getSheetRegionGridRect(region?: SheetRegionGQL | null) {
+	const startRowIndex = Math.floor(Number(region?.startRowIndex || 0));
+	const startColumnIndex = Math.floor(Number(region?.startColumnIndex || 0));
+	const columnCount = region?.columns?.length || 0;
+	if (!region || !startRowIndex || !startColumnIndex || !columnCount) {
+		return null;
+	}
+
+	const configuredEndRowIndex = Math.floor(Number(region.options?.endRowIndex || 0));
+
+	return {
+		startRowIndex,
+		startColumnIndex,
+		endRowIndex: configuredEndRowIndex >= startRowIndex
+			? configuredEndRowIndex
+			: startRowIndex + SHEET_DATA_TABLE_REGION_MAX_ROWS - 1,
+		endColumnIndex: startColumnIndex + columnCount - 1,
+	};
+}
+
+/*
  * Return a stable coordinate key for one one-based sheet cell.
  */
 export function getSheetCanvasCoordKey(rowIndex: number, columnIndex: number) {
@@ -345,7 +361,7 @@ export function getSheetCanvasCellDisplayValue(cell?: SheetCellGQL | null) {
 		return '';
 	}
 
-	if (!cell.formula && cell.rawInput !== null && cell.rawInput !== undefined) {
+	if (!cell.formula && !cell.formulaText && cell.rawInput !== null && cell.rawInput !== undefined) {
 		return String(cell.rawInput);
 	}
 
@@ -380,6 +396,10 @@ export function getSheetCanvasCellDisplayValue(cell?: SheetCellGQL | null) {
  * Return the editable draft string for one sheet cell.
  */
 export function getSheetCanvasCellDraftValue(cell?: SheetCellGQL | null) {
+	if (cell?.formulaText) {
+		return cell.formulaText;
+	}
+
 	if (cell?.formula?.text) {
 		return cell.formula.text;
 	}
@@ -455,68 +475,6 @@ export function mergeSheetCanvasCellsByCoord(current: Map<string, SheetCellGQL>,
 }
 
 /*
- * Replace cached cells inside one fetched viewport while preserving cached cells outside it.
- */
-export function replaceSheetCanvasCellsInViewport(
-	current: Map<string, SheetCellGQL>,
-	nextCells: SheetCellGQL[] | null | undefined,
-	viewport: Partial<SheetGridViewportObj> | null | undefined,
-) {
-	if (!viewport) {
-		return mergeSheetCanvasCellsByCoord(current, nextCells);
-	}
-
-	const startRowIndex = Math.max(1, Number(viewport.startRowIndex || 1));
-	const startColumnIndex = Math.max(1, Number(viewport.startColumnIndex || 1));
-	const endRowIndex = startRowIndex + Math.max(1, Number(viewport.rowCount || 1)) - 1;
-	const endColumnIndex = startColumnIndex + Math.max(1, Number(viewport.columnCount || 1)) - 1;
-	const next = new Map<string, SheetCellGQL>();
-
-	current.forEach((cell, coordKey) => {
-		const [rowIndexString, columnIndexString] = coordKey.split(':');
-		const rowIndex = Number(rowIndexString || 0);
-		const columnIndex = Number(columnIndexString || 0);
-		const isInsideViewport = rowIndex >= startRowIndex &&
-			rowIndex <= endRowIndex &&
-			columnIndex >= startColumnIndex &&
-			columnIndex <= endColumnIndex;
-
-		if (isInsideViewport) {
-			return;
-		}
-
-		next.set(coordKey, cell);
-	});
-
-	(nextCells || []).forEach((cell) => {
-		const rowIndex = Number(cell.rowIndex || 0);
-		const columnIndex = Number(cell.columnIndex || 0);
-
-		if (rowIndex > 0 && columnIndex > 0) {
-			const coordKey = getSheetCanvasCoordKey(rowIndex, columnIndex);
-
-			next.set(coordKey, cell);
-		}
-	});
-
-	if (next.size === current.size) {
-		let changed = false;
-
-		next.forEach((cell, coordKey) => {
-			if (current.get(coordKey) !== cell) {
-				changed = true;
-			}
-		});
-
-		if (!changed) {
-			return current;
-		}
-	}
-
-	return next;
-}
-
-/*
  * Return the number of body rows that should be requested for the initial viewport.
  */
 export function getSheetCanvasInitialRowCount(containerHeight: number, designRowCount: number) {
@@ -528,32 +486,6 @@ export function getSheetCanvasInitialRowCount(containerHeight: number, designRow
 	);
 }
 
-/*
- * Return a loaded row count from GraphQL rows and pageInfo without scrolling past the real loaded window.
- */
-export function getSheetCanvasLoadedRowCount(params: {
-	currentLoadedRowCount: number;
-	pageInfo?: SheetGridPageInfoGQL | null;
-	requestedRowCount: number;
-	returnedRowCount: number;
-}) {
-	const fallbackLoadedRowCount = Math.max(
-		SHEET_CANVAS_INITIAL_ROW_COUNT,
-		params.currentLoadedRowCount,
-		params.requestedRowCount,
-		params.returnedRowCount,
-	);
-
-	if (!params.pageInfo || params.pageInfo.hasMoreRows) {
-		return fallbackLoadedRowCount;
-	}
-
-	return Math.max(
-		SHEET_CANVAS_INITIAL_ROW_COUNT,
-		params.currentLoadedRowCount,
-		Number(params.pageInfo.lastContentRowIndex || 0),
-	);
-}
 
 /*
  * Return the row buffer count as a percentage of currently visible rows.
@@ -573,12 +505,6 @@ export function getSheetCanvasColumnBufferCount(viewportWidth: number) {
 	return Math.ceil(visibleColumns * SHEET_CANVAS_COLUMN_BUFFER_SCREEN_RATIO);
 }
 
-/*
- * Return the bounded page size for the next sheetGrid row fetch.
- */
-export function getSheetCanvasFetchRowCount(loadedRowCount: number, designRowCount: number) {
-	return Math.max(0, Math.min(SHEET_CANVAS_FETCH_ROW_COUNT, designRowCount - loadedRowCount));
-}
 
 /*
  * Return the viewport object for a sheetGrid query.

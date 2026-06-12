@@ -1,11 +1,10 @@
 import { gql } from 'graphql-tag';
 import {
 	sheetCellFragment,
-	sheetFormulaReferenceFragment,
 	sheetFragment,
-	sheetGridFragment,
 	sheetRangeFragment,
 	sheetRegionFragment,
+	sheetViewFragment,
 } from '../fragments/sheetFragments.ts';
 
 export const sheetsQry = gql`
@@ -48,27 +47,31 @@ query sheet (
 ${sheetFragment}
 `;
 
-export const sheetGridQry = gql`
-query sheetGrid (
+
+// NOTE: sheetView is the single-round-trip read for the redesigned sheet data
+// layer: cells arrive with final server-computed values (including
+// materialized region cells), so no second-phase formula reference resolution
+// or client-side region cell synthesis is needed.
+
+export const sheetViewQry = gql`
+query sheetView (
   $organizationId: GenericID!
   $sheetId: GenericID!
   $viewport: SheetGridViewportInput!
 ) {
-  sheetGrid (
+  sheetView (
     organizationId: $organizationId
     sheetId: $sheetId
     viewport: $viewport
   ) {
-    ...sheetGridFragment
+    ...sheetViewFragment
+
+    sheet {
+      ...sheetFragment
+    }
 
     cells {
       ...sheetCellFragment
-
-      formula {
-        references {
-          ...sheetFormulaReferenceFragment
-        }
-      }
     }
 
     ranges {
@@ -77,38 +80,10 @@ query sheetGrid (
   }
 }
 
-${sheetGridFragment}
+${sheetViewFragment}
+${sheetFragment}
 ${sheetCellFragment}
-${sheetFormulaReferenceFragment}
 ${sheetRangeFragment}
 ${sheetRegionFragment}
 `;
 
-export const sheetFormulaReferencesQry = gql`
-query sheetFormulaReferences (
-  $organizationId: GenericID!
-  $sheetId: GenericID!
-  $references: [SheetFormulaReferenceInput!]!
-) {
-  sheetFormulaReferences (
-    organizationId: $organizationId
-    sheetId: $sheetId
-    references: $references
-  ) {
-    ...sheetFormulaReferenceFragment
-
-    cells {
-      ...sheetCellFragment
-
-      formula {
-        references {
-          ...sheetFormulaReferenceFragment
-        }
-      }
-    }
-  }
-}
-
-${sheetFormulaReferenceFragment}
-${sheetCellFragment}
-`;

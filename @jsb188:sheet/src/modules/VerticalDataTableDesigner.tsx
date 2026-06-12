@@ -49,6 +49,7 @@ import {
 	useMemo,
 	useRef,
 	useState,
+	type CSSProperties,
 	type MutableRefObject,
 	type PointerEvent as ReactPointerEvent,
 	type ReactNode,
@@ -136,10 +137,10 @@ const VERTICAL_DATA_TABLE_DESIGNER_BUFFER_COLUMNS = 3;
 const VERTICAL_DATA_TABLE_DESIGNER_BUFFER_ROWS = 8;
 const VERTICAL_DATA_TABLE_DESIGNER_ROW_RIGHT_PADDING = 64;
 const VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH = 0;
-const VERTICAL_DATA_TABLE_DESIGNER_CONTENT_HEADER_HEIGHT = 80;
 const VERTICAL_DATA_TABLE_DESIGNER_STICKY_COLUMN_COUNT = 0;
 const VERTICAL_DATA_TABLE_DESIGNER_COLUMN_GAP_WIDTH = 0;
 const VERTICAL_DATA_TABLE_DESIGNER_COLUMN_REORDER_OVERLAP_THRESHOLD = 0.35;
+const VERTICAL_DATA_TABLE_DESIGNER_FILL_STYLE: CSSProperties = { minHeight: 0 };
 
 type VerticalDataTableDesignerRowLayout = {
 	hideBottomBorder: boolean;
@@ -151,26 +152,6 @@ type VerticalDataTableDesignerVisibleUICell = {
 	cell: SheetUICell;
 	runtimeKey: string;
 };
-
-/*
- * Return how many preview rows fit inside the measured VerticalDataTableDesigner viewport.
- */
-function getVerticalDataTableDesignerVisualRowCount(viewportHeight: number, stickyHeaderHeight: number) {
-	return Math.max(1, Math.floor((viewportHeight - stickyHeaderHeight) / SHEET_ROW_HEIGHT));
-}
-
-/*
- * Return the opacity utility class for one VerticalDataTableDesigner preview row's content.
- */
-function getVerticalDataTableDesignerPreviewRowContentClassName(rowIndex: number, visualRowCount: number) {
-	if (rowIndex >= visualRowCount - 1) {
-		return 'op_0';
-	}
-
-	const opacity = 90 - Math.round((rowIndex * 90) / Math.max(1, visualRowCount - 1));
-
-	return `op_${Math.max(0, Math.round(opacity / 10) * 10)}`;
-}
 
 /*
  * Return the closest element matching a selector from a browser event target.
@@ -447,11 +428,11 @@ function getVerticalDataTableDesignerEmptyUICell(cellKey: string, contentClassNa
 function getVerticalDataTableDesignerRowLayout(params: {
 	canvasHeight: number;
 	rowIndex: number;
+	rowCount: number;
 	stickyHeaderHeight: number;
-	visualRowCount: number;
 }): VerticalDataTableDesignerRowLayout {
 	const rowTop = params.stickyHeaderHeight + params.rowIndex * SHEET_ROW_HEIGHT;
-	const hideBottomBorder = params.rowIndex === params.visualRowCount - 1;
+	const hideBottomBorder = params.rowIndex === params.rowCount - 1;
 	const rowHeight = hideBottomBorder ? Math.max(SHEET_ROW_HEIGHT, params.canvasHeight - rowTop) : SHEET_ROW_HEIGHT;
 
 	return {
@@ -514,12 +495,12 @@ function getVerticalDataTableDesignerVisibleRows(params: {
 	designCellsByKey: Map<string, VerticalDataTableDesignerRuntimeColumn>;
 	renderedRows: DataTableRowGQL[];
 	rowCellsById: Map<string, Map<string, DataTableCellGQL>>;
+	rowCount: number;
 	rowWidth: number;
 	stickyHeaderHeight: number;
 	timeZone?: string | null;
 	visibleColumns: SheetColumnMetric[];
 	visibleRange: ReturnType<typeof getSheetVisibleRange>;
-	visualRowCount: number;
 }): SheetUIRowSlot[] {
 	const visibleRowSlots: SheetUIRowSlot[] = [];
 
@@ -527,12 +508,11 @@ function getVerticalDataTableDesignerVisibleRows(params: {
 		const row = params.renderedRows[rowIndex];
 		const rowCellMap = row ? params.rowCellsById.get(row.id) : null;
 		const cellsByKey: Record<string, SheetUICell | undefined> = {};
-		const contentClassName = getVerticalDataTableDesignerPreviewRowContentClassName(rowIndex, params.visualRowCount);
 		const rowLayout = getVerticalDataTableDesignerRowLayout({
 			canvasHeight: params.canvasHeight,
 			rowIndex,
+			rowCount: params.rowCount,
 			stickyHeaderHeight: params.stickyHeaderHeight,
-			visualRowCount: params.visualRowCount,
 		});
 
 		params.visibleColumns.forEach((columnMetric) => {
@@ -542,7 +522,7 @@ function getVerticalDataTableDesignerVisibleRows(params: {
 			}
 
 			const uiCell = getVerticalDataTableDesignerVisibleUICell({
-				contentClassName,
+				contentClassName: '',
 				designCell,
 				row,
 				rowCellMap,
@@ -1015,12 +995,13 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 	const stickyHeaderHeight = SHEET_HEADER_HEIGHT + SHEET_STICKY_SPACER_SIZE;
 	const viewportHeight = scrollElement.size.height || stickyHeaderHeight + SHEET_ROW_HEIGHT * 20;
 	const viewportWidth = scrollElement.size.width || 5 * SHEET_COLUMN_WIDTH;
-	const visualRowCount = getVerticalDataTableDesignerVisualRowCount(viewportHeight, stickyHeaderHeight);
-	const visualRowsHeight = visualRowCount * SHEET_ROW_HEIGHT;
+	const viewportFillRowCount = Math.max(1, Math.floor((viewportHeight - stickyHeaderHeight) / SHEET_ROW_HEIGHT));
+	const rowCount = Math.max(viewportFillRowCount, renderedRows.length);
+	const rowsHeight = rowCount * SHEET_ROW_HEIGHT;
 	const totalWidth = VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH + columnMetricsData.totalWidth + VERTICAL_DATA_TABLE_DESIGNER_COLUMN_GAP_WIDTH + VERTICAL_DATA_TABLE_DESIGNER_ROW_RIGHT_PADDING;
 	const rowContentWidth = VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH + columnMetricsData.totalWidth + VERTICAL_DATA_TABLE_DESIGNER_COLUMN_GAP_WIDTH;
 	const stickyColumnEndLeft = VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH;
-	const totalHeight = stickyHeaderHeight + visualRowsHeight;
+	const totalHeight = stickyHeaderHeight + rowsHeight;
 	const canvasHeight = Math.max(totalHeight, viewportHeight);
 	const columnOffsetsWithGap = useMemo(() => {
 		return getVerticalDataTableDesignerColumnOffsetsWithGap(columnMetricsData.offsets);
@@ -1034,7 +1015,7 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			containerHeight: viewportHeight,
 			containerWidth: viewportWidth,
 			headerHeight: stickyHeaderHeight,
-			rowCount: visualRowCount,
+			rowCount,
 			rowHeaderWidth: VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH,
 			scrollLeft: scrollState.scrollLeft,
 			scrollTop: scrollState.scrollTop,
@@ -1043,13 +1024,13 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 		bufferColumns,
 		bufferRows,
 		columnOffsetsWithGap,
+		rowCount,
 		scrollState.scrollLeft,
 		scrollState.scrollTop,
 		stickyHeaderHeight,
 		uiColumns.length,
 		viewportHeight,
 		viewportWidth,
-		visualRowCount,
 	]);
 	const visibleColumns = useMemo(() => {
 		const nextVisibleColumns: SheetColumnMetric[] = [];
@@ -1070,12 +1051,12 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			designCellsByKey,
 			renderedRows,
 			rowCellsById,
+			rowCount,
 			rowWidth: Math.max(totalWidth, viewportWidth),
 			stickyHeaderHeight,
 			timeZone,
 			visibleColumns,
 			visibleRange,
-			visualRowCount,
 		});
 	}, [
 		designCellsByKey,
@@ -1084,11 +1065,11 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 		canvasHeight,
 		stickyHeaderHeight,
 		timeZone,
+		rowCount,
 		totalWidth,
 		viewportWidth,
 		visibleColumns,
 		visibleRange,
-		visualRowCount,
 	]);
 
 	columnReorderRuntimeRef.current = {
@@ -1450,8 +1431,9 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 	}, [columnReorderVisualState, scrollState.scrollLeft, visibleColumnKeys]);
 
 	return <div
-		className={cn('v_stretch h_f w_f max_w_f rel bg no_shrink', className)}
+		className={cn('v_stretch h_f w_f max_w_f rel bg', className)}
 		data-table-designer='true'
+		style={VERTICAL_DATA_TABLE_DESIGNER_FILL_STYLE}
 		onClickCapture={onClickCapture}
 		onPointerDownCapture={onPointerDownCapture}
 	>
@@ -1459,7 +1441,7 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			canvasClassName='bg pattern_stripes active_bf'
 			canvasHeight={canvasHeight}
 			canvasWidth={Math.max(totalWidth, viewportWidth)}
-			cellCount={visualRowCount * uiColumns.length}
+			cellCount={rowCount * uiColumns.length}
 			className='f'
 			columnReorderDrag={columnReorderDrag}
 			columnReorderDisplacements={columnReorderDisplacements}
@@ -1478,19 +1460,16 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			resizeGuide={resizeGuide}
 			rowHeaderWidth={VERTICAL_DATA_TABLE_DESIGNER_ROW_HEADER_WIDTH}
 			rows={visibleRows}
-			scrollClassName='hide_y'
 			// NOTE: You will need to put .bd_t_1.bd_lt here if you want to bring back the formula bar for this module.
-			// scrollClassName='hide_y bd_t_1 bd_lt'
-			scrollFill={false}
+			// scrollClassName='bd_t_1 bd_lt'
 			scrollLeft={scrollState.scrollLeft}
 			scrollRef={scrollElement.ref}
-			scrollStyle={{
-				height: children ? `calc(100% - ${VERTICAL_DATA_TABLE_DESIGNER_CONTENT_HEADER_HEIGHT}px)` : '100%',
-			}}
+			scrollStyle={VERTICAL_DATA_TABLE_DESIGNER_FILL_STYLE}
 			selectedCellKeyMap={null}
 			selectedCellState={selectedCellState}
 			sheetSurfaceHeight={canvasHeight}
 			sheetSurfaceTop={0}
+			style={VERTICAL_DATA_TABLE_DESIGNER_FILL_STYLE}
 			hideStickyColumnSpacer
 			showRowNumbers={false}
 			stickyColumnEndLeft={stickyColumnEndLeft}

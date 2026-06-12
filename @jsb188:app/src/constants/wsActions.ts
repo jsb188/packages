@@ -17,6 +17,14 @@ const WS_ACTIONS = {
 	// Account
 	me: 'me:',
 	organization: 'org:',
+
+	// Sheet collaboration
+	sheet: 'sheet:',
+	sheet_join: 'sh_j',
+	sheet_leave: 'sh_l',
+	sheet_presence: 'sh_p',
+	sheet_selection: 'sh_s',
+	sheet_change: 'sh_c',
 };
 
 export default WS_ACTIONS;

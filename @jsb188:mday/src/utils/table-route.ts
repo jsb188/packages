@@ -2,9 +2,11 @@ export const TABLE_ROUTE_COLUMN_MIN_WIDTH = 50;
 export const TABLE_ROUTE_COLUMN_MAX_WIDTH = 800;
 
 export type TableRouteColumnWidths = Record<string, number>;
+export type TableRouteColumnOrder = string[];
 
 export interface OrganizationRouteSettingsObj {
 	columnWidths?: TableRouteColumnWidths | null;
+	columnOrder?: TableRouteColumnOrder | null;
 }
 
 /*
@@ -92,6 +94,62 @@ export function getTableRouteColumnWidthStrings(widths: TableRouteColumnWidths |
 }
 
 /*
+ * Return a unique ordered column key list from GraphQL route settings values.
+ */
+export function getTableRouteColumnOrderFromStrings(values: string[] | null | undefined) {
+	if (!Array.isArray(values)) {
+		return [];
+	}
+
+	const seenColumnKeys = new Set<string>();
+
+	return values.reduce((acc, value) => {
+		const columnKey = String(value || '');
+
+		if (!isValidTableRouteColumnSettingsKey(columnKey) || seenColumnKeys.has(columnKey)) {
+			return acc;
+		}
+
+		seenColumnKeys.add(columnKey);
+		acc.push(columnKey);
+		return acc;
+	}, [] as TableRouteColumnOrder);
+}
+
+/*
+ * Convert an ordered column key list into GraphQL OrgRoute order strings.
+ */
+export function getTableRouteColumnOrderStrings(columnOrder: TableRouteColumnOrder | null | undefined) {
+	return getTableRouteColumnOrderFromStrings(columnOrder);
+}
+
+/*
+ * Return a complete column order from saved keys and the current table design keys.
+ */
+export function getTableRouteColumnOrderFromColumnKeys(columnKeys: string[], columnOrder: TableRouteColumnOrder | null | undefined) {
+	const validColumnKeys = columnKeys.filter(isValidTableRouteColumnSettingsKey);
+	const validColumnKeySet = new Set(validColumnKeys);
+	const seenColumnKeys = new Set<string>();
+	const orderedColumnKeys = getTableRouteColumnOrderFromStrings(columnOrder).reduce((acc, columnKey) => {
+		if (!validColumnKeySet.has(columnKey) || seenColumnKeys.has(columnKey)) {
+			return acc;
+		}
+
+		seenColumnKeys.add(columnKey);
+		acc.push(columnKey);
+		return acc;
+	}, [] as TableRouteColumnOrder);
+
+	validColumnKeys.forEach((columnKey) => {
+		if (!seenColumnKeys.has(columnKey)) {
+			orderedColumnKeys.push(columnKey);
+		}
+	});
+
+	return orderedColumnKeys;
+}
+
+/*
  * Convert a settings routes object into one GraphQL-friendly route settings list.
  */
 export function getOrganizationSettingsRoutesList(
@@ -106,6 +164,7 @@ export function getOrganizationSettingsRoutesList(
 		.map(([routeId, route]) => ({
 			routeId,
 			columnWidths: route?.columnWidths || {},
+			columnOrder: getTableRouteColumnOrderStrings(route?.columnOrder),
 		}));
 }
 
@@ -119,6 +178,18 @@ export function getTableRouteColumnWidthsFromSettingsRoutes(
 	const route = routes?.find((item) => getTableRouteIdFromOrgRouteCursor(item?.id) === routeId);
 
 	return getTableRouteColumnWidthsFromStrings(route?.columnWidths);
+}
+
+/*
+ * Return route column order from GraphQL OrganizationSettings.routes data.
+ */
+export function getTableRouteColumnOrderFromSettingsRoutes(
+	routes: { id?: string | null; columnOrder?: string[] | null }[] | null | undefined,
+	routeId: string,
+) {
+	const route = routes?.find((item) => getTableRouteIdFromOrgRouteCursor(item?.id) === routeId);
+
+	return getTableRouteColumnOrderFromStrings(route?.columnOrder);
 }
 
 /*

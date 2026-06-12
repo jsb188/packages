@@ -13,10 +13,12 @@ import { PopOverMoreButton } from '../PopOver';
 import type {
 	MapTableListOutput,
 	ReactiveFragmentFn,
+	TableColumnCells,
 	TableColumnElement,
 	TableListItemProps,
 	VZListItemObj,
 } from './types';
+import { getOrderedTableCellClassNames, getOrderedTableHeaders } from './order';
 
 /**
  * Compare table row props that affect rendered row output.
@@ -33,6 +35,7 @@ export function areTableListItemPropsEqual(prev: TableListItemProps, next: Table
 		prev.previousItem === next.previousItem &&
 		prev.removeLeftPadding === next.removeLeftPadding &&
 		prev.removeRightPadding === next.removeRightPadding &&
+		prev.sourceColumns === next.sourceColumns &&
 		prev.tableDesign === next.tableDesign &&
 		prev.trowClassName === next.trowClassName
 	);
@@ -190,10 +193,26 @@ function renderFullWidthTableContent(key: string, children: ReactNode, columnCou
 }
 
 /**
+ * Return a source-positioned row cell for one rendered column.
+ */
+function getRowColumnCell(p: {
+	columnIndex: number;
+	columnKey: string;
+	rowCells?: TableColumnCells;
+	rowColumns?: TableColumnElement[];
+	sourceIndexByColumnKey: Map<string, number>;
+}) {
+	const { columnIndex, columnKey, rowCells, rowColumns, sourceIndexByColumnKey } = p;
+	const sourceIndex = sourceIndexByColumnKey.get(columnKey);
+
+	return rowCells?.[columnKey] ?? rowColumns?.[sourceIndex ?? columnIndex] ?? null;
+}
+
+/**
  * Render one item from a route table as one or more grid table rows.
  */
 export const TableListItem = memo((p: TableListItemProps) => {
-	const { disableOnClickRow, item, i, mapListData, nextItem, previousItem, tableDesign, trowClassName, removeLeftPadding, removeRightPadding, onClickRow } = p;
+	const { disableOnClickRow, item, i, mapListData, nextItem, previousItem, sourceColumns: sourceColumnsProp, tableDesign, trowClassName, removeLeftPadding, removeRightPadding, onClickRow } = p;
 	const navigate = useNavigate();
 	const list = useMemo(() => {
 		const rowList: VZListItemObj[] = [];
@@ -220,9 +239,17 @@ export const TableListItem = memo((p: TableListItemProps) => {
 		return null;
 	}
 
-	const cellClassNames = rowData.cellClassNames || p.cellClassNames;
+	const sourceColumns = sourceColumnsProp || columns;
+	const sourceIndexByColumnKey = new Map(sourceColumns.map((column, index) => [column.key, index]));
+	const cellClassNames = getOrderedTableCellClassNames(rowData.cellClassNames || p.cellClassNames, sourceColumns, columns);
 	const rowColumns = columns.length
-		? columns.map((column, j) => rowData.cells?.[column.key] ?? rowData.columns?.[j] ?? null)
+		? columns.map((column, j) => getRowColumnCell({
+			columnIndex: j,
+			columnKey: column.key,
+			rowCells: rowData.cells,
+			rowColumns: rowData.columns,
+			sourceIndexByColumnKey,
+		}))
 		: rowData.columns || [];
 	const actionCell = rowData.cells?.actions ?? getTableActionsCell(rowData);
 	const showColumnDividers = Boolean(tableDesign?.dividers?.columns);
@@ -250,7 +277,7 @@ export const TableListItem = memo((p: TableListItemProps) => {
 				addHorizontalPadding
 				className={trowClassName}
 				columns={columns}
-				headers={rowData.rowHeaders}
+				headers={getOrderedTableHeaders(rowData.rowHeaders, sourceColumns, columns)}
 				removeLeftPadding={removeLeftPadding}
 				removeRightPadding={removeRightPadding}
 				showColumnDividers={showColumnDividers}
@@ -301,10 +328,15 @@ export const TableListItem = memo((p: TableListItemProps) => {
 					clickable={Boolean(onClickRow && !disableOnClickRow)}
 					onClick={onClickRow && !disableOnClickRow ? onClickSubRow : undefined}
 				>
-					{subRowItem.columns.map((cell: TableColumnElement, columnIndex: number) => renderDataCell({
-						cell,
+					{columns.map((column, columnIndex) => renderDataCell({
+						cell: getRowColumnCell({
+							columnIndex,
+							columnKey: column.key,
+							rowColumns: subRowItem.columns,
+							sourceIndexByColumnKey,
+						}),
 						cellClassNames,
-						column: columns[columnIndex],
+						column,
 						columnCount,
 						columnIndex,
 						removeLeftPadding,

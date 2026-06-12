@@ -9,7 +9,8 @@
     "./utils/route": "./src/utils/route-helpers.ts",
     "./utils/log-web": "./src/utils/log-web.ts",
     "./utils/org-web": "./src/utils/org-web.ts",
-    "./utils/workflow-web": "./src/utils/workflow-web.ts"
+    "./utils/workflow-web": "./src/utils/workflow-web.ts",
+    "./modules/RouteShell": "./src/modules/RouteShell.tsx"
   },
   "dependencies": {},
   "peerDependencies": {

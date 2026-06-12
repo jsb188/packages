@@ -1,8 +1,8 @@
-import type { SheetGridViewportVariables } from '@jsb188/graphql/hooks/use-sheet-qry';
 import type { SheetCellGQL } from '@jsb188/mday/types/sheet.d.ts';
 import { atom } from 'jotai';
 import type { SheetCanvasResizeState, SheetCanvasRowResizeState } from '../modules/SheetController.tsx';
-import type { SheetLoadedGridState } from '../libs/sheet-utils.ts';
+import type { SheetPendingCellEdit, SheetRemotePendingCell } from '../libs/sheet-cell-store.ts';
+import { getSheetRenderCellsByCoord } from '../libs/sheet-cell-store.ts';
 import { createGridStateAtoms } from './grid-state.tsx';
 
 export type SheetHeaderSelectionState =
@@ -20,15 +20,26 @@ export type SheetHeaderSelectionState =
  */
 export function createSheetStateAtoms() {
 	const gridAtoms = createGridStateAtoms();
+	const confirmedCellsByCoordAtom = atom<Map<string, SheetCellGQL>>(new Map());
+	const pendingCellEditsByCoordAtom = atom<Map<string, SheetPendingCellEdit>>(new Map());
+	const remotePendingCellsByCoordAtom = atom<Map<string, SheetRemotePendingCell>>(new Map());
 
 	return {
 		...gridAtoms,
-		gridViewportAtom: atom<SheetGridViewportVariables | null>(null),
+		confirmedCellsByCoordAtom,
 		headerSelectionAtom: atom<SheetHeaderSelectionState | null>(null),
-		loadedGridStateAtom: atom<SheetLoadedGridState | null>(null),
 		localColumnWidthsAtom: atom<Record<string, number>>({}),
 		localRowHeightsAtom: atom<Record<string, number>>({}),
-		optimisticCellsByCoordAtom: atom<Map<string, SheetCellGQL>>(new Map()),
+		pendingCellEditsByCoordAtom,
+		remotePendingCellsByCoordAtom,
+		// Derived overlay: confirmed < remote-pending < own-pending previews
+		renderCellsByCoordAtom: atom((get) =>
+			getSheetRenderCellsByCoord(
+				get(confirmedCellsByCoordAtom),
+				get(pendingCellEditsByCoordAtom),
+				get(remotePendingCellsByCoordAtom),
+			)
+		),
 		resizeStateAtom: atom<SheetCanvasResizeState | null>(null),
 		rowResizeStateAtom: atom<SheetCanvasRowResizeState | null>(null),
 	};

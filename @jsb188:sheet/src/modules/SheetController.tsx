@@ -4,7 +4,7 @@ import {
 	SHEET_CUSTOM_REGION_SOURCE_CHILD_ORGANIZATIONS,
 	SHEET_DATA_TABLE_REGION_MAX_ROWS,
 } from '@jsb188/mday/constants/sheet.ts';
-import {
+import { sheetMergedRangesIntersect, addSheetMergedRange, getSheetMergedRangeAtCell, getSheetMergedRanges, isSheetCellInMergedRange, isSheetMergedRangeAnchor, removeSheetMergedRangesIntersecting,
 	getSheetRegionSourceDataTableRoute,
 	getSheetRegionSourceId,
 	isSheetGeneratedRegionSource,
@@ -17,10 +17,9 @@ import type {
   DataTableRowGQL,
 } from '@jsb188/mday/types/dataTable.d.ts';
 import type { OrganizationOperationEnum } from '@jsb188/mday/types/organization.d.ts';
-import type {
+import type { SheetMergedRangeObj,
   SheetCellGQL,
   SheetDesignObj,
-  SheetFormulaReferenceObj,
   SheetRangeGQL,
   SheetRegionGQL,
   SheetStructureOperationEnum,
@@ -51,13 +50,13 @@ import {
 } from '@jsb188/react-web/ui/SheetUI';
 import { copyTextToClipboard } from '@jsb188/react-web/utils/dom';
 import { useKeyDown, useOpenModalPopUp } from '@jsb188/react/states';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
 import { SheetCanvasSurface } from './SheetCanvasSurface.tsx';
 import { SheetColorPicker } from './SheetColorPicker.tsx';
 import { SheetEditorOverlay, type SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
 import { SheetFormulaInput } from './SheetFormulaInput.tsx';
-import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuFormatName, type SheetContextMenuStructureAction, type SheetContextMenuTarget } from '../libs/SheetContextMenu.tsx';
+import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuFormatName, type SheetContextMenuMergeMode, type SheetContextMenuStructureAction, type SheetContextMenuTarget } from '../libs/SheetContextMenu.tsx';
 import { parseGridClipboardText } from '../libs/grid-clipboard.ts';
 import {
 	dismissGridContextMenuOnPointerDown,
@@ -100,7 +99,6 @@ import {
 	type SheetUndoRedoEntry,
 } from '../libs/sheet-history.ts';
 import {
-	getSheetFormulaCalculationCellsByCoord,
 	getSheetOptimisticCellEditTransition,
 } from '../libs/sheet-local-state.ts';
 import {
@@ -110,11 +108,18 @@ import {
 	useGridElementSize,
 } from '../libs/grid-runtime.ts';
 import {
-	getSheetCellsWithOptimisticDataTableValues,
+	getDataTableCellFieldsFromSheetSourceMeta,
+	getSheetCellDataTableSourceKey,
+	getSheetCellValueFieldsFromDataTableOptimisticValue,
+	getSheetDataTableDesignCellsByTableId,
 	getSheetDataTableSourceCellKey,
 	getSourceDataTableCellsByTargetKey,
-	useSheetDataTableOptimisticValues,
-} from '../libs/use-sheet-dataTable-optimistic-values.ts';
+} from '../libs/sheet-dataTable-preview.ts';
+import {
+	getSheetPendingEditDataTableSourceKey,
+	type SheetCellSaveEntry,
+	type SheetDataTableCellSaveEdit,
+} from '../libs/use-sheet-cell-saves.ts';
 import {
   getSheetCanvasColumnDisplayLeft,
   getSheetCanvasColumnDisplayRight,
@@ -133,6 +138,7 @@ import {
   getOrderedGridSelectedCells,
 } from '../libs/grid-selection.ts';
 import {
+	getSheetRegionGridRect,
   getSheetCanvasCell,
   getSheetCanvasCellDisplayValue,
   getSheetCanvasCellDraftValue,
@@ -150,7 +156,6 @@ import {
   getSheetCanvasStyleFontSize,
   isSheetCanvasFormattedEmptyCell,
   parseSheetJSONObject,
-  SHEET_CANVAS_FETCH_BUFFER_ROWS,
   SHEET_CANVAS_INITIAL_ROW_COUNT,
   sheetCanvasStyleHasContent,
   type SheetCanvasCell,
@@ -160,6 +165,8 @@ import {
 	type SheetHeaderSelectionState,
 	type SheetStateAtoms,
 } from '../libs/sheet-state.ts';
+import type { SheetPresenceRosterEntry, SheetRemoteSelection } from '../libs/sheet-collab.ts';
+import SheetPresenceRoster from '../ui/SheetPresenceRoster.tsx';
 import type { SetFloatingMessage } from '@jsb188/react-web/modules/Layout';
 import { DataTableInboundContactEditor } from './DataTable-InboundContact.tsx';
 import { DataTableSiteLocationEditor } from './DataTable-SiteLocation.tsx';
@@ -180,11 +187,11 @@ import {
 	hasDataTableCellRelatedId,
 	handleDataTableRelatedDocumentCellEdit,
 	isDataTableDateEditorFieldType,
-	isDataTableInboundContactIdLookup,
+	isDataTableInboundContactOpenLookup,
 	isDataTableLocalEditorFieldType,
 	isDataTableOrganizationProfileLookup,
 	isDataTableReferenceCell,
-	isDataTableSiteLocationIdLookup,
+	isDataTableSiteLocationOpenLookup,
 	isSheetSelectEditorFieldType,
 	parseSheetEditorValue,
 	type DataTableCellLookup,
@@ -217,11 +224,6 @@ export type SheetInsertViewTableRequest = {
 	regionId?: string | null;
 	startColumnIndex: number;
 	startRowIndex: number;
-};
-
-type SheetViewportRequest = {
-	columnCount: number;
-	startColumnIndex: number;
 };
 
 type SheetClearSelectedCellsOptions = {
@@ -258,47 +260,39 @@ function isSameSheetSelectedCellState(left?: SheetUISelectedCellState | null, ri
 	return Boolean(left && right && left.cellKey === right.cellKey && left.rowId === right.rowId);
 }
 
-/*
- * Return whether two viewport requests ask for the same column window.
- */
-function sheetViewportRequestsAreEqual(a?: SheetViewportRequest | null, b?: SheetViewportRequest | null) {
-	return a?.columnCount === b?.columnCount &&
-		a?.startColumnIndex === b?.startColumnIndex;
-}
-
 type SheetControllerProps = {
 	bufferColumns?: number;
 	bufferRows?: number;
-	canFetchMoreRows: boolean;
 	cellsByCoord: Map<string, SheetCellGQL>;
 	children?: ReactNode;
 	className?: string;
 	dataTables?: DataTableGQL[] | null;
 	design: SheetDesignObj;
 	disabled?: boolean;
-	formulaDependencyCellsByCoord?: Map<string, SheetCellGQL> | null;
-	formulaReferencesById?: Map<string, SheetFormulaReferenceObj> | null;
-	hasMoreRows: boolean;
 	loadedRowCount: number;
 	operation?: OrganizationOperationEnum | null;
-	onFetchMoreRows: () => Promise<void> | void;
 	onEditSheetStructure?: (operation: SheetStructureOperationEnum, index: number) => Promise<unknown> | unknown;
 	onOpenDataTable?: (route: string) => void;
 	onOpenDataTableCellLink?: (params: DataTableOpenCellParams) => void;
 	onOpenOrganizationProfile?: (childId: string) => void;
 	onPopulateFromDataTable?: (request: SheetInsertViewTableRequest) => void;
 	onRemoveDataTableRegion?: (regionId: string, options?: { skipConfirmation?: boolean }) => Promise<unknown> | unknown;
-	onSaveDataTableCells: (params: {
-		cells: Array<{
-			cellKey: string;
-			dataTableRowId: string;
-			value: string | null;
-		}>;
-		dataTableId: string;
-	}) => Promise<unknown> | unknown;
-	onSaveCells: (cells: SheetCellEditInput[]) => Promise<unknown> | unknown;
+	/* Relays instant pending previews to peer viewers */
+	onBroadcastCellEdits?: (previews: Array<{ coordKey: string; previewCell: SheetCellGQL }>) => void;
+	onClearDataTablePendingEdits: (sourceKey: string) => void;
+	onSaveDataTableCellEdits: (edits: SheetDataTableCellSaveEdit[]) => void;
+	onSaveCells: (entries: SheetCellSaveEntry[]) => Promise<unknown> | unknown;
+	/* Region areas whose materialized cells are still loading from the server */
+	loadingRegionRects?: Array<{
+		startRowIndex: number;
+		startColumnIndex: number;
+		endRowIndex: number;
+		endColumnIndex: number;
+	}> | null;
+	presenceRoster?: SheetPresenceRosterEntry[] | null;
+	remoteSelections?: SheetRemoteSelection[] | null;
 	onUpdateSheetDesign: (design: SheetDesignPatchInput) => Promise<unknown> | unknown;
-	onViewportRequest: (viewport: SheetViewportRequest) => void;
+	organizationId?: string | null;
 	ranges: SheetRangeGQL[];
 	regions?: SheetRegionGQL[] | null;
 	setFloatingMessage?: SetFloatingMessage;
@@ -553,20 +547,6 @@ function isSheetDataTableRegionCellWithoutEditTarget(
 }
 
 /*
- * Return DataTable design cells indexed by table id and source cell key for Sheet-region lookups.
- */
-function getSheetDataTableDesignCellsByTableId(dataTables?: DataTableGQL[] | null) {
-	return new Map((dataTables || []).map((dataTable) => {
-		return [
-			String(dataTable.id || ''),
-			new Map((dataTable.design?.cells || []).map((cell) => {
-				return [cell.key, cell as DataTableRuntimeDesignCell];
-			})),
-		];
-	}));
-}
-
-/*
  * Build a minimal DataTable cell object from one generated Sheet cell.
  */
 function getDataTableCellFromGeneratedSheetCell(
@@ -586,10 +566,7 @@ function getDataTableCellFromGeneratedSheetCell(
 		booleanValue: cell.booleanValue ?? null,
 		dateValue: cell.dateValue ?? null,
 		datetimeValue: cell.datetimeValue ?? null,
-		relatedTable: null,
-		relatedId: null,
-		reference: null,
-		referenceStatus: null,
+		...getDataTableCellFieldsFromSheetSourceMeta(cell),
 		createdAt: cell.createdAt || '',
 		updatedAt: cell.updatedAt || '',
 	};
@@ -733,8 +710,8 @@ function canStartSheetFormulaInputEditTarget(target: SheetDataTableCellEditTarge
 
 	return canEditSheetDataTableCellTarget(target, disabled) &&
 		!isDataTableLocalEditorFieldType(fieldType) &&
-		!isDataTableInboundContactIdLookup(target.lookup) &&
-		!isDataTableSiteLocationIdLookup(target.lookup) &&
+		!isDataTableInboundContactOpenLookup(target.lookup) &&
+		!isDataTableSiteLocationOpenLookup(target.lookup) &&
 		!isSheetDataTableRelatedDocumentFormulaEditBlocked(target);
 }
 
@@ -1270,6 +1247,7 @@ function getSheetCanvasEditorPosition(params: {
 	columnMetricsByKey: Map<string, SheetColumnMetric>;
 	columnMetrics?: SheetColumnMetric[] | null;
 	editState?: SheetUIEditState | null;
+	mergedRanges?: SheetMergedRangeObj[] | null;
 	rowMetricsByKey: Map<string, SheetRowMetric>;
 	scrollLeft: number;
 	scrollTop: number;
@@ -1286,12 +1264,30 @@ function getSheetCanvasEditorPosition(params: {
 		return null;
 	}
 
+	// Editing a merge anchor spans the editor over the whole merged area
+	const editRowIndex = Math.floor(Number(params.editState.rowId || 0));
+	const editColumnIndex = Math.floor(Number(params.editState.cellKey || 0));
+	const merge = params.mergedRanges?.length && editRowIndex && editColumnIndex
+		? getSheetMergedRangeAtCell(params.mergedRanges, editRowIndex, editColumnIndex)
+		: null;
+
+	let mergeWidth = 0;
+	let mergeHeight = 0;
+	if (merge) {
+		for (let columnIndex = merge.startColumnIndex; columnIndex <= merge.endColumnIndex; columnIndex += 1) {
+			mergeWidth += params.columnMetricsByKey.get(String(columnIndex))?.width || 0;
+		}
+		for (let rowIndex = merge.startRowIndex; rowIndex <= merge.endRowIndex; rowIndex += 1) {
+			mergeHeight += params.rowMetricsByKey.get(String(rowIndex))?.height || 0;
+		}
+	}
+
 	return {
 		fontSize: getSheetCanvasEditorFontSize(params.cellLookup?.get(getSheetCellKey(params.editState.rowId, params.editState.cellKey))),
-		height: rowMetric.height,
+		height: merge && mergeHeight ? mergeHeight : rowMetric.height,
 		left: getSheetCanvasColumnDisplayLeft(columnMetric, params.scrollLeft, params.stickyColumnCount),
 		top: getSheetCanvasRowDisplayTop(rowMetric, params.scrollTop),
-		width: getSheetCanvasEditorOverflowWidth({
+		width: merge && mergeWidth ? mergeWidth : getSheetCanvasEditorOverflowWidth({
 			cellLookup: params.cellLookup,
 			columnMetric,
 			columnMetrics: params.columnMetrics,
@@ -1584,6 +1580,93 @@ function restoreSheetCanvasBodyCursor(previousCursor: string) {
 }
 
 /*
+ * Return the one-based bounds of one selected-cells list, or null.
+ */
+function getSheetSelectedCellsBounds(cells: Array<{ cellKey: string; rowId: string }>): SheetMergedRangeObj | null {
+	let startRowIndex = 0;
+	let endRowIndex = 0;
+	let startColumnIndex = 0;
+	let endColumnIndex = 0;
+
+	cells.forEach((cell) => {
+		const rowIndex = Math.floor(Number(cell.rowId || 0));
+		const columnIndex = Math.floor(Number(cell.cellKey || 0));
+		if (!rowIndex || !columnIndex) {
+			return;
+		}
+
+		startRowIndex = startRowIndex ? Math.min(startRowIndex, rowIndex) : rowIndex;
+		endRowIndex = Math.max(endRowIndex, rowIndex);
+		startColumnIndex = startColumnIndex ? Math.min(startColumnIndex, columnIndex) : columnIndex;
+		endColumnIndex = Math.max(endColumnIndex, columnIndex);
+	});
+
+	if (!startRowIndex || !startColumnIndex) {
+		return null;
+	}
+
+	return { startRowIndex, startColumnIndex, endRowIndex, endColumnIndex };
+}
+
+/*
+ * Return the merge ranges to add for the requested merge mode.
+ */
+function getSheetMergeRangesForMode(bounds: SheetMergedRangeObj, mode: SheetContextMenuMergeMode): SheetMergedRangeObj[] {
+	if (mode === 'all') {
+		return [bounds];
+	}
+
+	if (mode === 'vertical') {
+		if (bounds.endRowIndex <= bounds.startRowIndex) {
+			return [];
+		}
+
+		const ranges: SheetMergedRangeObj[] = [];
+		for (let columnIndex = bounds.startColumnIndex; columnIndex <= bounds.endColumnIndex; columnIndex++) {
+			ranges.push({
+				startRowIndex: bounds.startRowIndex,
+				startColumnIndex: columnIndex,
+				endRowIndex: bounds.endRowIndex,
+				endColumnIndex: columnIndex,
+			});
+		}
+
+		return ranges;
+	}
+
+	if (bounds.endColumnIndex <= bounds.startColumnIndex) {
+		return [];
+	}
+
+	const ranges: SheetMergedRangeObj[] = [];
+	for (let rowIndex = bounds.startRowIndex; rowIndex <= bounds.endRowIndex; rowIndex++) {
+		ranges.push({
+			startRowIndex: rowIndex,
+			startColumnIndex: bounds.startColumnIndex,
+			endRowIndex: rowIndex,
+			endColumnIndex: bounds.endColumnIndex,
+		});
+	}
+
+	return ranges;
+}
+
+/*
+ * Return whether a merge action can run for the context-menu target.
+ */
+function canApplySheetContextMenuMergeMode(target: SheetContextMenuTarget, mode: SheetContextMenuMergeMode) {
+	if (mode === 'all') {
+		return target.canMergeCellsAll ?? target.canMergeCells ?? false;
+	}
+
+	if (mode === 'vertical') {
+		return target.canMergeCellsVertically ?? false;
+	}
+
+	return target.canMergeCellsHorizontally ?? false;
+}
+
+/*
  * Return the cell target used by the Sheet context menu.
  */
 function getSheetCanvasContextMenuTarget(params: {
@@ -1594,6 +1677,7 @@ function getSheetCanvasContextMenuTarget(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	disabled?: boolean;
 	effectiveCellsByCoord: Map<string, SheetCellGQL>;
+	mergedRanges?: SheetMergedRangeObj[] | null;
 	regions?: SheetRegionGQL[] | null;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
@@ -1631,11 +1715,46 @@ function getSheetCanvasContextMenuTarget(params: {
 			!sourceCell.region?.sourceCellKey;
 	});
 	const canModifySheet = !params.disabled;
+	const mergeBounds = getSheetSelectedCellsBounds(selectedCells);
+	const mergeBoundsIntersectRegion = Boolean(
+		mergeBounds &&
+			(params.regions || []).some((region) => {
+				const regionRect = getSheetRegionGridRect(region);
+				return Boolean(
+					regionRect &&
+						regionRect.startRowIndex <= mergeBounds.endRowIndex &&
+						regionRect.endRowIndex >= mergeBounds.startRowIndex &&
+						regionRect.startColumnIndex <= mergeBounds.endColumnIndex &&
+						regionRect.endColumnIndex >= mergeBounds.startColumnIndex,
+				);
+			}),
+	);
+	const mergeBoundsSpanMultipleCells = Boolean(
+		mergeBounds &&
+			(mergeBounds.endRowIndex > mergeBounds.startRowIndex || mergeBounds.endColumnIndex > mergeBounds.startColumnIndex),
+	);
+	const mergeBoundsSpanMultipleRows = Boolean(
+		mergeBounds &&
+			mergeBounds.endRowIndex > mergeBounds.startRowIndex,
+	);
+	const mergeBoundsSpanMultipleColumns = Boolean(
+		mergeBounds &&
+			mergeBounds.endColumnIndex > mergeBounds.startColumnIndex,
+	);
+	const canMergeSelection = canModifySheet && !mergeBoundsIntersectRegion;
 
 	return {
 		canEdit: canModifySheet && !containsEmptyDataTableRegionCell,
 		canEditStructure: canModifySheet,
 		canFormatCells: canModifySheet,
+		canMergeCells: canMergeSelection && mergeBoundsSpanMultipleCells,
+		canMergeCellsAll: canMergeSelection && mergeBoundsSpanMultipleCells,
+		canMergeCellsHorizontally: canMergeSelection && mergeBoundsSpanMultipleColumns,
+		canMergeCellsVertically: canMergeSelection && mergeBoundsSpanMultipleRows,
+		canUnmergeCells: canModifySheet && Boolean(
+			mergeBounds &&
+				(params.mergedRanges || []).some((merge) => sheetMergedRangesIntersect(merge, mergeBounds)),
+		),
 		canOpenDataTable: params.canOpenDataTable && Boolean(dataTableRoute),
 		canPopulateFromDataTable: params.canPopulateFromDataTable,
 		canRemoveCellsFromDataTable: params.canRemoveCellsFromDataTable,
@@ -1775,12 +1894,38 @@ export function SheetController(p: SheetControllerProps) {
 	const [selectedCellKeyMap, setSelectedCellKeyMap] = useAtom(p.stateAtoms.selectedCellKeyMapAtom);
 	const [headerSelection, setHeaderSelection] = useAtom(p.stateAtoms.headerSelectionAtom);
 	const [editState, setEditState] = useAtom(p.stateAtoms.editStateAtom);
-	const [optimisticCellsByCoord, setOptimisticCellsByCoord] = useAtom(p.stateAtoms.optimisticCellsByCoordAtom);
-	const optimisticCellsByCoordRef = useRef(optimisticCellsByCoord);
+	const pendingCellEdits = useAtomValue(p.stateAtoms.pendingCellEditsByCoordAtom);
+	const remotePendingCells = useAtomValue(p.stateAtoms.remotePendingCellsByCoordAtom);
+	const pendingPreviewCellsByCoord = useMemo(() => {
+		const next = new Map<string, SheetCellGQL>();
+		pendingCellEdits.forEach((pendingEdit, coordKey) => {
+			next.set(coordKey, pendingEdit.previewCell);
+		});
+		return next;
+	}, [pendingCellEdits]);
+	const pendingPreviewsRef = useRef(pendingPreviewCellsByCoord);
+	/*
+	 * Cells whose pending preview awaits a server-computed formula value get
+	 * the animated loading outline.
+	 */
+	const loadingCellCoords = useMemo(() => {
+		const coords: Array<{ rowIndex: number; columnIndex: number }> = [];
+		pendingCellEdits.forEach((pendingEdit) => {
+			const previewCell = pendingEdit.previewCell as SheetCellGQL & { __formulaLoading?: boolean };
+			const rowIndex = Math.floor(Number(previewCell.rowIndex || 0));
+			const columnIndex = Math.floor(Number(previewCell.columnIndex || 0));
+			if (previewCell.__formulaLoading && rowIndex && columnIndex) {
+				coords.push({ rowIndex, columnIndex });
+			}
+		});
+		return coords;
+	}, [pendingCellEdits]);
 	const [localColumnWidths, setLocalColumnWidths] = useAtom(p.stateAtoms.localColumnWidthsAtom);
 	const [localRowHeights, setLocalRowHeights] = useAtom(p.stateAtoms.localRowHeightsAtom);
 	const [resizeState, setResizeState] = useAtom(p.stateAtoms.resizeStateAtom);
 	const [rowResizeState, setRowResizeState] = useAtom(p.stateAtoms.rowResizeStateAtom);
+	const remoteSelections = p.remoteSelections;
+	const presenceRoster = p.presenceRoster || [];
 	const [hoveredCellState, setHoveredCellState] = useState<SheetUISelectedCellState | null>(null);
 	const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
 	const [formulaInputFocused, setFormulaInputFocused] = useState(false);
@@ -1788,14 +1933,12 @@ export function SheetController(p: SheetControllerProps) {
 	const dragSelectionRef = useRef<SheetCanvasDragSelectionState | null>(null);
 	const openedDataTableCellPointerDownRef = useRef<SheetUISelectedCellState | null>(null);
 	const colorPickerPointerDownInsideRef = useRef(false);
-	const fetchingMoreRef = useRef(false);
 	const designRef = useRef(p.design);
 	const localColumnWidthsRef = useRef(localColumnWidths);
 	const localRowHeightsRef = useRef(localRowHeights);
 	const onUpdateSheetDesignRef = useRef(p.onUpdateSheetDesign);
 	const resizeStateRef = useRef<SheetCanvasResizeState | null>(null);
 	const rowResizeStateRef = useRef<SheetCanvasRowResizeState | null>(null);
-	const viewportRequestRef = useRef<SheetViewportRequest | null>(null);
 	const committingEditorRef = useRef(false);
 	const {
 		pushUndoEntry: pushSheetUndoEntry,
@@ -1824,7 +1967,7 @@ export function SheetController(p: SheetControllerProps) {
 	} | null>(null);
 	const stickyColumnCount = Math.max(0, p.design.grid.frozenColumns || 0);
 
-	optimisticCellsByCoordRef.current = optimisticCellsByCoord;
+	pendingPreviewsRef.current = pendingPreviewCellsByCoord;
 	const rowCount = Math.max(
 		SHEET_CANVAS_INITIAL_ROW_COUNT,
 		Math.min(p.design.grid.rowCount, p.loadedRowCount || getSheetCanvasInitialRowCount(scrollElement.size.height, p.design.grid.rowCount)),
@@ -1876,14 +2019,22 @@ export function SheetController(p: SheetControllerProps) {
 		});
 	}, [bufferColumns, bufferRows, columnMetricsData.metrics.length, columnMetricsData.offsets, rowMetricsData.metrics.length, rowMetricsData.offsets, scrollState.scrollLeft, scrollState.scrollTop, viewportHeight, viewportWidth]);
 	const effectiveCellsByCoord = useMemo(() => {
+		if (!pendingCellEdits.size && !remotePendingCells.size) {
+			return p.cellsByCoord;
+		}
+
 		const next = new Map(p.cellsByCoord);
 
-		optimisticCellsByCoord.forEach((cell, key) => {
-			next.set(key, cell);
+		// Layering: confirmed < remote-pending < own-pending previews
+		remotePendingCells.forEach((remotePending, key) => {
+			next.set(key, remotePending.cell);
+		});
+		pendingCellEdits.forEach((pendingEdit, key) => {
+			next.set(key, pendingEdit.previewCell);
 		});
 
 		return next;
-	}, [optimisticCellsByCoord, p.cellsByCoord]);
+	}, [pendingCellEdits, p.cellsByCoord, remotePendingCells]);
 	const dataTablesById = useMemo(() => {
 		return getSheetDataTablesById(p.dataTables);
 	}, [p.dataTables]);
@@ -1896,33 +2047,125 @@ export function SheetController(p: SheetControllerProps) {
 	const regionsById = useMemo(() => {
 		return getSheetRegionsById(p.regions);
 	}, [p.regions]);
+	/*
+	 * Merged cell ranges: an optimistic local override gives instant feedback
+	 * for merge/unmerge actions until the saved design round-trips.
+	 */
+	const [optimisticMergedRanges, setOptimisticMergedRanges] = useState<SheetMergedRangeObj[] | null>(null);
+	const designMergedRanges = useMemo(() => {
+		return getSheetMergedRanges(p.design.metadata);
+	}, [p.design.metadata]);
+	const mergedRanges = optimisticMergedRanges || designMergedRanges;
+	const mergedRangesRef = useRef(mergedRanges);
+	mergedRangesRef.current = mergedRanges;
+
+	useEffect(() => {
+		// The saved design caught up to the optimistic merge state
+		if (optimisticMergedRanges && JSON.stringify(designMergedRanges) === JSON.stringify(optimisticMergedRanges)) {
+			setOptimisticMergedRanges(null);
+		}
+	}, [designMergedRanges, optimisticMergedRanges]);
+
+	useEffect(() => {
+		setOptimisticMergedRanges(null);
+	}, [p.sheetId]);
+
+	/*
+	 * Return one cell remapped to its merge anchor when it sits inside a
+	 * merged range; clicking or navigating into a merge targets the anchor.
+	 */
+	const remapSheetCellToMergeAnchor = useCallback((cell: SheetUISelectedCellState): SheetUISelectedCellState => {
+		const merges = mergedRangesRef.current;
+		if (!merges.length) {
+			return cell;
+		}
+
+		const rowIndex = Math.floor(Number(cell.rowId || 0));
+		const columnIndex = Math.floor(Number(cell.cellKey || 0));
+		const merge = rowIndex && columnIndex ? getSheetMergedRangeAtCell(merges, rowIndex, columnIndex) : null;
+		if (!merge || isSheetMergedRangeAnchor(merge, rowIndex, columnIndex)) {
+			return cell;
+		}
+
+		return {
+			cellKey: String(merge.startColumnIndex),
+			rowId: String(merge.startRowIndex),
+		};
+	}, []);
 	const sourceCellsByTargetKey = useMemo(() => {
 		return getSourceDataTableCellsByTargetKey(p.sourceDataTableCells);
 	}, [p.sourceDataTableCells]);
-	const {
-		applyChanges: applySheetDataTableCellChanges,
-		clearOptimisticValue: clearOptimisticDataTableValue,
-		optimisticValues: optimisticDataTableValues,
-	} = useSheetDataTableOptimisticValues({
-		designCellsByDataTableId,
-		onSaveDataTableCells: p.onSaveDataTableCells,
-		sheetId: p.sheetId,
-		sourceCellsByTargetKey,
-	});
-	const formulaCalculationCellsByCoord = useMemo(() => {
-		const formulaSourceCellsByCoord = getSheetCellsWithOptimisticDataTableValues({
-			cellsByCoord: effectiveCellsByCoord,
-			designCellsByDataTableId,
-			optimisticValues: optimisticDataTableValues,
-			regionsById,
-			sourceCellsByTargetKey,
+	/*
+	 * Pending DataTable values derived from the unified pending-edit store;
+	 * editor state and comparisons read the latest unsaved source value here.
+	 */
+	const optimisticDataTableValues = useMemo(() => {
+		const next: Record<string, string | null> = {};
+		pendingCellEdits.forEach((pendingEdit) => {
+			const sourceKey = getSheetPendingEditDataTableSourceKey(pendingEdit);
+			if (sourceKey) {
+				next[sourceKey] = pendingEdit.dataTableTarget?.value ?? null;
+			}
+		});
+		return next;
+	}, [pendingCellEdits]);
+
+	/*
+	 * Apply DataTable source cell changes: build instant previews for every
+	 * region coordinate mirroring each source cell and hand them to the
+	 * unified save queue. Used by editor commits and undo/redo.
+	 */
+	const applySheetDataTableCellChanges = useCallback(async (
+		changes: SheetDataTableCellHistoryChange[],
+		direction: 'after' | 'before',
+	) => {
+		if (!changes.length) {
+			return;
+		}
+
+		const edits = changes.flatMap((change) => {
+			const dataTableId = String(change.target.dataTable.id || '');
+			if (!dataTableId) {
+				return [];
+			}
+
+			const value = change[direction];
+			const sourceKey = getSheetDataTableSourceCellKey(dataTableId, change.target.sourceRowId, change.target.sourceCellKey);
+			const designCell = designCellsByDataTableId.get(dataTableId)?.get(change.target.sourceCellKey) ||
+				change.target.lookup.designCell || null;
+			const valueFields = getSheetCellValueFieldsFromDataTableOptimisticValue(value, designCell);
+			const previews: Array<{ coordKey: string; previewCell: SheetCellGQL }> = [];
+
+			p.cellsByCoord.forEach((cell, coordKey) => {
+				if (getSheetCellDataTableSourceKey(cell, regionsById) === sourceKey) {
+					previews.push({
+						coordKey,
+						previewCell: {
+							...cell,
+							...valueFields,
+						} as SheetCellGQL,
+					});
+				}
+			});
+
+			return [{
+				cellKey: change.target.sourceCellKey,
+				dataTableId,
+				dataTableRowId: change.target.sourceRowId,
+				organizationId: change.target.dataTable.organizationId || null,
+				previews,
+				target: change.target,
+				value,
+			}];
 		});
 
-		return getSheetFormulaCalculationCellsByCoord(
-			formulaSourceCellsByCoord,
-			p.formulaDependencyCellsByCoord,
-		);
-	}, [designCellsByDataTableId, effectiveCellsByCoord, optimisticDataTableValues, p.formulaDependencyCellsByCoord, regionsById, sourceCellsByTargetKey]);
+		p.onBroadcastCellEdits?.(edits.flatMap((edit) => edit.previews));
+		p.onSaveDataTableCellEdits(edits);
+	}, [designCellsByDataTableId, p.cellsByCoord, p.onBroadcastCellEdits, p.onSaveDataTableCellEdits, regionsById]);
+
+	const clearOptimisticDataTableValue = useCallback((sourceKey: string) => {
+		p.onClearDataTablePendingEdits(sourceKey);
+	}, [p.onClearDataTablePendingEdits]);
 	const calculatedCellsByCoord = useMemo(() => {
 		const next = new Map<string, SheetCellGQL>();
 
@@ -1934,14 +2177,13 @@ export function SheetController(p: SheetControllerProps) {
 
 			next.set(key, getClientCalculatedSheetFormulaCell({
 				cell,
-				cellsByCoord: formulaCalculationCellsByCoord,
-				referencesById: p.formulaReferencesById,
+				cellsByCoord: effectiveCellsByCoord,
 				timeZone: p.timeZone,
 			}));
 		});
 
 		return next;
-	}, [effectiveCellsByCoord, formulaCalculationCellsByCoord, p.formulaReferencesById, p.timeZone]);
+	}, [effectiveCellsByCoord, p.timeZone]);
 
 	const cellLookup = useMemo(() => {
 		const cells = new Map<string, SheetCanvasCell>();
@@ -2038,12 +2280,24 @@ export function SheetController(p: SheetControllerProps) {
 			columnMetricsByKey,
 			columnMetrics: columnMetricsData.metrics,
 			editState,
+			mergedRanges,
 			rowMetricsByKey,
 			scrollLeft: scrollState.scrollLeft,
 			scrollTop: scrollState.scrollTop,
 			stickyColumnCount,
 		});
-	}, [cellLookup, columnMetricsByKey, columnMetricsData.metrics, editState, rowMetricsByKey, scrollState.scrollLeft, scrollState.scrollTop, stickyColumnCount]);
+	}, [cellLookup, columnMetricsByKey, columnMetricsData.metrics, editState, mergedRanges, rowMetricsByKey, scrollState.scrollLeft, scrollState.scrollTop, stickyColumnCount]);
+	/*
+	 * The resolved style of the cell being edited (design + ranges + pending
+	 * preview), so the DOM editor mirrors the canvas cell instantly.
+	 */
+	const activeEditorCellStyle = useMemo(() => {
+		if (!editState) {
+			return null;
+		}
+
+		return cellLookup.get(getSheetCellKey(editState.rowId, editState.cellKey))?.style || null;
+	}, [cellLookup, editState]);
 	const colorPickerEditorPosition = useMemo(() => {
 		if (!colorPickerState) {
 			return null;
@@ -2085,15 +2339,15 @@ export function SheetController(p: SheetControllerProps) {
 			return null;
 		}
 
-		if (!isSheetSelectEditorFieldType(activeDataTableFieldType) && !isDataTableDateEditorFieldType(activeDataTableFieldType) && !isDataTableInboundContactIdLookup(activeDataTableEditTarget.lookup) && !isDataTableSiteLocationIdLookup(activeDataTableEditTarget.lookup)) {
+		if (!isSheetSelectEditorFieldType(activeDataTableFieldType) && !isDataTableDateEditorFieldType(activeDataTableFieldType) && !isDataTableInboundContactOpenLookup(activeDataTableEditTarget.lookup) && !isDataTableSiteLocationOpenLookup(activeDataTableEditTarget.lookup)) {
 			return null;
 		}
 
 		const width = isDataTableDateEditorFieldType(activeDataTableFieldType)
 			? DATA_TABLE_DATE_EDITOR_WIDTH
-			: isDataTableInboundContactIdLookup(activeDataTableEditTarget.lookup)
+			: isDataTableInboundContactOpenLookup(activeDataTableEditTarget.lookup)
 				? Math.max(editorPosition.width, DATA_TABLE_INBOUND_CONTACT_EDITOR_MIN_WIDTH)
-				: isDataTableSiteLocationIdLookup(activeDataTableEditTarget.lookup)
+				: isDataTableSiteLocationOpenLookup(activeDataTableEditTarget.lookup)
 					? Math.max(editorPosition.width, DATA_TABLE_SITE_LOCATION_EDITOR_MIN_WIDTH)
 					: undefined;
 
@@ -2395,44 +2649,11 @@ export function SheetController(p: SheetControllerProps) {
 		};
 	}, [scrollElement.node]);
 
-	useEffect(() => {
-		if (!viewportWidth || !viewportHeight) {
-			return;
-		}
-
-		const visibleColumns = columnMetricsData.metrics.slice(visibleRange.columnStart, visibleRange.columnEnd);
-		const firstColumn = visibleColumns[0]?.column as SheetCanvasColumn | undefined;
-		const lastColumn = visibleColumns.at(-1)?.column as SheetCanvasColumn | undefined;
-
-		if (!firstColumn || !lastColumn) {
-			return;
-		}
-
-		const nextViewportRequest = {
-			columnCount: Math.max(1, lastColumn.sheetColumnIndex - firstColumn.sheetColumnIndex + 1),
-			startColumnIndex: firstColumn.sheetColumnIndex,
-		};
-
-		if (sheetViewportRequestsAreEqual(viewportRequestRef.current, nextViewportRequest)) {
-			return;
-		}
-
-		viewportRequestRef.current = nextViewportRequest;
-		p.onViewportRequest(nextViewportRequest);
-	}, [columnMetricsData.metrics, p.onViewportRequest, visibleRange.columnEnd, visibleRange.columnStart, viewportHeight, viewportWidth]);
-
-	useEffect(() => {
-		const nearBottom = scrollState.scrollTop + viewportHeight >= totalHeight - SHEET_CANVAS_FETCH_BUFFER_ROWS * SHEET_ROW_HEIGHT;
-
-		if (!nearBottom || !p.canFetchMoreRows || !p.hasMoreRows || fetchingMoreRef.current) {
-			return;
-		}
-
-		fetchingMoreRef.current = true;
-		Promise.resolve(p.onFetchMoreRows()).finally(() => {
-			fetchingMoreRef.current = false;
-		});
-	}, [p.canFetchMoreRows, p.hasMoreRows, p.onFetchMoreRows, scrollState.scrollTop, totalHeight, viewportHeight]);
+	/*
+	 * The full sheet is loaded once through sheetView and held in memory, so
+	 * scrolling requires no viewport fetches: the canvas just redraws the
+	 * visible range from the in-memory cell map.
+	 */
 
 	const scrollCellIntoView = useCallback((cell: SheetUISelectedCellState) => {
 		const runtime = runtimeRef.current;
@@ -2476,14 +2697,16 @@ export function SheetController(p: SheetControllerProps) {
 		}
 	}, [editState?.cellKey, editState?.rowId, keepEditModeForDev]);
 
-	const selectSheetCell = useCallback((cell: SheetUISelectedCellState, selectedMap?: SheetUISelectedCellKeyMap | null) => {
+	const selectSheetCell = useCallback((cell_: SheetUISelectedCellState, selectedMap?: SheetUISelectedCellKeyMap | null) => {
+		const cell = remapSheetCellToMergeAnchor(cell_);
+
 		closeSheetCellEditorForSelection(cell);
 		setFormulaInputFocused(false);
 		setHeaderSelection(null);
 		setSelectedCellState(cell);
 		setSelectedCellKeyMap(selectedMap || getGridSelectedCellKeyMapFromCells([cell]));
 		scrollCellIntoView(cell);
-	}, [closeSheetCellEditorForSelection, scrollCellIntoView, setHeaderSelection]);
+	}, [closeSheetCellEditorForSelection, remapSheetCellToMergeAnchor, scrollCellIntoView, setHeaderSelection]);
 
 	/*
 	 * Select a rectangular cell range from the active cell to one target cell.
@@ -2512,7 +2735,8 @@ export function SheetController(p: SheetControllerProps) {
 		scrollCellIntoView(targetCell);
 	}, [closeSheetCellEditorForSelection, scrollCellIntoView, selectSheetCell, selectedCellState, setHeaderSelection]);
 
-	const openSheetCellEditor = useCallback((cell?: SheetUISelectedCellState | null, initialValue?: string, selectAllOnFocus = true) => {
+	const openSheetCellEditor = useCallback((cell_?: SheetUISelectedCellState | null, initialValue?: string, selectAllOnFocus = true) => {
+		const cell = cell_ ? remapSheetCellToMergeAnchor(cell_) : cell_;
 		const runtime = runtimeRef.current;
 		const targetCell = cell || selectedCellState;
 		const rowIndex = getSheetCanvasRowIndexFromId(targetCell?.rowId);
@@ -2544,13 +2768,18 @@ export function SheetController(p: SheetControllerProps) {
 				return;
 			}
 
-			if (!canEditSheetDataTableCellTarget(dataTableTarget, p.disabled)) {
+			// Contact/site overlays are viewers as much as editors: like the
+			// DataTable module, they open even for non-editable columns
+			const opensLocalDocumentOverlay = isDataTableInboundContactOpenLookup(dataTableTarget.lookup) ||
+				isDataTableSiteLocationOpenLookup(dataTableTarget.lookup);
+
+			if (!opensLocalDocumentOverlay && !canEditSheetDataTableCellTarget(dataTableTarget, p.disabled)) {
 				setEditState(null);
 				scrollCellIntoView(targetCell);
 				return;
 			}
 
-			if (!isDataTableInboundContactIdLookup(dataTableTarget.lookup) && !isDataTableSiteLocationIdLookup(dataTableTarget.lookup) && handleDataTableRelatedDocumentCellEdit(dataTableTarget.lookup, p.setFloatingMessage)) {
+			if (!opensLocalDocumentOverlay && handleDataTableRelatedDocumentCellEdit(dataTableTarget.lookup, p.setFloatingMessage)) {
 				setEditState(null);
 				scrollCellIntoView(targetCell);
 				return;
@@ -2562,7 +2791,7 @@ export function SheetController(p: SheetControllerProps) {
 				dataTableTarget.sourceCellKey,
 			);
 			const fieldType = getSheetEditorFieldType(dataTableTarget.lookup.designCell);
-			const localEditor = isDataTableLocalEditorFieldType(fieldType) || isDataTableInboundContactIdLookup(dataTableTarget.lookup) || isDataTableSiteLocationIdLookup(dataTableTarget.lookup);
+			const localEditor = isDataTableLocalEditorFieldType(fieldType) || opensLocalDocumentOverlay;
 			const dataTableEditState = getSheetDataTableEditState(dataTableTarget, optimisticDataTableValues[optimisticKey], 'CELL_BACKGROUND');
 
 			setEditState({
@@ -2589,7 +2818,7 @@ export function SheetController(p: SheetControllerProps) {
 			rowId: targetCell.rowId,
 		});
 		scrollCellIntoView(targetCell);
-	}, [dataTablesById, designCellsByDataTableId, optimisticDataTableValues, p.disabled, p.onOpenOrganizationProfile, p.setFloatingMessage, regionsById, scrollCellIntoView, selectedCellState, setHeaderSelection, sourceCellsByTargetKey]);
+	}, [remapSheetCellToMergeAnchor, dataTablesById, designCellsByDataTableId, optimisticDataTableValues, p.disabled, p.onOpenOrganizationProfile, p.setFloatingMessage, regionsById, scrollCellIntoView, selectedCellState, setHeaderSelection, sourceCellsByTargetKey]);
 
 	/*
 	 * Open a clickable dataTable-backed Sheet cell through its local editor or link action.
@@ -2597,7 +2826,7 @@ export function SheetController(p: SheetControllerProps) {
 	const openSheetOpenableDataTableCell = useCallback((target: SheetDataTableCellEditTarget, cell: SheetUISelectedCellState) => {
 		selectSheetCell(cell);
 
-		if (isDataTableInboundContactIdLookup(target.lookup) || isDataTableSiteLocationIdLookup(target.lookup)) {
+		if (isDataTableInboundContactOpenLookup(target.lookup) || isDataTableSiteLocationOpenLookup(target.lookup)) {
 			openSheetCellEditor(cell, undefined, false);
 			return;
 		}
@@ -2620,32 +2849,41 @@ export function SheetController(p: SheetControllerProps) {
 
 		const nextTransition = getSheetOptimisticCellEditTransition({
 			baseCellsByCoord: runtime?.effectiveCellsByCoord || new Map(),
-			currentOptimisticCellsByCoord: optimisticCellsByCoordRef.current,
-			formulaDependencyCellsByCoord: p.formulaDependencyCellsByCoord,
-			formulaReferencesById: p.formulaReferencesById,
+			currentOptimisticCellsByCoord: pendingPreviewsRef.current,
 			inputs,
 			timeZone: p.timeZone,
 		});
 
-		optimisticCellsByCoordRef.current = nextTransition.optimisticCellsByCoord;
+		// Keep the synchronous ref fresh for rapid successive edits; the
+		// pending store updates when the save queue records the entries
+		pendingPreviewsRef.current = nextTransition.optimisticCellsByCoord;
 
-		setOptimisticCellsByCoord((current) => {
-			return getSheetOptimisticCellEditTransition({
-				baseCellsByCoord: runtime?.effectiveCellsByCoord || new Map(),
-				currentOptimisticCellsByCoord: current,
-				formulaDependencyCellsByCoord: p.formulaDependencyCellsByCoord,
-				formulaReferencesById: p.formulaReferencesById,
-				inputs,
-				timeZone: p.timeZone,
-			}).optimisticCellsByCoord;
+		const entries = nextTransition.saveInputs.flatMap((input) => {
+			const coordKey = getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex);
+			const previewCell = nextTransition.optimisticCellsByCoord.get(coordKey);
+
+			return previewCell ? [{ input, previewCell }] : [];
 		});
 
-		await p.onSaveCells(nextTransition.saveInputs);
-	}, [p.formulaDependencyCellsByCoord, p.formulaReferencesById, p.onSaveCells, p.timeZone]);
+		p.onBroadcastCellEdits?.(entries.map(({ input, previewCell }) => ({
+			coordKey: getSheetCanvasCoordKey(input.cell.rowIndex, input.cell.columnIndex),
+			previewCell,
+		})));
+
+		await p.onSaveCells(entries);
+	}, [p.onBroadcastCellEdits, p.onSaveCells, p.timeZone]);
 
 	const applySheetDesignPatch = useCallback(async (patch: SheetDesignPatchInput) => {
 		const previousColumnWidths = localColumnWidthsRef.current;
 		const previousRowHeights = localRowHeightsRef.current;
+		const previousMergedRanges = mergedRangesRef.current;
+
+		if (patch.metadata !== undefined) {
+			// Merged ranges render from the optimistic override until the
+			// saved design round-trips
+			const metadata = parseSheetJSONObject(patch.metadata, {});
+			setOptimisticMergedRanges(getSheetMergedRanges(metadata));
+		}
 
 		if (patch.columns) {
 			const columns = parseSheetJSONObject(patch.columns, {});
@@ -2680,6 +2918,10 @@ export function SheetController(p: SheetControllerProps) {
 			if (patch.rows) {
 				localRowHeightsRef.current = previousRowHeights;
 				setLocalRowHeights(previousRowHeights);
+			}
+
+			if (patch.metadata !== undefined) {
+				setOptimisticMergedRanges(previousMergedRanges);
 			}
 
 			throw error;
@@ -3329,7 +3571,7 @@ export function SheetController(p: SheetControllerProps) {
 
 	const navigateSheetArrow = useCallback((direction: GridArrowDirection, extendSelection: boolean) => {
 		const runtime = runtimeRef.current;
-		const nextCell = runtime ? getGridArrowNavigationSelection({
+		let nextCell = runtime ? getGridArrowNavigationSelection({
 			columnMetrics: runtime.columnMetrics,
 			direction,
 			rowIds: runtime.rowIds,
@@ -3338,6 +3580,44 @@ export function SheetController(p: SheetControllerProps) {
 
 		if (!runtime || !nextCell) {
 			return;
+		}
+
+		// Arrow moves step out of the current merged range instead of cycling
+		// back onto its anchor
+		const merges = mergedRangesRef.current;
+		if (merges.length && selectedCellState && !extendSelection) {
+			const activeRowIndex = Math.floor(Number(selectedCellState.rowId || 0));
+			const activeColumnIndex = Math.floor(Number(selectedCellState.cellKey || 0));
+			const activeMerge = activeRowIndex && activeColumnIndex
+				? getSheetMergedRangeAtCell(merges, activeRowIndex, activeColumnIndex)
+				: null;
+			const nextRowIndex = Math.floor(Number(nextCell.rowId || 0));
+			const nextColumnIndex = Math.floor(Number(nextCell.cellKey || 0));
+
+			if (activeMerge && nextRowIndex && nextColumnIndex && isSheetCellInMergedRange(activeMerge, nextRowIndex, nextColumnIndex)) {
+				const exitRowIndex = direction === 'down'
+					? activeMerge.endRowIndex + 1
+					: direction === 'up'
+						? activeMerge.startRowIndex - 1
+						: nextRowIndex;
+				const exitColumnIndex = direction === 'right'
+					? activeMerge.endColumnIndex + 1
+					: direction === 'left'
+						? activeMerge.startColumnIndex - 1
+						: nextColumnIndex;
+
+				if (
+					exitRowIndex < 1 || exitColumnIndex < 1 ||
+					exitRowIndex > runtime.rowIds.length || exitColumnIndex > runtime.columnMetrics.length
+				) {
+					return;
+				}
+
+				nextCell = {
+					cellKey: String(exitColumnIndex),
+					rowId: String(exitRowIndex),
+				};
+			}
 		}
 
 		if (extendSelection) {
@@ -3669,6 +3949,101 @@ export function SheetController(p: SheetControllerProps) {
 		return true;
 	}, [colorPickerState]);
 
+	/*
+	 * Apply one merged-ranges change: instant local feedback through the
+	 * optimistic override, persisted as a sheet design metadata patch.
+	 */
+	const applySheetMergedRangesChange = useCallback(async (nextMerges: SheetMergedRangeObj[], clearChanges: SheetCellHistoryChange[]) => {
+		const currentMerges = mergedRangesRef.current;
+		const baseMetadata = parseSheetJSONObject(designRef.current.metadata, {});
+		const designChange = {
+			before: { metadata: JSON.stringify({ ...baseMetadata, merges: currentMerges }) },
+			after: { metadata: JSON.stringify({ ...baseMetadata, merges: nextMerges }) },
+		};
+
+		pushSheetUndoEntry({
+			design: designChange,
+			...(clearChanges.length ? { sheetCells: clearChanges } : {}),
+		});
+
+		if (clearChanges.length) {
+			await applySheetCellInputs(clearChanges.map((change) => change.after));
+		}
+
+		await applySheetDesignPatch(designChange.after);
+	}, [applySheetCellInputs, applySheetDesignPatch, pushSheetUndoEntry]);
+
+	/*
+	 * Merge the target selection with the selected mode: each merge anchor keeps
+	 * its value; every other covered cell with content is cleared (undoable).
+	 */
+	const handleSheetContextMenuMergeCells = useCallback(async (target: SheetContextMenuTarget, mode: SheetContextMenuMergeMode) => {
+		const runtime = runtimeRef.current;
+		const bounds = getSheetSelectedCellsBounds(target.cells);
+
+		if (!runtime || !bounds || !canApplySheetContextMenuMergeMode(target, mode)) {
+			return;
+		}
+
+		const mergeRanges = getSheetMergeRangesForMode(bounds, mode);
+		if (!mergeRanges.length) {
+			return;
+		}
+
+		const nextMerges = mergeRanges.reduce((merges, range) => {
+			return addSheetMergedRange(merges, range);
+		}, mergedRangesRef.current);
+		const clearChanges: SheetCellHistoryChange[] = [];
+
+		// The confirmed/effective map is sparse: scan it instead of the bounds
+		runtime.effectiveCellsByCoord.forEach((cell) => {
+			const rowIndex = Math.floor(Number(cell.rowIndex || 0));
+			const columnIndex = Math.floor(Number(cell.columnIndex || 0));
+			const mergeRange = mergeRanges.find((range) => isSheetCellInMergedRange(range, rowIndex, columnIndex));
+
+			if (
+				!rowIndex || !columnIndex ||
+				!mergeRange ||
+				isSheetMergedRangeAnchor(mergeRange, rowIndex, columnIndex)
+			) {
+				return;
+			}
+
+			const before = getSheetCellSnapshotEditInput(rowIndex, columnIndex, cell);
+			const after = getSheetClearEditInput(rowIndex, columnIndex);
+
+			if (!sheetCellEditInputsAreEqual(before, after)) {
+				clearChanges.push({ after, before });
+			}
+		});
+
+		// Selection collapses to the merge anchor
+		selectSheetCell({
+			cellKey: String(bounds.startColumnIndex),
+			rowId: String(bounds.startRowIndex),
+		});
+
+		await applySheetMergedRangesChange(nextMerges, clearChanges);
+	}, [applySheetMergedRangesChange, selectSheetCell]);
+
+	/*
+	 * Remove every merged range intersecting the target selection.
+	 */
+	const handleSheetContextMenuUnmergeCells = useCallback(async (target: SheetContextMenuTarget) => {
+		const bounds = getSheetSelectedCellsBounds(target.cells);
+
+		if (!bounds || !(target.canUnmergeCells ?? false)) {
+			return;
+		}
+
+		const nextMerges = removeSheetMergedRangesIntersecting(mergedRangesRef.current, bounds);
+		if (nextMerges.length === mergedRangesRef.current.length) {
+			return;
+		}
+
+		await applySheetMergedRangesChange(nextMerges, []);
+	}, [applySheetMergedRangesChange]);
+
 	const {
 		closeSheetContextMenu,
 		openSheetContextMenu,
@@ -3677,10 +4052,12 @@ export function SheetController(p: SheetControllerProps) {
 		onEditCell: handleSheetContextMenuEditCell,
 		onEditStructure: handleSheetContextMenuEditStructure,
 		onFormatCells: handleSheetContextMenuFormatCells,
+		onMergeCells: handleSheetContextMenuMergeCells,
 		onOpenDataTable: handleSheetContextMenuOpenDataTable,
 		onPasteCells: handleSheetContextMenuPasteCells,
 		onPopulateFromDataTable: handleSheetContextMenuPopulateDataTable,
 		onRemoveCellsFromDataTable: handleSheetContextMenuRemoveDataTableRegion,
+		onUnmergeCells: handleSheetContextMenuUnmergeCells,
 		readClipboardText: readSheetClipboardText,
 	});
 
@@ -4425,11 +4802,12 @@ export function SheetController(p: SheetControllerProps) {
 			cellLookup,
 			disabled: p.disabled,
 			effectiveCellsByCoord,
+			mergedRanges,
 			regions: p.regions,
 			selectedCellKeyMap: contextMenuTarget.selectedCellKeyMap,
 			selectedCellState: contextMenuTarget.selectedCell,
 		}));
-	}, [cellLookup, closeSheetCellEditorForSelection, effectiveCellsByCoord, headerSelection, openSheetContextMenu, p.disabled, p.onOpenDataTable, p.onPopulateFromDataTable, p.onRemoveDataTableRegion, p.regions, selectSheetCell, selectedCellKeyMap, setHeaderSelection, setSelectedCellKeyMap, setSelectedCellState, stickyColumnCount]);
+	}, [cellLookup, closeSheetCellEditorForSelection, effectiveCellsByCoord, headerSelection, mergedRanges, openSheetContextMenu, p.disabled, p.onOpenDataTable, p.onPopulateFromDataTable, p.onRemoveDataTableRegion, p.regions, selectSheetCell, selectedCellKeyMap, setHeaderSelection, setSelectedCellKeyMap, setSelectedCellState, stickyColumnCount]);
 
 	const handleFocusOut = useCallback((event: FocusEvent<HTMLDivElement>) => {
 		if (keepEditModeForDev) {
@@ -4603,7 +4981,7 @@ export function SheetController(p: SheetControllerProps) {
 		void saveDataTableLocalEditorDraftValue(target, draftValue, true);
 	}, [activeDataTableEditTarget, saveDataTableLocalEditorDraftValue]);
 
-	const formulaContent = <SheetFormulaInput
+	const formulaInputContent = <SheetFormulaInput
 		canEdit={formulaInputCanStartEdit}
 		column={formulaInputState.column}
 		dataTables={p.dataTables}
@@ -4622,6 +5000,18 @@ export function SheetController(p: SheetControllerProps) {
 		value={formulaInputCanEdit ? editState?.draftValue || '' : formulaInputState.value}
 	/>;
 
+	// Other viewers' avatars dock at the right end of the formula bar row
+	const formulaContent = presenceRoster.length
+		? <div className='h_item no_shrink'>
+			<div className='f'>
+				{formulaInputContent}
+			</div>
+			<div className='px_sm no_shrink'>
+				<SheetPresenceRoster roster={presenceRoster} />
+			</div>
+		</div>
+		: formulaInputContent;
+
 	const overlayContent = <>
 		{selectedFormulaErrorOverlay
 			? <SheetFormulaErrorOverlay
@@ -4633,6 +5023,7 @@ export function SheetController(p: SheetControllerProps) {
 			? <SheetEditorOverlay
 				column={activeEditorColumn}
 				autoFocus={!formulaInputFocused}
+				cellStyle={activeEditorCellStyle}
 				editState={editState}
 				onDraftValue={updateSheetEditorDraftValue}
 				position={editorPosition}
@@ -4663,7 +5054,7 @@ export function SheetController(p: SheetControllerProps) {
 				/>
 			</DataTableLocalEditorContainer>
 			: null}
-		{activeDataTableEditTarget && activeDataTableLocalEditorPosition && isDataTableInboundContactIdLookup(activeDataTableEditTarget.lookup)
+		{activeDataTableEditTarget && activeDataTableLocalEditorPosition && isDataTableInboundContactOpenLookup(activeDataTableEditTarget.lookup)
 			? <DataTableLocalEditorContainer position={activeDataTableLocalEditorPosition}>
 				<DataTableInboundContactEditor
 					clickSource={editState?.clickSource}
@@ -4681,7 +5072,7 @@ export function SheetController(p: SheetControllerProps) {
 				/>
 			</DataTableLocalEditorContainer>
 			: null}
-		{activeDataTableEditTarget && activeDataTableLocalEditorPosition && isDataTableSiteLocationIdLookup(activeDataTableEditTarget.lookup)
+		{activeDataTableEditTarget && activeDataTableLocalEditorPosition && isDataTableSiteLocationOpenLookup(activeDataTableEditTarget.lookup)
 			? <DataTableLocalEditorContainer position={activeDataTableLocalEditorPosition}>
 				<DataTableSiteLocationEditor
 					clickSource={editState?.clickSource}
@@ -4739,6 +5130,10 @@ export function SheetController(p: SheetControllerProps) {
 		overlayContent={overlayContent}
 		regions={p.regions}
 		regionDataTableLabelsById={dataTableLabelsById}
+		remoteSelections={remoteSelections}
+		mergedRanges={mergedRanges}
+		loadingCellCoords={loadingCellCoords}
+		loadingRegionRects={p.loadingRegionRects}
 		hoveredRegionId={hoveredRegionId}
 		resizeGuide={resizeGuide}
 		rowMetrics={rowMetricsData.metrics}

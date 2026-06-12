@@ -145,6 +145,20 @@ function subscribeFragmentObserverKeys(
 }
 
 /**
+ * Subscribe to exact reactive fragment keys from outside the hook layer.
+ * Used by feature stores (e.g. the sheet cell store) that consume realtime
+ * fragment patches directly instead of through useReactiveFragment.
+ * Returns the unsubscribe function.
+ */
+
+export function observeReactiveFragments(
+  fragmentIds: string[],
+  listener: (fragmentIds: string[]) => void,
+) {
+  return subscribeFragmentObserverKeys(fragmentIds, listener);
+}
+
+/**
  * Notify keyed reactive fragment subscribers for only the changed fragment ids.
  */
 

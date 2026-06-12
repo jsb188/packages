@@ -1,9 +1,10 @@
 import { cn } from '@jsb188/app/utils/string.ts';
+import { isDarkColor } from '@jsb188/app/utils/color.ts';
 import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
 import { SHEET_DATA_TABLE_REGION_MAX_ROWS } from '@jsb188/mday/constants/sheet.ts';
-import type { SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
-import { getSheetRegionSourceId, isSheetGeneratedRegionSource } from '@jsb188/mday/utils/sheet.ts';
+import type { SheetMergedRangeObj, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
+import { getSheetMergedRangeAtCell, getSheetRegionSourceId, isSheetCellInMergedRange, isSheetGeneratedRegionSource } from '@jsb188/mday/utils/sheet.ts';
 import {
   getSheetCellKey,
   SHEET_HEADER_HEIGHT,
@@ -36,6 +37,7 @@ import {
   type SheetCanvasColumn,
 } from '../libs/sheet-utils.ts';
 import type { DataTableLocalEditorPosition } from '../libs/dataTable-cell-editing.tsx';
+import type { SheetRemoteSelection } from '../libs/sheet-collab.ts';
 import type { SheetHeaderSelectionState } from '../libs/sheet-state.ts';
 
 const SHEET_CANVAS_CELL_PADDING_X = 8;
@@ -152,6 +154,18 @@ export type SheetCanvasSurfaceProps = {
 	overlayContent?: ReactNode;
 	regions?: SheetRegionGQL[] | null;
 	regionDataTableLabelsById?: Map<string, string> | null;
+	remoteSelections?: SheetRemoteSelection[] | null;
+	/* Cells awaiting a server-computed value (animated dashed outline) */
+	loadingCellCoords?: Array<{ rowIndex: number; columnIndex: number }> | null;
+	/* Region areas awaiting server materialization (animated dashed outline) */
+	loadingRegionRects?: Array<{
+		startRowIndex: number;
+		startColumnIndex: number;
+		endRowIndex: number;
+		endColumnIndex: number;
+	}> | null;
+	/* Merged cell ranges; covered cells render as one anchor-driven cell */
+	mergedRanges?: SheetMergedRangeObj[] | null;
 	hoveredRegionId?: string | null;
 	resizeGuide?: SheetUIResizeGuide | null;
 	rowResizeGuide?: SheetUIRowResizeGuide | null;
@@ -351,11 +365,14 @@ function drawSheetCanvasCellFillRect(params: {
 	top: number;
 	width: number;
 }) {
-	const inset = SHEET_CANVAS_GRID_LINE_WIDTH;
-	const left = Math.round(params.left) + inset;
-	const top = Math.round(params.top) + inset;
-	const width = Math.max(0, Math.round(params.width) - inset);
-	const height = Math.max(0, Math.round(params.height) - inset);
+	// Bleed one grid-line width past the cell box so adjacent fills meet
+	// UNDER the divider lines; grid lines repaint on top afterwards, and text
+	// is positioned off the unchanged cell box, so spacing stays identical
+	const bleed = SHEET_CANVAS_GRID_LINE_WIDTH;
+	const left = Math.round(params.left);
+	const top = Math.round(params.top);
+	const width = Math.max(0, Math.round(params.width) + bleed);
+	const height = Math.max(0, Math.round(params.height) + bleed);
 
 	if (!width || !height) {
 		return;
@@ -1534,6 +1551,7 @@ function getSheetCanvasBodyClipRect(viewportWidth: number, viewportHeight: numbe
 function drawSheetCanvasTag(params: {
 	align?: 'left' | 'right';
 	backgroundColor: string;
+	borderColor?: string | null;
 	clipRect?: SheetCanvasRect | null;
 	ctx: CanvasRenderingContext2D;
 	heightOffset?: number;
@@ -1591,6 +1609,16 @@ function drawSheetCanvasTag(params: {
 
 	params.ctx.fillStyle = params.backgroundColor;
 	params.ctx.fillRect(x, y, width, height);
+	if (params.borderColor) {
+		params.ctx.strokeStyle = params.borderColor;
+		params.ctx.lineWidth = 1;
+		params.ctx.strokeRect(
+			x + 0.5,
+			y + 0.5,
+			Math.max(0, width - 1),
+			Math.max(0, height - 1),
+		);
+	}
 	params.ctx.fillStyle = params.textColor;
 	params.ctx.font = font;
 	params.ctx.textAlign = 'left';
@@ -1942,6 +1970,258 @@ function getSheetCanvasVisibleRowRects(params: {
 	});
 
 	return rects;
+}
+
+/*
+ * Return the visible pixel rectangle that covers one sheet index range, or
+ * null when no visible columns/rows intersect it.
+ */
+function getSheetCanvasIndexRangeRect(params: {
+	columns: SheetColumnMetric[];
+	endColumnIndex: number;
+	endRowIndex: number;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	startColumnIndex: number;
+	startRowIndex: number;
+	stickyColumnCount: number;
+}): SheetCanvasRect | null {
+	let left = Infinity;
+	let right = -Infinity;
+	let top = Infinity;
+	let bottom = -Infinity;
+
+	params.columns.forEach((metric) => {
+		const canvasColumn = metric.column as SheetCanvasColumn;
+		const columnIndex = canvasColumn.sheetColumnIndex || Number(metric.column.key || 0);
+		if (columnIndex >= params.startColumnIndex && columnIndex <= params.endColumnIndex) {
+			const displayLeft = getSheetCanvasColumnDisplayLeft(metric, params.scrollLeft, params.stickyColumnCount);
+			left = Math.min(left, displayLeft);
+			right = Math.max(right, displayLeft + metric.width);
+		}
+	});
+
+	params.rowMetrics.forEach((metric) => {
+		const rowIndex = Math.floor(Number(metric.rowKey || 0));
+		if (rowIndex >= params.startRowIndex && rowIndex <= params.endRowIndex) {
+			const displayTop = getSheetCanvasRowDisplayTop(metric, params.scrollTop);
+			top = Math.min(top, displayTop);
+			bottom = Math.max(bottom, displayTop + metric.height);
+		}
+	});
+
+	if (!Number.isFinite(left) || !Number.isFinite(right) || !Number.isFinite(top) || !Number.isFinite(bottom)) {
+		return null;
+	}
+
+	return {
+		height: bottom - top,
+		left,
+		top,
+		width: right - left,
+	};
+}
+
+/*
+ * Draw other viewers' live selections: a solid range border and active cell
+ * border in each user's color (the local user's own selection stays dashed),
+ * plus a name chip anchored to the active cell.
+ */
+function drawSheetCanvasRemoteSelections(params: {
+	bodyClipRect: SheetCanvasRect;
+	columns: SheetColumnMetric[];
+	ctx: CanvasRenderingContext2D;
+	remoteSelections?: SheetRemoteSelection[] | null;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	if (!params.remoteSelections?.length) {
+		return;
+	}
+
+	const { ctx } = params;
+	ctx.save();
+	ctx.beginPath();
+	ctx.rect(params.bodyClipRect.left, params.bodyClipRect.top, params.bodyClipRect.width, params.bodyClipRect.height);
+	ctx.clip();
+
+	params.remoteSelections.forEach((remoteSelection) => {
+		const { color, selection, user } = remoteSelection;
+		const rangeRect = getSheetCanvasIndexRangeRect({
+			columns: params.columns,
+			endColumnIndex: selection.range.endColumnIndex,
+			endRowIndex: selection.range.endRowIndex,
+			rowMetrics: params.rowMetrics,
+			scrollLeft: params.scrollLeft,
+			scrollTop: params.scrollTop,
+			startColumnIndex: selection.range.startColumnIndex,
+			startRowIndex: selection.range.startRowIndex,
+			stickyColumnCount: params.stickyColumnCount,
+		});
+
+		if (rangeRect && sheetCanvasRectIsVisible(rangeRect, params.viewportWidth, params.viewportHeight)) {
+			ctx.save();
+			ctx.beginPath();
+			ctx.strokeStyle = color;
+			ctx.lineWidth = 1;
+			ctx.strokeRect(
+				Math.round(rangeRect.left) + 0.5,
+				Math.round(rangeRect.top) + 0.5,
+				Math.max(0, Math.round(rangeRect.width) - 1),
+				Math.max(0, Math.round(rangeRect.height) - 1),
+			);
+			ctx.restore();
+		}
+
+		const activeRect = selection.active
+			? getSheetCanvasIndexRangeRect({
+				columns: params.columns,
+				endColumnIndex: selection.active.columnIndex,
+				endRowIndex: selection.active.rowIndex,
+				rowMetrics: params.rowMetrics,
+				scrollLeft: params.scrollLeft,
+				scrollTop: params.scrollTop,
+				startColumnIndex: selection.active.columnIndex,
+				startRowIndex: selection.active.rowIndex,
+				stickyColumnCount: params.stickyColumnCount,
+			})
+			: null;
+
+		if (activeRect && sheetCanvasRectIsVisible(activeRect, params.viewportWidth, params.viewportHeight)) {
+			ctx.save();
+			ctx.globalAlpha = 0.6;
+			drawSheetCanvasCellActiveBorder({
+				color,
+				ctx,
+				height: activeRect.height - 1,
+				left: activeRect.left,
+				top: activeRect.top,
+				theme: params.theme,
+				width: activeRect.width - 1,
+			});
+			ctx.restore();
+		}
+
+		// Anchor the name chip above the active cell; below when clipped
+		const chipAnchorRect = activeRect || rangeRect;
+		if (chipAnchorRect && user.displayName) {
+			const chipHeight = getSheetCanvasTagHeight(params.theme);
+			const chipTop = chipAnchorRect.top - chipHeight >= params.bodyClipRect.top
+				? chipAnchorRect.top - chipHeight
+				: chipAnchorRect.top + chipAnchorRect.height;
+
+			drawSheetCanvasTag({
+				backgroundColor: color,
+				ctx,
+				left: chipAnchorRect.left,
+				text: user.displayName,
+				textColor: isDarkColor(color) ? '#ffffff' : '#1f2937',
+				theme: params.theme,
+				top: chipTop,
+				viewportHeight: params.viewportHeight,
+				viewportWidth: params.viewportWidth,
+			});
+		}
+	});
+
+	ctx.restore();
+}
+
+// Loading outline: same dash pattern as the selection border, animated
+const SHEET_CANVAS_LOADING_DASH = [4, 3];
+const SHEET_CANVAS_LOADING_DASH_SPEED = 0.02;
+
+/*
+ * Draw animated dashed outlines around cells and region areas that are
+ * waiting on server-computed data. The dash offset advances with time, so the
+ * outline appears to rotate while the surface repaints each frame.
+ */
+function drawSheetCanvasLoadingOutlines(params: {
+	bodyClipRect: SheetCanvasRect;
+	columns: SheetColumnMetric[];
+	ctx: CanvasRenderingContext2D;
+	loadingCellCoords?: Array<{ rowIndex: number; columnIndex: number }> | null;
+	loadingRegionRects?: Array<{
+		startRowIndex: number;
+		startColumnIndex: number;
+		endRowIndex: number;
+		endColumnIndex: number;
+	}> | null;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}) {
+	if (!params.loadingCellCoords?.length && !params.loadingRegionRects?.length) {
+		return;
+	}
+
+	const { ctx } = params;
+	const dashLength = SHEET_CANVAS_LOADING_DASH[0] + SHEET_CANVAS_LOADING_DASH[1];
+	const dashOffset = -((performance.now() * SHEET_CANVAS_LOADING_DASH_SPEED) % dashLength);
+
+	ctx.save();
+	ctx.beginPath();
+	ctx.rect(params.bodyClipRect.left, params.bodyClipRect.top, params.bodyClipRect.width, params.bodyClipRect.height);
+	ctx.clip();
+	ctx.setLineDash(SHEET_CANVAS_LOADING_DASH);
+	ctx.lineDashOffset = dashOffset;
+	ctx.strokeStyle = params.theme.active;
+	ctx.lineWidth = 1;
+
+	const strokeIndexRange = (startRowIndex: number, startColumnIndex: number, endRowIndex: number, endColumnIndex: number) => {
+		const rect = getSheetCanvasIndexRangeRect({
+			columns: params.columns,
+			endColumnIndex,
+			endRowIndex,
+			rowMetrics: params.rowMetrics,
+			scrollLeft: params.scrollLeft,
+			scrollTop: params.scrollTop,
+			startColumnIndex,
+			startRowIndex,
+			stickyColumnCount: params.stickyColumnCount,
+		});
+
+		if (!rect) {
+			return;
+		}
+
+		// Identical box geometry to drawSheetCanvasSelectionBorder so the
+		// loading outline lands exactly where the selection outline renders
+		const position = {
+			height: rect.height + 1,
+			left: rect.left - 1,
+			top: rect.top - 1,
+			width: rect.width + 1,
+		};
+
+		if (sheetCanvasRectIsVisible(position, params.viewportWidth, params.viewportHeight)) {
+			ctx.strokeRect(
+				Math.round(position.left) + 1.5,
+				Math.round(position.top) + 1.5,
+				Math.max(0, Math.round(position.width) - 1),
+				Math.max(0, Math.round(position.height) - 1),
+			);
+		}
+	};
+
+	(params.loadingCellCoords || []).forEach((coord) => {
+		strokeIndexRange(coord.rowIndex, coord.columnIndex, coord.rowIndex, coord.columnIndex);
+	});
+	(params.loadingRegionRects || []).forEach((rect) => {
+		strokeIndexRange(rect.startRowIndex, rect.startColumnIndex, rect.endRowIndex, rect.endColumnIndex);
+	});
+
+	ctx.restore();
 }
 
 /*
@@ -2377,13 +2657,14 @@ function drawSheetCanvasDataTableRegionLabels(params: {
 			const dataTableLabel = sourceId ? params.regionDataTableLabelsById?.get(sourceId) : null;
 			if (dataTableLabel) {
 				drawSheetCanvasTag({
-					backgroundColor: params.theme.regionOutline,
+					backgroundColor: params.theme.background,
+					borderColor: params.theme.bodyText,
 					clipRect,
 					ctx: params.ctx,
 					heightOffset: -1,
 					left: rect.left,
 					text: dataTableLabel,
-					textColor: params.theme.solid,
+					textColor: params.theme.bodyText,
 					theme: params.theme,
 					top: rect.top - getSheetCanvasTagHeight(params.theme) + 2,
 					viewportHeight: params.viewportHeight,
@@ -2597,6 +2878,28 @@ function drawSheetCanvasCell(params: {
 }
 
 /*
+ * Return the merged range covering one rendered cell, or null. Covered cells
+ * (anchor included) skip the normal painters; the merge pass draws them.
+ */
+function getSheetCanvasMergeForRenderCell(
+	mergedRanges: SheetMergedRangeObj[] | null | undefined,
+	rowKey: string,
+	cellKey: string,
+) {
+	if (!mergedRanges?.length) {
+		return null;
+	}
+
+	const rowIndex = Math.floor(Number(rowKey || 0));
+	const columnIndex = Math.floor(Number(cellKey || 0));
+	if (!rowIndex || !columnIndex) {
+		return null;
+	}
+
+	return getSheetMergedRangeAtCell(mergedRanges, rowIndex, columnIndex);
+}
+
+/*
  * Draw one visible body cell, optionally suppressing selection decoration for overlay panes.
  */
 function drawSheetCanvasBodyCell(params: {
@@ -2642,8 +2945,8 @@ function drawSheetCanvasBodyCell(params: {
 		params.ctx.fillRect(
 			Math.round(rect.left),
 			Math.round(rect.top),
-			Math.max(0, Math.round(rect.width)),
-			Math.max(0, Math.round(rect.height)),
+			Math.max(0, Math.round(rect.width) + SHEET_CANVAS_GRID_LINE_WIDTH),
+			Math.max(0, Math.round(rect.height) + SHEET_CANVAS_GRID_LINE_WIDTH),
 		);
 	}
 
@@ -2675,6 +2978,7 @@ function drawSheetCanvasBodyCells(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	columnRects: SheetCanvasColumnRect[];
 	ctx: CanvasRenderingContext2D;
+	mergedRanges?: SheetMergedRangeObj[] | null;
 	rowRects: SheetCanvasRowRect[];
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
@@ -2685,6 +2989,10 @@ function drawSheetCanvasBodyCells(params: {
 
 	params.rowRects.forEach((rowRect) => {
 		params.columnRects.forEach((columnRect) => {
+			if (getSheetCanvasMergeForRenderCell(params.mergedRanges, rowRect.metric.rowKey, columnRect.cellKey)) {
+				return;
+			}
+
 			const result = drawSheetCanvasBodyCell({
 				cellLookup: params.cellLookup,
 				columnRect,
@@ -2712,6 +3020,7 @@ function drawSheetCanvasBodyTextOverflows(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	columnRects: SheetCanvasColumnRect[];
 	ctx: CanvasRenderingContext2D;
+	mergedRanges?: SheetMergedRangeObj[] | null;
 	rowRects: SheetCanvasRowRect[];
 	theme: SheetCanvasTheme;
 	viewportHeight: number;
@@ -2730,6 +3039,10 @@ function drawSheetCanvasBodyTextOverflows(params: {
 	params.ctx.clip();
 	params.rowRects.forEach((rowRect) => {
 		params.columnRects.forEach((columnRect) => {
+			if (getSheetCanvasMergeForRenderCell(params.mergedRanges, rowRect.metric.rowKey, columnRect.cellKey)) {
+				return;
+			}
+
 			const renderKey = getSheetCellKey(rowRect.metric.rowKey, columnRect.cellKey);
 			const overflow = getSheetCanvasCellTextOverflow({
 				cell: params.cellLookup.get(renderKey),
@@ -2762,6 +3075,7 @@ function drawSheetCanvasBodyCellBorders(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	columnRects: SheetCanvasColumnRect[];
 	ctx: CanvasRenderingContext2D;
+	mergedRanges?: SheetMergedRangeObj[] | null;
 	rowRects: SheetCanvasRowRect[];
 	theme: SheetCanvasTheme;
 	viewportHeight: number;
@@ -2781,6 +3095,10 @@ function drawSheetCanvasBodyCellBorders(params: {
 	params.ctx.clip();
 	params.rowRects.forEach((rowRect) => {
 		params.columnRects.forEach((columnRect) => {
+			if (getSheetCanvasMergeForRenderCell(params.mergedRanges, rowRect.metric.rowKey, columnRect.cellKey)) {
+				return;
+			}
+
 			const renderKey = getSheetCellKey(rowRect.metric.rowKey, columnRect.cellKey);
 			const cell = params.cellLookup.get(renderKey);
 
@@ -2810,6 +3128,7 @@ function drawSheetCanvasStickyBodyCells(params: {
 	cellLookup: Map<string, SheetCanvasCell>;
 	columnRects: SheetCanvasColumnRect[];
 	ctx: CanvasRenderingContext2D;
+	mergedRanges?: SheetMergedRangeObj[] | null;
 	rowRects: SheetCanvasRowRect[];
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
@@ -2832,6 +3151,10 @@ function drawSheetCanvasStickyBodyCells(params: {
 				return;
 			}
 
+			if (getSheetCanvasMergeForRenderCell(params.mergedRanges, rowRect.metric.rowKey, columnRect.cellKey)) {
+				return;
+			}
+
 			drawSheetCanvasBodyCell({
 				cellLookup: params.cellLookup,
 				columnRect,
@@ -2845,6 +3168,135 @@ function drawSheetCanvasStickyBodyCells(params: {
 			});
 		});
 	});
+}
+
+/*
+ * Draw merged cell ranges as single anchor-driven cells. Runs after the grid
+ * lines pass so interior dividers get erased; the merge boundary is
+ * re-stroked so merged cells keep a crisp outline. Returns the merge rect of
+ * the active selection when the selected cell sits inside a merge, so the
+ * active border spans the whole merged area.
+ */
+function drawSheetCanvasMergedCells(params: {
+	bodyClipRect: SheetCanvasRect;
+	cellLookup: Map<string, SheetCanvasCell>;
+	columns: SheetColumnMetric[];
+	ctx: CanvasRenderingContext2D;
+	mergedRanges?: SheetMergedRangeObj[] | null;
+	regions?: SheetRegionGQL[] | null;
+	rowMetrics: SheetRowMetric[];
+	scrollLeft: number;
+	scrollTop: number;
+	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
+	selectedCellState?: SheetUISelectedCellState | null;
+	stickyColumnCount: number;
+	theme: SheetCanvasTheme;
+	viewportHeight: number;
+	viewportWidth: number;
+}): SheetCanvasRect | null {
+	if (!params.mergedRanges?.length) {
+		return null;
+	}
+
+	const { ctx } = params;
+	let activeMergeRect: SheetCanvasRect | null = null;
+
+	const activeRowIndex = Math.floor(Number(params.selectedCellState?.rowId || 0));
+	const activeColumnIndex = Math.floor(Number(params.selectedCellState?.cellKey || 0));
+	const selectedCoords = Object.keys(params.selectedCellKeyMap || {}).map((key) => {
+		const [rowPart, columnPart] = key.split(':');
+		return [Math.floor(Number(rowPart)), Math.floor(Number(columnPart))] as const;
+	});
+
+	ctx.save();
+	ctx.beginPath();
+	ctx.rect(params.bodyClipRect.left, params.bodyClipRect.top, params.bodyClipRect.width, params.bodyClipRect.height);
+	ctx.clip();
+
+	params.mergedRanges.forEach((merge) => {
+		const rect = getSheetCanvasIndexRangeRect({
+			columns: params.columns,
+			endColumnIndex: merge.endColumnIndex,
+			endRowIndex: merge.endRowIndex,
+			rowMetrics: params.rowMetrics,
+			scrollLeft: params.scrollLeft,
+			scrollTop: params.scrollTop,
+			startColumnIndex: merge.startColumnIndex,
+			startRowIndex: merge.startRowIndex,
+			stickyColumnCount: params.stickyColumnCount,
+		});
+
+		if (!rect || !sheetCanvasRectIsVisible(rect, params.viewportWidth, params.viewportHeight)) {
+			return;
+		}
+
+		const renderKey = getSheetCellKey(String(merge.startRowIndex), String(merge.startColumnIndex));
+		const cell = params.cellLookup.get(renderKey);
+		const isActive = Boolean(
+			activeRowIndex && activeColumnIndex &&
+				isSheetCellInMergedRange(merge, activeRowIndex, activeColumnIndex),
+		);
+		const isSelected = isActive ||
+			selectedCoords.some(([rowIndex, columnIndex]) => isSheetCellInMergedRange(merge, rowIndex, columnIndex));
+		const selectedFillStyle = isSelected
+			? getSheetCanvasSelectedCellFillStyle({
+				cell,
+				columnIndex: merge.startColumnIndex,
+				regions: params.regions,
+				rowIndex: merge.startRowIndex,
+				theme: params.theme,
+			})
+			: null;
+
+		// Erase interior grid lines + stale content under the merge
+		ctx.fillStyle = params.theme.background;
+		ctx.fillRect(
+			Math.round(rect.left),
+			Math.round(rect.top),
+			Math.max(0, Math.round(rect.width) + SHEET_CANVAS_GRID_LINE_WIDTH),
+			Math.max(0, Math.round(rect.height) + SHEET_CANVAS_GRID_LINE_WIDTH),
+		);
+
+		drawSheetCanvasCell({
+			cell,
+			ctx,
+			height: rect.height,
+			isSelected,
+			selectedFillColor: selectedFillStyle?.color,
+			selectedFillOpacity: selectedFillStyle?.opacity,
+			selectedFillStripe: selectedFillStyle?.stripe,
+			suppressText: sheetCanvasCellTextExceedsWidth({
+				cell,
+				ctx,
+				theme: params.theme,
+				width: rect.width,
+			}),
+			theme: params.theme,
+			width: rect.width,
+			x: rect.left,
+			y: rect.top,
+		});
+
+		// Crisp outer boundary in place of the erased grid lines
+		ctx.save();
+		ctx.strokeStyle = params.theme.grid;
+		ctx.lineWidth = SHEET_CANVAS_GRID_LINE_WIDTH;
+		ctx.strokeRect(
+			Math.round(rect.left) + 0.5,
+			Math.round(rect.top) + 0.5,
+			Math.max(0, Math.round(rect.width)),
+			Math.max(0, Math.round(rect.height)),
+		);
+		ctx.restore();
+
+		if (isActive) {
+			activeMergeRect = rect;
+		}
+	});
+
+	ctx.restore();
+
+	return activeMergeRect;
 }
 
 /*
@@ -3563,6 +4015,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		cellLookup: p.cellLookup,
 		columnRects: visibleColumnRects,
 		ctx,
+		mergedRanges: p.mergedRanges,
 		rowRects: visibleRowRects,
 		selectedCellKeyMap: p.selectedCellKeyMap,
 		selectedCellState: p.selectedCellState,
@@ -3594,6 +4047,19 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		viewportHeight,
 		viewportWidth,
 	});
+	drawSheetCanvasRemoteSelections({
+		bodyClipRect,
+		columns: p.columns,
+		ctx,
+		remoteSelections: p.remoteSelections,
+		rowMetrics: p.rowMetrics,
+		scrollLeft: p.scrollLeft,
+		scrollTop: p.scrollTop,
+		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
+	});
 	drawSheetCanvasSelectionBorder({
 		columns: p.columns,
 		ctx,
@@ -3611,6 +4077,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		cellLookup: p.cellLookup,
 		columnRects: visibleColumnRects,
 		ctx,
+		mergedRanges: p.mergedRanges,
 		rowRects: visibleRowRects,
 		selectedCellKeyMap: p.selectedCellKeyMap,
 		selectedCellState: p.selectedCellState,
@@ -3646,10 +4113,43 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		viewportHeight,
 		viewportWidth,
 	});
+	const activeMergeCellRect = drawSheetCanvasMergedCells({
+		bodyClipRect,
+		cellLookup: p.cellLookup,
+		columns: p.columns,
+		ctx,
+		mergedRanges: p.mergedRanges,
+		regions: p.regions,
+		rowMetrics: p.rowMetrics,
+		scrollLeft: p.scrollLeft,
+		scrollTop: p.scrollTop,
+		selectedCellKeyMap: p.selectedCellKeyMap,
+		selectedCellState: p.selectedCellState,
+		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
+	});
+	if (p.mergedRanges?.length) {
+		// The merge backgrounds erased any selection dashes crossing them
+		drawSheetCanvasSelectionBorder({
+			columns: p.columns,
+			ctx,
+			rowMetrics: p.rowMetrics,
+			scrollLeft: p.scrollLeft,
+			scrollTop: p.scrollTop,
+			selectedCellKeyMap: p.selectedCellKeyMap,
+			stickyColumnCount,
+			theme,
+			viewportHeight,
+			viewportWidth,
+		});
+	}
 	drawSheetCanvasBodyTextOverflows({
 		cellLookup: p.cellLookup,
 		columnRects: visibleColumnRects,
 		ctx,
+		mergedRanges: p.mergedRanges,
 		rowRects: visibleRowRects,
 		theme,
 		viewportHeight,
@@ -3659,6 +4159,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		cellLookup: p.cellLookup,
 		columnRects: visibleColumnRects,
 		ctx,
+		mergedRanges: p.mergedRanges,
 		rowRects: visibleRowRects,
 		theme,
 		viewportHeight,
@@ -3705,13 +4206,27 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		bodyClipRect.height,
 	);
 	ctx.clip();
-	if (activeCellRect) {
+	const effectiveActiveCellRect = activeMergeCellRect || activeCellRect;
+	if (effectiveActiveCellRect) {
 		const activeCell = p.selectedCellState
 			? p.cellLookup.get(getSheetCellKey(p.selectedCellState.rowId, p.selectedCellState.cellKey))
 			: null;
 		const activeRowIndex = getSheetCanvasRowIndexFromId(p.selectedCellState?.rowId);
 		const activeColumnIndex = getSheetCanvasColumnIndexFromKey(p.selectedCellState?.cellKey);
 
+		// A loading cell's selection border fades out so the animated loading
+		// outline stays clearly visible underneath
+		const activeCellIsLoading = Boolean(
+			activeRowIndex && activeColumnIndex &&
+				(p.loadingCellCoords || []).some((coord) => {
+					return coord.rowIndex === activeRowIndex && coord.columnIndex === activeColumnIndex;
+				}),
+		);
+
+		ctx.save();
+		if (activeCellIsLoading) {
+			ctx.globalAlpha = 0.25;
+		}
 		drawSheetCanvasCellActiveBorder({
 			color: activeRowIndex && activeColumnIndex
 				? getSheetCanvasActiveBorderColor({
@@ -3723,13 +4238,28 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 				})
 				: theme.active,
 			ctx,
-			height: activeCellRect.height,
-			left: activeCellRect.left,
-			top: activeCellRect.top,
+			height: effectiveActiveCellRect.height,
+			left: effectiveActiveCellRect.left,
+			top: effectiveActiveCellRect.top,
 			theme,
-			width: activeCellRect.width,
+			width: effectiveActiveCellRect.width,
 		});
+		ctx.restore();
 	}
+	drawSheetCanvasLoadingOutlines({
+		bodyClipRect,
+		columns: p.columns,
+		ctx,
+		loadingCellCoords: p.loadingCellCoords,
+		loadingRegionRects: p.loadingRegionRects,
+		rowMetrics: p.rowMetrics,
+		scrollLeft: p.scrollLeft,
+		scrollTop: p.scrollTop,
+		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
+	});
 	ctx.restore();
 
 	if (p.resizeGuide) {
@@ -3777,6 +4307,8 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
  */
 export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const latestPropsRef = useRef(p);
+	latestPropsRef.current = p;
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -3787,6 +4319,30 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 
 		drawSheetCanvasSurface(canvas, p);
 	});
+
+	// Continuous repaint loop only while loading outlines animate
+	const hasLoadingOutlines = Boolean(p.loadingCellCoords?.length || p.loadingRegionRects?.length);
+
+	useEffect(() => {
+		if (!hasLoadingOutlines) {
+			return;
+		}
+
+		let frameId = 0;
+		const paintFrame = () => {
+			const canvas = canvasRef.current;
+			if (canvas) {
+				drawSheetCanvasSurface(canvas, latestPropsRef.current);
+			}
+			frameId = globalThis.requestAnimationFrame(paintFrame);
+		};
+
+		frameId = globalThis.requestAnimationFrame(paintFrame);
+
+		return () => {
+			globalThis.cancelAnimationFrame(frameId);
+		};
+	}, [hasLoadingOutlines]);
 
 	return <div
 		className={cn('v_stretch h_f w_f rel bg', p.className)}

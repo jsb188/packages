@@ -218,12 +218,23 @@ function getSheetFormulaResultTypedValues(value: unknown) {
 }
 
 /*
+ * Return whether one formula text can be previewed client-side. Data table
+ * lookups (@table references and @table(...) WHERE queries) resolve on the
+ * server through the dependency graph, so any '@' reference disables the
+ * client preview; the cell renders its server-computed value (or a loading
+ * state while a pending edit awaits the mutation result).
+ */
+export function sheetFormulaTextIsClientPreviewable(formulaText?: string | null) {
+	return isSheetFormulaText(formulaText || '') && !String(formulaText).includes('@');
+}
+
+/*
  * Return whether a Sheet cell has a formula that the client should evaluate.
  */
 export function sheetCellCanClientCalculateFormula(cell?: SheetCellGQL | null) {
-	const formulaText = cell?.formula?.text || cell?.rawInput || '';
+	const formulaText = cell?.formulaText || cell?.formula?.text || cell?.rawInput || '';
 
-	return cell?.sourceType !== 'REGION_GENERATED' && isSheetFormulaText(formulaText);
+	return cell?.sourceType !== 'REGION_GENERATED' && sheetFormulaTextIsClientPreviewable(formulaText);
 }
 
 /*

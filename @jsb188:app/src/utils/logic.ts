@@ -114,6 +114,58 @@ export function delay(ms: number) {
 }
 
 /**
+ * Create a leading + trailing edge throttled wrapper for one function. Calls
+ * during the wait window collapse into one trailing invocation with the
+ * latest arguments; cancel() drops any pending trailing call.
+ */
+
+export function createThrottledInvoke<T extends any[]>(
+	fn: (...args: T) => void,
+	waitMs: number,
+): { invoke: (...args: T) => void; cancel: () => void } {
+	let lastInvokeAt = 0;
+	let pendingArgs: T | null = null;
+	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+	// Run immediately and stamp the throttle window
+	const invokeNow = (args: T) => {
+		lastInvokeAt = Date.now();
+		fn(...args);
+	};
+
+	const invoke = (...args: T) => {
+		const remaining = waitMs - (Date.now() - lastInvokeAt);
+
+		if (remaining <= 0 && !timeoutId) {
+			invokeNow(args);
+			return;
+		}
+
+		pendingArgs = args;
+		if (!timeoutId) {
+			timeoutId = setTimeout(() => {
+				timeoutId = null;
+				if (pendingArgs) {
+					const pending = pendingArgs;
+					pendingArgs = null;
+					invokeNow(pending);
+				}
+			}, Math.max(remaining, 0));
+		}
+	};
+
+	const cancel = () => {
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+			timeoutId = null;
+		}
+		pendingArgs = null;
+	};
+
+	return { invoke, cancel };
+}
+
+/**
  * Convert an indexed bit-string into a list of selected values.
  */
 

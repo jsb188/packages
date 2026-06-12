@@ -65,32 +65,6 @@ export const sheetFragment = `fragment sheetFragment on Sheet {
   updatedAt
 }`;
 
-export const sheetFormulaReferenceFragment = `fragment sheetFormulaReferenceFragment on SheetFormulaReference {
-  id
-  kind
-  text
-  status
-  rowIndex
-  columnIndex
-  columnLabel
-  startRowIndex
-  startColumnIndex
-  endRowIndex
-  endColumnIndex
-  dataTableName
-  rowIdentifier
-  cellKey
-  value
-  textValue
-  numberValue
-  booleanValue
-  dateValue
-  datetimeValue
-  error {
-    code
-    message
-  }
-}`;
 
 export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   id
@@ -100,6 +74,7 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   rowIndex
   columnIndex
   rawInput
+  formulaText
   value
   formulaValue
   textValue
@@ -107,40 +82,18 @@ export const sheetCellFragment = `fragment sheetCellFragment on SheetCell {
   booleanValue
   dateValue
   datetimeValue
-  formula {
-    version
-    engine
-    text
-    references {
-      id
-      kind
-      text
-      status
-      rowIndex
-      columnIndex
-      columnLabel
-      startRowIndex
-      startColumnIndex
-      endRowIndex
-      endColumnIndex
-      dataTableName
-      rowIdentifier
-      cellKey
-      value
-      textValue
-      numberValue
-      booleanValue
-      dateValue
-      datetimeValue
-      error {
-        code
-        message
-      }
-    }
-    error {
-      code
-      message
-    }
+  errorCode
+  errorMessage
+  computedAt
+  revision
+  sourceDataTableRowId
+  sourceCellKey
+
+  sourceMeta {
+    relatedTable
+    relatedId
+    referenceStatus
+    iconName
   }
   style {
     fontSize
@@ -282,7 +235,8 @@ export const sheetRegionFragment = `fragment sheetRegionFragment on SheetRegion 
   updatedAt
 }`;
 
-export const sheetGridFragment = `fragment sheetGridFragment on SheetGrid {
+
+export const sheetViewFragment = `fragment sheetViewFragment on SheetView {
   id
 
   viewport {

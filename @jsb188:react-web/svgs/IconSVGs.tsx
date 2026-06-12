@@ -650,6 +650,12 @@ export const CellBorderFull = <svg xmlns="http://www.w3.org/2000/svg" className=
 <path d="m1.5 11.999 21 0"/>
 </svg>;
 
+export const CellsBorderFull = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cells-border-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="m1.5 1.499 21 0 0 21 -21 0Z"/>
+<path d="m12 1.499 0 21"/>
+<path d="m1.5 11.999 21 0"/>
+</svg>;
+
 export const CellBorderHorizontalVertical = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-cell-border-horizontal-vertical" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 <path d="M22.5,20.99999988c0,.82842636-.67157364,1.5-1.5,1.5"/>
 <path d="M21,1.50000012c.82842636,0,1.5.67157292,1.5,1.5"/>
@@ -2612,6 +2618,43 @@ export const MedicalConditionFlu = <svg xmlns="http://www.w3.org/2000/svg" class
 <path stroke="#000000" d="M11.651 11.625c-0.2071 0 -0.375 -0.1679 -0.375 -0.375s0.1679 -0.375 0.375 -0.375" strokeWidth="1.5"/>
 <path stroke="#000000" d="M11.651 11.625c0.2071 0 0.375 -0.1679 0.375 -0.375s-0.1679 -0.375 -0.375 -0.375" strokeWidth="1.5"/>
 </g>
+</svg>;
+
+export const MergeTableAll = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="icon icon-merge-table-all" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M1.75,11.75h5.9000001"/>
+<path d="M5.25,14.25l2.4000001-2.5-2.4000001-2.5"/>
+<path d="M.75,15.25v5.9984c0,1.10000038.89999998,2,2,2l5.49835968-.00000027"/>
+<path d="M15.24839973,23.24839973l5.99830055.00000027c1.10000038,0,2-.89999962,2-2v-5.9984"/>
+<path d="M11.74839973,22.24839973v-5.89999962"/>
+<path d="M14.24839973,18.74839973l-2.5-2.39999962-2.50004005,2.39999962"/>
+<path d="M8.24835968.75170898l-5.49835968-.00000898C1.64999998.7517.75,1.6517001.75,2.7517v5.4983"/>
+<path d="M15.24839973.75170898l5.99830055-.00000898c1.10000038,0,2,.9000001,2,2v5.4983"/>
+<path d="M11.74839973,1.75171006v5.89999998"/>
+<path d="M14.24839973,5.25170994l-2.5,2.4000001-2.50004005-2.4000001"/>
+<path d="M22.24670029,11.75h-5.89999962"/>
+<path d="M18.74670029,14.25l-2.39999962-2.5,2.39999962-2.5"/>
+</svg>;
+
+export const MergeTableHorizontal = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-merge-table-horizontal" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeWidth="1.5">
+<path d="M9.75 4.25h-7c-1.1 0 -2 0.9 -2 2v2"/>
+<path d="M0.75 15.25v2.5c0 1.1 0.9 2 2 2h7"/>
+<path d="M1.75 11.75h5.9"/>
+<path d="m5.25 14.25 2.4 -2.5 -2.4 -2.5"/>
+<path d="M14.2467 4.25h7c1.1 0 2 0.9 2 2v2"/>
+<path d="M23.2467 15.25v2.5c0 1.1 -0.9 2 -2 2h-7"/>
+<path d="M22.2467 11.75h-5.9"/>
+<path d="m18.7467 14.25 -2.4 -2.5 2.4 -2.5"/>
+</svg>;
+
+export const MergeTableVertical = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-merge-table-vertical" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeWidth="1.5">
+<path d="m4.24836 14.2484 0 7c0 1.1 0.9 2 2 2h2"/>
+<path d="M15.2484 23.2484h2.5c1.1 0 2 -0.9 2 -2v-7"/>
+<path d="M11.7484 22.2484v-5.9"/>
+<path d="m14.2484 18.7484 -2.5 -2.4 -2.50004 2.4"/>
+<path d="m4.24836 9.75171 0 -7c0 -1.1 0.9 -2.000001 2 -2.000001l2 0"/>
+<path d="m15.2484 0.751709 2.5 0c1.1 0 2 0.900001 2 2.000001v7"/>
+<path d="M11.7484 1.75171v5.9"/>
+<path d="m14.2484 5.25171 -2.5 2.4 -2.50004 -2.4"/>
 </svg>;
 
 export const Menu2 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-menu-2" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">

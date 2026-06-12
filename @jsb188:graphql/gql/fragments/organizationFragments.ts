@@ -27,6 +27,7 @@ export const organizationFragment = `fragment organizationFragment on Organizati
     routes {
       id
       columnWidths
+      columnOrder
     }
     sidebar {
       title
@@ -54,6 +55,7 @@ export const organizationSettingsFragment = `fragment organizationSettingsFragme
   routes {
     id
     columnWidths
+    columnOrder
   }
   sidebar {
     title

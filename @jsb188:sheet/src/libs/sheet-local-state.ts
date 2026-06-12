@@ -1,14 +1,17 @@
 import type { DataTableRowsForSheetRegionGQL } from '@jsb188/mday/types/dataTable.d.ts';
 import type { SheetCellGQL, SheetFormulaReferenceObj, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
-import { getClientCalculatedSheetFormulaCell, sheetCellCanClientCalculateFormula } from './sheet-formula-evaluation.ts';
+import { isSheetFormulaText } from '@jsb188/mday/utils/sheet.ts';
+import {
+	getClientCalculatedSheetFormulaCell,
+	sheetCellCanClientCalculateFormula,
+	sheetFormulaTextIsClientPreviewable,
+} from './sheet-formula-evaluation.ts';
 import {
 	getOptimisticSheetCellFromEditInput,
 	getSheetCellSnapshotEditInput,
 	type SheetCellEditInput,
 } from './sheet-history.ts';
 import { getSheetCanvasCoordKey } from './sheet-utils.ts';
-
-export type SheetLocalRegionRowsById = Record<string, DataTableRowsForSheetRegionGQL | null>;
 
 export type SheetLocalRegionUpsertInput = {
 	region: SheetRegionGQL;
@@ -118,12 +121,32 @@ export function getSheetOptimisticCellEditTransition(
 		params.formulaDependencyCellsByCoord,
 	);
 	const saveInputs = pendingCells.map(({ input, key, optimisticCell }) => {
-		const calculatedCell = getClientCalculatedOptimisticSheetCell({
+		let calculatedCell = getClientCalculatedOptimisticSheetCell({
 			cell: optimisticCell,
 			cellsByCoord: formulaCalculationCellsByCoord,
 			formulaReferencesById: params.formulaReferencesById,
 			timeZone: params.timeZone,
 		});
+
+		// Formulas with data table references resolve on the server: render a
+		// loading state until the mutation result carries the computed value
+		const pendingFormulaText = calculatedCell.formulaText || calculatedCell.formula?.text || calculatedCell.rawInput || '';
+		if (
+			calculatedCell.sourceType !== 'REGION_GENERATED' &&
+			isSheetFormulaText(pendingFormulaText) &&
+			!sheetFormulaTextIsClientPreviewable(pendingFormulaText)
+		) {
+			calculatedCell = {
+				...calculatedCell,
+				__formulaLoading: true,
+				value: null,
+				textValue: null,
+				numberValue: null,
+				booleanValue: null,
+				dateValue: null,
+				datetimeValue: null,
+			} as SheetCellGQL;
+		}
 
 		nextOptimisticCellsByCoord.set(key, calculatedCell);
 
@@ -193,92 +216,23 @@ export function deleteSheetLocalRegion(
 ) {
 	const regionId = String(input.regionId || '');
 	const baseRegions = getSheetRegionsWithLocalUpdates(serverRegions, currentRegions);
-	const nextRegions = baseRegions.filter((region) => String(region.id || '') !== regionId);
+	let deleted = false;
 
-	return nextRegions.length === baseRegions.length ? currentRegions : nextRegions;
-}
-
-/*
- * Return local region row placements with one optimistic region payload upserted.
- */
-export function upsertSheetLocalRegionRows(
-	currentRowsById: SheetLocalRegionRowsById,
-	input: SheetLocalRegionUpsertInput,
-) {
-	const regionId = String(input.region.id || '');
-	if (!regionId) {
-		return currentRowsById;
-	}
-
-	const nextRowsById = { ...currentRowsById };
-	if (input.replaceRegionId && input.replaceRegionId !== regionId) {
-		delete nextRowsById[input.replaceRegionId];
-	}
-	nextRowsById[regionId] = input.rows || null;
-
-	return nextRowsById;
-}
-
-/*
- * Return local region row placements after one optimistic region delete.
- */
-export function deleteSheetLocalRegionRows(
-	currentRowsById: SheetLocalRegionRowsById,
-	input: SheetLocalRegionDeleteInput,
-) {
-	if (!(input.regionId in currentRowsById)) {
-		return currentRowsById;
-	}
-
-	const nextRowsById = { ...currentRowsById };
-	delete nextRowsById[input.regionId];
-
-	return nextRowsById;
-}
-
-/*
- * Return server region row placements with local optimistic row placements layered over them.
- */
-export function getSheetRegionRowsWithLocalUpdates(
-	serverRegionRows?: DataTableRowsForSheetRegionGQL[] | null,
-	localRowsById?: SheetLocalRegionRowsById | null,
-) {
-	const localEntries = Object.entries(localRowsById || {});
-	if (!localEntries.length) {
-		return serverRegionRows;
-	}
-
-	const localRegionIds = new Set(localEntries.map(([regionId]) => regionId));
-	const nextRegionRows = (serverRegionRows || []).filter((region) => {
-		return !localRegionIds.has(String(region.regionId || ''));
-	});
-
-	localEntries.forEach(([, rows]) => {
-		if (rows) {
-			nextRegionRows.push(rows);
+	// Keep the deleted region as an inactive tombstone: its id must stay in
+	// the local list so the stale server copy is excluded from the merged
+	// result until the server's regions patch catches up
+	const nextRegions = baseRegions.map((region) => {
+		if (String(region.id || '') !== regionId) {
+			return region;
 		}
+
+		deleted = true;
+		return {
+			...region,
+			active: false,
+		};
 	});
 
-	return nextRegionRows;
+	return deleted ? nextRegions : currentRegions;
 }
 
-/*
- * Return an optimistic Sheet cell map with the provided coordinate keys removed.
- */
-export function removeSheetOptimisticCellKeys(
-	currentCellsByCoord: Map<string, SheetCellGQL>,
-	coordKeys: string[],
-) {
-	if (!coordKeys.length) {
-		return currentCellsByCoord;
-	}
-
-	const next = new Map(currentCellsByCoord);
-	let changed = false;
-
-	coordKeys.forEach((coordKey) => {
-		changed = next.delete(coordKey) || changed;
-	});
-
-	return changed ? next : currentCellsByCoord;
-}

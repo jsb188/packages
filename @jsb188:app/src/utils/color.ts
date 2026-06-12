@@ -30,6 +30,14 @@ const APP_COLOR_HEX_VALUES: Record<ColorEnum, string> = {
   zinc: '#71717a',
 };
 
+/**
+ * Return one app palette hex color picked deterministically by index.
+ */
+export function getAppColorHexByIndex(index: number): string {
+  const hexValues = Object.values(APP_COLOR_HEX_VALUES);
+  return hexValues[Math.abs(Math.floor(index)) % hexValues.length];
+}
+
 const RGB_COLOR_REGEX = /^rgba?\(([^)]+)\)$/i;
 const HEX_COLOR_VALUE_REGEX = /^#[0-9a-f]{6}$/i;
 const HEX_COLOR_DRAFT_VALUE_REGEX = /^#[0-9a-f]{0,6}$/i;
@@ -96,7 +104,7 @@ function getRGBColorFromRGBFunction(color: string): RGBColorObj | null {
 /**
  * Convert a supported color value into RGB channel values.
  */
-function getRGBColor(color: string | null | undefined): RGBColorObj | null {
+export function getRGBColor(color: string | null | undefined): RGBColorObj | null {
   if (!color) {
     return null;
   }

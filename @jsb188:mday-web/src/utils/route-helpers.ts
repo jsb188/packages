@@ -22,6 +22,8 @@ const F = {
   food_safety: ['FOOD_SAFETY', 'GLOBAL_GAP'],
 };
 
+const LOGIN_CHANGED_ERROR_CODES = new Set(['20080', '20081']);
+
 /**
  * Rules
  */
@@ -72,6 +74,13 @@ interface RouteDictObj {
 }
 
 type CheckACLClientFn = (opName: OperationName) => boolean;
+
+/**
+ * Check whether a server error means the viewer must switch login context.
+ */
+export function hasLoginChangedError(errorCode?: string | number | null) {
+  return LOGIN_CHANGED_ERROR_CODES.has(String(errorCode || ''));
+}
 
 const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
 

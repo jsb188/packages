@@ -21,6 +21,10 @@ const SHEET_CONTEXT_MENU_ACTIONS = {
 	formatValue: 'FORMAT_VALUE',
 	insertColumnLeft: 'INSERT_COLUMN_LEFT',
 	insertRowAbove: 'INSERT_ROW_ABOVE',
+	mergeCellsAll: 'MERGE_CELLS_ALL',
+	mergeCellsHorizontal: 'MERGE_CELLS_HORIZONTAL',
+	mergeCellsVertical: 'MERGE_CELLS_VERTICAL',
+	unmergeCells: 'UNMERGE_CELLS',
 	openDataTable: 'OPEN_DATA_TABLE',
 	pasteCellValues: 'PASTE_CELL_VALUES',
 	populateFromDataTable: 'POPULATE_FROM_DATA_TABLE',
@@ -57,6 +61,8 @@ export type SheetContextMenuFormat = {
 	value?: SheetBorderStylePresetValue | boolean | string | number | null;
 };
 
+export type SheetContextMenuMergeMode = 'all' | 'horizontal' | 'vertical';
+
 export type SheetContextMenuCellTarget = {
 	cellKey: string;
 	rowId: string;
@@ -66,6 +72,11 @@ export type SheetContextMenuTarget = {
 	canEdit: boolean;
 	canEditStructure?: boolean;
 	canFormatCells?: boolean;
+	canMergeCells?: boolean;
+	canMergeCellsAll?: boolean;
+	canMergeCellsHorizontally?: boolean;
+	canMergeCellsVertically?: boolean;
+	canUnmergeCells?: boolean;
 	canOpenDataTable?: boolean;
 	canPopulateFromDataTable?: boolean;
 	canRemoveCellsFromDataTable?: boolean;
@@ -93,9 +104,11 @@ type UseSheetContextMenuParams = {
 	onCustomizeCells?: (target: SheetContextMenuTarget, formatName: SheetContextMenuFormatName) => void;
 	onEditStructure?: (target: SheetContextMenuTarget, action: SheetContextMenuStructureAction) => void;
 	onFormatCells: (target: SheetContextMenuTarget, format: SheetContextMenuFormat) => void;
+	onMergeCells?: (target: SheetContextMenuTarget, mode: SheetContextMenuMergeMode) => void;
 	onOpenDataTable?: (target: SheetContextMenuTarget) => void;
 	onPasteCells?: (target: SheetContextMenuTarget, clipboardText: string) => void | Promise<void>;
 	onPopulateFromDataTable?: (target: SheetContextMenuTarget) => void;
+	onUnmergeCells?: (target: SheetContextMenuTarget) => void;
 	readClipboardText?: () => Promise<string>;
 	onRemoveCellsFromDataTable?: (target: SheetContextMenuTarget) => void;
 };
@@ -251,11 +264,49 @@ function getSheetContextMenuDataTableOptions(target: SheetContextMenuTarget): PO
 }
 
 /*
+ * Build the merge submenu options for one Sheet context-menu target.
+ */
+function getSheetContextMenuMergeOptions(target: SheetContextMenuTarget): POListIfaceItem[] {
+	return [{
+		__type: 'LIST_ITEM',
+		disabled: !target.canMergeCellsAll,
+		iconName: 'merge-table-all',
+		text: i18n.t('sheet.merge_all'),
+		value: SHEET_CONTEXT_MENU_ACTIONS.mergeCellsAll,
+	}, {
+		__type: 'LIST_ITEM',
+		disabled: !target.canMergeCellsVertically,
+		iconName: 'merge-table-vertical',
+		text: i18n.t('sheet.merge_vertically'),
+		value: SHEET_CONTEXT_MENU_ACTIONS.mergeCellsVertical,
+	}, {
+		__type: 'LIST_ITEM',
+		disabled: !target.canMergeCellsHorizontally,
+		iconName: 'merge-table-horizontal',
+		text: i18n.t('sheet.merge_horizontally'),
+		value: SHEET_CONTEXT_MENU_ACTIONS.mergeCellsHorizontal,
+	}, {
+		__type: 'LIST_ITEM',
+		disabled: !target.canUnmergeCells,
+		iconName: 'cells-border-full',
+		text: i18n.t('sheet.unmerge_all'),
+		value: SHEET_CONTEXT_MENU_ACTIONS.unmergeCells,
+	}];
+}
+
+/*
  * Build the PopOver list options for one Sheet context-menu target.
  */
 function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: GetSheetContextMenuOptionsParams): POListIfaceItem[] {
 	const canFormatTarget = canFormatSheetContextMenuTarget(target);
 	const canEditStructure = canEditSheetContextMenuTargetStructure(target);
+	const canUseMergeMenu = Boolean(
+		target.canMergeCells ||
+			target.canMergeCellsAll ||
+			target.canMergeCellsHorizontally ||
+			target.canMergeCellsVertically ||
+			target.canUnmergeCells,
+	);
 	const options: POListIfaceItem[] = [{
 		__type: 'LIST_ITEM',
 		disabled: !target.canEdit,
@@ -307,6 +358,16 @@ function getSheetContextMenuOptions(target: SheetContextMenuTarget, params?: Get
 			options: getSheetContextMenuTextFormatOptions(target),
 		},
 		text: i18n.t('sheet.format_value'),
+		value: true,
+	}, {
+		__type: 'LIST_SUBMENU_ITEM',
+		disabled: !canUseMergeMenu,
+		iconName: 'merge-table-horizontal',
+		submenu: {
+			className: 'min_w_180',
+			options: getSheetContextMenuMergeOptions(target),
+		},
+		text: i18n.t('sheet.merge_cells'),
 		value: true,
 	}, {
 		__type: 'BREAK',
@@ -371,9 +432,11 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 		onCustomizeCells,
 		onEditStructure,
 		onFormatCells,
+		onMergeCells,
 		onOpenDataTable,
 		onPasteCells,
 		onPopulateFromDataTable,
+		onUnmergeCells,
 		readClipboardText,
 		onRemoveCellsFromDataTable,
 	} = p;
@@ -516,6 +579,30 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 			case SHEET_CONTEXT_MENU_ACTIONS.formatValue:
 				closePopOver();
 				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.mergeCellsAll:
+				if (target.canMergeCellsAll) {
+					onMergeCells?.(target, 'all');
+				}
+				closePopOver();
+				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.mergeCellsVertical:
+				if (target.canMergeCellsVertically) {
+					onMergeCells?.(target, 'vertical');
+				}
+				closePopOver();
+				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.mergeCellsHorizontal:
+				if (target.canMergeCellsHorizontally) {
+					onMergeCells?.(target, 'horizontal');
+				}
+				closePopOver();
+				break;
+			case SHEET_CONTEXT_MENU_ACTIONS.unmergeCells:
+				if (target.canUnmergeCells) {
+					onUnmergeCells?.(target);
+				}
+				closePopOver();
+				break;
 			case SHEET_CONTEXT_MENU_ACTIONS.removeCellsFromDataTable:
 				if (target.canRemoveCellsFromDataTable && target.dataTableRegionId) {
 					onRemoveCellsFromDataTable?.(target);
@@ -524,7 +611,7 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 				break;
 			default:
 		}
-	}, [activeTargetRef, closePopOver, onEditCell, onEditStructure, onFormatCells, onOpenDataTable, onPasteCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, popOver?.globalState, readClipboardText]);
+	}, [activeTargetRef, closePopOver, onEditCell, onEditStructure, onFormatCells, onMergeCells, onOpenDataTable, onPasteCells, onPopulateFromDataTable, onRemoveCellsFromDataTable, onUnmergeCells, popOver?.globalState, readClipboardText]);
 
 	return {
 		closeSheetContextMenu,

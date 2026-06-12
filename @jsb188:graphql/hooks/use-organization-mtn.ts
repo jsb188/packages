@@ -192,6 +192,7 @@ export function useEditOrganizationSettingsRequest(openModalPopUp?: OpenModalPop
     sidebar?: any[] | null;
     routeId?: string | null;
     columnWidths?: string[] | null;
+    columnOrder?: string[] | null;
   }) => {
     return graphqlRequest(
       editOrganizationSettingsMtn,

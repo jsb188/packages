@@ -30,6 +30,7 @@ export function AppLayout(p: ReactDivElement & {
   routeName: string;
   notReadyOrError: boolean;
   disableSidebarBodyTransition?: boolean;
+  disableSidebarTransition?: boolean;
   sidebarOverlayOpen?: boolean;
   setSidebarOverlayOpen?: Dispatch<SetStateAction<boolean>>;
   SidebarComponent?: React.ReactNode;
@@ -42,6 +43,7 @@ export function AppLayout(p: ReactDivElement & {
     className,
     notReadyOrError,
     disableSidebarBodyTransition = false,
+    disableSidebarTransition = false,
     sidebarOverlayOpen = false,
     setSidebarOverlayOpen,
     SidebarComponent,
@@ -62,6 +64,12 @@ export function AppLayout(p: ReactDivElement & {
     sidebarOverlayOpen,
     setSidebarOverlayOpen,
   });
+  const sidebarBodyStyle = disableSidebarBodyTransition || disableSidebarTransition
+    ? { transition: 'none' }
+    : undefined;
+  const sidebarInsideStyle = disableSidebarTransition
+    ? { transition: 'none' }
+    : undefined;
 
   return <div
     className={cn('h_f bg_fade', open && 'open', sidebarOverlayRendered && 'overlayed', sidebarOverlayClosing && 'overlay_closing', className)}
@@ -80,10 +88,11 @@ export function AppLayout(p: ReactDivElement & {
         id='app_sidebar'
         className={cn('f_stretch', sidebarOverlayRendered ? 'z6' : 'z3')}
         aria-hidden={!sidebarVisible}
-        style={disableSidebarBodyTransition ? { transition: 'none' } : undefined}
+        style={sidebarBodyStyle}
       >
         <div
           className='app_sidebar_inside v_spread hv_area'
+          style={sidebarInsideStyle}
           onMouseEnter={handleSidebarOverlayMouseEnter}
           onMouseLeave={handleSidebarOverlayMouseLeave}
         >

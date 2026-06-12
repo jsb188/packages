@@ -29,6 +29,7 @@ export type SheetCellEditInput = {
 export type SheetDesignPatchInput = {
 	columns?: string | null;
 	defaultCellStyle?: SheetCellStyleObj | null;
+	metadata?: string | null;
 	rows?: string | null;
 };
 
@@ -324,26 +325,30 @@ export function getSheetCellEditInputsForMutation(
 }
 
 /*
- * Return one optimistic cell rebased over the latest base Sheet cell.
+ * Return one pending preview cell rebased over the latest base Sheet cell.
+ * The rebase uses the pending edit's FULL snapshot input (value, style,
+ * format, and note together), so a preview that accumulated state from
+ * several stacked edits at the same coordinate never loses earlier fields
+ * when a newer partial edit replaced the pending entry.
  */
-export function getSheetOptimisticCellRebasedOnBase(
-	optimisticCell: SheetCellGQL,
+export function getSheetPendingPreviewRebasedOnBase(
+	input: SheetCellEditInput,
+	previewCell: SheetCellGQL,
 	baseCell?: SheetCellGQL | null,
 ) {
-	const rowIndex = Number(optimisticCell.rowIndex || 0);
-	const columnIndex = Number(optimisticCell.columnIndex || 0);
+	const rowIndex = Number(input.cell.rowIndex || 0);
+	const columnIndex = Number(input.cell.columnIndex || 0);
 
 	if (!rowIndex || !columnIndex) {
-		return optimisticCell;
+		return previewCell;
 	}
 
-	const input = getSheetOptimisticCellEditInput(rowIndex, columnIndex, optimisticCell);
 	const rebasedCell = getOptimisticSheetCellFromEditInput(input, baseCell);
-	const currentInput = getSheetCellSnapshotEditInput(rowIndex, columnIndex, optimisticCell);
-	const rebasedInput = getSheetCellSnapshotEditInput(rowIndex, columnIndex, rebasedCell);
+	const currentSnapshot = getSheetCellSnapshotEditInput(rowIndex, columnIndex, previewCell);
+	const rebasedSnapshot = getSheetCellSnapshotEditInput(rowIndex, columnIndex, rebasedCell);
 
-	return sheetCellEditInputsAreEqual(currentInput, rebasedInput)
-		? optimisticCell
+	return sheetCellEditInputsAreEqual(currentSnapshot, rebasedSnapshot)
+		? previewCell
 		: rebasedCell;
 }
 
@@ -394,6 +399,8 @@ export function getOptimisticSheetCellFromEditInput(input: SheetCellEditInput, c
 	}
 
 	const inputStyle = input.cell.style === undefined ? undefined : getSheetHistoryStyle(input.cell.style);
+	const hasValueEdit = input.cell.rawInput !== undefined || input.cell.value !== undefined;
+	const nextRawInput = input.cell.rawInput ?? input.cell.value;
 
 	return {
 		...(currentCell || {}),
@@ -407,6 +414,22 @@ export function getOptimisticSheetCellFromEditInput(input: SheetCellEditInput, c
 		rowIndex: input.cell.rowIndex,
 		style: inputStyle === undefined ? currentCell?.style ?? null : inputStyle,
 		value: input.cell.value ?? currentCell?.value ?? null,
+		// A new value invalidates everything computed from the previous one:
+		// stale formulaText or computed fields would keep rendering the old
+		// formula result instead of the freshly typed input
+		...(hasValueEdit
+			? {
+				__formulaLoading: undefined,
+				formulaText: isSheetFormulaText(nextRawInput) ? String(nextRawInput) : null,
+				textValue: null,
+				numberValue: null,
+				booleanValue: null,
+				dateValue: null,
+				datetimeValue: null,
+				errorCode: null,
+				errorMessage: null,
+			}
+			: {}),
 	} as SheetCellGQL;
 }
 

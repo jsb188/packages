@@ -1,10 +1,12 @@
 import { cn } from '@jsb188/app/utils/string.ts';
+import { getRGBColor } from '@jsb188/app/utils/color.ts';
 import type {
 	SheetUIColumn,
 	SheetUIEditState,
 } from '@jsb188/react-web/ui/SheetUI';
 import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import { memo, type ChangeEvent, type CSSProperties, useCallback, useRef } from 'react';
+import type { SheetCanvasCellStyle } from '../libs/sheet-utils.ts';
 
 export type SheetEditorOverlayPosition = {
 	fontSize?: number | null;
@@ -17,6 +19,8 @@ export type SheetEditorOverlayPosition = {
 export type SheetEditorOverlayProps = {
 	autoFocus?: boolean;
 	cellClassName?: string;
+	/* Resolved (pending-aware) style of the cell being edited */
+	cellStyle?: SheetCanvasCellStyle | null;
 	column: SheetUIColumn;
 	editState: SheetUIEditState;
 	onDraftValue: (draftValue: string) => void;
@@ -24,6 +28,18 @@ export type SheetEditorOverlayProps = {
 	scrollLeft: number;
 	scrollTop: number;
 };
+
+/*
+ * Return a DOM-safe CSS color for one Sheet style color token or hex value.
+ */
+function getSheetEditorDomColor(color?: string | null) {
+	if (!color) {
+		return undefined;
+	}
+
+	const rgb = getRGBColor(color);
+	return rgb ? `rgb(${rgb.red}, ${rgb.green}, ${rgb.blue})` : color;
+}
 
 /*
  * Return inline styles that keep the DOM editor fixed over its canvas cell.
@@ -40,18 +56,57 @@ function getSheetEditorOverlayStyle(p: SheetEditorOverlayProps): CSSProperties {
 }
 
 /*
- * Return inline styles for the editor field itself.
+ * Return inline styles for the editor field itself: font size plus the
+ * cell's current text/fill colors and text styles, so the editor matches the
+ * canvas cell instantly (including unsaved pending style edits).
  */
 function getSheetEditorFieldStyle(p: SheetEditorOverlayProps): CSSProperties | undefined {
 	const fontSize = Number(p.position.fontSize || 0);
+	const textColor = getSheetEditorDomColor(p.cellStyle?.textColor);
+	const fillColor = getSheetEditorDomColor(p.cellStyle?.fillColor);
+	const style: CSSProperties = {};
 
-	if (!Number.isFinite(fontSize) || fontSize <= 0) {
-		return undefined;
+	if (Number.isFinite(fontSize) && fontSize > 0) {
+		style.fontSize = fontSize;
+	}
+	if (textColor) {
+		style.color = textColor;
+	}
+	if (fillColor) {
+		style.backgroundColor = fillColor;
+	}
+	if (p.cellStyle?.bold) {
+		style.fontWeight = 600;
+	}
+	if (p.cellStyle?.italic) {
+		style.fontStyle = 'italic';
+	}
+	if (p.cellStyle?.underline || p.cellStyle?.strikethrough) {
+		style.textDecoration = [
+			p.cellStyle.underline ? 'underline' : '',
+			p.cellStyle.strikethrough ? 'line-through' : '',
+		].filter(Boolean).join(' ');
 	}
 
-	return {
-		fontSize,
-	};
+	return Object.keys(style).length ? style : undefined;
+}
+
+/*
+ * Return a stable comparison key for the editor-relevant style fields.
+ */
+function getSheetEditorCellStyleComparisonKey(cellStyle?: SheetCanvasCellStyle | null) {
+	if (!cellStyle) {
+		return '';
+	}
+
+	return [
+		cellStyle.textColor || '',
+		cellStyle.fillColor || '',
+		cellStyle.bold ? '1' : '',
+		cellStyle.italic ? '1' : '',
+		cellStyle.underline ? '1' : '',
+		cellStyle.strikethrough ? '1' : '',
+	].join('|');
 }
 
 /*
@@ -141,6 +196,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 }, (prev, next) => (
 	prev.cellClassName === next.cellClassName &&
 	prev.autoFocus === next.autoFocus &&
+	getSheetEditorCellStyleComparisonKey(prev.cellStyle) === getSheetEditorCellStyleComparisonKey(next.cellStyle) &&
 	prev.column.fieldType === next.column.fieldType &&
 	prev.column.key === next.column.key &&
 	prev.editState.cellKey === next.editState.cellKey &&

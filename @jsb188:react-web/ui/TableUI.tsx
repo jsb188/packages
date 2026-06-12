@@ -171,6 +171,7 @@ export const TableHeaderRow = memo((p: {
   cellClassNames?: string | (string | undefined)[];
   className?: string;
   columns: TableDesignColumn[];
+  getHeaderCellProps?: (column: TableDesignColumn, columnIndex: number) => HTMLAttributes<HTMLDivElement> | undefined;
   headers?: Partial<TableHeaderObj>[] | null;
   removeLeftPadding?: boolean;
   removeRightPadding?: boolean;
@@ -179,10 +180,12 @@ export const TableHeaderRow = memo((p: {
   showRowDivider?: boolean;
   sticky?: boolean;
 }) => {
-  const { addHorizontalPadding, cellClassNames, className, columns, headers, removeLeftPadding, removeRightPadding, renderHeaderCellOverlay, showColumnDividers, showRowDivider, sticky } = p;
+  const { addHorizontalPadding, cellClassNames, className, columns, getHeaderCellProps, headers, removeLeftPadding, removeRightPadding, renderHeaderCellOverlay, showColumnDividers, showRowDivider, sticky } = p;
 
   return <div className={cn('lh_1 thead table_grid_row', className)} role='row'>
     {columns.map((column, i) => {
+      const headerCellProps = getHeaderCellProps?.(column, i);
+      const { className: headerCellClassName, style: headerCellStyle, ...headerCellRest } = headerCellProps || {};
       const header = {
         ...column.header,
         ...(headers?.[i] || {}),
@@ -192,11 +195,13 @@ export const TableHeaderRow = memo((p: {
 
       return <TableHeaderCell
         key={column.key || i}
+        {...headerCellRest}
         addHorizontalPadding={addHorizontalPadding}
         className={cn(
           column.cellClassName,
           typeof cellClassNames === 'string' ? cellClassNames : cellClassNames?.[i],
           header.className,
+          headerCellClassName,
         )}
         columnIndex={i}
         data-table-column-key={column.key}
@@ -208,7 +213,10 @@ export const TableHeaderRow = memo((p: {
         showColumnDivider={Boolean(showColumnDividers && i > 0)}
         showRowDivider={showRowDivider}
         sticky={sticky}
-        style={header.style}
+        style={{
+          ...header.style,
+          ...headerCellStyle,
+        }}
         text={header.text}
       >
         {renderHeaderCellOverlay?.(column, i)}

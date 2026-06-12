@@ -164,10 +164,13 @@ export interface VirtualizedTableBaseProps extends ReactDivElement {
 export type TableListProps = {
 	bodyRef?: Ref<HTMLDivElement>;
 	borderStyle?: HeaderBorderStyle;
+	columnOrder?: string[] | null;
 	columnWidths?: Record<string, number>;
 	disableOnClickRow?: boolean;
 	reactiveFragmentFn?: ReactiveFragmentFn;
+	onColumnOrderCommit?: (columnOrder: string[]) => void;
 	onColumnResizeCommit?: (columnWidths: Record<string, number>) => void;
+	reorderableColumns?: boolean;
 	resizableColumns?: boolean;
 	tableDesign?: TableDesign;
 	trowClassName?: string;
@@ -192,6 +195,7 @@ export type TableListItemProps = Pick<
 	i: number;
 	nextItem?: VZListItemObj | null;
 	previousItem?: VZListItemObj | null;
+	sourceColumns?: TableDesignColumn[];
 };
 
 /**
