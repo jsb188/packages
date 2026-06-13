@@ -15,11 +15,16 @@ const SHEET_DISPLAY_RULES_EDITOR_EMPTY_OP = 'empty';
 const SHEET_DISPLAY_RULES_EDITOR_NOT_EMPTY_OP = 'not_empty';
 
 const SHEET_DISPLAY_RULES_EDITOR_INPUT_CLASS = 'h_30 px_8 bd_1 bd_lt r_4 bg ft_xs';
+const SHEET_DISPLAY_RULES_EDITOR_DATE_FORMAT_PLACEHOLDER = "MMM d ''yy";
+
+type SheetDisplayRulesEditorOutputMode = 'text' | 'format';
 
 type SheetDisplayRulesEditorBranchDraft = {
 	id: number;
 	op: string;
 	then: string;
+	thenFormat: string;
+	thenMode: SheetDisplayRulesEditorOutputMode;
 	value: string;
 };
 
@@ -54,6 +59,13 @@ function sheetDisplayRulesEditorTypeHasComparisons(valueType: SheetCellValueType
 }
 
 /*
+ * Return whether one value type supports output formatting in display rules.
+ */
+function sheetDisplayRulesEditorTypeHasOutputFormat(valueType: SheetCellValueTypeEnum) {
+	return valueType === 'CELL_DATE';
+}
+
+/*
  * Return the operator dropdown options for one value type.
  */
 function getSheetDisplayRulesEditorOperatorOptions(valueType: SheetCellValueTypeEnum) {
@@ -81,6 +93,29 @@ function getSheetDisplayRulesEditorDefaultValue(valueType: SheetCellValueTypeEnu
 }
 
 /*
+ * Return the output mode for one saved branch, defaulting existing rules to
+ * literal text and using format mode only when a supported format is saved.
+ */
+function getSheetDisplayRulesEditorBranchOutputMode(
+	valueType: SheetCellValueTypeEnum,
+	branch: { thenFormat?: string | null },
+): SheetDisplayRulesEditorOutputMode {
+	return sheetDisplayRulesEditorTypeHasOutputFormat(valueType) && branch.thenFormat ? 'format' : 'text';
+}
+
+/*
+ * Return the input placeholder for one display-rule output field.
+ */
+function getSheetDisplayRulesEditorOutputPlaceholder(
+	valueType: SheetCellValueTypeEnum,
+	mode: SheetDisplayRulesEditorOutputMode,
+) {
+	return sheetDisplayRulesEditorTypeHasOutputFormat(valueType) && mode === 'format'
+		? SHEET_DISPLAY_RULES_EDITOR_DATE_FORMAT_PLACEHOLDER
+		: undefined;
+}
+
+/*
  * Return editable branch drafts from saved display rules, mapping null "is
  * empty" comparison values back to the editor's pseudo-operators.
  */
@@ -94,6 +129,8 @@ function getSheetDisplayRulesEditorBranchDrafts(
 			? (branch.op === 'neq' ? SHEET_DISPLAY_RULES_EDITOR_NOT_EMPTY_OP : SHEET_DISPLAY_RULES_EDITOR_EMPTY_OP)
 			: branch.op,
 		then: branch.then ?? '',
+		thenFormat: branch.thenFormat ?? '',
+		thenMode: getSheetDisplayRulesEditorBranchOutputMode(valueType, branch),
 		value: branch.value === null
 			? ''
 			: typeof branch.value === 'boolean'
@@ -105,6 +142,8 @@ function getSheetDisplayRulesEditorBranchDrafts(
 		id: 1,
 		op: 'eq',
 		then: '',
+		thenFormat: '',
+		thenMode: 'text',
 		value: getSheetDisplayRulesEditorDefaultValue(valueType),
 	}];
 }
@@ -116,20 +155,45 @@ function getSheetDisplayRulesEditorBranchDrafts(
 function getSheetDisplayRulesEditorDraftRules(
 	branches: SheetDisplayRulesEditorBranchDraft[],
 	elseText: string,
+	elseFormat: string,
+	elseMode: SheetDisplayRulesEditorOutputMode,
+	valueType: SheetCellValueTypeEnum,
 ): SheetDisplayRulesForTypeObj {
+	const fallbackFormatBranch = branches.find((branch) => (
+		sheetDisplayRulesEditorTypeHasOutputFormat(valueType) &&
+		branch.thenMode === 'format' &&
+		branch.op === 'eq' &&
+		branch.value.trim() === '' &&
+		branch.thenFormat !== ''
+	));
+	const normalizedElseFormat = sheetDisplayRulesEditorTypeHasOutputFormat(valueType) && elseMode === 'format'
+		? elseFormat
+		: fallbackFormatBranch?.thenFormat || '';
+
 	return {
 		if: branches.map((branch) => {
+			if (branch === fallbackFormatBranch) {
+				return null;
+			}
+
+			const output = sheetDisplayRulesEditorTypeHasOutputFormat(valueType) && branch.thenMode === 'format'
+				? { then: branch.then, thenFormat: branch.thenFormat }
+				: { then: branch.then };
+
 			if (branch.op === SHEET_DISPLAY_RULES_EDITOR_EMPTY_OP) {
-				return { op: 'eq' as SheetDisplayRuleOperatorEnum, value: null, then: branch.then };
+				return { op: 'eq' as SheetDisplayRuleOperatorEnum, value: null, ...output };
 			}
 
 			if (branch.op === SHEET_DISPLAY_RULES_EDITOR_NOT_EMPTY_OP) {
-				return { op: 'neq' as SheetDisplayRuleOperatorEnum, value: null, then: branch.then };
+				return { op: 'neq' as SheetDisplayRuleOperatorEnum, value: null, ...output };
 			}
 
-			return { op: branch.op as SheetDisplayRuleOperatorEnum, value: branch.value, then: branch.then };
-		}),
+			return { op: branch.op as SheetDisplayRuleOperatorEnum, value: branch.value, ...output };
+		}).filter((branch): branch is SheetDisplayRulesForTypeObj['if'][number] => Boolean(branch)),
 		...(elseText.trim() !== '' ? { else: elseText } : {}),
+		...(normalizedElseFormat !== ''
+			? { elseFormat: normalizedElseFormat }
+			: {}),
 	};
 }
 
@@ -184,6 +248,31 @@ function SheetDisplayRulesEditorValueInput(p: {
 }
 
 /*
+ * Render the output-mode selector for value types that can format the original
+ * typed cell value.
+ */
+function SheetDisplayRulesEditorOutputModeInput(p: {
+	id: number;
+	mode: SheetDisplayRulesEditorOutputMode;
+	onChange: (id: number, mode: SheetDisplayRulesEditorOutputMode) => void;
+	valueType: SheetCellValueTypeEnum;
+}) {
+	if (!sheetDisplayRulesEditorTypeHasOutputFormat(p.valueType)) {
+		return null;
+	}
+
+	return <select
+		aria-label={i18n.t('sheet.display_rules_output_mode')}
+		className={cn('no_shrink', SHEET_DISPLAY_RULES_EDITOR_INPUT_CLASS)}
+		onChange={(event) => p.onChange(p.id, event.currentTarget.value as SheetDisplayRulesEditorOutputMode)}
+		value={p.mode}
+	>
+		<option value="text">{i18n.t('sheet.display_rules_output_text')}</option>
+		<option value="format">{i18n.t('sheet.display_rules_output_date_format')}</option>
+	</select>;
+}
+
+/*
  * Render a draggable Sheet display rules editor overlay anchored on the
  * selected cell. Saving emits the normalized rules for the target value type;
  * saving null clears that value type's rules.
@@ -193,11 +282,30 @@ export const SheetDisplayRulesEditor = memo((p: SheetDisplayRulesEditorProps) =>
 		() => getSheetDisplayRulesEditorBranchDrafts(p.valueType, p.value),
 	);
 	const [elseText, setElseText] = useState(typeof p.value?.else === 'string' ? p.value.else : '');
+	const [elseFormat, setElseFormat] = useState(typeof p.value?.elseFormat === 'string' ? p.value.elseFormat : '');
+	const [elseMode, setElseMode] = useState<SheetDisplayRulesEditorOutputMode>(
+		sheetDisplayRulesEditorTypeHasOutputFormat(p.valueType) && p.value?.elseFormat ? 'format' : 'text',
+	);
 	const [dragOffset, setDragOffset] = useState<SheetDisplayRulesEditorOffset>({ x: 0, y: 0 });
 	const [dragVersion, setDragVersion] = useState(0);
 	const dragStateRef = useRef<SheetDisplayRulesEditorDragState | null>(null);
 	const nextBranchIdRef = useRef(branches.length + 1);
 	const operatorOptions = getSheetDisplayRulesEditorOperatorOptions(p.valueType);
+	const valueSignature = JSON.stringify(p.value || null);
+
+	/*
+	 * Refresh local editor drafts when the resolved saved rules arrive or switch
+	 * while the overlay instance is already mounted.
+	 */
+	useEffect(() => {
+		const nextBranches = getSheetDisplayRulesEditorBranchDrafts(p.valueType, p.value);
+
+		setBranches(nextBranches);
+		setElseText(typeof p.value?.else === 'string' ? p.value.else : '');
+		setElseFormat(typeof p.value?.elseFormat === 'string' ? p.value.elseFormat : '');
+		setElseMode(sheetDisplayRulesEditorTypeHasOutputFormat(p.valueType) && p.value?.elseFormat ? 'format' : 'text');
+		nextBranchIdRef.current = nextBranches.length + 1;
+	}, [p.valueType, valueSignature]);
 
 	/*
 	 * Begin dragging the editor from its handle.
@@ -255,6 +363,21 @@ export const SheetDisplayRulesEditor = memo((p: SheetDisplayRulesEditorProps) =>
 	}, []);
 
 	/*
+	 * Store a new output format for one branch row.
+	 */
+	const handleBranchThenFormatChange = useCallback((id: number, event: ChangeEvent<HTMLInputElement>) => {
+		const thenFormat = event.currentTarget.value;
+		setBranches((current) => current.map((branch) => branch.id === id ? { ...branch, thenFormat } : branch));
+	}, []);
+
+	/*
+	 * Store a new output mode for one branch row.
+	 */
+	const handleBranchThenModeChange = useCallback((id: number, mode: SheetDisplayRulesEditorOutputMode) => {
+		setBranches((current) => current.map((branch) => branch.id === id ? { ...branch, thenMode: mode } : branch));
+	}, []);
+
+	/*
 	 * Append one empty branch row.
 	 */
 	const handleAddBranch = useCallback(() => {
@@ -267,6 +390,8 @@ export const SheetDisplayRulesEditor = memo((p: SheetDisplayRulesEditorProps) =>
 				id: nextBranchIdRef.current++,
 				op: 'eq',
 				then: '',
+				thenFormat: '',
+				thenMode: 'text',
 				value: getSheetDisplayRulesEditorDefaultValue(p.valueType),
 			}];
 		});
@@ -283,12 +408,12 @@ export const SheetDisplayRulesEditor = memo((p: SheetDisplayRulesEditorProps) =>
 	 * Save the normalized draft rules for the target value type.
 	 */
 	const handleApply = useCallback(() => {
-		const draftRules = getSheetDisplayRulesEditorDraftRules(branches, elseText);
+		const draftRules = getSheetDisplayRulesEditorDraftRules(branches, elseText, elseFormat, elseMode, p.valueType);
 		const normalized = normalizeSheetDisplayRules({ [p.valueType]: draftRules })?.[p.valueType] || null;
 
 		p.onSave(normalized);
 		p.onClose();
-	}, [branches, elseText, p.onClose, p.onSave, p.valueType]);
+	}, [branches, elseFormat, elseMode, elseText, p.onClose, p.onSave, p.valueType]);
 
 	/*
 	 * Clear the saved rules for the target value type.
@@ -341,11 +466,11 @@ export const SheetDisplayRulesEditor = memo((p: SheetDisplayRulesEditorProps) =>
 	}, [dragVersion]);
 
 	return <div
-		className={cn('bg shadow_light ft_xs w_500', p.className)}
+		className={cn('bg shadow_light ft_xs', p.className)}
 		data-sheet-display-rules-editor="true"
 		onDoubleClick={handleEditorDoubleClick}
 		onPointerDown={handleEditorPointerDown}
-		style={getSheetDisplayRulesEditorStyle(p.position, p.scrollLeft, p.scrollTop, dragOffset)}
+		style={{ ...getSheetDisplayRulesEditorStyle(p.position, p.scrollLeft, p.scrollTop, dragOffset), width: 620 }}
 	>
 		<TooltipButton
 			as="div"
@@ -400,13 +525,23 @@ export const SheetDisplayRulesEditor = memo((p: SheetDisplayRulesEditorProps) =>
 						{i18n.t('sheet.display_rules_then')}
 					</span>
 
+					<SheetDisplayRulesEditorOutputModeInput
+						id={branch.id}
+						mode={branch.thenMode}
+						onChange={handleBranchThenModeChange}
+						valueType={p.valueType}
+					/>
+
 					<input
 						aria-label={i18n.t('sheet.display_rules_then')}
 						className={cn('f', SHEET_DISPLAY_RULES_EDITOR_INPUT_CLASS)}
-						onChange={(event) => handleBranchThenChange(branch.id, event)}
+						onChange={(event) => branch.thenMode === 'format'
+							? handleBranchThenFormatChange(branch.id, event)
+							: handleBranchThenChange(branch.id, event)}
+						placeholder={getSheetDisplayRulesEditorOutputPlaceholder(p.valueType, branch.thenMode)}
 						size={1}
 						type="text"
-						value={branch.then}
+						value={branch.thenMode === 'format' ? branch.thenFormat : branch.then}
 					/>
 
 					<button
@@ -426,13 +561,23 @@ export const SheetDisplayRulesEditor = memo((p: SheetDisplayRulesEditorProps) =>
 					{i18n.t('sheet.display_rules_else')}
 				</span>
 
+				<SheetDisplayRulesEditorOutputModeInput
+					id={0}
+					mode={elseMode}
+					onChange={(_id, mode) => setElseMode(mode)}
+					valueType={p.valueType}
+				/>
+
 				<input
 					aria-label={i18n.t('sheet.display_rules_else')}
 					className={cn('f', SHEET_DISPLAY_RULES_EDITOR_INPUT_CLASS)}
-					onChange={(event) => setElseText(event.currentTarget.value)}
+					onChange={(event) => elseMode === 'format'
+						? setElseFormat(event.currentTarget.value)
+						: setElseText(event.currentTarget.value)}
+					placeholder={getSheetDisplayRulesEditorOutputPlaceholder(p.valueType, elseMode)}
 					size={1}
 					type="text"
-					value={elseText}
+					value={elseMode === 'format' ? elseFormat : elseText}
 				/>
 			</div>
 

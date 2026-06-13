@@ -105,6 +105,19 @@ function finishGridKeyboardEvent(handlers: GridKeyboardHandlers) {
 }
 
 /*
+ * Remove focus from the active browser text input when Escape dismisses editing.
+ */
+function blurGridKeyboardFocusedInput(elements: GridKeyboardElements) {
+	const activeElement = globalThis.document?.activeElement as HTMLElement | null;
+	const focusedInput = activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')
+		? activeElement
+		: null;
+	const fallbackInput = elements.editorElement || elements.headerEditorElement || elements.localEditorElement;
+
+	(focusedInput || fallbackInput)?.blur?.();
+}
+
+/*
  * Return whether a keyboard event should run grid-level undo.
  */
 
@@ -368,6 +381,7 @@ export function handleGridKeyboardEvent(
 	if (elements.headerEditorElement) {
 		if (event.key === 'Escape') {
 			consumeGridKeyboardEvent(event, stopImmediatePropagation);
+			blurGridKeyboardFocusedInput(elements);
 			handlers.onDismissHeaderEditor?.();
 			finishGridKeyboardEvent(handlers);
 			return true;
@@ -391,6 +405,7 @@ export function handleGridKeyboardEvent(
 
 		if (event.key === 'Escape') {
 			consumeGridKeyboardEvent(event, stopImmediatePropagation);
+			blurGridKeyboardFocusedInput(elements);
 			handlers.onDismissEditor?.();
 			finishGridKeyboardEvent(handlers);
 			return true;
@@ -421,6 +436,7 @@ export function handleGridKeyboardEvent(
 	if (elements.localEditorElement) {
 		if (event.key === 'Escape') {
 			consumeGridKeyboardEvent(event, stopImmediatePropagation);
+			blurGridKeyboardFocusedInput(elements);
 			handlers.onDismissLocalEditor?.();
 			finishGridKeyboardEvent(handlers);
 			return true;
@@ -440,6 +456,7 @@ export function handleGridKeyboardEvent(
 		consumeGridKeyboardEvent(event, stopImmediatePropagation);
 
 		if (event.key === 'Escape') {
+			blurGridKeyboardFocusedInput(elements);
 			handlers.onDismissActiveEditor?.();
 		}
 

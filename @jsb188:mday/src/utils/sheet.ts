@@ -17,6 +17,7 @@ import {
 	SHEET_VIEWPORT_MAX_ROWS,
 	GRID_ITEM_LIST_LIMIT,
 } from '../constants/sheet.ts';
+import { DateTime } from 'luxon';
 import type {
 	SheetMergedRangeObj,
 	SheetAxisDesignObj,
@@ -3092,6 +3093,22 @@ export function mergeSheetAxisDesignLineStyles(
 }
 
 /*
+ * Return one saved display rule format string when that value type supports
+ * formatting. The format string is intentionally passed through to Luxon at
+ * render time so valid Luxon literals, including quoted text, are preserved.
+ */
+function normalizeSheetDisplayRuleOutputFormat(
+	valueType: SheetCellValueTypeEnum,
+	value: unknown,
+): string | null {
+	if (valueType !== 'CELL_DATE' || typeof value !== 'string' || value === '') {
+		return null;
+	}
+
+	return value.slice(0, SHEET_DISPLAY_RULE_MAX_TEXT_LENGTH);
+}
+
+/*
  * Return one display rule comparison value coerced to the primitive its
  * value-type key compares against. Null survives as the "is empty" match for
  * equality checks; undefined marks an unusable value.
@@ -3164,8 +3181,9 @@ function normalizeSheetDisplayRuleBranch(
 	const then = typeof source.then === 'string' || typeof source.then === 'number'
 		? String(source.then).slice(0, SHEET_DISPLAY_RULE_MAX_TEXT_LENGTH)
 		: '';
+	const thenFormat = normalizeSheetDisplayRuleOutputFormat(valueType, source.thenFormat);
 
-	return { op, value, then };
+	return { op, value, then, ...(thenFormat !== null ? { thenFormat } : {}) };
 }
 
 /*
@@ -3193,14 +3211,16 @@ export function normalizeSheetDisplayRules(value?: unknown): SheetDisplayRulesOb
 		const elseValue = typeof rulesForType.else === 'string' || typeof rulesForType.else === 'number'
 			? String(rulesForType.else).slice(0, SHEET_DISPLAY_RULE_MAX_TEXT_LENGTH)
 			: null;
+		const elseFormat = normalizeSheetDisplayRuleOutputFormat(valueType, rulesForType.elseFormat);
 
-		if (!branches.length && elseValue === null) {
+		if (!branches.length && elseValue === null && elseFormat === null) {
 			return;
 		}
 
 		normalized[valueType] = {
 			if: branches,
 			...(elseValue !== null ? { else: elseValue } : {}),
+			...(elseFormat !== null ? { elseFormat } : {}),
 		};
 	});
 
@@ -3338,6 +3358,53 @@ function doesSheetDisplayRuleBranchMatch(
 }
 
 /*
+ * Return the date format saved by older editor drafts that accidentally
+ * persisted a blank date-format condition as "is empty" instead of fallback.
+ */
+function getSheetDisplayRuleFallbackFormatFromEmptyBranch(
+	valueType: SheetCellValueTypeEnum,
+	branches: SheetDisplayRuleBranchObj[],
+): string | null {
+	if (valueType !== 'CELL_DATE') {
+		return null;
+	}
+
+	const branch = branches.find((branch_) => (
+		branch_.op === 'eq' &&
+		branch_.value === null &&
+		branch_.thenFormat &&
+		!String(branch_.then ?? '').trim()
+	));
+
+	return branch?.thenFormat || null;
+}
+
+/*
+ * Return one display-rule format applied to the original typed cell value, or
+ * null when the value type is not supported or Luxon cannot parse the source.
+ */
+function formatSheetDisplayRuleCellValue(
+	valueType: SheetCellValueTypeEnum,
+	cellValue: number | boolean | string | null,
+	format?: string | null,
+): string | null {
+	if (valueType !== 'CELL_DATE' || typeof cellValue !== 'string' || !format) {
+		return null;
+	}
+
+	const dateTime = DateTime.fromISO(cellValue);
+	if (!dateTime.isValid) {
+		return null;
+	}
+
+	try {
+		return dateTime.toFormat(format);
+	} catch {
+		return null;
+	}
+}
+
+/*
  * Return the display text one cell's display rules resolve to, or null when no
  * rule applies and the caller should keep the raw display value. Rules keyed
  * to a different value type than the cell's current one stay dormant. Empty
@@ -3389,8 +3456,24 @@ export function evaluateSheetDisplayRules(params: {
 
 	for (const branch of branches) {
 		if (doesSheetDisplayRuleBranchMatch(branch, cellValue)) {
+			const formattedValue = formatSheetDisplayRuleCellValue(valueType, cellValue, branch.thenFormat);
+			if (formattedValue !== null) {
+				return formattedValue;
+			}
+
 			return String(branch.then ?? '');
 		}
+	}
+
+	const formattedElseValue = formatSheetDisplayRuleCellValue(valueType, cellValue, rulesForType.elseFormat);
+	if (formattedElseValue !== null) {
+		return formattedElseValue;
+	}
+
+	const fallbackFormat = getSheetDisplayRuleFallbackFormatFromEmptyBranch(valueType, branches);
+	const formattedFallbackValue = formatSheetDisplayRuleCellValue(valueType, cellValue, fallbackFormat);
+	if (formattedFallbackValue !== null) {
+		return formattedFallbackValue;
 	}
 
 	return typeof rulesForType.else === 'string' ? rulesForType.else : null;

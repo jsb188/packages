@@ -45,6 +45,7 @@
     "./utils/workflow.ts": "./src/utils/workflow.ts"
   },
   "dependencies": {
+    "luxon": "^3.7.2",
     "zod": "^3.25.67"
   },
   "peerDependencies": {

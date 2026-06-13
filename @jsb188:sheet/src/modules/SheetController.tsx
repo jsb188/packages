@@ -2018,6 +2018,7 @@ function getSheetCanvasContextMenuTarget(params: {
 			effectiveCell: rowIndex && columnIndex
 				? params.effectiveCellsByCoord.get(getSheetCanvasCoordKey(rowIndex, columnIndex))
 				: null,
+			resolvedFormat: targetCell?.format,
 		}),
 	} satisfies SheetContextMenuTarget;
 }
@@ -2033,8 +2034,9 @@ function getSheetContextMenuTargetValueType(params: {
 	designCellsByDataTableId?: Map<string, Map<string, { fieldType?: string | null }>> | null;
 	displayValue?: string | null;
 	effectiveCell?: SheetCellGQL | null;
+	resolvedFormat?: SheetCellFormatObj | null;
 }) {
-	const { dataTableRegion, designCellsByDataTableId, displayValue, effectiveCell } = params;
+	const { dataTableRegion, designCellsByDataTableId, displayValue, effectiveCell, resolvedFormat } = params;
 	const regionFieldType = dataTableRegion && effectiveCell?.sourceCellKey
 		? designCellsByDataTableId
 			?.get(String(dataTableRegion.source?.dataTableId || ''))
@@ -2046,7 +2048,19 @@ function getSheetContextMenuTargetValueType(params: {
 		return Number.isInteger(Number(effectiveCell.numberValue)) ? 'CELL_INT' : 'CELL_FLOAT';
 	}
 
-	return fieldValueType || getSheetCellValueType(effectiveCell, displayValue);
+	const detectedValueType = fieldValueType || getSheetCellValueType(effectiveCell, displayValue);
+
+	if (resolvedFormat?.displayRules?.[detectedValueType]) {
+		return detectedValueType;
+	}
+
+	const displayRuleValueTypes = Object.keys(resolvedFormat?.displayRules || {}) as SheetCellValueTypeEnum[];
+
+	if (displayRuleValueTypes.length === 1 && (!effectiveCell || detectedValueType === 'CELL_TEXT')) {
+		return displayRuleValueTypes[0];
+	}
+
+	return detectedValueType;
 }
 
 /*
@@ -4786,9 +4800,15 @@ export function SheetController(p: SheetControllerProps) {
 		}) : null;
 
 		if (nextCell) {
+			if (editorElement.matches(GRID_FORMULA_INPUT_SELECTOR)) {
+				setFormulaInputFocused(true);
+				openSheetCellEditor(nextCell, undefined, false);
+				return;
+			}
+
 			selectSheetCell(nextCell);
 		}
-	}, [selectSheetCell]);
+	}, [openSheetCellEditor, selectSheetCell]);
 
 	const navigateSheetTab = useCallback((direction: 'forward' | 'backward') => {
 		const runtime = runtimeRef.current;

@@ -75,6 +75,7 @@ export function useSheetViewState(params: UseSheetViewStateParams) {
 	} = useSheetView(params.sheetId, params.organizationId, fullViewport, {
 		authToken: params.previewAuthToken || null,
 	});
+
 	const typedSheetView = sheetView as SheetViewGQL | null;
 	const appliedSheetViewRef = useRef<SheetViewGQL | null>(null);
 	const confirmedSheetIdRef = useRef(params.sheetId);

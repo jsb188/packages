@@ -23,6 +23,7 @@ import {
 	type SheetUIColumn,
 } from '@jsb188/react-web/ui/SheetUI';
 import { parseLabelMarkdownText } from '@jsb188/react-web/utils/markdown';
+import { DateTime } from 'luxon';
 import type { DataTableCellDisplayModel } from './dataTable-cell-editing.tsx';
 
 export const SHEET_CANVAS_INITIAL_ROW_COUNT = 200;
@@ -580,6 +581,34 @@ function getSheetCanvasCellRawDisplayValue(cell?: SheetCellGQL | null) {
 }
 
 /*
+ * Return one sparse Sheet date value formatted with the cell's Luxon format
+ * string, or null when the cell has no date-like value or format.
+ */
+function getSheetCanvasCellFormattedDateValue(
+	cell: SheetCellGQL | null | undefined,
+	rawDisplayValue: string,
+	resolvedFormat?: SheetCellFormatObj | null,
+) {
+	const format = typeof resolvedFormat?.format === 'string' ? resolvedFormat.format : '';
+	const value = cell?.dateValue || cell?.datetimeValue || rawDisplayValue;
+
+	if (!format || !value) {
+		return null;
+	}
+
+	const dateTime = DateTime.fromISO(String(value));
+	if (!dateTime.isValid) {
+		return null;
+	}
+
+	try {
+		return dateTime.toFormat(format);
+	} catch {
+		return null;
+	}
+}
+
+/*
  * Return a user-facing display string for a sparse sheet cell. A resolved
  * format's display rules can rewrite the rendered text (including else text on
  * empty cells); raw and typed values stay untouched for editing, sorting, and
@@ -598,6 +627,11 @@ export function getSheetCanvasCellDisplayValue(cell?: SheetCellGQL | null, resol
 		if (ruledValue !== null) {
 			return ruledValue;
 		}
+	}
+
+	const formattedDateValue = getSheetCanvasCellFormattedDateValue(cell, rawDisplayValue, resolvedFormat);
+	if (formattedDateValue !== null) {
+		return formattedDateValue;
 	}
 
 	return rawDisplayValue;

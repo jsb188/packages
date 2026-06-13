@@ -79,11 +79,13 @@ export interface SheetDisplayRuleBranchObj {
 	/* Comparison value typed per the rule's value-type key; null means "is empty" (eq/neq only) */
 	value: number | boolean | string | null;
 	then: string;
+	thenFormat?: string | null;
 }
 
 export interface SheetDisplayRulesForTypeObj {
 	if: SheetDisplayRuleBranchObj[];
 	else?: string | null;
+	elseFormat?: string | null;
 }
 
 /* Keyed by SheetCellValueTypeEnum; keys not matching the cell's current value type stay dormant */

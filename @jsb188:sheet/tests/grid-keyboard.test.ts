@@ -164,6 +164,25 @@ describe('grid keyboard helpers', () => {
 		expect(onEnter).toHaveBeenCalledTimes(1);
 	});
 
+	it('blurs the focused editor when Escape dismisses editing', () => {
+		const blur = vi.fn();
+		const editorElement = {
+			blur,
+			matches: () => false,
+		} as unknown as HTMLElement;
+		const onDismissEditor = vi.fn();
+		const event = createGridKeyboardEvent('Escape');
+
+		const handled = handleGridKeyboardEvent(event, { editorElement }, {
+			hasActiveCell: true,
+			onDismissEditor,
+		});
+
+		expect(handled).toBe(true);
+		expect(blur).toHaveBeenCalledTimes(1);
+		expect(onDismissEditor).toHaveBeenCalledTimes(1);
+	});
+
 	it('passes the meta key through arrows as the data-edge jump flag', () => {
 		const onArrow = vi.fn();
 
