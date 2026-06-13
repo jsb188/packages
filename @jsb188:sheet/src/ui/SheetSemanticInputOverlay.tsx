@@ -128,16 +128,16 @@ function renderSheetSemanticInputGuide<TPart extends SheetSemanticInputPartSpan>
 
 	return (
 		<div
-			className='abs z9 bg bd_1 shadow r_sm ft_xs px_10 py_10 pb_12 max_w_250'
+			className='abs z9 bg bd_1 shadow ft_xs px_10 py_10 min_w_230 max_w_400'
 			data-sheet-semantic-input-guide='true'
 			onMouseDown={(event) => event.preventDefault()}
 			style={{
-				left: props.tipPosition.left,
+				left: props.tipPosition.left - 2,
 				pointerEvents: 'auto',
 				top: props.tipPosition.top,
 			}}
 		>
-			<div className='ft_medium mb_3'>
+			<div className='ft_medium'>
 				{guide.title}
 			</div>
 			{guide.description ? (
@@ -180,6 +180,9 @@ function SheetSemanticInputOverlayBase<TPart extends SheetSemanticInputPartSpan>
 	props: SheetSemanticInputOverlayProps<TPart>,
 ) {
 	const hasChunks = Boolean(props.chunks?.length);
+
+  console.log(props.mirrorClassName);
+
 
 	return <>
 		{hasChunks ? (

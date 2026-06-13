@@ -4338,6 +4338,13 @@ export const TextFormat1 = <svg xmlns="http://www.w3.org/2000/svg" fill="none" v
 <path d="M1.25635 19.7965 5.68348 6.51512c0.22696 -0.68087 0.86414 -1.14012 1.58184 -1.14012v0c0.7177 0 1.35488 0.45925 1.58183 1.14012L13.2743 19.7965M2.85874 14.9894h8.81316" />
 </svg>;
 
+export const TextFormatAlphabet = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-text-format-alphabet" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+<path d="M10.1087 8.10645v3.56925h2.7581c0.9856 0 1.7846 -0.799 1.7846 -1.78465 0 -0.98561 -0.799 -1.7846 -1.7846 -1.7846h-2.7581Z" />
+<path d="M10.1087 11.6758v4.2181h3.0825c1.1648 0 2.1091 -0.9442 2.1091 -2.109 0 -1.1649 -0.9443 -2.1091 -2.1091 -2.1091h-3.0825Z" />
+<path d="M23.0951 9.40435c-0.2672 -0.75615 -0.9884 -1.2979 -1.836 -1.2979h-1.2979c-1.0752 0 -1.9469 0.87163 -1.9469 1.94685v3.8937c0 1.0752 0.8717 1.9468 1.9469 1.9468h1.2979c0.8476 0 1.5688 -0.5417 1.836 -1.2979" />
+<path d="M0.904863 15.8938 3.29544 8.72209c0.12255 -0.36766 0.46662 -0.61564 0.85417 -0.61564v0c0.38754 0 0.73161 0.24798 0.85416 0.61564l2.39058 7.17171M1.77013 13.298h4.75895" />
+</svg>;
+
 export const ThumbUp = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-thumb-up" viewBox="0 0 24 24" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
 <path d="M7 11v8a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-7a1 1 0 0 1 1 -1h3a4 4 0 0 0 4 -4v-1a2 2 0 0 1 4 0v5h3a2 2 0 0 1 2 2l-1 5a2 3 0 0 1 -2 2h-7a3 3 0 0 1 -3 -3" stroke="currentColor" />

@@ -448,6 +448,7 @@ export const ICON_SPRITE_NAMES = [
   "team-chat",
   "temperature-control-warehouse-1",
   "text-format-1",
+  "text-format-alphabet",
   "thumb-up",
   "thumb-up-filled",
   "time-daily-2",

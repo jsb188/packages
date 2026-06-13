@@ -1,46 +1,46 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
-import {
-	getSheetFormulaDataTableCellKeyText,
-	isSheetFormulaText,
-	normalizeSheetFormulaDataTableName,
-	parseSheetFormulaCall,
-	parseSheetFormulaStringLiteral,
-	tokenizeSheetFormulaReferences,
-	type SheetFormulaReferenceToken,
-} from '@jsb188/mday/utils/sheet.ts';
 import type {
-	DataTableDesignCellGQL,
-	DataTableGQL,
+  DataTableDesignCellGQL,
+  DataTableGQL,
 } from '@jsb188/mday/types/dataTable.d.ts';
-import { COMMON_ICON_NAMES, Icon } from '@jsb188/react-web/svgs/Icon';
+import {
+  getSheetFormulaDataTableCellKeyText,
+  isSheetFormulaText,
+  normalizeSheetFormulaDataTableName,
+  parseSheetFormulaCall,
+  parseSheetFormulaStringLiteral,
+  tokenizeSheetFormulaReferences,
+  type SheetFormulaReferenceToken,
+} from '@jsb188/mday/utils/sheet.ts';
+import { Icon } from '@jsb188/react-web/svgs/Icon';
 import type {
-	SheetUIColumn,
-	SheetUIEditState,
+  SheetUIColumn,
+  SheetUIEditState,
 } from '@jsb188/react-web/ui/SheetUI';
 import {
-	memo,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	type CSSProperties,
-	type ChangeEvent,
-	type FocusEvent,
-	type KeyboardEvent,
-	type SyntheticEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type ChangeEvent,
+  type FocusEvent,
+  type KeyboardEvent,
+  type SyntheticEvent,
 } from 'react';
 import {
-	getSheetSemanticInputRenderableParts,
-	useSheetSemanticInputHighlightState,
-	type SheetSemanticInputPartSpan,
+  getSheetSemanticInputRenderableParts,
+  useSheetSemanticInputHighlightState,
+  type SheetSemanticInputPartSpan,
 } from '../libs/sheet-semantic-input.ts';
 import { SHEET_TEXT_INPUT_LAYOUT_STYLE } from '../libs/sheet-text-input-style.ts';
 import { SheetFormulaUI } from '../ui/SheetFormulaUI.tsx';
 import {
-	SheetSemanticInputOverlay,
-	type SheetSemanticInputGuide,
-	type SheetSemanticInputGuideOption,
+  SheetSemanticInputOverlay,
+  type SheetSemanticInputGuide,
+  type SheetSemanticInputGuideOption,
 } from '../ui/SheetSemanticInputOverlay.tsx';
 
 export type SheetFormulaInputProps = {
@@ -90,7 +90,8 @@ type SheetFormulaInputHighlightPart = SheetSemanticInputPartSpan & {
 	tokenIndex: number;
 };
 
-const SHEET_FORMULA_INPUT_PADDING = '6px 8px 6px 6px';
+const SHEET_FORMULA_INPUT_PADDING = '8px 8px 8px 6px';
+const SHEET_FORMULA_TIP_GAP = 10;
 const SHEET_FORMULA_TIP_ASSUMED_WIDTH = 260;
 const SHEET_FORMULA_COLUMN_PART_KINDS: SheetFormulaInputHighlightKind[] = [
 	'DATA_TABLE_CONDITION_COLUMN',
@@ -1067,6 +1068,7 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 		includeEndIndex: true,
 		parts: formulaParts,
 		syncWithAnimationFrame: true,
+		tipGap: SHEET_FORMULA_TIP_GAP,
 		tipWidth: SHEET_FORMULA_TIP_ASSUMED_WIDTH,
 	});
 	const {
@@ -1253,7 +1255,7 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 			/>
 		) : null}
 		<input
-			className={cn('sheet_formula_input stock pl_6 pr_8 py_6 ft_normal ft_sm f bd_0')}
+			className={cn('sheet_formula_input stock pl_6 pr_8 py_8 ft_normal ft_sm f bd_0')}
 			data-cell-key={p.editState?.cellKey}
 			data-field-type={fieldType}
 			data-row-id={p.editState?.rowId}
@@ -1285,22 +1287,22 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 		error={p.error || p.editState?.error}
 	>
 		<div className='bg w_f'>
-			<div className='h_item ft_xs'>
+			<div className='h_item'>
 				{p.onOpenDisplayRules
 					? (
 						<button
 							aria-label={i18n.t('sheet.display_rules')}
-							className={cn('ic_sm no_shrink ml_8 r_4 p_0', p.hasDisplayRules ? 'bg_primary_fd cl_primary' : 'cl_darker_4')}
+							className={cn('no_shrink ml_7 r_4 px_4 py_0 bd_1 ic_df', p.hasDisplayRules ? 'bg_primary bd_primary' : 'cl_md bd_lt bg_fade bg_active_hv')}
 							onClick={p.onOpenDisplayRules}
 							onPointerDown={(event) => event.stopPropagation()}
 							title={i18n.t('sheet.display_rules')}
 							type='button'
 						>
-							<Icon name={COMMON_ICON_NAMES.format_selected_cells} />
+							<Icon name='text-format-alphabet' />
 						</button>
 					)
 					: null}
-				<span className='ic_sm no_shrink ml_8 cl_darker_4' aria-hidden='true'>
+				<span className='ft_sm ic_sm no_shrink ml_8 cl_md' aria-hidden='true'>
 					<Icon name='layer-style' />
 				</span>
 				{inputContent}
