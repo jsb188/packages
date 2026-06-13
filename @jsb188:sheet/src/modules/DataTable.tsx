@@ -405,6 +405,58 @@ function getDataTableColumnReorderTargetIndex(params: {
 }) {
 	const viewportRect = params.scrollNode.getBoundingClientRect();
 	const targetLeft = params.clientX - viewportRect.left + params.scrollLeft;
+	const draggedMetricIndex = params.draggedColumnIndex === undefined
+		? -1
+		: params.metrics.findIndex((metric) => metric.columnIndex === params.draggedColumnIndex);
+
+	if (params.draggedRect && draggedMetricIndex >= 0) {
+		const draggedMetric = params.metrics[draggedMetricIndex];
+		const draggedMetricLeft = draggedMetric
+			? getSheetColumnMetricHeaderLeft(draggedMetric, params.scrollLeft, params.stickyColumnCount)
+			: 0;
+		const draggedMetricRight = draggedMetricLeft + (draggedMetric?.width || 0);
+
+		if (params.draggedRect.left < draggedMetricLeft) {
+			let targetIndex = draggedMetricIndex;
+
+			for (let index = draggedMetricIndex - 1; index >= 0; index -= 1) {
+				const metric = params.metrics[index];
+				if (!metric) {
+					continue;
+				}
+
+				const metricLeft = getSheetColumnMetricHeaderLeft(metric, params.scrollLeft, params.stickyColumnCount);
+				const metricRight = metricLeft + metric.width;
+
+				if (params.draggedRect.left < metricRight - metric.width * SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD) {
+					targetIndex = index;
+				}
+			}
+
+			return targetIndex;
+		}
+
+		if (params.draggedRect.right > draggedMetricRight) {
+			let targetIndex = draggedMetricIndex;
+
+			for (let index = draggedMetricIndex + 1; index < params.metrics.length; index += 1) {
+				const metric = params.metrics[index];
+				if (!metric) {
+					continue;
+				}
+
+				const metricLeft = getSheetColumnMetricHeaderLeft(metric, params.scrollLeft, params.stickyColumnCount);
+
+				if (params.draggedRect.right > metricLeft + metric.width * SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD) {
+					targetIndex = index;
+				}
+			}
+
+			return targetIndex;
+		}
+
+		return draggedMetricIndex;
+	}
 
 	for (let index = 0; index < params.metrics.length; index += 1) {
 		const metric = params.metrics[index];
@@ -414,24 +466,6 @@ function getDataTableColumnReorderTargetIndex(params: {
 
 		const metricLeft = (metric.columnIndex < params.stickyColumnCount ? params.scrollLeft : 0) + SHEET_ROW_NUMBER_WIDTH + metric.left;
 		const metricRight = metricLeft + metric.width;
-
-		if (params.draggedRect && params.draggedColumnIndex !== undefined) {
-			if (metric.columnIndex < params.draggedColumnIndex) {
-				if (params.draggedRect.left < metricRight - metric.width * SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD) {
-					return index;
-				}
-
-				continue;
-			}
-
-			if (metric.columnIndex > params.draggedColumnIndex) {
-				if (params.draggedRect.right < metricLeft + metric.width * SHEET_COLUMN_REORDER_OVERLAP_THRESHOLD) {
-					return index;
-				}
-
-				continue;
-			}
-		}
 
 		const thresholdCoordinate = params.draggedRect ? (params.draggedRect.left + params.draggedRect.right) / 2 : targetLeft;
 

@@ -245,7 +245,7 @@ export const TableHeaderCell = memo((p: HTMLAttributes<HTMLDivElement> & TableCe
   const { addHorizontalPadding, children, className, columnIndex, iconClassName: _iconClassName, iconName, innerClassName, isLastColumn, mock, placeholderText: _placeholderText, removeLeftPadding, removeRightPadding, showColumnDivider, showRowDivider: _showRowDivider, sticky, style, text, ...rest } = p;
 
   return <div
-    className={cn('p_n table_grid_cell table_grid_item bd_t_1 bd_b_1 bd_lt', sticky ? 'table_grid_sticky_header_cell' : '', showColumnDivider ? 'bd_l_1' : '')}
+    className={cn('p_n table_grid_cell table_grid_item bg bd_t_1 bd_b_1 bd_lt', sticky ? 'table_grid_sticky_header_cell' : '', showColumnDivider ? 'bd_l_1' : '')}
     role='columnheader'
     style={{
       fontWeight: 'inherit',
@@ -341,7 +341,7 @@ export const TableEmptyCell = memo((p: TableEmptyCellProps) => {
 
   return <div
     aria-hidden={children ? undefined : 'true'}
-    className={cn('p_n table_grid_cell table_grid_empty_cell pattern_texture rel active_bf', sticky ? 'table_grid_sticky_header_cell' : '', header ? 'bd_t_1 bd_b_2 bd_lt' : showRowDivider ? 'bd_t_1 bd_lt' : '', showColumnDivider ? 'bd_l_1 bd_lt' : '', className)}
+    className={cn('p_n table_grid_cell table_grid_empty_cell pattern_texture rel active_bf', sticky ? 'table_grid_sticky_header_cell' : '', header ? 'bd_t_1 bd_b_1 bd_lt' : showRowDivider ? 'bd_t_1 bd_lt' : '', showColumnDivider ? 'bd_l_1 bd_lt' : '', className)}
     data-prevent-row-click
     role={children ? 'cell' : 'presentation'}
     style={{

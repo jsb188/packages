@@ -31,11 +31,8 @@ export type TableColumnReorderDisplacements = Record<string, number>;
 
 export type TableColumnReorderVisualState = {
 	columnKey: string;
+	dragOffset: number;
 	displacements: TableColumnReorderDisplacements | null;
-	dragLeft: number;
-	height: number;
-	label: string;
-	width: number;
 };
 
 /**
@@ -234,13 +231,12 @@ function lockTableColumnReorderCursor() {
  * Manage header pointer drag interactions for table column reordering.
  */
 export function useTableColumnReorderController(p: {
-	bodyScrollerRef: RefObject<HTMLDivElement | null>;
 	columns: TableDesignColumn[];
 	enabled?: boolean;
 	headerTableRef: RefObject<HTMLDivElement | null>;
 	onColumnOrderCommit?: (columnOrder: string[]) => void;
 }) {
-	const { bodyScrollerRef, columns, enabled, headerTableRef, onColumnOrderCommit } = p;
+	const { columns, enabled, headerTableRef, onColumnOrderCommit } = p;
 	const frameRef = useRef<number | null>(null);
 	const metricsRef = useRef<TableColumnReorderMetric[]>([]);
 	const stateRef = useRef<TableColumnReorderState | null>(null);
@@ -248,7 +244,7 @@ export function useTableColumnReorderController(p: {
 	const canReorderColumns = Boolean(enabled && onColumnOrderCommit && columns.length > 1);
 
 	/**
-	 * Schedule the visible drag preview and insertion guide update.
+	 * Schedule the visible header displacement update.
 	 */
 	const scheduleVisualStateUpdate = useCallback(() => {
 		const state = stateRef.current;
@@ -272,31 +268,23 @@ export function useTableColumnReorderController(p: {
 				return;
 			}
 
-			const scrollLeft = bodyScrollerRef.current?.scrollLeft || 0;
-			const dragLeft = latestState.startLeft + latestState.latestClientX - latestState.startClientX - scrollLeft;
-
 			const nextDisplacements = getTableColumnReorderHeaderDisplacements(latestMetrics, latestState, latestState.latestToIndex);
 
 			setVisualState((currentState) => {
 				const stableDisplacements = areTableColumnReorderDisplacementsEqual(currentState?.displacements, nextDisplacements)
 					? currentState?.displacements || null
 					: nextDisplacements;
+				const dragOffset = latestState.latestClientX - latestState.startClientX;
 				const nextState = {
 					columnKey: latestState.columnKey,
+					dragOffset,
 					displacements: stableDisplacements,
-					dragLeft,
-					height: latestState.height,
-					label: latestState.label,
-					width: latestState.width,
 				};
 
 				if (
 					currentState?.columnKey === nextState.columnKey &&
-					currentState?.displacements === nextState.displacements &&
-					currentState?.dragLeft === nextState.dragLeft &&
-					currentState?.height === nextState.height &&
-					currentState?.label === nextState.label &&
-					currentState?.width === nextState.width
+					currentState?.dragOffset === nextState.dragOffset &&
+					currentState?.displacements === nextState.displacements
 				) {
 					return currentState;
 				}
@@ -304,7 +292,7 @@ export function useTableColumnReorderController(p: {
 				return nextState;
 			});
 		});
-	}, [bodyScrollerRef]);
+	}, []);
 
 	/**
 	 * Clear any active column reorder state and visual affordances.
@@ -412,6 +400,10 @@ export function useTableColumnReorderController(p: {
 		if (!state.started) {
 			state.started = true;
 			state.cleanupBodyStyle = lockTableColumnReorderCursor();
+
+      // setTimeout(() => {
+      //   debugger;
+      // }, 1000);
 		}
 
 		state.latestClientX = event.clientX;
@@ -451,7 +443,8 @@ export function useTableColumnReorderController(p: {
 
 		return {
 			'aria-grabbed': visualState?.columnKey === column.key ? true : undefined,
-			className: visualState?.columnKey === column.key ? 'bg_alt' : 'cs_default_to_grabing bg_alt_hv',
+			className: 'cs_default_to_grabing',
+			'data-table-column-before-reorder-source': columns[columnIndex + 1]?.key === visualState?.columnKey ? 'true' : undefined,
 			'data-table-column-reorder-handle': column.key,
 			onPointerCancel: onColumnReorderPointerCancel,
 			onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => onColumnReorderPointerDown(event, column, columnIndex),
@@ -459,13 +452,16 @@ export function useTableColumnReorderController(p: {
 			onPointerUp: onColumnReorderPointerUp,
 			style: {
 				cursor: visualState?.columnKey === column.key ? 'grabbing' : 'grab',
-				opacity: visualState?.columnKey === column.key ? 0.35 : undefined,
-				transform: visualState?.displacements?.[column.key]
+				opacity: visualState?.columnKey === column.key ? 1 : undefined,
+				transform: visualState?.columnKey === column.key
+					? `translateX(${visualState.dragOffset}px)`
+					: visualState?.displacements?.[column.key]
 					? `translateX(${visualState.displacements[column.key]}px)`
 					: undefined,
 				transition: visualState && visualState.columnKey !== column.key
 					? 'transform 120ms ease'
 					: undefined,
+				zIndex: visualState?.columnKey === column.key ? 7 : undefined,
 			},
 		};
 	}, [
@@ -475,6 +471,7 @@ export function useTableColumnReorderController(p: {
 		onColumnReorderPointerMove,
 		onColumnReorderPointerUp,
 		visualState?.columnKey,
+		visualState?.dragOffset,
 		visualState?.displacements,
 	]);
 

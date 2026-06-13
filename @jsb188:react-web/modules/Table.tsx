@@ -80,9 +80,7 @@ export const VZTable = memo((p: TableListProps) => {
 	});
 	const {
 		getHeaderCellReorderProps,
-		visualState: columnReorderVisualState,
 	} = useTableColumnReorderController({
-		bodyScrollerRef,
 		columns,
 		enabled: reorderableColumns,
 		headerTableRef,
@@ -118,27 +116,6 @@ export const VZTable = memo((p: TableListProps) => {
 				width: TABLE_RESIZE_GUIDE_WIDTH,
 			}}
 		/>
-
-		{columnReorderVisualState && (
-			<div
-				className='abs bg_active bd_1 bd_lt shadow_bg_lg r_sm px_8 h_center noclick of'
-				data-table-column-reorder-drag={columnReorderVisualState.columnKey}
-				style={{
-					height: columnReorderVisualState.height,
-					left: 0,
-					opacity: 0.92,
-					pointerEvents: 'none',
-					top: 0,
-					transform: `translateX(${columnReorderVisualState.dragLeft}px)`,
-					width: columnReorderVisualState.width,
-					zIndex: 6,
-				}}
-			>
-				<span className='ellip shift_down ft_medium'>
-					{columnReorderVisualState.label}
-				</span>
-			</div>
-		)}
 
 		{headers && (
 			<div

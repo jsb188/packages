@@ -46,6 +46,23 @@
   background-color: var(--color-primary-faded-solid);
 }
 
+.table_grid_cell[data-table-column-reorder-handle]:hover {
+  border-color: rgb(var(--color-bg-active));
+  background-color: rgb(var(--color-bg-fade));
+}
+
+.table_grid_cell[data-table-column-reorder-handle] {
+  transition: background-color .125s;
+}
+
+.table_grid_cell[data-table-column-reorder-handle]:hover:before {
+  content: ' ';
+  position: absolute; z-index: 2;
+  top: -1px; left: auto; right: -1px; bottom: -1px;
+  width: 1px;
+  background-color: rgb(var(--color-bg-active));
+}
+
 .table_grid_row[role="button"] > .table_grid_empty_cell {
   cursor: default;
 }
