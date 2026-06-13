@@ -1,3 +1,4 @@
+import { cn } from '@jsb188/app/utils/string.ts';
 import {
 	memo,
 	type CSSProperties,
@@ -11,9 +12,22 @@ import {
 	type SheetSemanticInputTipPosition,
 } from '../libs/sheet-semantic-input.ts';
 
+export type SheetSemanticInputGuideOption = {
+	description?: ReactNode;
+	key: string;
+	label: ReactNode;
+	selected?: boolean;
+};
+
 export type SheetSemanticInputGuide = {
 	description?: ReactNode;
+	onSelectOption?: (optionKey: string) => void;
+	options?: SheetSemanticInputGuideOption[];
 	title: ReactNode;
+};
+
+const SHEET_SEMANTIC_INPUT_GUIDE_OPTIONS_STYLE: CSSProperties = {
+	maxHeight: 168,
 };
 
 type SheetSemanticInputPartDataAttributes = {
@@ -129,6 +143,30 @@ function renderSheetSemanticInputGuide<TPart extends SheetSemanticInputPartSpan>
 			{guide.description ? (
 				<div className='cl_md'>
 					{guide.description}
+				</div>
+			) : null}
+			{guide.options?.length ? (
+				<div
+					className='y_scr flat mt_8 pt_8 bd_t_1'
+					style={SHEET_SEMANTIC_INPUT_GUIDE_OPTIONS_STYLE}
+				>
+					{guide.options.map((option) => (
+						<button
+							className='btn bl w_f h_spread gap_8 px_8 py_6 r_4 bg_active_hv'
+							key={option.key}
+							onClick={() => guide.onSelectOption?.(option.key)}
+							type='button'
+						>
+							<span className={cn('ellip ft_medium', option.selected ? 'cl_primary' : '')}>
+								{option.label}
+							</span>
+							{option.description ? (
+								<span className='no_shrink cl_darker_3'>
+									{option.description}
+								</span>
+							) : null}
+						</button>
+					))}
 				</div>
 			) : null}
 		</div>

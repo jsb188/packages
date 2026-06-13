@@ -1637,6 +1637,26 @@ function parseSheetFormulaDataTableCellKeyExpression(value: string) {
 }
 
 /*
+ * Return the formula text that references one data table field key, written as a
+ * bare identifier when it is a safe key and a quoted string literal otherwise.
+ * This is the inverse of parseSheetFormulaDataTableCellKeyExpression and is used
+ * when inserting a chosen field key back into a formula.
+ */
+export function getSheetFormulaDataTableCellKeyText(key: string) {
+	const trimmed = String(key || '').trim();
+
+	if (
+		trimmed &&
+		SHEET_FORMULA_BARE_DATA_TABLE_CELL_KEY_PATTERN.test(trimmed) &&
+		!parseSheetFormulaCellReference(trimmed)
+	) {
+		return trimmed;
+	}
+
+	return JSON.stringify(trimmed);
+}
+
+/*
  * Parse a data table formula call such as @organizations("row", "category") or organizations("row", "category").
  */
 export function parseSheetFormulaDataTableCall(value: string): SheetFormulaDataTableCall | null {

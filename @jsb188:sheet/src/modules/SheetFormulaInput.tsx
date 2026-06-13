@@ -1,10 +1,11 @@
 import i18n from '@jsb188/app/i18n/index.ts';
 import { cn } from '@jsb188/app/utils/string.ts';
 import {
+	getSheetFormulaDataTableCellKeyText,
 	isSheetFormulaText,
 	normalizeSheetFormulaDataTableName,
 	parseSheetFormulaCall,
-	parseSheetFormulaDataTableCall,
+	parseSheetFormulaStringLiteral,
 	tokenizeSheetFormulaReferences,
 	type SheetFormulaReferenceToken,
 } from '@jsb188/mday/utils/sheet.ts';
@@ -23,12 +24,10 @@ import {
 	useEffect,
 	useMemo,
 	useRef,
-	useState,
 	type CSSProperties,
 	type ChangeEvent,
 	type FocusEvent,
 	type KeyboardEvent,
-	type MouseEvent,
 	type SyntheticEvent,
 } from 'react';
 import {
@@ -38,7 +37,11 @@ import {
 } from '../libs/sheet-semantic-input.ts';
 import { SHEET_TEXT_INPUT_LAYOUT_STYLE } from '../libs/sheet-text-input-style.ts';
 import { SheetFormulaUI } from '../ui/SheetFormulaUI.tsx';
-import { SheetSemanticInputOverlay } from '../ui/SheetSemanticInputOverlay.tsx';
+import {
+	SheetSemanticInputOverlay,
+	type SheetSemanticInputGuide,
+	type SheetSemanticInputGuideOption,
+} from '../ui/SheetSemanticInputOverlay.tsx';
 
 export type SheetFormulaInputProps = {
 	canEdit?: boolean;
@@ -57,26 +60,6 @@ export type SheetFormulaInputProps = {
 	readOnly?: boolean;
 	value: string;
 };
-
-type SheetFormulaSuggestionMenuPosition = {
-	left: number;
-	top: number;
-};
-
-type SheetFormulaSuggestionOption =
-	| {
-		description: string;
-		kind: 'DATA_TABLE';
-		label: string;
-		value: string;
-	}
-	| {
-		cell: DataTableDesignCellGQL;
-		description: string;
-		kind: 'DATA_TABLE_CELL';
-		label: string;
-		value: string;
-	};
 
 type SheetFormulaSuggestionDataTable = {
 	dataTable: DataTableGQL;
@@ -103,9 +86,11 @@ type SheetFormulaInputHighlightPart = SheetSemanticInputPartSpan & {
 };
 
 const SHEET_FORMULA_INPUT_PADDING = '6px 8px 6px 6px';
-const SHEET_FORMULA_SUGGESTION_MENU_WIDTH = 240;
-const SHEET_FORMULA_SUGGESTION_MENU_GUIDE_OFFSET = 78;
 const SHEET_FORMULA_TIP_ASSUMED_WIDTH = 260;
+const SHEET_FORMULA_COLUMN_PART_KINDS: SheetFormulaInputHighlightKind[] = [
+	'DATA_TABLE_CONDITION_COLUMN',
+	'DATA_TABLE_RESULT_COLUMN',
+];
 const SHEET_FORMULA_SHELL_STYLE: CSSProperties = {
 	display: 'block',
 	minWidth: 0,
@@ -225,37 +210,6 @@ function getSheetFormulaMirrorStyle(): CSSProperties {
  */
 function getSheetFormulaInputStyle(hasHighlights: boolean): CSSProperties {
 	return hasHighlights ? SHEET_FORMULA_HIGHLIGHT_INPUT_STYLE : SHEET_FORMULA_INPUT_STYLE;
-}
-
-/*
- * Return inline styles for the suggestion menu anchored under the active formula token.
- */
-function getSheetFormulaSuggestionMenuStyle(position: SheetFormulaSuggestionMenuPosition, offsetTop = 0): CSSProperties {
-	return {
-		left: position.left,
-		position: 'absolute',
-		top: position.top + offsetTop,
-		width: SHEET_FORMULA_SUGGESTION_MENU_WIDTH,
-		zIndex: 9,
-	};
-}
-
-/*
- * Return whether a caret offset sits inside one formula token.
- */
-function isSheetFormulaTokenActiveAtSelection(token: SheetFormulaReferenceToken, selectionStart: number) {
-	return selectionStart >= token.startIndex && selectionStart <= token.endIndex;
-}
-
-/*
- * Return the formula token index under the current input caret.
- */
-function getSheetFormulaActiveTokenIndex(tokens: SheetFormulaReferenceToken[], selectionStart: number | null) {
-	if (selectionStart === null) {
-		return -1;
-	}
-
-	return tokens.findIndex((token) => isSheetFormulaTokenActiveAtSelection(token, selectionStart));
 }
 
 /*
@@ -923,16 +877,6 @@ function getSheetFormulaPartGuideDescription(part: SheetFormulaInputHighlightPar
 }
 
 /*
- * Return guide content for one highlighted formula part.
- */
-function getSheetFormulaPartGuide(part: SheetFormulaInputHighlightPart) {
-	return {
-		description: getSheetFormulaPartGuideDescription(part),
-		title: getSheetFormulaPartGuideTitle(part),
-	};
-}
-
-/*
  * Return extra mirrored span attributes used by formula-specific overlays.
  */
 function getSheetFormulaPartDataAttributes(part: SheetFormulaInputHighlightPart) {
@@ -970,10 +914,10 @@ function getSheetFormulaSuggestionDataTables(dataTables?: DataTableGQL[] | null)
 }
 
 /*
- * Return one DataTable that matches a formula data table token.
+ * Return one DataTable that matches a formula data table or query token.
  */
 function getSheetFormulaTokenDataTable(dataTables: SheetFormulaSuggestionDataTable[], token: SheetFormulaReferenceToken | null) {
-	if (!token || token.kind !== 'DATA_TABLE_CELL') {
+	if (!token || (token.kind !== 'DATA_TABLE_CELL' && token.kind !== 'DATA_TABLE_QUERY_CELL')) {
 		return null;
 	}
 
@@ -1010,116 +954,76 @@ function getSheetFormulaCellSuggestionLabel(cell: DataTableDesignCellGQL) {
 }
 
 /*
- * Return suggestion options for the active formula data table token.
+ * Return the field key referenced by one column formula part, unwrapping any
+ * surrounding quotes so it can be matched against a data table field key.
  */
-function getSheetFormulaSuggestionOptions(formulaDataTables: SheetFormulaSuggestionDataTable[], token?: SheetFormulaReferenceToken | null): SheetFormulaSuggestionOption[] {
-	if (!token || token.kind !== 'DATA_TABLE_CELL') {
-		return [];
-	}
+function getSheetFormulaPartColumnKey(part: SheetFormulaInputHighlightPart) {
+	const text = part.text.trim();
+	const literal = parseSheetFormulaStringLiteral(text);
 
-	const activeDataTable = getSheetFormulaTokenDataTable(formulaDataTables, token);
-	const dataTableOptions = formulaDataTables.map(({ dataTable, formulaName }) => {
-		return {
+	return literal !== null ? literal : text;
+}
+
+/*
+ * Return the normalized data table function name referenced by one data table
+ * name formula part.
+ */
+function getSheetFormulaPartDataTableName(part: SheetFormulaInputHighlightPart) {
+	return normalizeSheetFormulaDataTableName(part.text.trim().replace(/^@/, ''));
+}
+
+/*
+ * Return clickable guide options for one highlighted formula part: the list of
+ * available data tables on a data table name part, and the active table's fields
+ * on a result or condition column part. All other part kinds have no options.
+ */
+function getSheetFormulaPartGuideOptions(
+	formulaDataTables: SheetFormulaSuggestionDataTable[],
+	part: SheetFormulaInputHighlightPart,
+): SheetSemanticInputGuideOption[] {
+	if (part.kind === 'DATA_TABLE_NAME') {
+		const activeName = getSheetFormulaPartDataTableName(part);
+
+		return formulaDataTables.map(({ dataTable, formulaName }) => ({
 			description: formulaName,
-			kind: 'DATA_TABLE' as const,
+			key: formulaName,
 			label: getSheetFormulaDataTableSuggestionLabel(dataTable, formulaName),
-			value: formulaName,
-		};
-	});
-	const cellOptions = getSheetFormulaOrderedDesignCells(activeDataTable).map((cell) => {
-		return {
-			cell,
+			selected: formulaName === activeName,
+		}));
+	}
+
+	if (SHEET_FORMULA_COLUMN_PART_KINDS.includes(part.kind)) {
+		const dataTable = getSheetFormulaTokenDataTable(formulaDataTables, part.token || null);
+		const activeKey = getSheetFormulaPartColumnKey(part);
+
+		return getSheetFormulaOrderedDesignCells(dataTable).map((cell) => ({
 			description: cell.key,
-			kind: 'DATA_TABLE_CELL' as const,
+			key: cell.key,
 			label: getSheetFormulaCellSuggestionLabel(cell),
-			value: cell.key,
-		};
-	});
+			selected: cell.key === activeKey,
+		}));
+	}
 
-	return [
-		...dataTableOptions,
-		...cellOptions,
-	];
+	return [];
 }
 
 /*
- * Return a formula string with one reference token replaced.
+ * Return the formula text inserted in place of one part when a guide option is
+ * chosen. Data table names keep their leading "@" and field keys are quoted only
+ * when required. Returns null for parts that cannot be replaced this way.
  */
-function replaceSheetFormulaTokenValue(value: string, token: SheetFormulaReferenceToken, replacement: string) {
-	return value.slice(0, token.startIndex) + replacement + value.slice(token.endIndex);
-}
+function getSheetFormulaPartGuideReplacement(part: SheetFormulaInputHighlightPart, optionKey: string) {
+	if (part.kind === 'DATA_TABLE_NAME') {
+		const prefix = part.text.trimStart().startsWith('@') ? '@' : '';
 
-/*
- * Return a data table call token with its table name replaced.
- */
-function getSheetFormulaDataTableReplacement(token: SheetFormulaReferenceToken, formulaName: string) {
-	if (token.kind !== 'DATA_TABLE_CELL') {
-		return token.text;
+		return `${prefix}${optionKey}`;
 	}
 
-	const openParenIndex = token.text.indexOf('(');
-	const prefix = token.text.trimStart().startsWith('@') ? '@' : '';
-
-	return openParenIndex >= 0 ? `${prefix}${formulaName}${token.text.slice(openParenIndex)}` : token.text;
-}
-
-/*
- * Return a data table call token with its target cell key replaced.
- */
-function getSheetFormulaDataTableCellReplacement(token: SheetFormulaReferenceToken, cell: DataTableDesignCellGQL) {
-	if (token.kind !== 'DATA_TABLE_CELL') {
-		return token.text;
+	if (SHEET_FORMULA_COLUMN_PART_KINDS.includes(part.kind)) {
+		return getSheetFormulaDataTableCellKeyText(optionKey);
 	}
 
-	const call = parseSheetFormulaDataTableCall(token.text);
-	if (!call) {
-		return token.text;
-	}
-
-	const prefix = token.text.trimStart().startsWith('@') ? '@' : '';
-
-	return `${prefix}${call.dataTableName}(${call.rowIdentifierExpression}, ${JSON.stringify(cell.key)})`;
-}
-
-/*
- * Render the small formula suggestion menu anchored below the active token.
- */
-function renderSheetFormulaSuggestionMenu(params: {
-	guideVisible?: boolean;
-	onMouseDown: (event: MouseEvent<HTMLElement>) => void;
-	onOptionClick: (option: SheetFormulaSuggestionOption) => void;
-	options: SheetFormulaSuggestionOption[];
-	position: SheetFormulaSuggestionMenuPosition | null;
-}) {
-	if (!params.position || !params.options.length) {
-		return null;
-	}
-
-	return (
-		<div
-			className="bg shadow_light r_4 ft_xs of"
-			data-sheet-formula-suggestion-menu="true"
-			onMouseDown={params.onMouseDown}
-			style={getSheetFormulaSuggestionMenuStyle(
-				params.position,
-				params.guideVisible ? SHEET_FORMULA_SUGGESTION_MENU_GUIDE_OFFSET : 0,
-			)}
-		>
-			{params.options.slice(0, 8).map((option) => (
-				<button
-					className="btn bl w_f h_spread gap_8 px_8 py_6 bg_active_hv"
-					key={`${option.kind}_${option.value}`}
-					onClick={() => {
-						params.onOptionClick(option);
-					}}
-					type="button"
-				>
-					<span className="ellip ft_medium">{option.label}</span>
-					<span className="no_shrink cl_darker_3">{option.description}</span>
-				</button>
-			))}
-		</div>
-	);
+	return null;
 }
 
 /*
@@ -1127,8 +1031,6 @@ function renderSheetFormulaSuggestionMenu(params: {
  */
 export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 	const pendingSelectionRef = useRef<number | null>(null);
-	const [activeTokenIndex, setActiveTokenIndex] = useState(-1);
-	const [suggestionMenuPosition, setSuggestionMenuPosition] = useState<SheetFormulaSuggestionMenuPosition | null>(null);
 	const fieldType = p.column?.fieldType || 'TEXT';
 	const canUseInput = Boolean(p.canEdit || p.editState);
 	const formulaTokens = useMemo(() => {
@@ -1144,23 +1046,16 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 		return getSheetSemanticInputRenderableParts(p.value, formulaParts);
 	}, [formulaParts, p.value]);
 
-	/*
-	 * Sync the formula suggestion token whenever shared input state is refreshed.
-	 */
-	const handleFormulaInputStateSync = useCallback((input: HTMLInputElement) => {
-		setActiveTokenIndex(getSheetFormulaActiveTokenIndex(formulaTokens, input.selectionStart));
-	}, [formulaTokens]);
-
 	const semanticInput = useSheetSemanticInputHighlightState({
 		enabled: formulaParts.length > 0,
 		includeEndIndex: true,
-		onInputStateSync: handleFormulaInputStateSync,
 		parts: formulaParts,
 		syncWithAnimationFrame: true,
 		tipWidth: SHEET_FORMULA_TIP_ASSUMED_WIDTH,
 	});
 	const {
 		activePart,
+		caretPartIndex,
 		handleInputBlur: handleSemanticInputBlur,
 		handleInputFocus: handleSemanticInputFocus,
 		handleInputMouseLeave,
@@ -1176,13 +1071,11 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 	const formulaDataTables = useMemo(() => {
 		return getSheetFormulaSuggestionDataTables(p.dataTables);
 	}, [p.dataTables]);
-	const activeToken = activeTokenIndex >= 0 ? formulaTokens[activeTokenIndex] || null : null;
-	const suggestionOptions = useMemo(() => {
-		return getSheetFormulaSuggestionOptions(formulaDataTables, activeToken);
-	}, [activeToken, formulaDataTables]);
 	const hasHighlights = formulaParts.length > 0;
-	const guideVisible = Boolean(activePart && tipPosition);
-	const canShowSuggestions = Boolean(p.editState && !p.readOnly && suggestionOptions.length);
+	// Only the caret-owned part offers clickable picker options, so the options
+	// stay put while the pointer moves onto the guide to click one.
+	const caretPart = caretPartIndex >= 0 ? formulaParts[caretPartIndex] || null : null;
+	const canSelectOptions = Boolean(p.editState && !p.readOnly);
 
 	/*
 	 * Sync shared semantic highlight state from the native formula input.
@@ -1247,29 +1140,39 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 	}, [p.editState, p.onCommit, p.readOnly]);
 
 	/*
-	 * Keep suggestion clicks from blurring and committing the formula input.
+	 * Replace one highlighted formula part with a chosen guide option (a data
+	 * table name or a field key) and place the caret after the inserted text.
 	 */
-	const handleSuggestionMouseDown = useCallback((event: MouseEvent<HTMLElement>) => {
-		event.preventDefault();
-	}, []);
-
-	/*
-	 * Apply one suggestion option to the active formula token.
-	 */
-	const handleSuggestionOptionClick = useCallback((option: SheetFormulaSuggestionOption) => {
-		if (p.readOnly || !p.editState || !activeToken) {
+	const handleSelectGuideOption = useCallback((part: SheetFormulaInputHighlightPart, optionKey: string) => {
+		if (p.readOnly || !p.editState) {
 			return;
 		}
 
-		const replacement = option.kind === 'DATA_TABLE'
-			? getSheetFormulaDataTableReplacement(activeToken, option.value)
-			: getSheetFormulaDataTableCellReplacement(activeToken, option.cell);
-		const nextValue = replaceSheetFormulaTokenValue(p.value, activeToken, replacement);
-		const nextSelectionStart = activeToken.startIndex + replacement.length;
+		const replacement = getSheetFormulaPartGuideReplacement(part, optionKey);
+		if (replacement === null) {
+			return;
+		}
 
-		pendingSelectionRef.current = nextSelectionStart;
-		p.onDraftValue(nextValue);
-	}, [activeToken, p.editState, p.onDraftValue, p.readOnly, p.value]);
+		pendingSelectionRef.current = part.startIndex + replacement.length;
+		p.onDraftValue(p.value.slice(0, part.startIndex) + replacement + p.value.slice(part.endIndex));
+	}, [p.editState, p.onDraftValue, p.readOnly, p.value]);
+
+	/*
+	 * Build the guide shown for one highlighted part: its title and description,
+	 * plus clickable data table / field options for the caret-owned part.
+	 */
+	const getPartGuide = useCallback((part: SheetFormulaInputHighlightPart): SheetSemanticInputGuide => {
+		const options = canSelectOptions && part === caretPart
+			? getSheetFormulaPartGuideOptions(formulaDataTables, part)
+			: [];
+
+		return {
+			description: getSheetFormulaPartGuideDescription(part),
+			onSelectOption: (optionKey) => handleSelectGuideOption(part, optionKey),
+			options,
+			title: getSheetFormulaPartGuideTitle(part),
+		};
+	}, [canSelectOptions, caretPart, formulaDataTables, handleSelectGuideOption]);
 
 	useEffect(() => {
 		syncFormulaInputState();
@@ -1288,44 +1191,6 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 		input.setSelectionRange(selectionStart, selectionStart);
 		syncFormulaInputState(input);
 	}, [p.value, syncFormulaInputState]);
-
-	useEffect(() => {
-		const shell = shellRef.current;
-		const input = inputRef.current;
-
-		if (!canShowSuggestions || !shell || !input || activeTokenIndex < 0) {
-			setSuggestionMenuPosition(null);
-			return;
-		}
-
-		const tokenElement = shell.querySelector(`[data-sheet-formula-token-index="${activeTokenIndex}"]`);
-		if (!(tokenElement instanceof HTMLElement)) {
-			setSuggestionMenuPosition(null);
-			return;
-		}
-
-		const shellRect = shell.getBoundingClientRect();
-		const tokenRect = tokenElement.getBoundingClientRect();
-		if (tokenRect.right < shellRect.left || tokenRect.left > shellRect.right) {
-			setSuggestionMenuPosition(null);
-			return;
-		}
-
-		const maxLeft = Math.max(0, shellRect.width - SHEET_FORMULA_SUGGESTION_MENU_WIDTH);
-		const left = Math.min(Math.max(0, tokenRect.left - shellRect.left), maxLeft);
-		const top = input.offsetTop + input.offsetHeight + 4;
-
-		setSuggestionMenuPosition((current) => {
-			if (current?.left === left && current.top === top) {
-				return current;
-			}
-
-			return {
-				left,
-				top,
-			};
-		});
-	}, [activeTokenIndex, canShowSuggestions, formulaTokens, inputRef, inputScrollLeft, shellRef, suggestionOptions.length]);
 
 	return <SheetFormulaUI
 		className={p.className}
@@ -1362,7 +1227,7 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 							activePart={activePart}
 							chunks={formulaChunks}
 							getPartDataAttributes={getSheetFormulaPartDataAttributes}
-							getPartGuide={getSheetFormulaPartGuide}
+							getPartGuide={getPartGuide}
 							getPartHighlightStyle={getSheetFormulaPartHighlightStyle}
 							inputScrollLeft={inputScrollLeft}
 							mirrorClassName="ft_normal ft_sm"
@@ -1391,13 +1256,6 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 						onSelect={handleInputActivity}
 						type="text"
 					/>
-					{renderSheetFormulaSuggestionMenu({
-						guideVisible,
-						onMouseDown: handleSuggestionMouseDown,
-						onOptionClick: handleSuggestionOptionClick,
-						options: canShowSuggestions ? suggestionOptions : [],
-						position: suggestionMenuPosition,
-					})}
 				</span>
 			</div>
 		</div>
