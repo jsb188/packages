@@ -137,6 +137,46 @@ function parseDateKey(value: string | null | undefined) {
 }
 
 /*
+ * Return whether one date-like string includes an explicit time component.
+ */
+function dataTableDateStringHasTimeComponent(value: string) {
+	return /(?:T|\s+\d{1,2}:\d{2}|\d{1,2}:\d{2}\s*(?:am|pm)\b)/i.test(value.trim());
+}
+
+/*
+ * Return a date key parsed from date-only strings without applying timezone conversion.
+ */
+function getDataTableDateOnlyStringCalendarKey(value: string) {
+	const stringValue = value.trim();
+	if (!stringValue || dataTableDateStringHasTimeComponent(stringValue)) {
+		return null;
+	}
+
+	if (isValidDataTableDateKey(stringValue)) {
+		return stringValue;
+	}
+
+	const slashDate = stringValue.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+	if (slashDate) {
+		const [, monthText, dayText, yearText] = slashDate;
+		const month = Number(monthText);
+		const day = Number(dayText);
+		const dateKey = `${yearText}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+		return isValidDataTableDateKey(dateKey) ? dateKey : null;
+	}
+
+	const parsedDate = new Date(stringValue);
+	if (!Number.isFinite(parsedDate.getTime())) {
+		return null;
+	}
+
+	const dateKey = formatDateKey(parsedDate);
+
+	return isValidDataTableDateKey(dateKey) ? dateKey : null;
+}
+
+/*
  * Return a YYYY-MM-DD string for one date using UTC calendar fields.
  */
 
@@ -189,8 +229,9 @@ function getDataTableDateValueCalendarKey(value: DataTableRecordValue | Date, ti
 	}
 
 	const stringValue = String(scalarValue);
-	if (isValidDataTableDateKey(stringValue)) {
-		return stringValue;
+	const dateOnlyKey = getDataTableDateOnlyStringCalendarKey(stringValue);
+	if (dateOnlyKey) {
+		return dateOnlyKey;
 	}
 
 	const parsedDate = parseDateInTimezone(stringValue, timeZone, 0, stringValue.includes('T'));

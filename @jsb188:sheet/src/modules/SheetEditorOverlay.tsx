@@ -1,11 +1,12 @@
 import { cn } from '@jsb188/app/utils/string.ts';
 import { getRGBColor } from '@jsb188/app/utils/color.ts';
+import { isSheetFormulaText } from '@jsb188/mday/utils/sheet.ts';
 import type {
 	SheetUIColumn,
 	SheetUIEditState,
 } from '@jsb188/react-web/ui/SheetUI';
 import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
-import { memo, type ChangeEvent, type CSSProperties, useCallback, useRef } from 'react';
+import { memo, type ChangeEvent, type CSSProperties, type ReactNode, useCallback, useRef } from 'react';
 import type { SheetCanvasCellStyle } from '../libs/sheet-utils.ts';
 
 const SHEET_EDITOR_BORDER_WIDTH = 2;
@@ -16,6 +17,9 @@ const SHEET_EDITOR_BORDER_COMPENSATION_STYLE: CSSProperties = {
 	top: -SHEET_EDITOR_BORDER_WIDTH,
 	width: `calc(100% + ${SHEET_EDITOR_BORDER_WIDTH * 2}px)`,
 };
+const SHEET_EDITOR_FORMULA_FIELD_STYLE: CSSProperties = {
+	backgroundColor: 'rgb(var(--color-bg))',
+};
 
 export type SheetEditorOverlayPosition = {
 	fontSize?: number | null;
@@ -23,6 +27,16 @@ export type SheetEditorOverlayPosition = {
 	left: number;
 	top: number;
 	width: number;
+};
+
+export type SheetEditorOverlayFormulaInputProps = {
+	autoFocus?: boolean;
+	column: SheetUIColumn;
+	editState: SheetUIEditState;
+	onDraftValue: (draftValue: string) => void;
+	selectAllOnFocus?: boolean;
+	shellClassName: string;
+	shellStyle: CSSProperties;
 };
 
 export type SheetEditorOverlayProps = {
@@ -34,6 +48,7 @@ export type SheetEditorOverlayProps = {
 	editState: SheetUIEditState;
 	onDraftValue: (draftValue: string) => void;
 	position: SheetEditorOverlayPosition;
+	renderFormulaInput?: (props: SheetEditorOverlayFormulaInputProps) => ReactNode;
 	scrollLeft: number;
 	scrollTop: number;
 };
@@ -150,10 +165,12 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	const handleChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		p.onDraftValue(event.currentTarget.value);
 	}, [p.onDraftValue]);
+	const isFormulaEditor = isSheetFormulaText(p.editState.draftValue);
 	const editorClassName = cn('sheet_ui_editor bg stock pb_2 px_8 ft_xs ft_normal bd_2 bd_contrast', p.editState.error ? 'error' : '');
+	const formulaEditorClassName = cn('sheet_ui_editor bg stock ft_normal bd_2 bd_contrast', p.editState.error ? 'error' : '');
 	const editorStyle: CSSProperties = {
 		...SHEET_EDITOR_BORDER_COMPENSATION_STYLE,
-		...(getSheetEditorFieldStyle(p) || {}),
+		...(isFormulaEditor ? SHEET_EDITOR_FORMULA_FIELD_STYLE : getSheetEditorFieldStyle(p) || {}),
 	};
 	const sharedProps = {
 		className: editorClassName,
@@ -198,7 +215,17 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 		data-sheet-editor-overlay='true'
 		style={getSheetEditorOverlayStyle(p)}
 	>
-		{isSheetEditorMultilineFieldType(p.column.fieldType)
+		{isFormulaEditor && p.renderFormulaInput
+			? p.renderFormulaInput({
+				autoFocus: p.autoFocus,
+				column: p.column,
+				editState: p.editState,
+				onDraftValue: p.onDraftValue,
+				selectAllOnFocus: p.editState.selectAllOnFocus,
+				shellClassName: formulaEditorClassName,
+				shellStyle: editorStyle,
+			})
+			: isSheetEditorMultilineFieldType(p.column.fieldType)
 			? <textarea {...sharedProps} />
 			: <input
 				{...sharedProps}
@@ -222,6 +249,7 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	prev.position.left === next.position.left &&
 	prev.position.top === next.position.top &&
 	prev.position.width === next.position.width &&
+	prev.renderFormulaInput === next.renderFormulaInput &&
 	prev.scrollLeft === next.scrollLeft &&
 	prev.scrollTop === next.scrollTop
 ));

@@ -71,7 +71,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent, typ
 import { SheetCanvasSurface } from './SheetCanvasSurface.tsx';
 import { SheetColorPicker } from './SheetColorPicker.tsx';
 import { SheetDisplayRulesEditor } from './SheetDisplayRulesEditor.tsx';
-import { SheetEditorOverlay, type SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
+import { SheetEditorOverlay, type SheetEditorOverlayFormulaInputProps, type SheetEditorOverlayPosition } from './SheetEditorOverlay.tsx';
 import { SheetFormulaInput } from './SheetFormulaInput.tsx';
 import { useSheetContextMenu, type SheetContextMenuFormat, type SheetContextMenuFormatName, type SheetContextMenuMergeMode, type SheetContextMenuStructureAction, type SheetContextMenuTarget } from '../libs/SheetContextMenu.tsx';
 import { getInternalGridClipboard, parseGridClipboardText, setInternalGridClipboard } from '../libs/grid-clipboard.ts';
@@ -4801,8 +4801,13 @@ export function SheetController(p: SheetControllerProps) {
 
 		if (nextCell) {
 			if (editorElement.matches(GRID_FORMULA_INPUT_SELECTOR)) {
-				setFormulaInputFocused(true);
-				openSheetCellEditor(nextCell, undefined, false);
+				if (editorElement.dataset.sheetFormulaInputCompact !== 'true') {
+					setFormulaInputFocused(true);
+					openSheetCellEditor(nextCell, undefined, false);
+					return;
+				}
+
+				selectSheetCell(nextCell);
 				return;
 			}
 
@@ -6956,6 +6961,29 @@ export function SheetController(p: SheetControllerProps) {
 		return sheetCellFormatHasDisplayRules(canvasCell?.format);
 	}, [cellLookup, selectedCellState]);
 
+	/*
+	 * Render the compact formula input used by an in-cell editor for formula drafts.
+	 */
+	const renderSheetInlineFormulaInput = useCallback((inputProps: SheetEditorOverlayFormulaInputProps) => {
+		return <SheetFormulaInput
+			autoFocus={inputProps.autoFocus}
+			canEdit
+			column={inputProps.column}
+			compact
+			dataTables={p.dataTables}
+			editState={inputProps.editState}
+			onCommit={(input) => {
+				void commitEditorElement(input);
+			}}
+			onDraftValue={inputProps.onDraftValue}
+			readOnly={false}
+			selectAllOnFocus={inputProps.selectAllOnFocus}
+			shellClassName={inputProps.shellClassName}
+			shellStyle={inputProps.shellStyle}
+			value={inputProps.editState.draftValue}
+		/>;
+	}, [commitEditorElement, p.dataTables]);
+
 	const formulaInputContent = <SheetFormulaInput
 		canEdit={formulaInputCanStartEdit}
 		column={formulaInputState.column}
@@ -7004,6 +7032,7 @@ export function SheetController(p: SheetControllerProps) {
 				editState={editState}
 				onDraftValue={updateSheetEditorDraftValue}
 				position={editorPosition}
+				renderFormulaInput={renderSheetInlineFormulaInput}
 				scrollLeft={scrollState.scrollLeft}
 				scrollTop={scrollState.scrollTop}
 			/>

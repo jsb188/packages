@@ -44,8 +44,10 @@ import {
 } from '../ui/SheetSemanticInputOverlay.tsx';
 
 export type SheetFormulaInputProps = {
+	autoFocus?: boolean;
 	canEdit?: boolean;
 	className?: string;
+	compact?: boolean;
 	column?: SheetUIColumn | null;
 	dataTables?: DataTableGQL[] | null;
 	editState?: SheetUIEditState | null;
@@ -58,6 +60,9 @@ export type SheetFormulaInputProps = {
 	onEditStart?: () => void;
 	onOpenDisplayRules?: () => void;
 	readOnly?: boolean;
+	selectAllOnFocus?: boolean;
+	shellClassName?: string;
+	shellStyle?: CSSProperties;
 	value: string;
 };
 
@@ -210,6 +215,17 @@ function getSheetFormulaMirrorStyle(): CSSProperties {
  */
 function getSheetFormulaInputStyle(hasHighlights: boolean): CSSProperties {
 	return hasHighlights ? SHEET_FORMULA_HIGHLIGHT_INPUT_STYLE : SHEET_FORMULA_INPUT_STYLE;
+}
+
+/*
+ * Return inline styles for the formula input shell, allowing compact overlays
+ * to size the same editor over a canvas cell.
+ */
+function getSheetFormulaShellStyle(style?: CSSProperties): CSSProperties {
+	return {
+		...SHEET_FORMULA_SHELL_STYLE,
+		...(style || {}),
+	};
 }
 
 /*
@@ -1179,6 +1195,29 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 	}, [syncFormulaInputState]);
 
 	useEffect(() => {
+		if (!p.autoFocus) {
+			return;
+		}
+
+		const input = inputRef.current;
+
+		if (!input) {
+			return;
+		}
+
+		const shouldSelectAll = p.selectAllOnFocus !== false;
+
+		input.focus();
+		if (shouldSelectAll) {
+			input.select();
+		} else {
+			const valueLength = input.value.length;
+			input.setSelectionRange(valueLength, valueLength);
+		}
+		syncFormulaInputState(input);
+	}, [p.autoFocus, p.editState?.cellKey, p.editState?.rowId, p.selectAllOnFocus, syncFormulaInputState]);
+
+	useEffect(() => {
 		const input = inputRef.current;
 		const selectionStart = pendingSelectionRef.current;
 
@@ -1191,6 +1230,55 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 		input.setSelectionRange(selectionStart, selectionStart);
 		syncFormulaInputState(input);
 	}, [p.value, syncFormulaInputState]);
+
+	const inputContent = <span
+		className={cn('rel f', p.shellClassName)}
+		ref={setShellRef}
+		style={getSheetFormulaShellStyle(p.shellStyle)}
+		onDoubleClick={(event) => event.stopPropagation()}
+		onMouseLeave={handleInputMouseLeave}
+		onMouseMove={handleInputMouseMove}
+	>
+		{hasHighlights ? (
+			<SheetSemanticInputOverlay<SheetFormulaInputHighlightPart>
+				activePart={activePart}
+				chunks={formulaChunks}
+				getPartDataAttributes={getSheetFormulaPartDataAttributes}
+				getPartGuide={getPartGuide}
+				getPartHighlightStyle={getSheetFormulaPartHighlightStyle}
+				inputScrollLeft={inputScrollLeft}
+				mirrorClassName="ft_normal ft_sm"
+				mirrorStyle={getSheetFormulaMirrorStyle()}
+				tipPosition={tipPosition}
+			/>
+		) : null}
+		<input
+			className={cn('sheet_formula_input stock pl_6 pr_8 py_6 ft_normal ft_sm f bd_0')}
+			data-cell-key={p.editState?.cellKey}
+			data-field-type={fieldType}
+			data-row-id={p.editState?.rowId}
+			data-sheet-formula-input="true"
+			data-sheet-formula-input-compact={p.compact ? 'true' : undefined}
+			data-sheet-editor={p.editState && !p.readOnly ? 'true' : undefined}
+			readOnly={p.readOnly || !canUseInput}
+			ref={setInputRef}
+			style={getSheetFormulaInputStyle(hasHighlights)}
+			value={p.value}
+			onBlur={handleBlur}
+			onChange={handleChange}
+			onClick={handleInputActivity}
+			onFocus={handleFocus}
+			onKeyDown={handleKeyDown}
+			onKeyUp={handleInputActivity}
+			onScroll={handleInputActivity}
+			onSelect={handleInputActivity}
+			type="text"
+		/>
+	</span>;
+
+	if (p.compact) {
+		return inputContent;
+	}
 
 	return <SheetFormulaUI
 		className={p.className}
@@ -1215,48 +1303,7 @@ export const SheetFormulaInput = memo((p: SheetFormulaInputProps) => {
 				<span className='ic_sm no_shrink ml_8 cl_darker_4' aria-hidden='true'>
 					<Icon name='layer-style' />
 				</span>
-				<span
-					className="rel f"
-					ref={setShellRef}
-					style={SHEET_FORMULA_SHELL_STYLE}
-					onMouseLeave={handleInputMouseLeave}
-					onMouseMove={handleInputMouseMove}
-				>
-					{hasHighlights ? (
-						<SheetSemanticInputOverlay<SheetFormulaInputHighlightPart>
-							activePart={activePart}
-							chunks={formulaChunks}
-							getPartDataAttributes={getSheetFormulaPartDataAttributes}
-							getPartGuide={getPartGuide}
-							getPartHighlightStyle={getSheetFormulaPartHighlightStyle}
-							inputScrollLeft={inputScrollLeft}
-							mirrorClassName="ft_normal ft_sm"
-							mirrorStyle={getSheetFormulaMirrorStyle()}
-							tipPosition={tipPosition}
-						/>
-					) : null}
-					<input
-						className={cn('sheet_formula_input stock pl_6 pr_8 py_6 ft_normal ft_sm f bd_0')}
-						data-cell-key={p.editState?.cellKey}
-						data-field-type={fieldType}
-						data-row-id={p.editState?.rowId}
-						data-sheet-formula-input="true"
-						data-sheet-editor={p.editState && !p.readOnly ? 'true' : undefined}
-						readOnly={p.readOnly || !canUseInput}
-						ref={setInputRef}
-						style={getSheetFormulaInputStyle(hasHighlights)}
-						value={p.value}
-						onBlur={handleBlur}
-						onChange={handleChange}
-						onClick={handleInputActivity}
-						onFocus={handleFocus}
-						onKeyDown={handleKeyDown}
-						onKeyUp={handleInputActivity}
-						onScroll={handleInputActivity}
-						onSelect={handleInputActivity}
-						type="text"
-					/>
-				</span>
+				{inputContent}
 			</div>
 		</div>
 	</SheetFormulaUI>;
