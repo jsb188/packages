@@ -2196,6 +2196,17 @@ export type SheetFormulaShiftResult = {
 	text: string;
 };
 
+export type SheetFormulaAutofillContext = {
+	sourceColumnIndex: number;
+	sourceRowIndex: number;
+	targetColumnIndex: number;
+	targetRowIndex: number;
+};
+
+export type SheetFormulaShiftOptions = {
+	autofillContext?: SheetFormulaAutofillContext | null;
+};
+
 /*
  * Return one cell reference rendered after a row/column shift, or null when
  * the shift moves it out of the sheet bounds.
@@ -2216,6 +2227,38 @@ function getShiftedSheetFormulaCellReferenceText(
 }
 
 /*
+ * Return autofill-aware shift deltas for a data-table query condition ref.
+ * Header-style refs in the source column stay fixed during vertical fills,
+ * and row-label refs in the source row stay fixed during horizontal fills.
+ */
+function getSheetFormulaDataTableQueryConditionShiftDeltas(
+	reference: { columnIndex: number; rowIndex: number },
+	rowDelta: number,
+	columnDelta: number,
+	options?: SheetFormulaShiftOptions,
+) {
+	const context = options?.autofillContext;
+	if (!context) {
+		return { columnDelta, rowDelta };
+	}
+
+	const verticalAutofill = context.sourceColumnIndex === context.targetColumnIndex &&
+		context.sourceRowIndex !== context.targetRowIndex;
+	const horizontalAutofill = context.sourceRowIndex === context.targetRowIndex &&
+		context.sourceColumnIndex !== context.targetColumnIndex;
+
+	if (verticalAutofill && reference.columnIndex === context.sourceColumnIndex) {
+		return { columnDelta, rowDelta: 0 };
+	}
+
+	if (horizontalAutofill && reference.rowIndex === context.sourceRowIndex) {
+		return { columnDelta: 0, rowDelta };
+	}
+
+	return { columnDelta, rowDelta };
+}
+
+/*
  * Return the rewritten text for one reference token after a row/column shift,
  * or null when the token needs no rewrite. Data table tokens only rewrite the
  * sheet cell references nested inside them; field keys and table names are
@@ -2225,6 +2268,7 @@ function getShiftedSheetFormulaReferenceTokenText(
 	token: SheetFormulaReferenceToken,
 	rowDelta: number,
 	columnDelta: number,
+	options?: SheetFormulaShiftOptions,
 ): SheetFormulaShiftResult | null {
 	if (token.kind === 'SHEET_CELL') {
 		const shifted = getShiftedSheetFormulaCellReferenceText(token, rowDelta, columnDelta);
@@ -2278,7 +2322,17 @@ function getShiftedSheetFormulaReferenceTokenText(
 				return condition.text;
 			}
 
-			const shifted = getShiftedSheetFormulaCellReferenceText(condition.valueNode.reference, rowDelta, columnDelta);
+			const conditionDeltas = getSheetFormulaDataTableQueryConditionShiftDeltas(
+				condition.valueNode.reference,
+				rowDelta,
+				columnDelta,
+				options,
+			);
+			const shifted = getShiftedSheetFormulaCellReferenceText(
+				condition.valueNode.reference,
+				conditionDeltas.rowDelta,
+				conditionDeltas.columnDelta,
+			);
 			const prefix = condition.text.slice(0, condition.text.length - condition.valueExpression.length);
 			changed = true;
 
@@ -2317,6 +2371,7 @@ function shiftSheetFormulaReferencesInText(
 	text: string,
 	rowDelta: number,
 	columnDelta: number,
+	options?: SheetFormulaShiftOptions,
 ): SheetFormulaShiftResult {
 	const tokens = tokenizeSheetFormulaReferences(text);
 	if (!tokens.length) {
@@ -2328,7 +2383,7 @@ function shiftSheetFormulaReferencesInText(
 	let cursor = 0;
 
 	tokens.forEach((token) => {
-		const rewrite = getShiftedSheetFormulaReferenceTokenText(token, rowDelta, columnDelta);
+		const rewrite = getShiftedSheetFormulaReferenceTokenText(token, rowDelta, columnDelta, options);
 		result += text.slice(cursor, token.startIndex);
 		result += rewrite ? rewrite.text : text.slice(token.startIndex, token.endIndex);
 		hasRefError = hasRefError || Boolean(rewrite?.hasRefError);
@@ -2350,12 +2405,13 @@ export function shiftSheetFormulaReferences(
 	value: string,
 	rowDelta: number,
 	columnDelta: number,
+	options?: SheetFormulaShiftOptions,
 ): SheetFormulaShiftResult {
 	if (!isSheetFormulaText(value) || (!rowDelta && !columnDelta)) {
 		return { hasRefError: false, text: value };
 	}
 
-	return shiftSheetFormulaReferencesInText(value, rowDelta, columnDelta);
+	return shiftSheetFormulaReferencesInText(value, rowDelta, columnDelta, options);
 }
 
 export type SheetAutofillCell = {
@@ -2451,6 +2507,14 @@ export function getSheetAutofillValues(params: {
 			source.value,
 			target.rowIndex - source.rowIndex,
 			target.columnIndex - source.columnIndex,
+			{
+				autofillContext: {
+					sourceColumnIndex: source.columnIndex,
+					sourceRowIndex: source.rowIndex,
+					targetColumnIndex: target.columnIndex,
+					targetRowIndex: target.rowIndex,
+				},
+			},
 		).text;
 	});
 }

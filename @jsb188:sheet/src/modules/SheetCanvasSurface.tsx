@@ -2119,13 +2119,72 @@ function getSheetCanvasIndexRangeRect(params: {
 }
 
 /*
- * Draw other viewers' live selections: a solid range border and active cell
- * border in each user's color, plus a name chip anchored to the active cell.
+ * Draw a translucent collaborator selection fill over one visible range.
+ */
+function drawSheetCanvasRemoteSelectionFill(params: {
+	color: string;
+	ctx: CanvasRenderingContext2D;
+	rect: SheetCanvasRect;
+}) {
+	const width = Math.max(0, Math.round(params.rect.width));
+	const height = Math.max(0, Math.round(params.rect.height));
+
+	if (!width || !height) {
+		return;
+	}
+
+	params.ctx.save();
+	params.ctx.globalAlpha = SHEET_CANVAS_SELECTION_ALPHA;
+	params.ctx.fillStyle = params.color;
+	params.ctx.fillRect(
+		Math.round(params.rect.left),
+		Math.round(params.rect.top),
+		width,
+		height,
+	);
+	params.ctx.restore();
+}
+
+/*
+ * Draw a collaborator selection range border with the same expanded geometry
+ * used by the local multi-cell selection border.
+ */
+function drawSheetCanvasRemoteSelectionBorder(params: {
+	color: string;
+	ctx: CanvasRenderingContext2D;
+	rect: SheetCanvasRect;
+}) {
+	const position = {
+		height: params.rect.height + 1,
+		left: params.rect.left - 1,
+		top: params.rect.top - 1,
+		width: params.rect.width + 1,
+	};
+
+	params.ctx.save();
+	params.ctx.beginPath();
+	params.ctx.strokeStyle = params.color;
+	params.ctx.lineWidth = 1;
+	params.ctx.strokeRect(
+		Math.round(position.left) + 1.5,
+		Math.round(position.top) + 1.5,
+		Math.max(0, Math.round(position.width) - 1),
+		Math.max(0, Math.round(position.height) - 1),
+	);
+	params.ctx.restore();
+}
+
+/*
+ * Draw other viewers' live selections: a translucent range fill, solid range
+ * border and active cell border in each user's color, plus a name chip
+ * anchored to the active cell.
  */
 function drawSheetCanvasRemoteSelections(params: {
 	bodyClipRect: SheetCanvasRect;
 	columns: SheetColumnMetric[];
 	ctx: CanvasRenderingContext2D;
+	drawFill?: boolean;
+	drawOverlay?: boolean;
 	remoteSelections?: SheetRemoteSelection[] | null;
 	rowMetrics: SheetRowMetric[];
 	scrollLeft: number;
@@ -2140,6 +2199,8 @@ function drawSheetCanvasRemoteSelections(params: {
 	}
 
 	const { ctx } = params;
+	const drawFill = params.drawFill !== false;
+	const drawOverlay = params.drawOverlay !== false;
 	ctx.save();
 	ctx.beginPath();
 	ctx.rect(params.bodyClipRect.left, params.bodyClipRect.top, params.bodyClipRect.width, params.bodyClipRect.height);
@@ -2160,17 +2221,21 @@ function drawSheetCanvasRemoteSelections(params: {
 		});
 
 		if (rangeRect && sheetCanvasRectIsVisible(rangeRect, params.viewportWidth, params.viewportHeight)) {
-			ctx.save();
-			ctx.beginPath();
-			ctx.strokeStyle = color;
-			ctx.lineWidth = 1;
-			ctx.strokeRect(
-				Math.round(rangeRect.left) + 0.5,
-				Math.round(rangeRect.top) + 0.5,
-				Math.max(0, Math.round(rangeRect.width) - 1),
-				Math.max(0, Math.round(rangeRect.height) - 1),
-			);
-			ctx.restore();
+			if (drawFill) {
+				drawSheetCanvasRemoteSelectionFill({
+					color,
+					ctx,
+					rect: rangeRect,
+				});
+			}
+
+			if (drawOverlay) {
+				drawSheetCanvasRemoteSelectionBorder({
+					color,
+					ctx,
+					rect: rangeRect,
+				});
+			}
 		}
 
 		const activeRect = selection.active
@@ -2187,24 +2252,23 @@ function drawSheetCanvasRemoteSelections(params: {
 			})
 			: null;
 
-		if (activeRect && sheetCanvasRectIsVisible(activeRect, params.viewportWidth, params.viewportHeight)) {
+		if (drawOverlay && activeRect && sheetCanvasRectIsVisible(activeRect, params.viewportWidth, params.viewportHeight)) {
 			ctx.save();
-			ctx.globalAlpha = 0.6;
 			drawSheetCanvasCellActiveBorder({
 				color,
 				ctx,
-				height: activeRect.height - 1,
+				height: activeRect.height,
 				left: activeRect.left,
 				top: activeRect.top,
 				theme: params.theme,
-				width: activeRect.width - 1,
+				width: activeRect.width,
 			});
 			ctx.restore();
 		}
 
 		// Anchor the name chip above the active cell; below when clipped
 		const chipAnchorRect = activeRect || rangeRect;
-		if (chipAnchorRect && user.displayName) {
+		if (drawOverlay && chipAnchorRect && user.displayName) {
 			const chipHeight = getSheetCanvasTagHeight(params.theme);
 			const chipTop = chipAnchorRect.top - chipHeight >= params.bodyClipRect.top
 				? chipAnchorRect.top - chipHeight
@@ -4372,6 +4436,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		bodyClipRect,
 		columns: p.columns,
 		ctx,
+		drawOverlay: false,
 		remoteSelections: p.remoteSelections,
 		rowMetrics: p.rowMetrics,
 		scrollLeft: p.scrollLeft,
@@ -4576,6 +4641,20 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		});
 		ctx.restore();
 	}
+	drawSheetCanvasRemoteSelections({
+		bodyClipRect,
+		columns: p.columns,
+		ctx,
+		drawFill: false,
+		remoteSelections: p.remoteSelections,
+		rowMetrics: p.rowMetrics,
+		scrollLeft: p.scrollLeft,
+		scrollTop: p.scrollTop,
+		stickyColumnCount,
+		theme,
+		viewportHeight,
+		viewportWidth,
+	});
 	drawSheetCanvasFillPreviewBorder({
 		columns: p.columns,
 		ctx,
