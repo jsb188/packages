@@ -8,6 +8,15 @@ import { useIsomorphicLayoutEffect } from '@jsb188/react-web/utils/dom';
 import { memo, type ChangeEvent, type CSSProperties, useCallback, useRef } from 'react';
 import type { SheetCanvasCellStyle } from '../libs/sheet-utils.ts';
 
+const SHEET_EDITOR_BORDER_WIDTH = 2;
+const SHEET_EDITOR_BORDER_COMPENSATION_STYLE: CSSProperties = {
+	height: `calc(100% + ${SHEET_EDITOR_BORDER_WIDTH * 2}px)`,
+	left: -SHEET_EDITOR_BORDER_WIDTH,
+	position: 'relative',
+	top: -SHEET_EDITOR_BORDER_WIDTH,
+	width: `calc(100% + ${SHEET_EDITOR_BORDER_WIDTH * 2}px)`,
+};
+
 export type SheetEditorOverlayPosition = {
 	fontSize?: number | null;
 	height: number;
@@ -141,8 +150,11 @@ export const SheetEditorOverlay = memo((p: SheetEditorOverlayProps) => {
 	const handleChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		p.onDraftValue(event.currentTarget.value);
 	}, [p.onDraftValue]);
-	const editorClassName = cn('sheet_ui_editor bg stock pb_2 px_8 ft_xs ft_normal', p.editState.error ? 'error' : '');
-	const editorStyle = getSheetEditorFieldStyle(p);
+	const editorClassName = cn('sheet_ui_editor bg stock pb_2 px_8 ft_xs ft_normal bd_2 bd_contrast', p.editState.error ? 'error' : '');
+	const editorStyle: CSSProperties = {
+		...SHEET_EDITOR_BORDER_COMPENSATION_STYLE,
+		...(getSheetEditorFieldStyle(p) || {}),
+	};
 	const sharedProps = {
 		className: editorClassName,
 		'data-cell-key': p.editState.cellKey,

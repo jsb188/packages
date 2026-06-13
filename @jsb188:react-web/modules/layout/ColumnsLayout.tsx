@@ -14,6 +14,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { Icon } from '../../svgs/Icon';
+import { SidebarItem } from '../../ui/SidebarUI';
 import { useWaitForClientRender } from '../../utils/dom';
 import { TooltipButton } from '../PopOver';
 import { getPointerClientRectValues } from '../popover/positioning';
@@ -46,7 +47,6 @@ export interface ColumnsLayoutColumnObj<T = any> {
   getItemKey?: (item: T, index: number) => string;
   // Declarative item content used when renderItem is not supplied
   getItemTitle?: (item: T, index: number) => string;
-  getItemSubtitle?: (item: T, index: number) => string | null | undefined;
   getItemIconName?: (item: T, index: number) => string | null | undefined;
   // Folder items render a chevron affordance; open their sub column from onClickItem
   getItemIsFolder?: (item: T, index: number) => boolean;
@@ -257,41 +257,6 @@ const ColumnsLayoutColumnMocks = memo(() => {
 ColumnsLayoutColumnMocks.displayName = 'ColumnsLayoutColumnMocks';
 
 /**
- * Render the default item content with an optional subtitle and folder affordance.
- */
-export function ColumnsLayoutItemContent(p: {
-  iconName?: string | null;
-  isFolder?: boolean;
-  subtitle?: string | null;
-  title: string;
-}) {
-  const { iconName, isFolder, subtitle, title } = p;
-
-  return <div className='h_item gap_xs px_sm py_xs'>
-    {iconName && (
-      <span className='v_center no_shrink cl_md'>
-        <Icon tryColor name={iconName} />
-      </span>
-    )}
-    <span className='f v_stretch min_w_0'>
-      <span className='ellip ft_sm'>
-        {title}
-      </span>
-      {subtitle && (
-        <span className='ellip ft_xs cl_md'>
-          {subtitle}
-        </span>
-      )}
-    </span>
-    {isFolder && (
-      <span className='v_center no_shrink cl_md'>
-        <Icon name='chevron-right' />
-      </span>
-    )}
-  </div>;
-}
-
-/**
  * Render one column item with its own right-click context menu.
  */
 const ColumnsLayoutItem = memo((p: {
@@ -318,7 +283,7 @@ const ColumnsLayoutItem = memo((p: {
   /*
    * Open the item context menu at the pointer location.
    */
-  const onContextMenu = useCallback((e: MouseEvent<Element>) => {
+  const onContextMenu = useCallback((e: MouseEvent<HTMLElement>) => {
     if (!getContextMenuOptions) {
       return;
     }
@@ -342,20 +307,26 @@ const ColumnsLayoutItem = memo((p: {
     });
   }, [getContextMenuOptions, index, item, openPopOver, popOverId]);
 
-  return <div
-    className={cn('w_f', (active || selected) && 'bg_alt', onClickItem && 'bg_alt_hv link', column.itemClassName)}
+  if (column.renderItem) {
+    return <div
+      className={cn('w_f', (active || selected) && 'bg_alt', onClickItem && 'bg_alt_hv link', column.itemClassName)}
+      onClick={onClickItem ? onClick : undefined}
+      onContextMenu={getContextMenuOptions ? onContextMenu : undefined}
+    >
+      {column.renderItem(item, index)}
+    </div>;
+  }
+
+  // Same UI as the app sidebar items; folder items show a chevron as the right icon
+  return <SidebarItem
+    className={column.itemClassName}
+    selected={active || selected}
+    text={column.getItemTitle?.(item, index) || ''}
+    iconName={column.getItemIconName?.(item, index) || undefined}
+    rightIconName={column.getItemIsFolder?.(item, index) ? 'chevron-right' : undefined}
     onClick={onClickItem ? onClick : undefined}
     onContextMenu={getContextMenuOptions ? onContextMenu : undefined}
-  >
-    {column.renderItem
-      ? column.renderItem(item, index)
-      : <ColumnsLayoutItemContent
-        iconName={column.getItemIconName?.(item, index)}
-        isFolder={column.getItemIsFolder?.(item, index)}
-        subtitle={column.getItemSubtitle?.(item, index)}
-        title={column.getItemTitle?.(item, index) || ''}
-      />}
-  </div>;
+  />;
 });
 
 ColumnsLayoutItem.displayName = 'ColumnsLayoutItem';
@@ -383,14 +354,14 @@ const ColumnsLayoutColumn = memo((p: {
     className={cn('v_stretch h_f no_shrink bd_r_1 bd_lt', className)}
     style={{ width }}
   >
-    <header className='h_spread no_shrink gap_sm px_sm py_xs bd_b_1 bd_lt'>
-      <span className='h_item gap_xs min_w_0 ft_sm'>
+    <header className='h_spread no_shrink gap_sm px_sm bd_b_1 bd_lt h_toolbar'>
+      <span className='h_item gap_9 ft_medium cl_df min_w_0'>
         {column.iconName && (
-          <span className='v_center no_shrink cl_md'>
+          <span className='shift_up ft_sm ic_df no_shrink'>
             <Icon tryColor name={column.iconName} />
           </span>
         )}
-        <span className='ellip ft_medium'>
+        <span className='ellip'>
           {column.title}
         </span>
       </span>

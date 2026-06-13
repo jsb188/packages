@@ -395,22 +395,25 @@ export const SheetHeaderCell = memo((p: {
 	const tooltipDisabled = Boolean(p.tooltipDisabled);
 
 	const checkboxContent = p.column.headerCheckboxEnabled
-		? <input
-			aria-label={p.column.label}
-			checked={Boolean(p.column.headerChecked)}
-			className='no_shrink mr_6'
+		? <span
+			className='h_center no_shrink cs_default py_8 pr_6 -ml_2'
 			data-cell-key={p.column.key}
 			data-sheet-header-checkbox='true'
-			onChange={() => {}}
 			onClick={(event) => {
 				event.stopPropagation();
 			}}
 			onPointerDown={(event) => {
 				event.stopPropagation();
 			}}
-			readOnly
-			type='checkbox'
-		/>
+		>
+			<input
+				aria-label={p.column.label}
+				checked={Boolean(p.column.headerChecked)}
+				onChange={() => {}}
+				readOnly
+				type='checkbox'
+			/>
+		</span>
 		: null;
 
 	const checkboxTooltipContent = checkboxContent && p.column.headerCheckboxTooltipMessage
@@ -913,7 +916,10 @@ export const SheetRowNumberCell = memo((p: {
 				p.deleted ? '__deleted' : '',
 				STICKY_CELL_BG_CSS,
 		)}
+		data-row-id={showCheckbox ? p.rowId || undefined : undefined}
+		data-sheet-row-checkbox={showCheckbox ? 'true' : undefined}
 		style={{
+			cursor: showCheckbox ? 'pointer' : undefined,
 			height: p.rowHeight ?? SHEET_ROW_HEIGHT,
 			left: 0,
 			position: 'sticky',
@@ -923,7 +929,7 @@ export const SheetRowNumberCell = memo((p: {
 		}}
 	>
 		<span
-			className='h_center w_f'
+			className='h_center w_f cs_default'
 			style={{
 				height: rowContentHeight,
 			}}
@@ -1094,12 +1100,16 @@ export const SheetTopLeftRowNumberSlot = memo((p: {
 		: null;
 
 	return <div
-		className='abs noclick'
+		className='abs'
 		data-sheet-row-number-slot='true'
 		data-sheet-top-left-row-number-slot='true'
 		style={{
 			height: rowHeight,
 			left: 0,
+			// The .noclick class would also disable every descendant (".noclick *"), which
+			// would make the corner checkbox unclickable; an inline none lets the corner
+			// cell re-enable its own subtree through inheritance
+			pointerEvents: 'none',
 			top: 0,
 			width: p.rowWidth,
 			zIndex: SHEET_STICKY_CORNER_Z_INDEX,
@@ -1107,12 +1117,14 @@ export const SheetTopLeftRowNumberSlot = memo((p: {
 	>
 		<div
 			className={cn(
-				'sheet_ui_row_number of abs sticky h_center ft_xs cl_md no_sel z2',
-				checkboxContent ? 'bd_r_1 bd_b_1 bd_lt' : '',
+				'sheet_ui_row_number of abs sticky ft_xs cl_md no_sel z2',
+				checkboxContent ? '' : 'h_center',
 				STICKY_CELL_BG_CSS,
 			)}
 			data-sheet-top-left-corner-cell='true'
+			data-sheet-row-checkbox-header={checkboxContent ? 'true' : undefined}
 			style={{
+				cursor: checkboxContent ? 'pointer' : undefined,
 				height: rowHeight,
 				left: 0,
 				// The slot wrapper is click-through; re-enable clicks for the corner checkbox
@@ -1123,16 +1135,28 @@ export const SheetTopLeftRowNumberSlot = memo((p: {
 				zIndex: SHEET_STICKY_CORNER_Z_INDEX,
 			}}
 		>
-			{checkboxContent && p.rowCheckboxes?.headerTooltipMessage
-				? <TooltipButton
-					as='div'
-					className='h_center w_f h_f'
-					message={p.rowCheckboxes.headerTooltipMessage}
-					position='top'
-				>
-					{checkboxContent}
-				</TooltipButton>
-				: checkboxContent}
+			{checkboxContent
+				? <>
+					{/* Border and centering stay inside the header band so the corner lines up with the other header cells */}
+					<div
+						className='h_center w_f bd_r_1 bd_b_1 bd_lt'
+						style={{ height: SHEET_HEADER_HEIGHT }}
+					>
+						{p.rowCheckboxes?.headerTooltipMessage
+							? <TooltipButton
+								as='div'
+								className='h_center cs_default fs'
+								message={p.rowCheckboxes.headerTooltipMessage}
+								position='top'
+							>
+								{checkboxContent}
+							</TooltipButton>
+							: checkboxContent}
+					</div>
+					{/* Continue the sticky header spacer band under the corner cell */}
+					<div className={cn('h_4', STICKY_SPACER_BG_CSS)} />
+				</>
+				: null}
 		</div>
 	</div>;
 }, (prev, next) => (

@@ -311,10 +311,10 @@ p:last-child {
 .z9 { z-index: 90; }
 .z10 { z-index: 100; }
 
-.cs_default, label { cursor: inherit; }
+.cs_inherit, label { cursor: inherit; }
 .cs_back { cursor: w-resize; }
 .cs_grab { cursor: grab; } .cs_grab:active { cursor: grabbing; }
-.cs_default_to_grabing { cursor: default; } .cs_default_to_grabing:active { cursor: grabbing; }
+.cs_default_to_grabing, .cs_default { cursor: default; } .cs_default_to_grabing:active { cursor: grabbing; }
 .unsel, .unsel * { user-select: none; }
 .noclick, .noclick * { pointer-events: none; }
 

@@ -3,7 +3,7 @@ import type { SheetCellGQL } from '@jsb188/mday/types/sheet.d.ts';
 import { useCallback, useEffect, useRef } from 'react';
 import { sendCellSaveBeacon } from './cell-save-beacon.ts';
 import type { DataTableRuntimeDesignCell } from './dataTable-cell-editing.tsx';
-import type { SheetPendingCellEdit } from './sheet-cell-store.ts';
+import type { SheetDeletedCellCoord, SheetPendingCellEdit } from './sheet-cell-store.ts';
 import { mergeConfirmedSheetCells } from './sheet-cell-store.ts';
 import {
 	getSheetDataTableSourceCellKey,
@@ -25,7 +25,7 @@ import {
 	type PersistedSheetPendingEntry,
 } from './sheet-pending-persistence.ts';
 import { getSheetEditClientId } from './sheet-edit-identity.ts';
-import { getSheetCanvasCellsByCoord } from './sheet-utils.ts';
+import { getSheetCanvasCellsByCoord, getSheetCanvasCoordKey } from './sheet-utils.ts';
 import {
 	groupCellSaveItemsByTarget,
 	sendGroupedCellSaveItems,
@@ -94,6 +94,10 @@ export type EditSheetCellsResult = {
 	editSheetCells?: {
 		savedCells?: SheetCellGQL[] | null;
 		recalculatedCells?: SheetCellGQL[] | null;
+		/* Tombstones for the rows hard-deleted by clear edits; savedCells carries
+		 * those rows with their pre-delete content (id + revision unchanged), so
+		 * only these coords actually remove the cells from the confirmed store */
+		deletedCellCoords?: SheetDeletedCellCoord[] | null;
 		cycleCellIds?: string[] | null;
 		cellsRevision?: number | null;
 	} | null;
@@ -204,6 +208,37 @@ export function getSheetFlushBaseCell(
 }
 
 /*
+ * Return the cells map with recently deleted coordinates removed. A tombstone
+ * only erases the exact row it was issued for (matching id): a different id at
+ * the coordinate means a newer cell reoccupied it and must survive. Returns
+ * the map reference unchanged when no tombstone applies.
+ */
+export function getSheetFlushCellsWithoutDeleted(
+	cellsByCoord: Map<string, SheetCellGQL>,
+	deletedTombstonesByCoord: Map<string, { id: string | null }>,
+) {
+	if (!deletedTombstonesByCoord.size) {
+		return cellsByCoord;
+	}
+
+	let next = cellsByCoord;
+	let changed = false;
+
+	deletedTombstonesByCoord.forEach((tombstone, coordKey) => {
+		const cell = next.get(coordKey);
+		if (cell && String(cell.id || '') === String(tombstone.id || '')) {
+			if (!changed) {
+				next = new Map(cellsByCoord);
+				changed = true;
+			}
+			next.delete(coordKey);
+		}
+	});
+
+	return next;
+}
+
+/*
  * Return the base map with recent mutation results overlaid per coordinate
  * (higher revision wins). Kept cheap: only the recent-save entries are
  * touched, and the base map reference is reused when there are none.
@@ -278,6 +313,21 @@ function removePendingCellEditKeys(
 }
 
 /*
+ * Return whether one mutation response coordinate belongs to a queued save
+ * item that has already been superseded by a newer local edit.
+ */
+function sheetMutationResponseCoordIsSuperseded(
+	coordKey: string,
+	saveVersionByCoordKey: Map<string, number>,
+	sheetVersionsByCoordKey: Record<string, number>,
+) {
+	const responseSaveVersion = saveVersionByCoordKey.get(coordKey);
+
+	return responseSaveVersion !== undefined &&
+		sheetVersionsByCoordKey[coordKey] !== responseSaveVersion;
+}
+
+/*
  * Own the unified debounced save queue and the pending-edit lifecycle for
  * Sheet cell edits and region-backed DataTable cell edits.
  */
@@ -288,6 +338,11 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 	// render base can lag a just-saved cell (stale closure on a synchronous
 	// flush re-run), so flush-time comparisons fold this cache in
 	const recentSavedCellsByCoordRef = useRef(new Map<string, SheetCellGQL>());
+	// Tombstones for mounted-sheet coordinates whose row a recent clear
+	// mutation deleted: the render base can lag the deletion just like a save,
+	// so flush-time comparisons treat these coordinates as empty until a
+	// different-id cell reoccupies them
+	const recentDeletedTombstonesByCoordRef = useRef(new Map<string, { id: string | null }>());
 	// Coordinates with a mutation currently in flight for the mounted sheet;
 	// synced-edit drops skip them because the in-flight save may be about to
 	// overwrite the value a newer edit restores
@@ -295,11 +350,25 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 
 	/*
 	 * Return the freshest confirmed cell known for one mounted-sheet
-	 * coordinate (render base vs recent mutation results).
+	 * coordinate (render base vs recent mutation results), or undefined when
+	 * a recent clear mutation deleted the row still present in the render base.
 	 */
 	const getFlushBaseCell = useCallback((coordKey: string) => {
+		const baseCell = params.baseCellsByCoord.get(coordKey);
+		const tombstone = recentDeletedTombstonesByCoordRef.current.get(coordKey);
+
+		if (tombstone) {
+			// A different-id cell at the coordinate is newer than the deletion
+			// (the tombstone's row can never come back under the same id)
+			if (baseCell && String(baseCell.id || '') !== String(tombstone.id || '')) {
+				recentDeletedTombstonesByCoordRef.current.delete(coordKey);
+			} else {
+				return undefined;
+			}
+		}
+
 		return getSheetFlushBaseCell(
-			params.baseCellsByCoord.get(coordKey),
+			baseCell,
 			recentSavedCellsByCoordRef.current.get(coordKey),
 		);
 	}, [params.baseCellsByCoord]);
@@ -343,7 +412,10 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			const mutationCells = isCurrentSheet
 				? getSheetCellEditInputsForMutation(
 					mutationItems.map((item) => item.input),
-					getSheetFlushBaseCellsByCoord(params.baseCellsByCoord, recentSavedCellsByCoordRef.current),
+					getSheetFlushCellsWithoutDeleted(
+						getSheetFlushBaseCellsByCoord(params.baseCellsByCoord, recentSavedCellsByCoordRef.current),
+						recentDeletedTombstonesByCoordRef.current,
+					),
 				)
 				: mutationItems.map((item) => item.input);
 			const mutationCellSet = new Set(mutationCells);
@@ -397,7 +469,9 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 				const editResult = result?.editSheetCells || null;
 				const savedCells = (editResult?.savedCells || []) as SheetCellGQL[];
 				const recalculatedCells = (editResult?.recalculatedCells || []) as SheetCellGQL[];
+				const deletedCellCoords = (editResult?.deletedCellCoords || []) as SheetDeletedCellCoord[];
 				const savedCellsByCoord = getSheetCanvasCellsByCoord(savedCells);
+				const saveVersionByCoordKey = new Map(sendingItems.map((item) => [item.coordKey, item.saveVersion]));
 
 				// The acting client learns the new sheet revision from the
 				// response, so its own (or a dropped) echo never reads as a gap
@@ -436,18 +510,71 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 					continue;
 				}
 
+				const renderableSavedCells = savedCells.filter((cell) => {
+					return !sheetMutationResponseCoordIsSuperseded(
+						getSheetCanvasCoordKey(Number(cell.rowIndex), Number(cell.columnIndex)),
+						saveVersionByCoordKey,
+						sheetVersionsRef.current,
+					);
+				});
+				const renderableRecalculatedCells = recalculatedCells.filter((cell) => {
+					return !sheetMutationResponseCoordIsSuperseded(
+						getSheetCanvasCoordKey(Number(cell.rowIndex), Number(cell.columnIndex)),
+						saveVersionByCoordKey,
+						sheetVersionsRef.current,
+					);
+				});
+				const renderableDeletedCellCoords = deletedCellCoords.filter((coord) => {
+					return !sheetMutationResponseCoordIsSuperseded(
+						getSheetCanvasCoordKey(coord.rowIndex, coord.columnIndex),
+						saveVersionByCoordKey,
+						sheetVersionsRef.current,
+					);
+				});
+
 				// Saved cells and the server-recalculated cascade land in the confirmed
-				// store immediately; the realtime echo that follows is a revision-gated
-				// no-op. The recent-saves cache mirrors the merge so flush-time
-				// comparisons stay fresh even on a pre-render re-run
-				if (!requestFailed && (savedCells.length || recalculatedCells.length)) {
+				// store immediately, and clear-deleted rows drop via their tombstones
+				// (their savedCells twins carry pre-delete content the merge gate
+				// ignores; the realtime echo that carries the same deltas is skipped
+				// as an own echo). The recent-saves cache mirrors the merge so
+				// flush-time comparisons stay fresh even on a pre-render re-run
+				if (!requestFailed && (savedCells.length || recalculatedCells.length || deletedCellCoords.length)) {
 					recentSavedCellsByCoordRef.current = mergeConfirmedSheetCells(
 						recentSavedCellsByCoordRef.current,
 						[...savedCells, ...recalculatedCells],
+						deletedCellCoords,
 					);
-					params.setConfirmedCellsByCoord((currentState) => {
-						return mergeConfirmedSheetCells(currentState, [...savedCells, ...recalculatedCells]);
+
+					// Tombstones bridge the window where the render base still holds
+					// a just-deleted row. A coordinate this response saved real
+					// content to is no longer deleted; cleared rows appear in BOTH
+					// savedCells (pre-delete twin) and deletedCellCoords, so the
+					// deleted set decides which side wins
+					const deletedCoordKeySet = new Set(deletedCellCoords.map((coord) => {
+						return getSheetCanvasCoordKey(coord.rowIndex, coord.columnIndex);
+					}));
+					[...savedCells, ...recalculatedCells].forEach((cell) => {
+						const coordKey = getSheetCanvasCoordKey(Number(cell.rowIndex), Number(cell.columnIndex));
+						if (!deletedCoordKeySet.has(coordKey)) {
+							recentDeletedTombstonesByCoordRef.current.delete(coordKey);
+						}
 					});
+					deletedCellCoords.forEach((coord) => {
+						recentDeletedTombstonesByCoordRef.current.set(
+							getSheetCanvasCoordKey(coord.rowIndex, coord.columnIndex),
+							{ id: coord.id === null || coord.id === undefined ? null : String(coord.id) },
+						);
+					});
+
+					if (renderableSavedCells.length || renderableRecalculatedCells.length || renderableDeletedCellCoords.length) {
+						params.setConfirmedCellsByCoord((currentState) => {
+							return mergeConfirmedSheetCells(
+								currentState,
+								[...renderableSavedCells, ...renderableRecalculatedCells],
+								renderableDeletedCellCoords,
+							);
+						});
+					}
 				}
 
 				if (editResult?.cycleCellIds?.length) {
@@ -744,8 +871,9 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 	useEffect(() => {
 		sheetVersionsRef.current = {};
 		dataTableVersionsRef.current = {};
-		// Both caches describe the mounted sheet's coordinates only
+		// All of these caches describe the mounted sheet's coordinates only
 		recentSavedCellsByCoordRef.current = new Map();
+		recentDeletedTombstonesByCoordRef.current = new Map();
 		inFlightCoordKeysRef.current = new Set();
 	}, [params.sheetId]);
 
@@ -772,19 +900,20 @@ export function useSheetCellSaves(params: UseSheetCellSavesParams) {
 			sheetVersionsRef.current[coordKey] = saveVersion;
 
 			// Reverts compare against the freshest confirmed data (render base
-			// or a newer mutation result), not a stale render snapshot
-			if (sheetCellEditInputMatchesCell(input, getFlushBaseCell(coordKey))) {
+			// or a newer mutation result), not a stale render snapshot. A revert
+			// racing an in-flight same-coordinate mutation is NOT treated as
+			// synced: the in-flight save may be about to overwrite the value the
+			// revert restores, so the edit keeps its preview (the confirmed cell
+			// would otherwise flash the in-flight value when its result merges)
+			// and MUST reach the server through the flush re-check below
+			if (
+				sheetCellEditInputMatchesCell(input, getFlushBaseCell(coordKey)) &&
+				!inFlightCoordKeysRef.current.has(coordKey)
+			) {
 				// The edit restores the confirmed value: no preview needed; the
 				// item still queues below so the flush re-checks it
 				revertKeys.push(coordKey);
-
-				if (!inFlightCoordKeysRef.current.has(coordKey)) {
-					revertClearRefs.push({ coordKey });
-				}
-				// An in-flight same-coordinate mutation may be about to
-				// overwrite the value this revert restores, so the revert MUST
-				// reach the server; the in-flight edit's persisted twin also
-				// stays untouched for its own reconciliation to settle
+				revertClearRefs.push({ coordKey });
 			} else {
 				const baseRevision = Number(getFlushBaseCell(coordKey)?.revision);
 

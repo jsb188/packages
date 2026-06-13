@@ -2,7 +2,6 @@ import { cn } from '@jsb188/app/utils/string.ts';
 import { isDarkColor } from '@jsb188/app/utils/color.ts';
 import { COLORS } from '@jsb188/app/constants/app.ts';
 import i18n from '@jsb188/app/i18n/index.ts';
-import { SHEET_DATA_TABLE_REGION_MAX_ROWS } from '@jsb188/mday/constants/sheet.ts';
 import type { SheetMergedRangeObj, SheetRegionGQL } from '@jsb188/mday/types/sheet.d.ts';
 import { getSheetMergedRangeAtCell, getSheetRegionSourceId, isSheetCellInMergedRange, isSheetGeneratedRegionSource } from '@jsb188/mday/utils/sheet.ts';
 import {
@@ -17,7 +16,7 @@ import {
   type SheetUISelectedCellKeyMap,
   type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
-import { getIconSVGPathData } from '@jsb188/react-web/svgs/Icon';
+import { getIconSVGPathData, loadIconSVGPathData } from '@jsb188/react-web/svgs/IconPathData';
 import { parseLabelMarkdownText, type LabelMarkdownPart } from '@jsb188/react-web/utils/markdown';
 import { memo, useEffect, useRef, type CSSProperties, type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, type ReactNode, type Ref } from 'react';
 import { getGridSelectionBoxPosition } from '../libs/grid-selection.ts';
@@ -36,6 +35,7 @@ import {
   type SheetCanvasCell,
   type SheetCanvasCellStyle,
   type SheetCanvasColumn,
+  type SheetRegionGridRect,
 } from '../libs/sheet-utils.ts';
 import type { DataTableLocalEditorPosition } from '../libs/dataTable-cell-editing.tsx';
 import type { SheetRemoteSelection } from '../libs/sheet-collab.ts';
@@ -156,6 +156,7 @@ export type SheetCanvasSurfaceProps = {
 	onPointerLeave?: (event: PointerEvent<HTMLDivElement>) => void;
 	onPointerMove?: (event: PointerEvent<HTMLDivElement>) => void;
 	overlayContent?: ReactNode;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	regionDataTableLabelsById?: Map<string, string> | null;
 	remoteSelections?: SheetRemoteSelection[] | null;
@@ -249,6 +250,7 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 	const rootFontSizePx = getSheetCanvasCSSLengthPx(rootStyles.fontSize || '16px', 16, 16);
 	const active = getSheetCanvasCSSColor(styles, '--color-primary', '#2563eb');
 	const activeBackground = getSheetCanvasCSSColor(styles, '--color-bg-active', '#e5e7eb');
+	const bodyText = getSheetCanvasCSSColor(styles, '--color-text', '#111827');
 	const primaryRgb = getSheetCanvasCSSValue(styles, '--color-primary', '37, 99, 235');
 	const fontSize = getSheetCanvasCSSValue(styles, '--text-xsmall', '0.875rem');
 	const tagFontSize = getSheetCanvasCSSValue(styles, '--text-xxsmall', '0.75rem');
@@ -270,7 +272,7 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 	return {
 		active,
 		background: getSheetCanvasCSSColor(styles, '--color-bg', '#ffffff'),
-		bodyText: getSheetCanvasCSSColor(styles, '--color-text', '#111827'),
+		bodyText,
 		contrast: getSheetCanvasCSSColor(styles, '--color-contrast', active),
 		fontFamily: getSheetCanvasCSSValue(styles, '--font-sans', 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
 		fontFamilyMedium: getSheetCanvasCSSValue(styles, '--font-sans-medium', 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
@@ -284,7 +286,7 @@ function getSheetCanvasTheme(canvas: HTMLCanvasElement): SheetCanvasTheme {
 		headerSelectedText: getSheetCanvasCSSColor(styles, '--color-solid', '#ffffff'),
 		headerText: getSheetCanvasCSSColor(styles, '--color-text-medium', '#475569'),
 		main: getSheetCanvasCSSColor(styles, '--color-main', active),
-		regionOutline: getSheetCanvasCSSColor(styles, '--color-bg-medium', '#e5e7eb'),
+		regionOutline: bodyText,
 		resizeGuide: activeBackground,
 		sheetTopDivider: activeBackground,
 		solid: getSheetCanvasCSSColor(styles, '--color-solid', '#ffffff'),
@@ -1500,7 +1502,7 @@ function addSheetCanvasTextOverflowHiddenBorderLineKeys(params: {
 }
 
 /*
- * Draw the background behind overflowing text without extending past its span.
+ * Draw the source cell background behind overflowing text without extending past its cell.
  */
 function drawSheetCanvasTextOverflowBackground(params: {
 	backgroundColor: string;
@@ -1564,12 +1566,12 @@ function drawSheetCanvasTextOverflow(params: {
 	const contentOpacity = cell.formulaLoading ? 0.5 : 1;
 
 	// This fill paints after the default grid lines, so inset it by one
-	// grid-line width on every side; this keeps the span's outer dividers
-	// visible while covering the interior vertical dividers crossed by text.
+	// grid-line width on every side; this keeps the source cell's outer
+	// dividers visible while the text can still overflow into neighboring cells.
 	drawSheetCanvasTextOverflowBackground({
 		backgroundColor,
 		ctx: params.ctx,
-		rect,
+		rect: params.overflow.sourceRect,
 		selectedFillColor: params.selectedFillColor,
 		selectedFillOpacity: params.selectedFillOpacity,
 		selectedFillStripe: params.selectedFillStripe,
@@ -2118,8 +2120,7 @@ function getSheetCanvasIndexRangeRect(params: {
 
 /*
  * Draw other viewers' live selections: a solid range border and active cell
- * border in each user's color (the local user's own selection stays dashed),
- * plus a name chip anchored to the active cell.
+ * border in each user's color, plus a name chip anchored to the active cell.
  */
 function drawSheetCanvasRemoteSelections(params: {
 	bodyClipRect: SheetCanvasRect;
@@ -2226,7 +2227,7 @@ function drawSheetCanvasRemoteSelections(params: {
 	ctx.restore();
 }
 
-// Loading outline: same dash pattern as the selection border, animated
+// Loading outline: animated dashed pattern.
 const SHEET_CANVAS_LOADING_DASH = [4, 3];
 const SHEET_CANVAS_LOADING_DASH_SPEED = 0.02;
 
@@ -2318,7 +2319,7 @@ function drawSheetCanvasLoadingOutlines(params: {
 }
 
 /*
- * Draw a dashed border around the full multi-cell selection range.
+ * Draw a solid border around the full multi-cell selection range.
  */
 function drawSheetCanvasSelectionBorder(params: {
 	columns: SheetColumnMetric[];
@@ -2351,7 +2352,7 @@ function drawSheetCanvasSelectionBorder(params: {
 
 	params.ctx.save();
 	params.ctx.beginPath();
-	params.ctx.setLineDash([4, 3]);
+	params.ctx.setLineDash([]);
 	params.ctx.strokeStyle = params.theme.active;
 	params.ctx.lineWidth = 1;
 	params.ctx.strokeRect(
@@ -2507,24 +2508,20 @@ function drawSheetCanvasFillHandle(params: {
 }
 
 /*
- * Return the configured one-based end row for one generated Sheet region.
- */
-function getSheetCanvasDataTableRegionEndRow(region: SheetRegionGQL) {
-	const configuredEndRowIndex = Number(region.options?.endRowIndex || 0);
-	const startRowIndex = Number(region.startRowIndex || 0);
-
-	if (Number.isFinite(configuredEndRowIndex) && configuredEndRowIndex >= startRowIndex) {
-		return configuredEndRowIndex;
-	}
-
-	return startRowIndex + SHEET_DATA_TABLE_REGION_MAX_ROWS - 1;
-}
-
-/*
  * Return whether one Sheet region is backed by a generated source.
  */
 function isSheetCanvasGeneratedRegion(region?: SheetRegionGQL | null) {
 	return Boolean(region?.type === 'DATA_TABLE' && isSheetGeneratedRegionSource(region.source));
+}
+
+/*
+ * Return the rendered grid bounds for one generated Sheet region.
+ */
+function getSheetCanvasDataTableRegionBounds(
+	region: SheetRegionGQL,
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null,
+) {
+	return regionBoundsById?.get(String(region.id || '')) || null;
 }
 
 /*
@@ -2549,21 +2546,26 @@ function isSheetCanvasDataTableRegionCell(cell?: SheetCanvasCell | null, regions
 /*
  * Return the generated Sheet region that contains one Sheet row and column index.
  */
-function getSheetCanvasDataTableRegionAtCell(rowIndex: number, columnIndex: number, regions?: SheetRegionGQL[] | null) {
+function getSheetCanvasDataTableRegionAtCell(
+	rowIndex: number,
+	columnIndex: number,
+	regions?: SheetRegionGQL[] | null,
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null,
+) {
 	return (regions || []).find((region) => {
 		if (!isSheetCanvasGeneratedRegion(region) || !region.columns?.length) {
 			return false;
 		}
 
-		const startColumnIndex = Number(region.startColumnIndex || 0);
-		const endColumnIndex = startColumnIndex + region.columns.length - 1;
-		const startRowIndex = Number(region.startRowIndex || 0);
-		const endRowIndex = getSheetCanvasDataTableRegionEndRow(region);
+		const bounds = getSheetCanvasDataTableRegionBounds(region, regionBoundsById);
+		if (!bounds) {
+			return false;
+		}
 
-		return rowIndex >= startRowIndex &&
-			rowIndex <= endRowIndex &&
-			columnIndex >= startColumnIndex &&
-			columnIndex <= endColumnIndex;
+		return rowIndex >= bounds.startRowIndex &&
+			rowIndex <= bounds.endRowIndex &&
+			columnIndex >= bounds.startColumnIndex &&
+			columnIndex <= bounds.endColumnIndex;
 	}) || null;
 }
 
@@ -2583,6 +2585,7 @@ function getSheetCanvasDataTableRegionSourceCellKey(region: SheetRegionGQL, colu
 function getSheetCanvasRegionColumnTagTarget(params: {
 	cellState?: SheetUISelectedCellState | null;
 	columns: SheetColumnMetric[];
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	rowMetrics: SheetRowMetric[];
 	scrollLeft: number;
@@ -2598,7 +2601,7 @@ function getSheetCanvasRegionColumnTagTarget(params: {
 		return null;
 	}
 
-	const region = getSheetCanvasDataTableRegionAtCell(rowIndex, columnIndex, params.regions);
+	const region = getSheetCanvasDataTableRegionAtCell(rowIndex, columnIndex, params.regions, params.regionBoundsById);
 	const sourceCellKey = region ? getSheetCanvasDataTableRegionSourceCellKey(region, columnIndex) : '';
 	const regionStartRowIndex = Number(region?.startRowIndex || 0);
 	const columnMetric = params.columns.find((metric) => Number(metric.column.key || 0) === columnIndex);
@@ -2631,11 +2634,12 @@ function getSheetCanvasRegionColumnTagTarget(params: {
 function isSheetCanvasEmptyDataTableRegionCell(params: {
 	cell?: SheetCanvasCell | null;
 	columnIndex: number;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	rowIndex: number;
 }) {
 	return Boolean(
-		getSheetCanvasDataTableRegionAtCell(params.rowIndex, params.columnIndex, params.regions) &&
+		getSheetCanvasDataTableRegionAtCell(params.rowIndex, params.columnIndex, params.regions, params.regionBoundsById) &&
 		!isSheetCanvasDataTableRegionCell(params.cell, params.regions),
 	);
 }
@@ -2646,6 +2650,7 @@ function isSheetCanvasEmptyDataTableRegionCell(params: {
 function getSheetCanvasSelectedCellFillStyle(params: {
 	cell?: SheetCanvasCell | null;
 	columnIndex: number;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	rowIndex: number;
 	theme: SheetCanvasTheme;
@@ -2686,6 +2691,7 @@ function getSheetCanvasActiveBorderColor(params: {
  * Return whether the current selection intersects one generated region.
  */
 function isSheetCanvasDataTableRegionSelected(params: {
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	region: SheetRegionGQL;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
@@ -2707,10 +2713,10 @@ function isSheetCanvasDataTableRegionSelected(params: {
 		return false;
 	}
 
-	const startColumnIndex = Number(region.startColumnIndex || 0);
-	const endColumnIndex = startColumnIndex + Math.max(0, region.columns?.length || 0) - 1;
-	const startRowIndex = Number(region.startRowIndex || 0);
-	const endRowIndex = getSheetCanvasDataTableRegionEndRow(region);
+	const bounds = getSheetCanvasDataTableRegionBounds(region, params.regionBoundsById);
+	if (!bounds) {
+		return false;
+	}
 
 	for (const mapKey in selectedCellKeyMap) {
 		if (!selectedCellKeyMap[mapKey]) {
@@ -2726,10 +2732,10 @@ function isSheetCanvasDataTableRegionSelected(params: {
 		}
 
 		if (
-			selectedRowIndex >= startRowIndex &&
-			selectedRowIndex <= endRowIndex &&
-			selectedColumnIndex >= startColumnIndex &&
-			selectedColumnIndex <= endColumnIndex
+			selectedRowIndex >= bounds.startRowIndex &&
+			selectedRowIndex <= bounds.endRowIndex &&
+			selectedColumnIndex >= bounds.startColumnIndex &&
+			selectedColumnIndex <= bounds.endColumnIndex
 		) {
 			return true;
 		}
@@ -2745,6 +2751,7 @@ function forEachVisibleSheetCanvasDataTableRegionRect(params: {
 	columns: SheetColumnMetric[];
 	hoveredRegionId?: string | null;
 	onRegionRect: (rect: SheetCanvasRegionRect) => void;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
 	regions?: SheetRegionGQL[] | null;
@@ -2764,6 +2771,7 @@ function forEachVisibleSheetCanvasDataTableRegionRect(params: {
 		const isHovered = Boolean(regionId && params.hoveredRegionId === regionId);
 		const isSelected = isSheetCanvasDataTableRegionSelected({
 			region,
+			regionBoundsById: params.regionBoundsById,
 			selectedCellKeyMap: params.selectedCellKeyMap,
 			selectedCellState: params.selectedCellState,
 		});
@@ -2772,19 +2780,20 @@ function forEachVisibleSheetCanvasDataTableRegionRect(params: {
 			return;
 		}
 
-		const startColumnIndex = Number(region.startColumnIndex || 0);
-		const endColumnIndex = startColumnIndex + region.columns.length - 1;
-		const startRowIndex = Number(region.startRowIndex || 0);
-		const endRowIndex = getSheetCanvasDataTableRegionEndRow(region);
+		const bounds = getSheetCanvasDataTableRegionBounds(region, params.regionBoundsById);
+		if (!bounds) {
+			return;
+		}
+
 		const regionColumns = params.columns.filter((metric) => {
 			const columnIndex = Number(metric.column.key || 0);
 
-			return columnIndex >= startColumnIndex && columnIndex <= endColumnIndex;
+			return columnIndex >= bounds.startColumnIndex && columnIndex <= bounds.endColumnIndex;
 		});
 		const regionRows = params.rowMetrics.filter((metric) => {
 			const rowIndex = Number(metric.rowKey || 0);
 
-			return rowIndex >= startRowIndex && rowIndex <= endRowIndex;
+			return rowIndex >= bounds.startRowIndex && rowIndex <= bounds.endRowIndex;
 		});
 		const firstColumn = regionColumns[0];
 		const lastColumn = regionColumns[regionColumns.length - 1];
@@ -2824,6 +2833,7 @@ function drawSheetCanvasDataTableRegionOutlines(params: {
 	columns: SheetColumnMetric[];
 	ctx: CanvasRenderingContext2D;
 	hoveredRegionId?: string | null;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
 	regions?: SheetRegionGQL[] | null;
@@ -2852,6 +2862,7 @@ function drawSheetCanvasDataTableRegionOutlines(params: {
 			);
 			params.ctx.restore();
 		},
+		regionBoundsById: params.regionBoundsById,
 		regions: params.regions,
 		selectedCellKeyMap: params.selectedCellKeyMap,
 		selectedCellState: params.selectedCellState,
@@ -2871,6 +2882,7 @@ function drawSheetCanvasDataTableRegionLabels(params: {
 	columns: SheetColumnMetric[];
 	ctx: CanvasRenderingContext2D;
 	hoveredRegionId?: string | null;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regionDataTableLabelsById?: Map<string, string> | null;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
@@ -2908,6 +2920,7 @@ function drawSheetCanvasDataTableRegionLabels(params: {
 				});
 			}
 		},
+		regionBoundsById: params.regionBoundsById,
 		regions: params.regions,
 		selectedCellKeyMap: params.selectedCellKeyMap,
 		selectedCellState: params.selectedCellState,
@@ -2927,6 +2940,7 @@ function drawSheetCanvasDataTableRegionColumnKeyLabel(params: {
 	columns: SheetColumnMetric[];
 	ctx: CanvasRenderingContext2D;
 	hoveredCellState?: SheetUISelectedCellState | null;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	rowMetrics: SheetRowMetric[];
 	scrollLeft: number;
@@ -2940,6 +2954,7 @@ function drawSheetCanvasDataTableRegionColumnKeyLabel(params: {
 	const target = getSheetCanvasRegionColumnTagTarget({
 		cellState: params.hoveredCellState,
 		columns: params.columns,
+		regionBoundsById: params.regionBoundsById,
 		regions: params.regions,
 		rowMetrics: params.rowMetrics,
 		scrollLeft: params.scrollLeft,
@@ -2950,6 +2965,7 @@ function drawSheetCanvasDataTableRegionColumnKeyLabel(params: {
 	}) || getSheetCanvasRegionColumnTagTarget({
 		cellState: params.selectedCellState,
 		columns: params.columns,
+		regionBoundsById: params.regionBoundsById,
 		regions: params.regions,
 		rowMetrics: params.rowMetrics,
 		scrollLeft: params.scrollLeft,
@@ -2967,13 +2983,14 @@ function drawSheetCanvasDataTableRegionColumnKeyLabel(params: {
 
 	drawSheetCanvasTag({
 		align: 'right',
-		backgroundColor: params.theme.regionOutline,
+		backgroundColor: params.theme.background,
+		borderColor: params.theme.bodyText,
 		clipRect,
 		ctx: params.ctx,
 		heightOffset: -1,
-		left: target.rect.left + target.rect.width,
+		left: target.rect.left + target.rect.width + 1,
 		text: target.sourceCellKey,
-		textColor: params.theme.solid,
+		textColor: params.theme.bodyText,
 		theme: params.theme,
 		top: target.rect.top - getSheetCanvasTagHeight(params.theme) + 2,
 		viewportHeight: params.viewportHeight,
@@ -3145,6 +3162,7 @@ function drawSheetCanvasBodyCell(params: {
 	rowRect: SheetCanvasRowRect;
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	suppressSelection?: boolean;
 	theme: SheetCanvasTheme;
@@ -3170,6 +3188,7 @@ function drawSheetCanvasBodyCell(params: {
 		? getSheetCanvasSelectedCellFillStyle({
 			cell,
 			columnIndex: Number(params.columnRect.cellKey || 0),
+			regionBoundsById: params.regionBoundsById,
 			regions: params.regions,
 			rowIndex: Number(params.rowRect.metric.rowKey || 0),
 			theme: params.theme,
@@ -3218,6 +3237,7 @@ function drawSheetCanvasBodyCells(params: {
 	rowRects: SheetCanvasRowRect[];
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	theme: SheetCanvasTheme;
 }): SheetCanvasRect | null {
@@ -3236,6 +3256,7 @@ function drawSheetCanvasBodyCells(params: {
 				rowRect,
 				selectedCellKeyMap: params.selectedCellKeyMap,
 				selectedCellState: params.selectedCellState,
+				regionBoundsById: params.regionBoundsById,
 				regions: params.regions,
 				theme: params.theme,
 			});
@@ -3257,6 +3278,7 @@ function drawSheetCanvasBodyTextOverflows(params: {
 	columnRects: SheetCanvasColumnRect[];
 	ctx: CanvasRenderingContext2D;
 	mergedRanges?: SheetMergedRangeObj[] | null;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	rowRects: SheetCanvasRowRect[];
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
@@ -3314,6 +3336,7 @@ function drawSheetCanvasBodyTextOverflows(params: {
 				? getSheetCanvasSelectedCellFillStyle({
 					cell,
 					columnIndex: Number(columnRect.cellKey || 0),
+					regionBoundsById: params.regionBoundsById,
 					regions: params.regions,
 					rowIndex: Number(rowRect.metric.rowKey || 0),
 					theme: params.theme,
@@ -3401,6 +3424,7 @@ function drawSheetCanvasStickyBodyCells(params: {
 	rowRects: SheetCanvasRowRect[];
 	selectedCellKeyMap?: SheetUISelectedCellKeyMap | null;
 	selectedCellState?: SheetUISelectedCellState | null;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	stickyColumnCount: number;
 	stickyRowCount: number;
@@ -3428,6 +3452,7 @@ function drawSheetCanvasStickyBodyCells(params: {
 				cellLookup: params.cellLookup,
 				columnRect,
 				ctx: params.ctx,
+				regionBoundsById: params.regionBoundsById,
 				rowRect,
 				selectedCellKeyMap: params.selectedCellKeyMap,
 				selectedCellState: params.selectedCellState,
@@ -3452,6 +3477,7 @@ function drawSheetCanvasMergedCells(params: {
 	columns: SheetColumnMetric[];
 	ctx: CanvasRenderingContext2D;
 	mergedRanges?: SheetMergedRangeObj[] | null;
+	regionBoundsById?: Map<string, SheetRegionGridRect> | null;
 	regions?: SheetRegionGQL[] | null;
 	rowMetrics: SheetRowMetric[];
 	scrollLeft: number;
@@ -3520,6 +3546,7 @@ function drawSheetCanvasMergedCells(params: {
 			? getSheetCanvasSelectedCellFillStyle({
 				cell,
 				columnIndex: merge.startColumnIndex,
+				regionBoundsById: params.regionBoundsById,
 				regions: params.regions,
 				rowIndex: merge.startRowIndex,
 				theme: params.theme,
@@ -4308,6 +4335,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		columnRects: visibleColumnRects,
 		ctx,
 		mergedRanges: p.mergedRanges,
+		regionBoundsById: p.regionBoundsById,
 		rowRects: visibleRowRects,
 		selectedCellKeyMap: p.selectedCellKeyMap,
 		selectedCellState: p.selectedCellState,
@@ -4328,6 +4356,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		columns: p.columns,
 		ctx,
 		hoveredRegionId: p.hoveredRegionId,
+		regionBoundsById: p.regionBoundsById,
 		regions: p.regions,
 		selectedCellKeyMap: p.selectedCellKeyMap,
 		selectedCellState: p.selectedCellState,
@@ -4370,6 +4399,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		columnRects: visibleColumnRects,
 		ctx,
 		mergedRanges: p.mergedRanges,
+		regionBoundsById: p.regionBoundsById,
 		rowRects: visibleRowRects,
 		selectedCellKeyMap: p.selectedCellKeyMap,
 		selectedCellState: p.selectedCellState,
@@ -4411,6 +4441,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		columns: p.columns,
 		ctx,
 		mergedRanges: p.mergedRanges,
+		regionBoundsById: p.regionBoundsById,
 		regions: p.regions,
 		rowMetrics: p.rowMetrics,
 		scrollLeft: p.scrollLeft,
@@ -4423,7 +4454,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		viewportWidth,
 	});
 	if (p.mergedRanges?.length) {
-		// The merge backgrounds erased any selection dashes crossing them
+		// The merge backgrounds erased any selection border crossing them.
 		drawSheetCanvasSelectionBorder({
 			columns: p.columns,
 			ctx,
@@ -4442,6 +4473,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		columnRects: visibleColumnRects,
 		ctx,
 		mergedRanges: p.mergedRanges,
+		regionBoundsById: p.regionBoundsById,
 		regions: p.regions,
 		rowRects: visibleRowRects,
 		selectedCellKeyMap: p.selectedCellKeyMap,
@@ -4465,6 +4497,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		columns: p.columns,
 		ctx,
 		hoveredRegionId: p.hoveredRegionId,
+		regionBoundsById: p.regionBoundsById,
 		regionDataTableLabelsById: p.regionDataTableLabelsById,
 		regions: p.regions,
 		selectedCellKeyMap: p.selectedCellKeyMap,
@@ -4481,6 +4514,7 @@ function drawSheetCanvasSurface(canvas: HTMLCanvasElement, p: SheetCanvasSurface
 		columns: p.columns,
 		ctx,
 		hoveredCellState: p.hoveredCellState,
+		regionBoundsById: p.regionBoundsById,
 		regions: p.regions,
 		rowMetrics: p.rowMetrics,
 		scrollLeft: p.scrollLeft,
@@ -4658,6 +4692,25 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 		drawSheetCanvasSurface(canvas, p);
 	});
 
+	useEffect(() => {
+		let canceled = false;
+
+		loadIconSVGPathData().then(() => {
+			const canvas = canvasRef.current;
+
+			if (!canvas || canceled) {
+				return;
+			}
+
+			SHEET_CANVAS_DATA_TABLE_ICON_PATH_CACHE.clear();
+			drawSheetCanvasSurface(canvas, latestPropsRef.current);
+		});
+
+		return () => {
+			canceled = true;
+		};
+	}, []);
+
 	// Continuous repaint loop only while loading outlines animate
 	const hasLoadingOutlines = Boolean(p.loadingCellCoords?.length || p.loadingRegionRects?.length);
 
@@ -4778,6 +4831,7 @@ export const SheetCanvasSurface = memo((p: SheetCanvasSurfaceProps) => {
 	prev.onPointerLeave === next.onPointerLeave &&
 	prev.onPointerMove === next.onPointerMove &&
 	prev.overlayContent === next.overlayContent &&
+	prev.regionBoundsById === next.regionBoundsById &&
 	prev.regions === next.regions &&
 	prev.regionDataTableLabelsById === next.regionDataTableLabelsById &&
 	prev.hoveredRegionId === next.hoveredRegionId &&

@@ -4201,6 +4201,21 @@ export const TagsColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" vie
 <path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M9.7 1.414A2.779 2.779 0 0 0 7.992 0.707H1.5a1 1 0 0 0 -1 1L0.507 8.2c0.035 0.633 0.284 1.236 0.708 1.708L14.307 23a1 1 0 0 0 1.415 0l7.778 -7.777L9.7 1.414ZM5.5 7.707a2 2 0 1 1 0 -4 2 2 0 0 1 0 4v0Z" strokeWidth="1" />
 </svg>;
 
+export const TaskChecklistColor = <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="icon icon-task-checklist-color">
+<path fill="#ffbc44" d="M18 2.5h2c0.2652 0 0.5196 0.10536 0.7071 0.29289 0.1875 0.18754 0.2929 0.44189 0.2929 0.70711v19c0 0.2652 -0.1054 0.5196 -0.2929 0.7071S20.2652 23.5 20 23.5H4c-0.26522 0 -0.51957 -0.1054 -0.70711 -0.2929C3.10536 23.0196 3 22.7652 3 22.5v-19c0 -0.26522 0.10536 -0.51957 0.29289 -0.70711C3.48043 2.60536 3.73478 2.5 4 2.5h2" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M18 2.5h2c0.2652 0 0.5196 0.10536 0.7071 0.29289 0.1875 0.18754 0.2929 0.44189 0.2929 0.70711v19c0 0.2652 -0.1054 0.5196 -0.2929 0.7071S20.2652 23.5 20 23.5H4c-0.26522 0 -0.51957 -0.1054 -0.70711 -0.2929C3.10536 23.0196 3 22.7652 3 22.5v-19c0 -0.26522 0.10536 -0.51957 0.29289 -0.70711C3.48043 2.60536 3.73478 2.5 4 2.5h2" strokeWidth="1" />
+<path fill="#ffffff" d="M18.5 4.5c0.1326 0 0.2598 0.05268 0.3536 0.14645C18.9473 4.74021 19 4.86739 19 5v12.5l-4 4H5.5c-0.13261 0 -0.25979 -0.0527 -0.35355 -0.1464C5.05268 21.2598 5 21.1326 5 21V5c0 -0.13261 0.05268 -0.25979 0.14645 -0.35355C5.24021 4.55268 5.36739 4.5 5.5 4.5h13Z" strokeWidth="1" />
+<path fill="#e4f1f5" d="M16.5 6.5c0 0.26522 -0.1054 0.51957 -0.2929 0.70711 -0.1875 0.18753 -0.4419 0.29289 -0.7071 0.29289h-7c-0.26522 0 -0.51957 -0.10536 -0.70711 -0.29289C7.60536 7.01957 7.5 6.76522 7.5 6.5v-2h9v2Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M16 4.5h2.5c0.1326 0 0.2598 0.05268 0.3536 0.14645C18.9473 4.74021 19 4.86739 19 5v12.5l-4 4H5.5c-0.13261 0 -0.25979 -0.0527 -0.35355 -0.1464C5.05268 21.2598 5 21.1326 5 21V5c0 -0.13261 0.05268 -0.25979 0.14645 -0.35355C5.24021 4.55268 5.36739 4.5 5.5 4.5H8" strokeWidth="1" />
+<path fill="#98b7c0" d="M14 2.5c0 -0.53043 -0.2107 -1.03914 -0.5858 -1.41421C13.0391 0.710714 12.5304 0.5 12 0.5c-0.5304 0 -1.0391 0.210714 -1.4142 0.58579C10.2107 1.46086 10 1.96957 10 2.5H8v3h8v-3h-2Z" strokeWidth="1" />
+<path fill="#e4f1f5" d="M14 2.5c0 -0.53043 -0.2107 -1.03914 -0.5858 -1.41421C13.0391 0.710714 12.5304 0.5 12 0.5c-0.5304 0 -1.0391 0.210714 -1.4142 0.58579C10.2107 1.46086 10 1.96957 10 2.5H8v1h8v-1h-2Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M14 2.5c0 -0.53043 -0.2107 -1.03914 -0.5858 -1.41421C13.0391 0.710714 12.5304 0.5 12 0.5c-0.5304 0 -1.0391 0.210714 -1.4142 0.58579C10.2107 1.46086 10 1.96957 10 2.5H8v3h8v-3h-2Z" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8 8.5h8" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8 11.5h8" strokeWidth="1" />
+<path stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M8 14.5h4.5" strokeWidth="1" />
+<path fill="#e4f1f5" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" d="M15 21.5V18c0 -0.1326 0.0527 -0.2598 0.1464 -0.3536 0.0938 -0.0937 0.221 -0.1464 0.3536 -0.1464H19l-4 4Z" strokeWidth="1" />
+</svg>;
+
 export const TaskListCheck1 = <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-task-list-check-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
 <path d="M5.69999981,9.86026669h4.90000057"/>
 <path d="M5.69999981,13.36026669h2.80000019"/>

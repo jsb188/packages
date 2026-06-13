@@ -29,7 +29,6 @@ import {
 	type SheetUIColumnReorderGuide,
 	type SheetUIResizeGuide,
 	type SheetUIRowSlot,
-	type SheetUISelectedCellState,
 } from '@jsb188/react-web/ui/SheetUI';
 import { useGridElementSize } from '@jsb188/sheet/libs/grid-runtime';
 import {
@@ -897,7 +896,6 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 	const [resizingColumnKey, setResizingColumnKey] = useState<string | null>(null);
 	const [resizeGuideWidth, setResizeGuideWidth] = useState<number | null>(null);
 	const [columnReorderVisualState, setColumnReorderVisualState] = useState<VerticalDataTableDesignerColumnReorderVisualState | null>(null);
-	const [selectedCellState, setSelectedCellState] = useState<SheetUISelectedCellState | null>(null);
 	const effectiveValue = useMemo(() => {
 		return getNormalizedVerticalDataTableDesignerValue(
 			runtimeColumns,
@@ -1391,17 +1389,6 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			if (columnKey) {
 				startColumnReorder(columnKey, event.clientX);
 			}
-			return;
-		}
-
-		const cellElement = getVerticalDataTableDesignerClosestElement(event.target, '[data-sheet-cell="true"]');
-		const cellKey = cellElement?.dataset.cellKey;
-		const rowId = cellElement?.dataset.rowId;
-		if (cellKey && rowId) {
-			setSelectedCellState({
-				cellKey,
-				rowId,
-			});
 		}
 	}, [startColumnReorder, startColumnResize]);
 
@@ -1533,7 +1520,8 @@ export const VerticalDataTableDesigner = forwardRef<VerticalDataTableDesignerHan
 			scrollRef={scrollElement.ref}
 			scrollStyle={VERTICAL_DATA_TABLE_DESIGNER_FILL_STYLE}
 			selectedCellKeyMap={null}
-			selectedCellState={selectedCellState}
+			// Cell selection is intentionally disabled in the designer preview
+			selectedCellState={null}
 			sheetSurfaceHeight={canvasHeight}
 			sheetSurfaceTop={0}
 			style={VERTICAL_DATA_TABLE_DESIGNER_FILL_STYLE}

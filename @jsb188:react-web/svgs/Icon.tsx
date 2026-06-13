@@ -1,45 +1,9 @@
-import { Children, isValidElement, memo, type ReactNode } from 'react';
-// import type { ReactSpanElement } from '../types/dom';
-import * as IconSVGs from './IconSVGs';
-
-/**
- * Convert cameCalsed string to dash-separated
- */
-
-function camelCaseToDash(str: string) {
-  if (/^[A-Z0-9]+$/.test(str)) {
-    return str.toLowerCase();
-  }
-
-  // let lastOffset = -1;
-  return str
-    .replace(/([A-Z]|\d+)/g, (match, _, offset) => {
-      return (offset <= 0 ? '' : '-') + match.toLowerCase();
-
-      // let skipDash = false;
-      // if (offset <= 0) {
-      // // Add a dash only if it's not at the start
-      //   skipDash = true;
-      // } else if ((offset - lastOffset) > 1) {
-      //   skipDash = false;
-      // }
-
-      // lastOffset = offset;
-
-      // return (skipDash ? '' : '-') + match.toLowerCase();
-    });
-}
-
-/**
- * Icon map
- */
-
-const ICON_MAP = Object.entries(IconSVGs).reduce((acc, [key, IconComponent]) => {
-  acc[camelCaseToDash(key)] = IconComponent;
-  return acc;
-}, {} as Record<string, React.ReactNode>);
-
-const ICON_PATH_DATA_MAP = new Map<string, string[]>();
+import { memo } from 'react';
+import {
+  getIconSpriteViewBox,
+  hasIconSpriteName,
+  ICON_SPRITE_URL,
+} from './generated/IconSpriteMeta.generated';
 
 /**
  * Types
@@ -54,12 +18,6 @@ interface SpecialIconProps extends IconProps {
   name: string;
   cornerIconName?: string;
 }
-
-type IconPathProps = {
-  children?: ReactNode;
-  d?: unknown;
-  stroke?: unknown;
-};
 
 /**
  * Brand icons
@@ -115,6 +73,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   failed: 'circle-x',
   favorites: 'stars',
   field_work: 'farming-field-sun',
+  field_document: 'task-checklist',
   file: 'file-description',
   format_selected_cells: 'text-format-1',
   generic_report: 'ui-webpage-check',
@@ -359,66 +318,65 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
  * Simple icon with a very basic fix
  */
 
+/*
+ * Return the best available sprite icon name for the requested icon props.
+ */
+function getResolvedIconSpriteName(p: IconProps & {
+  tryColor?: boolean;
+}) {
+  const { name: iconName, backupName, tryColor } = p;
+
+  if (tryColor && hasIconSpriteName(iconName + '-color')) {
+    return iconName + '-color';
+  }
+
+  if (hasIconSpriteName(iconName)) {
+    return iconName;
+  }
+
+  if (tryColor && backupName && hasIconSpriteName(backupName + '-color')) {
+    return backupName + '-color';
+  }
+
+  if (hasIconSpriteName(backupName)) {
+    return backupName || '';
+  }
+
+  return '';
+}
+
 export const Icon = memo((p: IconProps & {
   tryColor?: boolean;
 }) => {
-  const { name: iconName, backupName, tryColor } = p;
-  const IconComponent = (
-    (tryColor && ICON_MAP[iconName + '-color']) ||
-    ICON_MAP[iconName] ||
-    (tryColor && ICON_MAP[backupName + '-color']) ||
-    ICON_MAP[backupName || '']
-  );
+  const { name: iconName } = p;
+  const spriteName = getResolvedIconSpriteName(p);
 
-  if (!IconComponent) {
+  if (!spriteName) {
     console.warn('Icon: Unknown icon name:', iconName);
   }
 
-  return IconComponent || null;
+  if (!spriteName) {
+    return null;
+  }
+
+  const href = `${ICON_SPRITE_URL}#${spriteName}`;
+
+  return (
+    <svg
+      aria-hidden='true'
+      className={`icon icon-${spriteName}`}
+      focusable='false'
+      viewBox={getIconSpriteViewBox(spriteName)}
+    >
+      <use
+        href={href}
+        xlinkHref={href}
+      />
+    </svg>
+  );
 });
 
 Icon.displayName = 'Icon';
-
-/*
- * Add drawable SVG path data from one React icon node into a flat path list.
- */
-function addIconSVGPathDataFromNode(node: ReactNode, pathData: string[]) {
-  Children.forEach(node, (child) => {
-    if (!isValidElement<IconPathProps>(child)) {
-      return;
-    }
-
-    if (typeof child.props.d === 'string' && child.props.stroke !== 'none') {
-      pathData.push(child.props.d);
-    }
-
-    if (child.props.children) {
-      addIconSVGPathDataFromNode(child.props.children, pathData);
-    }
-  });
-}
-
-/*
- * Return SVG path data for an icon name using IconSVGs as the source of truth.
- */
-export function getIconSVGPathData(name: string, backupName?: string) {
-  const iconKey = ICON_MAP[name] ? name : backupName || '';
-  const cachedPathData = ICON_PATH_DATA_MAP.get(iconKey);
-  if (cachedPathData) {
-    return cachedPathData;
-  }
-
-  const IconComponent = ICON_MAP[iconKey];
-  const pathData: string[] = [];
-
-  if (IconComponent) {
-    addIconSVGPathDataFromNode(IconComponent, pathData);
-  }
-
-  ICON_PATH_DATA_MAP.set(iconKey, pathData);
-
-  return pathData;
-}
 
 /**
  * Icon representing each file type

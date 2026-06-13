@@ -1,4 +1,4 @@
-import { evaluateSheetDisplayRules, normalizeSheetCellFormat, normalizeSheetCellStyle, normalizeSheetDesign, mergeSheetCellFormats, mergeSheetJSONObjects, getSheetColumnDesignKey, getSheetRowDesignKey, isSheetCellInRange } from '@jsb188/mday/utils/sheet.ts';
+import { evaluateSheetDisplayRules, normalizeSheetCellFormat, normalizeSheetCellStyle, normalizeSheetDesign, mergeSheetCellFormats, mergeSheetJSONObjects, getSheetColumnDesignKey, getSheetRowDesignKey, isSheetCellInRange, isSheetGeneratedRegionSource } from '@jsb188/mday/utils/sheet.ts';
 import { SHEET_DATA_TABLE_REGION_MAX_ROWS, SHEET_DEFAULT_COLUMN_COUNT } from '@jsb188/mday/constants/sheet.ts';
 import type {
 	SheetAxisDesignObj,
@@ -37,6 +37,13 @@ export type SheetCanvasColumn = SheetUIColumn & {
 };
 
 export type SheetCanvasCellStyle = SheetCellStyleObj;
+
+export type SheetRegionGridRect = {
+	endColumnIndex: number;
+	endRowIndex: number;
+	startColumnIndex: number;
+	startRowIndex: number;
+};
 
 export type SheetCanvasCell = {
 	cell?: SheetCellGQL | null;
@@ -232,7 +239,128 @@ export function getSheetRegionGridRect(region?: SheetRegionGQL | null) {
 			? configuredEndRowIndex
 			: startRowIndex + SHEET_DATA_TABLE_REGION_MAX_ROWS - 1,
 		endColumnIndex: startColumnIndex + columnCount - 1,
+	} satisfies SheetRegionGridRect;
+}
+
+/*
+ * Return whether one materialized cell contributes to a rendered region footprint.
+ */
+function isSheetRenderedRegionCell(cell: SheetCellGQL) {
+	if (cell.sourceType === 'REGION_GENERATED') {
+		return true;
+	}
+
+	return Boolean(
+		cell.sourceType === 'REGION_OVERRIDE' &&
+			(cell.region?.sourceRowId || cell.region?.sourceCellKey || cell.sourceDataTableRowId || cell.sourceCellKey)
+	);
+}
+
+/*
+ * Return one generated region's stable grid frame without row-count assumptions.
+ */
+function getSheetRenderedRegionFrame(region: SheetRegionGQL) {
+	const startRowIndex = Math.floor(Number(region.startRowIndex || 0));
+	const startColumnIndex = Math.floor(Number(region.startColumnIndex || 0));
+	const columnCount = region.columns?.length || 0;
+	if (!startRowIndex || !startColumnIndex || !columnCount) {
+		return null;
+	}
+
+	return {
+		endColumnIndex: startColumnIndex + columnCount - 1,
+		startColumnIndex,
+		startRowIndex,
 	};
+}
+
+/*
+ * Return the configured row cap for one generated region when users set a limit.
+ */
+function getSheetRenderedRegionConfiguredEndRowIndex(region: SheetRegionGQL) {
+	const startRowIndex = Math.floor(Number(region.startRowIndex || 0));
+	const endRowIndex = Math.floor(Number(region.options?.endRowIndex || 0));
+
+	return startRowIndex && endRowIndex >= startRowIndex ? endRowIndex : null;
+}
+
+/*
+ * Return the exact rendered end row implied by a source include list.
+ */
+function getSheetRenderedRegionIncludedEndRowIndex(region: SheetRegionGQL) {
+	const startRowIndex = Math.floor(Number(region.startRowIndex || 0));
+	const includeRowCount = Array.isArray(region.source?.includeRowIds)
+		? region.source.includeRowIds.filter((rowId) => rowId !== null && rowId !== undefined && String(rowId)).length
+		: 0;
+	if (!startRowIndex || !includeRowCount) {
+		return null;
+	}
+
+	const dataStartRowIndex = startRowIndex + (region.options?.includeHeaderRow ? 1 : 0);
+	const headerEndRowIndex = region.options?.includeHeaderRow ? startRowIndex : 0;
+	const sourceEndRowIndex = dataStartRowIndex + includeRowCount - 1;
+
+	return Math.max(headerEndRowIndex, sourceEndRowIndex);
+}
+
+/*
+ * Return rendered generated-region bounds keyed by region id from materialized cells.
+ */
+export function getSheetRenderedRegionBoundsById(
+	cellsByCoord: Map<string, SheetCellGQL>,
+	regions?: SheetRegionGQL[] | null,
+) {
+	const regionsById = new Map(
+		(regions || [])
+			.filter((region) => (
+				region?.id &&
+				region.type === 'DATA_TABLE' &&
+				isSheetGeneratedRegionSource(region.source) &&
+				region.columns?.length
+			))
+			.map((region) => [String(region.id), region]),
+	);
+	const boundsById = new Map<string, SheetRegionGridRect>();
+	const materializedEndRowIndexById = new Map<string, number>();
+
+	cellsByCoord.forEach((cell) => {
+		const regionId = String(cell.region?.regionId || cell.regionId || '');
+		const region = regionsById.get(regionId);
+		const rowIndex = Math.floor(Number(cell.rowIndex || 0));
+
+		if (!region || !rowIndex || !isSheetRenderedRegionCell(cell)) {
+			return;
+		}
+
+		materializedEndRowIndexById.set(
+			regionId,
+			Math.max(materializedEndRowIndexById.get(regionId) || 0, rowIndex),
+		);
+	});
+
+	regionsById.forEach((region, regionId) => {
+		const frame = getSheetRenderedRegionFrame(region);
+		if (!frame) {
+			return;
+		}
+
+		const configuredEndRowIndex = getSheetRenderedRegionConfiguredEndRowIndex(region);
+		const includedEndRowIndex = getSheetRenderedRegionIncludedEndRowIndex(region);
+		const materializedEndRowIndex = materializedEndRowIndexById.get(regionId) || 0;
+		let endRowIndex = includedEndRowIndex || materializedEndRowIndex || configuredEndRowIndex || 0;
+		if (configuredEndRowIndex) {
+			endRowIndex = Math.min(endRowIndex, configuredEndRowIndex);
+		}
+
+		if (endRowIndex >= frame.startRowIndex) {
+			boundsById.set(regionId, {
+				...frame,
+				endRowIndex,
+			});
+		}
+	});
+
+	return boundsById;
 }
 
 /*

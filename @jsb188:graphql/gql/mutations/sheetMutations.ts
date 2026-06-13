@@ -82,6 +82,13 @@ mutation editSheetCells (
       ...sheetCellFragment
     }
 
+    deletedCellCoords {
+      rowIndex
+      columnIndex
+      id
+      revision
+    }
+
     cycleCellIds
     cellsRevision
   }

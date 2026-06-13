@@ -40,6 +40,7 @@ import {
 import {
 	getSheetCanvasCoordKey,
 	getSheetCanvasDesign,
+	getSheetRenderedRegionBoundsById,
 	getSheetRegionGridRect,
 } from '../libs/sheet-utils.ts';
 import { createThrottledInvoke } from '@jsb188/app/utils/logic.ts';
@@ -61,7 +62,6 @@ import {
 	applySheetStructureEditToPendingEdits,
 	applySheetStructureEditToRanges,
 	getSheetStructureDesignAfterEdit,
-	getSheetStructureProtectedBounds,
 } from '../libs/sheet-structure-edit.ts';
 import {
 	sheetStructureDesignMatchesServerDesign,
@@ -828,6 +828,9 @@ function SheetDataContent(p: SheetDataContentProps) {
 	const sourceCellsByTargetKey = useMemo(() => {
 		return getSourceDataTableCellsByTargetKey(sourceDataTableCells);
 	}, [sourceDataTableCells]);
+	const regionBoundsById = useMemo(() => {
+		return getSheetRenderedRegionBoundsById(gridCellsByCoord, sheetRegions);
+	}, [gridCellsByCoord, sheetRegions]);
 	const sheetRanges = useMemo(() => {
 		return optimisticRanges || sheetViewRanges || [];
 	}, [optimisticRanges, sheetViewRanges]);
@@ -997,13 +1000,13 @@ function SheetDataContent(p: SheetDataContentProps) {
 	 */
 	const designRef = useRef(design);
 	designRef.current = design;
-	const sheetRegionsRef = useRef(sheetRegions);
-	sheetRegionsRef.current = sheetRegions;
+	const regionBoundsByIdRef = useRef(regionBoundsById);
+	regionBoundsByIdRef.current = regionBoundsById;
 	const sheetRangesRef = useRef(sheetRanges);
 	sheetRangesRef.current = sheetRanges;
 
 	const applySheetStructureShiftToLocalState = useCallback((operation: SheetStructureOperationEnum, index: number) => {
-		const bounds = getSheetStructureProtectedBounds(sheetRegionsRef.current);
+		const bounds = [...regionBoundsByIdRef.current.values()];
 
 		// Persisted pending edits are keyed by coordinate, which a structure
 		// shift invalidates: drop them instead of rehydrating stale coordinates
@@ -1522,6 +1525,7 @@ function SheetDataContent(p: SheetDataContentProps) {
 			remoteStructureShift={remoteStructureShift}
 			onUpdateSheetDesign={updateSheetDesign}
 			ranges={sheetRanges}
+			regionBoundsById={regionBoundsById}
 			regions={sheetRegions}
 			organizationId={organizationId}
 			setFloatingMessage={p.setFloatingMessage}

@@ -65,4 +65,3 @@ query dataTableRows (
 ${dataTableRowFragment}
 ${dataTableCellFragment}
 `;
-
