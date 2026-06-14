@@ -69,7 +69,10 @@ ToasterPreview.displayName = 'ToasterPreview';
  * Toaster module
  */
 
-function Toaster() {
+function Toaster(p: {
+  hidden?: boolean;
+}) {
+  const { hidden } = p;
   const [open, setOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastObj[]>([]);
   const newToast = useToastValue();
@@ -94,6 +97,11 @@ function Toaster() {
   const onClickPreview = () => {
     setOpen(!open);
   };
+
+  if (hidden) {
+    // Hide on workspace because the toaster frame overlaps the last ColumnsLayout header drag hit area.
+    return null;
+  }
 
   return <div className='rel fs v_center w_400'>
     <ToasterPreview

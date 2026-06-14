@@ -162,6 +162,7 @@ function getSheetContextMenuFormatOptions(target: SheetContextMenuTarget, params
 	return [{
 		__type: 'LIST_COLORS',
 		label: i18n.t('sheet.text_color'),
+		iconName: 'text-format-1',
 		name: SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor,
 		onClickCustomize: () => {
 			params?.onCustomizeCells?.(target, SHEET_CONTEXT_MENU_FORMAT_NAMES.textColor);
@@ -170,6 +171,7 @@ function getSheetContextMenuFormatOptions(target: SheetContextMenuTarget, params
 	}, {
 		__type: 'LIST_COLORS',
 		label: i18n.t('sheet.fill_color'),
+		iconName: 'fill-bucket-drop',
 		name: SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor,
 		onClickCustomize: () => {
 			params?.onCustomizeCells?.(target, SHEET_CONTEXT_MENU_FORMAT_NAMES.fillColor);
@@ -537,7 +539,6 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 					value,
 				});
 			}
-			closePopOver();
 			return;
 		}
 
@@ -548,7 +549,6 @@ export function useSheetContextMenu(p: UseSheetContextMenuParams) {
 					value,
 				});
 			}
-			closePopOver();
 			return;
 		}
 

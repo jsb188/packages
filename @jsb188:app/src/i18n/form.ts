@@ -41,7 +41,6 @@ export default {
     content_missing: 'Content missing',
     content_not_found_msg: 'The content you are looking for could not be found.',
     reports: 'Reports',
-    data_tables: 'Data tables',
     tables: 'Tables',
     form: 'Form',
     ranch: 'Ranch',

@@ -1,4 +1,4 @@
-import { memo, useMemo, type Ref } from 'react';
+import { memo, useCallback, useMemo, useState, type Ref } from 'react';
 import {
 	TableHeaderRow,
 	TableRoot,
@@ -8,6 +8,7 @@ import {
 import {
 	TABLE_RESIZE_GUIDE_WIDTH,
 	getTableDividerResizeTarget,
+	getTableDividerLeftFromGrid,
 } from './table/layout';
 import { TableMockClient, TableMockSSR, TablePageMock } from './table/mocks';
 import { getOrderedTableCellClassNames, getOrderedTableColumns, getOrderedTableHeaders } from './table/order';
@@ -41,6 +42,7 @@ export type {
 export const VZTable = memo((p: TableListProps) => {
 	const { bodyRef, borderStyle, columnOrder, columnWidths, disableOnClickRow, footerNode, reactiveFragmentFn, onColumnOrderCommit, onColumnResizeCommit, reorderableColumns, resizableColumns, tableDesign, headers, listData, cellClassNames, mapListData, onClickRow, removeLeftPadding, removeRightPadding, trowClassName } = p;
 	const sourceColumns = tableDesign?.columns || [];
+	const [hoverResizeGuideLeft, setHoverResizeGuideLeft] = useState<number | null>(null);
 	const columns = useMemo(() => getOrderedTableColumns(sourceColumns, columnOrder), [columnOrder, sourceColumns]);
 	const renderHeaders = useMemo(() => getOrderedTableHeaders(headers, sourceColumns, columns), [columns, headers, sourceColumns]);
 	const renderCellClassNames = useMemo(() => getOrderedTableCellClassNames(cellClassNames, sourceColumns, columns), [cellClassNames, columns, sourceColumns]);
@@ -97,6 +99,9 @@ export const VZTable = memo((p: TableListProps) => {
 		tableDesign: renderTableDesign,
 		trowClassName,
 	}), [cellClassNames, disableOnClickRow, mapListData, onClickRow, removeLeftPadding, removeRightPadding, renderTableDesign, sourceColumns, trowClassName]);
+	const getResizeGuideScrollLeft = useCallback(() => (
+		headerScrollerRef.current?.scrollLeft || bodyScrollerRef.current?.scrollLeft || 0
+	), [bodyScrollerRef, headerScrollerRef]);
 
 	return <>
 		<div
@@ -114,6 +119,18 @@ export const VZTable = memo((p: TableListProps) => {
 				left: 0,
 				top: 0,
 				width: TABLE_RESIZE_GUIDE_WIDTH,
+			}}
+		/>
+		<div
+			className='abs bg_active noclick z4'
+			aria-hidden
+			style={{
+				bottom: 0,
+				display: hoverResizeGuideLeft === null ? 'none' : 'block',
+				left: 0,
+				top: 0,
+				transform: `translateX(${(hoverResizeGuideLeft || 0) - getResizeGuideScrollLeft() - 3}px)`,
+				width: 6,
 			}}
 		/>
 
@@ -155,8 +172,13 @@ export const VZTable = memo((p: TableListProps) => {
 									onPointerCancel={onColumnResizePointerCancel}
 									onPointerDown={(event) => {
 										event.stopPropagation();
+										setHoverResizeGuideLeft(null);
 										onColumnResizePointerDown(event, resizeTarget);
 									}}
+									onPointerEnter={() => {
+										setHoverResizeGuideLeft(getTableDividerLeftFromGrid(tableRef.current, resizeTarget.dividerIndex));
+									}}
+									onPointerLeave={() => setHoverResizeGuideLeft(null)}
 									onPointerMove={onColumnResizePointerMove}
 									onPointerUp={onColumnResizePointerUp}
 									role='separator'

@@ -334,11 +334,51 @@ const POListColors = memo((p: PONavItemBase & {
   item: POListColorsObj;
 }) => {
   const { item, name, onClickItem, value } = p;
-  const { className, colors, disabled, label, onClickCustomize, selectedValue } = item;
+  const { className, colors, disabled, iconName, label, onClickCustomize, selectedValue } = item;
   const selectedColor = value !== undefined ? value : selectedValue;
   const baseColors = colors?.length ? colors : getPOListDefaultColors(name);
   const displayColors = [null, ...baseColors.filter((color) => color !== null)];
   const emptyColorCount = Math.max(0, 10 - displayColors.length);
+  const selectedColorClassName = selectedColor && isPOListColorEnum(selectedColor) ? `bg_${selectedColor}` : '';
+  const selectedColorStyle = selectedColor === null
+    ? getPOListResetColorStyle(name)
+    : selectedColorClassName
+      ? undefined
+      : selectedColor
+        ? { backgroundColor: selectedColor }
+        : undefined;
+  const colorGrid = <div
+    className='grid gap_4'
+    style={{ gridTemplateColumns: iconName ? 'repeat(5, 20px)' : 'repeat(10, 20px)' }}
+  >
+    {displayColors.map((color, i) => {
+      const selected = selectedColor === color;
+      const colorClassName = color && isPOListColorEnum(color) ? `bg_${color}` : '';
+      const isResetColor = color === null;
+      const style = isResetColor ? getPOListResetColorStyle(name) : colorClassName ? undefined : { backgroundColor: color };
+
+      return <button
+        key={`${name}_${color}_${i}`}
+        name={name}
+        disabled={disabled}
+        className={cn('w_20 h_20 r_4 bd_1 bd_lt op_60_hv v_center rel', colorClassName, disabled && 'op_40')}
+        onClick={() => onClickItem(name, color)}
+        style={style}
+        type='button'
+      >
+        {isResetColor && <span className={cn('abs h_10 w_0 bd_r_1 tf_rotate_45', name === 'fillColor' ? 'bd_darker_3' : name === 'textColor' ? 'bd_lighter_4' : 'bd_md')} />}
+        {selected && !isResetColor && <span className={cn('rel z1 ic_xs v_center', getPOListColorCheckIconClassName(color))}>
+          <Icon name='check-filled' />
+        </span>}
+      </button>;
+    })}
+    {Array.from({ length: emptyColorCount }).map((_, i) => (
+      <span
+        key={`${name}_empty_color_${i}`}
+        className='w_20 h_20 r_4 bd_1 bd_lt'
+      />
+    ))}
+  </div>;
 
   return <div
     className={cn('p_8', className)}
@@ -353,38 +393,24 @@ const POListColors = memo((p: PONavItemBase & {
         }
         : undefined}
     />
-    <div
-      className='grid gap_3'
-      style={{ gridTemplateColumns: 'repeat(10, 18px)' }}
-    >
-      {displayColors.map((color, i) => {
-        const selected = selectedColor === color;
-        const colorClassName = color && isPOListColorEnum(color) ? `bg_${color}` : '';
-        const isResetColor = color === null;
-        const style = isResetColor ? getPOListResetColorStyle(name) : colorClassName ? undefined : { backgroundColor: color };
-
-        return <button
-          key={`${name}_${color}_${i}`}
-          name={name}
-          disabled={disabled}
-          className={cn('w_18 h_18 r_4 bd_1 bd_lt op_60_hv v_center rel', colorClassName, disabled && 'op_40')}
-          onClick={() => onClickItem(name, color)}
-          style={style}
-          type='button'
+    {iconName
+      ? <div className='h_left gap_4'>
+        <div
+          aria-label={typeof label === 'string' ? label : undefined}
+          className='w_75 r_4 bd_1 bd_lt bg_alt p_5 v_spread no_shrink rel of fs'
+          title={typeof label === 'string' ? label : undefined}
         >
-          {isResetColor && <span className={cn('abs h_10 w_0 bd_r_1 tf_rotate_45', name === 'fillColor' ? 'bd_darker_3' : name === 'textColor' ? 'bd_lighter_4' : 'bd_md')} />}
-          {selected && !isResetColor && <span className={cn('rel z1 ic_xs v_center', getPOListColorCheckIconClassName(color))}>
-            <Icon name='check-filled' />
-          </span>}
-        </button>;
-      })}
-      {Array.from({ length: emptyColorCount }).map((_, i) => (
-        <span
-          key={`${name}_empty_color_${i}`}
-          className='w_18 h_18 r_4 bd_1 bd_lt'
-        />
-      ))}
-    </div>
+          <div className='v_center fs'>
+            <Icon name={iconName} />
+          </div>
+          <div
+            className={cn('h_6 w_f bd_1 bd_lt no_shrink mt_2', selectedColorClassName)}
+            style={selectedColorStyle}
+          />
+        </div>
+        {colorGrid}
+      </div>
+      : colorGrid}
   </div>;
 });
 
@@ -416,7 +442,7 @@ const POListBorderStyles = memo((p: PONavItemBase & {
         : undefined}
     />
     <div
-      className='grid gapy_n gapx_12'
+      className='grid gapy_n gapx_10'
       style={{ gridTemplateColumns: 'repeat(5, 32px)' }}
     >
       {DEFAULT_PO_LIST_BORDER_STYLES.map((option) => {

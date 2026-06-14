@@ -152,6 +152,7 @@ export interface POListItemPickerObj extends Omit<POActionListItemBase, '__type'
 export interface POListColorsObj extends POItemBase {
   __type: 'LIST_COLORS';
   name?: string;
+  iconName?: string;
   label?: ReactNode;
   onClickCustomize?: POListItemClickFn;
   colors?: readonly POListColorValue[];

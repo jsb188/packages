@@ -150,6 +150,7 @@ export const COMMON_ICON_NAMES: Record<string, string> = {
   delete_data_table: 'database-remove',
   delete_sheet: 'layers-grid-remove',
   grids: 'calendar-2',
+  workspace: 'office-desk-lamp',
   sheet: 'workflow-data-table-2',
   sheet_data_table_populate: 'database-sync',
   not_found_sheet: 'layers-grid-warning',

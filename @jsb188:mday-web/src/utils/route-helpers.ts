@@ -102,7 +102,7 @@ const ROUTES_DICT: Record<ValidRoutePath, RouteDictObj> = {
   '/app/workspace': {
     to: '/app/workspace',
     text: 'app.workspace',
-    iconName: COMMON_ICON_NAMES.app_connections,
+    iconName: COMMON_ICON_NAMES.workspace,
   },
   '/app/c/': {
     to: '/app/c/',
@@ -620,31 +620,31 @@ export function getNavigationList(
 
   // Report sections
 
-  const reportsSection = {
-    text: i18n.t('form.reports'),
-    navList: [
-    ]
-  };
+  // const reportsSection = {
+  //   text: i18n.t('form.reports'),
+  //   navList: [
+  //   ]
+  // };
 
-  if (reportGroups) {
-    // @ts-ignore
-    reportsSection.navList = reportsSection.navList.concat(reportGroups.map((reportGroup) => ({
-      to: makePathname('/app/r/', reportGroup.id),
-      text: reportGroup.shortName || reportGroup.name,
-      iconName: COMMON_ICON_NAMES.generic_report,
-    })));
-  }
+  // if (reportGroups) {
+  //   // @ts-ignore
+  //   reportsSection.navList = reportsSection.navList.concat(reportGroups.map((reportGroup) => ({
+  //     to: makePathname('/app/r/', reportGroup.id),
+  //     text: reportGroup.shortName || reportGroup.name,
+  //     iconName: COMMON_ICON_NAMES.generic_report,
+  //   })));
+  // }
 
-  if (reportsSection.navList.length) {
-    navListArr.push(reportsSection);
-  }
+  // if (reportsSection.navList.length) {
+  //   navListArr.push(reportsSection);
+  // }
 
   // @ts-ignore
   navListArr = [{
     ...ROUTES_DICT['/app'],
     iconName: COMMON_ICON_NAMES[operation!] || 'home',
   },
-    ROUTES_DICT['/app/grids'],
+    ROUTES_DICT['/app/workspace'],
     breakItem,
   // @ts-ignore
   ].concat(navListArr).concat([{

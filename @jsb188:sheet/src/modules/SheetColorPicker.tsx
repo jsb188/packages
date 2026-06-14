@@ -280,11 +280,11 @@ export const SheetColorPicker = memo((p: SheetColorPickerProps) => {
 			<div className="h_10 rel pattern_texture medium_bf bg_fade bg_primary_fd_hv cs_grab" onPointerDown={handleDragStart} />
 		</TooltipButton>
 		<div className="h_top gap_15 p_15">
-			<div className="grid gap_3" style={{ flex: '0 0 auto', gridTemplateColumns: 'repeat(10, 22px)' }}>
+			<div className="grid gap_4" style={{ flex: '0 0 auto', gridTemplateColumns: 'repeat(10, 20px)' }}>
 				{SHEET_COLOR_PICKER_PRESET_COLORS.map((color) => (
 					<button
 						aria-label={color}
-						className="w_22 h_22 bd_1 bd_lt r_4 p_0"
+						className="w_20 h_20 bd_1 bd_lt r_4 p_0"
 						key={color}
 						onClick={() => handlePresetColor(color)}
 						style={{ backgroundColor: color }}

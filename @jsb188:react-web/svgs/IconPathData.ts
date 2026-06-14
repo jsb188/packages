@@ -1,4 +1,5 @@
-const ICON_PATH_DATA_URL = '/icon-path-data.json';
+import { ICON_PATH_DATA_URL } from './generated/IconSpriteMeta.generated';
+
 let iconPathData: Record<string, readonly string[]> = {};
 let iconPathDataLoadPromise: Promise<void> | null = null;
 

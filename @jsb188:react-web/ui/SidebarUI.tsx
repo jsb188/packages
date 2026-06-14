@@ -212,6 +212,7 @@ SidebarNestedNavItem.displayName = 'SidebarNestedNavItem';
 interface SidebarItemProps {
   className?: string;
   linkHoverClassName?: string;
+  renderButtonAsDiv?: boolean;
   selected?: boolean;
   currentPath?: string;
   to?: string;
@@ -223,8 +224,9 @@ interface SidebarItemProps {
 }
 
 export const SidebarItem = memo((p: SidebarItemProps) => {
-  const { text, iconName, rightIconName, currentPath, to, selected, onClick, onContextMenu, className, linkHoverClassName } = p;
+  const { text, iconName, rightIconName, currentPath, to, selected, onClick, onContextMenu, className, linkHoverClassName, renderButtonAsDiv } = p;
   return <SmartLink
+    buttonElement={renderButtonAsDiv ? 'div' : undefined}
     className={cn(
       'mx_6 my_2 py_3 r_xs bl ft_sm cl_df',
       selected ? 'bg_darker_2 disabled' : linkHoverClassName ?? 'bg_darker_2_hv',
@@ -235,6 +237,7 @@ export const SidebarItem = memo((p: SidebarItemProps) => {
     to={to}
     onClick={onClick}
     onContextMenu={onContextMenu}
+    role={renderButtonAsDiv && !to && onClick ? 'button' : undefined}
   >
     {/* <div className='h_item px_12 py_2 ic_df lh_3'> */}
     <div className='h_item px_11 pt_3 pb_2 ic_df lh_2'>

@@ -31,7 +31,7 @@ export default {
 		data_table: 'View',
 		data_table_missing: 'Data table is missing',
 		data_table_missing_msg: 'The data table you are looking for could not be found.',
-		data_tables: 'Data tables',
+		data_tables: 'Data Tables',
 		delete_data_table: 'Delete data table',
 		delete_data_table_msg: '[hl]%{title}[/hl] data table will be deleted.',
 		delete_data_table_no_access_msg: 'You do not have permission to delete "%{title}".',
